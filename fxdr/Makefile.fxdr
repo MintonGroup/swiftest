@@ -1,0 +1,105 @@
+#******************************************************************************
+#
+#  Unit Name   : Makefile.fxdr
+#  Unit Type   : makefile
+#  Project     : SWIFTER
+#  Package     : N/A
+#  Language    : GNU makefile syntax
+#
+#  Description : Controls the build of the FXDR library
+#
+#  Input
+#    Arguments : Zero or more of the following targets:
+#                (1) libfxdr.a : builds the FXDR library
+#                (2) test      : runs tests on FXDR library
+#                (3) install   : installs library and FXDR include file
+#                (4) clean     : removes object modules and test program
+#    Terminal  : none
+#    File      : Makefile.Defines
+#
+#  Output
+#    Arguments : none
+#    Terminal  : status messages
+#    File      : none
+#
+#  Invocation  : make [libfxdr.a|test|install|clean]
+#
+#  Notes       : 
+#
+#******************************************************************************
+ 
+include Makefile.Defines
+
+OBJS	= cxdrinit.o ixdrint.o initxdr.o cxdrint.o ixdrclose.o		\
+	  cxdrclose.o ixdrreal.o cxdrreal.o cxdrdouble.o 		\
+	  ixdrdouble.o ixdrrmat.o cxdrrmat.o ixdrdmat.o cxdrdmat.o 	\
+	  ixdrimat.o cxdrimat.o ixdrstring.o cxdrstring.o		\
+	  ixdrreal64.o cxdrreal64.o ixdrrmat64.o cxdrrmat64.o		\
+	  ixdrrewind.o cxdrrewind.o ixdrshort.o cxdrshort.o
+
+SRCS	= cxdrinit.c ixdrint.F initxdr.F cxdrint.c ixdrclose.F		\
+	  cxdrclose.c ixdrreal.F cxdrreal.c cxdrdouble.c 		\
+	  ixdrdouble.F ixdrrmat.F cxdrrmat.c ixdrdmat.F cxdrdmat.c 	\
+	  ixdrimat.F cxdrimat.c ixdrstring.F cxdrstring.c		\
+	  ixdrreal64.F cxdrreal64.c ixdrrewind.F cxdrrewind.c		\
+	  ixdrshort.F cxdrshort.F
+
+PLACE_FOR_LIBRARY = $(SWIFTER_HOME)/lib
+
+PLACE_FOR_HEADER  = $(SWIFTER_HOME)/include
+
+.SUFFIXES: 
+.SUFFIXES: .c .o .F
+
+###########################################################################
+
+.c.o:
+	$(CCCMD) $(CCOPTS) -c $<
+
+.F.o:
+	$(F77CMD) $(F77OPTS) -c $<
+
+###########################################################################
+
+libfxdr.a: $(OBJS)
+	-rm libfxdr.a
+	$(AR) q libfxdr.a $(OBJS)
+	-$(RANLIB) libfxdr.a
+	@echo "Now do 'make test' to check the library"
+	
+test: libfxdr.a test.F
+	$(F77CMD) $(F77OPTS) -o test test.F -L. -lfxdr $(EXTRA_LIBS)
+	touch test_no_read.xdr
+	chmod -r test_no_read.xdr
+	./test
+	rm test_no_read.xdr
+
+clean:
+	-rm *.o test
+
+install:
+	$(INSTALL_DATA) libfxdr.a $(PLACE_FOR_LIBRARY)
+	$(INSTALL_DATA) fxdr.inc $(PLACE_FOR_HEADER)
+
+#******************************************************************************
+#
+#  Author(s)   : David W. Pierce
+#
+#  Revision Control System (RCS) Information
+#
+#  Source File : $RCSfile: Makefile.fxdr,v $
+#  Full Path   : $Source: /d1/kaufmann/development/RCS/Makefile.fxdr,v $
+#  Revision    : $Revision: 0.1 $
+#  Date        : $Date: 2003/04/15 23:10:41 $
+#  Programmer  : $Author: kaufmann $
+#  Locked By   : $Locker:  $
+#  State       : $State: Exp $
+#
+#  Modification History:
+#
+#  $Log: Makefile.fxdr,v $
+#  Revision 0.1  2003/04/15 23:10:41  kaufmann
+#  Initial implementation
+#
+#
+#******************************************************************************

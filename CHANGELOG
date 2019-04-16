@@ -1,0 +1,8 @@
+2011-10-31  David E. Kaufmann  <kaufmann@boulder.swri.edu>
+
+    * coord/coord_h2j.f90    : fixed bug in WHM integrator for the case of no massive bodies
+    * coord/coord_vh2vj.f90  : same as above
+    * coord/coord_j2h.f90    : same as above
+    * whm/whm_getacch_ah1.f90: same as above
+    * whm/whm_getacch_ah2.f90: same as above
+
