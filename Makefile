@@ -202,7 +202,8 @@ clean:
 	cd $(SWIFTER_HOME)/fxdr;    rm -f Makefile.Defines  *.gc*
 	cd $(SWIFTER_HOME)/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/tool;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/bin;     rm -f *
+	cd $(SWIFTER_HOME)/bin;     rm -f swifter_*
+	cd $(SWIFTER_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTER_HOME)/lib;     rm -f lib*.a
 	cd $(SWIFTER_HOME)/include; rm -f *.mod fxdr.inc
 
