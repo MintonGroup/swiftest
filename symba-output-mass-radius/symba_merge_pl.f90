@@ -118,7 +118,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           symba_pliP => symba_pliP%parentP
           m1 = symba_pliP%helio%swifter%mass
           mass1 = m1 
-          rad1 =symba_pliP%helio%swifter%radius
+          rad1 = symba_pliP%helio%swifter%radius
           x1(:) = m1*symba_pliP%helio%swifter%xh(:)
           v1(:) = m1*symba_pliP%helio%swifter%vb(:)
           mmax = m1
@@ -142,6 +142,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           symba_pljP => symba_pljP%parentP
           m2 = symba_pljP%helio%swifter%mass
           mass2 = m2
+          rad2 = symba_pljP%helio%swifter%radius
           x2(:) = m2*symba_pljP%helio%swifter%xh(:)
           v2(:) = m2*symba_pljP%helio%swifter%vb(:)
           mmax = m2

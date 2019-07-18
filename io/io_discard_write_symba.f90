@@ -89,6 +89,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmerge
                WRITE(LUN, 200) SUB, mergesub_list(index)%id, mergesub_list(index)%status
                WRITE(LUN, 300) mergesub_list(index)%xh(:)
                WRITE(LUN, 300) mergesub_list(index)%vh(:)
+               WRITE(LUN, 500) mergesub_list(index)%id, mergesub_list(index)%mass, mergesub_list(index)%radius
           END DO
      END DO
      symba_plP => symba_pld1P
@@ -98,6 +99,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmerge
                WRITE(LUN, 200) SUB, swifter_plP%id, swifter_plP%status
                WRITE(LUN, 300) swifter_plP%xh(:)
                WRITE(LUN, 300) swifter_plP%vh(:)
+               WRITE(LUN, 500) swifter_plP%id, swifter_plP%mass, swifter_plP%radius
           END IF
           symba_plP => symba_plP%nextP
      END DO

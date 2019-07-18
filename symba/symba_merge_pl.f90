@@ -65,7 +65,8 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
 ! Internals
      LOGICAL(LGT)              :: lmerge
      INTEGER(I4B)              :: i, j, k, id1, id2, stat1, stat2
-     REAL(DP)                  :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax, eold, enew, rad1, rad2
+     REAL(DP)                  :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax, eold, enew, rad1, rad2, & 
+     mass1, mass2
      REAL(DP), DIMENSION(NDIM) :: xr, vr, x1, v1, x2, v2, xnew, vnew
      TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP, swifter_plP
      TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP, symba_plP
@@ -116,6 +117,8 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           symba_pljP%lmerged = .TRUE.
           symba_pliP => symba_pliP%parentP
           m1 = symba_pliP%helio%swifter%mass
+          mass1 = m1 
+          rad1 =symba_pliP%helio%swifter%radius
           x1(:) = m1*symba_pliP%helio%swifter%xh(:)
           v1(:) = m1*symba_pliP%helio%swifter%vb(:)
           mmax = m1
@@ -138,6 +141,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           v1(:) = v1(:)/m1
           symba_pljP => symba_pljP%parentP
           m2 = symba_pljP%helio%swifter%mass
+          mass2 = m2
           x2(:) = m2*symba_pljP%helio%swifter%xh(:)
           v2(:) = m2*symba_pljP%helio%swifter%vb(:)
           mmax = m2
@@ -167,18 +171,25 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           mergesub_list(nmergesub)%status = MERGED
           mergesub_list(nmergesub)%xh(:) = x1(:)
           mergesub_list(nmergesub)%vh(:) = v1(:) - vbs(:)
+          mergesub_list(nmergesub)%mass = mass1
+          mergesub_list(nmergesub)%radius = rad1
           nmergesub = nmergesub + 1
           mergesub_list(nmergesub)%id = id2
           mergesub_list(nmergesub)%status = MERGED
           mergesub_list(nmergesub)%xh(:) = x2(:)
           mergesub_list(nmergesub)%vh(:) = v2(:) - vbs(:)
+          mergesub_list(nmergesub)%mass = mass2
+          mergesub_list(nmergesub)%radius = rad2
+
           nmergeadd = nmergeadd + 1
           IF (m2 > m1) THEN
                mergeadd_list(nmergeadd)%id = id2
                mergeadd_list(nmergeadd)%status = stat2
+
           ELSE
                mergeadd_list(nmergeadd)%id = id1
                mergeadd_list(nmergeadd)%status = stat1
+
           END IF
           mergeadd_list(nmergeadd)%ncomp = 2
           mergeadd_list(nmergeadd)%xh(:) = xnew(:)

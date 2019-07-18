@@ -100,6 +100,8 @@ MODULE module_symba
           INTEGER(I4B)              :: ncomp  ! number of component bodies in this one during this merger
           REAL(DP), DIMENSION(NDIM) :: xh     ! heliocentric position
           REAL(DP), DIMENSION(NDIM) :: vh     ! heliocentric velocity
+          REAL(DP)                  :: mass   ! mass
+          REAL(DP)                  :: radius ! radius
      END TYPE symba_merger
 
 END MODULE module_symba
