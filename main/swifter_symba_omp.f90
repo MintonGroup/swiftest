@@ -102,6 +102,7 @@ PROGRAM swifter_symba_omp
      READ(*, 100) inparfile
  100 FORMAT(A)
      inparfile = TRIM(ADJUSTL(inparfile))
+     ! Read in the param.in file and get simulation parameters
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
           encounter_file, lextra_force, lbig_discard, lrhill_present)
@@ -110,17 +111,29 @@ PROGRAM swifter_symba_omp
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
           CALL util_exit(FAILURE)
      END IF
+     ! Read in the total number of bodies from the input files
      CALL io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
+
+     ! Create arrays of data structures big enough to store the number of bodies we are adding
      ALLOCATE(symba_plA(nplmax), mergeadd_list(nplmax), mergesub_list(nplmax))
+
+     ! Linked-list jiggery pokery that is probably very important
      CALL set_point(symba_plA)
+
      IF (ntp > 0) THEN
           ALLOCATE(symba_tpA(ntpmax))
           CALL set_point(symba_tpA)
      END IF
+     
+     ! Converts the array that we allocated into a linked list structure
      CALL symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swifter_pl1P, swifter_tp1P)
+
+     ! Reads in initial conditions of all massive bodies from input file and fills the linked list
      CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
      WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
      READ(*, *) mtiny
+
+     ! Reorder linked list by mass 
      CALL symba_reorder_pl(npl, symba_pl1P)
      CALL io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
@@ -149,6 +162,16 @@ PROGRAM swifter_symba_omp
                iloop = 0
           END IF
           t = tbase + iloop*dt
+          ! Take the merger info and create fragments
+          ! CALL some subroutine that returns the number of fragments and an array of new bodies (swifter_pl type)
+          ! update nplmax to add in the new number of bodies
+          
+          ! add new bodies into the current body linked list as in CALL symba_setup
+
+          ! reorder bodies (if that is not already going to happen..check the discard subroutines
+          
+
+          !
           CALL symba_discard_merge_pl(t, npl, nsppl, symba_pl1P, symba_pld1P, nplplenc, plplenc_list)
           CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_pl1P, symba_pld1P, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &
                qmin_ahi, j2rp2, j4rp4, eoffset)
