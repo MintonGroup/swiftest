@@ -22,7 +22,7 @@
 !
 !  Invocation  : CALL symba_user_getacch(t, npl, symba_pl1P)
 !
-!  Notes       : Jennifer was here
+!  Notes       : Jennifer was really here
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_user_getacch(t, npl, symba_pl1P)
