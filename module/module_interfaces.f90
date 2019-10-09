@@ -1557,6 +1557,21 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
+          SUBROUTINE symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)
+               USE module_parameters
+               USE module_swifter
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               INTEGER(I4B), INTENT(IN)                      :: nplplenc
+               INTEGER(I4B), INTENT(INOUT)                   :: npl, nplmax, ntp, ntpmax
+               REAL(DP), INTENT(IN)                          :: t
+               TYPE(symba_pl), POINTER                       :: symba_pl1P
+               TYPE(symba_plplenc), DIMENSION(:), INTENT(IN) :: plplenc_list
+          END SUBROUTINE symba_fragmentation
+     END INTERFACE
+
+     INTERFACE
           SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, j4rp4, nplplenc, plplenc_list)
                USE module_parameters
                USE module_swifter

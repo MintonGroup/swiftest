@@ -1,30 +1,32 @@
 !
-! Parameter file for the CHO run of the 4 giant planets and Pluto.
+!Parameter file for a test run
 !
-!NPLMAX         -1                 ! not used
-!NTPMAX         -1                 ! not used
-T0             0.0e0
-TSTOP          1.e9            ! simulation length in years
-DT             1e-3            ! stepsize in years
-PL_IN          pl.in
-TP_IN          tp.in
-IN_TYPE        ASCII
-ISTEP_OUT      1000000               ! output cadence
-BIN_OUT        bin.dat
-OUT_TYPE       REAL4                ! double precision real output
-OUT_FORM       EL                  ! osculating element output
-OUT_STAT       NEW
-ISTEP_DUMP     1000000             ! system dump cadence
-J2             0.0               ! no J2 term
-J4             0.0               ! no J4 term
-CHK_CLOSE      yes                ! check for planetary close encounters
-CHK_RMIN       0.005                ! check for close solar encounters
-CHK_RMAX       10000.0              ! discard outside of
-CHK_EJECT      -1.0                ! ignore this check
-CHK_QMIN       -1.0                ! ignore this check
-!CHK_QMIN_COORD HELIO               ! commented out here
-!CHK_QMIN_RANGE 1.0 1000.0          ! commented out here
-ENC_OUT        enc.dat
-EXTRA_FORCE    no                  ! no extra user-defined forces
-BIG_DISCARD    no                 ! output all planets if anything discarded
-RHILL_PRESENT  yes                 ! Hill's sphere radii in input file
+!NPLMAX         -1                              !turns this off
+!NTPMAX         -1                              !turns this off
+T0              0.0e0                           !starting time in years
+TSTOP           50000.0                      !simulation length in years
+DT              0.016                             !step size in years
+PL_IN           Test.in                    !input file in coords not orbital elements
+TP_IN           tp.in
+IN_TYPE         ASCII                           !format of input file
+ISTEP_OUT       100                         !output cadence [(TSTOP)/(DT*everyXyears]
+BIN_OUT         bin.dat                         !output file
+OUT_TYPE        REAL8                           !double precision real output
+OUT_FORM        EL                              !output type in orb elm. (use XV for coords)
+OUT_STAT        NEW
+ISTEP_DUMP      100                          !keep same as ISTEP_OUT
+J2              0.0                             !higher order harmonics
+J4              0.0                             !higher order harmonics
+CHK_CLOSE       yes                             !check for planetary close encounters
+CHK_RMIN        0.005                           !check for close solar encounters in AU
+CHK_RMAX        10000.0                         !drop things from the simulation in AU
+CHK_EJECT       -1.0                            !turns this off
+CHK_QMIN        -1.0                            !turns this off
+!CHK_QMIN_COORD HELIO                           !turns this off
+!CHK_QMIN_RANGE 1.0 1000.0                      !turns this off
+ENC_OUT         enc.dat                         !output file for close encounters
+EXTRA_FORCE     no                              !this would be user defined forces
+BIG_DISCARD     no                             !output all planets if anything is discarded
+RHILL_PRESENT   yes                             !Rhill is definted in the input file
+
+
