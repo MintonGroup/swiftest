@@ -50,3 +50,7 @@ coord/Makefile
 bin/
 
 include/
+
+example/
+
+fxdr/libfxdr.a
