@@ -8,6 +8,7 @@
 !README.md
 !README.swifter 
 !Makefile.Defines_example
-example/
+!example/*.in
+!example/swifter_symba_omp
 !Makefile
 */Makefile
