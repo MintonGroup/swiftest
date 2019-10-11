@@ -59,7 +59,7 @@ MODULES         = $(SWIFTER_MODULES) $(USER_MODULES)
 
 % : %.f90 force
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include $< -o $@ \
-	  -L$(SWIFTER_HOME)/lib -lswifter -lfxdr
+	  -L$(SWIFTER_HOME)/lib -lswifter -lfxdr -lcollresolve
 	$(INSTALL_PROGRAM) $@ $(SWIFTER_HOME)/bin
 	rm -f $@
 
