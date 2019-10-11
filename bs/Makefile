@@ -1,1 +1,0 @@
-/Users/daminton/work/Git/swifter-omp/Makefile
