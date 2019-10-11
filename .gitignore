@@ -13,3 +13,4 @@
 !example/swifter_symba_omp
 !Makefile
 */Makefile
+!.gitignore
