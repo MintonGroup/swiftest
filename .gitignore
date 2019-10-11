@@ -1,0 +1,15 @@
+# First, ignore everything
+*
+# Now, whitelist anything that's a directory
+!*/
+# whitelist only the files that ever need to be tracked
+!*.f90
+!CHANGELOG 
+!README.md
+!README.swifter 
+!Makefile.Defines_example
+!example/*.in
+!example/cleanup
+!example/swifter_symba_omp
+!Makefile
+*/Makefile
