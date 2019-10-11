@@ -6,7 +6,9 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Check for merger between planets in SyMBA
+!  Description : Check whether or not bodies are colliding or on collision path
+!                Check for merger between planets in SyMBA if lfrag=.FALSE.
+!                
 !
 !  Input
 !    Arguments : t              : time
@@ -81,9 +83,12 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
      xr(:) = swifter_pljP%xh(:) - swifter_pliP%xh(:)
      r2 = DOT_PRODUCT(xr(:), xr(:))
      rlim2 = rlim*rlim
-     IF (rlim2 >= r2) THEN
+     ! checks if bodies are actively colliding in this time step
+     IF (rlim2 >= r2) THEN 
           lmerge = .TRUE.
-     ELSE
+     ! if they are not actively colliding in  this time step, 
+     !checks if they are going to collide next time step based on velocities and q
+     ELSE 
           vr(:) = swifter_pljP%vb(:) - swifter_pliP%vb(:)
           vdotr = DOT_PRODUCT(xr(:), vr(:))
           IF (plplenc_list(index)%lvdotr .AND. (vdotr > 0.0_DP)) THEN
@@ -94,6 +99,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
                     CALL orbel_xv2aeq(xr(:), vr(:), mtot, a, e, q)
                     IF (q < rlim) lmerge = .TRUE.
                END IF
+               ! if no collision is going to happen, write as close encounter, not  merger
                IF (.NOT. lmerge) THEN
                     IF (encounter_file /= "") THEN
                          id1 = swifter_pliP%id
