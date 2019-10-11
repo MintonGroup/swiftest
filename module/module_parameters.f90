@@ -128,6 +128,14 @@ MODULE module_parameters
      INTEGER(I4B), PARAMETER :: LOOPMAX = 2147483647     ! 2**31 - 1
      REAL(DP),     PARAMETER :: TINY    = 4.0E-15_DP
 
+! Added by D. Minton
+! Unit conversion definitions. The user supplies these definitions in param.in.
+     LOGICAL,  SAVE       :: lfragmentation = .FALSE. ! If true, then do fragmentation modeling instead of simple merger.
+     REAL(DP), SAVE       :: MU2GM = -1.0_DP          ! Converts mass units to grams
+     REAL(DP), SAVE       :: TU2S  = -1.0_DP          ! Converts time units to seconds
+     REAL(DP), SAVE       :: DU2CM = -1.0_DP          ! Converts distance unit to centimeters
+     REAL(DP), PARAMETER  :: GC    = 6.6743E-8_DP      ! Universal gravitational constant in cgs units (from NIST in 2019)
+
 END MODULE module_parameters
 !**********************************************************************************************************************************
 !

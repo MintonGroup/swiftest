@@ -28,5 +28,7 @@ ENC_OUT         enc.dat                         !output file for close encounter
 EXTRA_FORCE     no                              !this would be user defined forces
 BIG_DISCARD     no                             !output all planets if anything is discarded
 RHILL_PRESENT   yes                             !Rhill is definted in the input file
-
-
+FRAGMENTATION   yes                             !Turns fragmentation model on
+MU2GM           1.989e33                        !Conversion from mass unit to grams
+DU2CM           1.496e13                        !Conversion from distance unit to centimeters
+TU2S            31557600.0                      !Conversion from time unit to seconds
