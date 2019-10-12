@@ -7,7 +7,6 @@
 !CHANGELOG 
 !README.md
 !README.swifter 
-!Makefile.Defines_example
 !fxdr*/*.c
 !fxdr*/*.F
 !fxdr*/*.3f
@@ -26,4 +25,6 @@
 !example/swifter_symba_omp
 !Makefile
 */Makefile
+!Makefile.Defines
+*/Makefile.Defines
 !.gitignore

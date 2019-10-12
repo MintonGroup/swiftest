@@ -34,10 +34,10 @@ RANLIB          = ranlib
 INSTALL         = install
 INSTALL_PROGRAM = $(INSTALL) -m 755
 INSTALL_DATA    = $(INSTALL) -m 644
-
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 # Swifter definitions
 
-SWIFTER_HOME    =  # Full path to your Swifter directory goes here 
+SWIFTER_HOME    = $(ROOT_DIR)
 USER_MODULES    =
 
 # Compiler definitions
