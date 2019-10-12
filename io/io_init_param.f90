@@ -420,7 +420,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      !$ nthreads = omp_get_max_threads() ! In the *parallel* case
      !$ write(*,'(a)')      ' OpenMP parameters:'
      !$ write(*,'(a)')      ' ------------------'
-     !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads     a
+     !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads     
 
      RETURN
 
