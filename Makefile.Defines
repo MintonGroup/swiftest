@@ -39,6 +39,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 SWIFTER_HOME    = $(ROOT_DIR)
 USER_MODULES    =
+COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
 # Compiler definitions
 
