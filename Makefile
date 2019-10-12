@@ -59,7 +59,7 @@ MODULES         = $(SWIFTER_MODULES) $(USER_MODULES)
 
 % : %.f90 force
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include $< -o $@ \
-	  -L$(SWIFTER_HOME)/lib -lswifter -lfxdr
+	  -L$(SWIFTER_HOME)/lib -lswifter -lfxdr -lcollresolve
 	$(INSTALL_PROGRAM) $@ $(SWIFTER_HOME)/bin
 	rm -f $@
 
@@ -204,7 +204,8 @@ clean:
 	cd $(SWIFTER_HOME)/tool;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/bin;     rm -f swifter_*
 	cd $(SWIFTER_HOME)/bin;     rm -f tool_*
-	cd $(SWIFTER_HOME)/lib;     rm -f lib*.a
+	cd $(SWIFTER_HOME)/lib;     rm -f libfxdr.a 
+	cd $(SWIFTER_HOME)/lib;     rm -f libswifter.a 
 	cd $(SWIFTER_HOME)/include; rm -f *.mod fxdr.inc
 
 force:
