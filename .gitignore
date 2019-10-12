@@ -10,6 +10,10 @@
 !Makefile.Defines_example
 !fxdr*/*.c
 !fxdr*/*.F
+!fxdr*/*.3f
+!fxdr*/*.h
+!fxdr*/*.inc
+!fxdr*/cxdrreal64
 !fxdr*/test.orig.xdr
 !fxdr*/configure/
 !fxdr*/README*
