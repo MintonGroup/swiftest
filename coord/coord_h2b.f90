@@ -30,6 +30,7 @@ SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
 ! Modules
      USE module_parameters
      USE module_swifter
+     USE module_random_access, EXCEPT_THIS_ONE => coord_h2b
      USE module_interfaces, EXCEPT_THIS_ONE => coord_h2b
      IMPLICIT NONE
 
@@ -40,50 +41,33 @@ SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
 
 ! Internals
      INTEGER(I4B)              :: i
-     REAL(DP), DIMENSION(NDIM) :: xtmp, vtmp
+     REAL(DP), DIMENSION(NDIM) :: xtmp = (/ 0.0_DP, 0.0_DP, 0.0_DP /), vtmp = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
      msys = swifter_pl1P%mass
-     !Removed by D. minton
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^^
-     xtmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     vtmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     !^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) & 
+     !$OMP SHARED(npl) &
      !$OMP REDUCTION(+:msys,xtmp,vtmp)     
      DO i = 2, npl
-          ! Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^^
-          ! Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^^
+          CALL get_point(i,swifter_plP)
           msys = msys + swifter_plP%mass
-          xtmp(:) = xtmp(:) + swifter_plP%mass*swifter_plP%xh(:)
-          vtmp(:) = vtmp(:) + swifter_plP%mass*swifter_plP%vh(:)
+          xtmp(:) = xtmp(:) + swifter_plP%mass * swifter_plP%xh(:)
+          vtmp(:) = vtmp(:) + swifter_plP%mass * swifter_plP%vh(:)
      END DO
      !$OMP END PARALLEL DO
      swifter_plP => swifter_pl1P
-     swifter_plP%xb(:) = -xtmp(:)/msys
-     swifter_plP%vb(:) = -vtmp(:)/msys
+     swifter_plP%xb(:) = -xtmp(:) / msys
+     swifter_plP%vb(:) = -vtmp(:) / msys
      xtmp(:) = swifter_plP%xb(:)
      vtmp(:) = swifter_plP%vb(:)
+
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P,xtmp,vtmp) 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) & 
+     !$OMP SHARED(npl,xtmp,vtmp) 
      DO i = 2, npl
-          !Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^
+          CALL get_point(i,swifter_plP)
           swifter_plP%xb(:) = swifter_plP%xh(:) + xtmp(:)
           swifter_plP%vb(:) = swifter_plP%vh(:) + vtmp(:)
      END DO
