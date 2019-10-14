@@ -13,7 +13,7 @@ ISTEP_OUT       12500                         !output cadence [(TSTOP)/(DT*every
 BIN_OUT         bin2.dat                         !output file
 OUT_TYPE        REAL8                           !double precision real output
 OUT_FORM        EL                              !output type in orb elm. (use XV for coords)
-OUT_STAT        NEW  
+OUT_STAT        APPEND
 ISTEP_DUMP      12500                          !keep same as ISTEP_OUT
 J2              0.0                             !higher order harmonics
 J4              0.0                             !higher order harmonics

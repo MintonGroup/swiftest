@@ -4,7 +4,7 @@
 !NPLMAX         -1                              !turns this off
 !NTPMAX         -1                              !turns this off
 T0              0.0e0                           !starting time in years
-TSTOP           1.0000                      !simulation length in years
+TSTOP           10.0000                      !simulation length in years
 DT              0.008                             !step size in years
 PL_IN           12000pl.in       !input file in coords not orbital elements
 TP_IN           tp.in

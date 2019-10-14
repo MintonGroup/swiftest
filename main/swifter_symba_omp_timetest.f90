@@ -109,14 +109,14 @@ PROGRAM swifter_symba_omp_timetest
      WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
      READ(*, *) mtiny
      !$ open(unit=33,file="timetest.dat",status='replace')
-     !$ DO i = 1,nthreads
+     !$ DO i = nthreads,nthreads
      !$ CALL OMP_SET_NUM_THREADS(i)
      !$ tstart = omp_get_wtime()
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
           encounter_file, lextra_force, lbig_discard, lrhill_present)
-     !!$ write(syscall,'("rm ",A16)') outfile
-     !!$ CALL SYSTEM(syscall) 
+     !$ write(syscall,'("rm ",A16," ; touch ",A16)') outfile,outfile
+     !$ CALL SYSTEM(syscall) 
      IF (.NOT. lrhill_present) THEN
           WRITE(*, *) "SWIFTER Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
