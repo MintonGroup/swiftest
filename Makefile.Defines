@@ -57,7 +57,7 @@ FFLAGS          = -O3
 
 #CC              = icc
 CC              = cc
-CFLAGS          = -O3
+CFLAGS          = -O3 -w -m64
 
 64_BIT_REALS    = -r8
 
