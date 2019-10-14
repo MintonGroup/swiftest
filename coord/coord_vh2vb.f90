@@ -30,6 +30,7 @@ SUBROUTINE coord_vh2vb(npl, swifter_pl1P, msys)
 ! Modules
      USE module_parameters
      USE module_swifter
+     USE module_random_access, EXCEPT_THIS_ONE => coord_vh2vb
      USE module_interfaces, EXCEPT_THIS_ONE => coord_vh2vb
      IMPLICIT NONE
 
@@ -40,47 +41,31 @@ SUBROUTINE coord_vh2vb(npl, swifter_pl1P, msys)
 
 ! Internals
      INTEGER(I4B)              :: i
-     REAL(DP), DIMENSION(NDIM) :: vtmp
+     REAL(DP), DIMENSION(NDIM) :: vtmp = 0.0_DP
      TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
-     ! Removed by D. Minton
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^^
-     vtmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      msys = swifter_pl1P%mass
-     !^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) & 
+     !$OMP SHARED(npl) &
      !$OMP REDUCTION(+:vtmp,msys)
      DO i = 2, npl
-          ! Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^^
           ! Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^^
+          CALL get_point(i,swifter_plP)
           msys = msys + swifter_plP%mass
           vtmp(:) = vtmp(:) + swifter_plP%mass*swifter_plP%vh(:)
      END DO
      !$OMP END PARALLEL DO
      swifter_plP => swifter_pl1P
-     swifter_plP%vb(:) = -vtmp(:)/msys
+     swifter_plP%vb(:) = -vtmp(:) / msys
      vtmp(:) = swifter_plP%vb(:)
-     !^^^^^^^^^^^^^^^^^^^^^
+
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P,vtmp) 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &  
+     !$OMP SHARED(npl,vtmp) 
      DO i = 2, npl
-          ! Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^^
-          ! Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^^^^
+          CALL get_point(i,swifter_plP)
           swifter_plP%vb(:) = swifter_plP%vh(:) + vtmp(:)
      END DO
      !$OMP END PARALLEL DO
