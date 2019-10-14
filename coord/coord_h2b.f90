@@ -41,7 +41,7 @@ SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
 
 ! Internals
      INTEGER(I4B)              :: i
-     REAL(DP), DIMENSION(NDIM) :: xtmp = (/ 0.0_DP, 0.0_DP, 0.0_DP /), vtmp = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+     REAL(DP), DIMENSION(NDIM) :: xtmp = 0.0_DP, vtmp = 0.0_DP
      TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code

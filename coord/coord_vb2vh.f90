@@ -39,7 +39,7 @@ SUBROUTINE coord_vb2vh(npl, swifter_pl1P)
 
 ! Internals
      INTEGER(I4B)              :: i
-     REAL(DP), DIMENSION(NDIM) :: vtmp = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+     REAL(DP), DIMENSION(NDIM) :: vtmp = 0.0_DP
      TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
