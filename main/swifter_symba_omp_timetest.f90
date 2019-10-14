@@ -1,17 +1,18 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : tool_timetest
+!  Unit Name   : swifter_symba_omp_timetest
 !  Unit Type   : program
 !  Project     : Swifter
 !  Package     : main
 !  Language    : Fortran 90/95
 !
-!  Description : Tests of execution time of different methods for looping over SyMBA body lists
-!  OpenMP parallelization
+!  Description : Driver program for the Symplectic Massive Body Algorithm with
+!  OpenMP parallelization. Does a thread vs. wall time test 
 !
 !  Input
 !    Arguments : none
 !    Terminal  : parameter file name
+!                mtiny               : smallest self-gravitating mass
 !    File      : none
 !
 !  Output
@@ -20,125 +21,15 @@
 !                status messages
 !    File      : none
 !
-!  Invocation  : % tool_timetest
+!  Invocation  : % swifter_symba
 !
-!  Notes       : 
+!  Notes       : Reference: Duncan, M. J., Levison, H. F. & Lee, M. H. 1998. Astron. J., 116, 2067.
+!
+!                Adapted from Hal Levison and Martin Duncan's Swift program swift_symba5.f
+!                OpenMP parallelization by David Minton
 !
 !**********************************************************************************************************************************
-MODULE module_timetest
-   !$ USE omp_lib
-   IMPLICIT NONE
-
-   CONTAINS
-
-      SUBROUTINE shadow_array(npl, nplmax, symba_pl1P)
-         USE module_parameters
-         USE module_symba
-         IMPLICIT NONE
-
-         INTEGER(I4B),INTENT(IN)      :: npl,nplmax
-         TYPE(symba_pl), POINTER      :: symba_pl1P
-         TYPE(swifter_pl), POINTER :: swifter_pliP,swifter_pljP
-         TYPE(swifter_pl), POINTER :: swifter_pl1P
-         TYPE(helio_pl), POINTER   :: helio_pl1P,helio_pliP,helio_pljP
-         TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
-         INTEGER(I4B)              :: i,j,k
-
-         symba_pliP => symba_pl1P
-         helio_pl1P => symba_pl1P%helio
-         !Added by D. Minton
-         swifter_pl1P => helio_pl1P%swifter
-         IF (ALLOCATED(symba_pl1P%symba_plPA)) DEALLOCATE(symba_pl1P%symba_plPA)
-         ALLOCATE(symba_pl1P%symba_plPA(npl))
-         IF (ALLOCATED(swifter_pl1P%swifter_plPA)) DEALLOCATE(swifter_pl1P%swifter_plPA)
-         ALLOCATE(swifter_pl1P%swifter_plPA(npl))
-         IF (ALLOCATED(helio_pl1P%helio_plPA)) DEALLOCATE(helio_pl1P%helio_plPA)
-         ALLOCATE(helio_pl1P%helio_plPA(npl))
-         !^^^^^^^^^^^^^^^^^^
-         DO i = 1, npl
-             symba_pl1P%symba_plPA(i)%thisP => symba_pliP
-             helio_pl1p%helio_plPA(i)%thisP => symba_pliP%helio
-             swifter_pl1P%swifter_plPA(i)%thisP => symba_pliP%helio%swifter
-             symba_pliP%helio%swifter%vb(:) = 0.0_DP
-             symba_pliP => symba_pliP%nextP
-             
-         END DO
-         
-
-        symba_pliP => symba_pl1P
-        !$OMP PARALLEL DO DEFAULT(PRIVATE) &
-        !$OMP SHARED(npl,symba_pl1P) 
-        DO i = 2, npl
-             symba_pliP => symba_pl1P%symba_plPA(i)%thisP
-             helio_pliP => symba_pliP%helio
-             swifter_pliP => helio_pliP%swifter
-             helio_pliP%ah(:) = (/9.0_DP, 8.5_DP, 7.0_DP/)
-             DO j = i + 1, npl
-                  symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
-                  helio_pljP => symba_pljP%helio
-                  swifter_pljP => helio_pljP%swifter
-                  do k = 1, 1
-                     swifter_pljP%vb(:) = swifter_pliP%vb(:) + helio_pljP%ah(:)*3.7_DP !Arbitrary calculation
-                  end do
-             END DO
-        END DO
-       !$OMP END PARALLEL DO
-   
-      END SUBROUTINE shadow_array
-
-
-      SUBROUTINE get_point_method(npl, nplmax, symba_pl1P)
-         USE module_parameters
-         USE module_symba
-         USE module_random_access
-         IMPLICIT NONE
-
-         INTEGER(I4B),INTENT(IN)      :: npl,nplmax
-         TYPE(symba_pl), POINTER      :: symba_pl1P
-         TYPE(swifter_pl), POINTER :: swifter_pliP,swifter_pljP
-         TYPE(swifter_pl), POINTER :: swifter_pl1P
-         TYPE(helio_pl), POINTER   :: helio_pl1P,helio_pliP,helio_pljP
-         TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
-         INTEGER(I4B)              :: i,j,k
-
-         symba_pliP => symba_pl1P
-         helio_pl1P => symba_pl1P%helio
-         DO i = 1, npl
-             symba_pliP%helio%swifter%vb(:) = 0.0_DP
-             symba_pliP => symba_pliP%nextP
-         END DO
-         
-
-        !$OMP PARALLEL DO DEFAULT(PRIVATE) &
-        !$OMP SHARED(npl,symba_pl1P) 
-        DO i = 2, npl
-             symba_pliP => symba_pl1P
-             call get_point(i,symba_pliP)
-             helio_pliP => symba_pliP%helio
-             swifter_pliP => helio_pliP%swifter
-             helio_pliP%ah(:) = (/9.0_DP, 8.5_DP, 7.0_DP/)
-             DO j = i + 1, npl
-                  symba_pljP => symba_pl1P
-                  helio_pljP => symba_pljP%helio
-                  call get_point(j,symba_pljP)
-                  swifter_pljP => helio_pljP%swifter
-                  do k = 1, 1
-                     swifter_pliP%vb(:) = swifter_pljP%vb(:) + helio_pljP%ah(:)*3.7_DP !Arbitrary calculation
-                  end do
-             END DO
-        END DO
-       !$OMP END PARALLEL DO
-   
-      END SUBROUTINE get_point_method
-
-
-
-
-END MODULE module_timetest
-       
-
-
-PROGRAM tool_timetest
+PROGRAM swifter_symba_omp_timetest
 
 ! Modules
      USE module_parameters
@@ -146,7 +37,6 @@ PROGRAM tool_timetest
      USE module_symba
      USE module_random_access
      USE module_interfaces
-     USE module_timetest
      !Added by D. Minton
      !$ USE omp_lib
      IMPLICIT NONE
@@ -180,11 +70,12 @@ PROGRAM tool_timetest
      CHARACTER(STRMAX) :: out_type       ! Binary format of output file
      CHARACTER(STRMAX) :: out_form       ! Data to write to output file
      CHARACTER(STRMAX) :: out_stat       ! Open status for output binary file
+     CHARACTER(STRMAX) :: syscall 
 
 ! Internals
      LOGICAL(LGT)                                      :: lfirst
-     INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
-     INTEGER(I4B)                                      :: nplplenc, npltpenc, nmergeadd, nmergesub,i
+     INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop,i
+     INTEGER(I4B)                                      :: nplplenc, npltpenc, nmergeadd, nmergesub
      REAL(DP)                                          :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                         :: htot
      CHARACTER(STRMAX)                                 :: inparfile
@@ -197,11 +88,10 @@ PROGRAM tool_timetest
      TYPE(symba_plplenc), DIMENSION(NENMAX)            :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
-     REAL(DP)                                          :: tstart, tend
-     REAL(DP),DIMENSION(:),ALLOCATABLE                 :: tshadow,tgetpoint
-     
+     REAL(DP)                                          :: tstart,tend
 
 ! Executable code
+
      CALL util_version
      ! OpenMP code added by D. Minton
      ! Define the maximum number of threads
@@ -211,15 +101,22 @@ PROGRAM tool_timetest
      !$ write(*,'(a)')      ' OpenMP parameters:'
      !$ write(*,'(a)')      ' ------------------'
      !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-     ALLOCATE(tshadow(nthreads))
-     ALLOCATE(tgetpoint(nthreads))
+
      WRITE(*, 100, ADVANCE = "NO") "Enter name of parameter data file: "
      READ(*, 100) inparfile
  100 FORMAT(A)
      inparfile = TRIM(ADJUSTL(inparfile))
+     WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
+     READ(*, *) mtiny
+     !$ open(unit=33,file="timetest.dat",status='replace')
+     !$ DO i = 1,nthreads
+     !$ CALL OMP_SET_NUM_THREADS(i)
+     !$ tstart = omp_get_wtime()
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
           encounter_file, lextra_force, lbig_discard, lrhill_present)
+     !!$ write(syscall,'("rm ",A16)') outfile
+     !!$ CALL SYSTEM(syscall) 
      IF (.NOT. lrhill_present) THEN
           WRITE(*, *) "SWIFTER Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
@@ -234,63 +131,90 @@ PROGRAM tool_timetest
      END IF
      CALL symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swifter_pl1P, swifter_tp1P)
      CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
-     mtiny = 1e-16_DP
      CALL symba_reorder_pl(npl, symba_pl1P)
      CALL io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
-     !$ write(*,*) 'nthreads tshadow tgetpoint'
-     !$ DO i = 1,nthreads
-     !$ CALL OMP_SET_NUM_THREADS(i)
      lfirst = .TRUE.
      ntp0 = ntp
      t = t0
      tbase = t0
      iloop = 0
+     iout = istep_out
+     idump = istep_dump
+     nmergeadd = 0
+     nmergesub = 0
+     nsppl = 0
+     nsptp = 0
+     eoffset = 0.0_DP
      NULLIFY(symba_pld1P, symba_tpd1P)
-
-     !$ tstart = omp_get_wtime()
-     DO WHILE (t < tstop)
-          iloop = iloop + 1
-          IF (iloop == LOOPMAX) THEN
-               tbase = tbase + iloop*dt
-               iloop = 0
-          END IF
-          t = tbase + iloop*dt
-          CALL shadow_array(npl, nplmax, symba_pl1P)
-     END DO
-     !$ tend = omp_get_wtime()
-     !$ tshadow(i) = tend - tstart
-
-     t = t0
-     tbase = t0
-     iloop = 0
-
-     !$ tstart = omp_get_wtime()
+     IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+     WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
+          CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
+               nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
+               mtiny, encounter_file, out_type)
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
                iloop = 0
           END IF
           t = tbase + iloop*dt
-          CALL get_point_method(npl, nplmax, symba_pl1P)
+          CALL symba_discard_merge_pl(t, npl, nsppl, symba_pl1P, symba_pld1P, nplplenc, plplenc_list)
+          CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_pl1P, symba_pld1P, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &
+               qmin_ahi, j2rp2, j4rp4, eoffset)
+          CALL symba_discard_tp(t, npl, ntp, nsptp, symba_pl1P, symba_tp1P, symba_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &
+               qmin_alo, qmin_ahi, lclose, lrhill_present)
+          IF ((nsppl > 0) .OR. (nsptp > 0)) THEN
+               swifter_tp1P => symba_tp1P%helio%swifter
+               CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_pl1P, symba_pld1P,            &
+                    symba_tpd1P, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard)
+               nmergeadd = 0
+               nmergesub = 0
+               nsppl = 0
+               nsptp = 0
+               NULLIFY(symba_pld1P, symba_tpd1P)
+          END IF
+          IF (istep_out > 0) THEN
+               iout = iout - 1
+               IF (iout == 0) THEN
+                    CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+                    iout = istep_out
+               END IF
+          END IF
+          IF (istep_dump > 0) THEN
+               idump = idump - 1
+               IF (idump == 0) THEN
+                    tfrac = (t - t0)/(tstop - t0)
+                    WRITE(*, 200) t, tfrac, npl, ntp
+ 200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
+                    CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
+                         istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
+                         encounter_file, lextra_force, lbig_discard, lrhill_present)
+                    CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
+                    IF (ntp > 0) CALL io_dump_tp(ntp, swifter_tp1P)
+                    idump = istep_dump
+               END IF
+          END IF
      END DO
-     !$ tend = omp_get_wtime()
-     !$ tgetpoint(i) = tend - tstart
-
-
-     !$ write(*,*) i,tshadow(i),tgetpoint(i)
-     
-     !$ end do
+     CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
+          j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
+          lrhill_present)
+     CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
+     IF (ntp > 0) CALL io_dump_tp(ntp, swifter_tp1P)
      IF (ALLOCATED(symba_plA)) DEALLOCATE(symba_plA)
      IF (ALLOCATED(mergeadd_list)) DEALLOCATE(mergeadd_list)
      IF (ALLOCATED(mergesub_list)) DEALLOCATE(mergesub_list)
      IF (ALLOCATED(symba_tpA)) DEALLOCATE(symba_tpA)
-     DEALLOCATE(tshadow,tgetpoint)     
+     !$ tend = omp_get_wtime()
+     !$ write(33,*) nthreads,tend - tstart
+     !$ flush(33)
+     !$ END DO
+     !$ close(33)
+     CALL util_exit(SUCCESS)
 
      STOP
 
-END PROGRAM tool_timetest
+END PROGRAM swifter_symba_omp_timetest
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann
