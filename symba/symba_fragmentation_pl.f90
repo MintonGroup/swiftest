@@ -226,10 +226,10 @@ SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergead
                          DO i = 0, symba_pliP%nchild
                               symba_pljP => plplenc_list(index)%pl2P%parentP
                               DO j = 0, symba_pljP%nchild
-                                   IF (ASSOCIATED(plplenc_list(k)%pl1P, symba_pliP) .AND.                                              &
+                                   IF (ASSOCIATED(plplenc_list(k)%pl1P, symba_pliP) .AND.              &
                                    ASSOCIATED(plplenc_list(k)%pl2P, symba_pljP)) THEN
                                         plplenc_list(k)%status = MERGED
-                                   ELSE IF (ASSOCIATED(plplenc_list(k)%pl1P, symba_pljP) .AND.                                         &
+                                   ELSE IF (ASSOCIATED(plplenc_list(k)%pl1P, symba_pljP) .AND.         &
                                         ASSOCIATED(plplenc_list(k)%pl2P, symba_pliP)) THEN
                                         plplenc_list(k)%status = MERGED
                                    END IF
@@ -260,10 +260,7 @@ SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergead
                     swifter_plP%vb(:) = vnew(:)
                END DO
                symba_pliP%nchild = symba_pliP%nchild + symba_pljP%nchild + 1
-          END IF
-
           CASE DEFAULT
-
      END SELECT
 
      RETURN
