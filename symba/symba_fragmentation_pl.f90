@@ -1,13 +1,13 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : symba_merge_pl
+!  Unit Name   : symba_fragmentation_pl
 !  Unit Type   : subroutine
 !  Project     : Swifter
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
 !  Description : Check whether or not bodies are colliding or on collision path
-!                Set up the merger for symba_discard_merge_pl
+!                Check for merger between planets in SyMBA if lfrag=.FALSE.
 !                
 !
 !  Input
@@ -37,21 +37,21 @@
 !    Terminal  : status message
 !    File      : none
 !
-!  Invocation  : CALL symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,
+!  Invocation  : CALL symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,
 !                                    eoffset, vbs, encounter_file, out_type)
 !
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, &
-     encounter_file, out_type)
+SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, & 
+     eoffset, vbs, encounter_file, out_type)
 
 ! Modules
      USE module_parameters
      USE module_swifter
      USE module_helio
      USE module_symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_merge_pl
+     USE module_interfaces, EXCEPT_THIS_ONE => symba_fragmentation_pl
      IMPLICIT NONE
 
 ! Arguments
@@ -118,7 +118,6 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
                END IF
           END IF
      END IF
-     !Set up the merger for symba_discard_merge_pl 
      IF (lmerge) THEN
           symba_pliP%lmerged = .TRUE.
           symba_pljP%lmerged = .TRUE.
@@ -250,7 +249,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
 
      RETURN
 
-END SUBROUTINE symba_merge_pl
+END SUBROUTINE symba_fragmentation_pl
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

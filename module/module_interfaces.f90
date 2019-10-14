@@ -1572,6 +1572,25 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
+          SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, & 
+               mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)
+               USE module_parameters
+               USE module_swifter
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               INTEGER(I4B), INTENT(IN)                         :: index, nplplenc
+               INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
+               REAL(DP), INTENT(IN)                             :: t, dt
+               REAL(DP), INTENT(INOUT)                          :: eoffset
+               REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+               CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
+               TYPE(symba_plplenc), DIMENSION(:), INTENT(INOUT) :: plplenc_list
+               TYPE(symba_merger), DIMENSION(:), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+          END SUBROUTINE symba_fragmentation_pl
+     END INTERFACE
+
+     INTERFACE
           SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, j4rp4, nplplenc, plplenc_list)
                USE module_parameters
                USE module_swifter
