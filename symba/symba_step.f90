@@ -139,14 +139,12 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           !$OMP PARALLEL DO SCHEDULE(AUTO) DEFAULT(PRIVATE) &
           !$OMP SHARED(i,npl,irec,symba_pl1P,symba_pliP,swifter_pliP,dt,plplenc_list,nplplenc) 
           DO j = i + 1, npl
-               ! Added by D. Minton
                CALL get_point(j,symba_pljP)
                swifter_pljP => symba_pljP%helio%swifter
                xr(:) = swifter_pljP%xh(:) - swifter_pliP%xh(:)
                vr(:) = swifter_pljP%vh(:) - swifter_pliP%vh(:)
                CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, swifter_pljP%rhill, dt, irec, lencounter, lvdotr)
                IF (lencounter) THEN
-                    ! Added by D. Minton
                     !$OMP CRITICAL 
                     nplplenc = nplplenc + 1
                     IF (nplplenc > NENMAX) THEN
@@ -178,17 +176,12 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                END IF
           END DO
           !$OMP END PARALLEL DO
-          ! Removed by D. Minton
-          !symba_tpP => symba_tp1P
-          !^^^^^^^^^^^^^^^^^^^^^
+
           ! OpenMP parallelization added by D. Minton
           !$OMP PARALLEL DO SCHEDULE(AUTO) DEFAULT(PRIVATE) &
           !$OMP SHARED(ntp,irec,symba_tp1P,dt,swifter_pliP,symba_pliP,pltpenc_list,npltpenc) 
           DO j = 1, ntp
-               !Added by D. Minton
-               !symba_tpP => symba_tp1P%symba_tpPA(j)%thisP
                CALL get_point(j,symba_tpP)
-               !^^^^^^^^^^^^^^^^^^
                swifter_tpP => symba_tpP%helio%swifter
                xr(:) = swifter_tpP%xh(:) - swifter_pliP%xh(:)
                vr(:) = swifter_tpP%vh(:) - swifter_pliP%vh(:)
