@@ -162,6 +162,7 @@ fxdr:
 	cd $(SWIFTER_HOME)/fxdr; \
 	  rm -f Makefile.Defines; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
+     chmod -w test_read_only.xdr ; \
 	  make -f Makefile.fxdr; \
 	  make -f Makefile.fxdr test; \
 	  make -f Makefile.fxdr install; \
