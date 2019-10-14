@@ -108,6 +108,13 @@ MODULE module_parameters
      INTEGER(I4B), PARAMETER :: GRAZE_AND_MERGE    = -11
      INTEGER(I4B), PARAMETER :: HIT_AND_RUN        = -12
 
+!Symbolic names for collisional outcomes from collresolve_resolve:
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_MERGE              =  1
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_DISRUPTION         =  2
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_SUPERCATASTROPHIC  =  3
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_GRAZE_AND_MERGE    =  4
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
+
 ! String labels for body/particle addition/subtraction in discard file
      CHARACTER(*), PARAMETER :: ADD = "+1"
      CHARACTER(*), PARAMETER :: SUB = "-1"
