@@ -2315,6 +2315,19 @@ MODULE module_interfaces
           END SUBROUTINE whm_user_getacch_tp
      END INTERFACE
 
+     INTERFACE
+          SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt)
+             USE module_parameters
+             USE module_symba
+             IMPLICIT NONE
+             LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
+             INTEGER(I4B), INTENT(IN)                         :: npl, nplmax
+             REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt
+             REAL(DP), INTENT(INOUT)                          :: eoffset
+             TYPE(symba_pl), POINTER                          :: symba_pl1P
+         END SUBROUTINE ringmoons_step 
+      END INTERFACE
+
 END MODULE module_interfaces
 !**********************************************************************************************************************************
 !

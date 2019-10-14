@@ -49,7 +49,7 @@ SWIFTER_MODULES = module_parameters.f90 module_swifter.f90 module_bs.f90 \
                   module_helio.f90 module_ra15.f90 module_tu4.f90 \
                   module_whm.f90 module_rmvs.f90 module_symba.f90 \
                   module_fxdr.f90 module_nrutil.f90 module_interfaces.f90 \
-                  module_random_access.f90
+                  module_random_access.f90 module_ringmoons.f90
 
 include Makefile.Defines
 
@@ -152,6 +152,11 @@ lib:
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
+	cd $(SWIFTER_HOME)/ringmoons; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  make libdir
 
 libdir:
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include -c *.f90
@@ -182,6 +187,7 @@ tools:
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make bin
 
+
 bin: *.f90
 	make $(basename $^)
 
@@ -197,6 +203,7 @@ clean:
 	cd $(SWIFTER_HOME)/ra15;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/rmvs;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/symba;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/ringmoons;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/tu4;     rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/util;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/whm;     rm -f Makefile.Defines Makefile *.gc*
