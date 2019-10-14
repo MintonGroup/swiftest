@@ -30,7 +30,7 @@ SUBROUTINE coord_vb2vh(npl, swifter_pl1P)
      USE module_parameters
      USE module_swifter
      USE module_random_access, EXCEPT_THIS_ONE => coord_vb2vh
-     USE module_interfaces, EXCEPT_THIS_ONE => coord_vb2vh
+     !USE module_interfaces, EXCEPT_THIS_ONE => coord_vb2vh
      IMPLICIT NONE
 
 ! Arguments

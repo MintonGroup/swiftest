@@ -32,7 +32,7 @@ SUBROUTINE helio_lindrift(npl, swifter_pl1P, dt, pt)
      USE module_parameters
      USE module_swifter
      USE module_random_access, EXCEPT_THIS_ONE => helio_lindrift
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_lindrift
+     !USE module_interfaces, EXCEPT_THIS_ONE => helio_lindrift
      IMPLICIT NONE
 
 ! Arguments

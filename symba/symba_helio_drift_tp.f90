@@ -35,7 +35,7 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tp1P, mu, dt)
      USE module_helio
      USE module_symba
      USE module_random_access, EXCEPT_THIS_ONE => symba_helio_drift_tp
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift_tp
+     !USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift_tp
      IMPLICIT NONE
 
 ! Arguments

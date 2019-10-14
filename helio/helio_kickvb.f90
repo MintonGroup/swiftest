@@ -32,7 +32,7 @@ SUBROUTINE helio_kickvb(npl, helio_pl1P, dt)
      USE module_swifter
      USE module_helio
      USE module_random_access, EXCEPT_THIS_ONE => helio_kickvb
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_kickvb
+     !USE module_interfaces, EXCEPT_THIS_ONE => helio_kickvb
      IMPLICIT NONE
 
 ! Arguments

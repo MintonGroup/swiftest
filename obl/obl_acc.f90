@@ -36,7 +36,7 @@ SUBROUTINE obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
      USE module_parameters
      USE module_swifter
      USE module_random_access, EXCEPT_THIS_ONE => obl_acc
-     USE module_interfaces, EXCEPT_THIS_ONE => obl_acc
+     !USE module_interfaces, EXCEPT_THIS_ONE => obl_acc
      IMPLICIT NONE
 
 ! Arguments

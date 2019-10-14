@@ -34,7 +34,7 @@ SUBROUTINE symba_helio_drift(irec, npl, symba_pl1P, dt)
      USE module_helio
      USE module_symba
      USE module_random_access, EXCEPT_THIS_ONE => symba_helio_drift
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift
+     !USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift
      IMPLICIT NONE
 
 ! Arguments

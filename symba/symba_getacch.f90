@@ -42,7 +42,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, 
      USE module_helio
      USE module_symba
      USE module_random_access, EXCEPT_THIS_ONE => symba_getacch
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch
+     !USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch
      IMPLICIT NONE
 
 ! Arguments

@@ -71,7 +71,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      USE module_helio
      USE module_symba
      USE module_random_access, EXCEPT_THIS_ONE => symba_step
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_step
+     !USE module_interfaces, EXCEPT_THIS_ONE => symba_step
      IMPLICIT NONE
 
 ! Arguments
