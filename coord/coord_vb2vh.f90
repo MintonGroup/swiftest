@@ -44,7 +44,7 @@ SUBROUTINE coord_vb2vh(npl, swifter_pl1P)
 
 ! Executable code
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) & 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) & 
      !$OMP SHARED(npl) &
      !$OMP REDUCTION(-:vtmp)
      DO i = 2, npl
@@ -55,7 +55,7 @@ SUBROUTINE coord_vb2vh(npl, swifter_pl1P)
      vtmp(:) = vtmp(:) / swifter_pl1P%mass
      swifter_pl1P%vb(:) = vtmp(:)
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) & 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) & 
      !$OMP SHARED(npl,vtmp) 
      DO i = 2, npl
           CALL get_point(i,swifter_plP)

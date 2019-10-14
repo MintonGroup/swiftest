@@ -34,6 +34,7 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tp1P, mu, dt)
      USE module_swifter
      USE module_helio
      USE module_symba
+     USE module_random_access, EXCEPT_THIS_ONE => symba_helio_drift_tp
      USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift_tp
      IMPLICIT NONE
 
@@ -48,15 +49,11 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tp1P, mu, dt)
      TYPE(symba_tp), POINTER   :: symba_tpP
 
 ! Executable code
-     !Removed by D. Minton
-     !symba_tpP => symba_tp1P
-     !^^^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_tpP,symba_tpP,iflag) &
-     !$OMP SHARED(ntp,symba_tp1P,mu,dt,irec) 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) & 
+     !$OMP SHARED(ntp,mu,dt,irec) 
      DO i = 1, ntp
-          symba_tpP => symba_tp1P%symba_tpPA(i)%thisP
+          CALL get_point(i,symba_tpP)
           swifter_tpP => symba_tpP%helio%swifter
           IF ((symba_tpP%levelg == irec) .AND. (swifter_tpP%status == ACTIVE)) THEN
                CALL drift_one(mu, swifter_tpP%xh(:), swifter_tpP%vb(:), dt, iflag)
@@ -65,9 +62,6 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tp1P, mu, dt)
                     WRITE(*, *) "Particle ", swifter_tpP%id, " lost due to error in Danby drift"
                END IF
           END IF
-          !Removed by D. Minton
-          !symba_tpP => symba_tpP%nextP
-          !^^^^^^^^^^^^^^^^^^^^
      END DO
      !$OMP END PARALLEL DO
 

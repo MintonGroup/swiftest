@@ -99,8 +99,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      IF (ireci == 0) THEN
           icflg = 0
           ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(i,symba_pliP,symba_pljP,swifter_pliP,swifter_pljP,xr,vr,lencounter) &
+          !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
           !$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
           DO i = 1, nplplenc
                IF ((plplenc_list(i)%status == ACTIVE) .AND. (plplenc_list(i)%level == ireci)) THEN
@@ -113,7 +112,6 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                     CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, swifter_pljP%rhill, dtl, irecp, lencounter,                  &
                          plplenc_list(i)%lvdotr)
                     IF (lencounter) THEN
-                         !Added by D. Minton
                          !$OMP CRITICAL
                          icflg = 1
                          symba_pliP%levelg = irecp
@@ -126,6 +124,9 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                END IF
           END DO
           !$OMP END PARALLEL DO
+
+          !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
+          !$OMP SHARED(pltpenc_list,npltpenc,irecp,icflg,ireci,dtl)
           DO i = 1, npltpenc
                IF ((pltpenc_list(i)%status == ACTIVE) .AND. (pltpenc_list(i)%level == ireci)) THEN
                     symba_pliP => pltpenc_list(i)%plP
@@ -136,15 +137,19 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                     vr(:) = swifter_tpP%vb(:) - swifter_pliP%vb(:)
                     CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, 0.0_DP, dtl, irecp, lencounter, pltpenc_list(i)%lvdotr)
                     IF (lencounter) THEN
+                         !$OMP CRITICAL
                          icflg = 1
                          symba_pliP%levelg = irecp
                          symba_pliP%levelm = MAX(irecp, symba_pliP%levelm)
                          symba_tpP%levelg = irecp
                          symba_tpP%levelm = MAX(irecp, symba_tpP%levelm)
                          pltpenc_list(i)%level = irecp
+                         !$OMP END CRITICAL
                     END IF
                END IF
           END DO
+          !$OMP END PARALLEL DO
+
           lencounter = (icflg == 1)
           sgn = 1.0_DP
           CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn)
@@ -184,8 +189,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           DO j = 1, NTENC
                icflg = 0
                ! OpenMP parallelization added by D. Minton
-               !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-               !$OMP PRIVATE(i,symba_pliP,symba_pljP,swifter_pliP,swifter_pljP,xr,vr,lencounter) &
+               !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
                !$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
                DO i = 1, nplplenc
                     IF ((plplenc_list(i)%status == ACTIVE) .AND. (plplenc_list(i)%level == ireci)) THEN
@@ -209,6 +213,11 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          END IF
                     END IF
                END DO
+               !$OMP END PARALLEL DO
+
+               ! OpenMP parallelization added by D. Minton
+               !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
+               !$OMP SHARED(pltpenc_list,npltpenc,irecp,icflg,ireci,dtl)
                DO i = 1, npltpenc
                     IF ((pltpenc_list(i)%status == ACTIVE) .AND. (pltpenc_list(i)%level == ireci)) THEN
                          symba_pliP => pltpenc_list(i)%plP
@@ -219,15 +228,18 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          vr(:) = swifter_tpP%vb(:) - swifter_pliP%vb(:)
                          CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, 0.0_DP, dtl, irecp, lencounter, pltpenc_list(i)%lvdotr)
                          IF (lencounter) THEN
+                              !$OMP CRITICAL
                               icflg = 1
                               symba_pliP%levelg = irecp
                               symba_pliP%levelm = MAX(irecp, symba_pliP%levelm)
                               symba_tpP%levelg = irecp
                               symba_tpP%levelm = MAX(irecp, symba_tpP%levelm)
                               pltpenc_list(i)%level = irecp
+                              !$OMP END CRITICAL
                          END IF
                     END IF
                END DO
+               !$OMP END PARALLEL DO
                lencounter = (icflg == 1)
                sgn = 1.0_DP
                CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn)

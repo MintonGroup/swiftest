@@ -47,6 +47,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      USE module_swifter
      USE module_helio
      USE module_symba
+     USE module_random_access, EXCEPT_THIS_ONE => symba_getacch_tp
      USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch_tp
      IMPLICIT NONE
 
@@ -71,39 +72,28 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      TYPE(helio_tp), POINTER                      :: helio_tpP
 
 ! Executable code
-     swifter_pl1P => symba_pl1P%helio%swifter
-     !Removed by D. Minton
-     !helio_tpP => symba_tp1P%helio
-     !^^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,helio_tpP,swifter_tpP,swifter_plP,dx,r2,fac) &
-     !$OMP SHARED(ntp,npl,symba_tp1P,swifter_pl1P,xh) 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
+     !$OMP SHARED(ntp,npl,xh) 
      DO i = 1, ntp
-          !Added by D. Minton
-          helio_tpP => symba_tp1P%symba_tpPA(i)%thisP%helio
-          !^^^^^^^^^^^^^^^^^^
-          helio_tpP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          CALL get_point(i,helio_tpP) 
+          helio_tpP%ah(:) = 0.0_DP
           swifter_tpP => helio_tpP%swifter
           IF (swifter_tpP%status == ACTIVE) THEN
-               swifter_plP => swifter_pl1P
-               !DO j = 2, nplm
+               !DO j = 2, nplm ! Possible bug in original Swifter SyMBA? D. Minton
                DO j = 2, npl
-                    swifter_plP => swifter_plP%nextP
+                    CALL get_point(j,swifter_plP)
                     dx(:) = swifter_tpP%xh(:) - xh(:, j)
                     r2 = DOT_PRODUCT(dx(:), dx(:))
-                    fac = swifter_plP%mass/(r2*SQRT(r2))
+                    fac = swifter_plP%mass / (r2 * SQRT(r2))
                     helio_tpP%ah(:) = helio_tpP%ah(:) - fac*dx(:)
                END DO
           END IF
-          !Removed by D. Minton
-          !helio_tpP => helio_tpP%nextP
-          !^^^^^^^^^^^^^^^^^^^^
      END DO
      !$OMP END PARALLEL DO
+
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,swifter_plP,helio_tpP,dx,r2,fac) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
      !$OMP SHARED(pltpenc_list,npltpenc)
      DO i = 1, npltpenc
           swifter_plP => pltpenc_list(i)%plP%helio%swifter
@@ -116,6 +106,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
           END IF
      END DO
      !$OMP END PARALLEL DO
+
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN
                ALLOCATE(aobl(NDIM, nplmax), irh(nplmax), xht(NDIM, ntpmax), aoblt(NDIM, ntpmax), irht(ntpmax))

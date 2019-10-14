@@ -47,7 +47,7 @@ SUBROUTINE helio_kickvb(npl, helio_pl1P, dt)
 
 ! Executable code
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
      !$OMP SHARED(npl,dt) 
      DO i = 2, npl
           CALL get_point(i,helio_plP)

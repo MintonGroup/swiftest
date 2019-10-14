@@ -31,60 +31,6 @@ MODULE module_timetest
 
    CONTAINS
 
-      SUBROUTINE shadow_array(npl, nplmax, symba_pl1P)
-         USE module_parameters
-         USE module_symba
-         IMPLICIT NONE
-
-         INTEGER(I4B),INTENT(IN)      :: npl,nplmax
-         TYPE(symba_pl), POINTER      :: symba_pl1P
-         TYPE(swifter_pl), POINTER :: swifter_pliP,swifter_pljP
-         TYPE(swifter_pl), POINTER :: swifter_pl1P
-         TYPE(helio_pl), POINTER   :: helio_pl1P,helio_pliP,helio_pljP
-         TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
-         INTEGER(I4B)              :: i,j,k
-
-         symba_pliP => symba_pl1P
-         helio_pl1P => symba_pl1P%helio
-         !Added by D. Minton
-         swifter_pl1P => helio_pl1P%swifter
-         IF (ALLOCATED(symba_pl1P%symba_plPA)) DEALLOCATE(symba_pl1P%symba_plPA)
-         ALLOCATE(symba_pl1P%symba_plPA(npl))
-         IF (ALLOCATED(swifter_pl1P%swifter_plPA)) DEALLOCATE(swifter_pl1P%swifter_plPA)
-         ALLOCATE(swifter_pl1P%swifter_plPA(npl))
-         IF (ALLOCATED(helio_pl1P%helio_plPA)) DEALLOCATE(helio_pl1P%helio_plPA)
-         ALLOCATE(helio_pl1P%helio_plPA(npl))
-         !^^^^^^^^^^^^^^^^^^
-         DO i = 1, npl
-             symba_pl1P%symba_plPA(i)%thisP => symba_pliP
-             helio_pl1p%helio_plPA(i)%thisP => symba_pliP%helio
-             swifter_pl1P%swifter_plPA(i)%thisP => symba_pliP%helio%swifter
-             symba_pliP%helio%swifter%vb(:) = 0.0_DP
-             symba_pliP => symba_pliP%nextP
-             
-         END DO
-         
-
-        symba_pliP => symba_pl1P
-        !$OMP PARALLEL DO DEFAULT(PRIVATE) &
-        !$OMP SHARED(npl,symba_pl1P) 
-        DO i = 2, npl
-             symba_pliP => symba_pl1P%symba_plPA(i)%thisP
-             helio_pliP => symba_pliP%helio
-             swifter_pliP => helio_pliP%swifter
-             helio_pliP%ah(:) = (/9.0_DP, 8.5_DP, 7.0_DP/)
-             DO j = i + 1, npl
-                  symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
-                  helio_pljP => symba_pljP%helio
-                  swifter_pljP => helio_pljP%swifter
-                  do k = 1, 1
-                     swifter_pljP%vb(:) = swifter_pliP%vb(:) + helio_pljP%ah(:)*3.7_DP !Arbitrary calculation
-                  end do
-             END DO
-        END DO
-       !$OMP END PARALLEL DO
-   
-      END SUBROUTINE shadow_array
 
 
       SUBROUTINE get_point_method(npl, nplmax, symba_pl1P)
@@ -101,35 +47,45 @@ MODULE module_timetest
          TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
          INTEGER(I4B)              :: i,j,k
 
-         symba_pliP => symba_pl1P
-         helio_pl1P => symba_pl1P%helio
-         DO i = 1, npl
-             symba_pliP%helio%swifter%vb(:) = 0.0_DP
-             symba_pliP => symba_pliP%nextP
-         END DO
+ 
          
-
-        !$OMP PARALLEL DO DEFAULT(PRIVATE) &
+        !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
         !$OMP SHARED(npl,symba_pl1P) 
         DO i = 2, npl
-             symba_pliP => symba_pl1P
              call get_point(i,symba_pliP)
              helio_pliP => symba_pliP%helio
              swifter_pliP => helio_pliP%swifter
-             helio_pliP%ah(:) = (/9.0_DP, 8.5_DP, 7.0_DP/)
-             DO j = i + 1, npl
-                  symba_pljP => symba_pl1P
-                  helio_pljP => symba_pljP%helio
-                  call get_point(j,symba_pljP)
-                  swifter_pljP => helio_pljP%swifter
-                  do k = 1, 1
-                     swifter_pliP%vb(:) = swifter_pljP%vb(:) + helio_pljP%ah(:)*3.7_DP !Arbitrary calculation
-                  end do
-             END DO
+             helio_pliP%ah(:) = (/9.0_DP, 8.5_DP, 7.0_DP/) * i
         END DO
        !$OMP END PARALLEL DO
    
       END SUBROUTINE get_point_method
+
+
+      SUBROUTINE concurrent_method(npl, nplmax, symba_pl1P)
+         USE module_parameters
+         USE module_symba
+         USE module_random_access
+         IMPLICIT NONE
+
+         INTEGER(I4B),INTENT(IN)      :: npl,nplmax
+         TYPE(symba_pl), POINTER      :: symba_pl1P
+         TYPE(swifter_pl), POINTER :: swifter_pliP,swifter_pljP
+         TYPE(swifter_pl), POINTER :: swifter_pl1P
+         TYPE(helio_pl), POINTER   :: helio_pl1P,helio_pliP,helio_pljP
+         TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
+         INTEGER(I4B)              :: i,j,k
+
+ 
+         
+        DO CONCURRENT (i = 2:npl)
+             symba_pliP =>  lsymba_pl1P(i)
+             helio_pliP => symba_pliP%helio
+             swifter_pliP => helio_pliP%swifter
+             helio_pliP%ah(:) = (/9.0_DP, 8.5_DP, 7.0_DP/) * i
+        END DO 
+   
+      END SUBROUTINE concurrent_method
 
 
 
@@ -198,7 +154,7 @@ PROGRAM tool_timetest
      TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
      REAL(DP)                                          :: tstart, tend
-     REAL(DP),DIMENSION(:),ALLOCATABLE                 :: tshadow,tgetpoint
+     REAL(DP),DIMENSION(:),ALLOCATABLE                 :: tgetpoint,tconcurrent
      
 
 ! Executable code
@@ -211,8 +167,8 @@ PROGRAM tool_timetest
      !$ write(*,'(a)')      ' OpenMP parameters:'
      !$ write(*,'(a)')      ' ------------------'
      !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-     ALLOCATE(tshadow(nthreads))
      ALLOCATE(tgetpoint(nthreads))
+     ALLOCATE(tconcurrent(nthreads))
      WRITE(*, 100, ADVANCE = "NO") "Enter name of parameter data file: "
      READ(*, 100) inparfile
  100 FORMAT(A)
@@ -238,7 +194,7 @@ PROGRAM tool_timetest
      CALL symba_reorder_pl(npl, symba_pl1P)
      CALL io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
-     !$ write(*,*) 'nthreads tshadow tgetpoint'
+     !$ write(*,*) 'nthreads tgetpoint tconcurrent'
      !$ DO i = 1,nthreads
      !$ CALL OMP_SET_NUM_THREADS(i)
      lfirst = .TRUE.
@@ -247,19 +203,6 @@ PROGRAM tool_timetest
      tbase = t0
      iloop = 0
      NULLIFY(symba_pld1P, symba_tpd1P)
-
-     !$ tstart = omp_get_wtime()
-     DO WHILE (t < tstop)
-          iloop = iloop + 1
-          IF (iloop == LOOPMAX) THEN
-               tbase = tbase + iloop*dt
-               iloop = 0
-          END IF
-          t = tbase + iloop*dt
-          CALL shadow_array(npl, nplmax, symba_pl1P)
-     END DO
-     !$ tend = omp_get_wtime()
-     !$ tshadow(i) = tend - tstart
 
      t = t0
      tbase = t0
@@ -279,14 +222,33 @@ PROGRAM tool_timetest
      !$ tgetpoint(i) = tend - tstart
 
 
-     !$ write(*,*) i,tshadow(i),tgetpoint(i)
+
+     t = t0
+     tbase = t0
+     iloop = 0
+
+     !$ tstart = omp_get_wtime()
+     DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
+          iloop = iloop + 1
+          IF (iloop == LOOPMAX) THEN
+               tbase = tbase + iloop*dt
+               iloop = 0
+          END IF
+          t = tbase + iloop*dt
+          CALL concurrent_method(npl, nplmax, symba_pl1P)
+     END DO
+     !$ tend = omp_get_wtime()
+     !$ tconcurrent(i) = tend - tstart
+
+
+     !$ write(*,*) i,tgetpoint(i),tconcurrent(i)
      
      !$ end do
      IF (ALLOCATED(symba_plA)) DEALLOCATE(symba_plA)
      IF (ALLOCATED(mergeadd_list)) DEALLOCATE(mergeadd_list)
      IF (ALLOCATED(mergesub_list)) DEALLOCATE(mergesub_list)
      IF (ALLOCATED(symba_tpA)) DEALLOCATE(symba_tpA)
-     DEALLOCATE(tshadow,tgetpoint)     
+     DEALLOCATE(tgetpoint,tconcurrent)     
 
      STOP
 

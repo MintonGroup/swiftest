@@ -33,6 +33,7 @@ SUBROUTINE symba_helio_drift(irec, npl, symba_pl1P, dt)
      USE module_swifter
      USE module_helio
      USE module_symba
+     USE module_random_access, EXCEPT_THIS_ONE => symba_helio_drift
      USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift
      IMPLICIT NONE
 
@@ -49,20 +50,11 @@ SUBROUTINE symba_helio_drift(irec, npl, symba_pl1P, dt)
 
 ! Executable code
      mu = symba_pl1P%helio%swifter%mass
-     ! Removed by D. Minton
-     !symba_plP => symba_pl1P
-     !^^^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_plP,symba_plP,iflag) &
-     !$OMP SHARED(npl,symba_pl1P,mu,dt,irec)     
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) & 
+     !$OMP SHARED(npl,mu,dt,irec)     
      DO i = 2, npl
-          ! Removed by D. Minton
-          !symba_plP => symba_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          symba_plP => symba_pl1P%symba_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^
+          CALL get_point(i,symba_plP)
           swifter_plP => symba_plP%helio%swifter
           IF ((symba_plP%levelg == irec) .AND. (swifter_plP%status == ACTIVE)) THEN
                CALL drift_one(mu, swifter_plP%xh(:), swifter_plP%vb(:), dt, iflag)

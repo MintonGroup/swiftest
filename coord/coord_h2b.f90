@@ -47,7 +47,7 @@ SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
 ! Executable code
      msys = swifter_pl1P%mass
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) & 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) & 
      !$OMP SHARED(npl) &
      !$OMP REDUCTION(+:msys,xtmp,vtmp)     
      DO i = 2, npl
@@ -64,7 +64,7 @@ SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
      vtmp(:) = swifter_plP%vb(:)
 
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) & 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) & 
      !$OMP SHARED(npl,xtmp,vtmp) 
      DO i = 2, npl
           CALL get_point(i,swifter_plP)

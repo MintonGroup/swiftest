@@ -34,16 +34,6 @@ MODULE module_symba
      REAL(DP), PARAMETER     :: RHSCALE = 6.5_DP
      REAL(DP), PARAMETER     :: RSHELL = 0.48075_DP
 
-     ! Added by D. Minton
-     TYPE symba_ptr_arr
-        TYPE(symba_pl), POINTER :: thisP   ! pointer to current SyMBA planet
-     END TYPE symba_ptr_arr
-
-     TYPE symba_ptr_arr_tp
-        TYPE(symba_tp), POINTER :: thisP   ! pointer to current SyMBA planet
-     END TYPE symba_ptr_arr_tp
-     !^^^^^^^^^^^^^^^^^^^
-
      TYPE symba_pl
           LOGICAL(LGT)            :: lmerged ! flag indicating whether body has merged with another this time step
           INTEGER(I4B)            :: nplenc  ! number of encounters with other planets this time step
@@ -59,10 +49,6 @@ MODULE module_symba
           TYPE(symba_pl), POINTER :: childP  ! pointer to next child in merger list
           TYPE(symba_pl), POINTER :: prevP   ! pointer to previous SyMBA planet
           TYPE(symba_pl), POINTER :: nextP   ! pointer to next SyMBA planet
-          ! Added by D. Minton
-          ! Used for OpenMP parallelized loops
-          TYPE(symba_ptr_arr),DIMENSION(:),ALLOCATABLE :: symba_plPA ! Array of pointers to SyMBA planet structures 
-          !^^^^^^^^^^^^^^^^^^^
      END TYPE symba_pl
 
      TYPE symba_tp
@@ -72,10 +58,6 @@ MODULE module_symba
           TYPE(helio_tp)          :: helio   ! HELIO test particle structure
           TYPE(symba_tp), POINTER :: prevP   ! pointer to previous SyMBA test particle
           TYPE(symba_tp), POINTER :: nextP   ! pointer to next SyMBA test particle
-          ! Added by D. Minton
-          ! Used for OpenMP parallelized loops
-          TYPE(symba_ptr_arr_tp),DIMENSION(:),ALLOCATABLE :: symba_tpPA ! Array of pointers to SyMBA test particle structures 
-          !^^^^^^^^^^^^^^^^^^^
      END TYPE symba_tp
 
      TYPE symba_plplenc

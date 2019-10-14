@@ -56,7 +56,7 @@ SUBROUTINE obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
      msun = swifter_pl1P%mass
 
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (STATIC) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
      !$OMP SHARED(npl,aobl,irh,msun,j2rp2,xh,j4rp4)     
      DO i = 2, npl
           rinv2 = irh(i)**2
@@ -74,7 +74,7 @@ SUBROUTINE obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
      aobl(:, 1) = 0.0_DP
      
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (STATIC) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
      !$OMP SHARED(npl,msun) &
      !$OMP REDUCTION(-:aobl)
      DO i = 2, npl

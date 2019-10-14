@@ -51,7 +51,7 @@ SUBROUTINE helio_lindrift(npl, swifter_pl1P, dt, pt)
 
 ! Executable code
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
      !$OMP SHARED(npl) &
      !$OMP REDUCTION(+:pttmp)     
      DO i = 2, npl
@@ -62,7 +62,7 @@ SUBROUTINE helio_lindrift(npl, swifter_pl1P, dt, pt)
 
      pttmp(:) = pttmp(:) / swifter_pl1P%mass
 
-     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
      !$OMP SHARED(npl,pttmp,dt) 
      DO i = 2, npl
           CALL get_point(i,swifter_plP)

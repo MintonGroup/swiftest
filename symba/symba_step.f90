@@ -70,6 +70,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      USE module_swifter
      USE module_helio
      USE module_symba
+     USE module_random_access, EXCEPT_THIS_ONE => symba_step
      USE module_interfaces, EXCEPT_THIS_ONE => symba_step
      IMPLICIT NONE
 
@@ -92,10 +93,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      INTEGER(I4B)              :: i, j, irec, nplm
      REAL(DP), DIMENSION(NDIM) :: xr, vr
      TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP
-     !Added by D. Minton
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
-     !^^^^^^^^^^^^^^^^^^
      TYPE(swifter_tp), POINTER :: swifter_tpP
      TYPE(helio_pl), POINTER   :: helio_pl1P
      TYPE(helio_tp), POINTER   :: helio_tp1P
@@ -103,43 +100,27 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      TYPE(symba_tp), POINTER   :: symba_tpP
 
 ! Executable code
-     symba_pliP => symba_pl1P
-     helio_pl1P => symba_pl1P%helio
-     !Added by D. Minton
-     swifter_pl1P => helio_pl1P%swifter
-     IF (ALLOCATED(symba_pl1P%symba_plPA)) DEALLOCATE(symba_pl1P%symba_plPA)
-     ALLOCATE(symba_pl1P%symba_plPA(npl))
-     IF (ALLOCATED(swifter_pl1P%swifter_plPA)) DEALLOCATE(swifter_pl1P%swifter_plPA)
-     ALLOCATE(swifter_pl1P%swifter_plPA(npl))
-     IF (ALLOCATED(helio_pl1P%helio_plPA)) DEALLOCATE(helio_pl1P%helio_plPA)
-     ALLOCATE(helio_pl1P%helio_plPA(npl))
-     IF (ntp>0) THEN
-        IF (ALLOCATED(symba_tp1P%symba_tpPA)) DEALLOCATE(symba_tp1P%symba_tpPA)
-        ALLOCATE(symba_tp1P%symba_tpPA(ntp))
-     END IF
-     !^^^^^^^^^^^^^^^^^^
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) & 
+     !$OMP SHARED(npl)
      DO i = 1, npl
+          CALL get_point(i,symba_pliP)
           symba_pliP%nplenc = 0
           symba_pliP%ntpenc = 0
           symba_pliP%levelg = -1
           symba_pliP%levelm = -1
-          ! Added by D. Minton
-          symba_pl1P%symba_plPA(i)%thisP => symba_pliP
-          helio_pl1p%helio_plPA(i)%thisP => symba_pliP%helio
-          swifter_pl1P%swifter_plPA(i)%thisP => symba_pliP%helio%swifter
-          !^^^^^^^^^^^^
-          symba_pliP => symba_pliP%nextP
      END DO
-     symba_tpP => symba_tp1P
+     !$OMP END PARALLEL DO
+
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) & 
+     !$OMP SHARED(ntp)
      DO i = 1, ntp
+          CALL get_point(i,symba_tpP)
           symba_tpP%nplenc = 0
           symba_tpP%levelg = -1
           symba_tpP%levelm = -1
-          ! Added by D. Minton
-          symba_tp1P%symba_tpPA(i)%thisP => symba_tpP
-          !^^^^^^^^^^^^
-          symba_tpP => symba_tpP%nextP
      END DO
+     !$OMP END PARALLEL DO
+   
      nplplenc = 0
      npltpenc = 0
      IF (symba_pl1P%helio%swifter%mass < mtiny) THEN
@@ -148,26 +129,18 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           nplm = 1
      END IF
      irec = 0
-     symba_pliP => symba_pl1P
      DO i = 2, npl
-          symba_pliP => symba_pliP%nextP
+          CALL get_point(i,symba_pliP)
           swifter_pliP => symba_pliP%helio%swifter
           IF (swifter_pliP%mass < mtiny) EXIT
           nplm = nplm + 1
-          ! Removed by D. Minton
-          !symba_pljP => symba_pliP
-          !^^^^^^^^^^^^^^^^^^^^^
+
           ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(j,xr,vr,lencounter,lvdotr,symba_pljP,swifter_pljP) &
+          !$OMP PARALLEL DO SCHEDULE(AUTO) DEFAULT(PRIVATE) &
           !$OMP SHARED(i,npl,irec,symba_pl1P,symba_pliP,swifter_pliP,dt,plplenc_list,nplplenc) 
           DO j = i + 1, npl
                ! Added by D. Minton
-               symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
-               !^^^^^^^^^^^^^^^^^^
-               ! Removed by D. Minton
-               !symba_pljP => symba_pljP%nextP
-               !^^^^^^^^^^^^^^^^^^^^
+               CALL get_point(j,symba_pljP)
                swifter_pljP => symba_pljP%helio%swifter
                xr(:) = swifter_pljP%xh(:) - swifter_pliP%xh(:)
                vr(:) = swifter_pljP%vh(:) - swifter_pliP%vh(:)
@@ -209,12 +182,12 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           !symba_tpP => symba_tp1P
           !^^^^^^^^^^^^^^^^^^^^^
           ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(j,xr,vr,lencounter,lvdotr,symba_tpP,swifter_tpP) &
+          !$OMP PARALLEL DO SCHEDULE(AUTO) DEFAULT(PRIVATE) &
           !$OMP SHARED(ntp,irec,symba_tp1P,dt,swifter_pliP,symba_pliP,pltpenc_list,npltpenc) 
           DO j = 1, ntp
                !Added by D. Minton
-               symba_tpP => symba_tp1P%symba_tpPA(j)%thisP
+               !symba_tpP => symba_tp1P%symba_tpPA(j)%thisP
+               CALL get_point(j,symba_tpP)
                !^^^^^^^^^^^^^^^^^^
                swifter_tpP => symba_tpP%helio%swifter
                xr(:) = swifter_tpP%xh(:) - swifter_pliP%xh(:)
@@ -227,7 +200,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     symba_tpP%nplenc = symba_tpP%nplenc + 1
                     symba_tpP%levelg = irec
                     symba_tpP%levelm = irec
-                    ! Added by D. Minton
                     !$OMP CRITICAL 
                     npltpenc = npltpenc + 1
                     IF (npltpenc > NENMAX) THEN
@@ -243,9 +215,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     pltpenc_list(npltpenc)%tpP => symba_tpP
                     !$OMP END CRITICAL 
                END IF
-               !Removed by D. Minton
-               !symba_tpP => symba_tpP%nextP
-               !^^^^^^^^^^^^^^^^^^^^
           END DO
           !$OMP END PARALLEL DO
      END DO
