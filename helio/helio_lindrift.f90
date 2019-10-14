@@ -31,6 +31,7 @@ SUBROUTINE helio_lindrift(npl, swifter_pl1P, dt, pt)
 ! Modules
      USE module_parameters
      USE module_swifter
+     USE module_random_access, EXCEPT_THIS_ONE => helio_lindrift
      USE module_interfaces, EXCEPT_THIS_ONE => helio_lindrift
      IMPLICIT NONE
 
@@ -45,57 +46,31 @@ SUBROUTINE helio_lindrift(npl, swifter_pl1P, dt, pt)
      TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Added by D. Minton
-     REAL(DP) :: ptx,pty,ptz
-     REAL(DP),DIMENSION(NDIM) :: pttmp !INTENT(OUT) variables don't play nicely 
-                                       !with OpenMP's reduction for some reason
+     REAL(DP),DIMENSION(NDIM) :: pttmp = 0.0_DP !INTENT(OUT) variables don't play nicely 
+                                                !with OpenMP's reduction for some reason
 
 ! Executable code
-     !Removed by D. Minton
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^
-     !Added by D. Minton
-     pttmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P) &
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
+     !$OMP SHARED(npl) &
      !$OMP REDUCTION(+:pttmp)     
      DO i = 2, npl
-          !Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !pt(:) = pt(:) + swifter_plP%mass*swifter_plP%vb(:)
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          pttmp(:) = pttmp(:) + swifter_plP%mass*swifter_plP%vb(:)
-          !^^^^^^^^^^^^^^^^^^^^
-     END DO
-     !$OMP END PARALLEL DO
-     !Removed by D. Minton
-     !pt(:) = pt(:)/swifter_pl1P%mass
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^^
-     !Added by D. Minton
-     pttmp(:) = pttmp(:)/swifter_pl1P%mass
-     !^^^^^^^^^^^^^^^^^^
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P,pttmp,dt) 
-     DO i = 2, npl
-          !Removed by D. Minton 
-          !swifter_plP => swifter_plP%nextP
-          !swifter_plP%xh(:) = swifter_plP%xh(:) + pt(:)*dt
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          swifter_plP%xh(:) = swifter_plP%xh(:) + pttmp(:)*dt
-          !^^^^^^^^^^^^^^^^^^
+          CALL get_point(i,swifter_plP)
+          pttmp(:) = pttmp(:) + swifter_plP%mass * swifter_plP%vb(:)
      END DO
      !$OMP END PARALLEL DO
 
-     !Added by D. Minton
-     pt(:)=pttmp(:)
-     !^^^^^^^^^^^^^^^^^^
+     pttmp(:) = pttmp(:) / swifter_pl1P%mass
+
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
+     !$OMP SHARED(npl,pttmp,dt) 
+     DO i = 2, npl
+          CALL get_point(i,swifter_plP)
+          swifter_plP%xh(:) = swifter_plP%xh(:) + pttmp(:) * dt
+     END DO
+     !$OMP END PARALLEL DO
+
+     pt(:) = pttmp(:)
 
      RETURN
 
