@@ -31,6 +31,7 @@ SUBROUTINE helio_kickvb(npl, helio_pl1P, dt)
      USE module_parameters
      USE module_swifter
      USE module_helio
+     USE module_random_access, EXCEPT_THIS_ONE => helio_kickvb
      USE module_interfaces, EXCEPT_THIS_ONE => helio_kickvb
      IMPLICIT NONE
 
@@ -45,21 +46,13 @@ SUBROUTINE helio_kickvb(npl, helio_pl1P, dt)
      TYPE(helio_pl), POINTER   :: helio_plP
 
 ! Executable code
-     !Removed by D. Minton
-     !helio_plP => helio_pl1P
-     !^^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,helio_plP,swifter_plP) &
-     !$OMP SHARED(npl,helio_pl1P,dt) 
+     !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
+     !$OMP SHARED(npl,dt) 
      DO i = 2, npl
-          !Removed by D. Minton
-          !helio_plP => helio_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          helio_plP => helio_pl1P%helio_plPA(i)%thisP
+          CALL get_point(i,helio_plP)
           swifter_plP => helio_plP%swifter
-          swifter_plP%vb(:) = swifter_plP%vb(:) + helio_plP%ah(:)*dt
+          swifter_plP%vb(:) = swifter_plP%vb(:) + helio_plP%ah(:) * dt
      END DO
      !$OMP END PARALLEL DO
 
