@@ -103,6 +103,10 @@ MODULE module_parameters
      INTEGER(I4B), PARAMETER :: DISCARDED_PLQ      = -6
      INTEGER(I4B), PARAMETER :: DISCARDED_DRIFTERR = -7
      INTEGER(I4B), PARAMETER :: MERGED             = -8
+     INTEGER(I4B), PARAMETER :: DISRUPTION         = -9
+     INTEGER(I4B), PARAMETER :: SUPERCATASTROPHIC  = -10
+     INTEGER(I4B), PARAMETER :: GRAZE_AND_MERGE    = -11
+     INTEGER(I4B), PARAMETER :: HIT_AND_RUN        = -12
 
 ! String labels for body/particle addition/subtraction in discard file
      CHARACTER(*), PARAMETER :: ADD = "+1"
