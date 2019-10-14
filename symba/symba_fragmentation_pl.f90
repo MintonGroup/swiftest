@@ -174,18 +174,127 @@ SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergead
      model = 2
      ! nres number of bodies we want to output 
      nres = 2
-     regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:),                              & 
-                                  v1(:),v2(:),nres,mres,rres,pres,vres)
 
-     SELECT CASE (regime)
+     IF (m1>m2) THEN
+		regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:),                              & 
+                                  v1(:),v2(:),nres,mres,rres,pres,vres)
+	ELSE 
+		regime = collresolve_resolve(model,m2,m1,rad2,rad1,x2(:),x1(:),                              & 
+                                  v2(:),v1(:),nres,mres,rres,pres,vres)
+    
+    SELECT CASE (regime)
           CASE (COLLRESOLVE_REGIME_DISRUPTION)
           CASE (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
           CASE (COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+
+
+
+
+
+          	
           CASE (COLLRESOLVE_REGIME_HIT_AND_RUN)
+			   WRITE(*, *) "Merging particles ", id1, " and ", id2, " at time t = ",t
+               IF (m2 > m1) THEN
+               		nmergesub = nmergesub + 1
+              	 	mergesub_list(nmergesub)%id = id1
+               		mergesub_list(nmergesub)%status = HIT_AND_RUN
+               		mergesub_list(nmergesub)%xh(:) = x1(:)
+               		mergesub_list(nmergesub)%vh(:) = v1(:) - vbs(:)
+               		mergesub_list(nmergesub)%mass = mass1
+               		mergesub_list(nmergesub)%radius = rad1
+               		nmergesub = nmergesub + 1
+               		mergesub_list(nmergesub)%id = id2
+               		mergesub_list(nmergesub)%status = HIT_AND_RUN
+               		mergesub_list(nmergesub)%xh(:) = x2(:)
+               		mergesub_list(nmergesub)%vh(:) = v2(:) - vbs(:)
+               		mergesub_list(nmergesub)%mass = mass2
+               		mergesub_list(nmergesub)%radius = rad2
+
+               		nmergeadd = nmergeadd + 1
+
+                    mergeadd_list(nmergeadd)%id = id2
+                    mergeadd_list(nmergeadd)%status = stat2
+
+               ELSE
+               		nmergesub = nmergesub + 1
+              	 	mergesub_list(nmergesub)%id = id1
+               		mergesub_list(nmergesub)%status = HIT_AND_RUN
+               		mergesub_list(nmergesub)%xh(:) = x1(:)
+               		mergesub_list(nmergesub)%vh(:) = v1(:) - vbs(:)
+               		mergesub_list(nmergesub)%mass = mass1
+               		mergesub_list(nmergesub)%radius = rad1
+               		nmergesub = nmergesub + 1
+               		mergesub_list(nmergesub)%id = id2
+               		mergesub_list(nmergesub)%status = HIT_AND_RUN
+               		mergesub_list(nmergesub)%xh(:) = x2(:)
+               		mergesub_list(nmergesub)%vh(:) = v2(:) - vbs(:)
+               		mergesub_list(nmergesub)%mass = mass2
+               		mergesub_list(nmergesub)%radius = rad2
+
+               		nmergeadd = nmergeadd + 1
+
+                    mergeadd_list(nmergeadd)%id = id1
+                    mergeadd_list(nmergeadd)%status = stat1
+
+               END IF
+               mergeadd_list(nmergeadd)%ncomp = 2
+               mergeadd_list(nmergeadd)%xh(:) = xnew(:)
+               mergeadd_list(nmergeadd)%vh(:) = vnew(:) - vbs(:)
+               eold = 0.5_DP*(m1*DOT_PRODUCT(v1(:), v1(:)) + m2*DOT_PRODUCT(v2(:), v2(:)))
+               xr(:) = x2(:) - x1(:)
+               eold = eold - m1*m2/SQRT(DOT_PRODUCT(xr(:), xr(:)))
+               enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
+               eoffset = eoffset + eold - enew
+               DO k = 1, nplplenc
+                    IF (plplenc_list(k)%status == ACTIVE) THEN
+                       symba_pliP => plplenc_list(index)%pl1P%parentP
+                         DO i = 0, symba_pliP%nchild
+                              symba_pljP => plplenc_list(index)%pl2P%parentP
+                              DO j = 0, symba_pljP%nchild
+                                   IF (ASSOCIATED(plplenc_list(k)%pl1P, symba_pliP) .AND.              &
+                                   ASSOCIATED(plplenc_list(k)%pl2P, symba_pljP)) THEN
+                                        plplenc_list(k)%status = MERGED
+                                   ELSE IF (ASSOCIATED(plplenc_list(k)%pl1P, symba_pljP) .AND.         &
+                                        ASSOCIATED(plplenc_list(k)%pl2P, symba_pliP)) THEN
+                                        plplenc_list(k)%status = MERGED
+                                   END IF
+                                   symba_pljP => symba_pljP%childP
+                              END DO
+                              symba_pliP => symba_pliP%childP
+                         END DO
+                    END IF
+               END DO
+               symba_pliP => plplenc_list(index)%pl1P%parentP
+               symba_plP => symba_pliP
+               swifter_plP => symba_plP%helio%swifter
+               swifter_plP%xh(:) = xnew(:)
+               swifter_plP%vb(:) = vnew(:)
+               DO i = 1, symba_pliP%nchild
+                    symba_plP => symba_plP%childP
+                    swifter_plP => symba_plP%helio%swifter
+                    swifter_plP%xh(:) = xnew(:)
+                    swifter_plP%vb(:) = vnew(:)
+               END DO
+               symba_pljP => plplenc_list(index)%pl2P%parentP
+               symba_plP%childP => symba_pljP
+               DO i = 0, symba_pljP%nchild
+                    symba_plP => symba_plP%childP
+                    symba_plP%parentP => symba_pliP
+                    swifter_plP => symba_plP%helio%swifter
+                    swifter_plP%xh(:) = xnew(:)
+                    swifter_plP%vb(:) = vnew(:)
+               END DO
+               symba_pliP%nchild = symba_pliP%nchild + symba_pljP%nchild + 1
+
+
+
+
+
           CASE (COLLRESOLVE_REGIME_MERGE)
-               mtot = m1 + m2
-               xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
-               vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
+               !mtot = m1 + m2
+               mtot = mres(0)
+               !xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
+               !vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
                WRITE(*, *) "Merging particles ", id1, " and ", id2, " at time t = ",t
                nmergesub = nmergesub + 1
                mergesub_list(nmergesub)%id = id1
