@@ -48,7 +48,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      USE module_helio
      USE module_symba
      USE module_random_access, EXCEPT_THIS_ONE => symba_getacch_tp
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch_tp
+     !USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch_tp
      IMPLICIT NONE
 
 ! Arguments
