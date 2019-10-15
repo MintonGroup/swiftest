@@ -279,6 +279,31 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
                          IF (token == "YES") lrhill_present = .TRUE.
+
+                    ! Added by D. Minton
+                    CASE ("FRAGMENTATION")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         CALL util_toupper(token)
+                         IF (token == "YES") lfragmentation = .TRUE.
+                    
+                    CASE ("MU2GM")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         READ(token, *) MU2GM
+                    CASE ("TU2S")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         READ(token, *) TU2S
+                    CASE ("DU2CM")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         READ(token, *) DU2CM
+                    !^^^^^^^^^^^^^^^^^^^^^^
                     CASE DEFAULT
                          WRITE(*, 100, ADVANCE = "NO") "Unknown parameter -> "
                          WRITE(*, *) token
@@ -369,13 +394,27 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
           IF ((qmin_coord /= "HELIO") .AND. (qmin_coord /= "BARY")) ierr = -1
           IF ((qmin_alo <= 0.0_DP) .OR. (qmin_ahi <= 0.0_DP)) ierr = -1
      END IF
+
+     ! Added by D. Minton
+     ! The fragmentation model requires the user to set the unit system explicitly.
+     WRITE(*, 100, ADVANCE = "NO") "FRAGMENTATION  = "
+     WRITE(*, *) lfragmentation
+     IF (lfragmentation) THEN
+          WRITE(*, 100, ADVANCE = "NO") "MU2GM          = "
+          WRITE(*, *) MU2GM
+          WRITE(*, 100, ADVANCE = "NO") "TU2S           = "
+          WRITE(*, *) TU2S 
+          WRITE(*, 100, ADVANCE = "NO") "DU2CM          = "
+          WRITE(*, *) DU2CM
+          IF ((MU2GM < 0.0_DP) .OR. (TU2S < 0.0_DP) .OR. (DU2CM < 0.0_DP)) ierr = -1
+     END IF 
+
      IF (ierr < 0) THEN
           WRITE(*, 100) "Input parameter(s) failed check"
           CALL util_exit(FAILURE)
      END IF
 
      ! OPENMP code added by D. Minton
-
      ! Define the maximum number of threads
      nthreads = 1                        ! In the *serial* case
      !$ nthreads = omp_get_max_threads() ! In the *parallel* case

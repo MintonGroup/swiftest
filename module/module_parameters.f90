@@ -103,6 +103,17 @@ MODULE module_parameters
      INTEGER(I4B), PARAMETER :: DISCARDED_PLQ      = -6
      INTEGER(I4B), PARAMETER :: DISCARDED_DRIFTERR = -7
      INTEGER(I4B), PARAMETER :: MERGED             = -8
+     INTEGER(I4B), PARAMETER :: DISRUPTION         = -9
+     INTEGER(I4B), PARAMETER :: SUPERCATASTROPHIC  = -10
+     INTEGER(I4B), PARAMETER :: GRAZE_AND_MERGE    = -11
+     INTEGER(I4B), PARAMETER :: HIT_AND_RUN        = -12
+
+!Symbolic names for collisional outcomes from collresolve_resolve:
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_MERGE              =  1
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_DISRUPTION         =  2
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_SUPERCATASTROPHIC  =  3
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_GRAZE_AND_MERGE    =  4
+     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
 
 ! String labels for body/particle addition/subtraction in discard file
      CHARACTER(*), PARAMETER :: ADD = "+1"
@@ -127,6 +138,14 @@ MODULE module_parameters
      INTEGER(I4B), PARAMETER :: NDIM2   = 2*NDIM
      INTEGER(I4B), PARAMETER :: LOOPMAX = 2147483647     ! 2**31 - 1
      REAL(DP),     PARAMETER :: TINY    = 4.0E-15_DP
+
+! Added by D. Minton
+! Unit conversion definitions. The user supplies these definitions in param.in.
+     LOGICAL,  SAVE       :: lfragmentation = .FALSE. ! If true, then do fragmentation modeling instead of simple merger.
+     REAL(DP), SAVE       :: MU2GM = -1.0_DP          ! Converts mass units to grams
+     REAL(DP), SAVE       :: TU2S  = -1.0_DP          ! Converts time units to seconds
+     REAL(DP), SAVE       :: DU2CM = -1.0_DP          ! Converts distance unit to centimeters
+     REAL(DP), PARAMETER  :: GC    = 6.6743E-8_DP      ! Universal gravitational constant in cgs units (from NIST in 2019)
 
 END MODULE module_parameters
 !**********************************************************************************************************************************
