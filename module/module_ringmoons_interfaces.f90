@@ -29,23 +29,29 @@ MODULE module_ringmoons_interfaces
 
 
       INTERFACE
-         SUBROUTINE ringmoons_io_init_param()
+         SUBROUTINE ringmoons_io_init_param(rm)
             USE module_parameters
+            USE module_ringmoons
             IMPLICIT NONE
+            TYPE(ringmoons_parameter),INTENT(INOUT) :: rm
          END SUBROUTINE ringmoons_io_init_param
       END INTERFACE
 
       INTERFACE
-         SUBROUTINE ringmoons_io_init_ring()
+         SUBROUTINE ringmoons_io_init_ring(rm,ring)
             USE module_parameters
+            USE module_ringmoons
             IMPLICIT NONE
-         END SUBROUTINE
+            TYPE(ringmoons_parameter),INTENT(IN) :: rm
+            TYPE(ringmoons_ring_bin),DIMENSION(:),INTENT(INOUT) :: ring
+         END SUBROUTINE ringmoons_io_init_ring
       END INTERFACE
 
       INTERFACE
          SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt)
             USE module_parameters
             USE module_symba
+            USE module_ringmoons
             IMPLICIT NONE
             LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
             INTEGER(I4B), INTENT(IN)                         :: npl, nplmax

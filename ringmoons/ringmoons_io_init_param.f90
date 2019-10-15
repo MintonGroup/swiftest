@@ -23,20 +23,22 @@
 !  Notes       : Adapted from Andy Hesselbrock's RINGMOONS Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_io_init_param()
+SUBROUTINE ringmoons_io_init_param(rm)
 
 ! Modules
-     USE module_parameters
-     USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_io_init_param
-     IMPLICIT NONE
+      USE module_parameters
+      USE module_ringmoons
+      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_io_init_param
+      IMPLICIT NONE
 
 ! Arguments
+      type(ringmoons_parameter),INTENT(INOUT) :: rm
 
 ! Internals
 
 ! Executable code
 
-     RETURN
+      RETURN
 
 END SUBROUTINE ringmoons_io_init_param
 !**********************************************************************************************************************************

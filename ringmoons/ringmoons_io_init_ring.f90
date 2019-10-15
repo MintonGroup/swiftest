@@ -6,7 +6,7 @@
 !  Package     : io
 !  Language    : Fortran 90/95
 !
-!  Description : Read in ring intitial condition data
+!  Description : Read in ring initial condition data
 !
 !  Input
 !    Arguments : 
@@ -24,21 +24,24 @@
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_io_init_ring()
+SUBROUTINE ringmoons_io_init_ring(rm,ring)
 
 ! Modules
-     USE module_parameters
-     USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_io_init_ring
-     IMPLICIT NONE
+      USE module_parameters
+      USE module_ringmoons
+      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_io_init_ring
+      IMPLICIT NONE
 
 ! Arguments
+      TYPE(ringmoons_parameter),INTENT(IN) :: rm
+      TYPE(ringmoons_ring_bin),DIMENSION(:),INTENT(INOUT) :: ring
 
 ! Internals
 
 ! Executable code
 
 
-     RETURN
+      RETURN
 
 END SUBROUTINE ringmoons_io_init_ring
 !**********************************************************************************************************************************

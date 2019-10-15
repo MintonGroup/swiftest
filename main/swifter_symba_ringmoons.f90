@@ -35,9 +35,10 @@ PROGRAM swifter_symba_ringmoons
      USE module_parameters
      USE module_swifter
      USE module_symba
-     USE module_ringmoons
      USE module_random_access
      USE module_interfaces
+     USE module_ringmoons
+     USE module_ringmoons_interfaces
      !Added by D. Minton
      !$ USE omp_lib
      IMPLICIT NONE
@@ -89,6 +90,9 @@ PROGRAM swifter_symba_ringmoons
      TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
 
+     TYPE(ringmoons_parameter)                         :: rm
+     TYPE(ringmoons_ring_bin),DIMENSION(:),ALLOCATABLE :: ring
+
 ! Executable code
      CALL util_version
      ! OpenMP code added by D. Minton
@@ -125,6 +129,13 @@ PROGRAM swifter_symba_ringmoons
      CALL symba_reorder_pl(npl, symba_pl1P)
      CALL io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
+
+     !Read in RING-MOONS parameters and data
+     CALL ringmoons_io_init_param(rm)
+     ALLOCATE(ring(rm%N))
+     CALL ringmoons_io_init_ring(rm,ring) 
+
+     !Set up integration
      lfirst = .TRUE.
      ntp0 = ntp
      t = t0
@@ -197,6 +208,7 @@ PROGRAM swifter_symba_ringmoons
      IF (ALLOCATED(mergeadd_list)) DEALLOCATE(mergeadd_list)
      IF (ALLOCATED(mergesub_list)) DEALLOCATE(mergesub_list)
      IF (ALLOCATED(symba_tpA)) DEALLOCATE(symba_tpA)
+     IF (ALLOCATED(ring)) DEALLOCATE(ring)
      CALL util_exit(SUCCESS)
 
      STOP
