@@ -37,7 +37,7 @@ SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoff
 ! Modules
      USE module_parameters
      USE module_symba
-     USE module_random_access, EXCEPT_THIS_ONE => ringmoons_step
+     USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_step
      IMPLICIT NONE
 
 ! Arguments

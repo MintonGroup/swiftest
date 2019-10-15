@@ -49,11 +49,13 @@ SWIFTER_MODULES = module_parameters.f90 module_swifter.f90 module_bs.f90 \
                   module_helio.f90 module_ra15.f90 module_tu4.f90 \
                   module_whm.f90 module_rmvs.f90 module_symba.f90 \
                   module_fxdr.f90 module_nrutil.f90 module_interfaces.f90 \
-                  module_random_access.f90 module_ringmoons.f90
+                  module_random_access.f90 
+
+RINGMOONS_MODULES = module_ringmoons_interfaces.f90 module_ringmoons.f90
 
 include Makefile.Defines
 
-MODULES         = $(SWIFTER_MODULES) $(USER_MODULES)
+MODULES         = $(SWIFTER_MODULES) $(RINGMOONS_MODULES) $(USER_MODULES) 
 
 .PHONY : all mod lib libdir fxdr drivers tools bin clean force
 
