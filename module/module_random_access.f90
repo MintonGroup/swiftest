@@ -602,19 +602,19 @@ CONTAINS
      SUBROUTINE get_point_symba_pl(i, symba_plP)
           INTEGER(I4B), INTENT(IN) :: i
           TYPE(symba_pl), POINTER  :: symba_plP
-          SELECT CASE (istruct_pl)
-               CASE (SYMBA)
-                    IF (ASSOCIATED(lsymba_pl1P)) THEN
+          !SELECT CASE (istruct_pl)
+          !     CASE (SYMBA)
+          !          IF (ASSOCIATED(lsymba_pl1P)) THEN
                          symba_plP => lsymba_pl1P(i)
-                    ELSE
-                         WRITE(*, *) "Error in get_point_symba_pl"
-                         CALL util_exit(FAILURE)
-                    END IF
+          !          ELSE
+          !               WRITE(*, *) "Error in get_point_symba_pl"
+          !               CALL util_exit(FAILURE)
+          !          END IF
 ! DEK - improve error handler
-               CASE DEFAULT
-                    WRITE(*, *) "Error in get_point_symba_pl"
-                    CALL util_exit(FAILURE)
-          END SELECT
+          !     CASE DEFAULT
+          !          WRITE(*, *) "Error in get_point_symba_pl"
+          !          CALL util_exit(FAILURE)
+          !END SELECT
           RETURN
      END SUBROUTINE get_point_symba_pl
 

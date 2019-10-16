@@ -109,7 +109,7 @@ PROGRAM swifter_symba_omp_timetest
      WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
      READ(*, *) mtiny
      !$ open(unit=33,file="timetest.dat",status='replace')
-     !$ DO i = nthreads,nthreads
+     !$ DO i = 1,nthreads
      !$ CALL OMP_SET_NUM_THREADS(i)
      !$ tstart = omp_get_wtime()
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
