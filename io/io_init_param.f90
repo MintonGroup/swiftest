@@ -39,7 +39,7 @@
 !                lextra_force   : logical flag indicating whether to use user-supplied accelerations
 !                lbig_discard   : logical flag indicating whether to dump planet data with discards
 !                lrhill_present : logical flag indicating whether Hill's sphere radii are present in planet data
-!
+!                mtiny          : smallest self-gravitating mass (only used for SyMBA)
 !  Output
 !    Arguments : (same quantities listed above as input from file are passed back to the calling routine as output arguments)
 !    Terminal  : status, error messages
@@ -47,14 +47,14 @@
 !
 !  Invocation  : CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,
 !                                   out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin,
-!                                   qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present)
+!                                   qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
 !
 !  Notes       : Adapted from Martin Duncan's Swift routine io_init_param.f
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,     &
      out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-     encounter_file, lextra_force, lbig_discard, lrhill_present)
+     encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
 
 ! Modules
      USE module_parameters
@@ -67,6 +67,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
      INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
      REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+     REAL(DP), INTENT(OUT),OPTIONAL :: mtiny
      CHARACTER(*), INTENT(IN)  :: inparfile
      CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, out_stat
 
@@ -108,6 +109,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      lextra_force = .FALSE.
      lbig_discard = .FALSE.
      lrhill_present = .FALSE.
+     mtiny = -1.0_DP
      WRITE(*, 100, ADVANCE = "NO") "Parameter data file is "
      WRITE(*, 100) inparfile
      WRITE(*, *) " "
@@ -304,6 +306,11 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          token = line(ifirst:ilast)
                          READ(token, *) DU2CM
                     !^^^^^^^^^^^^^^^^^^^^^^
+                    CASE ("MTINY")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         IF (PRESENT(mtiny)) READ(token, *) mtiny
                     CASE DEFAULT
                          WRITE(*, 100, ADVANCE = "NO") "Unknown parameter -> "
                          WRITE(*, *) token
@@ -408,6 +415,18 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
           WRITE(*, *) DU2CM
           IF ((MU2GM < 0.0_DP) .OR. (TU2S < 0.0_DP) .OR. (DU2CM < 0.0_DP)) ierr = -1
      END IF 
+
+     !Added mtiny to the argument list rather than from the terminal
+     IF (PRESENT(mtiny)) THEN
+         IF (mtiny < 0.0_DP) THEN
+             WRITE(*,*) "MTINY not set or invalid value"
+             ierr = -1
+         ELSE
+            WRITE(*, 100, ADVANCE = "NO") "MTINY          = "
+            WRITE(*, *) mtiny    
+         END IF
+     END IF
+            
 
      IF (ierr < 0) THEN
           WRITE(*, 100) "Input parameter(s) failed check"

@@ -109,7 +109,7 @@ PROGRAM swifter_symba_ringmoons
      inparfile = TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
-          encounter_file, lextra_force, lbig_discard, lrhill_present)
+          encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
      IF (.NOT. lrhill_present) THEN
           WRITE(*, *) "SWIFTER Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
@@ -124,8 +124,6 @@ PROGRAM swifter_symba_ringmoons
      END IF
      CALL symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swifter_pl1P, swifter_tp1P)
      CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
-     WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
-     READ(*, *) mtiny
      CALL symba_reorder_pl(npl, symba_pl1P)
      CALL io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
