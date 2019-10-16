@@ -31,3 +31,6 @@
 !fxdr*/Makefile.fxdr
 !fxdr*/Makefile.tmpl
 !fxdr*/Defines.*
+
+#ringmoons
+!ringmoons-python/*.py
