@@ -32,4 +32,5 @@ FRAGMENTATION   no                              !Turns fragmentation model on
 MU2GM           1.989e33                        !Conversion from mass unit to grams
 DU2CM           1.496e13                        !Conversion from distance unit to centimeters
 TU2S            31557600.0                      !Conversion from time unit to seconds
+MTINY           1e-6                            !Smallest fully gravitating mass
 

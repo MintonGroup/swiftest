@@ -28,5 +28,6 @@ ENC_OUT         enc.dat                         !output file for close encounter
 EXTRA_FORCE     no                              !this would be user defined forces
 BIG_DISCARD     no                             !output all planets if anything is discarded
 RHILL_PRESENT   yes                             !Rhill is definted in the input file
+MTINY           1e-6                            !Smallest fully gravitating mass
 
 
