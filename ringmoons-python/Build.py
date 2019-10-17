@@ -3,7 +3,7 @@ import numpy as np
 from Init_Cond import *
 from Lists import *
 
-def f(x, M):
+def f(x):
     Roche = 2.456 * RP * (rhoP / rho_sat)**(1./3.) #density of satellites
     T = 4.0 * np.pi * MP * MP**2.0 / (5.0 * LP)
     r_sync = (T * np.sqrt(G * MP) / (2.0 * np.pi))**(2.0 / 3.0)
@@ -32,7 +32,7 @@ def f(x, M):
             centroid = 20       #bin id of the center of the gaussian
             spread = 1          #width of the gaussian
             mass_scale = 2.3e6  #scale factor to get a given mass
-            sigma.append(mass_scale/(5*(2*np.pi)**(0.5))*exp(-(a-centroid)**2/(2*spread**2)))
+            sigma.append(mass_scale/(5*(2*np.pi)**(0.5))*np.exp(-(a-centroid)**2/(2*spread**2)))
             m.append(sigma[a]*deltaA[a])
 
             #build the threshold surface mass density for the system to push a satellite beyond synchronous
@@ -47,3 +47,6 @@ def f(x, M):
         I.append(m[a]*R[a])
         w.append((G*M/r[a]**3)**0.5)
         Torque_to_disk.append(0.0)
+
+
+
