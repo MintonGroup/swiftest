@@ -51,7 +51,9 @@ SUBROUTINE util_index(arr, index)
      END IF
      index = arth(1, 1, n)
      jstack = 0
+     ! l is the counter ie 'the one we are at'
      l = 1
+     ! r is the length of the array ie 'the total number of particles'
      r = n
      DO
           IF ((r - l) < NN) THEN
@@ -71,12 +73,15 @@ SUBROUTINE util_index(arr, index)
           ELSE
                k = (l + r)/2
                dum = index(k); index(k) = index(l+1); index(l+1) = dum
+               ! if the mass of the particle we are at in our counting is greater than the mass of the last particle then put the particle we are at above the last one
                IF (arr(index(l)) > arr(index(r))) THEN
                     dum = index(l); index(l) = index(r); index(r) = dum
                END IF
+               ! if the mass of the particle above the one we are at in our counting is greater than the last particle then put that particle above the last one
                IF (arr(index(l+1)) > arr(index(r))) THEN
                     dum = index(l+1); index(l+1) = index(r); index(r) = dum
                END IF
+               ! if the mass of teh particle we are at in our counting is greater than the one above it, then put it above the one above it
                IF (arr(index(l)) > arr(index(l+1))) THEN
                     dum = index(l); index(l) = index(l+1); index(l+1) = dum
                END IF
