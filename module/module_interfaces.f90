@@ -830,10 +830,10 @@ MODULE module_interfaces
                LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
                INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
                REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               REAL(DP), INTENT(OUT), OPTIONAL :: mtiny
                CHARACTER(*), INTENT(IN)  :: inparfile
                CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, &
                                             out_stat
+               REAL(DP), INTENT(OUT), OPTIONAL :: mtiny
           END SUBROUTINE io_init_param
      END INTERFACE
 
