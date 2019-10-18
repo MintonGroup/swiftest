@@ -42,23 +42,25 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(INOUT)                            :: npl
+     INTEGER(I4B), INTENT(INOUT)                         :: npl
      INTEGER(I4B), INTENT(IN)                            :: nmergeadd
      REAL(DP), INTENT(IN)                                :: mtiny
      TYPE(swifter_pl), POINTER                           :: swifter_pl1P
-     TYPE(symba_pl), DIMENSION(:), TARGET, INTENT(INOUT) :: mergeadd_list
+     TYPE(symba_merger), DIMENSION(:), INTENT(IN)        :: mergeadd_list
      TYPE(symba_pl), POINTER                             :: symba_pl1P
 ! Internals
      INTEGER(I4B)              :: i, nplm, add_nplm
-     TYPE(swifter_pl), POINTER :: add_swifter_pl1P, swifter_plP
-     TYPE(helio_pl), POINTER   :: add_helio_pl1P, helio_plP
-     TYPE(symba_pl), POINTER   :: add_symba_pl1P, symba_plP
+     TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP
+     TYPE(swifter_pl), POINTER :: add_swifter_pl1P, swifter_plP, end_swifter_pl1P
+     TYPE(helio_pl), POINTER   :: add_helio_pl1P, helio_plP, end_helio_pl1P
+     TYPE(symba_pl), POINTER   :: add_symba_pl1P, symba_plP, end_symba_pl1P, end_symba_plP
      TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP ! copied from symba_step
-
+     TYPE(symba_pl), DIMENSION(:), ALLOCATABLE, TARGET :: fragadd_list
 ! Executable code
-
+! X 0 . Allocate new structure array of type (symba_pl)
 ! X 1. pull in the array of bodies to be added to the system in this timestep
 ! X 2. sort the add_array by decreasing order of mass
+!   2.bis call util_hills(nmergeadd,add_swifter_pl1P)
 ! X 3. get the index of mtiny from nplm
 ! X 4. see how many particles in the new add_array fall above and below mtiny
 ! ? 5. break the existing linked list at mtiny+1
@@ -66,12 +68,24 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
 ! X 7. restructure the linked list
 ! X 8. find new index of mtiny and update index
 
+!! Allocation of new structure array of type (symba_pl)
+     ALLOCATE(fragadd_list(nmergeadd))
+     CALL set_point(fragadd_list)
+     DO i=1,nmergeadd
+          fragadd_list(i)%helio%swifter%xh = mergeadd_list(i)%xh
+          fragadd_list(i)%helio%swifter%vh = mergeadd_list(i)%vh
+          fragadd_list(i)%helio%swifter%mass = mergeadd_list(i)%mass
+          fragadd_list(i)%helio%swifter%radius = mergeadd_list(i)%radius
+          fragadd_list(i)%helio%swifter%id = mergeadd_list(i)%id
+          fragadd_list(i)%helio%swifter%status = mergeadd_list(i)%status
+     END DO
+
 
 ! **************************** THIS IS COPIED FROM SYMBA_SETUP AND USED TO SET UP ALL THE POINTERS
 ! This create a linked list of the particles we are adding at this timestep from the array of particles we are adding at this timestep
-     add_symba_pl1P => mergeadd_list(1)
-     add_helio_pl1P => mergeadd_list(1)%helio
-     add_swifter_pl1P => mergeadd_list(1)%helio%swifter
+     add_symba_pl1P => fragadd_list(1)
+     add_helio_pl1P => fragadd_list(1)%helio
+     add_swifter_pl1P => fragadd_list(1)%helio%swifter
      NULLIFY(add_symba_pl1P%prevP)
      NULLIFY(add_helio_pl1P%prevP)
      NULLIFY(add_swifter_pl1P%prevP)
@@ -80,30 +94,31 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
           NULLIFY(add_helio_pl1P%nextP)
           NULLIFY(add_swifter_pl1P%nextP)
      ELSE
-          add_symba_pl1P%nextP => mergeadd_list(2)
-          add_helio_pl1P%nextP => mergeadd_list(2)%helio
-          add_swifter_pl1P%nextP => mergeadd_list(2)%helio%swifter
+          add_symba_pl1P%nextP => fragadd_list(2)
+          add_helio_pl1P%nextP => fragadd_list(2)%helio
+          add_swifter_pl1P%nextP => fragadd_list(2)%helio%swifter
           DO i = 2, nmergeadd - 1
-               mergeadd_list(i)%prevP => mergeadd_list(i-1)
-               mergeadd_list(i)%nextP => mergeadd_list(i+1)
-               helio_plP => mergeadd_list(i)%helio
-               helio_plP%prevP => mergeadd_list(i-1)%helio
-               helio_plP%nextP => mergeadd_list(i+1)%helio
-               swifter_plP => mergeadd_list(i)%helio%swifter
-               swifter_plP%prevP => mergeadd_list(i-1)%helio%swifter
-               swifter_plP%nextP => mergeadd_list(i+1)%helio%swifter
+               fragadd_list(i)%prevP => fragadd_list(i-1)
+               fragadd_list(i)%nextP => fragadd_list(i+1)
+               helio_plP => fragadd_list(i)%helio
+               helio_plP%prevP => fragadd_list(i-1)%helio
+               helio_plP%nextP => fragadd_list(i+1)%helio
+               swifter_plP => fragadd_list(i)%helio%swifter
+               swifter_plP%prevP => fragadd_list(i-1)%helio%swifter
+               swifter_plP%nextP => fragadd_list(i+1)%helio%swifter
           END DO
-          mergeadd_list(nmergeadd)%prevP => mergeadd_list(nmergeadd-1)
-          symba_plP => mergeadd_list(nmergeadd)
+          fragadd_list(nmergeadd)%prevP => fragadd_list(nmergeadd-1)
+          symba_plP => fragadd_list(nmergeadd)
           NULLIFY(symba_plP%nextP)
-          helio_plP => mergeadd_list(nmergeadd)%helio
-          helio_plP%prevP => mergeadd_list(nmergeadd-1)%helio
+          helio_plP => fragadd_list(nmergeadd)%helio
+          helio_plP%prevP => fragadd_list(nmergeadd-1)%helio
           NULLIFY(helio_plP%nextP)
-          swifter_plP => mergeadd_list(nmergeadd)%helio%swifter
-          swifter_plP%prevP => mergeadd_list(nmergeadd-1)%helio%swifter
+          swifter_plP => fragadd_list(nmergeadd)%helio%swifter
+          swifter_plP%prevP => fragadd_list(nmergeadd-1)%helio%swifter
           NULLIFY(swifter_plP%nextP)
      END IF
-
+! calculate hill radius inside add_swifter_pl1P particles
+     CALL util_hills(nmergeadd,add_swifter_pl1P)
 ! This reorders the linked list of particles to add at this timestep
      CALL symba_reorder_pl(nmergeadd,add_symba_pl1P)
 
@@ -139,10 +154,10 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
 ! **************************** THIS IS COPIED FROM SYMBA_DISCARD_SPILL_PL AND USED TO INSERT OUR ADDED LINKED LIST TO THE EXISTING LINKED LIST
 ! We might have to actually break the old list before we stick stuff in it, not sure. CHECK ON THIS.
 ! This section inserts the head of the new list into the old list at mtiny 
-     IF (nmergeadd > 0) .AND. (nplm > 1) .AND. (nplm < npl) THEN
+     IF ((nmergeadd > 0) .AND. (nplm > 1) .AND. (nplm < npl)) THEN
           symba_plP => symba_pl1P
           end_symba_plP => symba_pl1P
-          DO i = 1, (nplm - 1)
+          DO i = 1, nplm-1
                symba_plP => symba_plP%nextP
                end_symba_plP => end_symba_plP%nextP
           END DO
@@ -156,7 +171,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
           symba_plP%helio%nextP => add_helio_pl1P
           symba_plP%helio%swifter%nextP => add_swifter_pl1P
      ! This section takes the add list and goes to the end of it
-          DO i = 1, (nmergeadd-1)
+          DO i = 1, nmergeadd-1
                symba_plP => symba_plP%nextP
           END DO 
      ! This takes the first of the particles below mtiny (nplm) of our old list and points to its previous to the last of the add list 
@@ -168,7 +183,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
           symba_plP%helio%nextP => end_helio_pl1P
           symba_plP%helio%swifter%nextP => end_swifter_pl1P
      ! This section goes through the rest of the old list up until the second to last particle
-          DO i = 1, (npl-nplm-1)
+          DO i = 1, npl-nplm-1
                symba_plP => symba_plP%nextP
           END DO 
      ! This section removed the next of the very last particle
@@ -179,7 +194,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
 ! This does the same if all the bodies in the system are massive
      IF (nplm == npl) THEN 
           symba_plP => symba_pl1P
-          DO i = 1, (nplm - 1)
+          DO i = 1, nplm - 1
                symba_plP => symba_plP%nextP
           END DO
      ! This takes the head of our new list and points the previous to the index of mtiny (nplm) in the old list

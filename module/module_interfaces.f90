@@ -1435,11 +1435,11 @@ MODULE module_interfaces
                USE module_helio
                USE module_symba
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                            :: npl, nmergeadd
-               REAL(DP), INTENT(IN)                                :: mtiny
-               TYPE(swifter_pl), POINTER                           :: swifter_pl1P
-               TYPE(symba_pl), DIMENSION(:), TARGET, INTENT(INOUT) :: mergeadd_list
-               TYPE(symba_pl), POINTER                             :: symba_pl1P
+               INTEGER(I4B), INTENT(IN)                             :: npl, nmergeadd
+               REAL(DP), INTENT(IN)                                 :: mtiny
+               TYPE(swifter_pl), POINTER                            :: swifter_pl1P
+               TYPE(symba_merger), DIMENSION(:), TARGET, INTENT(IN) :: mergeadd_list
+               TYPE(symba_pl), POINTER                              :: symba_pl1P
           END SUBROUTINE
      END INTERFACE
 

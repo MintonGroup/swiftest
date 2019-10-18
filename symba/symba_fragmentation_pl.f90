@@ -181,13 +181,13 @@ SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergead
 	ELSE 
           regime = collresolve_resolve(model,m2,m1,rad2,rad1,x2(:),x1(:),                              & 
                                   v2(:),v1(:),nres,mres,rres,pres,vres)
-    
+    END IF 
     SELECT CASE (regime)
           CASE (COLLRESOLVE_REGIME_DISRUPTION)
           CASE (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
           CASE (COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
                !mtot = m1 + m2
-               mtot = mres(0)
+               mtot = mres(1)
                !xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
                !vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
                WRITE(*, *) "Graze and Merge between particles ", id1, " and ", id2, " at time t = ",t
@@ -364,7 +364,7 @@ SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergead
 
           CASE (COLLRESOLVE_REGIME_MERGE)
                !mtot = m1 + m2
-               mtot = mres(0)
+               mtot = mres(1)
                !xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
                !vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
                WRITE(*, *) "Merging particles ", id1, " and ", id2, " at time t = ",t
