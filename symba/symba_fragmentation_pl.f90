@@ -193,45 +193,44 @@ SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergead
 
           	
           CASE (COLLRESOLVE_REGIME_HIT_AND_RUN)
-			   WRITE(*, *) "Merging particles ", id1, " and ", id2, " at time t = ",t
+               WRITE(*, *) "Hit and Run between particles ", id1, " and ", id2, " at time t = ",t
                IF (m2 > m1) THEN
-               		nmergesub = nmergesub + 1
-              	 	mergesub_list(nmergesub)%id = id1
-               		mergesub_list(nmergesub)%status = HIT_AND_RUN
-               		mergesub_list(nmergesub)%xh(:) = x1(:)
-               		mergesub_list(nmergesub)%vh(:) = v1(:) - vbs(:)
-               		mergesub_list(nmergesub)%mass = mass1
-               		mergesub_list(nmergesub)%radius = rad1
-               		nmergesub = nmergesub + 1
-               		mergesub_list(nmergesub)%id = id2
-               		mergesub_list(nmergesub)%status = HIT_AND_RUN
-               		mergesub_list(nmergesub)%xh(:) = x2(:)
-               		mergesub_list(nmergesub)%vh(:) = v2(:) - vbs(:)
-               		mergesub_list(nmergesub)%mass = mass2
-               		mergesub_list(nmergesub)%radius = rad2
-
-               		nmergeadd = nmergeadd + 1
+               	nmergesub = nmergesub + 1
+               	mergesub_list(nmergesub)%id = id1
+               	mergesub_list(nmergesub)%status = HIT_AND_RUN
+               	mergesub_list(nmergesub)%xh(:) = x1(:)
+               	mergesub_list(nmergesub)%vh(:) = v1(:) - vbs(:)
+               	mergesub_list(nmergesub)%mass = mass1
+               	mergesub_list(nmergesub)%radius = rad1
+               	nmergesub = nmergesub + 1
+               	mergesub_list(nmergesub)%id = id2
+               	mergesub_list(nmergesub)%status = HIT_AND_RUN
+               	mergesub_list(nmergesub)%xh(:) = x2(:)
+               	mergesub_list(nmergesub)%vh(:) = v2(:) - vbs(:)
+               	mergesub_list(nmergesub)%mass = mass2
+               	mergesub_list(nmergesub)%radius = rad2
+               	nmergeadd = nmergeadd + 1
 
                     mergeadd_list(nmergeadd)%id = id2
                     mergeadd_list(nmergeadd)%status = stat2
 
                ELSE
-               		nmergesub = nmergesub + 1
+               	nmergesub = nmergesub + 1
               	 	mergesub_list(nmergesub)%id = id1
-               		mergesub_list(nmergesub)%status = HIT_AND_RUN
-               		mergesub_list(nmergesub)%xh(:) = x1(:)
-               		mergesub_list(nmergesub)%vh(:) = v1(:) - vbs(:)
-               		mergesub_list(nmergesub)%mass = mass1
-               		mergesub_list(nmergesub)%radius = rad1
-               		nmergesub = nmergesub + 1
-               		mergesub_list(nmergesub)%id = id2
-               		mergesub_list(nmergesub)%status = HIT_AND_RUN
-               		mergesub_list(nmergesub)%xh(:) = x2(:)
-               		mergesub_list(nmergesub)%vh(:) = v2(:) - vbs(:)
-               		mergesub_list(nmergesub)%mass = mass2
-               		mergesub_list(nmergesub)%radius = rad2
+               	mergesub_list(nmergesub)%status = HIT_AND_RUN
+               	mergesub_list(nmergesub)%xh(:) = x1(:)
+               	mergesub_list(nmergesub)%vh(:) = v1(:) - vbs(:)
+               	mergesub_list(nmergesub)%mass = mass1
+               	mergesub_list(nmergesub)%radius = rad1
+               	nmergesub = nmergesub + 1
+               	mergesub_list(nmergesub)%id = id2
+               	mergesub_list(nmergesub)%status = HIT_AND_RUN
+               	mergesub_list(nmergesub)%xh(:) = x2(:)
+               	mergesub_list(nmergesub)%vh(:) = v2(:) - vbs(:)
+               	mergesub_list(nmergesub)%mass = mass2
+               	mergesub_list(nmergesub)%radius = rad2
 
-               		nmergeadd = nmergeadd + 1
+               	nmergeadd = nmergeadd + 1
 
                     mergeadd_list(nmergeadd)%id = id1
                     mergeadd_list(nmergeadd)%status = stat1
