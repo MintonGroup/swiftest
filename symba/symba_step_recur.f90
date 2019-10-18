@@ -159,24 +159,19 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                DO i = 1, nplplenc
                     IF (((plplenc_list(i)%status == ACTIVE) .AND.                                                                 &
                         (plplenc_list(i)%pl1P%levelg >= ireci) .AND.                                                              &
-                        (plplenc_list(i)%pl2P%levelg >= ireci)) .AND.                                                             &                                                                   
-                    ! Create if statement to check for collisions (LS12) or merger depending on flag lfrag in param.in
+                        (plplenc_list(i)%pl2P%levelg >= ireci))) THEN
+                        ! Create if statement to check for collisions (LS12) or merger depending on flag lfrag in param.in
                         ! Determines collisional regime if lfrag=.TRUE. for close encounter planets
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
-                         (lfragmentation))                                                                                        &
-                         CALL symba_fragmentation_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,& 
+                         IF (lfragmentation) THEN
+                            CALL symba_fragmentation_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,& 
                                    mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)                                                       
-                    IF (((plplenc_list(i)%status == ACTIVE) .AND.                                                                  &
-                        (plplenc_list(i)%pl1P%levelg >= ireci) .AND.                                                              &
-                        (plplenc_list(i)%pl2P%levelg >= ireci)) .AND.                                                             &                                                                   
-                    ! Create if statement to check for collisions (LS12) or merger depending on flag lfrag in param.in
-                        ! Determines collisional regime if lfrag=.TRUE. for close encounter planets
-                        ! CALL symba_frag_pl(...)
-                        ! Determines if close encounter leads to merger if lfrag=.FALSE.   
-                         (.NOT. lfragmentation))                                                                                  &
-                         CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,   & 
+                         ELSE
+                            CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,   & 
                                    mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)
+                         END IF
+                     END IF
                END DO
                DO i = 1, npltpenc
                     IF ((pltpenc_list(i)%status == ACTIVE) .AND.                                                                  &
