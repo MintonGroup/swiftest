@@ -118,6 +118,50 @@ MODULE module_timetest
       END SUBROUTINE static_arrays
 
 
+      SUBROUTINE type_arrays(npl,symba_plA)
+         USE module_parameters  
+         USE module_symba
+         USE module_helio
+         IMPLICIT NONE
+
+         INTEGER(I4B),INTENT(IN)             :: npl
+         TYPE(symba_pl),DIMENSION(:),INTENT(INOUT) :: symba_plA
+         INTEGER(I4B)              :: i,j,k
+
+
+          REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac
+          REAL(DP), DIMENSION(NDIM)                    :: dx
+          REAL(DP), DIMENSION(NDIM) :: accsum
+         TYPE(symba_pl) :: symba_pliP,symba_pljP
+         TYPE(helio_pl) :: helio_pliP,helio_pljP
+
+
+ 
+         
+        !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
+        !$OMP SHARED(npl,symba_plA)
+        DO i = 2, npl
+            symba_pliP = symba_plA(i)
+            helio_pliP = symba_pliP%helio
+            helio_pliP%ah(:) = 0.0_DP
+            accsum(:) = 0.0_DP
+            DO j = i + 1,npl
+                helio_pljP = symba_plA(j)%helio
+                dx(:) = helio_pljP%swifter%xh(:) - helio_pliP%swifter%xh(:)
+                rji2 = DOT_PRODUCT(dx(:), dx(:))
+                irij3 = 1.0_DP / (rji2 * SQRT(rji2))
+                faci = helio_pliP%swifter%mass * irij3
+                facj = helio_pljP%swifter%mass * irij3
+                accsum(:) = accsum(:) + facj*dx(:)
+                helio_pljP%ah(:) = helio_pljP%ah(:) - faci*dx(:)
+            END DO
+            helio_pliP%ah(:) = helio_pliP%ah(:) + accsum(:)
+        END DO
+        !$OMP END PARALLEL DO
+   
+      END SUBROUTINE type_arrays
+
+
 END MODULE module_timetest
        
 
@@ -183,7 +227,7 @@ PROGRAM tool_timetest
      TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
      REAL(DP)                                          :: tstart, tend
-     REAL(DP),DIMENSION(:),ALLOCATABLE                 :: toriginal,tstatic_arrays
+     REAL(DP),DIMENSION(:),ALLOCATABLE                 :: toriginal,tstatic_arrays,ttype_arrays
 
      INTEGER(I4B),PARAMETER :: NPLTOT = 12105
      REAL(DP),DIMENSION(NDIM,NPLTOT) :: XX,AA
@@ -204,6 +248,7 @@ PROGRAM tool_timetest
      !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
      ALLOCATE(toriginal(nthreads))
      ALLOCATE(tstatic_arrays(nthreads))
+     ALLOCATE(ttype_arrays(nthreads))
      WRITE(*, 100, ADVANCE = "NO") "Enter name of parameter data file: "
      READ(*, 100) inparfile
  100 FORMAT(A)
@@ -230,7 +275,7 @@ PROGRAM tool_timetest
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
 
 
-     !$ write(*,*) 'nthreads toriginal'
+     !$ write(*,*) 'nthreads toriginal tstatic_arrays ttype_arrays'
      !$ DO i = 1,nthreads
      !$ CALL OMP_SET_NUM_THREADS(i)
      lfirst = .TRUE.
@@ -238,7 +283,6 @@ PROGRAM tool_timetest
      t = t0
      tbase = t0
      iloop = 0
-     NULLIFY(symba_pld1P, symba_tpd1P)
 
      t = t0
      tbase = t0
@@ -253,7 +297,6 @@ PROGRAM tool_timetest
           END IF
           t = tbase + iloop*dt
           CALL original_method(npl,symba_pl1P)
-          CALL static_arrays(npl,XX,AA,MM)
      END DO
      !$ tend = omp_get_wtime()
      !$ toriginal(i) = tend - tstart
@@ -266,6 +309,7 @@ PROGRAM tool_timetest
      !$ tstart = omp_get_wtime()
      DO nn = 1,NPLTOT
          call get_point(nn,symba_pliP)
+         symba_plA(nn) = symba_pliP
          XX(:,nn) = symba_pliP%helio%swifter%xh(:) 
          AA(:,nn) = symba_pliP%helio%ah(:) 
          MM(nn) = symba_pliP%helio%swifter%mass
@@ -278,15 +322,39 @@ PROGRAM tool_timetest
                iloop = 0
           END IF
           t = tbase + iloop*dt
-          CALL original_method(npl,symba_pl1P)
           CALL static_arrays(npl,XX,AA,MM)
      END DO
      !$ tend = omp_get_wtime()
      !$ tstatic_arrays(i) = tend - tstart
 
+     t = t0
+     tbase = t0
+     iloop = 0
+
+     !$ tstart = omp_get_wtime()
+     DO nn = 1,NPLTOT
+         call get_point(nn,symba_pliP)
+         symba_plA(nn) = symba_pliP
+         XX(:,nn) = symba_pliP%helio%swifter%xh(:) 
+         AA(:,nn) = symba_pliP%helio%ah(:) 
+         MM(nn) = symba_pliP%helio%swifter%mass
+     END DO
+
+     DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
+          iloop = iloop + 1
+          IF (iloop == LOOPMAX) THEN
+               tbase = tbase + iloop*dt
+               iloop = 0
+          END IF
+          t = tbase + iloop*dt
+          CALL type_arrays(npl,symba_plA)
+     END DO
+     !$ tend = omp_get_wtime()
+     !$ ttype_arrays(i) = tend - tstart
 
 
-     !$ write(*,*) i,toriginal(i),tstatic_arrays
+
+     !$ write(*,*) i,toriginal(i),tstatic_arrays(i),ttype_arrays(i)
      
      !$ end do
      IF (ALLOCATED(symba_plA)) DEALLOCATE(symba_plA)
@@ -295,6 +363,7 @@ PROGRAM tool_timetest
      IF (ALLOCATED(symba_tpA)) DEALLOCATE(symba_tpA)
      DEALLOCATE(toriginal)
      DEALLOCATE(tstatic_arrays)
+     DEALLOCATE(ttype_arrays)
 
      STOP
 
