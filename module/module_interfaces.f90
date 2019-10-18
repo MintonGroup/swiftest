@@ -1434,7 +1434,6 @@ MODULE module_interfaces
                USE module_swifter
                USE module_helio
                USE module_symba
-               USE module_interfaces, EXCEPT_THIS_ONE => symba_add
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                            :: npl, nmergeadd
                REAL(DP), INTENT(IN)                                :: mtiny
