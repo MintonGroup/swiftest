@@ -176,10 +176,10 @@ SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergead
      nres = 2
 
      IF (m1>m2) THEN
-		regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:),                              & 
+          regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:),                              & 
                                   v1(:),v2(:),nres,mres,rres,pres,vres)
 	ELSE 
-		regime = collresolve_resolve(model,m2,m1,rad2,rad1,x2(:),x1(:),                              & 
+          regime = collresolve_resolve(model,m2,m1,rad2,rad1,x2(:),x1(:),                              & 
                                   v2(:),v1(:),nres,mres,rres,pres,vres)
     
     SELECT CASE (regime)
@@ -190,7 +190,7 @@ SUBROUTINE symba_fragmentation_pl(t, dt, index, nplplenc, plplenc_list, nmergead
                mtot = mres(0)
                !xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
                !vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
-               WRITE(*, *) "Merging particles ", id1, " and ", id2, " at time t = ",t
+               WRITE(*, *) "Graze and Merge between particles ", id1, " and ", id2, " at time t = ",t
                nmergesub = nmergesub + 1
                mergesub_list(nmergesub)%id = id1
                mergesub_list(nmergesub)%status = MERGED
