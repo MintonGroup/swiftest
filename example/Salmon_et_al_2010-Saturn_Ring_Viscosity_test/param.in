@@ -1,0 +1,32 @@
+!Parameter file for the SyMBA-RINGMOONS test
+!NPLMAX         -1 
+!NTPMAX         -1
+T0             0 
+TSTOP          5000000000.0
+DT             100.0
+PL_IN          pl.in
+TP_IN          tp.in
+IN_TYPE        ASCII
+ISTEP_OUT      2500
+BIN_OUT        bin.dat
+OUT_TYPE       REAL8
+OUT_FORM       EL
+OUT_STAT       NEW
+ISTEP_DUMP     2500
+J2             0.0
+J4             0.0
+CHK_CLOSE      yes
+CHK_RMIN       1.0
+CHK_RMAX       2767.340622788393
+CHK_EJECT      2767.340622788393
+CHK_QMIN       1.0
+CHK_QMIN_COORD HELIO
+CHK_QMIN_RANGE 1.0 2767.340622788393
+ENC_OUT        enc.dat
+EXTRA_FORCE    no
+BIG_DISCARD    no
+RHILL_PRESENT  yes
+MU2GM          8.681e+28
+DU2CM          2536200000.0
+TU2S           31557600.0
+MTINY          1e-08
