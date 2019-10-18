@@ -26,7 +26,7 @@
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swifter_pl1P, swifter_tp1P)
+!  Invocation  : CALL symba_add(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swifter_pl1P, swifter_tp1P)
 !
 !  Notes       : 
 !
