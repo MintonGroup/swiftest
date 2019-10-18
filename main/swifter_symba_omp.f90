@@ -164,12 +164,12 @@ PROGRAM swifter_symba_omp
           t = tbase + iloop*dt
           ! Take the merger info and create fragments
           ! CALL some subroutine that returns the number of fragments and an array of new bodies (swifter_pl type)
-          CALL symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)
+          IF (lfragmentation) CALL symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)
           ! update nplmax to add in the new number of bodies
 
           ! add new bodies into the current body linked list as in CALL symba_setup
-
           ! reorder bodies (if that is not already going to happen..check the discard subroutines
+          CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)
           
 
           !
