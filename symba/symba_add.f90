@@ -42,7 +42,8 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                            :: npl, nmergeadd
+     INTEGER(I4B), INTENT(INOUT)                            :: npl
+     INTEGER(I4B), INTENT(IN)                            :: nmergeadd
      REAL(DP), INTENT(IN)                                :: mtiny
      TYPE(swifter_pl), POINTER                           :: swifter_pl1P
      TYPE(symba_pl), DIMENSION(:), TARGET, INTENT(INOUT) :: mergeadd_list
@@ -232,8 +233,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
           NULLIFY(helio_plP%nextP)
           NULLIFY(swifter_plP%nextP)
      END IF
-
-     nplm = nplm + add_nplm
+     
      npl = npl + nmergeadd
 
      RETURN
