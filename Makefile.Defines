@@ -56,7 +56,7 @@ FFLAGS          = -O3 -fopenmp -fbounds-check -fbacktrace
 
 #CC              = icc
 CC              = cc
-CFLAGS          = -O3 -w
+CFLAGS          = -O3 -w -m64
 
 64_BIT_REALS    = -r8
 

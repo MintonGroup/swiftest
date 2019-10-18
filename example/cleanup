@@ -1,4 +1,0 @@
-rm bin*.dat
-rm enc*.dat
-rm dump*
-rm discard*.out
