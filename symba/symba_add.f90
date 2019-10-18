@@ -145,6 +145,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
                symba_plP => symba_plP%nextP
                end_symba_plP => end_symba_plP%nextP
           END DO
+          end_symba_plP => end_symba_plP%nextP
      ! This takes the head of our new list and points the previous to the index of mtiny (nplm) in the old list
           add_symba_pl1P%prevP => symba_plP
           add_helio_pl1P%prevP => helio_plP
@@ -157,7 +158,6 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
           DO i = 1, (nmergeadd-1)
                symba_plP => symba_plP%nextP
           END DO 
-          end_symba_plP => end_symba_plP%nextP
      ! This takes the first of the particles below mtiny (nplm) of our old list and points to its previous to the last of the add list 
           end_symba_pl1P%prevP => symba_plP
           end_helio_pl1P%prevP => helio_plP
@@ -202,6 +202,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
      IF (nplm == 1) THEN 
           symba_plP => symba_pl1P
           end_symba_plP => symba_pl1P
+          end_symba_plP => end_symba_plP%nextP
      ! This takes the head of our new list and points the previous to the index of mtiny (nplm) in the old list
           add_symba_pl1P%prevP => symba_plP
           add_helio_pl1P%prevP => helio_plP
@@ -214,7 +215,6 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
           DO i = 1, (nmergeadd-1)
                symba_plP => symba_plP%nextP
           END DO 
-          end_symba_plP => end_symba_plP%nextP
      ! This takes the first of the particles below mtiny (nplm) of our old list and points to its previous to the last of the add list 
           end_symba_pl1P%prevP => symba_plP
           end_helio_pl1P%prevP => helio_plP
