@@ -1429,6 +1429,22 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
+          SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)
+               USE module_parameters
+               USE module_swifter
+               USE module_helio
+               USE module_symba
+               USE module_interfaces, EXCEPT_THIS_ONE => symba_add
+               IMPLICIT NONE
+               INTEGER(I4B), INTENT(IN)                            :: npl, nmergeadd
+               REAL(DP), INTENT(IN)                                :: mtiny
+               TYPE(swifter_pl), POINTER                           :: swifter_pl1P
+               TYPE(symba_pl), DIMENSION(:), TARGET, INTENT(INOUT) :: mergeadd_list
+               TYPE(symba_pl), POINTER                             :: symba_pl1P
+          END SUBROUTINE
+     END INTERFACE
+
+     INTERFACE
           SUBROUTINE symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
                USE module_parameters
                USE module_swifter
