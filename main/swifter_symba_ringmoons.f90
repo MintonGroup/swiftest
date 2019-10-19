@@ -91,7 +91,7 @@ PROGRAM swifter_symba_ringmoons
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
 
      TYPE(ringmoons_parameter)                         :: rm
-     TYPE(ringmoons_ring_bin),DIMENSION(:),ALLOCATABLE :: ring
+     TYPE(ringmoons_ring) :: ring
 
 ! Executable code
      CALL util_version
@@ -130,7 +130,6 @@ PROGRAM swifter_symba_ringmoons
 
      !Read in RING-MOONS parameters and data
      CALL ringmoons_io_init_param(rm)
-     ALLOCATE(ring(rm%N))
      CALL ringmoons_io_init_ring(rm,ring) 
 
      !Set up integration

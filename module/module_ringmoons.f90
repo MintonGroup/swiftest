@@ -46,6 +46,7 @@ MODULE module_ringmoons
          REAL(DP), allocatable(:) :: deltaA   ! Differential surface area of ring
          REAL(DP), allocatable(:) :: m        ! mass of ring particles in bin
          REAL(DP), allocatable(:) :: sigma    ! Surface mass density of ring
+         REAL(DP), allocatable(:) :: nu       ! viscocity of the ring
          REAL(DP), allocatable(:) :: sigma_threshold ! bounds are set up from lindblad resonance locations at FRL and synch
          REAL(DP), allocatable(:) :: RR
          REAL(DP), allocatable(:) :: I
