@@ -11,19 +11,9 @@ G	    = 6.674e-8                          #Gravitational constant (cgs)
 year    = 3600*24*365.25                #seconds in 1 year
 AU      = 1.4960e13
 M_Sun   = 1.9891e33
-
-
 N   = 1000           #number of bins in disk
 
-#M_Uranus =  8.6810e28 # mass of Uranus in gm
-#R_Uranus = 25362e5 # Radius of Uranus in cm
-#T_Uranus = 0.71833 * 24 * 60 * 60 # Rotation period of Uranus in seconds
-#W_Uranus    = 2.0 * np.pi / T_Uranus # Angular rotation rate of Uranus
-#L_Uranus    = 2.0 * M_Uranus * R_Uranus**2 / 5.0 * W_Uranus  #spin angular momentum of Uranusa
-#a_Uranus    = 19.2184 * AU
-#Rhill_Uranus = a_Uranus * (M_Uranus / (3 * M_Sun))**(1.0 / 3.0)
-
-M_Saturn    = 5.6846e29
+M_Saturn    = 5.6834e29
 R_Saturn    = 60268.0e5
 R_Planet = R_Saturn
 M_Planet = M_Saturn
@@ -60,15 +50,11 @@ LP =  IP * wP
 
 ###For the disk:
 
-
-
-r_pdisk = 13.5    #disk particle size (radius)
-m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_sat   #disk particle size (mass)
+r_pdisk = 1192.0  #disk particle size (radius in cm)
+m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_sat   #disk particle size (mass in g)
 
 # gamma	= 0.3	    #ang momentum efficiency factor
 inside = 0  #bin id of innermost ring bin (can increase if primary accretes a lot mass through 'Update.py'
-p	=   3   #Power law index that surface mass density falls off as (cannot be exactly 2)
-alpha	=  1e30      #Arbitrary constant (sets initial mass of disk in "build.py"
 r_I	= 100e8      #inside radius of disk is at the embryo's surface
 r_F	= 120e8  #outside radius of disk
 deltar = (r_F - r_I) / N	#width of a bin
@@ -121,14 +107,9 @@ for a in range(int(N)):
     print(sigma[a] ,file=outfile)
 
 
-
-
-
-
-
 t_0	= 0
-end_sim = 5.e9  #end time
-t_print = 2.e4  #output interval to print results
+end_sim = 1.e5  #end time
+t_print = 1.e3  #output interval to print results
 deltaT	= 1.e2  #timestep simulation
 
 

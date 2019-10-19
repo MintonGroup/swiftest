@@ -39,19 +39,19 @@ MODULE module_ringmoons
          REAL(DP)     :: deltaX      ! variable changed bin width used for viscosity calculations
      END TYPE ringmoons_parameter
 
-     TYPE ringmoons_ring_bin
-         REAL(DP) :: r        ! Radial distance of center of bin
-         REAL(DP) :: X        ! variable changed bin center used for viscosity calculations
-         REAL(DP) :: R_P      ! Radial distance of center of bin relative to central body radius
-         REAL(DP) :: deltaA   ! Differential surface area of ring
-         REAL(DP) :: m        ! mass of ring particles in bin
-         REAL(DP) :: sigma    ! Surface mass density of ring
-         REAL(DP) :: sigma_threshold ! bounds are set up from lindblad resonance locations at FRL and synch
-         REAL(DP) :: RR
-         REAL(DP) :: I
-         REAL(DP) :: w
-         REAL(DP) :: Torque_to_disk
-     END TYPE ringmoons_ring_bin
+     TYPE ringmoons_ring
+         REAL(DP), allocatable(:) :: r        ! Radial distance of center of bin
+         REAL(DP), allocatable(:) :: X        ! variable changed bin center used for viscosity calculations
+         REAL(DP), allocatable(:) :: R_P      ! Radial distance of center of bin relative to central body radius
+         REAL(DP), allocatable(:) :: deltaA   ! Differential surface area of ring
+         REAL(DP), allocatable(:) :: m        ! mass of ring particles in bin
+         REAL(DP), allocatable(:) :: sigma    ! Surface mass density of ring
+         REAL(DP), allocatable(:) :: sigma_threshold ! bounds are set up from lindblad resonance locations at FRL and synch
+         REAL(DP), allocatable(:) :: RR
+         REAL(DP), allocatable(:) :: I
+         REAL(DP), allocatable(:) :: w
+         REAL(DP), allocatable(:) :: Torque_to_disk
+     END TYPE ringmoons_ring
 
 END MODULE module_ringmoons
 !**********************************************************************************************************************************

@@ -53,7 +53,7 @@ axes['a'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
 #print(Gm_pdisk)
 
 Visc5.f(1,ic.M_Saturn,t=0.0)
-print(f"nu = {Visc5.nu[501]*1e-2}")
+print(f'nu = {Visc5.nu[501]*1e-4} m^2 s^-1')
 
 figure.tight_layout()
 #plt.show()
