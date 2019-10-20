@@ -60,8 +60,8 @@ figure.tight_layout()
 
 
 
-#figname ="Salmon_et_al_2010-Saturn_Ring_Viscocity_evoloution.png"
-#plt.savefig(figname,dpi=300 )
-#os.system(f'open {figname}')
+figname ="Salmon_et_al_2010-Saturn_Ring_Viscocity_evoloution.png"
+plt.savefig(figname,dpi=300 )
+os.system(f'open {figname}')
 
 
