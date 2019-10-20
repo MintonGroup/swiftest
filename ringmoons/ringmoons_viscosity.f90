@@ -82,6 +82,7 @@ SUBROUTINE ringmoons_viscocity(GM_Planet,R_Planet,ring)
 
          nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
          nu(i) = nu_trans + nu_grav + nu_coll
+      end if
    end do
 
 END SUBROUTINE ringmoons_viscocity
