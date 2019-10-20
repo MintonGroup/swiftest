@@ -99,7 +99,7 @@ f(1) #Make a Gaussian ring
 outfile = open('ring.in', 'w')
 print(N, file=outfile)
 print(deltar / DU2CM, file=outfile)
-print(r_pdisk / DU2CM, (m_pdisk / MU2GM), file=outfile)
+print(r_pdisk / DU2CM, (G * m_pdisk / MU2GM), file=outfile)
 
 
 for a in range(int(N)):

@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_viscocity(M_Planet,R_Planet,ring)
+SUBROUTINE ringmoons_viscocity(GM_Planet,R_Planet,ring)
 
 ! Modules
       USE module_parameters
@@ -35,50 +35,53 @@ SUBROUTINE ringmoons_viscocity(M_Planet,R_Planet,ring)
       IMPLICIT NONE
 
 ! Arguments
-      real(DP),intent(in) :: M_Planet,R_Planet
+      real(DP),intent(in) :: GM_Planet,R_Planet
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals
-      real(DP) :: Q,r_hstar,tau
+      real(DP) :: Q,r_hstar,tau,sigma_r
       integer(I4B) :: i
-      real(DP),parameter :: sigsmall = 1e-6_DP * MU2GM
+      real(DP) :: sigsmall = 1e-6_DP * MU2GM
+      real(DP) :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable,y,nu_trans,nu_grav,nu_coll
    
 
 ! Executable code
 
 
-    do i = 1, ring%N 
+   r_hstar = / (2 * ring%r_pdisk) * (2 *ring%m_pdisk /(3.0_DP * M_Planet))**(1.0/3.0)
+   do i = 1, ring%N 
       if (ring%sigma(i) <= sigsmall) then
          ring%nu(i) = 0.0_DP
       else
-            r_hstar = /(2.0 * ring%r_pdisk)*(2.0*ring%m_pdisk/(3.0*M_Planet))**(1.0/3.0)
-            tau = PI*r_pdisk**2*sigma[a]/m_pdisk
+         tau = PI * ring%r_pdisk**2 * ring%sigma(i) / ring%m_pdisk
+         if (r_hstar < 1.0_DP) then
+             sigma_r = 0.5_DP * (1 + tanh((2 * r_hstar - 1.0_DP) / (r_hstar * (r_hstar - 1.0_DP)))) &
+                      * sqrt(ring%m_pdisk / ring%r_pdisk) + 0.5_DP * (1.0_DP - tanh((2 * r_hstar - 1.0_DP) &
+                      / (r_hstar * (r_hstar - 1._DP)))) * (2 * ring%r_pdisk * ring%w(i))
+         else
+             sigma_r = sqrt(ring%m_pdisk / ring%r_pdisk)
+         end if
 
+         Q = ring%w(i) * sigma_r / (3.36_DP * (ring%sigma(i)))
 
-            if r_hstar < 1.0:
-                sigma_r = 0.5*(1+tanh((2.*r_hstar-1)/(r_hstar*(r_hstar-1))))*sqrt(G*m_pdisk/r_pdisk) + 0.5*(1-tanh((2.*r_hstar-1)/(r_hstar*(r_hstar-1))))*(2.0*r_pdisk*w[a])
-            else:
-                sigma_r = sqrt(G*m_pdisk/r_pdisk)
+         if (Q <= 4.0_DP) then
+             nu_trans_stable = sigma_r**2 / (2 *ring%w(i)) * (0.46 * tau /(1.0 + tau**2))
+             nu_grav_stable = 0.0_DP
+             nu_trans_unstable = 13 * r_hstar**5 * ring%sigma(i)**2 / ring%w(i)**3
+             nu_grav_unstable = nu_trans_unstable
 
+             y = Q / 4.0_DP
+             nu_trans = 0.5_DP * (1._DP + tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_trans_stable &
+                      + 0.5_DP * (1._DP - tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_trans_unstable
+             nu_grav  = 0.5_DP * (1._DP + tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_grav_stable &
+                      + 0.5_DP * (1._DP - tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_grav_unstable
+         else
+             nu_trans = sigma_r**2 / (2 * ring%w(i)) * (0.46_DP * tau / (1._DP + tau**2))
+             nu_grav = 0.0_DP
+         end if
 
-            Q = w[a]*sigma_r/(3.36*G*(sigma[a]+0.000001))
-
-            if Q <= 4.0:
-
-                nu_trans_stable = sigma_r**2.0/(2.0*w[a])*(0.46*tau/(1.0+tau**2.0))
-                nu_grav_stable = 0.0
-                nu_trans_unstable = 13.0*r_hstar**5.0*G**2.0*sigma[a]**2.0/w[a]**3.0
-                nu_grav_unstable = nu_trans_unstable
-
-                y = Q/4.
-                nu_trans = 0.5*(1+tanh((2.*y-1)/(y*(y-1))))*(nu_trans_stable) +  0.5*(1-tanh((2.*y-1)/(y*(y-1))))*(nu_trans_unstable)
-                nu_grav = 0.5*(1+tanh((2.*y-1)/(y*(y-1))))*(nu_grav_stable) +  0.5*(1-tanh((2.*y-1)/(y*(y-1))))*(nu_grav_unstable)
-
-            else:
-                nu_trans = sigma_r**2.0/(2.0*w[a])*(0.46*tau/(1.0+tau**2.0))
-                nu_grav = 0.0
-
-            nu_coll = r_pdisk**2.0*w[a]*tau
-            nu[a] = nu_trans + nu_grav + nu_coll
+         nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
+         nu(i) = nu_trans + nu_grav + nu_coll
+   end do
 
 END SUBROUTINE ringmoons_viscocity

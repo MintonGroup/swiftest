@@ -25,68 +25,75 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-MODULE module_ringmoons_interfaces
+module module_ringmoons_interfaces
 
-      IMPLICIT NONE
+      implicit none
 
 
-      INTERFACE
-         SUBROUTINE ringmoons_io_init_ring(GMP,R_Planet,ring)
-            USE module_parameters
-            USE module_ringmoons
-            IMPLICIT NONE
-            real(DP),intent(in)     :: GMP,R_Planet 
-            TYPE(ringmoons_ring),INTENT(INOUT) :: ring
-         END SUBROUTINE ringmoons_io_init_ring
-      END INTERFACE
+      interface
+         subroutine ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
+            use module_parameters
+            use module_ringmoons
+            implicit none
+            real(DP),intent(in)     :: GM_Planet,R_Planet 
+            type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_io_init_ring
+      end interface
 
-      INTERFACE
-         SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt,ring)
-            USE module_parameters
-            USE module_symba
-            USE module_ringmoons
-            IMPLICIT NONE
-            LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
-            INTEGER(I4B), INTENT(IN)                         :: npl, nplmax
-            REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt
-            REAL(DP), INTENT(INOUT)                          :: eoffset
-            TYPE(symba_pl), POINTER                          :: symba_pl1P
-            TYPE(ringmoons_ring),INTENT(INOUT) :: ring
-         END SUBROUTINE ringmoons_step 
-      END INTERFACE
+      interface
+         subroutine ringmoons_step(lfirst, t, rmin, npl, nplmax, symba_pl1p, j2rp2, j4rp4, eoffset, dt,ring)
+            use module_parameters
+            use module_symba
+            use module_ringmoons
+            implicit none
+            logical(lgt), intent(inout)                      :: lfirst
+            integer(I4B), intent(in)                         :: npl, nplmax
+            real(DP), intent(in)                             :: t, rmin, j2rp2, j4rp4, dt
+            real(DP), intent(inout)                          :: eoffset
+            type(symba_pl), pointer                          :: symba_pl1p
+            type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_step 
+      end interface
 
-      INTERFACE
-         SUBROUTINE ringmoons_pde_solver(dtin,ring)
-         USE module_parameters
-         USE module_ringmoons
-         IMPLICIT NONE
-         real(DP),intent(in) :: dtin
+      interface
+         subroutine ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
+         use module_parameters
+         use module_ringmoons
+         implicit none
+         real(DP),intent(in) :: GM_Planet,R_Planet,dtin
          TYPE(ringmoons_ring),INTENT(INOUT) :: ring
-         END SUBROUTINE ringmoons_pde_solver
-      END INTERFACE
+         end subroutine ringmoons_pde_solver
+      end interface
 
-      INTERFACE
-         SUBROUTINE ringmoons_allocate(ring)
-         USE module_parameters
-         USE module_ringmoons
-         IMPLICIT NONE
-         real(DP),intent(in) :: dtin
-         TYPE(ringmoons_ring),INTENT(INOUT) :: ring
-         END SUBROUTINE ringmoons_allocate
-      END INTERFACE
+      interface
+         subroutine ringmoons_allocate(ring)
+         use module_parameters
+         use module_ringmoons
+         implicit none
+         type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_allocate
+      end interface
 
-      INTERFACE
-         SUBROUTINE ringmoons_deallocate(ring)
-         USE module_parameters
-         USE module_ringmoons
-         IMPLICIT NONE
-         real(DP),intent(in) :: dtin
-         TYPE(ringmoons_ring),INTENT(INOUT) :: ring
-         END SUBROUTINE ringmoons_deallocate
-      END INTERFACE
+      interface
+         subroutine ringmoons_deallocate(ring)
+         use module_parameters
+         use module_ringmoons
+         implicit none
+         type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_deallocate
+      end interface
+
+      interface
+         subroutine ringmoons_viscocity(GM_Planet,R_Planet,ring)
+         use module_parameters
+         use module_ringmoons
+         implicit none
+         real(DP),intent(in) :: GM_Planet,R_Planet
+         type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_viscocity
+      end interface
 
 
 
 
-
-END MODULE module_ringmoons_interfaces
+end module module_ringmoons_interfaces

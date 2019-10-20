@@ -24,7 +24,7 @@
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_io_init_ring(GMP,R_Planet,ring)
+SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
 
 ! Modules
       USE module_parameters
@@ -33,7 +33,7 @@ SUBROUTINE ringmoons_io_init_ring(GMP,R_Planet,ring)
       IMPLICIT NONE
 
 ! Arguments
-      real(DP),intent(in)                :: GMP,R_Planet
+      real(DP),intent(in)                :: GM_Planet,R_Planet
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals
@@ -51,7 +51,7 @@ SUBROUTINE ringmoons_io_init_ring(GMP,R_Planet,ring)
       ring%r_F = R_Planet + ring%N * ring%deltar
       do i = 1,ring%N
          read(LUN,*,iostat=ioerr) ring%sigma(i)
-         if (ioer /= 0) then 
+         if (ioerr /= 0) then 
             write(*,*) 'File read error in ',trim(adjustl(ringfile))
          end if
          ring%r(i) = ring%r_I + ring%deltar * (1.0_DP * i + 0.5_DP)
@@ -61,8 +61,8 @@ SUBROUTINE ringmoons_io_init_ring(GMP,R_Planet,ring)
          ring%m(i) = ring%sigma(i) * ring%deltaA(i)
          ring%RR(i) = ring%r(i)**2 + 0.25_DP * ring%deltar**2 
          ring%I(i) = ring%m(i) * ring%RR(i)
-         ring%w(i) = sqrt(GMP / ring%r(i)**3)
-         ring%Torque_to_disk = 0.0_DP
+         ring%w(i) = sqrt(GM_Planet / ring%r(i)**3)
+         ring%Torque_to_disk(i) = 0.0_DP
       end do
       
    

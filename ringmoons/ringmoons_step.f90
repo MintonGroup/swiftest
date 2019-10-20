@@ -32,7 +32,7 @@
 !  Notes       : Adapted from Andy Hesselbrock's RING-MOONS Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt,ring)
+SUBROUTINE ringmoons_step(lfirst, t, rmin,npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt,ring)
 
 ! Modules
      USE module_parameters
@@ -44,7 +44,7 @@ SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoff
 ! Arguments
      LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
      INTEGER(I4B), INTENT(IN)                         :: npl, nplmax
-     REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt
+     REAL(DP), INTENT(IN)                             :: t, rmin,j2rp2, j4rp4, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      TYPE(symba_pl), POINTER                          :: symba_pl1P
      TYPE(ringmoons_ring),INTENT(INOUT) :: ring
@@ -52,7 +52,7 @@ SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoff
 
 
 ! Executable code
-
+      call ringmoons_pde_solver(symba_pl1P%helio%swifter%mass,rmin,dt,ring)
 
      RETURN
 

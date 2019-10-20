@@ -147,7 +147,7 @@ PROGRAM swifter_symba_ringmoons
      IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE (t < tstop) 
-          CALL ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt, ring)
+          CALL ringmoons_step(lfirst, t, rmin, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt, ring)
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
                mtiny, encounter_file, out_type)
@@ -203,7 +203,6 @@ PROGRAM swifter_symba_ringmoons
      IF (ALLOCATED(mergeadd_list)) DEALLOCATE(mergeadd_list)
      IF (ALLOCATED(mergesub_list)) DEALLOCATE(mergesub_list)
      IF (ALLOCATED(symba_tpA)) DEALLOCATE(symba_tpA)
-     IF (ALLOCATED(ring)) DEALLOCATE(ring)
      CALL util_exit(SUCCESS)
 
      STOP

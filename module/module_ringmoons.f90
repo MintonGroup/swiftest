@@ -29,7 +29,6 @@ MODULE module_ringmoons
      IMPLICIT NONE
 
      TYPE ringmoons_ring
-
          REAL(DP)     :: r_pdisk     ! disk particle size (radius)
          REAL(DP)     :: m_pdisk     ! disk particle size (mass)
          INTEGER(I4B) :: N           ! number of bins in disk
@@ -38,19 +37,18 @@ MODULE module_ringmoons
          REAL(DP)     :: r_I         ! inside radius of disk
          REAL(DP)     :: deltar      ! width of a bin
          REAL(DP)     :: deltaX      ! variable changed bin width used for viscosity calculations
-
-         REAL(DP), allocatable(:) :: r        ! Radial distance of center of bin
-         REAL(DP), allocatable(:) :: X        ! variable changed bin center used for viscosity calculations
-         REAL(DP), allocatable(:) :: R_P      ! Radial distance of center of bin relative to central body radius
-         REAL(DP), allocatable(:) :: deltaA   ! Differential surface area of ring
-         REAL(DP), allocatable(:) :: m        ! mass of ring particles in bin
-         REAL(DP), allocatable(:) :: sigma    ! Surface mass density of ring
-         REAL(DP), allocatable(:) :: nu       ! viscocity of the ring
-         REAL(DP), allocatable(:) :: sigma_threshold ! bounds are set up from lindblad resonance locations at FRL and synch
-         REAL(DP), allocatable(:) :: RR
-         REAL(DP), allocatable(:) :: I
-         REAL(DP), allocatable(:) :: w
-         REAL(DP), allocatable(:) :: Torque_to_disk
+         REAL(DP), dimension(:), allocatable :: r        ! Radial distance of center of bin
+         REAL(DP), dimension(:), allocatable :: X        ! variable changed bin center used for viscosity calculations
+         REAL(DP), dimension(:), allocatable :: R_P      ! Radial distance of center of bin relative to central body radius
+         REAL(DP), dimension(:), allocatable :: deltaA   ! Differential surface area of ring
+         REAL(DP), dimension(:), allocatable :: m        ! mass of ring particles in bin
+         REAL(DP), dimension(:), allocatable :: sigma    ! Surface mass density of ring
+         REAL(DP), dimension(:), allocatable :: nu       ! viscocity of the ring
+         REAL(DP), dimension(:), allocatable :: sigma_threshold ! bounds are set up from lindblad resonance locations at FRL and synch
+         REAL(DP), dimension(:), allocatable :: RR
+         REAL(DP), dimension(:), allocatable :: I
+         REAL(DP), dimension(:), allocatable :: w
+         REAL(DP), dimension(:), allocatable :: Torque_to_disk
      END TYPE ringmoons_ring
 
 END MODULE module_ringmoons

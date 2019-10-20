@@ -24,7 +24,7 @@
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_pde_solver(dtin,ring)
+SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
 
 ! Modules
       USE module_parameters
@@ -33,16 +33,17 @@ SUBROUTINE ringmoons_pde_solver(dtin,ring)
       IMPLICIT NONE
 
 ! Arguments
-      real(DP),intent(in) :: dtin
+      real(DP),intent(in) :: GM_Planet,R_Planet,dtin
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals
-      real(DP) :: dtstab, dt,fac1
+      real(DP) :: dtstab, dt,fac
       real(DP),dimension(ring%N) :: S,Snew
       integer(I4B) :: i,nloops,loop
 
 ! Executable code
-      S(:) = ring%sigma(:) * ring%X(:) 
+      S(:) = ring%sigma(:) * ring%X(:)
+      call ringmoons_viscocity(GM_Planet,R_Planet,ring)
       dtstab = 0.5_DP * maxval(ring%X) * ring%deltaX**2 / (12 * minval(ring%nu))
       nloops = ceiling(dtin / dtstab)
       dt = dtin / nloops
@@ -51,15 +52,16 @@ SUBROUTINE ringmoons_pde_solver(dtin,ring)
       do loop = 1,nloops  
           
          !$OMP PARALLEL DO DEFAULT(PRIVATE) &
-         !$OMP SHARED(ring,ring,Snew,S,fac)
+         !$OMP SHARED(ring,Snew,S,fac)
          do i = 2,ring%N - 1
             Snew(i) = S(i) + fac / (ring%X(i)**2) * (ring%nu(i) * (S(i + 1) - 2 * S(i) + S(i - 1)) &
                                                     + 0.5 * (S(i + 1) - S(i - 1)) * (ring%nu(i + 1) - ring%nu(i - 1)) &
                                                     + S(i) * (ring%nu(i + 1) - 2 * ring%nu(i) - ring%nu(i - 1)))
+            ring%sigma(i) = Snew(i) / ring%X(i)
          end do
          !$OMP END PARALLEL DO
          S(:) = Snew(:)
-         
+         call ringmoons_viscocity(GM_Planet,R_Planet,ring)
       end do 
 
       RETURN
