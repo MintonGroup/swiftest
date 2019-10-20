@@ -41,14 +41,14 @@ SUBROUTINE ringmoons_viscocity(GM_Planet,R_Planet,ring)
 ! Internals
       real(DP) :: Q,r_hstar,tau,sigma_r
       integer(I4B) :: i
-      real(DP) :: sigsmall = 1e-6_DP * MU2GM
+      real(DP) :: sigsmall
       real(DP) :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable,y,nu_trans,nu_grav,nu_coll
    
 
 ! Executable code
+   sigsmall = 1e-6_DP * MU2GM
 
-
-   r_hstar = / (2 * ring%r_pdisk) * (2 *ring%m_pdisk /(3.0_DP * M_Planet))**(1.0/3.0)
+   r_hstar = R_Planet / (2 * ring%r_pdisk) * (2 *ring%m_pdisk /(3.0_DP * M_Planet))**(1.0/3.0)
    do i = 1, ring%N 
       if (ring%sigma(i) <= sigsmall) then
          ring%nu(i) = 0.0_DP
