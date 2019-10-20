@@ -32,7 +32,7 @@
 !  Notes       : Adapted from Andy Hesselbrock's RING-MOONS Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt,rm,ring)
+SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt,ring)
 
 ! Modules
      USE module_parameters
@@ -47,7 +47,6 @@ SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoff
      REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      TYPE(symba_pl), POINTER                          :: symba_pl1P
-     TYPE(ringmoons_parameter),INTENT(IN) :: rm
      TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 ! Internals
 

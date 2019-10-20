@@ -11,22 +11,22 @@
 !  Input
 !    Arguments : 
 !                
-!    Terminal  : none
+!    Teringinal  : none
 !    File      : 
 !
 !  Output
 !    Arguments : 
-!    Terminal  : 
+!    Teringinal  : 
 !    File      : 
 !
-!  Invocation  : CALL ringmoons_viscocity(dt,rm,ring)
+!  Invocation  : CALL ringmoons_viscocity(dt,ring,ring)
 !
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_viscocity(M_Planet,R_Planet,rm,ring)
+SUBROUTINE ringmoons_viscocity(M_Planet,R_Planet,ring)
 
 ! Modules
       USE module_parameters
@@ -36,7 +36,6 @@ SUBROUTINE ringmoons_viscocity(M_Planet,R_Planet,rm,ring)
 
 ! Arguments
       real(DP),intent(in) :: M_Planet,R_Planet
-      TYPE(ringmoons_parameter),INTENT(IN) :: rm
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals
@@ -48,11 +47,11 @@ SUBROUTINE ringmoons_viscocity(M_Planet,R_Planet,rm,ring)
 ! Executable code
 
 
-    do i = 1, rm%N 
+    do i = 1, ring%N 
       if (ring%sigma(i) <= sigsmall) then
          ring%nu(i) = 0.0_DP
       else
-            r_hstar = /(2.0*rm%r_pdisk)*(2.0*rm%m_pdisk/(3.0*M_Planet))**(1.0/3.0)
+            r_hstar = /(2.0 * ring%r_pdisk)*(2.0*ring%m_pdisk/(3.0*M_Planet))**(1.0/3.0)
             tau = PI*r_pdisk**2*sigma[a]/m_pdisk
 
 

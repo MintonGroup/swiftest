@@ -11,20 +11,20 @@
 !  Input
 !    Arguments : 
 !                
-!    Terminal  : none
+!    Teringinal  : none
 !    File      : 
 !
 !  Output
 !    Arguments : 
-!    Terminal  : 
+!    Teringinal  : 
 !    File      : 
 !
-!  Invocation  : CALL ringmoons_pde_solver(dt,rm,ring)
+!  Invocation  : CALL ringmoons_pde_solver(dt,ring,ring)
 !
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_pde_solver(dtin,rm,ring)
+SUBROUTINE ringmoons_pde_solver(dtin,ring)
 
 ! Modules
       USE module_parameters
@@ -34,26 +34,25 @@ SUBROUTINE ringmoons_pde_solver(dtin,rm,ring)
 
 ! Arguments
       real(DP),intent(in) :: dtin
-      TYPE(ringmoons_parameter),INTENT(IN) :: rm
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals
       real(DP) :: dtstab, dt,fac1
-      real(DP),dimension(rm%N) :: S,Snew
+      real(DP),dimension(ring%N) :: S,Snew
       integer(I4B) :: i,nloops,loop
 
 ! Executable code
       S(:) = ring%sigma(:) * ring%X(:) 
-      dtstab = 0.5_DP * maxval(ring%X) * rm%deltaX**2 / (12 * minval(ring%nu))
+      dtstab = 0.5_DP * maxval(ring%X) * ring%deltaX**2 / (12 * minval(ring%nu))
       nloops = ceiling(dtin / dtstab)
       dt = dtin / nloops
       
-      fac = 12 * dt / rm%deltaX**2
+      fac = 12 * dt / ring%deltaX**2
       do loop = 1,nloops  
           
          !$OMP PARALLEL DO DEFAULT(PRIVATE) &
-         !$OMP SHARED(rm,ring,Snew,S,fac)
-         do i = 2,rm%N - 1
+         !$OMP SHARED(ring,ring,Snew,S,fac)
+         do i = 2,ring%N - 1
             Snew(i) = S(i) + fac / (ring%X(i)**2) * (ring%nu(i) * (S(i + 1) - 2 * S(i) + S(i - 1)) &
                                                     + 0.5 * (S(i + 1) - S(i - 1)) * (ring%nu(i + 1) - ring%nu(i - 1)) &
                                                     + S(i) * (ring%nu(i + 1) - 2 * ring%nu(i) - ring%nu(i - 1)))
@@ -70,7 +69,7 @@ END SUBROUTINE ringmoons_pde_solver
 !
 !  Author(s)   : David A. Minton  
 !
-!  Revision Control System (RCS) Information
+!  Revision Control System (RCS) Inforingation
 !
 !  Source File : $RCSfile$
 !  Full Path   : $Source$

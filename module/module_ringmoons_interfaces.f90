@@ -31,17 +31,17 @@ MODULE module_ringmoons_interfaces
 
 
       INTERFACE
-         SUBROUTINE ringmoons_io_init_ring(rm,ring)
+         SUBROUTINE ringmoons_io_init_ring(GMP,R_Planet,ring)
             USE module_parameters
             USE module_ringmoons
             IMPLICIT NONE
-            TYPE(ringmoons_parameter),INTENT(IN) :: rm
-            TYPE(ringmoons_ring_bin),DIMENSION(:),INTENT(INOUT) :: ring
+            real(DP),intent(in)     :: GMP,R_Planet 
+            TYPE(ringmoons_ring),INTENT(INOUT) :: ring
          END SUBROUTINE ringmoons_io_init_ring
       END INTERFACE
 
       INTERFACE
-         SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt,rm,ring)
+         SUBROUTINE ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt,ring)
             USE module_parameters
             USE module_symba
             USE module_ringmoons
@@ -51,21 +51,41 @@ MODULE module_ringmoons_interfaces
             REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt
             REAL(DP), INTENT(INOUT)                          :: eoffset
             TYPE(symba_pl), POINTER                          :: symba_pl1P
-            TYPE(ringmoons_parameter),INTENT(IN) :: rm
             TYPE(ringmoons_ring),INTENT(INOUT) :: ring
          END SUBROUTINE ringmoons_step 
       END INTERFACE
 
       INTERFACE
-         SUBROUTINE ringmoons_pde_solver(dtin,rm,ring)
+         SUBROUTINE ringmoons_pde_solver(dtin,ring)
          USE module_parameters
          USE module_ringmoons
          IMPLICIT NONE
          real(DP),intent(in) :: dtin
-         TYPE(ringmoons_parameter),INTENT(IN) :: rm
          TYPE(ringmoons_ring),INTENT(INOUT) :: ring
          END SUBROUTINE ringmoons_pde_solver
       END INTERFACE
+
+      INTERFACE
+         SUBROUTINE ringmoons_allocate(ring)
+         USE module_parameters
+         USE module_ringmoons
+         IMPLICIT NONE
+         real(DP),intent(in) :: dtin
+         TYPE(ringmoons_ring),INTENT(INOUT) :: ring
+         END SUBROUTINE ringmoons_allocate
+      END INTERFACE
+
+      INTERFACE
+         SUBROUTINE ringmoons_deallocate(ring)
+         USE module_parameters
+         USE module_ringmoons
+         IMPLICIT NONE
+         real(DP),intent(in) :: dtin
+         TYPE(ringmoons_ring),INTENT(INOUT) :: ring
+         END SUBROUTINE ringmoons_deallocate
+      END INTERFACE
+
+
 
 
 

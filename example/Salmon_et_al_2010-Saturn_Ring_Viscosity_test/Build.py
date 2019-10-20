@@ -14,7 +14,7 @@ def f(x):
 
         r.append(r_I + deltar*(a+0.5))
         X.append(2.*r[a]**0.5)
-        R_in_RP.append(r[a]/MP)
+        R_in_RP.append(r[a]/R_Planet)
         deltaA.append(2*np.pi*deltar*(r_I + deltar*(a + 0.5)))
 
         #Power law surface mass density profile

@@ -90,7 +90,6 @@ PROGRAM swifter_symba_ringmoons
      TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
 
-     TYPE(ringmoons_parameter)                         :: rm
      TYPE(ringmoons_ring) :: ring
 
 ! Executable code
@@ -129,8 +128,7 @@ PROGRAM swifter_symba_ringmoons
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
 
      !Read in RING-MOONS parameters and data
-     CALL ringmoons_io_init_param(rm)
-     CALL ringmoons_io_init_ring(rm,ring) 
+     CALL ringmoons_io_init_ring(swifter_pl1P%mass,rmin,ring) 
 
      !Set up integration
      lfirst = .TRUE.
@@ -149,7 +147,7 @@ PROGRAM swifter_symba_ringmoons
      IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE (t < tstop) 
-          CALL ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt)
+          CALL ringmoons_step(lfirst, t, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt, ring)
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
                mtiny, encounter_file, out_type)

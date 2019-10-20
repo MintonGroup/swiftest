@@ -28,7 +28,8 @@ MODULE module_ringmoons
      USE module_symba
      IMPLICIT NONE
 
-     TYPE ringmoons_parameter ! Parameters for the RING-MOONS disk system
+     TYPE ringmoons_ring
+
          REAL(DP)     :: r_pdisk     ! disk particle size (radius)
          REAL(DP)     :: m_pdisk     ! disk particle size (mass)
          INTEGER(I4B) :: N           ! number of bins in disk
@@ -37,9 +38,7 @@ MODULE module_ringmoons
          REAL(DP)     :: r_I         ! inside radius of disk
          REAL(DP)     :: deltar      ! width of a bin
          REAL(DP)     :: deltaX      ! variable changed bin width used for viscosity calculations
-     END TYPE ringmoons_parameter
 
-     TYPE ringmoons_ring
          REAL(DP), allocatable(:) :: r        ! Radial distance of center of bin
          REAL(DP), allocatable(:) :: X        ! variable changed bin center used for viscosity calculations
          REAL(DP), allocatable(:) :: R_P      ! Radial distance of center of bin relative to central body radius
