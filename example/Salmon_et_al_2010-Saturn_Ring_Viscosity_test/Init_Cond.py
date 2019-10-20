@@ -117,7 +117,7 @@ deltaT	= 1.e2  #timestep simulation
 
 plfile = open('pl.in', 'w')
 print(1,file=plfile)
-print(f'1 {G*MP}',file=plfile)
+print(f'1 {GU*MP}',file=plfile)
 print(f'0.0 0.0 0.0',file=plfile)
 print(f'0.0 0.0 0.0',file=plfile)
 plfile.close()
