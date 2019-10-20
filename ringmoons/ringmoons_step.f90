@@ -50,16 +50,39 @@ SUBROUTINE ringmoons_step(lfirst, t, rmin,npl, nplmax, symba_pl1P, j2rp2, j4rp4,
      TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 ! Internals
       integer(I4B) :: i
+      real(DP),parameter :: s2y = 365.25_DP * 24 * 60 * 60
 
 ! Executable code
+      if (lfirst) then
+         open(unit=22,file='test.ic',status='replace')
+         do i = 1,ring%N
+            write(22,*) ring%r(i) * DU2CM,ring%sigma(i) * MU2GM / DU2CM**2 / GU
+         end do
+         close(22)
+      end if
       call ringmoons_pde_solver(symba_pl1P%helio%swifter%mass,rmin,dt,ring)
-      
-      open(unit=22,file='test.out',status='replace')
-      do i = 1,ring%N
-         write(22,*) ring%r(i) * DU2CM,ring%nu(i) * DU2CM**2/TU2S,ring%sigma(i)*MU2GM/DU2CM**2
-      end do
-      close(22)
-      read(*,*)
+
+      if ((t >= 0.999*1e3 * s2y)  .and. (t < 1.001*1e3 * s2y)) then
+         open(unit=22,file='test.1e3y',status='replace')
+         do i = 1,ring%N
+            write(22,*) ring%r(i) * DU2CM,ring%sigma(i) * MU2GM / DU2CM**2 / GU
+         end do
+         close(22)
+      else if ((t >= 0.999*1e4 * s2y)  .and. (t < 1.001*1e4 * s2y)) then
+         open(unit=22,file='test.1e4y',status='replace')
+         do i = 1,ring%N
+            write(22,*) ring%r(i) * DU2CM,ring%sigma(i) * MU2GM / DU2CM**2 / GU
+         end do
+         close(22)
+      else if ((t >= 0.999*1e5 * s2y)  .and. (t < 1.001*1e5 * s2y)) then
+         open(unit=22,file='test.1e5y',status='replace')
+         do i = 1,ring%N
+            write(22,*) ring%r(i) * DU2CM,ring%sigma(i) * MU2GM / DU2CM**2 / GU
+         end do
+         close(22)
+      end if
+       
+
 
      RETURN
 

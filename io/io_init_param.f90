@@ -405,16 +405,15 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      ! Added by D. Minton
      ! The fragmentation model requires the user to set the unit system explicitly.
      WRITE(*, 100, ADVANCE = "NO") "FRAGMENTATION  = "
-     WRITE(*, *) lfragmentation
-     IF (lfragmentation) THEN
-          WRITE(*, 100, ADVANCE = "NO") "MU2GM          = "
-          WRITE(*, *) MU2GM
-          WRITE(*, 100, ADVANCE = "NO") "TU2S           = "
-          WRITE(*, *) TU2S 
-          WRITE(*, 100, ADVANCE = "NO") "DU2CM          = "
-          WRITE(*, *) DU2CM
-          IF ((MU2GM < 0.0_DP) .OR. (TU2S < 0.0_DP) .OR. (DU2CM < 0.0_DP)) ierr = -1
-     END IF 
+     write(*,*) lfragmentation
+     WRITE(*, 100, ADVANCE = "NO") "MU2GM          = "
+     WRITE(*, *) MU2GM
+     WRITE(*, 100, ADVANCE = "NO") "TU2S           = "
+     WRITE(*, *) TU2S 
+     WRITE(*, 100, ADVANCE = "NO") "DU2CM          = "
+     WRITE(*, *) DU2CM
+     IF ((MU2GM < 0.0_DP) .OR. (TU2S < 0.0_DP) .OR. (DU2CM < 0.0_DP)) ierr = -1
+     GU       = GC / (DU2CM**3 / (MU2GM * TU2S**2))
 
      !Added mtiny to the argument list rather than from the terminal
      IF (PRESENT(mtiny)) THEN

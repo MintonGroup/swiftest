@@ -33,14 +33,14 @@ J2 = 0.0 #Add these in later
 J4 = 0.0
 
 #The following are Unit conversion factors
-MU2GM    =      M_Saturn          #Conversion from mass unit to grams
-DU2CM    =      R_Saturn                       #Conversion from radius unit to centimeters
-TU2S     =      year                           #Conversion from time unit to seconds
+MU2GM    =     1.0 #M_Saturn          #Conversion from mass unit to grams
+DU2CM    =     1.0 #R_Saturn                       #Conversion from radius unit to centimeters
+TU2S     =     1.0 #year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
 #Primary body definitions
-RP    = 1.0
-MP    = 1.0
+RP    = R_Saturn #1.0
+MP    = M_Saturn #1.0
 rhoP  = 3.0 * MP / (4.0 * np.pi * RP**3) #Density of primary
 TP    =  T_Saturn / TU2S
 IP = 2.0 / 5.0 * MP * RP**2
@@ -98,19 +98,18 @@ f(1) #Make a Gaussian ring
 
 outfile = open('ring.in', 'w')
 print(N, file=outfile)
-print(deltar / DU2CM, file=outfile)
+print(r_I / DU2CM, deltar / DU2CM, file=outfile)
 print(r_pdisk / DU2CM, (GU * m_pdisk / MU2GM), file=outfile)
 
 
 for a in range(int(N)):
-    #print(sigma[a] * DU2CM**2 / MU2GM,file=outfile)
-    print(sigma[a] ,file=outfile)
+    print(GU * sigma[a] * DU2CM**2 / MU2GM,file=outfile)
 
 
 t_0	= 0
-end_sim = 1.e5  #end time
-t_print = 1.e3  #output interval to print results
-deltaT	= 1.e2  #timestep simulation
+end_sim = 1.1e5 * year / TU2S  #end time
+t_print = 1.e2 * year / TU2S #output interval to print results
+deltaT	= 1.e2 * year / TU2S  #timestep simulation
 
 
 

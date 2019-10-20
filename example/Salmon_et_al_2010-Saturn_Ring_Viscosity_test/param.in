@@ -2,8 +2,8 @@
 !NPLMAX         -1 
 !NTPMAX         -1
 T0             0 
-TSTOP          100000.0
-DT             100.0
+TSTOP          3471336000000.0
+DT             3155760000.0
 PL_IN          pl.in
 TP_IN          tp.in
 IN_TYPE        ASCII
@@ -16,17 +16,17 @@ ISTEP_DUMP     1
 J2             0.0
 J4             0.0
 CHK_CLOSE      yes
-CHK_RMIN       1.0
-CHK_RMAX       1086.222746440332
-CHK_EJECT      1086.222746440332
-CHK_QMIN       1.0
+CHK_RMIN       6026800000.0
+CHK_RMAX       6546447248246.593
+CHK_EJECT      6546447248246.593
+CHK_QMIN       6026800000.0
 CHK_QMIN_COORD HELIO
-CHK_QMIN_RANGE 1.0 1086.222746440332
+CHK_QMIN_RANGE 6026800000.0 6546447248246.593
 ENC_OUT        enc.dat
 EXTRA_FORCE    no
 BIG_DISCARD    no
 RHILL_PRESENT  yes
-MU2GM          5.6834e+29
-DU2CM          6026800000.0
-TU2S           31557600.0
+MU2GM          1.0
+DU2CM          1.0
+TU2S           1.0
 MTINY          1e-08

@@ -146,6 +146,7 @@ MODULE module_parameters
      REAL(DP), SAVE       :: TU2S  = -1.0_DP          ! Converts time units to seconds
      REAL(DP), SAVE       :: DU2CM = -1.0_DP          ! Converts distance unit to centimeters
      REAL(DP), PARAMETER  :: GC    = 6.6743E-8_DP      ! Universal gravitational constant in cgs units (from NIST in 2019)
+     REAL(DP), SAVE       :: GU    = -1.0_DP
 
 END MODULE module_parameters
 !**********************************************************************************************************************************

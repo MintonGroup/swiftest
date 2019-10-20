@@ -35,25 +35,49 @@ axes['b'].title.set_text('$10^3$ years')
 axes['c'].title.set_text('$10^4$ years')
 axes['d'].title.set_text('$10^5$ years')
 
-r = np.asarray(ic.r) * 1e-2 * 1e-3 * 1e-3 #cm to 1000 km
-sigma = np.asarray(ic.sigma) * 1e-3 * 1e4 * 1e-4 #g/cm**2 to 1e4 kg/m**2
+#r = np.asarray(ic.r) * 1e-2 * 1e-3 * 1e-3 #cm to 1000 km
+#sigma = np.asarray(ic.sigma) * 1e-3 * 1e4 * 1e-4 #g/cm**2 to 1e4 kg/m**2
+#axes['a'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+
+r = np.asarray(ic.r)
+sigma = np.asarray(ic.sigma)
+nu = np.empty_like(sigma)
+
+ringfile = 'test.ic'
+with open(ringfile) as f:
+    for i, line in enumerate(f):
+        vals = [float (x) for x in line.split()]
+        r[i] = vals[0] * 1e-2 * 1e-3 * 1e-3
+        sigma[i] = vals[1] * 1e-3 * 1e4 * 1e-4
 axes['a'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
 
-#ringfile = 'ring.in'
-#with open(ringfile) as f:
-   #N = int(f.readline())
-  # sigma = np.empty(N,dtype=np.float64)
-  # deltar=f.readline()
-  # vals = [float(r) for r in f.readline().split()]
-  # r_pdisk = vals[0]
-  # Gm_pdisk = vals[1]
-  # for i, line in enumerate(f):
-  #     sigma[i] = line
-#
-#print(Gm_pdisk)
+ringfile = 'test.1e3y'
+with open(ringfile) as f:
+    for i, line in enumerate(f):
+        vals = [float(x) for x in line.split()]
+        r[i] = vals[0] * 1e-2 * 1e-3 * 1e-3
+        sigma[i] = vals[1] * 1e-3 * 1e4 * 1e-4
+axes['b'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+
+ringfile = 'test.1e4y'
+with open(ringfile) as f:
+    for i, line in enumerate(f):
+        vals = [float(x) for x in line.split()]
+        r[i] = vals[0] * 1e-2 * 1e-3 * 1e-3
+        sigma[i] = vals[1] * 1e-3 * 1e4 * 1e-4
+axes['c'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+
+ringfile = 'test.1e5y'
+with open(ringfile) as f:
+    for i, line in enumerate(f):
+        vals = [float(x) for x in line.split()]
+        r[i] = vals[0] * 1e-2 * 1e-3 * 1e-3
+        sigma[i] = vals[1] * 1e-3 * 1e4 * 1e-4
+axes['d'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+
 
 Visc5.f(1,ic.M_Saturn,t=0.0)
-print(f'nu = {Visc5.nu[501]*1e-4} m^2 s^-1')
+print(f'nu = {Visc5.nu[501]*1e-4, nu[501]*1e-4} m^2 s^-1')
 
 figure.tight_layout()
 #plt.show()
