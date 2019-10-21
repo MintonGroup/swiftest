@@ -48,7 +48,7 @@ with open(ringfile) as f:
     for i, line in enumerate(f):
         vals = [float (x) for x in line.split()]
         r[i] = vals[0]
-        sigma[i] = vals[1] / ic.G
+        sigma[i] = vals[1] / ic.GU
         nu[i] = vals[2]
 axes['a'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
 
