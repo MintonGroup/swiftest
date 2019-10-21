@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-function ringmoons_transition_function(y) result(kappa)
+pure function ringmoons_transition_function(y) result(kappa)
 
 ! Modules
       use module_parameters

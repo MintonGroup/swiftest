@@ -38,12 +38,15 @@ SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
 
 ! Internals
       real(DP) :: dtstab, dt,fac
-      real(DP),dimension(ring%N) :: S,Snew
+      real(DP),dimension(0:ring%N+1) :: S,Snew
       integer(I4B) :: i,nloops,loop
 
 ! Executable code
       call ringmoons_viscosity(GM_Planet,R_Planet,ring)
-      S(:) = ring%Gsigma(:) / GU * ring%X(:)
+      S(0) = 0.0_DP
+      S(1:ring%N) = ring%Gsigma(:) / GU * ring%X(:)
+      S(ring%N+1) = 0.0_DP
+      Snew = 0.0_DP
       dtstab = 0.5_DP * minval(ring%X) * ring%deltaX**2 / (12 * maxval(ring%nu))
       nloops = ceiling(dtin / dtstab)
       dt = dtin / nloops
@@ -51,23 +54,15 @@ SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
       
       fac = 12 * dt / ring%deltaX**2 
       do loop = 1,nloops  
-         Snew(1) = S(1) + fac / (ring%X(1)**2) * (ring%nu(1) * (S(2) - 2 * S(1)) &
-                                                 + 0.5_DP * (S(2)) * (ring%nu(2)) &
-                                                 + S(1) * (ring%nu(2) - 2 * ring%nu(1)))
-         ring%Gsigma(1) = GU * Snew(1) / ring%X(1)
          !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
          !$OMP SHARED(ring,Snew,S,fac,GU)
-         do i = 2,ring%N - 1
+         do i = 1,ring%N
             Snew(i) = S(i) + fac / (ring%X(i)**2) * (ring%nu(i) * (S(i + 1) - 2 * S(i) + S(i - 1)) &
                                                     + 0.5_DP * (S(i + 1) - S(i - 1)) * (ring%nu(i + 1) - ring%nu(i - 1)) &
                                                     + S(i) * (ring%nu(i + 1) - 2 * ring%nu(i) + ring%nu(i - 1)))
             ring%Gsigma(i) = GU * Snew(i) / ring%X(i)
          end do
          !$OMP END PARALLEL DO
-         i = ring%N
-         Snew(i) = S(i) + fac / (ring%X(i)**2) * (ring%nu(i) * (-2 * S(i) + S(i - 1)) &
-                                                    + 0.5_DP * ( -S(i - 1)) * ( -ring%nu(i - 1)) &
-                                                    + S(i) * (- 2 * ring%nu(i) + ring%nu(i - 1)))
          S(:) = Snew(:)
          ring%m = ring%Gsigma * ring%deltaA
          call ringmoons_viscosity(GM_Planet,R_Planet,ring)

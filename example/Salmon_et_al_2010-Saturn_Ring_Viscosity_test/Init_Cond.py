@@ -12,7 +12,7 @@ G	    = 6.674e-8                          #Gravitational constant (cgs)
 year    = 3600*24*365.25                #seconds in 1 year
 AU      = 1.4960e13
 M_Sun   = 1.9891e33
-N   = 199           #number of bins in disk
+N   = 240           #number of bins in disk
 
 M_Saturn    = 5.6834e29
 R_Saturn    = 60268.0e5
@@ -28,7 +28,7 @@ k_2         = 0.104 #tidal love number for primary
 Q           = 3000. #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
-rho_sat = 900.0 # Satellite/ring particle mass density in gm/cm**3
+rho_sat = 1000.0 # Satellite/ring particle mass density in gm/cm**3
 
 J2 = 0.0 #Add these in later
 J4 = 0.0

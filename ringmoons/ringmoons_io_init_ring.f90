@@ -48,6 +48,7 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
       read(LUN,*) ring%r_I, ring%r_F
       read(LUN,*) ring%r_pdisk,ring%Gm_pdisk
       call ringmoons_allocate(ring)
+      ring%nu = 0.0_DP
       ring%deltaX = (2 * sqrt(ring%r_F) - 2 * sqrt(ring%r_I)) / ring%N
       do i = 1,ring%N
          read(LUN,*,iostat=ioerr) ring%Gsigma(i)
