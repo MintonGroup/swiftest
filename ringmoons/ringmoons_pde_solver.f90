@@ -43,7 +43,7 @@ SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
 
 ! Executable code
       S(:) = ring%sigma(:) * ring%X(:) / GU
-      call ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
+      call ringmoons_viscosity(GM_Planet,R_Planet,ring)
       dtstab = 0.5_DP * minval(ring%X) * ring%deltaX**2 / (12 * maxval(ring%nu))
       nloops = ceiling(dtin / dtstab)
       dt = dtin / nloops
@@ -69,7 +69,7 @@ SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
                                                     + 0.5_DP * ( -S(i - 1)) * ( -ring%nu(i - 1)) &
                                                     + S(i) * (- 2 * ring%nu(i) + ring%nu(i - 1)))
          S(:) = Snew(:)
-         call ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
+         call ringmoons_viscosity(GM_Planet,R_Planet,ring)
       end do 
 
       RETURN

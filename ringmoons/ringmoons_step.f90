@@ -54,7 +54,7 @@ SUBROUTINE ringmoons_step(lfirst, t, rmin,npl, nplmax, symba_pl1P, j2rp2, j4rp4,
 
 ! Executable code
       if (lfirst) then
-         call ringmoons_viscosity_s2010(symba_pl1P%helio%swifter%mass,rmin,ring)
+         call ringmoons_viscosity(symba_pl1P%helio%swifter%mass,rmin,ring)
          open(unit=22,file='test.ic',status='replace')
          do i = 1,ring%N
             write(22,*) ring%r(i), ring%sigma(i), ring%nu(i)

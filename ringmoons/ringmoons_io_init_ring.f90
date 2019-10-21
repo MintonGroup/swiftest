@@ -69,7 +69,6 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
          ring%Torque_to_disk(i) = 0.0_DP
       end do
       call ringmoons_viscosity(GM_Planet,R_Planet,ring)
-      call ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
 
       
    
