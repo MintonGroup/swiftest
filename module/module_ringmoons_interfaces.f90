@@ -103,6 +103,14 @@ module module_ringmoons_interfaces
          end subroutine ringmoons_viscosity_s2010
       end interface
 
+      interface
+         function ringmoons_transition_function(y) result(kappa)
+         use module_parameters
+         implicit none
+         real(DP),intent(in) :: y
+         real(DP) :: kappa
+         end function ringmoons_transition_function
+      end interface
 
 
 

@@ -28,20 +28,20 @@ k_2         = 0.104 #tidal love number for primary
 Q           = 3000. #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
-rho_sat = 1.0 # Satellite/ring particle mass density in gm/cm**3
+rho_sat = 900.0 # Satellite/ring particle mass density in gm/cm**3
 
 J2 = 0.0 #Add these in later
 J4 = 0.0
 
 #The following are Unit conversion factors
-MU2GM    =     1.0 #M_Saturn          #Conversion from mass unit to grams
-DU2CM    =     1.0 #R_Saturn                       #Conversion from radius unit to centimeters
+MU2GM    =     1000.0 #M_Saturn          #Conversion from mass unit to grams
+DU2CM    =     100.0 #R_Saturn                       #Conversion from radius unit to centimeters
 TU2S     =     1.0 #year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
 #Primary body definitions
-RP    = R_Saturn #1.0
-MP    = M_Saturn #1.0
+RP    = R_Saturn / DU2CM #1.0
+MP    = M_Saturn / MU2GM #1.0
 rhoP  = 3.0 * MP / (4.0 * np.pi * RP**3) #Density of primary
 TP    =  T_Saturn / TU2S
 IP = 2.0 / 5.0 * MP * RP**2
@@ -51,13 +51,13 @@ LP =  IP * wP
 
 ###For the disk:
 
-r_pdisk = 1e5  #disk particle size (radius in cm)
+r_pdisk = 10.0  #disk particle size
 m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_sat   #disk particle size (mass in g)
 
 # gamma	= 0.3	    #ang momentum efficiency factor
 inside = 0  #bin id of innermost ring bin (can increase if primary accretes a lot mass through 'Update.py'
-r_I	= 100e8      #inside radius of disk is at the embryo's surface
-r_F	= 120e8  #outside radius of disk
+r_I	= 100e6      #inside radius of disk is at the embryo's surface
+r_F	= 120e6  #outside radius of disk
 deltar = (r_F - r_I) / N	#width of a bin
 deltaX = (2 * np.sqrt(r_F) - 2 * np.sqrt(r_I)) / N  #variable changed bin width used for viscosity calculations
 r = []
@@ -86,14 +86,14 @@ def f(x):
         elif x == 1:
             centroid = 106    #bin id of the center of the gaussian
             spread = 3.00      #width of the gaussian
-            mass_scale = 7.6e4 #scale factor to get a given mass
+            mass_scale = 7.6e5 #scale factor to get a given mass
             sigma.append(mass_scale/(5*(2*np.pi)**(0.5))*np.exp(-(a-centroid)**2/(2*spread**2)))
             m.append(sigma[a]*deltaA[a])
         else:
             print('You have not chosen a valid disk model')
         R.append(r[a]**2 + deltar**2/4)
         I.append(m[a]*R[a])
-        w.append((G*M_Planet/r[a]**3)**0.5)
+        w.append((GU*MP/r[a]**3)**0.5)
         Torque_to_disk.append(0.0)
 
 f(1) #Make a Gaussian ring
@@ -101,18 +101,18 @@ f(1) #Make a Gaussian ring
 
 outfile = open('ring.in', 'w')
 print(N, file=outfile)
-print(r_I / DU2CM, r_F / DU2CM, file=outfile)
-print(r_pdisk / DU2CM, (GU * m_pdisk / MU2GM), file=outfile)
+print(r_I, r_F, file=outfile)
+print(r_pdisk, GU * m_pdisk, file=outfile)
 
 
 for a in range(int(N)):
-    print(GU * sigma[a] * DU2CM**2 / MU2GM,file=outfile)
+    print(GU * sigma[a],file=outfile)
 
 
 t_0	= 0
 end_sim = 1.1e5 * year / TU2S  #end time
-t_print = 1.e0 * year / TU2S #output interval to print results
-deltaT	= 1.e0 * year / TU2S  #timestep simulation
+t_print = 1.e2 * year / TU2S #output interval to print results
+deltaT	= 1.e2 * year / TU2S  #timestep simulation
 
 
 

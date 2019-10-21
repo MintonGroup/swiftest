@@ -48,6 +48,7 @@ SUBROUTINE ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
 ! Executable code
    sigsmall = GU * 1e-6_DP / MU2GM
 
+   write(*,*) 'S2010'
    r_hstar = R_Planet / (2 * ring%r_pdisk) * (2 *ring%m_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP)
    do i = 1, ring%N 
       if (ring%sigma(i) <= sigsmall) then
@@ -71,7 +72,9 @@ SUBROUTINE ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
          end if
          nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
          ring%nu(i) = nu_trans + nu_grav + nu_coll
+         if (i==107) write(*,*) i,Q,nu_trans,nu_grav,nu_coll
       end if
    end do
+   read(*,*)
 
 END SUBROUTINE ringmoons_viscosity_s2010

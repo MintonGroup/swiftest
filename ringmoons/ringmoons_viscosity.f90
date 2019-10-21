@@ -39,7 +39,7 @@ SUBROUTINE ringmoons_viscosity(GM_Planet,R_Planet,ring)
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals
-      real(DP) :: Q,r_hstar,tau,sigma_r
+      real(DP) :: Q,r_hstar,tau,sigma_r,kappa,eta
       integer(I4B) :: i
       real(DP) :: sigsmall
       real(DP) :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable,y,nu_trans,nu_grav,nu_coll
@@ -48,43 +48,46 @@ SUBROUTINE ringmoons_viscosity(GM_Planet,R_Planet,ring)
 ! Executable code
    sigsmall = GU * 1e-6_DP / MU2GM
 
+   write(*,*) 'H2018'
    r_hstar = R_Planet / (2 * ring%r_pdisk) * (2 *ring%m_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP)
-   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
-   !$OMP SHARED(ring,GU,GM_Planet,r_hstar,sigsmall)
+   !!$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
+   !!$OMP SHARED(ring,GU,GM_Planet,r_hstar,sigsmall)
    do i = 1, ring%N 
       if (ring%sigma(i) <= sigsmall) then
          ring%nu(i) = 0.0_DP
       else
          tau = PI * ring%r_pdisk**2 * ring%sigma(i) / ring%m_pdisk
          if (r_hstar < 1._DP) then
-             sigma_r = 0.5_DP * (1._DP + tanh((2 * r_hstar - 1._DP) / (r_hstar * (r_hstar - 1._DP)))) &
-                      * sqrt(ring%m_pdisk / ring%r_pdisk) + 0.5_DP * (1._DP - tanh((2 * r_hstar - 1._DP) &
-                      / (r_hstar * (r_hstar - 1._DP)))) * (2 * ring%r_pdisk * ring%w(i))
+             kappa = ringmoons_transition_function(r_hstar)
+             eta = 1._DP - kappa
+             sigma_r = kappa * sqrt(ring%m_pdisk / ring%r_pdisk) + eta * (2 * ring%r_pdisk * ring%w(i))
          else
              sigma_r = sqrt(ring%m_pdisk / ring%r_pdisk)
          end if
 
          Q = ring%w(i) * sigma_r / (3.36_DP * (ring%sigma(i) + TINY))
+         nu_trans_stable = sigma_r**2 / (2 * ring%w(i)) * (0.46_DP * tau / (1._DP + tau**2))
+         nu_grav_stable = 0.0_DP
 
          if (Q <= 4._DP) then
-             nu_trans_stable = sigma_r**2 / (2 * ring%w(i)) * (0.46_DP * tau / (1._DP + tau**2))
-             nu_grav_stable = 0.0_DP
              nu_trans_unstable = 13 * r_hstar**5 * ring%sigma(i)**2 / ring%w(i)**3
              nu_grav_unstable = nu_trans_unstable
-
              y = Q / 4._DP
-             nu_trans = 0.5_DP * (1._DP + tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_trans_stable &
-                      + 0.5_DP * (1._DP - tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_trans_unstable
-             nu_grav  = 0.5_DP * (1._DP + tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_grav_stable &
-                      + 0.5_DP * (1._DP - tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_grav_unstable
+             kappa = ringmoons_transition_function(y)
+             eta = 1._DP - kappa
+
+             nu_trans = kappa * nu_trans_stable + eta * nu_trans_unstable
+             nu_grav  = kappa * nu_grav_stable  + eta * nu_grav_unstable
          else
-             nu_trans = sigma_r**2 / (2 * ring%w(i)) * (0.46_DP * tau / (1._DP + tau**2))
-             nu_grav = 0.0_DP
+             nu_trans = nu_trans_stable
+             nu_grav = nu_grav_stable
          end if
          nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
          ring%nu(i) = nu_trans + nu_grav + nu_coll
+         if (i==107) write(*,*) i,Q,nu_trans,nu_grav,nu_coll,y
       end if
    end do
-   !$OMP END PARALLEL DO
+   !!$OMP END PARALLEL DO
+   read(*,*)
 
 END SUBROUTINE ringmoons_viscosity

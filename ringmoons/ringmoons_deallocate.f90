@@ -41,6 +41,7 @@ SUBROUTINE ringmoons_deallocate(ring)
 
 ! Executable code
       deallocate(ring%r)
+      deallocate(ring%deltar)
       deallocate(ring%X)
       deallocate(ring%R_P)
       deallocate(ring%deltaA)

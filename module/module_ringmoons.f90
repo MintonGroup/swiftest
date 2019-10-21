@@ -35,9 +35,9 @@ MODULE module_ringmoons
          INTEGER(I4B) :: inside = 0  ! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
          REAL(DP)     :: r_F         ! outside radius of disk
          REAL(DP)     :: r_I         ! inside radius of disk
-         REAL(DP)     :: deltar      ! width of a bin
          REAL(DP)     :: deltaX      ! variable changed bin width used for viscosity calculations
          REAL(DP), dimension(:), allocatable :: r        ! Radial distance of center of bin
+         REAL(DP), dimension(:), allocatable :: deltar      ! width of a bin
          REAL(DP), dimension(:), allocatable :: X        ! variable changed bin center used for viscosity calculations
          REAL(DP), dimension(:), allocatable :: R_P      ! Radial distance of center of bin relative to central body radius
          REAL(DP), dimension(:), allocatable :: deltaA   ! Differential surface area of ring

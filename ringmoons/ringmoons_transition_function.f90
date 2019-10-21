@@ -1,12 +1,12 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : ringmoons_allocate
+!  Unit Name   : ringmoons_transition_function
 !  Unit Type   : subroutine
 !  Project     : Swifter
 !  Package     : io
 !  Language    : Fortran 90/95
 !
-!  Description : solves
+!  Description : Transition function for viscosity regime parameters
 !
 !  Input
 !    Arguments : 
@@ -19,42 +19,29 @@
 !    Teringinal  : 
 !    File      : 
 !
-!  Invocation  : CALL ringmoons_allocate(dt,ring,ring)
+!  Invocation  : kappa = ringmoons_transition_function(y)
 !
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_allocate(ring)
+function ringmoons_transition_function(y) result(kappa)
 
 ! Modules
-      USE module_parameters
-      USE module_ringmoons
-      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_allocate
+      use module_parameters
       IMPLICIT NONE
 
 ! Arguments
-      TYPE(ringmoons_ring),INTENT(INOUT) :: ring
+      real(DP),intent(in) ::y
+      real(DP) :: kappa
 
 ! Internals
+   
 
 ! Executable code
-      allocate(ring%r(ring%N))
-      allocate(ring%deltar(ring%N))
-      allocate(ring%X(ring%N))
-      allocate(ring%R_P(ring%N))
-      allocate(ring%deltaA(ring%N))
-      allocate(ring%m(ring%N))
-      allocate(ring%sigma(ring%N))
-      allocate(ring%nu(ring%N))
-      allocate(ring%sigma_threshold(ring%N))
-      allocate(ring%RR(ring%N))
-      allocate(ring%I(ring%N))
-      allocate(ring%w(ring%N))
-      allocate(ring%Torque_to_disk(ring%N))
-      
 
-      RETURN
+   kappa =  0.5_DP * (1._DP + tanh((2 * y - 1._DP) / (y * (1._DP - y)))) 
+   return
 
-END SUBROUTINE ringmoons_allocate
+end function ringmoons_transition_function

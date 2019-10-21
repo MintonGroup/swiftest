@@ -40,6 +40,7 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
       character(STRMAX)                  :: ringfile
       integer(I4B),parameter             :: LUN = 22
       integer(I4B)                       :: i,ioerr
+      real(DP)                           :: Xlo,Xhi
 
       ringfile='ring.in'
       open(unit=LUN,file=ringfile,status='old',iostat=ioerr)
@@ -53,17 +54,23 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
          if (ioerr /= 0) then 
             write(*,*) 'File read error in ',trim(adjustl(ringfile))
          end if
-         ring%deltar = (0.5 * (ring%X(i) + ring%deltaX))**2 - (0.5 * ring%X(i))**2
-         ring%X(i) = 2 * sqrt(ring%r_I) + ring%deltaX * (1._DP * i + 0.5_DP)
+         Xlo = 2 * sqrt(ring%r_I) + ring%deltaX * (1._DP * i - 1._DP)
+         Xhi = Xlo + ring%deltaX
+         ring%deltar(i) = 0.5_DP * (Xhi**2 - Xlo**2)
+
+         ring%X(i) = Xlo + 0.5_DP * ring%deltaX
          ring%r(i) = (0.5_DP * ring%X(i))**2
          ring%R_P(i) = ring%r(i) / R_Planet
-         ring%deltaA(i) = 2 * PI * ring%deltar * ring%r(i)
+         ring%deltaA(i) = 2 * PI * ring%deltar(i) * ring%r(i)
          ring%m(i) = ring%sigma(i) * ring%deltaA(i)
-         ring%RR(i) = ring%r(i)**2 + 0.25_DP * ring%deltar**2 
+         ring%RR(i) = ring%r(i)**2 + 0.25_DP * ring%deltar(i)**2 
          ring%I(i) = ring%m(i) * ring%RR(i)
          ring%w(i) = sqrt(GM_Planet / ring%r(i)**3)
          ring%Torque_to_disk(i) = 0.0_DP
       end do
+      call ringmoons_viscosity(GM_Planet,R_Planet,ring)
+      call ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
+
       
    
 

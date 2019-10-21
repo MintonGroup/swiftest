@@ -47,37 +47,38 @@ ringfile = 'test.ic'
 with open(ringfile) as f:
     for i, line in enumerate(f):
         vals = [float (x) for x in line.split()]
-        r[i] = vals[0] * 1e-2 * 1e-3 * 1e-3
-        sigma[i] = vals[1] * 1e-3 * 1e4 * 1e-4
-axes['a'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+        r[i] = vals[0]
+        sigma[i] = vals[1] / ic.G
+        nu[i] = vals[2]
+axes['a'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
 
 ringfile = 'test.1e3y'
 with open(ringfile) as f:
     for i, line in enumerate(f):
         vals = [float(x) for x in line.split()]
-        r[i] = vals[0] * 1e-2 * 1e-3 * 1e-3
-        sigma[i] = vals[1] * 1e-3 * 1e4 * 1e-4
-axes['b'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+        r[i] = vals[0]
+        sigma[i] = vals[1] / ic.GU
+axes['b'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
 
 ringfile = 'test.1e4y'
 with open(ringfile) as f:
     for i, line in enumerate(f):
         vals = [float(x) for x in line.split()]
-        r[i] = vals[0] * 1e-2 * 1e-3 * 1e-3
-        sigma[i] = vals[1] * 1e-3 * 1e4 * 1e-4
-axes['c'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+        r[i] = vals[0]
+        sigma[i] = vals[1] / ic.GU
+axes['c'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
 
-'''ringfile = 'test.1e5y'
+ringfile = 'test.1e5y'
 with open(ringfile) as f:
     for i, line in enumerate(f):
         vals = [float(x) for x in line.split()]
-        r[i] = vals[0] * 1e-2 * 1e-3 * 1e-3
-        sigma[i] = vals[1] * 1e-3 * 1e4 * 1e-4
-axes['d'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+        r[i] = vals[0]
+        sigma[i] = vals[1]/ ic.GU
+axes['d'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
 
-'''
-Visc5.f(1,ic.M_Saturn,t=0.0)
-print(f'nu = {Visc5.nu[106]*1e-4,} m^2 s^-1')
+
+Visc5.f(1,ic.MP, ic.RP,t=0.0)
+print(f'nu = {Visc5.nu[106], nu[106]} m^2 s^-1')
 
 figure.tight_layout()
 #plt.show()
