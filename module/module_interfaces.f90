@@ -2,7 +2,7 @@
 !
 !  Unit Name   : module_interfaces
 !  Unit Type   : module
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : module
 !  Language    : Fortran 90/95
 !

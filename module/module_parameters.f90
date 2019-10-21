@@ -2,7 +2,7 @@
 !
 !  Unit Name   : module_parameters
 !  Unit Type   : module
-!  Project     : SWIFTER
+!  Project     : SWIFTEST
 !  Package     : module
 !  Language    : Fortran 90/95
 !
@@ -51,11 +51,11 @@ MODULE module_parameters
      INTEGER(I4B), PARAMETER :: LOWERCASE_END    = IACHAR('z')
      INTEGER(I4B), PARAMETER :: UPPERCASE_OFFSET = IACHAR('A') - IACHAR('a')
 
-! SWIFTER version:
-     REAL(SP), PARAMETER :: VERSION_NUMBER = 0.1_SP
+! SWIFTEST version:
+     REAL(SP), PARAMETER :: VERSION_NUMBER = 1.0_SP
 
 ! Symbolic names for structure types
-     INTEGER(I4B), PARAMETER :: SWIFTER = 1
+     INTEGER(I4B), PARAMETER :: SWIFTEST = 1
      INTEGER(I4B), PARAMETER :: BS      = 2
      INTEGER(I4B), PARAMETER :: HELIO   = 3
      INTEGER(I4B), PARAMETER :: RA15    = 4
@@ -150,7 +150,7 @@ MODULE module_parameters
 END MODULE module_parameters
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

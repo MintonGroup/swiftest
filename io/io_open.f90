@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_open
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -55,7 +55,7 @@ SUBROUTINE io_open(iu, fname, fopenstat, fmt, ierr)
 END SUBROUTINE io_open
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

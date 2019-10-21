@@ -2,7 +2,7 @@
 !
 !  Unit Name   : module_fxdr
 !  Unit Type   : module
-!  Project     : SWIFTER
+!  Project     : SWIFTEST
 !  Package     : module
 !  Language    : Fortran 90/95
 !
@@ -96,7 +96,7 @@ MODULE module_fxdr
 END MODULE module_fxdr
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

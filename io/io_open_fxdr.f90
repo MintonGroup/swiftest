@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_open_fxdr
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -53,7 +53,7 @@ SUBROUTINE io_open_fxdr(fname, fopenstat, lflag, iu, ierr)
 END SUBROUTINE io_open_fxdr
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

@@ -2,7 +2,7 @@
 !
 !  Unit Name   : util_exit
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : util
 !  Language    : Fortran 90/95
 !
@@ -39,8 +39,8 @@ SUBROUTINE util_exit(code)
      ELSE
           WRITE(*, 200) VERSION_NUMBER
      END IF
- 100 FORMAT(/, "Normal termination of SWIFTER (Version ", F3.1, ")")
- 200 FORMAT(/, "Terminating SWIFTER (Version ", F3.1, ") due to ERROR!!")
+ 100 FORMAT(/, "Normal termination of SWIFTEST (Version ", F3.1, ")")
+ 200 FORMAT(/, "Terminating SWIFTEST (Version ", F3.1, ") due to ERROR!!")
      WRITE(*, 300) "------------------------------------------------"
  300 FORMAT(A)
 
@@ -49,7 +49,7 @@ SUBROUTINE util_exit(code)
 END SUBROUTINE util_exit
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

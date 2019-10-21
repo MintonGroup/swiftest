@@ -2,7 +2,7 @@
 !
 !  Unit Name   : util_toupper
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : util
 !  Language    : Fortran 90/95
 !
@@ -51,7 +51,7 @@ SUBROUTINE util_toupper(string)
 END SUBROUTINE util_toupper
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

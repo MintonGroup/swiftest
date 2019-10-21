@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_getn
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -101,7 +101,7 @@ SUBROUTINE io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
 END SUBROUTINE io_getn
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

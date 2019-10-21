@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_get_token
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -71,7 +71,7 @@ SUBROUTINE io_get_token(buffer, ilength, ifirst, ilast, ierr)
 END SUBROUTINE io_get_token
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

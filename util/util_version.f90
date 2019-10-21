@@ -2,7 +2,7 @@
 !
 !  Unit Name   : util_version
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : util
 !  Language    : Fortran 90/95
 !
@@ -32,7 +32,8 @@ SUBROUTINE util_version
 
 ! Executable code
      WRITE(*, 100) VERSION_NUMBER
- 100 FORMAT(/, "************* SWIFTER: Version ", F3.1, " *************", //, &
+ 100 FORMAT(/, "************* SWIFTEST: Version ", F3.1, " *************", //, &
+               "BASED OFF OF SWIFTER:", //,                                                &
                "Authors:", //,                                                &
                "    Martin Duncan: Queen's University", /,                    &
                "    Hal Levison  : Southwest Research Institute", //,         &
@@ -53,7 +54,7 @@ SUBROUTINE util_version
 END SUBROUTINE util_version
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !
