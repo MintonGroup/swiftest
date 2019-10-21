@@ -1,8 +1,8 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : swifter_symba_omp
+!  Unit Name   : swiftest_symba_omp
 !  Unit Type   : program
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : main
 !  Language    : Fortran 90/95
 !
@@ -21,7 +21,7 @@
 !                status messages
 !    File      : none
 !
-!  Invocation  : % swifter_symba
+!  Invocation  : % swiftest_symba
 !
 !  Notes       : Reference: Duncan, M. J., Levison, H. F. & Lee, M. H. 1998. Astron. J., 116, 2067.
 !
@@ -29,14 +29,15 @@
 !                OpenMP parallelization by David Minton
 !
 !**********************************************************************************************************************************
-PROGRAM swifter_symba_omp
+PROGRAM swiftest_symba_omp
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_symba
      USE module_random_access
      USE module_interfaces
+     USE module_swiftest_allocation
      !Added by D. Minton
      !$ USE omp_lib
      IMPLICIT NONE
@@ -72,21 +73,23 @@ PROGRAM swifter_symba_omp
      CHARACTER(STRMAX) :: out_stat       ! Open status for output binary file
 
 ! Internals
-     LOGICAL(LGT)                                      :: lfirst
-     INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
-     INTEGER(I4B)                                      :: nplplenc, npltpenc, nmergeadd, nmergesub
-     REAL(DP)                                          :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
-     REAL(DP), DIMENSION(NDIM)                         :: htot
-     CHARACTER(STRMAX)                                 :: inparfile
-     TYPE(swifter_pl), POINTER                         :: swifter_pl1P
-     TYPE(swifter_tp), POINTER                         :: swifter_tp1P
-     TYPE(symba_pl), DIMENSION(:), ALLOCATABLE, TARGET :: symba_plA
-     TYPE(symba_tp), DIMENSION(:), ALLOCATABLE, TARGET :: symba_tpA
-     TYPE(symba_pl), POINTER                           :: symba_pl1P, symba_pld1P
-     TYPE(symba_tp), POINTER                           :: symba_tp1P, symba_tpd1P
-     TYPE(symba_plplenc), DIMENSION(NENMAX)            :: plplenc_list
-     TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
-     TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
+     LOGICAL(LGT)                                               :: lfirst
+     INTEGER(I4B)                                               :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
+     INTEGER(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub
+     REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
+     REAL(DP), DIMENSION(NDIM)                                  :: htot
+     CHARACTER(STRMAX)                                          :: inparfile
+
+     TYPE(symba_pl), DIMENSION(:), ALLOCATABLE                  :: symba_plA
+     TYPE(symba_tp), DIMENSION(:), ALLOCATABLE                  :: symba_tpA
+     TYPE(swiftest_pl), DIMENSION(:), ALLOCATABLE               :: swiftest_plA
+     TYPE(swiftest_tp), DIMENSION(:), ALLOCATABLE               :: swiftest_tpA
+     TYPE(helio_pl), DIMENSION(:), ALLOCATABLE                  :: helio_plA
+     TYPE(helio_tp), DIMENSION(:), ALLOCATABLE                  :: helio_tpA
+
+     TYPE(symba_plplenc), DIMENSION(NENMAX), ALLOCATABLE        :: plplenc_list
+     TYPE(symba_pltpenc), DIMENSION(NENMAX), ALLOCATABLE        :: pltpenc_list
+     TYPE(symba_merger), DIMENSION(:), ALLOCATABLE              :: mergeadd_list, mergesub_list
 
 ! Executable code
      CALL util_version
@@ -107,7 +110,7 @@ PROGRAM swifter_symba_omp
           out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
           encounter_file, lextra_force, lbig_discard, lrhill_present)
      IF (.NOT. lrhill_present) THEN
-          WRITE(*, *) "SWIFTER Error:"
+          WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
           CALL util_exit(FAILURE)
      END IF
@@ -115,28 +118,22 @@ PROGRAM swifter_symba_omp
      CALL io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
 
      ! Create arrays of data structures big enough to store the number of bodies we are adding
-     ALLOCATE(symba_plA(nplmax), mergeadd_list(nplmax), mergesub_list(nplmax))
-
-     ! Linked-list jiggery pokery that is probably very important
-     CALL set_point(symba_plA)
+     CALL symba_pl_allocate(symba_plA,nplmax)
+     CALL symba_pl_allocate(mergeadd_list,nplmax)
+     CALL symba_pl_allocate(mergesub_list,nplmax)
 
      IF (ntp > 0) THEN
-          ALLOCATE(symba_tpA(ntpmax))
-          CALL set_point(symba_tpA)
+          CALL symba_tp_allocate(symba_tpA, ntpmax)
      END IF
-     
-     ! Converts the array that we allocated into a linked list structure
-     CALL symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swifter_pl1P, swifter_tp1P)
 
      ! Reads in initial conditions of all massive bodies from input file and fills the linked list
-     CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
+     CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swiftest_plA)
      WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
      READ(*, *) mtiny
 
      ! Reorder linked list by mass 
-     CALL symba_reorder_pl(npl, symba_pl1P)
-     CALL io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
-     CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
+     CALL io_init_tp(intpfile, in_type, ntp, swiftest_tpA)
+     CALL util_valid(n pl, ntp, swiftest_plA, swiftest_tpA)
      lfirst = .TRUE.
      ntp0 = ntp
      t = t0
@@ -149,7 +146,6 @@ PROGRAM swifter_symba_omp
      nsppl = 0
      nsptp = 0
      eoffset = 0.0_DP
-     NULLIFY(symba_pld1P, symba_tpd1P)
      IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
@@ -223,7 +219,7 @@ PROGRAM swifter_symba_omp
 
      STOP
 
-END PROGRAM swifter_symba_omp
+END PROGRAM swiftest_symba_omp
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann
