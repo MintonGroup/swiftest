@@ -2,7 +2,7 @@
 !
 !  Unit Name   : orbel_xv2el
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : orbel
 !  Language    : Fortran 90/95
 !
@@ -161,7 +161,7 @@ SUBROUTINE orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
 END SUBROUTINE orbel_xv2el
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_write_hdr
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -58,40 +58,40 @@ SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
           CASE (REAL4_TYPE)
                WRITE(iu, IOSTAT = ierr) ttmp, npl, ntp, iout_form
                IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
+                    WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) "   Unable to write binary file header"
                     CALL util_exit(FAILURE)
                END IF
           CASE (REAL8_TYPE)
                WRITE(iu, IOSTAT = ierr) t, npl, ntp, iout_form
                IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
+                    WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) "   Unable to write binary file header"
                     CALL util_exit(FAILURE)
                END IF
           CASE (XDR4_TYPE)
                ierr = ixdrreal(iu, ttmp)
                IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
+                    WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) "   Unable to write binary file header"
                     CALL util_exit(FAILURE)
                END IF
                ierr = ixdrimat(iu, 3, nn)
                IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
+                    WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) "   Unable to write binary file header"
                     CALL util_exit(FAILURE)
                END IF
           CASE (XDR8_TYPE)
                ierr = ixdrdouble(iu, t)
                IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
+                    WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) "   Unable to write binary file header"
                     CALL util_exit(FAILURE)
                END IF
                ierr = ixdrimat(iu, 3, nn)
                IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
+                    WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) "   Unable to write binary file header"
                     CALL util_exit(FAILURE)
                END IF
@@ -102,7 +102,7 @@ SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
 END SUBROUTINE io_write_hdr
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

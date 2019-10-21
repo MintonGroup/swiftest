@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_reorder_pl
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -74,7 +74,7 @@ SUBROUTINE symba_reorder_pl(npl, symba_pl1P)
 END SUBROUTINE symba_reorder_pl
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

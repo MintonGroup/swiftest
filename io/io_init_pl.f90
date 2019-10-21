@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_init_pl
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -37,7 +37,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_init_pl
      IMPLICIT NONE
@@ -46,89 +46,85 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
      LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
      INTEGER(I4B), INTENT(IN)  :: npl
      CHARACTER(*), INTENT(IN)  :: inplfile, in_type
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT)        :: swifter_plA
 
 ! Internals
      INTEGER(I4B), PARAMETER   :: LUN = 7
      INTEGER(I4B)              :: i, iu, ierr, inpl
-     TYPE(swifter_pl), POINTER :: swifter_plP
-
+    
 ! Executable code
-     swifter_plP => swifter_pl1P
      IF (in_type == "ASCII") THEN
           CALL io_open(LUN, inplfile, "OLD", "FORMATTED", ierr)
           READ(LUN, *) inpl
-          READ(LUN, *) swifter_plP%id, swifter_plP%mass
-          swifter_plP%rhill = 0.0_DP
-          swifter_plP%radius = 0.0_DP
-          READ(LUN, *) swifter_plP%xh(:)
-          READ(LUN, *) swifter_plP%vh(:)
+          READ(LUN, *) swiftest_plA(1)%id, swiftest_plA(1)%mass
+          swiftest_plA(1)%rhill = 0.0_DP
+          swiftest_plA(1)%radius = 0.0_DP
+          READ(LUN, *) swiftest_plA(1)%xh(:)
+          READ(LUN, *) swiftest_plA(1)%vh(:)
           DO i = 1, NDIM
-               IF ((swifter_plP%xh(i) /= 0.0_DP) .OR. (swifter_plP%vh(i) /= 0.0_DP)) THEN
+               IF ((swiftest_plA(1)%xh(i) /= 0.0_DP) .OR. (swiftest_plA(1)%vh(i) /= 0.0_DP)) THEN
                     WRITE(*, *) "SWIFTER Error:"
                     WRITE(*, *) " Input MUST be in heliocentric coordinates."
                     WRITE(*, *) " Position/velocity components of Body 1 are"
-                    WRITE(*, *) swifter_plP%xh(:)
-                    WRITE(*, *) swifter_plP%vh(:)
+                    WRITE(*, *) swiftest_plA(1)%xh(:)
+                    WRITE(*, *) swiftest_plA(1)%vh(:)
                     CALL util_exit(FAILURE)
                END IF
           END DO
-          swifter_plP%status = ACTIVE
+          swiftest_plA(1)%status = ACTIVE
           DO i = 2, npl
-               swifter_plP => swifter_plP%nextP
                IF (lrhill_present) THEN
-                    READ(LUN, *) swifter_plP%id, swifter_plP%mass, swifter_plP%rhill
+                    READ(LUN, *) swiftest_plA(i)%id, swiftest_plA(i)%mass, swiftest_plA(i)%rhill
                ELSE
-                    READ(LUN, *) swifter_plP%id, swifter_plP%mass
-                    swifter_plP%rhill = 0.0_DP
+                    READ(LUN, *) swiftest_plA(i)%id, swiftest_plA(i)%mass
+                    swiftest_plA(i)%rhill = 0.0_DP
                END IF
                IF (lclose) THEN
-                    READ(LUN, *) swifter_plP%radius
+                    READ(LUN, *) swiftest_plA(i)%radius
                ELSE
-                    swifter_plP%radius = 0.0_DP
+                    swiftest_plA(i)%radius = 0.0_DP
                END IF
-               READ(LUN, *) swifter_plP%xh(:)
-               READ(LUN, *) swifter_plP%vh(:)
-               swifter_plP%status = ACTIVE
+               READ(LUN, *) swiftest_plA(i)%xh(:)
+               READ(LUN, *) swiftest_plA(i)%vh(:)
+               swiftest_plA(i)%status = ACTIVE
           END DO
           CLOSE(UNIT = LUN)
      ELSE
           CALL io_open_fxdr(inplfile, "R", .TRUE., iu, ierr)
           ierr = ixdrint(iu, inpl)
-          ierr = ixdrint(iu, swifter_plP%id)
-          ierr = ixdrdouble(iu, swifter_plP%mass)
-          swifter_plP%rhill = 0.0_DP
-          swifter_plP%radius = 0.0_DP
-          ierr = ixdrdmat(iu, NDIM, swifter_plP%xh)
-          ierr = ixdrdmat(iu, NDIM, swifter_plP%vh)
+          ierr = ixdrint(iu, swiftest_plA(1)%id)
+          ierr = ixdrdouble(iu, swiftest_plA(1)%mass)
+          swiftest_plA(1)%rhill = 0.0_DP
+          swiftest_plA(1)%radius = 0.0_DP
+          ierr = ixdrdmat(iu, NDIM, swiftest_plA(1)%xh)
+          ierr = ixdrdmat(iu, NDIM, swiftest_plA(1)%vh)
           DO i = 1, NDIM
-               IF ((swifter_plP%xh(i) /= 0.0_DP) .OR. (swifter_plP%vh(i) /= 0.0_DP)) THEN
+               IF ((swiftest_plA(1)%xh(i) /= 0.0_DP) .OR. (swiftest_plA(1)%vh(i) /= 0.0_DP)) THEN
                     WRITE(*, *) "SWIFTER Error:"
                     WRITE(*, *) " Input MUST be in heliocentric coordinates."
                     WRITE(*, *) " Position/velocity components of Body 1 are"
-                    WRITE(*, *) swifter_plP%xh(:)
-                    WRITE(*, *) swifter_plP%vh(:)
+                    WRITE(*, *) swiftest_plA(1)%xh(:)
+                    WRITE(*, *) swiftest_plA(1)%vh(:)
                     CALL util_exit(FAILURE)
                END IF
           END DO
-          swifter_plP%status = ACTIVE
+          swiftest_plA(1)%status = ACTIVE
           DO i = 2, npl
-               swifter_plP => swifter_plP%nextP
-               ierr = ixdrint(iu, swifter_plP%id)
-               ierr = ixdrdouble(iu, swifter_plP%mass)
+               ierr = ixdrint(iu, swiftest_plA(1)%id)
+               ierr = ixdrdouble(iu, swiftest_plA(1)%mass)
                IF (lrhill_present) THEN
-                    ierr = ixdrdouble(iu, swifter_plP%rhill)
+                    ierr = ixdrdouble(iu, swiftest_plA(1)%rhill)
                ELSE
-                    swifter_plP%rhill = 0.0_DP
+                    swiftest_plA(1)%rhill = 0.0_DP
                END IF
                IF (lclose) THEN
-                    ierr = ixdrdouble(iu, swifter_plP%radius)
+                    ierr = ixdrdouble(iu, swiftest_plA(1)%radius)
                ELSE
-                    swifter_plP%radius = 0.0_DP
+                    swiftest_plA(1)%radius = 0.0_DP
                END IF
-               ierr = ixdrdmat(iu, NDIM, swifter_plP%xh)
-               ierr = ixdrdmat(iu, NDIM, swifter_plP%vh)
-               swifter_plP%status = ACTIVE
+               ierr = ixdrdmat(iu, NDIM, swiftest_plA(1)%xh)
+               ierr = ixdrdmat(iu, NDIM, swiftest_plA(1)%vh)
+               swiftest_plA(1)%status = ACTIVE
           END DO
           ierr = ixdrclose(iu)
      END IF
@@ -138,7 +134,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
 END SUBROUTINE io_init_pl
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

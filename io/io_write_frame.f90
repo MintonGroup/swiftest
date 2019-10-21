@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_write_frame
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -33,7 +33,7 @@
 !                There is no direct file output from this subroutine
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+SUBROUTINE io_write_frame(t, npl, ntp, swifter_plA, swifter_tpA, outfile, out_type, out_form, out_stat)
 
 ! Modules
      USE module_parameters
@@ -46,8 +46,8 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
      INTEGER(I4B), INTENT(IN)  :: npl, ntp
      REAL(DP), INTENT(IN)      :: t
      CHARACTER(*), INTENT(IN)  :: outfile, out_type, out_form, out_stat
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
+     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT) :: swiftest_plA
+     TYPE(swiftest_tp), DIMENSION(:), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
      LOGICAL(LGT)              :: lxdr
@@ -57,8 +57,6 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
      INTEGER(I4B), SAVE        :: iu = LUN, iout_form = XV
      REAL(DP)                  :: a, e, inc, capom, omega, capm, mu
      REAL(DP), DIMENSION(NDIM) :: xtmp, vtmp
-     TYPE(swifter_pl), POINTER :: swifter_plP
-     TYPE(swifter_tp), POINTER :: swifter_tpP
 
 ! Executable code
      lxdr = ((out_type == XDR4_TYPE) .OR. (out_type == XDR8_TYPE))
@@ -73,7 +71,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
                IF (lxdr) THEN
                     CALL io_open_fxdr(outfile, "R", .TRUE., iu, ierr)
                     IF (ierr == 0) THEN
-                         WRITE(*, *) "SWIFTER Error:"
+                         WRITE(*, *) "SWIFTEST Error:"
                          WRITE(*, *) "   Binary output file already exists"
                          CALL util_exit(FAILURE)
                     END IF
@@ -81,7 +79,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
                ELSE
                     CALL io_open(iu, outfile, out_stat, "UNFORMATTED", ierr)
                     IF (ierr /= 0) THEN
-                         WRITE(*, *) "SWIFTER Error:"
+                         WRITE(*, *) "SWIFTEST Error:"
                          WRITE(*, *) "   Binary output file already exists"
                          CALL util_exit(FAILURE)
                     END IF
@@ -94,7 +92,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
                END IF
           END IF
           IF (ierr /= 0) THEN
-               WRITE(*, *) "SWIFTER Error:"
+               WRITE(*, *) "SWIFTEST Error:"
                WRITE(*, *) "   Unable to open binary output file"
                CALL util_exit(FAILURE)
           END IF
@@ -114,7 +112,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
                CALL io_open(iu, outfile, "APPEND", "UNFORMATTED", ierr)
           END IF
           IF (ierr /= 0) THEN
-               WRITE(*, *) "SWIFTER Error:"
+               WRITE(*, *) "SWIFTEST Error:"
                WRITE(*, *) "   Unable to open binary output file for append"
                CALL util_exit(FAILURE)
           END IF
@@ -122,40 +120,32 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
      CALL io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
      SELECT CASE (iout_form)
           CASE (EL)
-               swifter_plP => swifter_pl1P
                DO i = 2, npl
-                    swifter_plP => swifter_plP%nextP
-                    mu = swifter_pl1P%mass + swifter_plP%mass
-                    j = swifter_plP%id
-                    CALL orbel_xv2el(swifter_plP%xh(:), swifter_plP%vh(:), mu, a, e, inc, capom, omega, capm)
-                    CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type, MASS = swifter_plP%mass,                   &
-                         RADIUS = swifter_plP%radius)
+                    mu = swifter_plA(i)%mass + swifter_plA(i)%mass
+                    j = swifter_plA(i)%id
+                    CALL orbel_xv2el(swifter_plA(i)%xh(:), swifter_plA(i)%vh(:), mu, a, e, inc, capom, omega, capm)
+                    CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type, MASS = swifter_plA(i)%mass,                   &
+                         RADIUS = swifter_plA(i)%radius)
                END DO
-               mu = swifter_pl1P%mass
-               swifter_tpP => swifter_tp1P
+               mu = swifter_plA(1)%mass
                DO i = 1, ntp
-                    j = swifter_tpP%id
-                    CALL orbel_xv2el(swifter_tpP%xh(:), swifter_tpP%vh(:), mu, a, e, inc, capom, omega, capm)
+                    j = swifter_tpA(i)%id
+                    CALL orbel_xv2el(swifter_tpA(i)%xh(:), swifter_tpA(i)%vh(:), mu, a, e, inc, capom, omega, capm)
                     CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type)
-                    swifter_tpP => swifter_tpP%nextP
                END DO
           CASE (XV)
-               swifter_plP => swifter_pl1P
                DO i = 2, npl
-                    swifter_plP => swifter_plP%nextP
-                    xtmp(:) = swifter_plP%xh(:)
-                    vtmp(:) = swifter_plP%vh(:)
-                    j = swifter_plP%id
+                    xtmp(:) = swifter_plA(i)%xh(:)
+                    vtmp(:) = swifter_plA(i)%vh(:)
+                    j = swifter_plA(i)%id
                     CALL io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type,                     &
-                         MASS = swifter_plP%mass, RADIUS = swifter_plP%radius)
+                         MASS = swifter_plA(i)%mass, RADIUS = swifter_plA(i)%radius)
                END DO
-               swifter_tpP => swifter_tp1P
                DO i = 1, ntp
-                    xtmp(:) = swifter_tpP%xh(:)
-                    vtmp(:) = swifter_tpP%vh(:)
-                    j = swifter_tpP%id
+                    xtmp(:) = swifter_tpA(i)%xh(:)
+                    vtmp(:) = swifter_tpA(i)%vh(:)
+                    j = swifter_tpA(i)%id
                     CALL io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type)
-                    swifter_tpP => swifter_tpP%nextP
                END DO
           CASE (FILT)
 ! DEK - add code here to handle the case for an OUT_FORM = FILT
@@ -166,7 +156,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
           CLOSE(UNIT = iu, IOSTAT = ierr)
      END IF
      IF (ierr /= 0) THEN
-          WRITE(*, *) "SWIFTER Error:"
+          WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Unable to close binary output file"
           CALL util_exit(FAILURE)
      END IF
@@ -176,7 +166,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
 END SUBROUTINE io_write_frame
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

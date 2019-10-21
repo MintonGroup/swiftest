@@ -2,7 +2,7 @@
 !
 !  Unit Name   : util_valid
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : util
 !  Language    : Fortran 90/95
 !
@@ -26,41 +26,31 @@
 !  Notes       : Subroutine causes program to exit with error if any ids are not unique
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
+SUBROUTINE util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => util_valid
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl, ntp
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
+     TYPE(swifter_pl), DIMENSION(:), INTENT(INOUT) :: swifter_plA
+     TYPE(swifter_tp), DIMENSION(:), INTENT(INOUT) :: swifter_tpA
 
 ! Internals
      INTEGER(I4B)                            :: i
      INTEGER(I4B), DIMENSION(:), ALLOCATABLE :: idarr
-     TYPE(swifter_pl), POINTER               :: swifter_plP
-     TYPE(swifter_tp), POINTER               :: swifter_tpP
 
 ! Executable code
      ALLOCATE(idarr(npl+ntp))
-     swifter_plP => swifter_pl1P
-     DO i = 1, npl
-          idarr(i) = swifter_plP%id
-          swifter_plP => swifter_plP%nextP
-     END DO
-     swifter_tpP => swifter_tp1P
-     DO i = npl + 1, npl + ntp
-          idarr(i) = swifter_tpP%id
-          swifter_tpP => swifter_tpP%nextP
-     END DO
+     idarr(1,npl) = swifter_plA%id(:)
+     idarr(npl+1,npl+ntp) = swifter_tpA%id(:)
      CALL util_sort(idarr)
      DO i = 1, npl + ntp - 1
           IF (idarr(i) == idarr(i+1)) THEN
-               WRITE(*, *) "SWIFTER Error:"
+               WRITE(*, *) "SWIFTEST Error:"
                WRITE(*, *) "   More than one body/particle has id = ", idarr(i)
                CALL util_exit(FAILURE)
           END IF
@@ -72,7 +62,7 @@ SUBROUTINE util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
 END SUBROUTINE util_valid
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !
