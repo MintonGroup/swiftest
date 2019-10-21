@@ -55,7 +55,7 @@ SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
                                                  + 0.5_DP * (S(2)) * (ring%nu(2)) &
                                                  + S(1) * (ring%nu(2) - 2 * ring%nu(1)))
          ring%sigma(1) = GU * Snew(1) / ring%X(1)
-         !$OMP PARALLEL DO DEFAULT(PRIVATE) &
+         !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
          !$OMP SHARED(ring,Snew,S,fac,GU)
          do i = 2,ring%N - 1
             Snew(i) = S(i) + fac / (ring%X(i)**2) * (ring%nu(i) * (S(i + 1) - 2 * S(i) + S(i - 1)) &
