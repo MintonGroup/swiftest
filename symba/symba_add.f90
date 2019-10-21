@@ -55,6 +55,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
      TYPE(helio_pl), POINTER   :: add_helio_pl1P, helio_plP, end_helio_pl1P
      TYPE(symba_pl), POINTER   :: add_symba_pl1P, symba_plP, end_symba_pl1P, end_symba_plP
      TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP ! copied from symba_step
+     TYPE(swifter_pl), POINTER   :: swifter_plinit
      TYPE(symba_pl), DIMENSION(:), ALLOCATABLE, TARGET :: fragadd_list
 ! Executable code
 ! X 0 . Allocate new structure array of type (symba_pl)
@@ -70,16 +71,6 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
 
 !! Allocation of new structure array of type (symba_pl)
      ALLOCATE(fragadd_list(nmergeadd))
-
-     DO i=1,nmergeadd
-          fragadd_list(i)%helio%swifter%xh = mergeadd_list(i)%xh
-          fragadd_list(i)%helio%swifter%vh = mergeadd_list(i)%vh
-          fragadd_list(i)%helio%swifter%mass = mergeadd_list(i)%mass
-          fragadd_list(i)%helio%swifter%radius = mergeadd_list(i)%radius
-          fragadd_list(i)%helio%swifter%id = mergeadd_list(i)%id
-          fragadd_list(i)%helio%swifter%status = mergeadd_list(i)%status
-     END DO
-
 
 ! **************************** THIS IS COPIED FROM SYMBA_SETUP AND USED TO SET UP ALL THE POINTERS
 ! This create a linked list of the particles we are adding at this timestep from the array of particles we are adding at this timestep
@@ -117,6 +108,27 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
           swifter_plP%prevP => fragadd_list(nmergeadd-1)%helio%swifter
           NULLIFY(swifter_plP%nextP)
      END IF
+! initialize fragadd_list pointers 
+     swifter_plinit => add_swifter_pl1P
+     swifter_plinit%xh = mergeadd_list(i)%xh
+     swifter_plinit%vh = mergeadd_list(i)%vh
+     swifter_plinit%mass = mergeadd_list(i)%mass
+     swifter_plinit%radius = mergeadd_list(i)%radius
+     swifter_plinit%id = mergeadd_list(i)%id
+     swifter_plinit%status = mergeadd_list(i)%status
+     DO i=2,nmergeadd-1
+          swifter_plinit%xh = mergeadd_list(i)%xh
+          swifter_plinit%vh = mergeadd_list(i)%vh
+          swifter_plinit%mass = mergeadd_list(i)%mass
+          swifter_plinit%radius = mergeadd_list(i)%radius
+          swifter_plinit%id = mergeadd_list(i)%id
+          swifter_plinit%status = mergeadd_list(i)%status
+          swifter_plinit => swifter_plinit%nextP
+          !PRINT *, 'mergeadd_list mass', fragadd_list(i)%helio%swifter%mass
+     END DO
+
+
+
 ! calculate hill radius inside add_swifter_pl1P particles
      CALL util_hills(nmergeadd,add_swifter_pl1P)
 ! This reorders the linked list of particles to add at this timestep
