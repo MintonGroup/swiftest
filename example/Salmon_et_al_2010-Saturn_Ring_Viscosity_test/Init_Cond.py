@@ -51,7 +51,7 @@ LP =  IP * wP
 
 ###For the disk:
 
-r_pdisk = 10.0  #disk particle size
+r_pdisk = 1000.0  #disk particle size
 m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_sat   #disk particle size (mass in g)
 
 # gamma	= 0.3	    #ang momentum efficiency factor

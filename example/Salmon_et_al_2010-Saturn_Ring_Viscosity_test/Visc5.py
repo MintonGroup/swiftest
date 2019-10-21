@@ -26,7 +26,7 @@ def f(x, M, R, t):        #X is a switch between constant viscosity and variable
 
 
             if r_hstar < 1.0:
-                sigma_r = 0.5*(1+tanh((2.*r_hstar-1)/(r_hstar*(r_hstar-1))))*sqrt(GU*m_pdisk/r_pdisk) + 0.5*(1-tanh((2.*r_hstar-1)/(r_hstar*(r_hstar-1))))*(2.0*r_pdisk*w[a])
+                sigma_r = 0.5*(1-tanh((2.*r_hstar-1)/(r_hstar*(r_hstar-1))))*sqrt(GU*m_pdisk/r_pdisk) + 0.5*(1+tanh((2.*r_hstar-1)/(r_hstar*(r_hstar-1))))*(2.0*r_pdisk*w[a])
             else:
                 sigma_r = sqrt(GU*m_pdisk/r_pdisk)
 
@@ -41,8 +41,8 @@ def f(x, M, R, t):        #X is a switch between constant viscosity and variable
                 nu_grav_unstable = nu_trans_unstable
 
                 y = Q/4.
-                nu_trans = 0.5*(1+tanh((2.*y-1)/(y*(y-1))))*(nu_trans_stable) +  0.5*(1-tanh((2.*y-1)/(y*(y-1))))*(nu_trans_unstable)
-                nu_grav = 0.5*(1+tanh((2.*y-1)/(y*(y-1))))*(nu_grav_stable) +  0.5*(1-tanh((2.*y-1)/(y*(y-1))))*(nu_grav_unstable)
+                nu_trans = 0.5*(1-tanh((2.*y-1)/(y*(y-1))))*(nu_trans_stable) +  0.5*(1+tanh((2.*y-1)/(y*(y-1))))*(nu_trans_unstable)
+                nu_grav = 0.5*(1-tanh((2.*y-1)/(y*(y-1))))*(nu_grav_stable) +  0.5*(1+tanh((2.*y-1)/(y*(y-1))))*(nu_grav_unstable)
 
             else:
                 nu_trans = sigma_r**2.0/(2.0*w[a])*(0.46*tau/(1.0+tau**2.0))
