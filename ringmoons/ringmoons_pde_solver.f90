@@ -50,7 +50,7 @@ SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
       dtstab = 0.5_DP * minval(ring%X) * ring%deltaX**2 / (12 * maxval(ring%nu))
       nloops = ceiling(dtin / dtstab)
       dt = dtin / nloops
-      write(*,*) dtstab,nloops
+      write(*,*) dtstab,nloops,sum(ring%m) / GU
       
       fac = 12 * dt / ring%deltaX**2 
       do loop = 1,nloops  
