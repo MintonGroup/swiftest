@@ -70,7 +70,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
 
 !! Allocation of new structure array of type (symba_pl)
      ALLOCATE(fragadd_list(nmergeadd))
-     CALL set_point(fragadd_list)
+
      DO i=1,nmergeadd
           fragadd_list(i)%helio%swifter%xh = mergeadd_list(i)%xh
           fragadd_list(i)%helio%swifter%vh = mergeadd_list(i)%vh
