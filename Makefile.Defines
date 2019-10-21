@@ -50,7 +50,10 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 #FFLAGS          = -O3 -qopenmp -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
 
 FORTRAN         = gfortran
-FFLAGS          = -O3 
+#FFLAGS          = -O3 
+
+#DEBUG ONLY 
+FFLAGS		= -O0 -fbounds-check -fbacktrace -Wall -Warray-bounds -Warray-temporaries -Wimplicit-interface
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile

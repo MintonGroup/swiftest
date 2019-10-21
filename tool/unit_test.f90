@@ -181,8 +181,8 @@ PROGRAM unit_test
                     rad1 = swifter_pliP%radius
                     xh1(:) = swifter_pliP%xh(:)
                     vh1(:) = swifter_pliP%vh(:) ! LUN = 40 ??
-                    CALL io_open(40,TEST_FILE, "APPEND", "FORMATTED", ierr)
-                    CALL io_write_line(40, id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), REAL8_TYPE,                       &
+                    CALL io_open(80,TEST_FILE, "APPEND", "FORMATTED", ierr)
+                    CALL io_write_line(70, id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), REAL8_TYPE,                       &
                         MASS = m1, RADIUS = rad1)
                 END DO
           END IF
