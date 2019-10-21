@@ -46,13 +46,14 @@ SUBROUTINE ringmoons_allocate(ring)
       allocate(ring%R_P(ring%N))
       allocate(ring%deltaA(ring%N))
       allocate(ring%m(ring%N))
-      allocate(ring%sigma(ring%N))
+      allocate(ring%Gsigma(ring%N))
       allocate(ring%nu(ring%N))
       allocate(ring%sigma_threshold(ring%N))
       allocate(ring%RR(ring%N))
       allocate(ring%I(ring%N))
       allocate(ring%w(ring%N))
       allocate(ring%Torque_to_disk(ring%N))
+      allocate(ring%r_hstar(ring%N))
       
 
       RETURN

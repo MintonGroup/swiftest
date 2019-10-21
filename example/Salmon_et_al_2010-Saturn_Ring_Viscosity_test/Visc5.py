@@ -21,7 +21,7 @@ def f(x, M, R, t):        #X is a switch between constant viscosity and variable
                 S[a] = sigma[a]*X[a]
                 continue
 
-            r_hstar = R/(2.0*r_pdisk)*(2.0*m_pdisk/(3.0*M))**(1.0/3.0)
+            r_hstar = r[a]/(2.0*r_pdisk)*(m_pdisk/(3.0*M))**(1.0/3.0)
             tau = pi*r_pdisk**2*sigma[a]/m_pdisk
 
 

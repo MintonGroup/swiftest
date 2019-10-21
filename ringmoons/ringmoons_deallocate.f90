@@ -46,13 +46,14 @@ SUBROUTINE ringmoons_deallocate(ring)
       deallocate(ring%R_P)
       deallocate(ring%deltaA)
       deallocate(ring%m)
-      deallocate(ring%sigma)
+      deallocate(ring%Gsigma)
       deallocate(ring%nu)
       deallocate(ring%sigma_threshold)
       deallocate(ring%RR)
       deallocate(ring%I)
       deallocate(ring%w)
       deallocate(ring%Torque_to_disk)
+      deallocate(ring%r_hstar)
       
 
       RETURN
