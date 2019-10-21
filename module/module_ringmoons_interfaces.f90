@@ -84,13 +84,23 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_viscocity(GM_Planet,R_Planet,ring)
+         subroutine ringmoons_viscosity(GM_Planet,R_Planet,ring)
          use module_parameters
          use module_ringmoons
          implicit none
          real(DP),intent(in) :: GM_Planet,R_Planet
          type(ringmoons_ring),intent(inout) :: ring
-         end subroutine ringmoons_viscocity
+         end subroutine ringmoons_viscosity
+      end interface
+
+      interface
+         subroutine ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
+         use module_parameters
+         use module_ringmoons
+         implicit none
+         real(DP),intent(in) :: GM_Planet,R_Planet
+         type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_viscosity_s2010
       end interface
 
 

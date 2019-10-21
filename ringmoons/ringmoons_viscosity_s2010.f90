@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : ringmoons_viscosity
+!  Unit Name   : ringmoons_viscosity_s2010
 !  Unit Type   : subroutine
 !  Project     : Swifter
 !  Package     : io
@@ -21,17 +21,17 @@
 !
 !  Invocation  : CALL ringmoons_viscosity(dt,ring,ring)
 !
-!  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
+!  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts. Tests the Salmon et al. 2010 viscosity model
 !
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_viscosity(GM_Planet,R_Planet,ring)
+SUBROUTINE ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
 
 ! Modules
       USE module_parameters
       USE module_ringmoons
-      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_viscosity
+      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_viscosity_s2010
       IMPLICIT NONE
 
 ! Arguments
@@ -49,42 +49,29 @@ SUBROUTINE ringmoons_viscosity(GM_Planet,R_Planet,ring)
    sigsmall = GU * 1e-6_DP / MU2GM
 
    r_hstar = R_Planet / (2 * ring%r_pdisk) * (2 *ring%m_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP)
-   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
-   !$OMP SHARED(ring,GU,GM_Planet,r_hstar,sigsmall)
    do i = 1, ring%N 
       if (ring%sigma(i) <= sigsmall) then
          ring%nu(i) = 0.0_DP
       else
-         tau = PI * ring%r_pdisk**2 * ring%sigma(i) / ring%m_pdisk
-         if (r_hstar < 1._DP) then
-             sigma_r = 0.5_DP * (1._DP + tanh((2 * r_hstar - 1._DP) / (r_hstar * (r_hstar - 1._DP)))) &
-                      * sqrt(ring%m_pdisk / ring%r_pdisk) + 0.5_DP * (1._DP - tanh((2 * r_hstar - 1._DP) &
-                      / (r_hstar * (r_hstar - 1._DP)))) * (2 * ring%r_pdisk * ring%w(i))
+         if (r_hstar < 0.5_DP) then
+            sigma_r = 2 * ring%r_pdisk * ring%w(i)
          else
-             sigma_r = sqrt(ring%m_pdisk / ring%r_pdisk)
+            sigma_r = sqrt(ring%m_pdisk / ring%r_pdisk)
          end if
+         tau = PI * ring%r_pdisk**2 * ring%sigma(i) / ring%m_pdisk
 
          Q = ring%w(i) * sigma_r / (3.36_DP * (ring%sigma(i) + TINY))
 
-         if (Q <= 4._DP) then
-             nu_trans_stable = sigma_r**2 / (2 * ring%w(i)) * (0.46_DP * tau / (1._DP + tau**2))
-             nu_grav_stable = 0.0_DP
-             nu_trans_unstable = 13 * r_hstar**5 * ring%sigma(i)**2 / ring%w(i)**3
-             nu_grav_unstable = nu_trans_unstable
-
-             y = Q / 4._DP
-             nu_trans = 0.5_DP * (1._DP + tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_trans_stable &
-                      + 0.5_DP * (1._DP - tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_trans_unstable
-             nu_grav  = 0.5_DP * (1._DP + tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_grav_stable &
-                      + 0.5_DP * (1._DP - tanh((2 * y - 1._DP) / (y * (y - 1._DP)))) * nu_grav_unstable
-         else
+         if (Q >= 2._DP) then
              nu_trans = sigma_r**2 / (2 * ring%w(i)) * (0.46_DP * tau / (1._DP + tau**2))
-             nu_grav = 0.0_DP
+             nu_grav  = 0.0_DP
+         else
+             nu_trans = 13 * r_hstar**5 * ring%sigma(i)**2 / ring%w(i)**3
+             nu_grav = nu_trans
          end if
          nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
          ring%nu(i) = nu_trans + nu_grav + nu_coll
       end if
    end do
-   !$OMP END PARALLEL DO
 
-END SUBROUTINE ringmoons_viscosity
+END SUBROUTINE ringmoons_viscosity_s2010
