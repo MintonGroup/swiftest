@@ -32,7 +32,6 @@ PROGRAM unit_test
      USE module_symba
      USE module_random_access
      USE module_interfaces
-     USE module_timetest
      !Added by D. Minton
      !$ USE omp_lib
      IMPLICIT NONE
@@ -70,7 +69,7 @@ PROGRAM unit_test
 ! Internals
      LOGICAL(LGT)                                      :: lfirst
      INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
-     INTEGER(I4B)                                      :: nplplenc, npltpenc, nmergeadd, nmergesub,i,nn
+     INTEGER(I4B)                                      :: nplplenc, npltpenc, nmergeadd, nmergesub,i,nn, id1
      REAL(DP)                                          :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                         :: htot
      CHARACTER(STRMAX)                                 :: inparfile
@@ -81,18 +80,16 @@ PROGRAM unit_test
      TYPE(symba_pl), POINTER                           :: symba_pl1P, symba_pld1P
      TYPE(symba_tp), POINTER                           :: symba_tp1P, symba_tpd1P
      TYPE(symba_pl), POINTER                           :: symba_pliP
+     TYPE(swifter_pl), POINTER                         :: swifter_pliP
      TYPE(symba_plplenc), DIMENSION(NENMAX)            :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
      REAL(DP)                                          :: tstart, tend
      REAL(DP),DIMENSION(:),ALLOCATABLE                 :: toriginal,tstatic_arrays,ttype_arrays
-
-     INTEGER(I4B),PARAMETER :: NPLTOT = 12105
-     REAL(DP),DIMENSION(NDIM,NPLTOT) :: XX,AA
-     REAL(DP),DIMENSION(NPLTOT) :: MM
-
-     CHARACTER(*), PARAMETER :: TEST_FILE = "test_file.out"
-     INTEGER(I4B), INTENT(OUT) :: ierr
+     REAL(DP), DIMENSION(NDIM)                         :: xh1, vh1
+     REAL(DP)                                          :: m1, rad1
+     CHARACTER(*), PARAMETER                           :: TEST_FILE = "test_file.out"
+     INTEGER(I4B)                                      :: ierr
 ! Executable code
      CALL util_version
      ! OpenMP code added by D. Minton
@@ -182,10 +179,12 @@ PROGRAM unit_test
                     id1 = swifter_pliP%id
                     m1 = swifter_pliP%mass
                     rad1 = swifter_pliP%radius
-                    x1(:) = swifter_pliP%xh(:)
-                    v1(:) = swifter_pliP%vh(:) 
+                    xh1(:) = swifter_pliP%xh(:)
+                    vh1(:) = swifter_pliP%vh(:) ! LUN = 40 ??
                     CALL io_open(40,TEST_FILE, "APPEND", "FORMATTED", ierr)
-                    CALL io_write_line(iu, id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), REAL8_TYPE, MASS = mass, RADIUS = radius)
+                    CALL io_write_line(40, id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), REAL8_TYPE,                       &
+                        MASS = m1, RADIUS = rad1)
+                END DO
           END IF
 
           !
