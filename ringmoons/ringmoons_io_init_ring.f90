@@ -44,18 +44,18 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
       ringfile='ring.in'
       open(unit=LUN,file=ringfile,status='old',iostat=ioerr)
       read(LUN,*) ring%N
-      read(LUN,*) ring%r_I, ring%deltar
+      read(LUN,*) ring%r_I, ring%r_F
       read(LUN,*) ring%r_pdisk,ring%m_pdisk
       call ringmoons_allocate(ring)
-      ring%r_F = ring%R_I + ring%N * ring%deltar
       ring%deltaX = (2 * sqrt(ring%r_F) - 2 * sqrt(ring%r_I)) / ring%N
       do i = 1,ring%N
          read(LUN,*,iostat=ioerr) ring%sigma(i)
          if (ioerr /= 0) then 
             write(*,*) 'File read error in ',trim(adjustl(ringfile))
          end if
-         ring%r(i) = ring%r_I + ring%deltar * (1.0_DP * i + 0.5_DP)
-         ring%X(i) = 2 * sqrt(ring%r(i))
+         ring%deltar = (0.5 * (ring%X(i) + ring%deltaX))**2 - (0.5 * ring%X(i))**2
+         ring%X(i) = 2 * sqrt(ring%r_I) + ring%deltaX * (1._DP * i + 0.5_DP)
+         ring%r(i) = (0.5_DP * ring%X(i))**2
          ring%R_P(i) = ring%r(i) / R_Planet
          ring%deltaA(i) = 2 * PI * ring%deltar * ring%r(i)
          ring%m(i) = ring%sigma(i) * ring%deltaA(i)

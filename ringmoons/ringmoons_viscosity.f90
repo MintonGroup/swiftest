@@ -49,6 +49,8 @@ SUBROUTINE ringmoons_viscocity(GM_Planet,R_Planet,ring)
    sigsmall = GU * 1e-6_DP / MU2GM
 
    r_hstar = R_Planet / (2 * ring%r_pdisk) * (2 *ring%m_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP)
+   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(AUTO) &
+   !$OMP SHARED(ring,GU,GM_Planet,r_hstar,sigsmall)
    do i = 1, ring%N 
       if (ring%sigma(i) <= sigsmall) then
          ring%nu(i) = 0.0_DP
@@ -81,8 +83,8 @@ SUBROUTINE ringmoons_viscocity(GM_Planet,R_Planet,ring)
          end if
          nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
          ring%nu(i) = nu_trans + nu_grav + nu_coll
-         ring%nu(i) = 1000.0_DP
       end if
    end do
+   !$OMP END PARALLEL DO
 
 END SUBROUTINE ringmoons_viscocity

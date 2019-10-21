@@ -4,6 +4,7 @@ import numpy as np
 import sys
 
 
+
 ###***Define initial conditions***###
 
 #Units will be in terms of planet mass, planet radius, and years
@@ -11,7 +12,7 @@ G	    = 6.674e-8                          #Gravitational constant (cgs)
 year    = 3600*24*365.25                #seconds in 1 year
 AU      = 1.4960e13
 M_Sun   = 1.9891e33
-N   = 1000           #number of bins in disk
+N   = 210           #number of bins in disk
 
 M_Saturn    = 5.6834e29
 R_Saturn    = 60268.0e5
@@ -50,7 +51,7 @@ LP =  IP * wP
 
 ###For the disk:
 
-r_pdisk = 1192.0  #disk particle size (radius in cm)
+r_pdisk = 1e5  #disk particle size (radius in cm)
 m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_sat   #disk particle size (mass in g)
 
 # gamma	= 0.3	    #ang momentum efficiency factor
@@ -58,7 +59,7 @@ inside = 0  #bin id of innermost ring bin (can increase if primary accretes a lo
 r_I	= 100e8      #inside radius of disk is at the embryo's surface
 r_F	= 120e8  #outside radius of disk
 deltar = (r_F - r_I) / N	#width of a bin
-deltaX = (2. * r_F**0.5 - 2.*r_I**0.5) / N  #variable changed bin width used for viscosity calculations
+deltaX = (2 * np.sqrt(r_F) - 2 * np.sqrt(r_I)) / N  #variable changed bin width used for viscosity calculations
 r = []
 deltaA = []
 m = []
@@ -72,8 +73,10 @@ Torque_to_disk = []
 def f(x):
     #Creates initial values for the disk and prints them out
     for a in range(int(N)):
-        r.append(r_I + deltar*(a+0.5))
-        deltaA.append(2*np.pi*deltar*(r_I + deltar*(a + 0.5)))
+        X.append(2 * np.sqrt(r_I) + deltaX * (a +0.5))
+        r.append((0.5 * X[a])**2)
+        deltar = (0.5 * (X[a] + deltaX))**2 - (0.5 * X[a])**2
+        deltaA.append(2*np.pi*r[a]*deltar)
 
         #Power law surface mass density profile
         if x == 0:
@@ -81,12 +84,11 @@ def f(x):
             sigma.append(m[a]/deltaA[a])
         #Gaussian surface mass density profile
         elif x == 1:
-            centroid = 501    #bin id of the center of the gaussian
-            spread = 18.0      #width of the gaussian
+            centroid = 106    #bin id of the center of the gaussian
+            spread = 3.00      #width of the gaussian
             mass_scale = 7.6e4 #scale factor to get a given mass
             sigma.append(mass_scale/(5*(2*np.pi)**(0.5))*np.exp(-(a-centroid)**2/(2*spread**2)))
             m.append(sigma[a]*deltaA[a])
-            X.append(2.*r[a]**0.5)
         else:
             print('You have not chosen a valid disk model')
         R.append(r[a]**2 + deltar**2/4)
@@ -96,9 +98,10 @@ def f(x):
 
 f(1) #Make a Gaussian ring
 
+
 outfile = open('ring.in', 'w')
 print(N, file=outfile)
-print(r_I / DU2CM, deltar / DU2CM, file=outfile)
+print(r_I / DU2CM, r_F / DU2CM, file=outfile)
 print(r_pdisk / DU2CM, (GU * m_pdisk / MU2GM), file=outfile)
 
 
@@ -108,8 +111,8 @@ for a in range(int(N)):
 
 t_0	= 0
 end_sim = 1.1e5 * year / TU2S  #end time
-t_print = 1.e2 * year / TU2S #output interval to print results
-deltaT	= 1.e2 * year / TU2S  #timestep simulation
+t_print = 1.e0 * year / TU2S #output interval to print results
+deltaT	= 1.e0 * year / TU2S  #timestep simulation
 
 
 

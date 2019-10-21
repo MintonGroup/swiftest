@@ -47,19 +47,27 @@ SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
       dtstab = 0.5_DP * minval(ring%X) * ring%deltaX**2 / (12 * maxval(ring%nu))
       nloops = ceiling(dtin / dtstab)
       dt = dtin / nloops
+      write(*,*) dtstab,nloops
       
       fac = 12 * dt / ring%deltaX**2 
       do loop = 1,nloops  
-          
-         !!$OMP PARALLEL DO DEFAULT(PRIVATE) &
-         !!$OMP SHARED(ring,Snew,S,fac)
+         Snew(1) = S(1) + fac / (ring%X(1)**2) * (ring%nu(1) * (S(2) - 2 * S(1)) &
+                                                 + 0.5_DP * (S(2)) * (ring%nu(2)) &
+                                                 + S(1) * (ring%nu(2) - 2 * ring%nu(1)))
+         ring%sigma(1) = GU * Snew(1) / ring%X(1)
+         !$OMP PARALLEL DO DEFAULT(PRIVATE) &
+         !$OMP SHARED(ring,Snew,S,fac,GU)
          do i = 2,ring%N - 1
             Snew(i) = S(i) + fac / (ring%X(i)**2) * (ring%nu(i) * (S(i + 1) - 2 * S(i) + S(i - 1)) &
-                                                    + 0.5 * (S(i + 1) - S(i - 1)) * (ring%nu(i + 1) - ring%nu(i - 1)) &
+                                                    + 0.5_DP * (S(i + 1) - S(i - 1)) * (ring%nu(i + 1) - ring%nu(i - 1)) &
                                                     + S(i) * (ring%nu(i + 1) - 2 * ring%nu(i) + ring%nu(i - 1)))
             ring%sigma(i) = GU * Snew(i) / ring%X(i)
          end do
-         !!$OMP END PARALLEL DO
+         !$OMP END PARALLEL DO
+         i = ring%N
+         Snew(i) = S(i) + fac / (ring%X(i)**2) * (ring%nu(i) * (-2 * S(i) + S(i - 1)) &
+                                                    + 0.5_DP * ( -S(i - 1)) * ( -ring%nu(i - 1)) &
+                                                    + S(i) * (- 2 * ring%nu(i) + ring%nu(i - 1)))
          S(:) = Snew(:)
          call ringmoons_viscocity(GM_Planet,R_Planet,ring)
       end do 
