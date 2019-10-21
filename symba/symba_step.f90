@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_step
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -61,13 +61,13 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_step_pl.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,        &
+SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,        &
      nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,          &
      encounter_file, out_type)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_step
@@ -81,8 +81,8 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-     TYPE(symba_pl), POINTER                          :: symba_pl1P
-     TYPE(symba_tp), POINTER                          :: symba_tp1P
+     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)      :: symba_plA
+     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)      :: symba_tpA
      TYPE(symba_plplenc), DIMENSION(:), INTENT(INOUT) :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(:), INTENT(INOUT) :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), INTENT(INOUT)  :: mergeadd_list, mergesub_list
@@ -91,64 +91,75 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      LOGICAL(LGT)              :: lencounter, lvdotr
      INTEGER(I4B)              :: i, j, irec, nplm
      REAL(DP), DIMENSION(NDIM) :: xr, vr
-     TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP
+     !TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP
      !Added by D. Minton
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
+     !TYPE(swifter_pl), POINTER :: swifter_pl1P
+     !TYPE(swifter_tp), POINTER :: swifter_tp1P
      !^^^^^^^^^^^^^^^^^^
-     TYPE(swifter_tp), POINTER :: swifter_tpP
-     TYPE(helio_pl), POINTER   :: helio_pl1P
-     TYPE(helio_tp), POINTER   :: helio_tp1P
-     TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
-     TYPE(symba_tp), POINTER   :: symba_tpP
+     !TYPE(swifter_tp), POINTER :: swifter_tpP
+     !TYPE(helio_pl), POINTER   :: helio_pl1P
+     !TYPE(helio_tp), POINTER   :: helio_tp1P
+     !TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
+     !TYPE(symba_tp), POINTER   :: symba_tpP
 
 ! Executable code
-     symba_pliP => symba_pl1P
-     helio_pl1P => symba_pl1P%helio
+     !symba_pliP => symba_pl1P
+     !helio_pl1P => symba_pl1P%helio
      !Added by D. Minton
-     swifter_pl1P => helio_pl1P%swifter
-     IF (ALLOCATED(symba_pl1P%symba_plPA)) DEALLOCATE(symba_pl1P%symba_plPA)
-     ALLOCATE(symba_pl1P%symba_plPA(npl))
-     IF (ALLOCATED(swifter_pl1P%swifter_plPA)) DEALLOCATE(swifter_pl1P%swifter_plPA)
-     ALLOCATE(swifter_pl1P%swifter_plPA(npl))
-     IF (ALLOCATED(helio_pl1P%helio_plPA)) DEALLOCATE(helio_pl1P%helio_plPA)
-     ALLOCATE(helio_pl1P%helio_plPA(npl))
-     IF (ntp>0) THEN
-        IF (ALLOCATED(symba_tp1P%symba_tpPA)) DEALLOCATE(symba_tp1P%symba_tpPA)
-        ALLOCATE(symba_tp1P%symba_tpPA(ntp))
-     END IF
+     !swifter_pl1P => helio_pl1P%swifter
+     !IF (ALLOCATED(symba_pl1P%symba_plPA)) DEALLOCATE(symba_pl1P%symba_plPA)
+     !ALLOCATE(symba_pl1P%symba_plPA(npl))
+     !IF (ALLOCATED(swifter_pl1P%swifter_plPA)) DEALLOCATE(swifter_pl1P%swifter_plPA)
+     !ALLOCATE(swifter_pl1P%swifter_plPA(npl))
+     !IF (ALLOCATED(helio_pl1P%helio_plPA)) DEALLOCATE(helio_pl1P%helio_plPA)
+     !ALLOCATE(helio_pl1P%helio_plPA(npl))
+     !IF (ntp>0) THEN
+     !   IF (ALLOCATED(symba_tp1P%symba_tpPA)) DEALLOCATE(symba_tp1P%symba_tpPA)
+     !   ALLOCATE(symba_tp1P%symba_tpPA(ntp))
+     !END IF
      !^^^^^^^^^^^^^^^^^^
-     DO i = 1, npl
-          symba_pliP%nplenc = 0
-          symba_pliP%ntpenc = 0
-          symba_pliP%levelg = -1
-          symba_pliP%levelm = -1
-          ! Added by D. Minton
-          symba_pl1P%symba_plPA(i)%thisP => symba_pliP
-          helio_pl1p%helio_plPA(i)%thisP => symba_pliP%helio
-          swifter_pl1P%swifter_plPA(i)%thisP => symba_pliP%helio%swifter
-          !^^^^^^^^^^^^
-          symba_pliP => symba_pliP%nextP
-     END DO
-     symba_tpP => symba_tp1P
-     DO i = 1, ntp
-          symba_tpP%nplenc = 0
-          symba_tpP%levelg = -1
-          symba_tpP%levelm = -1
-          ! Added by D. Minton
-          symba_tp1P%symba_tpPA(i)%thisP => symba_tpP
-          !^^^^^^^^^^^^
-          symba_tpP => symba_tpP%nextP
-     END DO
+    !DO i = 1, npl
+    !      symba_plA%nplenc = 0
+    !      symba_tpA%ntpenc = 0
+    !      symba_plA%levelg = -1
+    !      symba_tpA%levelm = -1
+    !      ! Added by D. Minton
+    !      symba_pl1P%symba_plPA(i)%thisP => symba_pliP
+    !      helio_pl1p%helio_plPA(i)%thisP => symba_pliP%helio
+    !      swifter_pl1P%swifter_plPA(i)%thisP => symba_pliP%helio%swifter
+    !      !^^^^^^^^^^^^
+    !      symba_pliP => symba_pliP%nextP
+    ! END DO
+     !symba_tpP => symba_tp1P
+
+     symba_plA%nplenc(:) = 0
+     symba_plA%ntpenc(:) = 0
+     symba_plA%levelg(:) = -1
+     symba_plA%levelm(:) = -1
+     symba_tpA%nplenc(:) = 0 
+     symba_tpA%levelg(:) = -1
+     symba_tpA%levelm(:) = -1
+
+
+     !THERE SHOULD BE SOME PARALLEL BITS IN HERE
+
+     !DO i = 1, ntp
+     !     symba_tpP%nplenc = 0
+     !     symba_tpP%levelg = -1
+     !     symba_tpP%levelm = -1
+     !     ! Added by D. Minton
+     !     symba_tp1P%symba_tpPA(i)%thisP => symba_tpP
+     !     !^^^^^^^^^^^^
+     !     symba_tpP => symba_tpP%nextP
+     !END DO
      nplplenc = 0
      npltpenc = 0
-     IF (symba_pl1P%helio%swifter%mass < mtiny) THEN
+     IF (symba_plA(1)%helio%swifter%mass < mtiny) THEN
           nplm = 0
      ELSE
           nplm = 1
      END IF
      irec = 0
-     symba_pliP => symba_pl1P
      DO i = 2, npl
           symba_pliP => symba_pliP%nextP
           swifter_pliP => symba_pliP%helio%swifter
