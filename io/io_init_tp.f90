@@ -28,11 +28,11 @@
 !  Notes       : Adapted from Martin Duncan's Swift routine io_init_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_init_tp(intpfile, in_type, ntp, swiftest_tpA)
+SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
 
 ! Modules
      USE module_parameters
-     USE module_swiftest
+     USE module_symba
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_init_tp
      IMPLICIT NONE
@@ -40,7 +40,7 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, swiftest_tpA)
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: ntp
      CHARACTER(*), INTENT(IN)  :: intpfile, in_type
-     TYPE(swiftest_tpA), DIMENSION(:), INTENT(INOUT)      :: swiftest_tpA
+     TYPE(symba_tpA), DIMENSION(:), INTENT(INOUT)      :: symba_tpA
 
 ! Internals
      INTEGER(I4B), PARAMETER   :: LUN = 7
@@ -53,20 +53,20 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, swiftest_tpA)
           CALL io_open(LUN, intpfile, "OLD", "FORMATTED", ierr)
           READ(LUN, *) intp
           DO i = 1, ntp
-               READ(LUN, *) swiftest_tpA(i)%id
-               READ(LUN, *) swiftest_tpA(i)%xh(:)
-               READ(LUN, *) swiftest_tpA(i)%vh(:)
-               swiftest_tpA(i)%status = ACTIVE
+               READ(LUN, *) symba_tpA%helio%swiftest%id(i)
+               READ(LUN, *) symba_tpA%helio%swiftest%xh(:,i)
+               READ(LUN, *) symba_tpA%helio%swiftest%vh(:,i)
+               symba_tpA%helio%swiftest%status(i) = ACTIVE
           END DO
           CLOSE(UNIT = LUN)
      ELSE
           CALL io_open_fxdr(intpfile, "R", .TRUE., iu, ierr)
           ierr = ixdrint(iu, intp)
           DO i = 1, ntp
-               ierr = ixdrint(iu, swiftest_tpA(i)%id)
-               ierr = ixdrdmat(iu, NDIM, swiftest_tpA(i)%xh)
-               ierr = ixdrdmat(iu, NDIM, swiftest_tpA(i)%vh)
-               swiftest_tpA(i)%status = ACTIVE
+               ierr = ixdrint(iu, symba_tpA%helio%swiftest%id(i))
+               ierr = ixdrdmat(iu, NDIM, symba_tpA%helio%swiftest%xh(:,i))
+               ierr = ixdrdmat(iu, NDIM, symba_tpA%helio%swiftest%vh(:,i))
+               symba_tpA%helio%swiftest%status(i) = ACTIVE
           END DO
           ierr = ixdrclose(iu)
      END IF

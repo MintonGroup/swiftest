@@ -33,11 +33,11 @@
 !  Notes       : Adapted from Martin Duncan's Swift routine io_init_pl.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
+SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
 
 ! Modules
      USE module_parameters
-     USE module_swiftest
+     USE module_symba
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_init_pl
      IMPLICIT NONE
@@ -56,75 +56,75 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
      IF (in_type == "ASCII") THEN
           CALL io_open(LUN, inplfile, "OLD", "FORMATTED", ierr)
           READ(LUN, *) inpl
-          READ(LUN, *) swiftest_plA(1)%id, swiftest_plA(1)%mass
-          swiftest_plA(1)%rhill = 0.0_DP
-          swiftest_plA(1)%radius = 0.0_DP
-          READ(LUN, *) swiftest_plA(1)%xh(:)
-          READ(LUN, *) swiftest_plA(1)%vh(:)
+          READ(LUN, *) symba_plA%helio%swiftest%id(1), symba_plA%helio%swiftest%mass(1)
+          symba_plA%helio%swiftest%rhill(1) = 0.0_DP
+          symba_plA%helio%swiftest%radius(1) = 0.0_DP
+          READ(LUN, *) symba_plA%helio%swiftest%xh(:,1)
+          READ(LUN, *) symba_plA%helio%swiftest%vh(:,1)
           DO i = 1, NDIM
-               IF ((swiftest_plA(1)%xh(i) /= 0.0_DP) .OR. (swiftest_plA(1)%vh(i) /= 0.0_DP)) THEN
-                    WRITE(*, *) "SWIFTER Error:"
+               IF ((symba_plA%helio%swiftest%xh(i,1) /= 0.0_DP) .OR. (symba_plA%helio%swiftest%vh(i,1) /= 0.0_DP)) THEN
+                    WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) " Input MUST be in heliocentric coordinates."
                     WRITE(*, *) " Position/velocity components of Body 1 are"
-                    WRITE(*, *) swiftest_plA(1)%xh(:)
-                    WRITE(*, *) swiftest_plA(1)%vh(:)
+                    WRITE(*, *) symba_plA%helio%swiftest%xh(:,1)
+                    WRITE(*, *) symba_plA%helio%swiftest%vh(:,1)
                     CALL util_exit(FAILURE)
                END IF
           END DO
-          swiftest_plA(1)%status = ACTIVE
+          symba_plA%helio%swiftest%status(1) = ACTIVE
           DO i = 2, npl
                IF (lrhill_present) THEN
-                    READ(LUN, *) swiftest_plA(i)%id, swiftest_plA(i)%mass, swiftest_plA(i)%rhill
+                    READ(LUN, *) symba_plA%helio%swiftest%id(i), symba_plA%helio%swiftest%mass(i), symba_plA%helio%swiftest%rhill(i)
                ELSE
-                    READ(LUN, *) swiftest_plA(i)%id, swiftest_plA(i)%mass
-                    swiftest_plA(i)%rhill = 0.0_DP
+                    READ(LUN, *) symba_plA%helio%swiftest%id(i), symba_plA%helio%swiftest%mass(i)
+                    symba_plA%helio%swiftest%rhill(i) = 0.0_DP
                END IF
                IF (lclose) THEN
-                    READ(LUN, *) swiftest_plA(i)%radius
+                    READ(LUN, *) symba_plA%helio%swiftest%radius(i)
                ELSE
-                    swiftest_plA(i)%radius = 0.0_DP
+                    symba_plA%helio%swiftest%radius(i) = 0.0_DP
                END IF
-               READ(LUN, *) swiftest_plA(i)%xh(:)
-               READ(LUN, *) swiftest_plA(i)%vh(:)
-               swiftest_plA(i)%status = ACTIVE
+               READ(LUN, *) symba_plA%helio%swiftest%xh(:,1)
+               READ(LUN, *) symba_plA%helio%swiftest%vh(:,1)
+               symba_plA%helio%swiftest%status(i) = ACTIVE
           END DO
           CLOSE(UNIT = LUN)
      ELSE
           CALL io_open_fxdr(inplfile, "R", .TRUE., iu, ierr)
           ierr = ixdrint(iu, inpl)
-          ierr = ixdrint(iu, swiftest_plA(1)%id)
-          ierr = ixdrdouble(iu, swiftest_plA(1)%mass)
-          swiftest_plA(1)%rhill = 0.0_DP
-          swiftest_plA(1)%radius = 0.0_DP
-          ierr = ixdrdmat(iu, NDIM, swiftest_plA(1)%xh)
-          ierr = ixdrdmat(iu, NDIM, swiftest_plA(1)%vh)
+          ierr = ixdrint(iu, symba_plA%helio%swiftest%id(1))
+          ierr = ixdrdouble(iu, symba_plA%helio%swiftest%mass(1))
+          symba_plA%helio%swiftest%rhill(1) = 0.0_DP
+          symba_plA%helio%swiftest%radius(1) = 0.0_DP
+          ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%xh(:,1))
+          ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftestswiftest_plA%vh(:,1))
           DO i = 1, NDIM
-               IF ((swiftest_plA(1)%xh(i) /= 0.0_DP) .OR. (swiftest_plA(1)%vh(i) /= 0.0_DP)) THEN
-                    WRITE(*, *) "SWIFTER Error:"
+               IF ((symba_plA%helio%swiftest%xh(i,1) /= 0.0_DP) .OR. (symba_plA%helio%swiftest%vh(i,1) /= 0.0_DP)) THEN
+                    WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) " Input MUST be in heliocentric coordinates."
                     WRITE(*, *) " Position/velocity components of Body 1 are"
-                    WRITE(*, *) swiftest_plA(1)%xh(:)
-                    WRITE(*, *) swiftest_plA(1)%vh(:)
+                    WRITE(*, *) symba_plA%helio%swiftest%xh(:,1)
+                    WRITE(*, *) symba_plA%helio%swiftest%vh(:,1)
                     CALL util_exit(FAILURE)
                END IF
           END DO
-          swiftest_plA(1)%status = ACTIVE
+          symba_plA%helio%swiftest%status(1) = ACTIVE
           DO i = 2, npl
-               ierr = ixdrint(iu, swiftest_plA(1)%id)
-               ierr = ixdrdouble(iu, swiftest_plA(1)%mass)
+               ierr = ixdrint(iu, symba_plA%helio%swiftest%id(i))
+               ierr = ixdrdouble(iu, symba_plA%helio%swiftest%mass(i))
                IF (lrhill_present) THEN
-                    ierr = ixdrdouble(iu, swiftest_plA(1)%rhill)
+                    ierr = ixdrdouble(iu, symba_plA%helio%swiftest%rhill(i))
                ELSE
-                    swiftest_plA(1)%rhill = 0.0_DP
+                    symba_plA%helio%swiftest)%rhill(i) = 0.0_DP
                END IF
                IF (lclose) THEN
-                    ierr = ixdrdouble(iu, swiftest_plA(1)%radius)
+                    ierr = ixdrdouble(iu, symba_plA%helio%swiftest%radius(i))
                ELSE
-                    swiftest_plA(1)%radius = 0.0_DP
+                    symba_plA%helio%swiftest%radius(i) = 0.0_DP
                END IF
-               ierr = ixdrdmat(iu, NDIM, swiftest_plA(1)%xh)
-               ierr = ixdrdmat(iu, NDIM, swiftest_plA(1)%vh)
-               swiftest_plA(1)%status = ACTIVE
+               ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%xh(i))
+               ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%vh(i))
+               symba_plA%helio%swiftest%status(i) = ACTIVE
           END DO
           ierr = ixdrclose(iu)
      END IF
