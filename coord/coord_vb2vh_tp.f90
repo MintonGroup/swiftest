@@ -2,7 +2,7 @@
 !
 !  Unit Name   : coord_vb2vh_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : coord
 !  Language    : Fortran 90/95
 !
@@ -25,28 +25,26 @@
 !  Notes       : Adapted from Hal Levison's Swift routine coord_vb2h_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_vb2vh_tp(ntp, swifter_tp1P, vs)
+SUBROUTINE coord_vb2vh_tp(ntp, symba_tpA, vs)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
+     USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => coord_vb2vh_tp
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)              :: ntp
      REAL(DP), DIMENSION(NDIM), INTENT(IN) :: vs
-     TYPE(swifter_tp), POINTER             :: swifter_tp1P
+     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)             :: symba_tpA
 
 ! Internals
      INTEGER(I4B)              :: i
-     TYPE(swifter_tp), POINTER :: swifter_tpP
 
 ! Executable code
-     swifter_tpP => swifter_tp1P
      DO i = 1, ntp
-          IF (swifter_tpP%status == ACTIVE) swifter_tpP%vh(:) = swifter_tpP%vb(:) - vs(:)
-          swifter_tpP => swifter_tpP%nextP
+          IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) symba_tpA%helio%swiftest%vh(:,i) = symba_tpA%helio%swiftest%vb(:,i) - vs(:)
      END DO
 
      RETURN
@@ -54,7 +52,7 @@ SUBROUTINE coord_vb2vh_tp(ntp, swifter_tp1P, vs)
 END SUBROUTINE coord_vb2vh_tp
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

@@ -2,7 +2,7 @@
 !
 !  Unit Name   : helio_lindrift
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : helio
 !  Language    : Fortran 90/95
 !
@@ -26,28 +26,31 @@
 !  Notes       : Adapted from Hal Levison's Swift routine helio_lindrift.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_lindrift(npl, swifter_pl1P, dt, pt)
+SUBROUTINE helio_lindrift(npl, symba_plA, dt, pt)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
+     USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => helio_lindrift
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)               :: npl
-     REAL(DP), INTENT(IN)                   :: dt
-     REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: pt
-     TYPE(swifter_pl), POINTER              :: swifter_pl1P
+     INTEGER(I4B), INTENT(IN)                          :: npl
+     REAL(DP), INTENT(IN)                              :: dt
+     REAL(DP), DIMENSION(NDIM), INTENT(OUT)            :: pt
+     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)     :: symba_plA
 
 ! Internals
      INTEGER(I4B)              :: i
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Added by D. Minton
      REAL(DP) :: ptx,pty,ptz
      REAL(DP),DIMENSION(NDIM) :: pttmp !INTENT(OUT) variables don't play nicely 
                                        !with OpenMP's reduction for some reason
+
+
+! EDIT THIS PARALLELIZATION
 
 ! Executable code
      !Removed by D. Minton
@@ -102,7 +105,7 @@ SUBROUTINE helio_lindrift(npl, swifter_pl1P, dt, pt)
 END SUBROUTINE helio_lindrift
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

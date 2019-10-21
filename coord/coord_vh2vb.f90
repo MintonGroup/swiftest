@@ -2,7 +2,7 @@
 !
 !  Unit Name   : coord_vh2vb
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : coord
 !  Language    : Fortran 90/95
 !
@@ -25,32 +25,35 @@
 !  Notes       : Adapted from Hal Levison's Swift routine coord_vh2b.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_vh2vb(npl, swifter_pl1P, msys)
+SUBROUTINE coord_vh2vb(npl, symba_plA, msys)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
+     USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => coord_vh2vb
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
      REAL(DP), INTENT(OUT)     :: msys
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT) :: symba_plA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP), DIMENSION(NDIM) :: vtmp
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
      ! Removed by D. Minton
      !swifter_plP => swifter_pl1P
      !^^^^^^^^^^^^^^^^^^^^^
      vtmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     msys = swifter_pl1P%mass
+     msys = symba_tpA%helio%swiftest%mass
      !^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
+
+! EDIT FOR THE TREE FUNCTION FOR PARALLELIZATION
+
      !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
      !$OMP PRIVATE(i,swifter_plP) &
      !$OMP SHARED(npl,swifter_pl1P) &
@@ -90,7 +93,7 @@ SUBROUTINE coord_vh2vb(npl, swifter_pl1P, msys)
 END SUBROUTINE coord_vh2vb
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
 !
 !  Revision Control System (RCS) Information
 !

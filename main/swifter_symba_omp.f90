@@ -127,7 +127,7 @@ PROGRAM swiftest_symba_omp
      END IF
 
      ! Reads in initial conditions of all massive bodies from input file and fills the linked list
-     CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swiftest_plA)
+     CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
      WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
      READ(*, *) mtiny
 
@@ -151,7 +151,7 @@ PROGRAM swiftest_symba_omp
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
-               mtiny, encounter_file, out_type)
+               mtiny, encounter_file, out_type) !CARLISLE AND JENNIFER OCT 21, 2019
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt

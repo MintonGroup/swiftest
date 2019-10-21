@@ -154,16 +154,17 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      !END DO
      nplplenc = 0
      npltpenc = 0
-     IF (symba_plA(1)%helio%swifter%mass < mtiny) THEN
+     IF (symba_plA%helio%swiftest%mass(1) < mtiny) THEN
           nplm = 0
      ELSE
           nplm = 1
      END IF
      irec = 0
+
+! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
+
      DO i = 2, npl
-          symba_pliP => symba_pliP%nextP
-          swifter_pliP => symba_pliP%helio%swifter
-          IF (swifter_pliP%mass < mtiny) EXIT
+          IF (symba_plA%helio%swiftest%mass(i) < mtiny) EXIT
           nplm = nplm + 1
           ! Removed by D. Minton
           !symba_pljP => symba_pliP
@@ -260,6 +261,9 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           END DO
           !$OMP END PARALLEL DO
      END DO
+
+! END OF THINGS THAT NEED TO BE CHANGED IN THE TREE
+
      lencounter = ((nplplenc > 0) .OR. (npltpenc > 0))
      IF (lencounter) THEN
           CALL symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4,   &
@@ -267,8 +271,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                mergesub_list, encounter_file, out_type)
           lfirst = .TRUE.
      ELSE
-          helio_pl1P => symba_pl1P%helio
-          helio_tp1P => symba_tp1P%helio
           CALL symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_pl1P, helio_tp1P, j2rp2, j4rp4, dt)
      END IF
 

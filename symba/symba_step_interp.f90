@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_step_interp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -58,13 +58,13 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_step_interp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,   &
+SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,   &
      eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,          &
      encounter_file, out_type)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_step_interp
@@ -77,8 +77,8 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-     TYPE(symba_pl), POINTER                          :: symba_pl1P
-     TYPE(symba_tp), POINTER                          :: symba_tp1P
+     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)      :: symba_plA
+     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)      :: symba_tpA
      TYPE(symba_plplenc), DIMENSION(:), INTENT(INOUT) :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(:), INTENT(INOUT) :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), INTENT(INOUT)  :: mergeadd_list, mergesub_list
@@ -89,10 +89,6 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      REAL(DP)                                     :: dth, msys
      REAL(DP), DIMENSION(NDIM)                    :: ptb, pte
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xbeg, xend
-     TYPE(swifter_pl), POINTER                    :: swifter_pl1P, swifter_plP
-     TYPE(swifter_tp), POINTER                    :: swifter_tp1P
-     TYPE(helio_pl), POINTER                      :: helio_pl1P
-     TYPE(helio_tp), POINTER                      :: helio_tp1P
 
 ! Executable code
      IF (lmalloc) THEN
@@ -100,15 +96,13 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
           lmalloc = .FALSE.
      END IF
      dth = 0.5_DP*dt
-     helio_pl1P => symba_pl1P%helio
-     swifter_pl1P => helio_pl1P%swifter
-     CALL coord_vh2vb(npl, swifter_pl1P, msys)
-     CALL helio_lindrift(npl, swifter_pl1P, dth, ptb)
+     CALL coord_vh2vb(npl, swifter_plA, msys)
+     CALL helio_lindrift(npl, swifter_plA, dth, ptb)
      IF (ntp > 0) THEN
           helio_tp1P => symba_tp1P%helio
           swifter_tp1P => helio_tp1P%swifter
           CALL coord_vh2vb_tp(ntp, swifter_tp1P, -ptb)
-          CALL helio_lindrift_tp(ntp, swifter_tp1P, dth, ptb)
+          CALL helio_lindrift_tp(ntp, swifter_tp1P, dth, ptb) !CARLISLE AND JENNIFER OCT 21, 2019
           swifter_plP => swifter_pl1P
           DO i = 2, npl
                swifter_plP => swifter_plP%nextP
