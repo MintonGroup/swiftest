@@ -84,9 +84,9 @@ def f(x):
             sigma.append(m[a]/deltaA[a])
         #Gaussian surface mass density profile
         elif x == 1:
-            centroid = 110e6    #radius of the center of the gaussian
-            spread = 500e3      #width of the gaussian
-            sigma_peak = 6e4 #scale factor to get a given mass
+            centroid = 110.00e6    #radius of the center of the gaussian
+            spread = 360e3      #width of the gaussian
+            sigma_peak = 6.15e4 #scale factor to get a given mass
             sigma.append(sigma_peak * np.exp(-(r[a]-centroid)**2/(2*spread**2)))
             m.append(sigma[a]*deltaA[a])
         else:

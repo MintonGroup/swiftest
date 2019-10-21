@@ -52,7 +52,7 @@ with open(ringfile) as f:
         nu[i] = vals[2]
 axes['a'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
 
-ringfile = 'test.1e3y'
+'''ringfile = 'test.1e3y'
 with open(ringfile) as f:
     for i, line in enumerate(f):
         vals = [float(x) for x in line.split()]
@@ -76,9 +76,9 @@ with open(ringfile) as f:
         sigma[i] = vals[1]/ ic.GU
 axes['d'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
 
-
+'''
 Visc5.f(1,ic.MP, ic.RP,t=0.0)
-print(f'nu = {Visc5.nu[106], nu[106]} m^2 s^-1')
+print(f'nu = {Visc5.nu[99], nu[99]} m^2 s^-1')
 
 figure.tight_layout()
 #plt.show()
