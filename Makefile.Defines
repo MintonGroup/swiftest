@@ -46,10 +46,10 @@ USER_MODULES    =
 # this is done explicitly as needed in the Makefile
 
 #FORTRAN         = ifort
-#FFLAGS          = -O3 -qopenmp -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
+#FFLAGS          = -O3 -qopenmp -parallel -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens -no-wrap-margin
 
 FORTRAN         = gfortran
-FFLAGS          = -O3 -fopenmp -fbounds-check -fbacktrace -floop-nest-optimize
+FFLAGS          = -O3 -fopenmp 
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile

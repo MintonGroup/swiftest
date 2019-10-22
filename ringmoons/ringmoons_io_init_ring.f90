@@ -60,18 +60,18 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
          ring%deltar(i) = 0.5_DP * (Xhi**2 - Xlo**2)
 
          ring%X(i) = Xlo + 0.5_DP * ring%deltaX
+         ring%X2(i) = ring%X(i)**2
          ring%r(i) = (0.5_DP * ring%X(i))**2
-         ring%R_P(i) = ring%r(i) / R_Planet
          ring%deltaA(i) = 2 * PI * ring%deltar(i) * ring%r(i)
-         ring%m(i) = ring%Gsigma(i) * ring%deltaA(i)
-         ring%RR(i) = ring%r(i)**2 + 0.25_DP * ring%deltar(i)**2 
-         ring%I(i) = ring%m(i) * ring%RR(i)
+         ring%Gm(i) = ring%Gsigma(i) * ring%deltaA(i)
+         ring%Iz(i) = 0.25_DP * ring%Gm(i) / GU * (Xlo**2 + Xhi**2)
          ring%w(i) = sqrt(GM_Planet / ring%r(i)**3)
          ring%Torque_to_disk(i) = 0.0_DP
-         rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP)
+         rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP) ! See Salmon et al. 2010 for this
          ring%r_hstar(i) = rhill / (2 * ring%r_pdisk)  
       end do
       call ringmoons_viscosity(GM_Planet,R_Planet,ring)
+      ring%stability_factor = 0.25_DP * minval(ring%X2) * ring%deltaX**2 / 24._DP 
 
       
    

@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : ringmoons_pde_solver
+!  Unit Name   : ringmoons_sigma_solver
 !  Unit Type   : subroutine
 !  Project     : Swifter
 !  Package     : io
@@ -19,17 +19,17 @@
 !    Teringinal  : 
 !    File      : 
 !
-!  Invocation  : CALL ringmoons_pde_solver(dt,ring,ring)
+!  Invocation  : CALL ringmoons_sigma_solver(dt,ring,ring)
 !
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
+SUBROUTINE ringmoons_sigma_solver(GM_Planet,R_Planet,dtin,ring)
 
 ! Modules
       USE module_parameters
       USE module_ringmoons
-      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_pde_solver
+      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_sigma_solver
       IMPLICIT NONE
 
 ! Arguments
@@ -37,38 +37,42 @@ SUBROUTINE ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals
-      real(DP) :: dtstab, dt,fac
+      real(DP) :: dtstab,dtleft,dt,fac
       real(DP),dimension(0:ring%N+1) :: S,Snew
-      integer(I4B) :: i,nloops,loop
+      integer(I4B) :: i,loop
 
 ! Executable code
-      call ringmoons_viscosity(GM_Planet,R_Planet,ring)
-      S(0) = 0.0_DP
       S(1:ring%N) = ring%Gsigma(:) / GU * ring%X(:)
-      S(ring%N+1) = 0.0_DP
-      Snew = 0.0_DP
-      dtstab = 0.5_DP * minval(ring%X) * ring%deltaX**2 / (12 * maxval(ring%nu))
-      nloops = ceiling(dtin / dtstab)
-      dt = dtin / nloops
-      write(*,*) dtstab,nloops,sum(ring%m) / GU
-      
-      fac = 12 * dt / ring%deltaX**2 
-      do loop = 1,nloops  
+      dtleft = dtin
+      !TESTING
+         call ringmoons_viscosity(GM_Planet,R_Planet,ring)
+         dtstab = ring%stability_factor / maxval(ring%nu)
+         write(*,*) dtstab,ceiling(dtin/dtstab),sum(ring%Gm) / GU
+      !^^^^^^^^  
+      do loop = 1, LOOPMAX
+         call ringmoons_viscosity(GM_Planet,R_Planet,ring)
+         dtstab = ring%stability_factor / maxval(ring%nu)
+         dt = min(dtleft,dtstab)
+         S(0) = 0.0_DP
+         S(ring%N+1) = 0.0_DP
+         Snew = 0.0_DP
+         fac = 12 * dt / ring%deltaX**2 
          !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
          !$OMP SHARED(ring,Snew,S,fac,GU)
          do i = 1,ring%N
-            Snew(i) = S(i) + fac / (ring%X(i)**2) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
+            Snew(i) = S(i) + fac / (ring%X2(i)) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
             ring%Gsigma(i) = GU * Snew(i) / ring%X(i)
          end do
          !$OMP END PARALLEL DO
          S(:) = Snew(:)
-         ring%m = ring%Gsigma * ring%deltaA
-         call ringmoons_viscosity(GM_Planet,R_Planet,ring)
+         ring%Gm = ring%Gsigma * ring%deltaA
+         dtleft = dtleft - dt
+         if (dtleft <= 0.0_DP) exit
       end do 
 
-      RETURN
+      return
 
-END SUBROUTINE ringmoons_pde_solver
+END SUBROUTINE ringmoons_sigma_solver
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David A. Minton  

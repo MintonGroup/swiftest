@@ -136,7 +136,7 @@ MODULE module_parameters
 ! Miscellaneous constants:
      INTEGER(I4B), PARAMETER :: NDIM    = 3
      INTEGER(I4B), PARAMETER :: NDIM2   = 2*NDIM
-     INTEGER(I4B), PARAMETER :: LOOPMAX = 2147483647     ! 2**31 - 1
+     INTEGER(I4B), PARAMETER :: LOOPMAX = 2147483646     ! 2**31 - 1
      REAL(DP),     PARAMETER :: TINY    = 4.0E-15_DP
 
 ! Added by D. Minton

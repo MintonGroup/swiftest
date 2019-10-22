@@ -3,16 +3,41 @@ from typing import List, Any
 import numpy as np
 import sys
 
-
-
-###***Define initial conditions***###
-
 #Units will be in terms of planet mass, planet radius, and years
 G	    = 6.674e-8                          #Gravitational constant (cgs)
 year    = 3600*24*365.25                #seconds in 1 year
 AU      = 1.4960e13
 M_Sun   = 1.9891e33
+
+
+#The following are Unit conversion factors
+MU2GM    =     1000.0 #M_Saturn          #Conversion from mass unit to grams
+DU2CM    =     100.0 #R_Saturn                       #Conversion from radius unit to centimeters
+TU2S     =     1.0 #year                           #Conversion from time unit to seconds
+GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
+
+r_pdisk = 1.00  #disk particle size
+rho_pdisk = 900.0 # Satellite/ring particle mass density in gm/cm**3
+r_I	= 100e6      #inside radius of disk is at the embryo's surface
+r_F	= 120.47646073197e6  #outside radius of disk
+
+
+centroid = 110.00e6  # radius of the center of the gaussian
+spread = 360e3  # width of the gaussian
+sigma_peak = 6.15e4  # scale factor to get a given mass
+
+t_0	= 0
+t_print = 1.e2 * year / TU2S #output interval to print results
+deltaT	= 1.e2 * year / TU2S  #timestep simulation
+end_sim = 1.e5 * year / TU2S + deltaT #end time
+
 N   = 2400           #number of bins in disk
+
+
+###***Define initial conditions***###
+
+
+
 
 M_Saturn    = 5.6834e29
 R_Saturn    = 60268.0e5
@@ -28,16 +53,12 @@ k_2         = 0.104 #tidal love number for primary
 Q           = 3000. #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
-rho_sat = 900.0 # Satellite/ring particle mass density in gm/cm**3
+
 
 J2 = 0.0 #Add these in later
 J4 = 0.0
 
-#The following are Unit conversion factors
-MU2GM    =     1000.0 #M_Saturn          #Conversion from mass unit to grams
-DU2CM    =     100.0 #R_Saturn                       #Conversion from radius unit to centimeters
-TU2S     =     1.0 #year                           #Conversion from time unit to seconds
-GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
+
 
 #Primary body definitions
 RP    = R_Saturn / DU2CM #1.0
@@ -51,13 +72,12 @@ LP =  IP * wP
 
 ###For the disk:
 
-r_pdisk = 1.0  #disk particle size
-m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_sat   #disk particle size (mass in g)
+
+m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_pdisk   #disk particle size (mass in g)
 
 # gamma	= 0.3	    #ang momentum efficiency factor
 inside = 0  #bin id of innermost ring bin (can increase if primary accretes a lot mass through 'Update.py'
-r_I	= 100e6      #inside radius of disk is at the embryo's surface
-r_F	= 120.47646073197e6  #outside radius of disk
+
 deltar = (r_F - r_I) / N	#width of a bin
 deltaX = (2 * np.sqrt(r_F) - 2 * np.sqrt(r_I)) / N  #variable changed bin width used for viscosity calculations
 r = []
@@ -84,9 +104,7 @@ def f(x):
             sigma.append(m[a]/deltaA[a])
         #Gaussian surface mass density profile
         elif x == 1:
-            centroid = 110.00e6    #radius of the center of the gaussian
-            spread = 360e3      #width of the gaussian
-            sigma_peak = 6.15e4 #scale factor to get a given mass
+
             sigma.append(sigma_peak * np.exp(-(r[a]-centroid)**2/(2*spread**2)))
             m.append(sigma[a]*deltaA[a])
         else:
@@ -109,10 +127,7 @@ for a in range(int(N)):
     print(GU * sigma[a],file=outfile)
 
 
-t_0	= 0
-end_sim = 1.1e5 * year / TU2S  #end time
-t_print = 1.e2 * year / TU2S #output interval to print results
-deltaT	= 1.e2 * year / TU2S  #timestep simulation
+
 
 
 

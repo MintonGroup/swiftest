@@ -56,13 +56,13 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_pde_solver(GM_Planet,R_Planet,dtin,ring)
+         subroutine ringmoons_sigma_solver(GM_Planet,R_Planet,dtin,ring)
          use module_parameters
          use module_ringmoons
          implicit none
          real(DP),intent(in) :: GM_Planet,R_Planet,dtin
          TYPE(ringmoons_ring),INTENT(INOUT) :: ring
-         end subroutine ringmoons_pde_solver
+         end subroutine ringmoons_sigma_solver
       end interface
 
       interface
@@ -91,16 +91,6 @@ module module_ringmoons_interfaces
          real(DP),intent(in) :: GM_Planet,R_Planet
          type(ringmoons_ring),intent(inout) :: ring
          end subroutine ringmoons_viscosity
-      end interface
-
-      interface
-         subroutine ringmoons_viscosity_s2010(GM_Planet,R_Planet,ring)
-         use module_parameters
-         use module_ringmoons
-         implicit none
-         real(DP),intent(in) :: GM_Planet,R_Planet
-         type(ringmoons_ring),intent(inout) :: ring
-         end subroutine ringmoons_viscosity_s2010
       end interface
 
       interface

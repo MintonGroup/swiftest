@@ -50,7 +50,7 @@ with open(ringfile) as f:
         r[i] = vals[0]
         sigma[i] = vals[1] / ic.GU
         nu[i] = vals[2]
-axes['a'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
+axes['a'].plot(r* ic.DU2CM * 1e-8, sigma * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
 
 ringfile = 'test.1e3y'
 with open(ringfile) as f:
@@ -58,7 +58,7 @@ with open(ringfile) as f:
         vals = [float(x) for x in line.split()]
         r[i] = vals[0]
         sigma[i] = vals[1] / ic.GU
-axes['b'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
+axes['b'].plot(r* ic.DU2CM * 1e-8, sigma * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
 
 ringfile = 'test.1e4y'
 with open(ringfile) as f:
@@ -66,7 +66,7 @@ with open(ringfile) as f:
         vals = [float(x) for x in line.split()]
         r[i] = vals[0]
         sigma[i] = vals[1] / ic.GU
-axes['c'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
+axes['c'].plot(r* ic.DU2CM * 1e-8, sigma * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
 
 ringfile = 'test.1e5y'
 with open(ringfile) as f:
@@ -74,10 +74,10 @@ with open(ringfile) as f:
         vals = [float(x) for x in line.split()]
         r[i] = vals[0]
         sigma[i] = vals[1]/ ic.GU
-axes['d'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
+axes['d'].plot(r* ic.DU2CM * 1e-8, sigma * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
 
 Visc5.f(1,ic.MP, ic.RP,t=0.0)
-print(f'nu = {Visc5.nu[1199], nu[1199]} m^2 s^-1')
+#print(f'nu = {Visc5.nu[599], nu[599]} m^2 s^-1')
 
 figure.tight_layout()
 #plt.show()
