@@ -173,6 +173,7 @@ PROGRAM swifter_symba_ringmoons
           IF (istep_out > 0) THEN
                iout = iout - 1
                IF (iout == 0) THEN
+                    tfrac = (t - t0) / (tstop - t0)
                     WRITE(*, 200) t, tfrac, npl, ntp
  200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
                     CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)

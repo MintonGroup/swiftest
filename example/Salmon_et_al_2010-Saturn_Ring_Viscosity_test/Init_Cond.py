@@ -31,7 +31,7 @@ t_print = 1.e2 * year / TU2S #output interval to print results
 deltaT	= 1.e2 * year / TU2S  #timestep simulation
 end_sim = 1.e5 * year / TU2S + deltaT #end time
 
-N   = 2400           #number of bins in disk
+N   = 240           #number of bins in disk
 
 
 ###***Define initial conditions***###
