@@ -31,6 +31,7 @@
 !  Invocation  : CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
 !
 !  Notes       : Adapted from Martin Duncan's Swift routine io_init_pl.f
+!                xdr file support removed (D. Minton)
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
@@ -38,7 +39,6 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
 ! Modules
      USE module_parameters
      USE module_swifter
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_init_pl
      IMPLICIT NONE
 
@@ -93,44 +93,8 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
           END DO
           CLOSE(UNIT = LUN)
      ELSE
-          CALL io_open_fxdr(inplfile, "R", .TRUE., iu, ierr)
-          ierr = ixdrint(iu, inpl)
-          ierr = ixdrint(iu, swifter_plP%id)
-          ierr = ixdrdouble(iu, swifter_plP%mass)
-          swifter_plP%rhill = 0.0_DP
-          swifter_plP%radius = 0.0_DP
-          ierr = ixdrdmat(iu, NDIM, swifter_plP%xh)
-          ierr = ixdrdmat(iu, NDIM, swifter_plP%vh)
-          DO i = 1, NDIM
-               IF ((swifter_plP%xh(i) /= 0.0_DP) .OR. (swifter_plP%vh(i) /= 0.0_DP)) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) " Input MUST be in heliocentric coordinates."
-                    WRITE(*, *) " Position/velocity components of Body 1 are"
-                    WRITE(*, *) swifter_plP%xh(:)
-                    WRITE(*, *) swifter_plP%vh(:)
-                    CALL util_exit(FAILURE)
-               END IF
-          END DO
-          swifter_plP%status = ACTIVE
-          DO i = 2, npl
-               swifter_plP => swifter_plP%nextP
-               ierr = ixdrint(iu, swifter_plP%id)
-               ierr = ixdrdouble(iu, swifter_plP%mass)
-               IF (lrhill_present) THEN
-                    ierr = ixdrdouble(iu, swifter_plP%rhill)
-               ELSE
-                    swifter_plP%rhill = 0.0_DP
-               END IF
-               IF (lclose) THEN
-                    ierr = ixdrdouble(iu, swifter_plP%radius)
-               ELSE
-                    swifter_plP%radius = 0.0_DP
-               END IF
-               ierr = ixdrdmat(iu, NDIM, swifter_plP%xh)
-               ierr = ixdrdmat(iu, NDIM, swifter_plP%vh)
-               swifter_plP%status = ACTIVE
-          END DO
-          ierr = ixdrclose(iu)
+          write(*,*) trim(adjustl(in_type))," file type not supported"
+          call util_exit(FAILURE)
      END IF
 
      RETURN

@@ -31,6 +31,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine io_write_frame.F
 !
 !                There is no direct file output from this subroutine
+!                xdr file support removed (D. Minton)
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
@@ -38,7 +39,6 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
 ! Modules
      USE module_parameters
      USE module_swifter
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_frame
      IMPLICIT NONE
 
@@ -50,7 +50,6 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
      TYPE(swifter_tp), POINTER :: swifter_tp1P
 
 ! Internals
-     LOGICAL(LGT)              :: lxdr
      LOGICAL(LGT), SAVE        :: lfirst = .TRUE.
      INTEGER(I4B), PARAMETER   :: LUN = 20
      INTEGER(I4B)              :: i, j, ierr
@@ -61,42 +60,23 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
      TYPE(swifter_tp), POINTER :: swifter_tpP
 
 ! Executable code
-     lxdr = ((out_type == XDR4_TYPE) .OR. (out_type == XDR8_TYPE))
      IF (lfirst) THEN
           IF (out_stat == "APPEND") THEN
-               IF (lxdr) THEN
-                    CALL io_open_fxdr(outfile, "A", .TRUE., iu, ierr)
-               ELSE
-                    CALL io_open(iu, outfile, out_stat, "UNFORMATTED", ierr)
-               END IF
+              CALL io_open(iu, outfile, out_stat, "UNFORMATTED", ierr)
           ELSE IF (out_stat == "NEW") THEN
-               IF (lxdr) THEN
-                    CALL io_open_fxdr(outfile, "R", .TRUE., iu, ierr)
-                    IF (ierr == 0) THEN
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   Binary output file already exists"
-                         CALL util_exit(FAILURE)
-                    END IF
-                    CALL io_open_fxdr(outfile, "W", .TRUE., iu, ierr)
-               ELSE
-                    CALL io_open(iu, outfile, out_stat, "UNFORMATTED", ierr)
-                    IF (ierr /= 0) THEN
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   Binary output file already exists"
-                         CALL util_exit(FAILURE)
-                    END IF
-               END IF
+              CALL io_open(iu, outfile, out_stat, "UNFORMATTED", ierr)
+              IF (ierr /= 0) THEN
+                 WRITE(*, *) "SWIFTER Error:"
+                 WRITE(*, *) "   Binary output file already exists"
+                 CALL util_exit(FAILURE)
+              END IF
           ELSE
-               IF (lxdr) THEN
-                    CALL io_open_fxdr(outfile, "W", .TRUE., iu, ierr)
-               ELSE
-                    CALL io_open(iu, outfile, "REPLACE", "UNFORMATTED", ierr)
-               END IF
+              CALL io_open(iu, outfile, "REPLACE", "UNFORMATTED", ierr)
           END IF
           IF (ierr /= 0) THEN
-               WRITE(*, *) "SWIFTER Error:"
-               WRITE(*, *) "   Unable to open binary output file"
-               CALL util_exit(FAILURE)
+              WRITE(*, *) "SWIFTER Error:"
+              WRITE(*, *) "   Unable to open binary output file"
+              CALL util_exit(FAILURE)
           END IF
           SELECT CASE (out_form)
                CASE ("EL")
@@ -108,11 +88,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
           END SELECT
           lfirst = .FALSE.
      ELSE
-          IF (lxdr) THEN
-               CALL io_open_fxdr(outfile, "A", .TRUE., iu, ierr)
-          ELSE
-               CALL io_open(iu, outfile, "APPEND", "UNFORMATTED", ierr)
-          END IF
+          CALL io_open(iu, outfile, "APPEND", "UNFORMATTED", ierr)
           IF (ierr /= 0) THEN
                WRITE(*, *) "SWIFTER Error:"
                WRITE(*, *) "   Unable to open binary output file for append"
@@ -160,11 +136,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_
           CASE (FILT)
 ! DEK - add code here to handle the case for an OUT_FORM = FILT
      END SELECT
-     IF (lxdr) THEN
-          ierr = ixdrclose(iu)
-     ELSE
-          CLOSE(UNIT = iu, IOSTAT = ierr)
-     END IF
+     CLOSE(UNIT = iu, IOSTAT = ierr)
      IF (ierr /= 0) THEN
           WRITE(*, *) "SWIFTER Error:"
           WRITE(*, *) "   Unable to close binary output file"

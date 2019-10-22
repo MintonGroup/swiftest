@@ -37,7 +37,6 @@ PROGRAM left
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
-     INTEGER(I4B)      :: istep_dump     ! Time steps between dumps
      REAL(DP)          :: t0             ! Integration start time
      REAL(DP)          :: tstop          ! Integration stop time
      REAL(DP)          :: dt             ! Time step
@@ -64,7 +63,7 @@ PROGRAM left
      LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
 
 ! Internals
-     INTEGER(I4B)                                    :: npl,ntp,ntp0,nsp,iout,idump,iloop,i
+     INTEGER(I4B)                                    :: npl,ntp,ntp0,nsp,iout,iloop,i
      REAL(DP)                                        :: t,tfrac,tbase
      CHARACTER(STRMAX)                               :: inparfile
      REAL(DP)                                        :: gmsum,msun,a,e,inc,capom,omega,capm,peri,apo
@@ -83,7 +82,7 @@ PROGRAM left
  100 FORMAT(A)
      inparfile=TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile,nplmax,ntpmax,t0,tstop,dt,inplfile,intpfile,in_type,istep_out,outfile,out_type,out_form,        &
-          out_stat,istep_dump,j2rp2,j4rp4,lclose,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,lextra_force,   &
+          out_stat,j2rp2,j4rp4,lclose,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,lextra_force,   &
           lbig_discard,lrhill_present)
      CALL io_getn(inplfile,intpfile,in_type,npl,nplmax,ntp,ntpmax)
      ALLOCATE(whm_plA(nplmax))

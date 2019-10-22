@@ -18,12 +18,11 @@
 #                (3) lib     : builds entire Swifter library
 #                (4) libdir  : compiles local directory source and adds the
 #                              resulting objects to the Swifter library
-#                (5) fxdr    : builds FXDR library by invoking its makefile
-#                (6) drivers : builds Swifter drivers
-#                (7) tools   : builds Swifter tools
-#                (8) bin     : compiles local directory source and installs
+#                (5) drivers : builds Swifter drivers
+#                (6) tools   : builds Swifter tools
+#                (7) bin     : compiles local directory source and installs
 #                              resulting executables to $(SWIFTER_HOME)/bin
-#                (9) clean   : removes all soft links to Makefile and
+#                (8) clean   : removes all soft links to Makefile and
 #                              Makefile.Defines from subdirectories of
 #                              $(SWIFTER_HOME), removes the entire contents
 #                              of $(SWIFTER_HOME)/lib and $(SWIFTER_HOME)/bin,
@@ -37,7 +36,7 @@
 #    Terminal  : status messages
 #    File      : none
 #
-#  Invocation  : make [all|mod|lib|libdir|fxdr|drivers|tools|bin|clean]
+#  Invocation  : make [all|mod|lib|libdir|drivers|tools|bin|clean]
 #
 #  Notes       : The use of the above arguments as phony targets inside the
 #                makefile precludes their use as base names of Swifter drivers
@@ -45,10 +44,9 @@
 #
 #******************************************************************************
 
-SWIFTER_MODULES = module_parameters.f90 module_swifter.f90 module_bs.f90 \
-                  module_helio.f90 module_ra15.f90 module_tu4.f90 \
-                  module_whm.f90 module_rmvs.f90 module_symba.f90 \
-                  module_fxdr.f90 module_nrutil.f90 module_interfaces.f90 \
+SWIFTER_MODULES = module_parameters.f90 module_swifter.f90  \
+                  module_helio.f90 module_whm.f90 module_rmvs.f90 \
+                  module_symba.f90 module_nrutil.f90 module_interfaces.f90 \
                   module_random_access.f90 
 
 RINGMOONS_MODULES = module_ringmoons.f90 module_ringmoons_interfaces.f90 
@@ -57,11 +55,11 @@ include Makefile.Defines
 
 MODULES         = $(SWIFTER_MODULES) $(RINGMOONS_MODULES) $(USER_MODULES) 
 
-.PHONY : all mod lib libdir fxdr drivers tools bin clean force
+.PHONY : all mod lib libdir drivers tools bin clean force
 
 % : %.f90 force
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include $< -o $@ \
-	  -L$(SWIFTER_HOME)/lib -lswifter -lfxdr 
+	  -L$(SWIFTER_HOME)/lib -lswifter 
 	$(INSTALL_PROGRAM) $@ $(SWIFTER_HOME)/bin
 	rm -f $@
 
@@ -69,7 +67,6 @@ all:
 	cd $(SWIFTER_HOME); \
 	  make mod; \
 	  make lib; \
-	  make fxdr; \
 	  make drivers; \
 	  make tools
 
@@ -84,11 +81,6 @@ mod:
 	  rm -f *.o *.mod
 
 lib:
-	cd $(SWIFTER_HOME)/bs; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTER_HOME)/coord; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
@@ -124,22 +116,12 @@ lib:
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/ra15; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTER_HOME)/rmvs; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
 	cd $(SWIFTER_HOME)/symba; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
-	  make libdir
-	cd $(SWIFTER_HOME)/tu4; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
@@ -164,16 +146,6 @@ libdir:
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include -c *.f90
 	$(AR) rv $(SWIFTER_HOME)/lib/libswifter.a *.o
 	rm -f *.o
-
-fxdr:
-	cd $(SWIFTER_HOME)/fxdr; \
-	  rm -f Makefile.Defines; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-     chmod -w test_read_only.xdr ; \
-	  make -f Makefile.fxdr; \
-	  make -f Makefile.fxdr test; \
-	  make -f Makefile.fxdr install; \
-	  make -f Makefile.fxdr clean
 
 drivers:
 	cd $(SWIFTER_HOME)/main; \
@@ -202,20 +174,17 @@ clean:
 	cd $(SWIFTER_HOME)/io;      rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/obl;     rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/orbel;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/ra15;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/rmvs;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/symba;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/ringmoons;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/tu4;     rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/util;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/whm;     rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/fxdr;    rm -f Makefile.Defines  *.gc*
 	cd $(SWIFTER_HOME)/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/tool;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/bin;     rm -f swifter_*
 	cd $(SWIFTER_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTER_HOME)/lib;     rm -f lib*.a
-	cd $(SWIFTER_HOME)/include; rm -f *.mod fxdr.inc
+	cd $(SWIFTER_HOME)/include; rm -f *.mod 
 
 force:
 

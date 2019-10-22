@@ -29,13 +29,13 @@
 !  Invocation  : CALL io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
 !
 !  Notes       : nplmax (ntpmax) is reset to npl (ntp) if the latter exceeds the former
+!                Removed support for fxdr file type (D. Minton)
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
 
 ! Modules
      USE module_parameters
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_getn
      IMPLICIT NONE
 
@@ -55,9 +55,8 @@ SUBROUTINE io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
           READ(LUN, *) npl
           CLOSE(UNIT = LUN)
      ELSE
-          CALL io_open_fxdr(inplfile, "R", .TRUE., iu, ierr)
-          ierr = ixdrint(iu, npl)
-          ierr = ixdrclose(iu)
+          write(*,*) trim(adjustl(in_type))," is an unsupported file type"
+          CALL util_exit(FAILURE)
      END IF
      IF (npl < 1) THEN
           WRITE(*, *) "Error: the number of planets, ", npl, ","
@@ -73,27 +72,21 @@ SUBROUTINE io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
      END IF
      ntp = 0
      IF (intpfile /= "") THEN
-          IF (in_type == "ASCII") THEN
-               CALL io_open(LUN, intpfile, "OLD", "FORMATTED", ierr)
-               READ(LUN, *) ntp
-               CLOSE(UNIT = LUN)
-          ELSE
-               CALL io_open_fxdr(intpfile, "R", .TRUE., iu, ierr)
-               ierr = ixdrint(iu, ntp)
-               ierr = ixdrclose(iu)
-          END IF
-          IF (ntp < 0) THEN
-               WRITE(*, *) "Error: the number of test particles, ", ntp, ","
-               WRITE(*, *) "       must be at least 0"
-               CALL util_exit(FAILURE)
-          ELSE IF ((ntp > ntpmax) .AND. .NOT. (ntpmax < 0)) THEN
-               WRITE(*, *) "Warning: the number of test particles, ", ntp, ","
-               WRITE(*, *) "         exceeds the specified maximum number of test particles, ", ntpmax
-               WRITE(*, *) "         ...resetting ntpmax to ", ntp
-               ntpmax = ntp
-          ELSE IF (ntpmax < 0) THEN
-               ntpmax = ntp
-          END IF
+         CALL io_open(LUN, intpfile, "OLD", "FORMATTED", ierr)
+         READ(LUN, *) ntp
+         CLOSE(UNIT = LUN)
+         IF (ntp < 0) THEN
+              WRITE(*, *) "Error: the number of test particles, ", ntp, ","
+              WRITE(*, *) "       must be at least 0"
+              CALL util_exit(FAILURE)
+         ELSE IF ((ntp > ntpmax) .AND. .NOT. (ntpmax < 0)) THEN
+              WRITE(*, *) "Warning: the number of test particles, ", ntp, ","
+              WRITE(*, *) "         exceeds the specified maximum number of test particles, ", ntpmax
+              WRITE(*, *) "         ...resetting ntpmax to ", ntp
+              ntpmax = ntp
+         ELSE IF (ntpmax < 0) THEN
+              ntpmax = ntp
+         END IF
      END IF
 
      RETURN

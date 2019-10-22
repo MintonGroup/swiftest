@@ -28,195 +28,6 @@ MODULE module_interfaces
      IMPLICIT NONE
 
      INTERFACE
-          SUBROUTINE bs_bsstep(npl, nplmax, ntp, ntpmax, bs_pl1P, bs_tp1P, x, htry, eps, hdid, hnext, j2rp2, j4rp4, lextra_force, &
-               derivs)
-               USE module_parameters
-               USE module_bs
-               USE module_nrutil
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)     :: htry, eps, j2rp2, j4rp4
-               REAL(DP), INTENT(INOUT)  :: x
-               REAL(DP), INTENT(OUT)    :: hdid, hnext
-               TYPE(bs_pl), POINTER     :: bs_pl1P
-               TYPE(bs_tp), POINTER     :: bs_tp1P
-               INTERFACE
-                    SUBROUTINE derivs(lextra_force, t, npl, nplmax, ntp, ntpmax, bs_pl1P, bs_tp1P, j2rp2, j4rp4)
-                         USE module_parameters
-                         USE module_bs
-                         IMPLICIT NONE
-                         LOGICAL(LGT), INTENT(IN) :: lextra_force
-                         INTEGER(I4B), INTENT(IN) :: npl, nplmax, ntp, ntpmax
-                         REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-                         TYPE(bs_pl), POINTER     :: bs_pl1P
-                         TYPE(bs_tp), POINTER     :: bs_tp1P
-                    END SUBROUTINE derivs
-               END INTERFACE
-          END SUBROUTINE bs_bsstep
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_derivs(lextra_force, t, npl, nplmax, ntp, ntpmax, bs_pl1P, bs_tp1P, j2rp2, j4rp4)
-               USE module_parameters
-               USE module_bs
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-               TYPE(bs_pl), POINTER     :: bs_pl1P
-               TYPE(bs_tp), POINTER     :: bs_tp1P
-          END SUBROUTINE bs_derivs
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_discard(t, npl, ntp, nsp, bs_pl1P, bs_tp1P, bs_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,  &
-               qmin_ahi, lclose, lrhill_present)
-               USE module_parameters
-               USE module_swifter
-               USE module_bs
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)    :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)    :: npl
-               INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
-               REAL(DP), INTENT(IN)        :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(bs_pl), POINTER        :: bs_pl1P
-               TYPE(bs_tp), POINTER        :: bs_tp1P, bs_tpd1P
-          END SUBROUTINE bs_discard
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_discard_spill(ntp, nsp, bs_tp1P, bs_tpd1P, bs_tpspP)
-               USE module_parameters
-               USE module_swifter
-               USE module_bs
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
-               TYPE(bs_tp), POINTER        :: bs_tp1P, bs_tpd1P, bs_tpspP
-          END SUBROUTINE bs_discard_spill
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_getaccb(lextra_force, t, npl, nplmax, bs_pl1P, j2rp2, j4rp4)
-               USE module_parameters
-               USE module_swifter
-               USE module_bs
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, nplmax
-               REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-               TYPE(bs_pl), POINTER     :: bs_pl1P
-          END SUBROUTINE bs_getaccb
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_getaccb_tp(lextra_force, t, npl, ntp, ntpmax, bs_pl1P, bs_tp1P, j2rp2, j4rp4)
-               USE module_parameters
-               USE module_swifter
-               USE module_bs
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, ntp, ntpmax
-               REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-               TYPE(bs_pl), POINTER     :: bs_pl1P
-               TYPE(bs_tp), POINTER     :: bs_tp1P
-          END SUBROUTINE bs_getaccb_tp
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_mmid(npl, nplmax, ntp, ntpmax, bs_pl1P, bs_tp1P, xs, htot, nstep, j2rp2, j4rp4, lextra_force, derivs)
-               USE module_parameters
-               USE module_bs
-               USE module_nrutil
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, nplmax, ntp, ntpmax, nstep
-               REAL(DP), INTENT(IN)     :: xs, htot, j2rp2, j4rp4
-               TYPE(bs_pl), POINTER     :: bs_pl1P
-               TYPE(bs_tp), POINTER     :: bs_tp1P
-               INTERFACE
-                    SUBROUTINE derivs(lextra_force, t, npl, nplmax, ntp, ntpmax, bs_pl1P, bs_tp1P, j2rp2, j4rp4)
-                         USE module_parameters
-                         USE module_bs
-                         IMPLICIT NONE
-                         LOGICAL(LGT), INTENT(IN) :: lextra_force
-                         INTEGER(I4B), INTENT(IN) :: npl, nplmax, ntp, ntpmax
-                         REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-                         TYPE(bs_pl), POINTER     :: bs_pl1P
-                         TYPE(bs_tp), POINTER     :: bs_tp1P
-                    END SUBROUTINE derivs
-               END INTERFACE
-          END SUBROUTINE bs_mmid
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_pzextr(iest, xest, npl, ntp, bs_pl1P, bs_tp1P)
-               USE module_parameters
-               USE module_swifter
-               USE module_bs
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: iest, npl, ntp
-               REAL(DP), INTENT(IN)     :: xest
-               TYPE(bs_pl), POINTER     :: bs_pl1P
-               TYPE(bs_tp), POINTER     :: bs_tp1P
-          END SUBROUTINE bs_pzextr
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_setup(npl, ntp, bs_plA, bs_tpA, bs_pl1P, bs_tp1P, swifter_pl1P, swifter_tp1P)
-               USE module_parameters
-               USE module_swifter
-               USE module_bs
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                         :: npl, ntp
-               TYPE(swifter_pl), POINTER                        :: swifter_pl1P
-               TYPE(swifter_tp), POINTER                        :: swifter_tp1P
-               TYPE(bs_pl), DIMENSION(:), TARGET, INTENT(INOUT) :: bs_plA
-               TYPE(bs_tp), DIMENSION(:), TARGET, INTENT(INOUT) :: bs_tpA
-               TYPE(bs_pl), POINTER                             :: bs_pl1P
-               TYPE(bs_tp), POINTER                             :: bs_tp1P
-          END SUBROUTINE bs_setup
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, bs_pl1P, bs_tp1P, j2rp2, j4rp4, dt)
-               USE module_parameters
-               USE module_swifter
-               USE module_bs
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)    :: lextra_force
-               LOGICAL(LGT), INTENT(INOUT) :: lfirst
-               INTEGER(I4B), INTENT(IN)    :: npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)        :: t, j2rp2, j4rp4, dt
-               TYPE(bs_pl), POINTER        :: bs_pl1P
-               TYPE(bs_tp), POINTER        :: bs_tp1P
-          END SUBROUTINE bs_step
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_user_getaccb(t, npl, bs_pl1P)
-               USE module_parameters
-               USE module_bs
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: npl
-               REAL(DP), INTENT(IN)     :: t
-               TYPE(bs_pl), POINTER     :: bs_pl1P
-          END SUBROUTINE bs_user_getaccb
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE bs_user_getaccb_tp(t, ntp, bs_tp1P)
-               USE module_parameters
-               USE module_bs
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: ntp
-               REAL(DP), INTENT(IN)     :: t
-               TYPE(bs_tp), POINTER     :: bs_tp1P
-          END SUBROUTINE bs_user_getaccb_tp
-     END INTERFACE
-
-     INTERFACE
           SUBROUTINE coord_b2h(npl, swifter_pl1P)
                USE module_parameters
                USE module_swifter
@@ -764,45 +575,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,            &
-               istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,         &
-               lextra_force, lbig_discard, lrhill_present)
-               USE module_parameters
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lclose, lextra_force, lbig_discard, lrhill_present
-               INTEGER(I4B), INTENT(IN) :: nplmax, ntpmax, ntp, istep_out, istep_dump
-               REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
-          END SUBROUTINE io_dump_param
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
-               USE module_parameters
-               USE module_swifter
-               USE module_fxdr
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)  :: npl
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
-          END SUBROUTINE io_dump_pl
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE io_dump_tp(ntp, swifter_tp1P)
-               USE module_parameters
-               USE module_swifter
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: ntp
-               TYPE(swifter_tp), POINTER :: swifter_tp1P
-          END SUBROUTINE io_dump_tp
-     END INTERFACE
-
-     INTERFACE
           SUBROUTINE io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
                USE module_parameters
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(INOUT) :: nplmax, ntpmax
                INTEGER(I4B), INTENT(OUT)   :: npl, ntp
@@ -823,12 +597,12 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
-               out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
+               out_type, out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
                qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
                USE module_parameters
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
-               INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
+               INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out
                REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
                CHARACTER(*), INTENT(IN)  :: inparfile
                CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, &
@@ -841,7 +615,6 @@ MODULE module_interfaces
           SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
                USE module_parameters
                USE module_swifter
-               USE module_fxdr
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
                INTEGER(I4B), INTENT(IN)  :: npl
@@ -854,7 +627,6 @@ MODULE module_interfaces
           SUBROUTINE io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
                USE module_parameters
                USE module_swifter
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: ntp
                CHARACTER(*), INTENT(IN)  :: intpfile, in_type
@@ -873,21 +645,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_open_fxdr(fname, fopenstat, lflag, iu, ierr)
-               USE module_parameters
-               USE module_fxdr
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)  :: lflag
-               INTEGER(I4B), INTENT(OUT) :: iu, ierr
-               CHARACTER(*), INTENT(IN)  :: fname
-               CHARACTER(1), INTENT(IN)  :: fopenstat
-          END SUBROUTINE io_open_fxdr
-     END INTERFACE
-
-     INTERFACE
           FUNCTION io_read_encounter(t, id1, id2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
                USE module_parameters
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B)                           :: io_read_encounter
                INTEGER(I4B), INTENT(OUT)              :: id1, id2
@@ -900,7 +659,6 @@ MODULE module_interfaces
      INTERFACE
           FUNCTION io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
                USE module_parameters
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B)               :: io_read_hdr
                INTEGER(I4B), INTENT(IN)   :: iu
@@ -913,7 +671,6 @@ MODULE module_interfaces
      INTERFACE
           FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                USE module_parameters
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B)                    :: io_read_line
                INTEGER(I4B), INTENT(IN)        :: iu
@@ -927,7 +684,6 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_write_encounter(t, id1, id2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, encounter_file, out_type)
                USE module_parameters
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)              :: id1, id2
                REAL(DP), INTENT(IN)                  :: t, mass1, mass2, radius1, radius2
@@ -940,7 +696,6 @@ MODULE module_interfaces
           SUBROUTINE io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
                USE module_parameters
                USE module_swifter
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl, ntp
                REAL(DP), INTENT(IN)      :: t
@@ -953,7 +708,6 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
                USE module_parameters
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN) :: iu, npl, ntp, iout_form
                REAL(DP), INTENT(IN)     :: t
@@ -964,7 +718,6 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                USE module_parameters
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)       :: iu, id
                REAL(DP), INTENT(IN)           :: d1, d2, d3, d4, d5, d6
@@ -1050,130 +803,6 @@ MODULE module_interfaces
                REAL(DP), DIMENSION(NDIM), INTENT(IN) :: x, v
                REAL(DP), INTENT(OUT)                 :: a, e, inc, capom, omega, capm
           END SUBROUTINE orbel_xv2el
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_discard(t, npl, ntp, nsp, ra15_pl1P, ra15_tp1P, ra15_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord,    &
-               qmin_alo, qmin_ahi, lclose, lrhill_present)
-               USE module_parameters
-               USE module_swifter
-               USE module_ra15
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)    :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)    :: npl
-               INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
-               REAL(DP), INTENT(IN)        :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(ra15_pl), POINTER      :: ra15_pl1P
-               TYPE(ra15_tp), POINTER      :: ra15_tp1P, ra15_tpd1P
-          END SUBROUTINE ra15_discard
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_discard_spill(ntp, nsp, ra15_tp1P, ra15_tpd1P, ra15_tpspP)
-               USE module_parameters
-               USE module_swifter
-               USE module_ra15
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
-               TYPE(ra15_tp), POINTER      :: ra15_tp1P, ra15_tpd1P, ra15_tpspP
-          END SUBROUTINE ra15_discard_spill
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_getaccb(lextra_force, t, npl, nplmax, ra15_pl1P, j2rp2, j4rp4)
-               USE module_parameters
-               USE module_swifter
-               USE module_ra15
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, nplmax
-               REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-               TYPE(ra15_pl), POINTER   :: ra15_pl1P
-          END SUBROUTINE ra15_getaccb
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_getaccb_tp(lextra_force, t, npl, ntp, ntpmax, ra15_pl1P, ra15_tp1P, j2rp2, j4rp4)
-               USE module_parameters
-               USE module_swifter
-               USE module_ra15
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, ntp, ntpmax
-               REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-               TYPE(ra15_pl), POINTER   :: ra15_pl1P
-               TYPE(ra15_tp), POINTER   :: ra15_tp1P
-          END SUBROUTINE ra15_getaccb_tp
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_sequence(niter, npl, nplmax, ntp, ntpmax, ra15_pl1P, ra15_tp1P, x, htry, hdid, hnext, j2rp2, j4rp4,     &
-               lextra_force)
-               USE module_parameters
-               USE module_ra15
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: niter, npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)     :: htry, j2rp2, j4rp4
-               REAL(DP), INTENT(INOUT)  :: x
-               REAL(DP), INTENT(OUT)    :: hdid, hnext
-               TYPE(ra15_pl), POINTER   :: ra15_pl1P
-               TYPE(ra15_tp), POINTER   :: ra15_tp1P
-          END SUBROUTINE ra15_sequence
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_setup(npl, ntp, ra15_plA, ra15_tpA, ra15_pl1P, ra15_tp1P, swifter_pl1P, swifter_tp1P)
-               USE module_parameters
-               USE module_swifter
-               USE module_ra15
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                           :: npl, ntp
-               TYPE(swifter_pl), POINTER                          :: swifter_pl1P
-               TYPE(swifter_tp), POINTER                          :: swifter_tp1P
-               TYPE(ra15_pl), DIMENSION(:), TARGET, INTENT(INOUT) :: ra15_plA
-               TYPE(ra15_tp), DIMENSION(:), TARGET, INTENT(INOUT) :: ra15_tpA
-               TYPE(ra15_pl), POINTER                             :: ra15_pl1P
-               TYPE(ra15_tp), POINTER                             :: ra15_tp1P
-          END SUBROUTINE ra15_setup
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, ra15_pl1P, ra15_tp1P, j2rp2, j4rp4, dt)
-               USE module_parameters
-               USE module_swifter
-               USE module_ra15
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)    :: lextra_force
-               LOGICAL(LGT), INTENT(INOUT) :: lfirst
-               INTEGER(I4B), INTENT(IN)    :: npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)        :: t, j2rp2, j4rp4, dt
-               TYPE(ra15_pl), POINTER      :: ra15_pl1P
-               TYPE(ra15_tp), POINTER      :: ra15_tp1P
-          END SUBROUTINE ra15_step
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_user_getaccb(t, npl, ra15_pl1P)
-               USE module_parameters
-               USE module_ra15
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: npl
-               REAL(DP), INTENT(IN)     :: t
-               TYPE(ra15_pl), POINTER   :: ra15_pl1P
-          END SUBROUTINE ra15_user_getaccb
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE ra15_user_getaccb_tp(t, ntp, ra15_tp1P)
-               USE module_parameters
-               USE module_ra15
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: ntp
-               REAL(DP), INTENT(IN)     :: t
-               TYPE(ra15_tp), POINTER   :: ra15_tp1P
-          END SUBROUTINE ra15_user_getaccb_tp
      END INTERFACE
 
      INTERFACE
@@ -1859,138 +1488,6 @@ MODULE module_interfaces
           END SUBROUTINE symba_user_getacch_tp
      END INTERFACE
 
-     INTERFACE
-          SUBROUTINE tu4_discard(t, npl, ntp, nsp, tu4_pl1P, tu4_tp1P, tu4_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord,        &
-               qmin_alo, qmin_ahi, lclose, lrhill_present)
-               USE module_parameters
-               USE module_swifter
-               USE module_tu4
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)    :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)    :: npl
-               INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
-               REAL(DP), INTENT(IN)        :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(tu4_pl), POINTER       :: tu4_pl1P
-               TYPE(tu4_tp), POINTER       :: tu4_tp1P,tu4_tpd1P
-          END SUBROUTINE tu4_discard
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_discard_spill(ntp, nsp, tu4_tp1P, tu4_tpd1P, tu4_tpspP)
-               USE module_parameters
-               USE module_swifter
-               USE module_tu4
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
-               TYPE(tu4_tp), POINTER       :: tu4_tp1P, tu4_tpd1P, tu4_tpspP
-          END SUBROUTINE tu4_discard_spill
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_getaccb(lextra_force, t, npl, nplmax, tu4_pl1P, j2rp2, j4rp4)
-               USE module_parameters
-               USE module_swifter
-               USE module_tu4
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, nplmax
-               REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-               TYPE(tu4_pl), POINTER    :: tu4_pl1P
-          END SUBROUTINE tu4_getaccb
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_getaccb_tp(lextra_force, t, npl, ntp, ntpmax, tu4_pl1P, tu4_tp1P, j2rp2, j4rp4)
-               USE module_parameters
-               USE module_swifter
-               USE module_tu4
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lextra_force
-               INTEGER(I4B), INTENT(IN) :: npl, ntp, ntpmax
-               REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-               TYPE(tu4_pl), POINTER    :: tu4_pl1P
-               TYPE(tu4_tp), POINTER    :: tu4_tp1P
-          END SUBROUTINE tu4_getaccb_tp
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_kickvb(npl, ntp, tu4_pl1P, tu4_tp1P, dt)
-               USE module_parameters
-               USE module_swifter
-               USE module_tu4
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: npl, ntp
-               REAL(DP), INTENT(IN)     :: dt
-               TYPE(tu4_pl), POINTER    :: tu4_pl1P
-               TYPE(tu4_tp), POINTER    :: tu4_tp1P
-          END SUBROUTINE tu4_kickvb
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_ldrift(npl, ntp, swifter_pl1P, swifter_tp1P, dt)
-               USE module_parameters
-               USE module_swifter
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: npl, ntp
-               REAL(DP), INTENT(IN)      :: dt
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
-               TYPE(swifter_tp), POINTER :: swifter_tp1P
-          END SUBROUTINE tu4_ldrift
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_setup(npl, ntp, tu4_plA, tu4_tpA, tu4_pl1P, tu4_tp1P, swifter_pl1P, swifter_tp1P)
-               USE module_parameters
-               USE module_swifter
-               USE module_tu4
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                          :: npl, ntp
-               TYPE(swifter_pl), POINTER                         :: swifter_pl1P
-               TYPE(swifter_tp), POINTER                         :: swifter_tp1P
-               TYPE(tu4_pl), DIMENSION(:), TARGET, INTENT(INOUT) :: tu4_plA
-               TYPE(tu4_tp), DIMENSION(:), TARGET, INTENT(INOUT) :: tu4_tpA
-               TYPE(tu4_pl), POINTER                             :: tu4_pl1P
-               TYPE(tu4_tp), POINTER                             :: tu4_tp1P
-          END SUBROUTINE tu4_setup
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, tu4_pl1P, tu4_tp1P, j2rp2, j4rp4, dt)
-               USE module_parameters
-               USE module_swifter
-               USE module_tu4
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)    :: lextra_force
-               LOGICAL(LGT), INTENT(INOUT) :: lfirst
-               INTEGER(I4B), INTENT(IN)    :: npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)        :: t, j2rp2, j4rp4, dt
-               TYPE(tu4_pl), POINTER       :: tu4_pl1P
-               TYPE(tu4_tp), POINTER       :: tu4_tp1P
-          END SUBROUTINE tu4_step
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_user_getaccb(t, npl, tu4_pl1P)
-               USE module_parameters
-               USE module_tu4
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: npl
-               REAL(DP), INTENT(IN)     :: t
-               TYPE(tu4_pl), POINTER    :: tu4_pl1P
-          END SUBROUTINE tu4_user_getaccb
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE tu4_user_getaccb_tp(t, ntp, tu4_tp1P)
-               USE module_parameters
-               USE module_tu4
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: ntp
-               REAL(DP), INTENT(IN)     :: t
-               TYPE(tu4_tp), POINTER    :: tu4_tp1P
-          END SUBROUTINE tu4_user_getaccb_tp
-     END INTERFACE
 
      INTERFACE
           SUBROUTINE util_exit(code)

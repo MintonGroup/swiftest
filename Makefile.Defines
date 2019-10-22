@@ -7,8 +7,7 @@
 #  Language    : GNU makefile syntax
 #
 #  Description : Contains user-modifiable macro definitions used in the build
-#                process for the Swifter library, drivers and tools, as well as
-#                the FXDR library
+#                process for the Swifter library, drivers and tools.
 #
 #  Input
 #    Arguments : none

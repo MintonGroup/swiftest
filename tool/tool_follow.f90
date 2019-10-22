@@ -37,7 +37,6 @@ PROGRAM tool_follow
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
-     INTEGER(I4B)      :: istep_dump     ! Time steps between dumps
      REAL(DP)          :: t0             ! Integration start time
      REAL(DP)          :: tstop          ! Integration stop time
      REAL(DP)          :: dt             ! Time step
@@ -64,8 +63,7 @@ PROGRAM tool_follow
      LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
 
 ! Internals
-     LOGICAL(LGT)                                    :: lxdr
-     INTEGER(I4B)                                    :: npl,ntp,ntp0,nsp,iout,idump,iloop,i,iu,ifol,nskp,ierr,iout_form,ic,istep,id
+     INTEGER(I4B)                                    :: npl,ntp,ntp0,nsp,iout,iloop,i,iu,ifol,nskp,ierr,iout_form,ic,istep,id
      REAL(DP)                                        :: t,tfrac,tbase,tmax
      CHARACTER(STRMAX)                               :: inparfile
      REAL(DP)                                        :: gmsum,msun,a,e,inc,capom,omega,capm,mass,peri,apo,radius
@@ -85,7 +83,7 @@ PROGRAM tool_follow
  100 FORMAT(A)
      inparfile=TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile,nplmax,ntpmax,t0,tstop,dt,inplfile,intpfile,in_type,istep_out,outfile,out_type,out_form,        &
-          out_stat,istep_dump,j2rp2,j4rp4,lclose,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,lextra_force,   &
+          out_stat,j2rp2,j4rp4,lclose,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,lextra_force,   &
           lbig_discard,lrhill_present)
      CALL io_getn(inplfile,intpfile,in_type,npl,nplmax,ntp,ntpmax)
      ALLOCATE(whm_plA(nplmax))
@@ -98,18 +96,13 @@ PROGRAM tool_follow
      CALL io_init_pl(inplfile,in_type,lclose,lrhill_present,npl,swifter_pl1P)
      CALL io_init_tp(intpfile,in_type,ntp,swifter_tp1P)
      CALL util_valid(npl,ntp,swifter_pl1P,swifter_tp1P)
-     lxdr=((out_type == XDR4_TYPE) .OR. (out_type == XDR8_TYPE))
      iu=20
      WRITE(*,100,ADVANCE="NO")"Enter the id of the particle to follow: "
      READ(*,*)ifol
      WRITE(*,*)"Following particle ",ifol
      WRITE(*,100,ADVANCE="NO")"Enter the frequency: "
      READ(*,*)nskp
-     IF (lxdr) THEN
-          CALL io_open_fxdr(outfile,"R",.TRUE.,iu,ierr)
-     ELSE
-          CALL io_open(iu,outfile,"OLD","UNFORMATTED",ierr)
-     END IF
+     CALL io_open(iu,outfile,"OLD","UNFORMATTED",ierr)
      IF (ierr /= 0) THEN
           WRITE(*,*)"SWIFTER Error:"
           WRITE(*,*)"   Unable to open output binary file"

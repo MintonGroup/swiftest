@@ -32,13 +32,13 @@
 !  Notes       : Other than time t, there is no direct file input from this function
 !
 !                Function returns read error status (0 = OK, nonzero = ERROR)
+!                 xdr support removed (D. Minton)
 !
 !**********************************************************************************************************************************
 FUNCTION io_read_encounter(t, id1, id2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
 
 ! Modules
      USE module_parameters
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_read_encounter
      IMPLICIT NONE
 
@@ -50,20 +50,14 @@ FUNCTION io_read_encounter(t, id1, id2, mass1, mass2, xh1, xh2, vh1, vh2, encoun
      CHARACTER(*), INTENT(IN)               :: encounter_file, out_type
 
 ! Internals
-     LOGICAL(LGT)            :: lxdr
      LOGICAL(LGT), SAVE      :: lfirst = .TRUE.
      INTEGER(I4B), PARAMETER :: LUN = 30
      INTEGER(I4B)            :: ierr
      INTEGER(I4B), SAVE      :: iu = LUN
 
 ! Executable code
-     lxdr = ((out_type == XDR4_TYPE) .OR. (out_type == XDR8_TYPE))
      IF (lfirst) THEN
-          IF (lxdr) THEN
-               CALL io_open_fxdr(encounter_file, "R", .TRUE., iu, ierr)
-          ELSE
-               CALL io_open(iu, encounter_file, "OLD", "UNFORMATTED", ierr)
-          END IF
+            CALL io_open(iu, encounter_file, "OLD", "UNFORMATTED", ierr)
           IF (ierr /= 0) THEN
                WRITE(*, *) "SWIFTER Error:"
                WRITE(*, *) "   Unable to open binary encounter file"
@@ -71,44 +65,24 @@ FUNCTION io_read_encounter(t, id1, id2, mass1, mass2, xh1, xh2, vh1, vh2, encoun
           END IF
           lfirst = .FALSE.
      END IF
-     IF (lxdr) THEN
-          ierr = ixdrdouble(iu, t)
-          io_read_encounter = ierr
-          IF (ierr /= 0) THEN
-               ierr = ixdrclose(iu)
-               RETURN
-          END IF
-          ierr = io_read_line(iu, id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), XDR8_TYPE, MASS = mass1)
-          io_read_encounter = ierr
-          IF (ierr /= 0) THEN
-               ierr = ixdrclose(iu)
-               RETURN
-          END IF
-          ierr = io_read_line(iu, id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), XDR8_TYPE, MASS = mass2)
-          io_read_encounter = ierr
-          IF (ierr /= 0) THEN
-               ierr = ixdrclose(iu)
-               RETURN
-          END IF
-     ELSE
-          READ(iu, IOSTAT = ierr) t
-          io_read_encounter = ierr
-          IF (ierr /= 0) THEN
-               CLOSE(UNIT = iu, IOSTAT = ierr)
-               RETURN
-          END IF
-          ierr = io_read_line(iu, id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), REAL8_TYPE, MASS = mass1)
-          io_read_encounter = ierr
-          IF (ierr /= 0) THEN
-               CLOSE(UNIT = iu, IOSTAT = ierr)
-               RETURN
-          END IF
-          ierr = io_read_line(iu, id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), REAL8_TYPE, MASS = mass2)
-          io_read_encounter = ierr
-          IF (ierr /= 0) THEN
-               CLOSE(UNIT = iu, IOSTAT = ierr)
-               RETURN
-          END IF
+
+     READ(iu, IOSTAT = ierr) t
+     io_read_encounter = ierr
+     IF (ierr /= 0) THEN
+         CLOSE(UNIT = iu, IOSTAT = ierr)
+         RETURN
+     END IF
+     ierr = io_read_line(iu, id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), REAL8_TYPE, MASS = mass1)
+     io_read_encounter = ierr
+     IF (ierr /= 0) THEN
+          CLOSE(UNIT = iu, IOSTAT = ierr)
+          RETURN
+     END IF
+     ierr = io_read_line(iu, id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), REAL8_TYPE, MASS = mass2)
+     io_read_encounter = ierr
+     IF (ierr /= 0) THEN
+          CLOSE(UNIT = iu, IOSTAT = ierr)
+          RETURN
      END IF
 
      RETURN

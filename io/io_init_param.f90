@@ -24,7 +24,6 @@
 !                out_type       : binary format of output file
 !                out_form       : data to write to output file
 !                out_stat       : open status for output binary file
-!                istep_dump     : number of time steps between dumps
 !                j2rp2          : J2 * R**2 for the Sun
 !                j4rp4          : J4 * R**4 for the Sun
 !                lclose         : logical flag indicating whether to check for planet-test particle encounters
@@ -46,14 +45,14 @@
 !    File      : none
 !
 !  Invocation  : CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,
-!                                   out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin,
+!                                   out_type, out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin,
 !                                   qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
 !
 !  Notes       : Adapted from Martin Duncan's Swift routine io_init_param.f
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,     &
-     out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
+     out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
      encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
 
 ! Modules
@@ -65,7 +64,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
 
 ! Arguments
      LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
-     INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
+     INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out
      REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
      REAL(DP), INTENT(OUT),OPTIONAL :: mtiny
      CHARACTER(*), INTENT(IN)  :: inparfile
@@ -91,10 +90,9 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      in_type = "ASCII"
      istep_out = -1
      outfile = ""
-     out_type = XDR4_TYPE
+     out_type = REAL8_TYPE
      out_form = "XV"
      out_stat = "NEW"
-     istep_dump = -1
      j2rp2 = 0.0_DP
      j4rp4 = 0.0_DP
      lclose = .FALSE.
@@ -202,11 +200,6 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
                          out_stat = token
-                    CASE ("ISTEP_DUMP")
-                         ifirst = ilast + 1
-                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
-                         token = line(ifirst:ilast)
-                         READ(token, *) istep_dump
                     CASE ("J2")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
@@ -314,7 +307,6 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                     CASE DEFAULT
                          WRITE(*, 100, ADVANCE = "NO") "Unknown parameter -> "
                          WRITE(*, *) token
-                         CALL util_exit(FAILURE)
                END SELECT
           END IF
      END DO
@@ -352,8 +344,6 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      WRITE(*, 100, ADVANCE = "NO") "OUT_STAT       = "
      ilength = LEN_TRIM(out_stat)
      WRITE(*, *) out_stat(1:ilength)
-     WRITE(*, 100, ADVANCE = "NO") "ISTEP_DUMP     = "
-     WRITE(*, *) istep_dump
      WRITE(*, 100, ADVANCE = "NO") "J2             = "
      WRITE(*, *) j2rp2
      WRITE(*, 100, ADVANCE = "NO") "J4             = "
@@ -387,12 +377,10 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      IF ((.NOT. t0_set) .OR. (.NOT. tstop_set) .OR. (.NOT. dt_set)) ierr = -1
      IF (dt <= 0.0_DP) ierr = -1
      IF (inplfile == "") ierr = -1
-     IF ((in_type /= XDR8_TYPE) .AND. (in_type /= "ASCII")) ierr = -1
-     IF ((istep_out <= 0) .AND. (istep_dump <= 0)) ierr = -1
+     IF ((in_type /= REAL8_TYPE) .AND. (in_type /= "ASCII")) ierr = -1
      IF ((istep_out > 0) .AND. (outfile == "")) ierr = -1
      IF (outfile /= "") THEN
-          IF ((out_type /= REAL4_TYPE) .AND. (out_type /= REAL8_TYPE) .AND.                                                       &
-              (out_type /= XDR4_TYPE)  .AND. (out_type /= XDR8_TYPE)) ierr = -1
+          IF ((out_type /= REAL4_TYPE) .AND. (out_type /= REAL8_TYPE))  ierr = -1
           IF ((out_form /= "EL") .AND. (out_form /= "XV") .AND. (out_form /= "FILT")) ierr = -1
           IF ((out_stat /= "NEW") .AND. (out_stat /= "UNKNOWN") .AND. (out_stat /= "APPEND")) ierr = -1
      END IF

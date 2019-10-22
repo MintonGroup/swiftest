@@ -70,8 +70,6 @@ MODULE module_parameters
 ! Symbolic names for binary output file types
      CHARACTER(*), PARAMETER :: REAL4_TYPE = "REAL4"
      CHARACTER(*), PARAMETER :: REAL8_TYPE = "REAL8"
-     CHARACTER(*), PARAMETER :: XDR4_TYPE  = "XDR4"
-     CHARACTER(*), PARAMETER :: XDR8_TYPE  = "XDR8"
 
 ! Symbolic names for binary output file contents
      INTEGER(I4B), PARAMETER :: EL   = 1

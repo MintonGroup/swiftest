@@ -34,13 +34,13 @@
 !  Invocation  : CALL io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
 !
 !  Notes       : Adapted from Hal Levison's Swift routine io_write_line.F
+!                xdr file system support removed (D. Minton)
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
 
 ! Modules
      USE module_parameters
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_line
      IMPLICIT NONE
 
@@ -89,60 +89,6 @@ SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                ELSE
                     WRITE(iu, IOSTAT = ierr) id, dvec
                END IF
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   Unable to write binary file record"
-                    CALL util_exit(FAILURE)
-               END IF
-          CASE (XDR4_TYPE)
-               ierr = ixdrint(iu, id)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   Unable to write binary file record"
-                    CALL util_exit(FAILURE)
-               END IF
-               IF (lmass) THEN
-                    ierr = ixdrreal(iu, smass)
-                    IF (ierr < 0) THEN
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   Unable to write binary file record"
-                         CALL util_exit(FAILURE)
-                    END IF
-                    ierr = ixdrreal(iu, sradius)
-                    IF (ierr < 0) THEN
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   Unable to write binary file record"
-                         CALL util_exit(FAILURE)
-                    END IF
-               END IF
-               ierr = ixdrrmat(iu, 6, svec)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   Unable to write binary file record"
-                    CALL util_exit(FAILURE)
-               END IF
-          CASE (XDR8_TYPE)
-               ierr = ixdrint(iu, id)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   Unable to write binary file record"
-                    CALL util_exit(FAILURE)
-               END IF
-               IF (lmass) THEN
-                    ierr = ixdrdouble(iu, MASS)
-                    IF (ierr < 0) THEN
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   Unable to write binary file record"
-                         CALL util_exit(FAILURE)
-                    END IF
-                    ierr = ixdrdouble(iu, RADIUS)
-                    IF (ierr < 0) THEN
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   Unable to write binary file record"
-                         CALL util_exit(FAILURE)
-                    END IF
-               END IF
-               ierr = ixdrdmat(iu, 6, dvec)
                IF (ierr < 0) THEN
                     WRITE(*, *) "SWIFTER Error:"
                     WRITE(*, *) "   Unable to write binary file record"

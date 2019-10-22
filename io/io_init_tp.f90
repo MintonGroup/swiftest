@@ -26,6 +26,7 @@
 !  Invocation  : CALL io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
 !
 !  Notes       : Adapted from Martin Duncan's Swift routine io_init_tp.f
+!                xdr file support removed
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
@@ -33,7 +34,6 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
 ! Modules
      USE module_parameters
      USE module_swifter
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_init_tp
      IMPLICIT NONE
 
@@ -62,16 +62,8 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
           END DO
           CLOSE(UNIT = LUN)
      ELSE
-          CALL io_open_fxdr(intpfile, "R", .TRUE., iu, ierr)
-          ierr = ixdrint(iu, intp)
-          DO i = 1, ntp
-               ierr = ixdrint(iu, swifter_tpP%id)
-               ierr = ixdrdmat(iu, NDIM, swifter_tpP%xh)
-               ierr = ixdrdmat(iu, NDIM, swifter_tpP%vh)
-               swifter_tpP%status = ACTIVE
-               swifter_tpP => swifter_tpP%nextP
-          END DO
-          ierr = ixdrclose(iu)
+          write(*,*) trim(adjustl(in_type))," file type not supported."
+          call util_exit(FAILURE)
      END IF
 
      RETURN

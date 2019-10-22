@@ -35,13 +35,13 @@
 !  Notes       : Adapted from Hal Levison's Swift function io_read_line
 !
 !                Function returns read error status (0 = OK, nonzero = ERROR)
+!                xdr file support removed (D. Minton)
 !
 !**********************************************************************************************************************************
 FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
 
 ! Modules
      USE module_parameters
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_read_line
      IMPLICIT NONE
 
@@ -87,40 +87,6 @@ FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                ELSE
                     READ(iu, IOSTAT = ierr) id, dvec
                END IF
-               io_read_line = ierr
-               IF (ierr /= 0) RETURN
-               d1 = dvec(1); d2 = dvec(2); d3 = dvec(3); d4 = dvec(4); d5 = dvec(5); d6 = dvec(6)
-          CASE (XDR4_TYPE)
-               ierr = ixdrint(iu, id)
-               io_read_line = ierr
-               IF (ierr /= 0) RETURN
-               IF (lmass) THEN
-                    ierr = ixdrreal(iu, smass)
-                    io_read_line = ierr
-                    IF (ierr /= 0) RETURN
-                    MASS = smass
-                    ierr = ixdrreal(iu, sradius)
-                    io_read_line = ierr
-                    IF (ierr /= 0) RETURN
-                    RADIUS = sradius
-               END IF
-               ierr = ixdrrmat(iu, 6, svec)
-               io_read_line = ierr
-               IF (ierr /= 0) RETURN
-               d1 = svec(1); d2 = svec(2); d3 = svec(3); d4 = svec(4); d5 = svec(5); d6 = svec(6)
-          CASE (XDR8_TYPE)
-               ierr = ixdrint(iu, id)
-               io_read_line = ierr
-               IF (ierr /= 0) RETURN
-               IF (lmass) THEN
-                    ierr = ixdrdouble(iu, MASS)
-                    io_read_line = ierr
-                    IF (ierr /= 0) RETURN
-                    ierr = ixdrdouble(iu, RADIUS)
-                    io_read_line = ierr
-                    IF (ierr /= 0) RETURN
-               END IF
-               ierr = ixdrdmat(iu, 6, dvec)
                io_read_line = ierr
                IF (ierr /= 0) RETURN
                d1 = dvec(1); d2 = dvec(2); d3 = dvec(3); d4 = dvec(4); d5 = dvec(5); d6 = dvec(6)

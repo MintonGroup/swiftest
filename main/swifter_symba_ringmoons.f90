@@ -51,7 +51,6 @@ PROGRAM swifter_symba_ringmoons
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
-     INTEGER(I4B)      :: istep_dump     ! Time steps between dumps
      REAL(DP)          :: t0             ! Integration start time
      REAL(DP)          :: tstop          ! Integration stop time
      REAL(DP)          :: dt             ! Time step
@@ -75,7 +74,7 @@ PROGRAM swifter_symba_ringmoons
 
 ! Internals
      LOGICAL(LGT)                                      :: lfirst
-     INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
+     INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, iloop
      INTEGER(I4B)                                      :: nplplenc, npltpenc, nmergeadd, nmergesub
      REAL(DP)                                          :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                         :: htot
@@ -107,7 +106,7 @@ PROGRAM swifter_symba_ringmoons
  100 FORMAT(A)
      inparfile = TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
-          out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
+          out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
           encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
      IF (.NOT. lrhill_present) THEN
           WRITE(*, *) "SWIFTER Error:"
@@ -137,7 +136,6 @@ PROGRAM swifter_symba_ringmoons
      tbase = t0
      iloop = 0
      iout = istep_out
-     idump = istep_dump
      nmergeadd = 0
      nmergesub = 0
      nsppl = 0
@@ -175,30 +173,13 @@ PROGRAM swifter_symba_ringmoons
           IF (istep_out > 0) THEN
                iout = iout - 1
                IF (iout == 0) THEN
+                    WRITE(*, 200) t, tfrac, npl, ntp
+ 200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
                     CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
                     iout = istep_out
                END IF
           END IF
-          IF (istep_dump > 0) THEN
-               idump = idump - 1
-               IF (idump == 0) THEN
-                    tfrac = (t - t0)/(tstop - t0)
-                    WRITE(*, 200) t, tfrac, npl, ntp
- 200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
-                    CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
-                         istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-                         encounter_file, lextra_force, lbig_discard, lrhill_present)
-                    CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
-                    IF (ntp > 0) CALL io_dump_tp(ntp, swifter_tp1P)
-                    idump = istep_dump
-               END IF
-          END IF
      END DO
-     CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
-          j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
-          lrhill_present)
-     CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
-     IF (ntp > 0) CALL io_dump_tp(ntp, swifter_tp1P)
      IF (ALLOCATED(symba_plA)) DEALLOCATE(symba_plA)
      IF (ALLOCATED(mergeadd_list)) DEALLOCATE(mergeadd_list)
      IF (ALLOCATED(mergesub_list)) DEALLOCATE(mergesub_list)

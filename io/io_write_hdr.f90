@@ -29,13 +29,13 @@
 !  Invocation  : CALL io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
 !
 !  Notes       : Adapted from Hal Levison's Swift routine io_write_hdr.F
+!                xdr file support removed (D. Minton)
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
 
 ! Modules
      USE module_parameters
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_hdr
      IMPLICIT NONE
 
@@ -64,32 +64,6 @@ SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
                END IF
           CASE (REAL8_TYPE)
                WRITE(iu, IOSTAT = ierr) t, npl, ntp, iout_form
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   Unable to write binary file header"
-                    CALL util_exit(FAILURE)
-               END IF
-          CASE (XDR4_TYPE)
-               ierr = ixdrreal(iu, ttmp)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   Unable to write binary file header"
-                    CALL util_exit(FAILURE)
-               END IF
-               ierr = ixdrimat(iu, 3, nn)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   Unable to write binary file header"
-                    CALL util_exit(FAILURE)
-               END IF
-          CASE (XDR8_TYPE)
-               ierr = ixdrdouble(iu, t)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   Unable to write binary file header"
-                    CALL util_exit(FAILURE)
-               END IF
-               ierr = ixdrimat(iu, 3, nn)
                IF (ierr < 0) THEN
                     WRITE(*, *) "SWIFTER Error:"
                     WRITE(*, *) "   Unable to write binary file header"

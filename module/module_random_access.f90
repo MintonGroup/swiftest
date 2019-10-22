@@ -27,10 +27,7 @@ MODULE module_random_access
 
      USE module_parameters
      USE module_swifter
-     USE module_bs
      USE module_helio
-     USE module_ra15
-     USE module_tu4
      USE module_whm
      USE module_rmvs
      USE module_symba
@@ -40,14 +37,8 @@ MODULE module_random_access
      INTEGER(I4B)                            :: istruct_pl, istruct_tp
      TYPE(swifter_pl), DIMENSION(:), POINTER :: lswifter_pl1P
      TYPE(swifter_tp), DIMENSION(:), POINTER :: lswifter_tp1P
-     TYPE(bs_pl), DIMENSION(:), POINTER      :: lbs_pl1P
-     TYPE(bs_tp), DIMENSION(:), POINTER      :: lbs_tp1P
      TYPE(helio_pl), DIMENSION(:), POINTER   :: lhelio_pl1P
      TYPE(helio_tp), DIMENSION(:), POINTER   :: lhelio_tp1P
-     TYPE(ra15_pl), DIMENSION(:), POINTER    :: lra15_pl1P
-     TYPE(ra15_tp), DIMENSION(:), POINTER    :: lra15_tp1P
-     TYPE(tu4_pl), DIMENSION(:), POINTER     :: ltu4_pl1P
-     TYPE(tu4_tp), DIMENSION(:), POINTER     :: ltu4_tp1P
      TYPE(whm_pl), DIMENSION(:), POINTER     :: lwhm_pl1P
      TYPE(whm_tp), DIMENSION(:), POINTER     :: lwhm_tp1P
      TYPE(rmvs_pl), DIMENSION(:), POINTER    :: lrmvs_pl1P
@@ -58,14 +49,8 @@ MODULE module_random_access
      INTERFACE set_point
           MODULE PROCEDURE set_point_swifter_pl
           MODULE PROCEDURE set_point_swifter_tp
-          MODULE PROCEDURE set_point_bs_pl
-          MODULE PROCEDURE set_point_bs_tp
           MODULE PROCEDURE set_point_helio_pl
           MODULE PROCEDURE set_point_helio_tp
-          MODULE PROCEDURE set_point_ra15_pl
-          MODULE PROCEDURE set_point_ra15_tp
-          MODULE PROCEDURE set_point_tu4_pl
-          MODULE PROCEDURE set_point_tu4_tp
           MODULE PROCEDURE set_point_whm_pl
           MODULE PROCEDURE set_point_whm_tp
           MODULE PROCEDURE set_point_rmvs_pl
@@ -77,14 +62,8 @@ MODULE module_random_access
      INTERFACE get_point
           MODULE PROCEDURE get_point_swifter_pl
           MODULE PROCEDURE get_point_swifter_tp
-          MODULE PROCEDURE get_point_bs_pl
-          MODULE PROCEDURE get_point_bs_tp
           MODULE PROCEDURE get_point_helio_pl
           MODULE PROCEDURE get_point_helio_tp
-          MODULE PROCEDURE get_point_ra15_pl
-          MODULE PROCEDURE get_point_ra15_tp
-          MODULE PROCEDURE get_point_tu4_pl
-          MODULE PROCEDURE get_point_tu4_tp
           MODULE PROCEDURE get_point_whm_pl
           MODULE PROCEDURE get_point_whm_tp
           MODULE PROCEDURE get_point_rmvs_pl
@@ -109,20 +88,6 @@ CONTAINS
           RETURN
      END SUBROUTINE set_point_swifter_tp
 
-     SUBROUTINE set_point_bs_pl(s_in)
-          TYPE(bs_pl), DIMENSION(:), TARGET :: s_in
-          istruct_pl = BS
-          lbs_pl1P => s_in
-          RETURN
-     END SUBROUTINE set_point_bs_pl
-
-     SUBROUTINE set_point_bs_tp(s_in)
-          TYPE(bs_tp), DIMENSION(:), TARGET :: s_in
-          istruct_tp = BS
-          lbs_tp1P => s_in
-          RETURN
-     END SUBROUTINE set_point_bs_tp
-
      SUBROUTINE set_point_helio_pl(s_in)
           TYPE(helio_pl), DIMENSION(:), TARGET :: s_in
           istruct_pl = HELIO
@@ -136,34 +101,6 @@ CONTAINS
           lhelio_tp1P => s_in
           RETURN
      END SUBROUTINE set_point_helio_tp
-
-     SUBROUTINE set_point_ra15_pl(s_in)
-          TYPE(ra15_pl), DIMENSION(:), TARGET :: s_in
-          istruct_pl = RA15
-          lra15_pl1P => s_in
-          RETURN
-     END SUBROUTINE set_point_ra15_pl
-
-     SUBROUTINE set_point_ra15_tp(s_in)
-          TYPE(ra15_tp), DIMENSION(:), TARGET :: s_in
-          istruct_tp = RA15
-          lra15_tp1P => s_in
-          RETURN
-     END SUBROUTINE set_point_ra15_tp
-
-     SUBROUTINE set_point_tu4_pl(s_in)
-          TYPE(tu4_pl), DIMENSION(:), TARGET :: s_in
-          istruct_pl = TU4
-          ltu4_pl1P => s_in
-          RETURN
-     END SUBROUTINE set_point_tu4_pl
-
-     SUBROUTINE set_point_tu4_tp(s_in)
-          TYPE(tu4_tp), DIMENSION(:), TARGET :: s_in
-          istruct_tp = TU4
-          ltu4_tp1P => s_in
-          RETURN
-     END SUBROUTINE set_point_tu4_tp
 
      SUBROUTINE set_point_whm_pl(s_in)
           TYPE(whm_pl), DIMENSION(:), TARGET :: s_in
@@ -218,30 +155,9 @@ CONTAINS
                          WRITE(*, *) "Error in get_point_swifter_pl"
                          CALL util_exit(FAILURE)
                     END IF
-               CASE (BS)
-                    IF (ASSOCIATED(lbs_pl1P)) THEN
-                         swifter_plP => lbs_pl1P(i)%swifter
-                    ELSE
-                         WRITE(*, *) "Error in get_point_swifter_pl"
-                         CALL util_exit(FAILURE)
-                    END IF
                CASE (HELIO)
                     IF (ASSOCIATED(lhelio_pl1P)) THEN
                          swifter_plP => lhelio_pl1P(i)%swifter
-                    ELSE
-                         WRITE(*, *) "Error in get_point_swifter_pl"
-                         CALL util_exit(FAILURE)
-                    END IF
-               CASE (RA15)
-                    IF (ASSOCIATED(lra15_pl1P)) THEN
-                         swifter_plP => lra15_pl1P(i)%swifter
-                    ELSE
-                         WRITE(*, *) "Error in get_point_swifter_pl"
-                         CALL util_exit(FAILURE)
-                    END IF
-               CASE (TU4)
-                    IF (ASSOCIATED(ltu4_pl1P)) THEN
-                         swifter_plP => ltu4_pl1P(i)%swifter
                     ELSE
                          WRITE(*, *) "Error in get_point_swifter_pl"
                          CALL util_exit(FAILURE)
@@ -286,30 +202,9 @@ CONTAINS
                          WRITE(*, *) "Error in get_point_swifter_tp"
                          CALL util_exit(FAILURE)
                     END IF
-               CASE (BS)
-                    IF (ASSOCIATED(lbs_tp1P)) THEN
-                         swifter_tpP => lbs_tp1P(i)%swifter
-                    ELSE
-                         WRITE(*, *) "Error in get_point_swifter_tp"
-                         CALL util_exit(FAILURE)
-                    END IF
                CASE (HELIO)
                     IF (ASSOCIATED(lhelio_tp1P)) THEN
                          swifter_tpP => lhelio_tp1P(i)%swifter
-                    ELSE
-                         WRITE(*, *) "Error in get_point_swifter_tp"
-                         CALL util_exit(FAILURE)
-                    END IF
-               CASE (RA15)
-                    IF (ASSOCIATED(lra15_tp1P)) THEN
-                         swifter_tpP => lra15_tp1P(i)%swifter
-                    ELSE
-                         WRITE(*, *) "Error in get_point_swifter_tp"
-                         CALL util_exit(FAILURE)
-                    END IF
-               CASE (TU4)
-                    IF (ASSOCIATED(ltu4_tp1P)) THEN
-                         swifter_tpP => ltu4_tp1P(i)%swifter
                     ELSE
                          WRITE(*, *) "Error in get_point_swifter_tp"
                          CALL util_exit(FAILURE)
@@ -342,44 +237,6 @@ CONTAINS
           END SELECT
           RETURN
      END SUBROUTINE get_point_swifter_tp
-
-     SUBROUTINE get_point_bs_pl(i, bs_plP)
-          INTEGER(I4B), INTENT(IN) :: i
-          TYPE(bs_pl), POINTER     :: bs_plP
-          SELECT CASE (istruct_pl)
-               CASE (BS)
-                    IF (ASSOCIATED(lbs_pl1P)) THEN
-                         bs_plP => lbs_pl1P(i)
-                    ELSE
-                         WRITE(*, *) "Error in get_point_bs_pl"
-                         CALL util_exit(FAILURE)
-                    END IF
-! DEK - improve error handler
-               CASE DEFAULT
-                    WRITE(*, *) "Error in get_point_bs_pl"
-                    CALL util_exit(FAILURE)
-          END SELECT
-          RETURN
-     END SUBROUTINE get_point_bs_pl
-
-     SUBROUTINE get_point_bs_tp(i, bs_tpP)
-          INTEGER(I4B), INTENT(IN) :: i
-          TYPE(bs_tp), POINTER     :: bs_tpP
-          SELECT CASE (istruct_tp)
-               CASE (BS)
-                    IF (ASSOCIATED(lbs_tp1P)) THEN
-                         bs_tpP => lbs_tp1P(i)
-                    ELSE
-                         WRITE(*, *) "Error in get_point_bs_tp"
-                         CALL util_exit(FAILURE)
-                    END IF
-! DEK - improve error handler
-               CASE DEFAULT
-                    WRITE(*, *) "Error in get_point_bs_tp"
-                    CALL util_exit(FAILURE)
-          END SELECT
-          RETURN
-     END SUBROUTINE get_point_bs_tp
 
      SUBROUTINE get_point_helio_pl(i, helio_plP)
           INTEGER(I4B), INTENT(IN) :: i
@@ -432,82 +289,6 @@ CONTAINS
           END SELECT
           RETURN
      END SUBROUTINE get_point_helio_tp
-
-     SUBROUTINE get_point_ra15_pl(i, ra15_plP)
-          INTEGER(I4B), INTENT(IN) :: i
-          TYPE(ra15_pl), POINTER   :: ra15_plP
-          SELECT CASE (istruct_pl)
-               CASE (RA15)
-                    IF (ASSOCIATED(lra15_pl1P)) THEN
-                         ra15_plP => lra15_pl1P(i)
-                    ELSE
-                         WRITE(*, *) "Error in get_point_ra15_pl"
-                         CALL util_exit(FAILURE)
-                    END IF
-! DEK - improve error handler
-               CASE DEFAULT
-                    WRITE(*, *) "Error in get_point_ra15_pl"
-                    CALL util_exit(FAILURE)
-          END SELECT
-          RETURN
-     END SUBROUTINE get_point_ra15_pl
-
-     SUBROUTINE get_point_ra15_tp(i, ra15_tpP)
-          INTEGER(I4B), INTENT(IN) :: i
-          TYPE(ra15_tp), POINTER   :: ra15_tpP
-          SELECT CASE (istruct_tp)
-               CASE (RA15)
-                    IF (ASSOCIATED(lra15_tp1P)) THEN
-                         ra15_tpP => lra15_tp1P(i)
-                    ELSE
-                         WRITE(*, *) "Error in get_point_ra15_tp"
-                         CALL util_exit(FAILURE)
-                    END IF
-! DEK - improve error handler
-               CASE DEFAULT
-                    WRITE(*, *) "Error in get_point_ra15_tp"
-                    CALL util_exit(FAILURE)
-          END SELECT
-          RETURN
-     END SUBROUTINE get_point_ra15_tp
-
-     SUBROUTINE get_point_tu4_pl(i, tu4_plP)
-          INTEGER(I4B), INTENT(IN) :: i
-          TYPE(tu4_pl), POINTER    :: tu4_plP
-          SELECT CASE (istruct_pl)
-               CASE (TU4)
-                    IF (ASSOCIATED(ltu4_pl1P)) THEN
-                         tu4_plP => ltu4_pl1P(i)
-                    ELSE
-                         WRITE(*, *) "Error in get_point_tu4_pl"
-                         CALL util_exit(FAILURE)
-                    END IF
-! DEK - improve error handler
-               CASE DEFAULT
-                    WRITE(*, *) "Error in get_point_tu4_pl"
-                    CALL util_exit(FAILURE)
-          END SELECT
-          RETURN
-     END SUBROUTINE get_point_tu4_pl
-
-     SUBROUTINE get_point_tu4_tp(i, tu4_tpP)
-          INTEGER(I4B), INTENT(IN) :: i
-          TYPE(tu4_tp), POINTER    :: tu4_tpP
-          SELECT CASE (istruct_tp)
-               CASE (TU4)
-                    IF (ASSOCIATED(ltu4_tp1P)) THEN
-                         tu4_tpP => ltu4_tp1P(i)
-                    ELSE
-                         WRITE(*, *) "Error in get_point_tu4_tp"
-                         CALL util_exit(FAILURE)
-                    END IF
-! DEK - improve error handler
-               CASE DEFAULT
-                    WRITE(*, *) "Error in get_point_tu4_tp"
-                    CALL util_exit(FAILURE)
-          END SELECT
-          RETURN
-     END SUBROUTINE get_point_tu4_tp
 
      SUBROUTINE get_point_whm_pl(i, whm_plP)
           INTEGER(I4B), INTENT(IN) :: i
