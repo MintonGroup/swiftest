@@ -28,7 +28,7 @@ k_2         = 0.104 #tidal love number for primary
 Q           = 3000. #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
-rho_sat = 1000.0 # Satellite/ring particle mass density in gm/cm**3
+rho_sat = 900.0 # Satellite/ring particle mass density in gm/cm**3
 
 J2 = 0.0 #Add these in later
 J4 = 0.0

@@ -68,7 +68,7 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
          ring%I(i) = ring%m(i) * ring%RR(i)
          ring%w(i) = sqrt(GM_Planet / ring%r(i)**3)
          ring%Torque_to_disk(i) = 0.0_DP
-         rhill = ring%r(i) * (ring%Gm_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP)
+         rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP)
          ring%r_hstar(i) = rhill / (2 * ring%r_pdisk)  
       end do
       call ringmoons_viscosity(GM_Planet,R_Planet,ring)
