@@ -77,7 +77,7 @@ with open(ringfile) as f:
 axes['d'].plot(r*1e-6, sigma*1e-4, '-', color="black", linewidth=1.0, zorder = 50)
 
 Visc5.f(1,ic.MP, ic.RP,t=0.0)
-print(f'nu = {Visc5.nu[119], nu[119]} m^2 s^-1')
+print(f'nu = {Visc5.nu[1199], nu[1199]} m^2 s^-1')
 
 figure.tight_layout()
 #plt.show()

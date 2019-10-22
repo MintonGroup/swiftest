@@ -12,7 +12,7 @@ G	    = 6.674e-8                          #Gravitational constant (cgs)
 year    = 3600*24*365.25                #seconds in 1 year
 AU      = 1.4960e13
 M_Sun   = 1.9891e33
-N   = 240           #number of bins in disk
+N   = 2400           #number of bins in disk
 
 M_Saturn    = 5.6834e29
 R_Saturn    = 60268.0e5
