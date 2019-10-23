@@ -9,28 +9,12 @@
 !README.swifter 
 !example/*.in
 !example/cleanup
-!example/swifter_symba_omp
+!example/
 !Makefile
 */Makefile
 !Makefile.Defines
 */Makefile.Defines
 !.gitignore
-
-#fxdr library
-!fxdr*/*.c
-!fxdr*/*.F
-!fxdr*/*.3f
-!fxdr*/*.h
-!fxdr*/*.inc
-!fxdr*/cxdrreal64
-!fxdr*/test.orig.xdr
-!fxdr*/test_read_only.xdr
-!fxdr*/configure/
-!fxdr*/README*
-!fxdr*/Makefile.bak
-!fxdr*/Makefile.fxdr
-!fxdr*/Makefile.tmpl
-!fxdr*/Defines.*
 
 #ringmoons
 !ringmoons-python/*.py

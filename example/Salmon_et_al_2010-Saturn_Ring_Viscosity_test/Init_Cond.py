@@ -40,7 +40,8 @@ N   = 240           #number of bins in disk
 
 
 M_Saturn    = 5.6834e29
-R_Saturn    = 60268.0e5
+R_Saturn    = 58232e5
+R_Saturn_eq = 60268.0e5
 R_Planet = R_Saturn
 M_Planet = M_Saturn
 a_Saturn    = 9.582172*AU
@@ -48,6 +49,10 @@ T_Saturn    = 10.57*3600
 W_Saturn    = 2.0*np.pi/T_Saturn
 L_Saturn    = 2.0*M_Saturn*R_Saturn**2.0/5.0*W_Saturn
 Rhill_Saturn = a_Saturn * (M_Saturn / (3 * M_Sun))**(1.0 / 3.0)
+Ipolar_Saturn = 0.210
+J2_Saturn = 16298e-6
+
+
 
 k_2         = 0.104 #tidal love number for primary
 Q           = 3000. #tidal dissipation factor for primary
@@ -55,24 +60,21 @@ Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
 
 
-J2 = 0.0 #Add these in later
+J2 = J2_Saturn #Add these in later
 J4 = 0.0
 
-
-
 #Primary body definitions
-RP    = R_Saturn / DU2CM #1.0
-MP    = M_Saturn / MU2GM #1.0
+RP    = R_Saturn / DU2CM  # Radius of primary
+MP    = M_Saturn / MU2GM  # Mass of primary
 rhoP  = 3.0 * MP / (4.0 * np.pi * RP**3) #Density of primary
-TP    =  T_Saturn / TU2S
-IP = 2.0 / 5.0 * MP * RP**2
-wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP
-LP =  IP * wP
+TP    =  T_Saturn / TU2S # Rotation rate of primary
+IPp = Ipolar_Saturn # Polar moment of inertia of primary
+IPe = J2 + IPp # equatorial moment of inertia of primary
 
+wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
+IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
 
 ###For the disk:
-
-
 m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_pdisk   #disk particle size (mass in g)
 
 # gamma	= 0.3	    #ang momentum efficiency factor
@@ -126,15 +128,14 @@ print(r_pdisk, GU * m_pdisk, file=outfile)
 for a in range(int(N)):
     print(GU * sigma[a],file=outfile)
 
-
-
-
-
-
-
 plfile = open('pl.in', 'w')
 print(1,file=plfile)
 print(f'1 {GU*MP}',file=plfile)
+print(f'{RP}', file=plfile)
+np.savetxt(plfile, IP, newline=' ')
+print('',file=plfile)
+np.savetxt(plfile, wP, newline=' ')
+print('',file=plfile)
 print(f'0.0 0.0 0.0',file=plfile)
 print(f'0.0 0.0 0.0',file=plfile)
 plfile.close()
@@ -184,7 +185,7 @@ print(f'DU2CM          {DU2CM}')
 print(f'TU2S           {TU2S}')
 print(f'MTINY          {mtiny}')
 print(f'RING_OUTFILE   ring.dat')
-
+print(f'ROTATION       yes')
 
 
 sys.stdout = sys.__stdout__

@@ -278,7 +278,6 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
                          IF (token == "YES") lrhill_present = .TRUE.
-
                     ! Added by D. Minton
                     CASE ("FRAGMENTATION")
                          ifirst = ilast + 1
@@ -286,7 +285,6 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
                          IF (token == "YES") lfragmentation = .TRUE.
-                    
                     CASE ("MU2GM")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
@@ -308,17 +306,16 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          IF (PRESENT(mtiny)) READ(token, *) mtiny
-
                     CASE ("RING_OUTFILE")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          IF (PRESENT(ring_outfile)) ring_outfile = token
-
                     CASE ("ROTATION")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
+                         CALL util_toupper(token)
                          IF (PRESENT(lrotation).AND.(token == "YES")) lrotation = .TRUE. 
                     CASE DEFAULT
                          WRITE(*, 100, ADVANCE = "NO") "Unknown parameter -> "
