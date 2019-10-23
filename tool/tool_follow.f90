@@ -61,6 +61,7 @@ PROGRAM tool_follow
      LOGICAL(LGT)      :: lextra_force   ! Use user-supplied force routines
      LOGICAL(LGT)      :: lbig_discard   ! Dump planet data with discards
      LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
+     LOGICAL(LGT)      :: lrotation      ! Rotation parameters present
 
 ! Internals
      INTEGER(I4B)                                    :: npl,ntp,ntp0,nsp,iout,iloop,i,iu,ifol,nskp,ierr,iout_form,ic,istep,id
@@ -84,7 +85,7 @@ PROGRAM tool_follow
      inparfile=TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile,nplmax,ntpmax,t0,tstop,dt,inplfile,intpfile,in_type,istep_out,outfile,out_type,out_form,        &
           out_stat,j2rp2,j4rp4,lclose,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,lextra_force,   &
-          lbig_discard,lrhill_present)
+          lbig_discard,lrhill_present,lrotation)
      CALL io_getn(inplfile,intpfile,in_type,npl,nplmax,ntp,ntpmax)
      ALLOCATE(whm_plA(nplmax))
      CALL set_point(whm_plA)
@@ -93,7 +94,7 @@ PROGRAM tool_follow
           CALL set_point(whm_tpA)
      END IF
      CALL whm_setup(npl,ntp,whm_plA,whm_tpA,whm_pl1P,whm_tp1P,swifter_pl1P,swifter_tp1P)
-     CALL io_init_pl(inplfile,in_type,lclose,lrhill_present,npl,swifter_pl1P)
+     CALL io_init_pl(inplfile,in_type,lclose,lrhill_present,lrotation,npl,swifter_pl1P)
      CALL io_init_tp(intpfile,in_type,ntp,swifter_tp1P)
      CALL util_valid(npl,ntp,swifter_pl1P,swifter_tp1P)
      iu=20
