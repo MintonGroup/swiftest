@@ -2,11 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import Init_Cond as ic
-import Visc5
 from scipy.io import FortranFile
 
-
-figure = plt.figure(1, figsize=(8,6))    #this should be called later when we know the aspect ratio, but for now, I have it here
+figure = plt.figure(1, figsize=(8,6))
 axes = {'a' : figure.add_subplot(221),
         'b' : figure.add_subplot(222),
         'c' : figure.add_subplot(223),
@@ -26,7 +24,7 @@ S2010test_t0 = np.loadtxt('S2010test-t0.csv',delimiter=',')
 S2010test_t1e3 = np.loadtxt('S2010test-t1e3.csv',delimiter=',')
 S2010test_t1e4 = np.loadtxt('S2010test-t1e4.csv',delimiter=',')
 S2010test_t1e5 = np.loadtxt('S2010test-t1e5.csv',delimiter=',')
-axes['a'].plot(S2010test_t0[:,0]*1e-3, S2010test_t0[:,1]*1e-4, '-', color="red", linewidth=1.0, zorder=40)
+axes['a'].plot(S2010test_t0[:,0]*1e-3, S2010test_t0[:,1]*1e-4, '-', color="red", linewidth=1.0, zorder=40, label = "Salmon et al. (2010)")
 axes['b'].plot(S2010test_t1e3[:,0]*1e-3, S2010test_t1e3[:,1]*1e-4, '-', color="red", linewidth=1.0, zorder=40)
 axes['c'].plot(S2010test_t1e4[:,0]*1e-3, S2010test_t1e4[:,1]*1e-4, '-', color="red", linewidth=1.0, zorder=40)
 axes['d'].plot(S2010test_t1e5[:,0]*1e-3, S2010test_t1e5[:,1]*1e-4, '-', color="red", linewidth=1.0, zorder=40)
@@ -35,42 +33,31 @@ axes['a'].title.set_text('$0$ years')
 axes['b'].title.set_text('$10^3$ years')
 axes['c'].title.set_text('$10^4$ years')
 axes['d'].title.set_text('$10^5$ years')
-
-#r = np.asarray(ic.r) * 1e-2 * 1e-3 * 1e-3 #cm to 1000 km
-#sigma = np.asarray(ic.sigma) * 1e-3 * 1e4 * 1e-4 #g/cm**2 to 1e4 kg/m**2
-#axes['a'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
+ring = {}
 
 with FortranFile('ring.dat', 'r') as f:
-    N = f.read_ints(np.int32)
-    r_I = f.read_reals(np.float64)
-    r_F = f.read_reals(np.float64)
-    r_pdisk = f.read_reals(np.float64)
-    Gm_pdisk = f.read_reals(np.float64)
-    r = f.read_reals(np.float64) #.reshape((N,1), order="F")
-    t = np.array([], dtype=np.float64)
-    sigma = np.array([0,N], dtype=np.float64)
     while True:
-        line1 = f.read_reals(np.float64)
-        if not line1: break  # EOF
-        line2 = f.read_reals(np.float64)
-        t = np.append(t, line1, axis=0)
-        sigma = np.append(sigma, line2, axis=0)
+        try:
+            t = f.read_reals(np.float64)
+        except:
+            break
+        N = f.read_ints(np.int32)
+        r = f.read_reals(np.float64)
+        Gsigma = f.read_reals(np.float64)
+        nu = f.read_reals(np.float64)
+        kval = int(t / ic.t_print)
+        ring[f'{kval}'] = [r, Gsigma, nu]
 
 tout = np.array([0.0, 1e3, 1e4, 1e5]) * ic.year / ic.TU2S
-nt = np.ceil(tout / ic.deltaT)
+nt = np.rint(tout / ic.t_print).astype(int)
 
-axes['a'].plot(r* ic.DU2CM * 1e-8, sigma[:,nt[0]] * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
-axes['b'].plot(r* ic.DU2CM * 1e-8, sigma[:,nt[1]] * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
-axes['c'].plot(r* ic.DU2CM * 1e-8, sigma[:,nt[2]] * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
-axes['d'].plot(r* ic.DU2CM * 1e-8, sigma[:,nt[3]] * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
-
-#Visc5.f(1,ic.MP, ic.RP,t=0.0)
-#print(f'nu = {Visc5.nu[599], nu[599]} m^2 s^-1')
-
+axes['a'].plot(ring[f'{nt[0]}'][0] * ic.DU2CM * 1e-8, ring[f'{nt[0]}'][1] * ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3, '-', color="black", linewidth=1.0, zorder = 50, label = "SyMBA-RINGMOONS")
+axes['b'].plot(ring[f'{nt[1]}'][0] * ic.DU2CM * 1e-8, ring[f'{nt[1]}'][1] * ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+axes['c'].plot(ring[f'{nt[2]}'][0] * ic.DU2CM * 1e-8, ring[f'{nt[2]}'][1] * ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+axes['d'].plot(ring[f'{nt[3]}'][0] * ic.DU2CM * 1e-8, ring[f'{nt[3]}'][1] * ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+axes['a'].legend(loc='upper left',prop={'size': 8})
 figure.tight_layout()
 #plt.show()
-
-
 
 figname ="Salmon_et_al_2010-Saturn_Ring_Viscocity_evoloution.png"
 plt.savefig(figname,dpi=300 )
