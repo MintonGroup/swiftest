@@ -47,7 +47,7 @@
      
       do 
          iin = ring%inside
-         do i = 1,iin - 1
+         do i = 1,iin 
 
             !Add ring mass to planet
             swifter_pl1P%radius = swifter_pl1P%radius * ((swifter_pl1P%mass + ring%Gm(i)) / swifter_pl1P%mass)**(1.0_DP / 3.0_DP)

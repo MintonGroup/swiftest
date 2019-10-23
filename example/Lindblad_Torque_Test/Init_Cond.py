@@ -20,9 +20,9 @@ rho_sat   = 1.2000 # Satellite/ring particle mass density in gm/cm**3
 
 
 t_0	= 0
-t_print = 1.e4 * year / TU2S #output interval to print results
-deltaT	= 1.e4 * year / TU2S  #timestep simulation
-end_sim = 1.e7 * year / TU2S + deltaT #end time
+t_print = 1.e6 * year / TU2S #output interval to print results
+deltaT	= 1.e6 * year / TU2S  #timestep simulation
+end_sim = 720.e6 * year / TU2S + deltaT #end time
 
 N   = 240           #number of bins in disk
 
@@ -58,8 +58,8 @@ IPe = J2 + IPp # equatorial moment of inertia of primary
 FRL = 2.456 * RP * (rhoP / rho_pdisk)**(1./3.)
 RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 
-r_I	= RP      #inside radius of disk is at the embryo's surface
-r_F	= 1.5 * FRL  #outside radius of disk
+r_I	= 0.999 * RP      #inside radius of disk is at the embryo's surface
+r_F	= 2 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -96,12 +96,17 @@ def f(x):
 
         #Power law surface mass density profile
         if x == 0:
-            sigma.append(sigma_peak * (r[a] / RP)**(-3))
+            if r[a] < FRL:
+                sigma.append(sigma_peak * (r[a] / RP)**(-3))
+            else:
+                sigma.append(0.0)
             m.append(sigma[a] * deltaA[a])
         #Gaussian surface mass density profile
         elif x == 1:
-
-            sigma.append(sigma_peak * np.exp(-(r[a]-centroid)**2/(2*spread**2)))
+            if r[a] < FRL:
+                sigma.append(sigma_peak * np.exp(-(r[a]-centroid)**2/(2*spread**2)))
+            else:
+                sigma.append(0.0)
             m.append(sigma[a]*deltaA[a])
         else:
             print('You have not chosen a valid disk model')

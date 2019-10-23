@@ -42,13 +42,14 @@ subroutine ringmoons_sigma_solver(swifter_pl1P,ring,dtin)
       real(DP) :: dtstab,dtleft,dt,fac, GM_Planet,Snew
       real(DP),dimension(0:ring%N+1) :: S
       integer(I4B) :: i,loop
+      real(DP),parameter :: GMURN = 5.74811598e+21
 
 ! Executable code
       dtleft = dtin
       !TESTING
          call ringmoons_viscosity(swifter_pl1P%mass,ring)
          dtstab = ring%stability_factor / maxval(ring%nu)
-         write(*,*) dtstab,ceiling(dtin/dtstab),sum(ring%Gm) / GU
+         write(*,*) dtstab,ceiling(dtin/dtstab),(sum(ring%Gm) + (swifter_pl1P%mass - GMURN)) / GU
       !^^^^^^^^  
       do loop = 1, LOOPMAX
          call ringmoons_viscosity(swifter_pl1P%mass,ring)
