@@ -9,65 +9,57 @@ M_Sun   = 1.9891e33
 
 
 #The following are Unit conversion factors
-MU2GM    =     1000.0 #M_Saturn          #Conversion from mass unit to grams
-DU2CM    =     100.0 #R_Saturn                       #Conversion from radius unit to centimeters
+MU2GM    =     1.0 #M_Uranus          #Conversion from mass unit to grams
+DU2CM    =     1.0 #R_Uranus                       #Conversion from radius unit to centimeters
 TU2S     =     1.0 #year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 1.00  #disk particle size
-rho_pdisk = 900.0 # Satellite/ring particle mass density in gm/cm**3
-r_I	= 100e6      #inside radius of disk is at the embryo's surface
-r_F	= 120.47646073197e6  #outside radius of disk
+r_pdisk = 100.0  #disk particle size
+rho_pdisk = 1.2000 # Satellite/ring particle mass density in gm/cm**3
+rho_sat   = 1.2000 # Satellite/ring particle mass density in gm/cm**3
 
-
-centroid = 110.00e6  # radius of the center of the gaussian
-spread = 360e3  # width of the gaussian
-sigma_peak = 6.15e4  # scale factor to get a given mass
 
 t_0	= 0
-t_print = 1.e2 * year / TU2S #output interval to print results
-deltaT	= 1.e2 * year / TU2S  #timestep simulation
-end_sim = 1.e5 * year / TU2S + deltaT #end time
+t_print = 1.e4 * year / TU2S #output interval to print results
+deltaT	= 1.e4 * year / TU2S  #timestep simulation
+end_sim = 1.e7 * year / TU2S + deltaT #end time
 
 N   = 240           #number of bins in disk
 
 
 ###***Define initial conditions***###
+M_Uranus    = 8.6127e28
+R_Uranus    = 25362e5
+R_Uranus_eq = 25559e5
+a_Uranus    = 19.2184 * AU
+T_Uranus    = 0.71833 * 24 * 3600
+W_Uranus    = 2.0 * np.pi / T_Uranus
 
-
-
-
-M_Saturn    = 5.6834e29
-R_Saturn    = 58232e5
-R_Saturn_eq = 60268.0e5
-R_Planet = R_Saturn
-M_Planet = M_Saturn
-a_Saturn    = 9.582172*AU
-T_Saturn    = 10.57*3600
-W_Saturn    = 2.0*np.pi/T_Saturn
-L_Saturn    = 2.0*M_Saturn*R_Saturn**2.0/5.0*W_Saturn
-Rhill_Saturn = a_Saturn * (M_Saturn / (3 * M_Sun))**(1.0 / 3.0)
-Ipolar_Saturn = 0.210
-J2_Saturn = 16298e-6
-
-
+Rhill_Uranus = a_Uranus * (M_Uranus / (3 * M_Sun))**(1.0 / 3.0)
+Ipolar_Uranus = 0.230
+J2_Uranus = 3341.29e-6
+J4_Uranus = 33.61e-6
 
 k_2         = 0.104 #tidal love number for primary
 Q           = 3000. #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
-
-
-J2 = J2_Saturn #Add these in later
-J4 = 0.0
+J2 = J2_Uranus
+J4 = J4_Uranus
 
 #Primary body definitions
-RP    = R_Saturn / DU2CM  # Radius of primary
-MP    = M_Saturn / MU2GM  # Mass of primary
+RP    = R_Uranus / DU2CM  # Radius of primary
+RP_eq = R_Uranus_eq / DU2CM
+MP    = M_Uranus / MU2GM  # Mass of primary
 rhoP  = 3.0 * MP / (4.0 * np.pi * RP**3) #Density of primary
-TP    =  T_Saturn / TU2S # Rotation rate of primary
-IPp = Ipolar_Saturn # Polar moment of inertia of primary
+TP    =  T_Uranus / TU2S # Rotation rate of primary
+IPp = Ipolar_Uranus # Polar moment of inertia of primary
 IPe = J2 + IPp # equatorial moment of inertia of primary
+FRL = 2.456 * RP * (rhoP / rho_pdisk)**(1./3.)
+RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
+
+r_I	= RP      #inside radius of disk is at the embryo's surface
+r_F	= 1.5 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -91,6 +83,10 @@ R = []
 Torque_to_disk = []
 
 def f(x):
+    centroid = RRL  # radius of the center of the gaussian
+    spread = 10e5 # width of the gaussian
+    sigma_peak = 1.2e4  # scale factor to get a given mass
+
     #Creates initial values for the disk and prints them out
     for a in range(int(N)):
         X.append(2 * np.sqrt(r_I) + deltaX * (a + 0.5))
@@ -100,8 +96,8 @@ def f(x):
 
         #Power law surface mass density profile
         if x == 0:
-            m.append(2*np.pi*alpha/(2-p)*((r[a] + deltar/2)**(2-p) - (r[a] - deltar/2)**(2-p)))
-            sigma.append(m[a]/deltaA[a])
+            sigma.append(sigma_peak * (r[a] / RP)**(-3))
+            m.append(sigma[a] * deltaA[a])
         #Gaussian surface mass density profile
         elif x == 1:
 
@@ -114,7 +110,7 @@ def f(x):
         w.append((GU*MP/r[a]**3)**0.5)
         Torque_to_disk.append(0.0)
 
-f(1) #Make a Gaussian ring
+f(0) #Make a power law ring
 
 
 outfile = open('ring.in', 'w')
@@ -144,7 +140,7 @@ tpfile.close()
 
 iout = int(np.ceil(end_sim / (deltaT * t_print)))
 rmin = RP
-rmax = Rhill_Saturn / DU2CM
+rmax = Rhill_Uranus / DU2CM
 
 mtiny = 1e-8 #roughly 1/3 the mass of Puck
 

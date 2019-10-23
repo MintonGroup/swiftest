@@ -68,12 +68,14 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_sigma_solver(GM_Planet,R_Planet,dtin,ring)
+         subroutine ringmoons_sigma_solver(swifter_pl1P,ring,dtin)
          use module_parameters
+         use module_swifter
          use module_ringmoons
          implicit none
-         real(DP),intent(in) :: GM_Planet,R_Planet,dtin
-         TYPE(ringmoons_ring),INTENT(INOUT) :: ring
+         type(swifter_pl),pointer :: swifter_pl1P
+         type(ringmoons_ring),intent(inout) :: ring
+         real(DP),intent(in) :: dtin
          end subroutine ringmoons_sigma_solver
       end interface
 
@@ -96,11 +98,11 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_viscosity(GM_Planet,R_Planet,ring)
+         subroutine ringmoons_viscosity(GM_Planet,ring)
          use module_parameters
          use module_ringmoons
          implicit none
-         real(DP),intent(in) :: GM_Planet,R_Planet
+         real(DP),intent(in) :: GM_Planet
          type(ringmoons_ring),intent(inout) :: ring
          end subroutine ringmoons_viscosity
       end interface
@@ -112,6 +114,17 @@ module module_ringmoons_interfaces
          real(DP),intent(in) :: y
          real(DP) :: kappa
          end function ringmoons_transition_function
+      end interface
+
+      interface
+         subroutine ringmoons_planet_accrete(swifter_pl1P,ring)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit NONE
+         type(swifter_pl),pointer :: swifter_pl1P
+         type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_planet_accrete
       end interface
 
 

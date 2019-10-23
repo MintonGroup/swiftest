@@ -40,7 +40,7 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
       character(STRMAX)                  :: ringfile
       integer(I4B),parameter             :: LUN = 22
       integer(I4B)                       :: i,ioerr
-      real(DP)                           :: Xlo,Xhi,rhill
+      real(DP)                           :: Xlo,Xhi,rlo,rhi,rhill,deltar
 
       ringfile='ring.in'
       open(unit=LUN,file=ringfile,status='old',iostat=ioerr)
@@ -55,22 +55,34 @@ SUBROUTINE ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
          if (ioerr /= 0) then 
             write(*,*) 'File read error in ',trim(adjustl(ringfile))
          end if
+         ! Set up X coordinate system (see Bath & Pringle 1981)
          Xlo = 2 * sqrt(ring%r_I) + ring%deltaX * (1._DP * i - 1._DP)
          Xhi = Xlo + ring%deltaX
-         ring%deltar(i) = 0.5_DP * (Xhi**2 - Xlo**2)
-
+   
          ring%X(i) = Xlo + 0.5_DP * ring%deltaX
          ring%X2(i) = ring%X(i)**2
+
+         ! Convert X to r
+         rlo = 0.5_DP * Xlo**2
+         rhi = 0.5_DP * Xhi**2
+         deltar = rhi - rlo
          ring%r(i) = (0.5_DP * ring%X(i))**2
-         ring%deltaA(i) = 2 * PI * ring%deltar(i) * ring%r(i)
+         ring%rinner(i) = rlo
+         ring%router(i) = rhi
+        
+         ! Factors to convert surface mass density into mass 
+         ring%deltaA(i) = 2 * PI * deltar * ring%r(i)
          ring%Gm(i) = ring%Gsigma(i) * ring%deltaA(i)
-         ring%Iz(i) = 0.25_DP * ring%Gm(i) / GU * (Xlo**2 + Xhi**2)
+      
+         ! Moment of inertia of the ring bin
+         ring%Iz(i) = 0.5_DP * ring%Gm(i) / GU * (rlo**2 + rhi**2)
          ring%w(i) = sqrt(GM_Planet / ring%r(i)**3)
+
          ring%Torque_to_disk(i) = 0.0_DP
          rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP) ! See Salmon et al. 2010 for this
          ring%r_hstar(i) = rhill / (2 * ring%r_pdisk)  
       end do
-      call ringmoons_viscosity(GM_Planet,R_Planet,ring)
+      call ringmoons_viscosity(GM_Planet,ring)
       ring%stability_factor = 0.25_DP * minval(ring%X2) * ring%deltaX**2 / 24._DP 
 
       

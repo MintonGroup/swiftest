@@ -32,13 +32,14 @@ MODULE module_ringmoons
          REAL(DP)     :: r_pdisk     ! disk particle size (radius)
          REAL(DP)     :: Gm_pdisk     ! disk particle size (mass)
          INTEGER(I4B) :: N           ! number of bins in disk
-         INTEGER(I4B) :: inside = 0  ! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
+         INTEGER(I4B) :: inside = 1  ! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
          REAL(DP)     :: r_F         ! outside radius of disk
          REAL(DP)     :: r_I         ! inside radius of disk
          REAL(DP)     :: deltaX      ! variable changed bin width used for viscosity calculations
          REAL(DP)     :: stability_factor ! Constant factor used to determine the stability of the PDE solver
          REAL(DP), dimension(:), allocatable :: r        ! Radial distance of center of bin
-         REAL(DP), dimension(:), allocatable :: deltar      ! width of a bin
+         REAL(DP), dimension(:), allocatable :: rinner   ! inner edge of the bin used to determine if the bin is inside the planet
+         REAL(DP), dimension(:), allocatable :: router   ! outer edge of the bin used to determine if the bin is inside the planet
          REAL(DP), dimension(:), allocatable :: X        ! variable changed bin center used for viscosity calculations
          REAL(DP), dimension(:), allocatable :: X2        ! variable changed bin center used for viscosity calculations
          REAL(DP), dimension(:), allocatable :: deltaA   ! Differential surface area of ring

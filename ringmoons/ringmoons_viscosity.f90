@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_viscosity(GM_Planet,R_Planet,ring)
+SUBROUTINE ringmoons_viscosity(GM_Planet,ring)
 
 ! Modules
       USE module_parameters
@@ -35,7 +35,7 @@ SUBROUTINE ringmoons_viscosity(GM_Planet,R_Planet,ring)
       IMPLICIT NONE
 
 ! Arguments
-      real(DP),intent(in) :: GM_Planet,R_Planet
+      real(DP),intent(in) :: GM_Planet
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals

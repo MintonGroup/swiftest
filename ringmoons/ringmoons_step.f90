@@ -37,6 +37,7 @@ SUBROUTINE ringmoons_step(lfirst, t, rmin,npl, nplmax, symba_pl1P, j2rp2, j4rp4,
 ! Modules
      USE module_parameters
      USE module_symba
+     USE module_swifter
      USE module_ringmoons
      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_step
      IMPLICIT NONE
@@ -49,12 +50,14 @@ SUBROUTINE ringmoons_step(lfirst, t, rmin,npl, nplmax, symba_pl1P, j2rp2, j4rp4,
      TYPE(symba_pl), POINTER                          :: symba_pl1P
      TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 ! Internals
+      TYPE(swifter_pl), POINTER                          :: swifter_pl1P
       integer(I4B) :: i
       real(DP),parameter :: s2y = 365.25_DP * 24 * 60 * 60
 
 ! Executable code
       !if (lfirst) then
-      call ringmoons_sigma_solver(symba_pl1P%helio%swifter%mass,rmin,dt,ring)
+      swifter_pl1P => symba_pl1P%helio%swifter
+      call ringmoons_sigma_solver(swifter_pl1P,ring,dt)
 
 
       RETURN

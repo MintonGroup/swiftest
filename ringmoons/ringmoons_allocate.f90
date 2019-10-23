@@ -41,7 +41,8 @@ SUBROUTINE ringmoons_allocate(ring)
 
 ! Executable code
       allocate(ring%r(ring%N))
-      allocate(ring%deltar(ring%N))
+      allocate(ring%rinner(ring%N))
+      allocate(ring%router(ring%N))
       allocate(ring%X(ring%N))
       allocate(ring%X2(ring%N))
       allocate(ring%deltaA(ring%N))
