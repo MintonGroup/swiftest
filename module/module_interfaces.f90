@@ -598,7 +598,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
                out_type, out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
-               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, ring_outfile)
+               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, lrotation, mtiny, ring_outfile)
                USE module_parameters
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
@@ -609,15 +609,16 @@ MODULE module_interfaces
                                             out_stat
                REAL(DP), INTENT(OUT), OPTIONAL :: mtiny
                CHARACTER(*), INTENT(OUT), OPTIONAL  :: ring_outfile
+               LOGICAL(LGT), INTENT(OUT), OPTIONAL  :: lrotation 
           END SUBROUTINE io_init_param
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
+          SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, lrotation, npl, swifter_pl1P)
                USE module_parameters
                USE module_swifter
                IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
+               LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present, lrotation
                INTEGER(I4B), INTENT(IN)  :: npl
                CHARACTER(*), INTENT(IN)  :: inplfile, in_type
                TYPE(swifter_pl), POINTER :: swifter_pl1P
