@@ -38,17 +38,19 @@ MODULE module_swifter
      !^^^^^^^^^^^^^^^^^^^
 
      TYPE swifter_pl
-          INTEGER(I4B)              :: id     ! external identifier
-          INTEGER(I4B)              :: status ! status
-          REAL(DP)                  :: mass   ! mass
-          REAL(DP)                  :: radius ! radius
-          REAL(DP)                  :: rhill  ! Hill's sphere radius
-          REAL(DP), DIMENSION(NDIM) :: xh     ! heliocentric position
-          REAL(DP), DIMENSION(NDIM) :: vh     ! heliocentric velocity
-          REAL(DP), DIMENSION(NDIM) :: xb     ! barycentric position
-          REAL(DP), DIMENSION(NDIM) :: vb     ! barycentric velocity
-          TYPE(swifter_pl), POINTER :: prevP  ! pointer to previous planet
-          TYPE(swifter_pl), POINTER :: nextP  ! pointer to next planet
+          INTEGER(I4B)              :: id       ! external identifier
+          INTEGER(I4B)              :: status   ! status
+          REAL(DP)                  :: mass     ! mass
+          REAL(DP)                  :: radius   ! radius
+          REAL(DP)                  :: rhill    ! Hill's sphere radius
+          REAL(DP), DIMENSION(NDIM) :: xh       ! heliocentric position
+          REAL(DP), DIMENSION(NDIM) :: vh       ! heliocentric velocity
+          REAL(DP), DIMENSION(NDIM) :: xb       ! barycentric position
+          REAL(DP), DIMENSION(NDIM) :: vb       ! barycentric velocity
+          REAL(DP), DIMENSION(NDIM) :: Ip       ! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
+          REAL(DP), DIMENSION(NDIM) :: rot      ! body rotation vector in inertial coordinate frame 
+          TYPE(swifter_pl), POINTER :: prevP    ! pointer to previous planet
+          TYPE(swifter_pl), POINTER :: nextP    ! pointer to next planet
           ! Added by D. Minton
           ! Used for OpenMP parallelized loops
           TYPE(swifter_ptr_arr),DIMENSION(:),ALLOCATABLE :: swifter_plPA ! Array of pointers to Swifter planet structures 
