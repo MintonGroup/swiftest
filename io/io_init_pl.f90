@@ -13,15 +13,18 @@
 !                in_type        : format of input data file
 !                lclose         : logical flag indicating whether planets' physical radii are present in input file
 !                lrhill_present : logical flag indicating whether planets' Hill's sphere radii are present in input file
+!                lrotation      : logical flag indicating whether planets' rotation parameters are present in the file
 !                npl            : number of planets
 !                swifter_pl1P   : pointer to head of Swifter planet structure linked-list
 !    Terminal  : none
 !    File      : id             : planet identifier               (all planets)
 !                mass           : mass                            (all planets)
-!                rhill          : Hill's sphere radius (optional) (if present, all planets except the Sun)
-!                radius         : physical radius (optional)      (if present, all planets except the Sun)
+!                rhill          : Hill's sphere radius (optional) (if present, all planets except the central body)
+!                radius         : physical radius (optional)      (if present, all planets including the central body)
 !                xh             : heliocentric position           (all planets)
 !                vh             : heliocentric velocity           (all planets)
+!                Ip             : principal moments of inertia    (if present, all planets including the central body)
+!                rot            : rotation vector                 (if present, all planets including the central body)
 !
 !  Output
 !    Arguments : swifter_pl1P   : pointer to head of Swifter planet structure linked-list
@@ -34,7 +37,7 @@
 !                xdr file support removed (D. Minton)
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
+SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, lrotation, npl, swifter_pl1P)
 
 ! Modules
      USE module_parameters
@@ -43,7 +46,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
+     LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present, lrotation
      INTEGER(I4B), INTENT(IN)  :: npl
      CHARACTER(*), INTENT(IN)  :: inplfile, in_type
      TYPE(swifter_pl), POINTER :: swifter_pl1P
@@ -59,8 +62,16 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
           CALL io_open(LUN, inplfile, "OLD", "FORMATTED", ierr)
           READ(LUN, *) inpl
           READ(LUN, *) swifter_plP%id, swifter_plP%mass
-          swifter_plP%rhill = 0.0_DP
-          swifter_plP%radius = 0.0_DP
+          swifter_plP%rhill = 0.0_DP  
+          IF (lclose) THEN
+              READ(LUN, *) swifter_plP%radius
+          ELSE
+              swifter_plP%radius = 0.0_DP
+          END IF
+          IF (lrotation) THEN
+              READ(LUN, *) swifter_plP%Ip(:)
+              READ(LUN, *) swifter_plP%rot(:)
+          END IF
           READ(LUN, *) swifter_plP%xh(:)
           READ(LUN, *) swifter_plP%vh(:)
           DO i = 1, NDIM
@@ -86,6 +97,10 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl
                     READ(LUN, *) swifter_plP%radius
                ELSE
                     swifter_plP%radius = 0.0_DP
+               END IF
+               IF (lrotation) THEN
+                   READ(LUN, *) swifter_plP%Ip(:)
+                   READ(LUN, *) swifter_plP%rot(:)
                END IF
                READ(LUN, *) swifter_plP%xh(:)
                READ(LUN, *) swifter_plP%vh(:)
