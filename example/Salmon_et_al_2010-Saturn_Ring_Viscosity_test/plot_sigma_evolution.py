@@ -48,13 +48,20 @@ with FortranFile('ring.dat', 'r') as f:
         kval = int(t / ic.t_print)
         ring[f'{kval}'] = [r, Gsigma, nu]
 
+#convert the units
+for key in ring:
+    ring[key][0] *= ic.DU2CM * 1e-8 #convert radius to 1000 km
+    ring[key][1] *= ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3  # convert surface mass density to 1e4 kg/m^2
+    ring[key][2] *= ic.DU2CM**2 / ic.TU2S * 1e-2 # convert viscosity to m^2/s
+
+# These are the output times to plot
 tout = np.array([0.0, 1e3, 1e4, 1e5]) * ic.year / ic.TU2S
 nt = np.rint(tout / ic.t_print).astype(int)
 
-axes['a'].plot(ring[f'{nt[0]}'][0] * ic.DU2CM * 1e-8, ring[f'{nt[0]}'][1] * ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3, '-', color="black", linewidth=1.0, zorder = 50, label = "SyMBA-RINGMOONS")
-axes['b'].plot(ring[f'{nt[1]}'][0] * ic.DU2CM * 1e-8, ring[f'{nt[1]}'][1] * ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
-axes['c'].plot(ring[f'{nt[2]}'][0] * ic.DU2CM * 1e-8, ring[f'{nt[2]}'][1] * ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
-axes['d'].plot(ring[f'{nt[3]}'][0] * ic.DU2CM * 1e-8, ring[f'{nt[3]}'][1] * ic.MU2GM / ic.DU2CM**2 / ic.GU * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+axes['a'].plot(ring[f'{nt[0]}'][0], ring[f'{nt[0]}'][1], '-', color="black", linewidth=1.0, zorder = 50, label = "SyMBA-RINGMOONS")
+axes['b'].plot(ring[f'{nt[1]}'][0], ring[f'{nt[1]}'][1], '-', color="black", linewidth=1.0, zorder = 50)
+axes['c'].plot(ring[f'{nt[2]}'][0], ring[f'{nt[2]}'][1], '-', color="black", linewidth=1.0, zorder = 50)
+axes['d'].plot(ring[f'{nt[3]}'][0], ring[f'{nt[3]}'][1], '-', color="black", linewidth=1.0, zorder = 50)
 axes['a'].legend(loc='upper left',prop={'size': 8})
 figure.tight_layout()
 #plt.show()
