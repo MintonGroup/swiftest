@@ -598,7 +598,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
                out_type, out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
-               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
+               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, ring_outfile)
                USE module_parameters
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
@@ -608,6 +608,7 @@ MODULE module_interfaces
                CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, &
                                             out_stat
                REAL(DP), INTENT(OUT), OPTIONAL :: mtiny
+               CHARACTER(*), INTENT(OUT), OPTIONAL  :: ring_outfile
           END SUBROUTINE io_init_param
      END INTERFACE
 

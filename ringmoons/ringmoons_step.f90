@@ -53,39 +53,11 @@ SUBROUTINE ringmoons_step(lfirst, t, rmin,npl, nplmax, symba_pl1P, j2rp2, j4rp4,
       real(DP),parameter :: s2y = 365.25_DP * 24 * 60 * 60
 
 ! Executable code
-      if (lfirst) then
-         call ringmoons_viscosity(symba_pl1P%helio%swifter%mass,rmin,ring)
-         open(unit=22,file='test.ic',status='replace')
-         do i = 1,ring%N
-            write(22,*) ring%r(i), ring%Gsigma(i), ring%nu(i), ring%Gm(i)
-         end do
-         close(22)
-      end if
+      !if (lfirst) then
       call ringmoons_sigma_solver(symba_pl1P%helio%swifter%mass,rmin,dt,ring)
 
-      if ((t >= 0.999*1e3 * s2y)  .and. (t < 1.001*1e3 * s2y)) then
-         open(unit=22,file='test.1e3y',status='replace')
-         do i = 1,ring%N
-            write(22,*) ring%r(i), ring%Gsigma(i), ring%nu(i), ring%Gm(i)
-         end do
-         close(22)
-      else if ((t >= 0.999*1e4 * s2y)  .and. (t < 1.001*1e4 * s2y)) then
-         open(unit=22,file='test.1e4y',status='replace')
-         do i = 1,ring%N
-            write(22,*) ring%r(i), ring%Gsigma(i), ring%nu(i), ring%Gm(i)
-         end do
-         close(22)
-      else if ((t >= 0.999*1e5 * s2y)  .and. (t < 1.001*1e5 * s2y)) then
-         open(unit=22,file='test.1e5y',status='replace')
-         do i = 1,ring%N
-            write(22,*) ring%r(i), ring%Gsigma(i), ring%nu(i), ring%Gm(i)
-         end do
-         close(22)
-      end if
-       
 
-
-     RETURN
+      RETURN
 
 END SUBROUTINE ringmoons_step
 !**********************************************************************************************************************************

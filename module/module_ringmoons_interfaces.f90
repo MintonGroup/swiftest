@@ -40,6 +40,18 @@ module module_ringmoons_interfaces
          end subroutine ringmoons_io_init_ring
       end interface
 
+
+      interface
+         subroutine ringmoons_io_write_frame(t, ring, ring_outfile, out_stat)
+         use module_parameters
+         use module_ringmoons
+         implicit none
+         real(DP), intent(in)            :: t
+         type(ringmoons_ring),intent(in) :: ring
+         character(*), intent(in)  :: ring_outfile, out_stat      
+         end subroutine ringmoons_io_write_frame
+      end interface
+
       interface
          subroutine ringmoons_step(lfirst, t, rmin, npl, nplmax, symba_pl1p, j2rp2, j4rp4, eoffset, dt,ring)
             use module_parameters

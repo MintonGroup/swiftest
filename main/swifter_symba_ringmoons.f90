@@ -71,6 +71,7 @@ PROGRAM swifter_symba_ringmoons
      CHARACTER(STRMAX) :: out_type       ! Binary format of output file
      CHARACTER(STRMAX) :: out_form       ! Data to write to output file
      CHARACTER(STRMAX) :: out_stat       ! Open status for output binary file
+     CHARACTER(STRMAX) :: ring_outfile   ! Name of ringmoons output binary file
 
 ! Internals
      LOGICAL(LGT)                                      :: lfirst
@@ -107,7 +108,7 @@ PROGRAM swifter_symba_ringmoons
      inparfile = TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
-          encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
+          encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, ring_outfile)
      IF (.NOT. lrhill_present) THEN
           WRITE(*, *) "SWIFTER Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
@@ -142,7 +143,10 @@ PROGRAM swifter_symba_ringmoons
      nsptp = 0
      eoffset = 0.0_DP
      NULLIFY(symba_pld1P, symba_tpd1P)
-     IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+      if (istep_out > 0) then
+         CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+         call ringmoons_io_write_frame(t, ring, ring_outfile, out_stat = "NEW")
+      end if
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE (t < tstop) 
           CALL ringmoons_step(lfirst, t, rmin, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt, ring)
@@ -177,6 +181,7 @@ PROGRAM swifter_symba_ringmoons
                     WRITE(*, 200) t, tfrac, npl, ntp
  200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
                     CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+                    call ringmoons_io_write_frame(t, ring, ring_outfile, out_stat = "APPEND")
                     iout = istep_out
                END IF
           END IF

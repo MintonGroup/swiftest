@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import Init_Cond as ic
 import Visc5
+from scipy.io import FortranFile
 
 
 figure = plt.figure(1, figsize=(8,6))    #this should be called later when we know the aspect ratio, but for now, I have it here
@@ -39,44 +40,31 @@ axes['d'].title.set_text('$10^5$ years')
 #sigma = np.asarray(ic.sigma) * 1e-3 * 1e4 * 1e-4 #g/cm**2 to 1e4 kg/m**2
 #axes['a'].plot(r, sigma, '-', color="black", linewidth=1.0, zorder = 50)
 
-r = np.asarray(ic.r)
-sigma = np.asarray(ic.sigma)
-nu = np.empty_like(sigma)
+with FortranFile('ring.dat', 'r') as f:
+    N = f.read_ints(np.int32)
+    r_I = f.read_reals(np.float64)
+    r_F = f.read_reals(np.float64)
+    r_pdisk = f.read_reals(np.float64)
+    Gm_pdisk = f.read_reals(np.float64)
+    r = f.read_reals(np.float64) #.reshape((N,1), order="F")
+    t = np.array([], dtype=np.float64)
+    sigma = np.array([0,N], dtype=np.float64)
+    while True:
+        line1 = f.read_reals(np.float64)
+        if not line1: break  # EOF
+        line2 = f.read_reals(np.float64)
+        t = np.append(t, line1, axis=0)
+        sigma = np.append(sigma, line2, axis=0)
 
-ringfile = 'test.ic'
-with open(ringfile) as f:
-    for i, line in enumerate(f):
-        vals = [float (x) for x in line.split()]
-        r[i] = vals[0]
-        sigma[i] = vals[1] / ic.GU
-        nu[i] = vals[2]
-axes['a'].plot(r* ic.DU2CM * 1e-8, sigma * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+tout = np.array([0.0, 1e3, 1e4, 1e5]) * ic.year / ic.TU2S
+nt = np.ceil(tout / ic.deltaT)
 
-ringfile = 'test.1e3y'
-with open(ringfile) as f:
-    for i, line in enumerate(f):
-        vals = [float(x) for x in line.split()]
-        r[i] = vals[0]
-        sigma[i] = vals[1] / ic.GU
-axes['b'].plot(r* ic.DU2CM * 1e-8, sigma * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+axes['a'].plot(r* ic.DU2CM * 1e-8, sigma[:,nt[0]] * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+axes['b'].plot(r* ic.DU2CM * 1e-8, sigma[:,nt[1]] * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+axes['c'].plot(r* ic.DU2CM * 1e-8, sigma[:,nt[2]] * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
+axes['d'].plot(r* ic.DU2CM * 1e-8, sigma[:,nt[3]] * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
 
-ringfile = 'test.1e4y'
-with open(ringfile) as f:
-    for i, line in enumerate(f):
-        vals = [float(x) for x in line.split()]
-        r[i] = vals[0]
-        sigma[i] = vals[1] / ic.GU
-axes['c'].plot(r* ic.DU2CM * 1e-8, sigma * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
-
-ringfile = 'test.1e5y'
-with open(ringfile) as f:
-    for i, line in enumerate(f):
-        vals = [float(x) for x in line.split()]
-        r[i] = vals[0]
-        sigma[i] = vals[1]/ ic.GU
-axes['d'].plot(r* ic.DU2CM * 1e-8, sigma * ic.MU2GM / ic.DU2CM**2 * 1e-3, '-', color="black", linewidth=1.0, zorder = 50)
-
-Visc5.f(1,ic.MP, ic.RP,t=0.0)
+#Visc5.f(1,ic.MP, ic.RP,t=0.0)
 #print(f'nu = {Visc5.nu[599], nu[599]} m^2 s^-1')
 
 figure.tight_layout()

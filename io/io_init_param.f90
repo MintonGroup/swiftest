@@ -53,7 +53,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,     &
      out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-     encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
+     encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny,ring_outfile)
 
 ! Modules
      USE module_parameters
@@ -66,9 +66,10 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
      INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out
      REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-     REAL(DP), INTENT(OUT),OPTIONAL :: mtiny
      CHARACTER(*), INTENT(IN)  :: inparfile
      CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, out_stat
+     REAL(DP), INTENT(OUT),OPTIONAL :: mtiny
+     CHARACTER(*), INTENT(OUT),OPTIONAL :: ring_outfile
 
 ! Internals
      LOGICAL(LGT)            :: t0_set, tstop_set, dt_set
@@ -108,6 +109,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      lbig_discard = .FALSE.
      lrhill_present = .FALSE.
      mtiny = -1.0_DP
+     ring_outfile = ""
      WRITE(*, 100, ADVANCE = "NO") "Parameter data file is "
      WRITE(*, 100) inparfile
      WRITE(*, *) " "
@@ -304,6 +306,12 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          IF (PRESENT(mtiny)) READ(token, *) mtiny
+
+                    CASE ("RING_OUTFILE")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         ring_outfile = token
                     CASE DEFAULT
                          WRITE(*, 100, ADVANCE = "NO") "Unknown parameter -> "
                          WRITE(*, *) token
@@ -411,6 +419,17 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
          ELSE
             WRITE(*, 100, ADVANCE = "NO") "MTINY          = "
             WRITE(*, *) mtiny    
+         END IF
+     END IF
+
+     IF (PRESENT(ring_outfile)) THEN
+         IF (ring_outfile == "") THEN
+            write(*,*) "RING_OUTFILE not in parameter input"
+            ierr = -1
+         ELSE
+            WRITE(*, 100, ADVANCE = "NO") "RING_OUTFILE    = "
+            ilength = LEN_TRIM(ring_outfile)
+            WRITE(*, *) ring_outfile(1:ilength) 
          END IF
      END IF
             

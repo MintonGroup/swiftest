@@ -166,7 +166,6 @@ print(f'BIN_OUT        bin.dat')
 print(f'OUT_TYPE       REAL8')
 print(f'OUT_FORM       EL')
 print(f'OUT_STAT       NEW')
-print(f'ISTEP_DUMP     {iout:d}')
 print(f'J2             {J2}')
 print(f'J4             {J4}')
 print(f'CHK_CLOSE      yes')
@@ -184,6 +183,8 @@ print(f'MU2GM          {MU2GM}')
 print(f'DU2CM          {DU2CM}')
 print(f'TU2S           {TU2S}')
 print(f'MTINY          {mtiny}')
+print(f'RING_OUTFILE   ring.dat')
+
 
 
 sys.stdout = sys.__stdout__

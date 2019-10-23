@@ -12,7 +12,6 @@ BIN_OUT        bin.dat
 OUT_TYPE       REAL8
 OUT_FORM       EL
 OUT_STAT       NEW
-ISTEP_DUMP     1
 J2             0.0
 J4             0.0
 CHK_CLOSE      yes
@@ -30,3 +29,4 @@ MU2GM          1000.0
 DU2CM          100.0
 TU2S           1.0
 MTINY          1e-08
+RING_OUTFILE   ring.dat
