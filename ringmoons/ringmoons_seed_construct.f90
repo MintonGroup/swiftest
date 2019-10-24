@@ -45,7 +45,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       integer(I4B),parameter              :: MAXSEEDS = 500000 ! Maximum possible number of seeds
       real(DP),dimension(MAXSEEDS)        :: a 
       real(DP)                            :: rhill,mseed
-      real(DP),parameter                  :: spacing_factor = 4.0_DP
+      real(DP),parameter                  :: spacing_factor = 10.0_DP
 
 ! Executable code
       
@@ -54,9 +54,8 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       iend = ring%N
       N = 1
       a(N) = ring%r(iFRL)
-      mseed = 10 * ring%Gm_pdisk
+      mseed = 1e3 * ring%Gm_pdisk
       do
-         write(*,*) N,a(N) / swifter_pl1P%radius
          rhill = a(N) * (mseed / (3 * swifter_pl1P%mass))**(1._DP / 3._DP)
          a(N + 1) = a(N) + spacing_factor * rhill
          if (a(N + 1)  > ring%router(iend)) exit
@@ -68,8 +67,6 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       seeds%N = N
       seeds%a(:) = a(1:N)
       seeds%m(:) = mseed
-      write(*,*) N,' seeds created'
-      read(*,*)
        
       return
 
