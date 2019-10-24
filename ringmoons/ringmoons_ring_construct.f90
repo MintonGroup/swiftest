@@ -62,13 +62,12 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
          ring%X2(i) = ring%X(i)**2
 
          ! Convert X to r
-         rlo = 0.5_DP * Xlo**2
-         rhi = 0.5_DP * Xhi**2
+         rlo = (0.5_DP * Xlo)**2
+         rhi = (0.5_DP * Xhi)**2
          deltar = rhi - rlo
          ring%r(i) = (0.5_DP * ring%X(i))**2
          ring%rinner(i) = rlo
          ring%router(i) = rhi
-
          if ((ring%RRL >= rlo) .and. (ring%RRL < rhi)) ring%iRRL = i
          if ((ring%FRL >= rlo) .and. (ring%FRL < rhi)) ring%iFRL = i
         

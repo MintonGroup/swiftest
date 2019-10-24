@@ -59,7 +59,7 @@ FRL = 2.456 * RP * (rhoP / rho_pdisk)**(1./3.)
 RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 
 r_I	= 0.999 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 2 * FRL  #outside radius of disk
+r_F	= 1.2 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
