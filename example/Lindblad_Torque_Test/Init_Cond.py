@@ -24,7 +24,8 @@ t_print = 1.e6 * year / TU2S #output interval to print results
 deltaT	= 1.e6 * year / TU2S  #timestep simulation
 end_sim = 720.e6 * year / TU2S + deltaT #end time
 
-N   = 240           #number of bins in disk
+Nbins    = 240           #number of bins in disk
+Nseeds   = 1000         #initial number of seeds
 
 
 ###***Define initial conditions***###
@@ -70,8 +71,8 @@ m_pdisk = (4.0 * np.pi*r_pdisk**3)/3.0 * rho_pdisk   #disk particle size (mass i
 # gamma	= 0.3	    #ang momentum efficiency factor
 inside = 0  #bin id of innermost ring bin (can increase if primary accretes a lot mass through 'Update.py'
 
-deltar = (r_F - r_I) / N	#width of a bin
-deltaX = (2 * np.sqrt(r_F) - 2 * np.sqrt(r_I)) / N  #variable changed bin width used for viscosity calculations
+deltar = (r_F - r_I) / Nbins	#width of a bin
+deltaX = (2 * np.sqrt(r_F) - 2 * np.sqrt(r_I)) / Nbins  #variable changed bin width used for viscosity calculations
 r = []
 deltaA = []
 m = []
@@ -88,7 +89,7 @@ def f(x):
     sigma_peak = 1.2e4  # scale factor to get a given mass
 
     #Creates initial values for the disk and prints them out
-    for a in range(int(N)):
+    for a in range(int(Nbins)):
         X.append(2 * np.sqrt(r_I) + deltaX * (a + 0.5))
         r.append((0.5 * X[a])**2)
         deltar = (0.5 * (X[a] + deltaX))**2 - (0.5 * X[a])**2
@@ -119,11 +120,11 @@ f(0) #Make a power law ring
 
 
 outfile = open('ring.in', 'w')
-print(N, file=outfile)
+print(Nbins,Nseeds, file=outfile)
 print(r_I, r_F, file=outfile)
 print(r_pdisk, GU * m_pdisk, file=outfile)
 
-for a in range(int(N)):
+for a in range(int(Nbins)):
     print(GU * sigma[a],file=outfile)
 
 plfile = open('pl.in', 'w')

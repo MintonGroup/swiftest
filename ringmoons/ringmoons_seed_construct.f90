@@ -38,7 +38,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
 ! Arguments
       type(swifter_pl),pointer :: swifter_pl1P
       type(ringmoons_ring), intent(in) :: ring
-      type(ringmoons_sat), intent(inout) :: seeds
+      type(ringmoons_seeds), intent(inout) :: seeds
 
 ! Internals
       integer(I4B)                        :: N,iFRL,iend

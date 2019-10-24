@@ -31,12 +31,13 @@ module module_ringmoons_interfaces
 
 
       interface
-         subroutine ringmoons_io_init_ring(swifter_pl1P,ring)
+         subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
             use module_parameters
             use module_ringmoons
             implicit none
             type(swifter_pl),pointer :: swifter_pl1P
             type(ringmoons_ring),intent(inout) :: ring
+            type(ringmoons_seeds),intent(inout)  :: seeds
          end subroutine ringmoons_io_init_ring
       end interface
 
@@ -143,7 +144,7 @@ module module_ringmoons_interfaces
          implicit none
          type(swifter_pl),pointer :: swifter_pl1P
          type(ringmoons_ring),intent(in) :: ring
-         type(ringmoons_sat),intent(inout) :: seeds
+         type(ringmoons_seeds),intent(inout) :: seeds
          end subroutine ringmoons_seed_construct
       end interface
 

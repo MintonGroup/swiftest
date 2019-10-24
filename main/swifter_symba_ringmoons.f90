@@ -92,7 +92,7 @@ PROGRAM swifter_symba_ringmoons
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
 
      TYPE(ringmoons_ring) :: ring
-     TYPE(ringmoons_sat) :: seeds
+     TYPE(ringmoons_seeds) :: seeds
 
 ! Executable code
      CALL util_version
@@ -130,7 +130,7 @@ PROGRAM swifter_symba_ringmoons
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
 
      !Read in RING-MOONS parameters and data
-     call ringmoons_io_init_ring(swifter_pl1P,ring)
+     call ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
      call ringmoons_ring_construct(swifter_pl1P,ring)
      call ringmoons_viscosity(ring)
      call ringmoons_seed_construct(swifter_pl1P,ring,seeds) 

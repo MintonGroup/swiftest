@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-subroutine ringmoons_io_init_ring(swifter_pl1P,ring)
+subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
 
 ! Modules
       use module_parameters
@@ -37,6 +37,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring)
 ! Arguments
       type(swifter_pl),pointer            :: swifter_pl1P
       type(ringmoons_ring),intent(inout) :: ring
+      type(ringmoons_seeds),intent(inout) :: seeds
 
 ! Internals
       character(STRMAX)                  :: ringfile
@@ -47,7 +48,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring)
 ! Executable code
       ringfile='ring.in'
       open(unit=LUN,file=ringfile,status='old',iostat=ioerr)
-      read(LUN,*) ring%N
+      read(LUN,*) ring%N, seeds%N
       read(LUN,*) ring%r_I, ring%r_F
       read(LUN,*) ring%r_pdisk,ring%Gm_pdisk
       call ringmoons_allocate(ring)

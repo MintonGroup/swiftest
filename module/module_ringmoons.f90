@@ -58,11 +58,11 @@ module module_ringmoons
       real(DP), dimension(:), allocatable :: torque_to_disk    ! total satellite torque acting on the ring bin
    end type ringmoons_ring
 
-   type ringmoons_sat ! Satellite "seeds" that eventually turn into SyMBA massive bodies
+   type ringmoons_seeds ! Satellite "seeds" that eventually turn into SyMBA massive bodies
       integer(I4B) :: N                   ! Number of satellite seeds
       real(DP), dimension(:), allocatable :: a     ! Semimajor axis
       real(DP), dimension(:), allocatable :: m     ! mass
-   end type ringmoons_sat
+   end type ringmoons_seeds
 
 
 end module module_ringmoons
