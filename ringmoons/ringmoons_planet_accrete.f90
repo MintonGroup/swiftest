@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-    subroutine ringmoons_planet_accrete(swifter_pl1P,ring)
+    subroutine ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
 
 ! Modules
       use module_parameters
@@ -38,13 +38,18 @@
 ! Arguments
       type(swifter_pl),pointer :: swifter_pl1P
       type(ringmoons_ring),intent(inout) :: ring
+      type(ringmoons_seeds),intent(inout) :: seeds
 
 ! Internals
-      integer(I4B) :: i,iin
-      real(DP) :: rlo,rhi,GM_Planet
+      integer(I4B) :: i,j,iin
+      real(DP) :: rlo,rhi,GMP, RP,rhoP, Mratio, Rratio, Mratiosqrt,MratioHill
       real(DP) :: Lplanet, Lring, Ltot
       real(DP),dimension(1:ring%N) :: rhill
      
+! Executable code
+      ! Save original mass and radius to use later
+      Mratio = swifter_pl1P%mass
+      Rratio = swifter_pl1P%radius
       do 
          iin = ring%inside
          do i = 1,iin 
@@ -63,13 +68,40 @@
          if (ring%rinner(iin) > swifter_pl1P%radius) exit !Find out if we need to update the inside bin
          ring%inside = ring%inside + 1
       end do
-      GM_Planet = swifter_pl1P%mass
+      Mratio = swifter_pl1P%mass / Mratio
+      Rratio = swifter_pl1P%radius / Rratio
+      Mratiosqrt = sqrt(Mratio)
+      MratioHill = Mratio**(-1._DP / 3._DP)
       ! update body-dependent parameters as needed
-      ring%w = sqrt(GM_Planet / ring%r**3)
-      rhill = ring%r * (2 * ring%Gm_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP) ! See Salmon et al. 2010 for this
-      ring%r_hstar = rhill / (2 * ring%r_pdisk)   
+      !$OMP PARALLEL WORKSHARE SHARED(Mratiosqrt,MratioHill)
+      ring%w(:) = ring%w(:) * Mratiosqrt
+      ring%r_hstar(:) = ring%r_hstar(:) * MRatioHill
+      !$OMP END PARALLEL WORKSHARE
+      ring%FRL = ring%FRL * Rratio
+      ring%RRL = ring%RRL * Rratio 
 
-! Executable code
+
+      ! Adjust bin locations of RLs as necessary
+      iin = ring%iRRL 
+      do i = iin,ring%N
+         if (ring%RRL < ring%router(i)) exit
+         ring%iRRL = i
+      end do
+
+      iin = ring%iFRL 
+      do i = iin,ring%N
+         if (ring%FRL < ring%router(i)) exit
+         ring%iFRL = i
+      end do
+
+      !$OMP PARALLEL WORKSHARE SHARED(MratioHill)
+      seeds%Rhill(:) = seeds%Rhill(:) *  MratioHill
+      !$OMP END PARALLEL WORKSHARE
+
+      
+      return
+         
+
 
       
 

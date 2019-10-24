@@ -27,7 +27,7 @@
 !  Notes       : Adapted from Andy Hesselbrock's RING-MOONS Python scripts
 !
 !**********************************************************************************************************************************
-subroutine ringmoons_step(swifter_pl1P,ring,dtin,lfirst)
+subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst)
 
 ! Modules
      use module_parameters
@@ -39,7 +39,8 @@ subroutine ringmoons_step(swifter_pl1P,ring,dtin,lfirst)
 ! Arguments
      type(swifter_pl), pointer                        :: swifter_pl1P
      real(DP), intent(in)                             :: dtin
-     type(ringmoons_ring),intent(inout) :: ring
+     type(ringmoons_ring),intent(inout)               :: ring
+     type(ringmoons_seeds),intent(inout)              :: seeds
      logical(LGT), intent(inout)                      :: lfirst
 
 ! Internals
@@ -66,7 +67,7 @@ subroutine ringmoons_step(swifter_pl1P,ring,dtin,lfirst)
          call ringmoons_sigma_solver(ring,dt)
          ring%Gm = ring%Gsigma * ring%deltaA
          ring%Iz = 0.5_DP * ring%Gm / GU * (ring%rinner**2 + ring%router**2)
-         call ringmoons_planet_accrete(swifter_pl1P,ring)
+         call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
          dtleft = dtleft - dt
          if (dtleft <= 0.0_DP) exit
       end do 

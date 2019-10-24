@@ -25,7 +25,7 @@ deltaT	= 1.e6 * year / TU2S  #timestep simulation
 end_sim = 720.e6 * year / TU2S + deltaT #end time
 
 Nbins    = 240           #number of bins in disk
-Nseeds   = 1000         #initial number of seeds
+Nseeds   = 10000         #initial number of seeds
 
 
 ###***Define initial conditions***###
@@ -83,9 +83,7 @@ I = []
 R = []
 Torque_to_disk = []
 
-def f(x):
-    centroid = RRL  # radius of the center of the gaussian
-    spread = 10e5 # width of the gaussian
+def f():
     sigma_peak = 1.2e4  # scale factor to get a given mass
 
     #Creates initial values for the disk and prints them out
@@ -95,28 +93,17 @@ def f(x):
         deltar = (0.5 * (X[a] + deltaX))**2 - (0.5 * X[a])**2
         deltaA.append(2*np.pi*r[a]*deltar)
 
-        #Power law surface mass density profile
-        if x == 0:
-            if r[a] < FRL:
-                sigma.append(sigma_peak * (r[a] / RP)**(-3))
-            else:
-                sigma.append(0.0)
-            m.append(sigma[a] * deltaA[a])
-        #Gaussian surface mass density profile
-        elif x == 1:
-            if r[a] < FRL:
-                sigma.append(sigma_peak * np.exp(-(r[a]-centroid)**2/(2*spread**2)))
-            else:
-                sigma.append(0.0)
-            m.append(sigma[a]*deltaA[a])
+        if a == Nbins - 1:
+            sigma.append(0.0)
         else:
-            print('You have not chosen a valid disk model')
+            sigma.append(sigma_peak * (r[a] / RP) ** (-3))
+        m.append(sigma[a] * deltaA[a])
         R.append(r[a]**2 + deltar**2/4)
         I.append(m[a]*R[a])
         w.append((GU*MP/r[a]**3)**0.5)
         Torque_to_disk.append(0.0)
 
-f(0) #Make a power law ring
+f() #Make a power law ring
 
 
 outfile = open('ring.in', 'w')

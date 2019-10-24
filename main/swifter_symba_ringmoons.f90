@@ -151,11 +151,11 @@ PROGRAM swifter_symba_ringmoons
      NULLIFY(symba_pld1P, symba_tpd1P)
       if (istep_out > 0) then
          CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
-         call ringmoons_io_write_frame(t, ring, ring_outfile, out_stat = "NEW")
+         call ringmoons_io_write_frame(t, ring, seeds, ring_outfile, out_stat = "NEW")
       end if
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE (t < tstop) 
-          CALL ringmoons_step(swifter_pl1P,ring,dt,lrmfirst)
+          CALL ringmoons_step(swifter_pl1P,ring,seeds,dt,lrmfirst)
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
                mtiny, encounter_file, out_type)
@@ -187,7 +187,7 @@ PROGRAM swifter_symba_ringmoons
                     WRITE(*, 200) t, tfrac, npl, ntp
  200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
                     CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
-                    call ringmoons_io_write_frame(t, ring, ring_outfile, out_stat = "APPEND")
+                    call ringmoons_io_write_frame(t, ring, seeds, ring_outfile, out_stat = "APPEND")
                     iout = istep_out
                END IF
           END IF

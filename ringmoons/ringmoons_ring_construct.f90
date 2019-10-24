@@ -51,8 +51,8 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
       ring%nu = 0.0_DP
       ring%deltaX = (2 * sqrt(ring%r_F) - 2 * sqrt(ring%r_I)) / ring%N
       ring%rho_pdisk = ring%Gm_pdisk / ((4.0_DP / 3.0_DP) * PI * ring%r_pdisk**3)
-      ring%FRL = 2.456 * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
-      ring%RRL = 1.44  * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
+      ring%FRL = 2.456_DP * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
+      ring%RRL = 1.44_DP  * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
       do i = 1,ring%N
          ! Set up X coordinate system (see Bath & Pringle 1981)
          Xlo = 2 * sqrt(ring%r_I) + ring%deltaX * (1._DP * i - 1._DP)

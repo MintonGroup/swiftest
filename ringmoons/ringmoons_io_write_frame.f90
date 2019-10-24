@@ -29,7 +29,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton
 !**********************************************************************************************************************************
-subroutine ringmoons_io_write_frame(t, ring, ring_outfile, out_stat)
+subroutine ringmoons_io_write_frame(t, ring, seeds, ring_outfile, out_stat)
 
    ! modules
    use module_parameters
@@ -40,6 +40,7 @@ subroutine ringmoons_io_write_frame(t, ring, ring_outfile, out_stat)
    ! arguments
    real(DP), intent(in)            :: t
    type(ringmoons_ring),intent(in) :: ring
+   type(ringmoons_seeds),intent(in) :: seeds
    character(*), intent(in)  :: ring_outfile, out_stat
 
    ! internals
@@ -81,6 +82,9 @@ subroutine ringmoons_io_write_frame(t, ring, ring_outfile, out_stat)
    write(iu, iostat = ierr) ring%r
    write(iu, iostat = ierr) ring%Gsigma
    write(iu, iostat = ierr) ring%nu
+   write(iu, iostat = ierr) seeds%N
+   write(iu, iostat = ierr) seeds%a
+   write(iu, iostat = ierr) seeds%Gm
    close(unit = iu, iostat = ierr)
    if (ierr /= 0) then
        write(*, *) "RINGMOONS error:"

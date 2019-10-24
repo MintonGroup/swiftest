@@ -59,6 +59,7 @@ subroutine ringmoons_allocate(ring,seeds)
       allocate(seeds%a(seeds%N))
       allocate(seeds%Gm(seeds%N))
       allocate(seeds%Rhill(seeds%N))
+      allocate(seeds%rbin(seeds%N))
       
 
       return
