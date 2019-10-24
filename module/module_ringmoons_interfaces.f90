@@ -139,13 +139,14 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_seed_construct(swifter_pl1P,ring)
+         subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
          type(swifter_pl),pointer :: swifter_pl1P
-         type(ringmoons_ring),intent(inout) :: ring
+         type(ringmoons_ring),intent(in) :: ring
+         type(ringmoons_sat),intent(inout) :: seeds
          end subroutine ringmoons_seed_construct
       end interface
 

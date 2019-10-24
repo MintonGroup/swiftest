@@ -41,13 +41,18 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
 
 ! Internals
       integer(I4B)                        :: i
-      real(DP)                            :: GM_Planet,Xlo,Xhi,rlo,rhi,rhill,deltar
+      real(DP)                            :: Xlo,Xhi,rlo,rhi,rhill,deltar
+      real(DP)                            :: GMP, RP, rhoP
 
 ! Executable code
-      GM_Planet = swifter_pl1P%mass
+      GMP = swifter_pl1P%mass
+      RP  = swifter_pl1P%radius
+      rhoP = GMP / ((4.0_DP / 3.0_DP) * PI * RP**3)
       ring%nu = 0.0_DP
       ring%deltaX = (2 * sqrt(ring%r_F) - 2 * sqrt(ring%r_I)) / ring%N
-      ring%rho_pdisk = ring%Gm_pdisk / GU / ((4.0_DP / 3.0_DP) * PI * ring%r_pdisk)
+      ring%rho_pdisk = ring%Gm_pdisk / ((4.0_DP / 3.0_DP) * PI * ring%r_pdisk**3)
+      ring%FRL = 2.456 * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
+      ring%RRL = 1.44  * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
       do i = 1,ring%N
          ! Set up X coordinate system (see Bath & Pringle 1981)
          Xlo = 2 * sqrt(ring%r_I) + ring%deltaX * (1._DP * i - 1._DP)
@@ -63,6 +68,9 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
          ring%r(i) = (0.5_DP * ring%X(i))**2
          ring%rinner(i) = rlo
          ring%router(i) = rhi
+
+         if ((ring%RRL >= rlo) .and. (ring%RRL < rhi)) ring%iRRL = i
+         if ((ring%FRL >= rlo) .and. (ring%FRL < rhi)) ring%iFRL = i
         
          ! Factors to convert surface mass density into mass 
          ring%deltaA(i) = 2 * PI * deltar * ring%r(i)
@@ -70,10 +78,10 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
       
          ! Moment of inertia of the ring bin
          ring%Iz(i) = 0.5_DP * ring%Gm(i) / GU * (rlo**2 + rhi**2)
-         ring%w(i) = sqrt(GM_Planet / ring%r(i)**3)
+         ring%w(i) = sqrt(GMP / ring%r(i)**3)
 
          ring%Torque_to_disk(i) = 0.0_DP
-         rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GM_Planet))**(1._DP/3._DP) ! See Salmon et al. 2010 for this
+         rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GMP))**(1._DP/3._DP) ! See Salmon et al. 2010 for this
          ring%r_hstar(i) = rhill / (2 * ring%r_pdisk)  
       end do
 

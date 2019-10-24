@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-subroutine ringmoons_seed_construct(swifter_pl1P,ring)
+subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
 
 ! Modules
       use module_parameters
@@ -37,33 +37,37 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring)
 
 ! Arguments
       type(swifter_pl),pointer :: swifter_pl1P
-      type(ringmoons_ring), intent(inout) :: ring
+      type(ringmoons_ring), intent(in) :: ring
+      type(ringmoons_sat), intent(inout) :: seeds
 
 ! Internals
-      integer(I4B)                        :: i
+      integer(I4B)                        :: N,iFRL,iend
+      integer(I4B),parameter              :: MAXSEEDS = 100000 ! Maximum possible number of seeds
+      real(DP),dimension(MAXSEEDS)        :: a 
+      real(DP)                            :: rhill
+      real(DP),parameter                  :: spacing_factor = 4.0_DP
 
 ! Executable code
-
       
 !#initial list of satellites
-!    x = r[i_rigid]      #location at edge of disk
-!    while x < r[int(N-1)]:    #run until the distance is larger than the extent of the bins for the disk
-!        Sat_M.append(0.0)
-!        Sat_r.append(x)         #put a placeholder for a satellite at this location
-!        Sat_r_default.append(x)
-!        Sat_v.append(sqrt(G*M/x))
-!        Sat_e.append(eccentricity())
-!        # Sat_time.append(0.0)
-!        Sat_w.append(sqrt(G*M/x**3.))
-!        # Sat_v.append(0.0)
-!        Sat_Rad.append(r_pdisk) #inital satellite size is that of a disk particle
-!        rhill.append(x*(m_pdisk/(M*3.))**(1./3.))   #hill radius for disk particle at this location
-!        hill = 4.0*x*(m_pdisk/(M*3.))**(1./3.)  #4*hill radius for a disk particle at location x
-!        x = x + hill    #advance location to hill (like embryo spacing)
-!
-
-
-
+      iFRL = ring%iFRL 
+      iend = ring%N
+      N = 1
+      a(N) = ring%r(iFRL)
+      do
+         rhill = a(N) * (ring%Gm_pdisk / (3 * swifter_pl1P%mass))**(1._DP / 3._DP)
+         a(N + 1) = a(i) + spacing_factor * rhill
+         if (a(N + 1)  > ring%router(iend)) exit
+         N = N + 1
+      end do
+      allocate(seeds%a(N))
+      allocate(seeds%m(N))
+      seeds%N = N
+      seeds%a(:) = a(1:N)
+      seeds%m(:) = ring%Gm_pdisk
+      write(*,*) N,' seeds created'
+      read(*,*)
+       
       return
 
 end subroutine ringmoons_seed_construct

@@ -24,6 +24,8 @@
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
+!  Author(s)   : David A. Minton  
+!**********************************************************************************************************************************
 subroutine ringmoons_io_init_ring(swifter_pl1P,ring)
 
 ! Modules
@@ -56,31 +58,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring)
          end if
       end do
 
-      call ringmoons_ring_construct(swifter_pl1P,ring)
-      call ringmoons_viscosity(ring)
-      call ringmoons_seed_construct(swifter_pl1P,ring)
-   
-
-
 
       return
 
 end subroutine ringmoons_io_init_ring
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David A. Minton  
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
