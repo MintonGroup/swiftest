@@ -75,7 +75,7 @@ PROGRAM swifter_symba_ringmoons
      CHARACTER(STRMAX) :: ring_outfile   ! Name of ringmoons output binary file
 
 ! Internals
-     LOGICAL(LGT)                                      :: lfirst
+     LOGICAL(LGT)                                      :: lfirst,lrmfirst
      INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, iloop
      INTEGER(I4B)                                      :: nplplenc, npltpenc, nmergeadd, nmergesub
      REAL(DP)                                          :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
@@ -137,6 +137,7 @@ PROGRAM swifter_symba_ringmoons
 
      !Set up integration
      lfirst = .TRUE.
+     lrmfirst = .true.
      ntp0 = ntp
      t = t0
      tbase = t0
@@ -154,7 +155,7 @@ PROGRAM swifter_symba_ringmoons
       end if
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE (t < tstop) 
-          CALL ringmoons_step(lfirst, t, rmin, npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt, ring)
+          CALL ringmoons_step(swifter_pl1P,ring,dt,lrmfirst)
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
                mtiny, encounter_file, out_type)

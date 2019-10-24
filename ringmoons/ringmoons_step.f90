@@ -9,55 +9,67 @@
 !  Description : Step the fluid ring in time
 !
 !  Input
+!    Arguments   swifter_pl1P   : pointer to head of Swifter planet structure linked-list
+!                ring           : Ringmoons data structure
+!                dtin           : input time step
 !    Arguments : lfirst         : logical flag indicating whether current invocation is the first
-!                t              : time
-!                npl            : number of planets
-!                nplmax         : maximum allowed number of planets
-!                symba_pl1P     : pointer to head of SyMBA planet structure linked-list
-!                j2rp2          : J2 * R**2 for the Sun
-!                j4rp4          : J4 * R**4 for the Sun
-!                dt             : time step
 !    Terminal  : none
 !    File      : none
 !
 !  Output
 !    Arguments : lfirst         : logical flag indicating whether current invocation is the first
-!                symba_pl1P     : pointer to head of SyMBA planet structure linked-list
-!                eoffset        : energy offset (net energy lost to ring)
+!                ring           : Updated ring
 !    Terminal  : error message
 !    File      : none
 !
-!  Invocation  : CALL ringmoons_step(lfirst, t, npl, nplmax, ntp, ntpmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt)
+!  Invocation  : CALL ringmoons_step(swifter_pl1P,ring,dtin,lfirst)
 !
 !  Notes       : Adapted from Andy Hesselbrock's RING-MOONS Python scripts
 !
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_step(lfirst, t, rmin,npl, nplmax, symba_pl1P, j2rp2, j4rp4, eoffset, dt,ring)
+subroutine ringmoons_step(swifter_pl1P,ring,dtin,lfirst)
 
 ! Modules
-     USE module_parameters
-     USE module_symba
-     USE module_swifter
-     USE module_ringmoons
-     USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_step
-     IMPLICIT NONE
+     use module_parameters
+     use module_swifter
+     use module_ringmoons
+     use module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_step
+     implicit none
 
 ! Arguments
-     LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
-     INTEGER(I4B), INTENT(IN)                         :: npl, nplmax
-     REAL(DP), INTENT(IN)                             :: t, rmin,j2rp2, j4rp4, dt
-     REAL(DP), INTENT(INOUT)                          :: eoffset
-     TYPE(symba_pl), POINTER                          :: symba_pl1P
-     TYPE(ringmoons_ring),INTENT(INOUT) :: ring
+     type(swifter_pl), pointer                        :: swifter_pl1P
+     real(DP), intent(in)                             :: dtin
+     type(ringmoons_ring),intent(inout) :: ring
+     logical(LGT), intent(inout)                      :: lfirst
+
 ! Internals
-      TYPE(swifter_pl), POINTER                          :: swifter_pl1P
-      integer(I4B) :: i
-      real(DP),parameter :: s2y = 365.25_DP * 24 * 60 * 60
+      integer(I4B) :: i,loop
+      real(DP) :: dtstab,dtleft,dt
+      real(DP),save :: GM_Planet
 
 ! Executable code
       !if (lfirst) then
-      swifter_pl1P => symba_pl1P%helio%swifter
-      call ringmoons_sigma_solver(swifter_pl1P,ring,dt)
+      dtleft = dtin
+      !TESTING
+         if (lfirst) then
+            GM_Planet = swifter_pl1P%mass
+            lfirst = .false.
+         end if
+         call ringmoons_viscosity(ring)
+         dtstab = ring%stability_factor / maxval(ring%nu)
+         write(*,*) dtstab,ceiling(dtin/dtstab),(sum(ring%Gm) + (swifter_pl1P%mass - GM_Planet)) / GU
+      !^^^^^^^^  
+      do loop = 1, LOOPMAX
+         call ringmoons_viscosity(ring)
+         dtstab = ring%stability_factor / maxval(ring%nu)
+         dt = min(dtleft,dtstab)
+         call ringmoons_sigma_solver(ring,dt)
+         ring%Gm = ring%Gsigma * ring%deltaA
+         ring%Iz = 0.5_DP * ring%Gm / GU * (ring%rinner**2 + ring%router**2)
+         call ringmoons_planet_accrete(swifter_pl1P,ring)
+         dtleft = dtleft - dt
+         if (dtleft <= 0.0_DP) exit
+      end do 
 
 
       RETURN

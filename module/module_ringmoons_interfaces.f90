@@ -53,29 +53,26 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_step(lfirst, t, rmin, npl, nplmax, symba_pl1p, j2rp2, j4rp4, eoffset, dt,ring)
+         subroutine ringmoons_step(swifter_pl1P,ring,dtin,lfirst)
             use module_parameters
-            use module_symba
+            use module_swifter
             use module_ringmoons
             implicit none
-            logical(lgt), intent(inout)                      :: lfirst
-            integer(I4B), intent(in)                         :: npl, nplmax
-            real(DP), intent(in)                             :: t, rmin, j2rp2, j4rp4, dt
-            real(DP), intent(inout)                          :: eoffset
-            type(symba_pl), pointer                          :: symba_pl1p
-            type(ringmoons_ring),intent(inout) :: ring
+            type(swifter_pl), pointer                        :: swifter_pl1P
+            real(DP), intent(in)                             :: dtin
+            type(ringmoons_ring),intent(inout)               :: ring
+            logical(LGT), intent(inout)                      :: lfirst
          end subroutine ringmoons_step 
       end interface
 
       interface
-         subroutine ringmoons_sigma_solver(swifter_pl1P,ring,dtin)
+         subroutine ringmoons_sigma_solver(ring,dt)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
-         type(swifter_pl),pointer :: swifter_pl1P
          type(ringmoons_ring),intent(inout) :: ring
-         real(DP),intent(in) :: dtin
+         real(DP),intent(in) :: dt
          end subroutine ringmoons_sigma_solver
       end interface
 
