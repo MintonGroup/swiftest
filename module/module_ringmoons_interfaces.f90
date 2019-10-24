@@ -78,20 +78,22 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_allocate(ring)
+         subroutine ringmoons_allocate(ring,seeds)
          use module_parameters
          use module_ringmoons
          implicit none
          type(ringmoons_ring),intent(inout) :: ring
+         type(ringmoons_seeds),intent(inout) :: seeds
          end subroutine ringmoons_allocate
       end interface
 
       interface
-         subroutine ringmoons_deallocate(ring)
+         subroutine ringmoons_deallocate(ring,seeds)
          use module_parameters
          use module_ringmoons
          implicit none
          type(ringmoons_ring),intent(inout) :: ring
+         type(ringmoons_seeds),intent(inout) :: seeds
          end subroutine ringmoons_deallocate
       end interface
 

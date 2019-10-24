@@ -6,7 +6,9 @@
 !  Package     : io
 !  Language    : Fortran 90/95
 !
-!  Description : solves
+!  Description : Constructs the satellite seeds. Given the number of seeds, this will find the mass of each seed needed to generate
+!                seeds spaced by spacing_factor times the Hill's radius between the Fluid Roche Limit (FRL) and the outer bin of the
+!                ring
 !
 !  Input
 !    Arguments : 
@@ -41,33 +43,20 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       type(ringmoons_seeds), intent(inout) :: seeds
 
 ! Internals
-      integer(I4B)                        :: N,iFRL,iend
-      integer(I4B),parameter              :: MAXSEEDS = 500000 ! Maximum possible number of seeds
-      real(DP),dimension(MAXSEEDS)        :: a 
-      real(DP)                            :: rhill,mseed
-      real(DP),parameter                  :: spacing_factor = 10.0_DP
+      integer(I4B)                        :: i,iFRL,iend
+      real(DP)                            :: rhill,mseed,dfac
 
 ! Executable code
-      
-!#initial list of satellites
-      iFRL = ring%iFRL 
-      iend = ring%N
-      N = 1
-      a(N) = ring%r(iFRL)
-      mseed = 1e3 * ring%Gm_pdisk
-      do
-         rhill = a(N) * (mseed / (3 * swifter_pl1P%mass))**(1._DP / 3._DP)
-         a(N + 1) = a(N) + spacing_factor * rhill
-         if (a(N + 1)  > ring%router(iend)) exit
-         if (N + 1 == MAXSEEDS) exit
-         N = N + 1
+   
+        
+      dfac = exp(1._DP / seeds%N * log(ring%r_F / ring%FRL)) 
+      seeds%Gminit = 3 * swifter_pl1P%mass * ((1.0_DP / FEEDING_ZONE_FACTOR) * (dfac - 1.0_DP))**3
+      do i = 1,seeds%N
+         seeds%a(i) = ring%FRL * (dfac)**(i - 1)
+         seeds%Gm(i) = seeds%Gminit
+         seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
       end do
-      allocate(seeds%a(N))
-      allocate(seeds%m(N))
-      seeds%N = N
-      seeds%a(:) = a(1:N)
-      seeds%m(:) = mseed
-       
-      return
+      write(*,*) "Number of seeds created: ",seeds%N
+      write(*,*) "Mass of seeds / mass of disk particles: ",seeds%Gminit / ring%Gm_pdisk
 
 end subroutine ringmoons_seed_construct

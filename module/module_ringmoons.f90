@@ -30,6 +30,8 @@ module module_ringmoons
    use module_symba
    implicit none
 
+   real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 4.0_DP  ! Size of the feeding zone relative to Hill's sphere
+
    type ringmoons_ring
       real(DP)     :: r_pdisk             ! disk particle radius
       real(DP)     :: Gm_pdisk            ! disk particle mass
@@ -59,9 +61,11 @@ module module_ringmoons
    end type ringmoons_ring
 
    type ringmoons_seeds ! Satellite "seeds" that eventually turn into SyMBA massive bodies
-      integer(I4B) :: N                   ! Number of satellite seeds
-      real(DP), dimension(:), allocatable :: a     ! Semimajor axis
-      real(DP), dimension(:), allocatable :: m     ! mass
+      integer(I4B)                        :: N                             ! Number of satellite seeds
+      real(DP)                            :: Gminit                        ! initial mass of seeds
+      real(DP), dimension(:), allocatable :: a                             ! Semimajor axis
+      real(DP), dimension(:), allocatable :: Gm                            ! Current seed mass
+      real(DP), dimension(:), allocatable :: Rhill                         ! Hill's sphere radius
    end type ringmoons_seeds
 
 

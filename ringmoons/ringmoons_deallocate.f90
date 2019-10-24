@@ -19,23 +19,24 @@
 !    Teringinal  : 
 !    File      : 
 !
-!  Invocation  : CALL ringmoons_deallocate(dt,ring,ring)
+!  Invocation  : CALL ringmoons_deallocate(ring,seeds)
 !
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_deallocate(ring)
+sUBROUTINE ringmoons_deallocate(ring,seeds)
 
 ! Modules
-      USE module_parameters
-      USE module_ringmoons
-      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_deallocate
-      IMPLICIT NONE
+      use module_parameters
+      use module_ringmoons
+      use module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_deallocate
+      implicit none
 
 ! Arguments
-      TYPE(ringmoons_ring),INTENT(INOUT) :: ring
+      type(ringmoons_ring),intent(inout) :: ring
+      type(ringmoons_seeds),intent(inout) :: seeds
 
 ! Internals
 
@@ -54,8 +55,12 @@ SUBROUTINE ringmoons_deallocate(ring)
       deallocate(ring%w)
       deallocate(ring%Torque_to_disk)
       deallocate(ring%r_hstar)
+
+      deallocate(seeds%a)
+      deallocate(seeds%Gm)
+      deallocate(seeds%Rhill)
       
 
-      RETURN
+      return
 
-END SUBROUTINE ringmoons_deallocate
+end subroutine ringmoons_deallocate

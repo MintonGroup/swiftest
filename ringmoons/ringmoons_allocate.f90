@@ -26,16 +26,17 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_allocate(ring)
+subroutine ringmoons_allocate(ring,seeds)
 
 ! Modules
-      USE module_parameters
-      USE module_ringmoons
-      USE module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_allocate
-      IMPLICIT NONE
+      use module_parameters
+      use module_ringmoons
+      use module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_allocate
+      implicit none
 
 ! Arguments
-      TYPE(ringmoons_ring),INTENT(INOUT) :: ring
+      type(ringmoons_ring),intent(inout) :: ring
+      type(ringmoons_seeds),intent(inout) :: seeds
 
 ! Internals
 
@@ -54,8 +55,12 @@ SUBROUTINE ringmoons_allocate(ring)
       allocate(ring%w(ring%N))
       allocate(ring%Torque_to_disk(ring%N))
       allocate(ring%r_hstar(ring%N))
+
+      allocate(seeds%a(seeds%N))
+      allocate(seeds%Gm(seeds%N))
+      allocate(seeds%Rhill(seeds%N))
       
 
-      RETURN
+      return
 
-END SUBROUTINE ringmoons_allocate
+end subroutine ringmoons_allocate
