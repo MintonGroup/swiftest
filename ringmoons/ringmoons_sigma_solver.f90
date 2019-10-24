@@ -47,12 +47,12 @@ subroutine ringmoons_sigma_solver(swifter_pl1P,ring,dtin)
 ! Executable code
       dtleft = dtin
       !TESTING
-         call ringmoons_viscosity(swifter_pl1P%mass,ring)
+         call ringmoons_viscosity(ring)
          dtstab = ring%stability_factor / maxval(ring%nu)
          write(*,*) dtstab,ceiling(dtin/dtstab),(sum(ring%Gm) + (swifter_pl1P%mass - GMURN)) / GU
       !^^^^^^^^  
       do loop = 1, LOOPMAX
-         call ringmoons_viscosity(swifter_pl1P%mass,ring)
+         call ringmoons_viscosity(ring)
          dtstab = ring%stability_factor / maxval(ring%nu)
          dt = min(dtleft,dtstab)
          S(0:ring%inside - 1) = 0.0_DP

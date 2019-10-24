@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-SUBROUTINE ringmoons_viscosity(GM_Planet,ring)
+SUBROUTINE ringmoons_viscosity(ring)
 
 ! Modules
       USE module_parameters
@@ -35,17 +35,15 @@ SUBROUTINE ringmoons_viscosity(GM_Planet,ring)
       IMPLICIT NONE
 
 ! Arguments
-      real(DP),intent(in) :: GM_Planet
       TYPE(ringmoons_ring),INTENT(INOUT) :: ring
 
 ! Internals
       real(DP) :: Q,tau,sigma_r,kappa,eta,Gsigma
       integer(I4B) :: i
       real(DP) :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable,y,nu_trans,nu_grav,nu_coll
-   
 
 ! Executable code
-
+   
    !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
    !$OMP SHARED(ring)
    do i = 1, ring%N 

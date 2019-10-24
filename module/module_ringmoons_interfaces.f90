@@ -31,11 +31,11 @@ module module_ringmoons_interfaces
 
 
       interface
-         subroutine ringmoons_io_init_ring(GM_Planet,R_Planet,ring)
+         subroutine ringmoons_io_init_ring(swifter_pl1P,ring)
             use module_parameters
             use module_ringmoons
             implicit none
-            real(DP),intent(in)     :: GM_Planet,R_Planet 
+            type(swifter_pl),pointer :: swifter_pl1P
             type(ringmoons_ring),intent(inout) :: ring
          end subroutine ringmoons_io_init_ring
       end interface
@@ -98,11 +98,11 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_viscosity(GM_Planet,ring)
+         subroutine ringmoons_viscosity(ring)
          use module_parameters
+         use module_swifter
          use module_ringmoons
          implicit none
-         real(DP),intent(in) :: GM_Planet
          type(ringmoons_ring),intent(inout) :: ring
          end subroutine ringmoons_viscosity
       end interface
@@ -121,10 +121,32 @@ module module_ringmoons_interfaces
          use module_parameters
          use module_swifter
          use module_ringmoons
-         implicit NONE
+         implicit none
          type(swifter_pl),pointer :: swifter_pl1P
          type(ringmoons_ring),intent(inout) :: ring
          end subroutine ringmoons_planet_accrete
+      end interface
+
+      interface
+         subroutine ringmoons_ring_construct(swifter_pl1P,ring)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer :: swifter_pl1P
+         type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_ring_construct
+      end interface
+
+      interface
+         subroutine ringmoons_seed_construct(swifter_pl1P,ring)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer :: swifter_pl1P
+         type(ringmoons_ring),intent(inout) :: ring
+         end subroutine ringmoons_seed_construct
       end interface
 
 

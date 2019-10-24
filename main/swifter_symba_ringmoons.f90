@@ -129,7 +129,7 @@ PROGRAM swifter_symba_ringmoons
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
 
      !Read in RING-MOONS parameters and data
-     CALL ringmoons_io_init_ring(swifter_pl1P%mass,rmin,ring) 
+     CALL ringmoons_io_init_ring(swifter_pl1P,ring) 
 
      !Set up integration
      lfirst = .TRUE.
