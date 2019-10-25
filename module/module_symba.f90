@@ -92,6 +92,8 @@ MODULE module_symba
           integer(I4B), dimension(:),     allocatable :: ncomp  ! number of component bodies in this one during this merger
           real(DP),     dimension(:,:),   allocatable :: xh     ! heliocentric position
           real(DP),     dimension(:,:),   allocatable :: vh     ! heliocentric velocity
+          real(DP),     dimension(:),     allocatable :: mass 
+          real(DP),     dimension(:),     allocatable :: radius 
      end type symba_merger 
 END MODULE module_symba
 !**********************************************************************************************************************************

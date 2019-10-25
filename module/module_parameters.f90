@@ -55,14 +55,14 @@ MODULE module_parameters
      REAL(SP), PARAMETER :: VERSION_NUMBER = 1.0_SP
 
 ! Symbolic names for structure types
-     INTEGER(I4B), PARAMETER :: SWIFTEST = 1
-     !NTEGER(I4B), PARAMETER :: BS      = 2
-     !INTEGER(I4B), PARAMETER :: HELIO   = 3
-     !INTEGER(I4B), PARAMETER :: RA15    = 4
-     !INTEGER(I4B), PARAMETER :: TU4     = 5
-     !INTEGER(I4B), PARAMETER :: WHM     = 6
-     !INTEGER(I4B), PARAMETER :: RMVS    = 7
-     INTEGER(I4B), PARAMETER :: SYMBA   = 8
+     INTEGER(I4B), PARAMETER  :: SWIFTEST = 1
+     !NTEGER(I4B), PARAMETER  :: BS       = 2
+     !INTEGER(I4B), PARAMETER :: HELIO    = 3
+     !INTEGER(I4B), PARAMETER :: RA15     = 4
+     !INTEGER(I4B), PARAMETER :: TU4      = 5
+     !INTEGER(I4B), PARAMETER :: WHM      = 6
+     !INTEGER(I4B), PARAMETER :: RMVS     = 7
+     INTEGER(I4B), PARAMETER  :: SYMBA    = 8
 
 ! Maximum array sizes:
      INTEGER(I4B), PARAMETER :: STRMAX = 128
