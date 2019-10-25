@@ -87,7 +87,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      dtl = dt0/(NTENC**ireci)
      dth = 0.5_DP*dtl
      IF (dtl/dt0 < TINY) THEN
-          WRITE(*, *) "SWIFTER Warning:"
+          WRITE(*, *) "SWIFTEST Warning:"
           WRITE(*, *) "   In symba_step_recur, local time step is too small"
           WRITE(*, *) "   Roundoff error will be important!"
      END IF
@@ -140,48 +140,56 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           END DO
           lencounter = (icflg == 1)
           sgn = 1.0_DP
-          CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn)
-          CALL symba_helio_drift(ireci, npl, symba_pl1P, dtl)
-          IF (ntp > 0) CALL symba_helio_drift_tp(ireci, ntp, symba_tp1P, symba_pl1P%helio%swifter%mass, dtl)
-          IF (lencounter) CALL symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_pl1P, symba_tp1P, dt0, eoffset, nplplenc, &
+          CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA)
+          CALL symba_helio_drift(ireci, npl, symba_plA, dtl)
+          IF (ntp > 0) CALL symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%helio%swifter%mass(1), dtl)
+          IF (lencounter) CALL symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
                npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
           sgn = 1.0_DP
-          CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn)
+          CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
           IF (lclose) THEN
-               vbs(:) = symba_pl1P%helio%swifter%vb(:)
+               vbs(:) = symba_plA%helio%swifter%vb(:,1)
                DO i = 1, nplplenc
-                    IF (((plplenc_list(i)%status == ACTIVE) .AND.                                                                 &
-                        (plplenc_list(i)%pl1P%levelg >= ireci) .AND.                                                              &
-                        (plplenc_list(i)%pl2P%levelg >= ireci))) THEN
+                    index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+                    index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+                    IF (((plplenc_list%status(i) == ACTIVE) .AND.                                                                 &
+                        (symba_plA%levelg(index_i) >= ireci) .AND.                                                              &
+                        (symba_plA%levelg(index_j) >= ireci))) THEN
                         ! Create if statement to check for collisions (LS12) or merger depending on flag lfrag in param.in
                         ! Determines collisional regime if lfrag=.TRUE. for close encounter planets
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
                          IF (lfragmentation) THEN
-                            CALL symba_fragmentation_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,& 
+                            CALL symba_fragmentation_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,& !check later
                                    mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)                                                       
                          ELSE
-                            CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,   & 
+                            CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,   &  !check later
                                    mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)
                          END IF
                      END IF
                END DO
                DO i = 1, npltpenc
-                    IF ((pltpenc_list(i)%status == ACTIVE) .AND.                                                                  &
-                        (pltpenc_list(i)%plP%levelg >= ireci) .AND.                                                               &
-                        (pltpenc_list(i)%tpP%levelg >= ireci))                                                                    &
-                         CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type)
+                    index_pl  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = pltpenc_list%idpl(i) )
+                    index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i) )
+                    IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                                                  &
+                        (symba_plA%levelg(index_pl) >= ireci) .AND.                                                               &
+                        (symba_tpA%levelg(index_tp) >= ireci))                                                                    &
+                         CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type) !check later !CARLISLE JENNIFER STOPPED HERE 10/25
                END DO
           END IF
           DO i = 1, nplplenc
-               IF (plplenc_list(i)%pl1P%levelg == irecp) plplenc_list(i)%pl1P%levelg = ireci
-               IF (plplenc_list(i)%pl2P%levelg == irecp) plplenc_list(i)%pl2P%levelg = ireci
-               IF (plplenc_list(i)%level == irecp) plplenc_list(i)%level = ireci
+               index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+               index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+               IF (symba_plA%levelg(index_i) == irecp) symba_plA%levelg(index_i) = ireci
+               IF (symba_plA%levelg(index_j) == irecp) symba_plA%levelg(index_j) = ireci
+               IF (plplenc_list%level(i) == irecp) plplenc_list%level(i) = ireci
           END DO
           DO i = 1, npltpenc
-               IF (pltpenc_list(i)%plP%levelg == irecp) pltpenc_list(i)%plP%levelg = ireci
-               IF (pltpenc_list(i)%tpP%levelg == irecp) pltpenc_list(i)%tpP%levelg = ireci
-               IF (pltpenc_list(i)%level == irecp) pltpenc_list(i)%level = ireci
+               index_pl  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = pltpenc_list%idpl(i) )
+               index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i) )
+               IF (symba_plA%levelg(index_pl) == irecp) symba_plA%levelg(index_pl) = ireci
+               IF (symba_tpA%levelg(index_tp) == irecp) symba_tpA%levelg(index_tp) = ireci
+               IF (pltpenc_list%level(i) == irecp) pltpenc_list%level(i) = ireci
           END DO
      ELSE
           DO j = 1, NTENC
@@ -191,85 +199,89 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                !$OMP PRIVATE(i,symba_pliP,symba_pljP,swifter_pliP,swifter_pljP,xr,vr,lencounter) &
                !$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
                DO i = 1, nplplenc
-                    IF ((plplenc_list(i)%status == ACTIVE) .AND. (plplenc_list(i)%level == ireci)) THEN
-                         symba_pliP => plplenc_list(i)%pl1P
-                         symba_pljP => plplenc_list(i)%pl2P
-                         swifter_pliP => symba_pliP%helio%swifter
-                         swifter_pljP => symba_pljP%helio%swifter
-                         xr(:) = swifter_pljP%xh(:) - swifter_pliP%xh(:)
-                         vr(:) = swifter_pljP%vb(:) - swifter_pliP%vb(:)
-                         CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, swifter_pljP%rhill, dtl, irecp, lencounter,             &
-                              plplenc_list(i)%lvdotr)
+                    IF ((plplenc_list%status(i) == ACTIVE) .AND. (plplenc_list%level(i) == ireci)) THEN
+                         index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+                         index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+                         xr(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
+                         vr(:) = symba_plA%helio%swiftest%vb(:,index_j) - symba_plA%helio%swiftest%vb(:,index_i)
+                         CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(index_i), symba_plA%helio%swiftest%rhill(index_j), dtl, irecp, lencounter,             &
+                              plplenc_list%lvdotr(i))
                          IF (lencounter) THEN
                               !$OMP CRITICAL
                               icflg = 1
-                              symba_pliP%levelg = irecp
-                              symba_pliP%levelm = MAX(irecp, symba_pliP%levelm)
-                              symba_pljP%levelg = irecp
-                              symba_pljP%levelm = MAX(irecp, symba_pljP%levelm)
-                              plplenc_list(i)%level = irecp
+                              symba_plA%levelg(index_i) = irecp
+                              symba_plA%levelm(index_i) = MAX(irecp, symba_plA%levelm(index_i))
+                              symba_plA%levelg(index_j) = irecp
+                              symba_plA%levelm(index_j) = MAX(irecp, symba_plA%levelm(index_j))
+                              plplenc_list%level(i) = irecp
                               !$OMP END CRITICAL
                          END IF
                     END IF
                END DO
                DO i = 1, npltpenc
-                    IF ((pltpenc_list(i)%status == ACTIVE) .AND. (pltpenc_list(i)%level == ireci)) THEN
-                         symba_pliP => pltpenc_list(i)%plP
-                         symba_tpP => pltpenc_list(i)%tpP
-                         swifter_pliP => symba_pliP%helio%swifter
-                         swifter_tpP => symba_tpP%helio%swifter
-                         xr(:) = swifter_tpP%xh(:) - swifter_pliP%xh(:)
-                         vr(:) = swifter_tpP%vb(:) - swifter_pliP%vb(:)
-                         CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, 0.0_DP, dtl, irecp, lencounter, pltpenc_list(i)%lvdotr)
+                    IF ((pltpenc_list%status(i) == ACTIVE) .AND. (pltpenc_list%level(i) == ireci)) THEN
+                         index_pl  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = pltpenc_list%idpl(i) )
+                         index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i) )
+                         xr(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
+                         vr(:) = symba_tpA%helio%swiftest%vb(:,index_tp)  - symba_plA%helio%swiftest%xh(:,index_pl) 
+                         CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(index_pl), 0.0_DP, dtl, irecp, lencounter, pltpenc_list%lvdotr(i))
                          IF (lencounter) THEN
                               icflg = 1
-                              symba_pliP%levelg = irecp
-                              symba_pliP%levelm = MAX(irecp, symba_pliP%levelm)
-                              symba_tpP%levelg = irecp
-                              symba_tpP%levelm = MAX(irecp, symba_tpP%levelm)
-                              pltpenc_list(i)%level = irecp
+                              symba_plA%levelg(index_pl) = irecp
+                              symba_plA%levelm(index_pl) = MAX(irecp, symba_plA%levelm(index_pl))
+                              symba_tpA%levelg(index_tp) = irecp
+                              symba_tpA%levelm(index_tp) = MAX(irecp, symba_tpA%levelm(index_tp))
+                              pltpenc_list%level(i) = irecp
                          END IF
                     END IF
                END DO
                lencounter = (icflg == 1)
                sgn = 1.0_DP
-               CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn)
+               CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
                sgn = -1.0_DP
-               CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn)
-               CALL symba_helio_drift(ireci, npl, symba_pl1P, dtl)
-               IF (ntp > 0) CALL symba_helio_drift_tp(ireci, ntp, symba_tp1P, symba_pl1P%helio%swifter%mass, dtl)
-               IF (lencounter) CALL symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_pl1P, symba_tp1P, dt0, eoffset,      &
+               CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA)
+               CALL symba_helio_drift(ireci, npl, symba_plA, dtl)
+               IF (ntp > 0) CALL symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%helio%swifter%mass(1), dtl)
+               IF (lencounter) CALL symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset,      &
                     nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,           &
                     encounter_file, out_type)
                sgn = 1.0_DP
-               CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn)
+               CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
                sgn = -1.0_DP
-               CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn)
+               CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA)
                IF (lclose) THEN
-                    vbs(:) = symba_pl1P%helio%swifter%vb(:)
+                    vbs(:) = symba_plA%helio%swifter%vb(:,1)
                     DO i = 1, nplplenc
-                         IF ((plplenc_list(i)%status == ACTIVE) .AND.                                                             &
-                             (plplenc_list(i)%pl1P%levelg >= ireci) .AND.                                                         &
-                             (plplenc_list(i)%pl2P%levelg >= ireci))                                                              &
-                              CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list,         &
+                         index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+                         index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+                         IF ((plplenc_list%status(i) == ACTIVE) .AND.                                                             &
+                             (symba_plA%levelg(index_i) >= ireci) .AND.                                                         &
+                             (symba_plA%levelg(index_j) >= ireci))                                                              &
+                              CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list,         & !check that later
                                    mergesub_list, eoffset, vbs, encounter_file, out_type)
                     END DO
                     DO i = 1, npltpenc
+                         index_pl  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = pltpenc_list%idpl(i) )
+                         index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i) )
                          IF ((pltpenc_list(i)%status == ACTIVE) .AND.                                                             &
-                             (pltpenc_list(i)%plP%levelg >= ireci) .AND.                                                          &
-                             (pltpenc_list(i)%tpP%levelg >= ireci))                                                               &
-                              CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type)
+                             (symba_plA%levelg(index_pl) >= ireci) .AND.                                                          &
+                             (symba_tpA%levelg(index_tp) >= ireci))                                                               &
+                              CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type) !check that later
                     END DO
                END IF
                DO i = 1, nplplenc
-                    IF (plplenc_list(i)%pl1P%levelg == irecp) plplenc_list(i)%pl1P%levelg = ireci
-                    IF (plplenc_list(i)%pl2P%levelg == irecp) plplenc_list(i)%pl2P%levelg = ireci
-                    IF (plplenc_list(i)%level == irecp) plplenc_list(i)%level = ireci
+                    index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+                    index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+                    IF (symba_plA%levelg(index_i) == irecp) symba_plA%levelg(index_i) = ireci
+                    IF (symba_plA%levelg(index_j) == irecp) symba_plA%levelg(index_j) = ireci
+                    IF (plplenc_list%level(i) == irecp) plplenc_list%level(i) = ireci
                END DO
                DO i = 1, npltpenc
-                    IF (pltpenc_list(i)%plP%levelg == irecp) pltpenc_list(i)%plP%levelg = ireci
-                    IF (pltpenc_list(i)%tpP%levelg == irecp) pltpenc_list(i)%tpP%levelg = ireci
-                    IF (pltpenc_list(i)%level == irecp) pltpenc_list(i)%level = ireci
+                    index_pl  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = pltpenc_list%idpl(i) )
+                    index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i) )
+                    IF (symba_plA%levelg(index_pl) == irecp) symba_plA%levelg(index_pl) = ireci
+                    IF (symba_tpA%levelg(index_tp) == irecp) symba_tpA%levelg(index_tp) = ireci
+                    IF (pltpenc_list%level(i) == irecp) pltpenc_list%level(i) = ireci
                END DO
           END DO
      END IF
