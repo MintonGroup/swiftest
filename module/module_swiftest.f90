@@ -102,6 +102,8 @@ module module_swiftest
        integer(I4B), dimension(:),     allocatable :: status ! status of the interaction
        integer(I4B), dimension(:),     allocatable :: level  ! encounter recursion level
        !TODO: Pointer or arrays?
+       integer(I4B), dimension(:),     allocatable :: id1     ! external identifier first planet in encounter
+       integer(I4B), dimension(:),     allocatable :: id2     ! external identifier second planet in encounter
        !type(symba_pl), POINTER :: pl1P   ! pointer to first planet in encounter
        !type(symba_pl), POINTER :: pl2P   ! pointer to second planet in encounter
   end type swiftest_symba_plplenc
@@ -111,6 +113,9 @@ module module_swiftest
        integer(I4B), dimension(:),     allocatable :: status ! status of the interaction
        integer(I4B), dimension(:),     allocatable :: level  ! encounter recursion level
        !TODO: Pointer or arrays?
+       integer(I4B), dimension(:),     allocatable :: idpl    ! external identifier planet in encounter
+       integer(I4B), dimension(:),     allocatable :: idtp    ! external identifier test particle in encounter
+
        !type(symba_pl), POINTER :: plP    ! pointer to planet in encounter
        !type(symba_tp), POINTER :: tpP    ! pointer to test particle in encounter
   end type swiftest_symba_pltpenc
