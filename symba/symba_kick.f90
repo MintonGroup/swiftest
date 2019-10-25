@@ -30,32 +30,28 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_kick.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn)
+SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn, symba_plA, symba_tpA)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_kick
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                      :: irec, nplplenc, npltpenc
-     REAL(DP), INTENT(IN)                          :: dt, sgn
+     INTEGER(I4B), INTENT(IN)                         :: irec, nplplenc, npltpenc
+     REAL(DP), INTENT(IN)                             :: dt, sgn
      TYPE(symba_plplenc), DIMENSION(:), INTENT(IN) :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(:), INTENT(IN) :: pltpenc_list
+     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)      :: symba_plA
+     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)      :: symba_tpA
 
 ! Internals
      INTEGER(I4B)              :: i, j, irm1, irecl
      REAL(DP)                  :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
      REAL(DP), DIMENSION(NDIM) :: dx
-     TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP
-     TYPE(swifter_tp), POINTER :: swifter_tpP
-     TYPE(helio_pl), POINTER   :: helio_pliP, helio_pljP
-     TYPE(helio_tp), POINTER   :: helio_tpP
-     TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
-     TYPE(symba_tp), POINTER   :: symba_tpP
 
 ! Executable code
      irm1 = irec - 1
@@ -65,27 +61,23 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
           irecl = irec
      END IF
      DO i = 1, nplplenc
-          helio_pliP => plplenc_list(i)%pl1P%helio
-          helio_pljP => plplenc_list(i)%pl2P%helio
-          helio_pliP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-          helio_pljP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+          index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+          symba_plA%helio%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          symba_plA%helio%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
      DO i = 1, npltpenc
-          helio_tpP => pltpenc_list(i)%tpP%helio
-          helio_tpP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i) )
+          symba_tpA%helio%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
      DO i = 1, nplplenc
-          IF (plplenc_list(i)%status == ACTIVE) THEN
-               symba_pliP => plplenc_list(i)%pl1P
-               symba_pljP => plplenc_list(i)%pl2P
-               IF ((symba_pliP%levelg >= irm1) .AND. (symba_pljP%levelg >= irm1)) THEN
-                    helio_pliP => symba_pliP%helio
-                    helio_pljP => symba_pljP%helio
-                    swifter_pliP => helio_pliP%swifter
-                    swifter_pljP => helio_pljP%swifter
-                    ri = ((swifter_pliP%rhill + swifter_pljP%rhill)**2)*(RHSCALE**2)*(RSHELL**(2*irecl))
+          IF (plplenc_list%status(i) == ACTIVE) THEN
+               index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+               index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+               IF ((symba_plA%levelg(index_i) >= irm1) .AND. (symba_plA%levelg(index_j) >= irm1)) THEN
+                    ri = ((symba_plA%helio%swiftest%rhill(index_i) + symba_plA%helio%swiftest%rhill(index_j))**2)*(RHSCALE**2)*(RSHELL**(2*irecl))
                     rim1 = ri*(RSHELL**2)
-                    dx(:) = swifter_pljP%xh(:) - swifter_pliP%xh(:)
+                    dx(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
                     r2 = DOT_PRODUCT(dx(:), dx(:))
                     IF (r2 < rim1) THEN
                          fac = 0.0_DP
@@ -98,25 +90,21 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
                          ir3 = 1.0_DP/(r2*SQRT(r2))
                          fac = ir3
                     END IF
-                    faci = fac*swifter_pliP%mass
-                    facj = fac*swifter_pljP%mass
-                    helio_pliP%ah(:) = helio_pliP%ah(:) + facj*dx(:)
-                    helio_pljP%ah(:) = helio_pljP%ah(:) - faci*dx(:)
+                    faci = fac*symba_plA%helio%swiftest%mass(index_i)
+                    facj = fac*symba_plA%helio%swiftest%mass(index_j)
+                    symba_plA%helio%ah(:,index_i) = symba_plA%helio%ah(:,index_i) + facj*dx(:)
+                    symba_plA%helio%ah(:,index_j) = symba_plA%helio%ah(:,index_j) - faci*dx(:)
                END IF
           END IF
      END DO
      DO i = 1, npltpenc
-          IF (pltpenc_list(i)%status == ACTIVE) THEN
-               symba_pliP => pltpenc_list(i)%plP
-               symba_tpP => pltpenc_list(i)%tpP
-               IF ((symba_pliP%levelg >= irm1) .AND. (symba_tpP%levelg >= irm1)) THEN
-                    helio_pliP => symba_pliP%helio
-                    helio_tpP => symba_tpP%helio
-                    swifter_pliP => helio_pliP%swifter
-                    swifter_tpP => helio_tpP%swifter
-                    ri = ((swifter_pliP%rhill)**2)*(RHSCALE**2)*(RSHELL**(2*irecl))
+          IF (pltpenc_list%status(i) == ACTIVE) THEN
+               index_pl  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = pltpenc_list%idpl(i) )
+               index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i) )
+               IF ((symba_plA%levelg(index_pl) >= irm1) .AND. (symba_tpA%levelg(index_tp) >= irm1)) THEN
+                    ri = ((symba_plA%helio%swiftest%rhill(index_pl))**2)*(RHSCALE**2)*(RSHELL**(2*irecl))
                     rim1 = ri*(RSHELL**2)
-                    dx(:) = swifter_tpP%xh(:) - swifter_pliP%xh(:)
+                    dx(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
                     r2 = DOT_PRODUCT(dx(:), dx(:))
                     IF (r2 < rim1) THEN
                          fac = 0.0_DP
@@ -129,26 +117,23 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
                          ir3 = 1.0_DP/(r2*SQRT(r2))
                          fac = ir3
                     END IF
-                    faci = fac*swifter_pliP%mass
-                    helio_tpP%ah(:) = helio_tpP%ah(:) - faci*dx(:)
+                    faci = fac*symba_plA%helio%swiftest%mass(index_pl)
+                    symba_tpA%helio%ah(:,index_tp) = symba_tpA%helio%ah(:,index_tp) - faci*dx(:)
                END IF
           END IF
      END DO
      DO i = 1, nplplenc
-          helio_pliP => plplenc_list(i)%pl1P%helio
-          helio_pljP => plplenc_list(i)%pl2P%helio
-          swifter_pliP => helio_pliP%swifter
-          swifter_pljP => helio_pljP%swifter
-          swifter_pliP%vb(:) = swifter_pliP%vb(:) + sgn*dt*helio_pliP%ah(:)
-          swifter_pljP%vb(:) = swifter_pljP%vb(:) + sgn*dt*helio_pljP%ah(:)
-          helio_pliP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-          helio_pljP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+          index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+          symba_plA%helio%swiftest%vb(:,index_i) = symba_plA%helio%swiftest%vb(:,index_i) + sgn*dt*symba_plA%helio%ah(:,index_i)
+          symba_plA%helio%swiftest%vb(:,index_j) = symba_plA%helio%swiftest%vb(:,index_j) + sgn*dt*symba_plA%helio%ah(:,index_j)
+          symba_plA%helio%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          symba_plA%helio%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
      DO i = 1, npltpenc
-          helio_tpP => pltpenc_list(i)%tpP%helio
-          swifter_tpP => helio_tpP%swifter
-          IF (swifter_tpP%status == ACTIVE) swifter_tpP%vb(:) = swifter_tpP%vb(:) + sgn*dt*helio_tpP%ah(:)
-          helio_tpP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i))
+          IF (symba_tpA%helio%swiftest%status(index_tp) == ACTIVE) symba_tpA%helio%swiftest%vb(:,index_tp) = symba_tpA%helio%swiftest%vb(:,index_tp) + sgn*dt*symba_tpA%helio%ah(:,index_tp)
+          symba_tpA%helio%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
 
      RETURN
