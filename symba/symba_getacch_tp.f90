@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_getacch_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -39,12 +39,12 @@
 !                Accelerations in an encounter are not included here
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, xh, j2rp2, j4rp4, npltpenc,  &
+SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xh, j2rp2, j4rp4, npltpenc,  &
      pltpenc_list)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch_tp
@@ -55,23 +55,19 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, ntp, ntpmax, npltpenc
      REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
      REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)    :: xh
-     TYPE(symba_pl), POINTER                       :: symba_pl1P
-     TYPE(symba_tp), POINTER                       :: symba_tp1P
+     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)   :: symba_plA
+     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)   :: symba_tpA
      TYPE(symba_pltpenc), DIMENSION(:), INTENT(IN) :: pltpenc_list
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i, j
+     INTEGER(I4B)                                 :: i, j, index_pl, index_tp
      REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac, mu
      REAL(DP), DIMENSION(NDIM)                    :: dx
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh, irht
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: aobl, xht, aoblt
-     TYPE(swifter_pl), POINTER                    :: swifter_pl1P, swifter_plP
-     TYPE(swifter_tp), POINTER                    :: swifter_tpP
-     TYPE(helio_tp), POINTER                      :: helio_tpP
 
 ! Executable code
-     swifter_pl1P => symba_pl1P%helio%swifter
      !Removed by D. Minton
      !helio_tpP => symba_tp1P%helio
      !^^^^^^^^^^^^^^^^^^^^
@@ -81,19 +77,18 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      !$OMP SHARED(ntp,npl,symba_tp1P,swifter_pl1P,xh) 
      DO i = 1, ntp
           !Added by D. Minton
-          helio_tpP => symba_tp1P%symba_tpPA(i)%thisP%helio
+          !helio_tpP => symba_tp1P%symba_tpPA(i)%thisP%helio
           !^^^^^^^^^^^^^^^^^^
-          helio_tpP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-          swifter_tpP => helio_tpP%swifter
-          IF (swifter_tpP%status == ACTIVE) THEN
-               swifter_plP => swifter_pl1P
+          symba_tpA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          IF (symba_tpA%helio%swiftest%status == ACTIVE) THEN
+               !swifter_plP => swifter_pl1P
                !DO j = 2, nplm
                DO j = 2, npl
-                    swifter_plP => swifter_plP%nextP
-                    dx(:) = swifter_tpP%xh(:) - xh(:, j)
+                    !swifter_plP => swifter_plP%nextP
+                    dx(:) = symba_tpA%helio%swiftest%xh(:,i) - xh(:, j)
                     r2 = DOT_PRODUCT(dx(:), dx(:))
-                    fac = swifter_plP%mass/(r2*SQRT(r2))
-                    helio_tpP%ah(:) = helio_tpP%ah(:) - fac*dx(:)
+                    fac = symba_PlA%helio%swiftest%mass(j)/(r2*SQRT(r2))
+                    symba_tpA%helio%ah(:,i) = symba_tpA%helio%ah(:,i) - fac*dx(:)
                END DO
           END IF
           !Removed by D. Minton
@@ -106,13 +101,15 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      !$OMP PRIVATE(i,swifter_plP,helio_tpP,dx,r2,fac) &
      !$OMP SHARED(pltpenc_list,npltpenc)
      DO i = 1, npltpenc
-          swifter_plP => pltpenc_list(i)%plP%helio%swifter
-          helio_tpP => pltpenc_list(i)%tpP%helio
-          IF (helio_tpP%swifter%status == ACTIVE) THEN
-               dx(:) = helio_tpP%swifter%xh(:) - swifter_plP%xh(:)
+          !swifter_plP => pltpenc_list(i)%plP%helio%swifter
+          !helio_tpP => pltpenc_list(i)%tpP%helio
+          index_pl = FINDLOC(symba_plA%helio%swiftest%id(:),VALUE  = pltpenc_list%idpl(i))
+          index_tp = FINDLOC(symba_tpA%helio%swiftest%id(:),VALUE  = pltpenc_list%idtp(i))
+          IF (symba_tpA%helio%swiftest%status(index_tp) == ACTIVE) THEN
+               dx(:) = symba_tpA%helio%swiftest%xh(:,idtp) - symba_plA%helio%swiftest%xh(:,idpl)
                r2 = DOT_PRODUCT(dx(:), dx(:))
-               fac = swifter_plP%mass/(r2*SQRT(r2))
-               helio_tpP%ah(:) = helio_tpP%ah(:) + fac*dx(:)
+               fac = symba_plA%helio%swiftest%mass(index_pl)/(r2*SQRT(r2))
+               symba_tpA%helio%ah(:,index_tp) = symba_tpA%helio%ah(:,index_tp) + fac*dx(:)
           END IF
      END DO
      !$OMP END PARALLEL DO
@@ -125,20 +122,16 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
-          mu = swifter_pl1P%mass
-          swifter_tpP => symba_tp1P%helio%swifter
+          CALL obl_acc(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)
+          mu = symba_plA%helio%swiftest%mass(1)
           DO i = 1, ntp
-               xht(:, i) = swifter_tpP%xh(:)
+               xht(:, i) = symba_tpA%helio%swiftest%xh(:,i) !optimize
                r2 = DOT_PRODUCT(xht(:, i), xht(:, i))
                irht(i) = 1.0_DP/SQRT(r2)
-               swifter_tpP => swifter_tpP%nextP
           END DO
           CALL obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, mu)
-          helio_tpP => symba_tp1P%helio
           DO i = 1, ntp
-               IF (helio_tpP%swifter%status == ACTIVE) helio_tpP%ah(:) = helio_tpP%ah(:) + aoblt(:, i) - aobl(:, 1)
-               helio_tpP => helio_tpP%nextP
+               IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) symba_tpA%helio%ah(:,i) = symba_tpA%helio%ah(:,i) + aoblt(:, i) - aobl(:, 1)
           END DO
      END IF
      IF (lextra_force) CALL symba_user_getacch_tp(t, ntp, symba_tp1P)

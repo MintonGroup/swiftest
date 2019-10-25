@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_user_getacch_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -25,7 +25,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_user_getacch_tp(t, ntp, symba_tp1P)
+SUBROUTINE symba_user_getacch_tp(t, ntp, symba_tpA)
 
 ! Modules
      USE module_parameters
@@ -36,7 +36,7 @@ SUBROUTINE symba_user_getacch_tp(t, ntp, symba_tp1P)
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: ntp
      REAL(DP), INTENT(IN)     :: t
-     TYPE(symba_tp), POINTER  :: symba_tp1P
+     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)  :: symba_tpA
 
 ! Internals
 

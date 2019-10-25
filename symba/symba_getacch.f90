@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_getacch
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -34,11 +34,11 @@
 !                Accelerations in an encounter are not included here
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, j4rp4, nplplenc, plplenc_list)
+SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch
@@ -48,19 +48,16 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, 
      LOGICAL(LGT), INTENT(IN)                      :: lextra_force
      INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
      REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
-     TYPE(symba_pl), POINTER                       :: symba_pl1P
+     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)   :: symba_plA
      TYPE(symba_plplenc), DIMENSION(:), INTENT(IN) :: plplenc_list
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i, j
+     INTEGER(I4B)                                 :: i, j, index_i, index_j
      REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac
      REAL(DP), DIMENSION(NDIM)                    :: dx
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
-     TYPE(swifter_pl), POINTER                    :: swifter_pl1P, swifter_plP
-     TYPE(helio_pl), POINTER                      :: helio_pliP, helio_pljP
-     TYPE(symba_pl), POINTER                      :: symba_pliP, symba_pljP
 ! Added by D. Minton
      REAL(DP), DIMENSION(NDIM) :: accsum
 
@@ -84,10 +81,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, 
           helio_pliP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
      !$OMP END PARALLEL DO
-     symba_pliP => symba_pl1P
      DO i = 2, nplm
-          symba_pliP => symba_pliP%nextP
-          helio_pliP => symba_pliP%helio
           !Removed by D. Minton
           !symba_pljP => symba_pliP
           !^^^^^^^^^^^^^^^^^^^^
@@ -104,28 +98,27 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, 
                !symba_pljP => symba_pljP%nextP
                !^^^^^^^^^^^^^^^^^^^^
                !Added by D. Minton
-               symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
+               !symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
                !^^^^^^^^^^^^^^^^^^
-               IF ((.NOT. symba_pliP%lmerged) .OR. (.NOT. symba_pljP%lmerged) .OR.                                                &
-                   (.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) THEN
-                    helio_pljP => symba_pljP%helio
-                    dx(:) = helio_pljP%swifter%xh(:) - helio_pliP%swifter%xh(:)
+               IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR.                                                &
+                   (.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) THEN !need to handle parents and children separately
+                    dx(:) = symba_plA%helio%swiftest%xh(:,i) - symba_plA%helio%swiftest%xh(:,j)
                     rji2 = DOT_PRODUCT(dx(:), dx(:))
                     irij3 = 1.0_DP/(rji2*SQRT(rji2))
-                    faci = helio_pliP%swifter%mass*irij3
-                    facj = helio_pljP%swifter%mass*irij3
+                    faci = symba_plA%helio%swiftest%mass(i)*irij3
+                    facj = symba_plA%helio%swiftest%mass(j)*irij3
                     !Removed by D. Minton
                     !helio_pliP%ah(:) = helio_pliP%ah(:) + facj*dx(:)
                     !^^^^^^^^^^^^^^^^^^^^
                     !Added by D. Minton
                     accsum(:) = accsum(:) + facj*dx(:)
                     !^^^^^^^^^^^^^^^^^^^^
-                    helio_pljP%ah(:) = helio_pljP%ah(:) - faci*dx(:)
+                    symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
                END IF
           END DO
           !$OMP END PARALLEL DO
           !Added by D. Minton
-          helio_pliP%ah(:)=helio_pliP%ah(:)+accsum(:)
+          symba_plA%helio%ah(:,i)=symba_plA%helio%ah(:,i)+accsum(:)
           !^^^^^^^^^^^^^^^^^^^^
      END DO
      ! OpenMP parallelization added by D. Minton
@@ -133,28 +126,25 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, 
      !$OMP PRIVATE(i,symba_pliP,symba_pljP,helio_pliP,helio_pljP,dx,rji2,irij3,faci,facj) &
      !$OMP SHARED(plplenc_list,nplplenc)
      DO i = 1, nplplenc
-          symba_pliP => plplenc_list(i)%pl1P
-          symba_pljP => plplenc_list(i)%pl2P
-          IF ((.NOT. symba_pliP%lmerged) .OR. (.NOT. symba_pljP%lmerged) .OR.                                                     &
-              (.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) THEN
-               helio_pliP => symba_pliP%helio
-               helio_pljP => symba_pljP%helio
-               dx(:) = helio_pljP%swifter%xh(:) - helio_pliP%swifter%xh(:)
+          index_i = FINDLOC(symba_plA%helio%swiftest%id(:),VALUE = plplenc_list(i)%id1)
+          index_j = FINDLOC(symba_plA%helio%swiftest%id(:),VALUE = plplenc_list(i)%id2)
+          IF ((.NOT. symba_plA%lmerged(index_i)) .OR. (.NOT. symba_plA%lmerged(index_j)) .OR.                                                     &
+              (.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) THEN !need to update parent/children
+               dx(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
                rji2 = DOT_PRODUCT(dx(:), dx(:))
                irij3 = 1.0_DP/(rji2*SQRT(rji2))
-               faci = helio_pliP%swifter%mass*irij3
-               facj = helio_pljP%swifter%mass*irij3
+               faci = symba_plA%helio%swiftest%mass(index_i)*irij3
+               facj = symba_plA%helio%swiftest%mass(index_j)*irij3
                !$OMP CRITICAL
-               helio_pliP%ah(:) = helio_pliP%ah(:) - facj*dx(:)
-               helio_pljP%ah(:) = helio_pljP%ah(:) + faci*dx(:)
+               symba_plA%helio%ah(:,index_i) = symba_plA%helio%ah(:,index_i) - facj*dx(:)
+               symba_plA%helio%ah(:,index_j) = symba_plA%helio%ah(:,index_j) + faci*dx(:)
                !$OMP END CRITICAL
           END IF
      END DO
      !$OMP END PARALLEL DO
      IF (j2rp2 /= 0.0_DP) THEN
-          swifter_pl1P => symba_pl1P%helio%swifter
           IF (lmalloc) THEN
-               ALLOCATE(xh(NDIM, nplmax), aobl(NDIM, nplmax), irh(nplmax))
+               ALLOCATE(aobl(NDIM, nplmax), irh(nplmax))
                lmalloc = .FALSE.
           END IF
           !Removed by D. Minton
@@ -169,14 +159,14 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, 
                !swifter_plP => swifter_plP%nextP
                !^^^^^^^^^^^^^^^^^^
                !Added by D. Minton
-               swifter_plP=>symba_pl1P%symba_plPA(i)%thisP%helio%swifter
+               !swifter_plP=>symba_pl1P%symba_plPA(i)%thisP%helio%swifter
                !^^^^^^^^^^^^^^^^^^
-               xh(:, i) = swifter_plP%xh(:)
+               !xh(:, i) = swifter_plP%xh(:)
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
           !$OMP END PARALLEL DO
-          CALL obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
+          CALL obl_acc(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)
           !Removed by D. Minton
           !helio_pliP => symba_pl1P%helio
           !^^^^^^^^^^^^^^^^^^^^^
@@ -189,13 +179,13 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, 
                !helio_pliP => helio_pliP%nextP
                !^^^^^^^^^^^^^^^^^^^^^
                !Aded by D. Minton
-               helio_pliP => symba_pl1P%symba_plPA(i)%thisP%helio
+               !helio_pliP => symba_pl1P%symba_plPA(i)%thisP%helio
                !^^^^^^^^^^^^^^^^^
-               helio_pliP%ah(:) = helio_pliP%ah(:) + aobl(:, i) - aobl(:, 1)
+               symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + aobl(:, i) - aobl(:, 1)
           END DO
           !$OMP END PARALLEL DO
      END IF
-     IF (lextra_force) CALL symba_user_getacch(t, npl, symba_pl1P)
+     IF (lextra_force) CALL symba_user_getacch(t, npl, symba_plA)
 
      RETURN
 
