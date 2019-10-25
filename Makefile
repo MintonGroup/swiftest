@@ -45,11 +45,15 @@
 #
 #******************************************************************************
 
-SWIFTER_MODULES = module_parameters.f90 module_swifter.f90 module_bs.f90 \
-                  module_helio.f90 module_ra15.f90 module_tu4.f90 \
-                  module_whm.f90 module_rmvs.f90 module_symba.f90 \
-                  module_fxdr.f90 module_nrutil.f90 module_interfaces.f90 \
-                  module_random_access.f90
+SWIFTER_MODULES = module_parameters.f90 \
+		  module_swiftest.f90 \
+		  module_helio.f90 \
+                  module_nrutil.f90 \
+		  module_symba.f90 \
+		  module_fxdr.f90 \
+                  module_interfaces.f90 \
+		  module_swifter.f90 \
+		  module_swiftestalloc.f90
 
 include Makefile.Defines
 
@@ -83,11 +87,6 @@ mod:
 	  rm -f *.o *.mod
 
 lib:
-	cd $(SWIFTER_HOME)/bs; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTER_HOME)/coord; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
@@ -123,11 +122,6 @@ lib:
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/ra15; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTER_HOME)/rmvs; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
@@ -138,17 +132,7 @@ lib:
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/tu4; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTER_HOME)/util; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
-	  make libdir
-	cd $(SWIFTER_HOME)/whm; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
@@ -203,12 +187,9 @@ clean:
 	cd $(SWIFTER_HOME)/io;      rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/obl;     rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/orbel;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/ra15;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/rmvs;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/symba;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/tu4;     rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/util;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/whm;     rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/fxdr;    rm -f Makefile.Defines  *.gc*
 	cd $(SWIFTER_HOME)/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/tool;    rm -f Makefile.Defines Makefile *.gc*
