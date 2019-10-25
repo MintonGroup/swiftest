@@ -25,7 +25,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine coord_vb2h_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_vb2vh_tp(ntp, symba_tpA, vs)
+SUBROUTINE coord_vb2vh_tp(ntp, swiftest_tpA, vs)
 
 ! Modules
      USE module_parameters
@@ -37,14 +37,14 @@ SUBROUTINE coord_vb2vh_tp(ntp, symba_tpA, vs)
 ! Arguments
      INTEGER(I4B), INTENT(IN)              :: ntp
      REAL(DP), DIMENSION(NDIM), INTENT(IN) :: vs
-     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)             :: symba_tpA
+     TYPE(swiftest_tp), DIMENSION(:), INTENT(INOUT)             :: swiftest_tpA
 
 ! Internals
      INTEGER(I4B)              :: i
 
 ! Executable code
      DO i = 1, ntp
-          IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) symba_tpA%helio%swiftest%vh(:,i) = symba_tpA%helio%swiftest%vb(:,i) - vs(:)
+          IF (swiftest_tpA%status(i) == ACTIVE) swiftest_tpA%vh(:,i) = swiftest_tpA%vb(:,i) - vs(:)
      END DO
 
      RETURN

@@ -25,7 +25,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine coord_vh2b.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_vh2vb(npl, symba_plA, msys)
+SUBROUTINE coord_vh2vb(npl, swiftest_plA, msys)
 
 ! Modules
      USE module_parameters
@@ -37,7 +37,7 @@ SUBROUTINE coord_vh2vb(npl, symba_plA, msys)
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
      REAL(DP), INTENT(OUT)     :: msys
-     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT) :: symba_plA
+     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
@@ -48,7 +48,7 @@ SUBROUTINE coord_vh2vb(npl, symba_plA, msys)
      !swifter_plP => swifter_pl1P
      !^^^^^^^^^^^^^^^^^^^^^
      vtmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     msys = symba_tpA%helio%swiftest%mass
+     msys = swiftest_plA%mass(1)
      !^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
 
@@ -63,15 +63,14 @@ SUBROUTINE coord_vh2vb(npl, symba_plA, msys)
           !swifter_plP => swifter_plP%nextP
           !^^^^^^^^^^^^^^^^^^^^^
           ! Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           !^^^^^^^^^^^^^^^^^^^
-          msys = msys + swifter_plP%mass
-          vtmp(:) = vtmp(:) + swifter_plP%mass*swifter_plP%vh(:)
+          msys = msys + swiftest_plA%mass(i)
+          vtmp(:) = vtmp(:) + swiftest_plA%mass(i)*swiftest_plA%vh(:,i)
      END DO
      !$OMP END PARALLEL DO
-     swifter_plP => swifter_pl1P
-     swifter_plP%vb(:) = -vtmp(:)/msys
-     vtmp(:) = swifter_plP%vb(:)
+     swiftest_plA%vb(:,1) = -vtmp(:)/msys
+     vtmp(:) = swiftest_plA%vb(:,1)
      !^^^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
      !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
@@ -82,9 +81,9 @@ SUBROUTINE coord_vh2vb(npl, symba_plA, msys)
           !swifter_plP => swifter_plP%nextP
           !^^^^^^^^^^^^^^^^^^^^^
           ! Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           !^^^^^^^^^^^^^^^^^^^^^
-          swifter_plP%vb(:) = swifter_plP%vh(:) + vtmp(:)
+          swiftest_plA%vb(:,i) = swiftest_plA%vh(:,i) + vtmp(:)
      END DO
      !$OMP END PARALLEL DO
 

@@ -2,7 +2,7 @@
 !
 !  Unit Name   : coord_vb2vh
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : coord
 !  Language    : Fortran 90/95
 !
@@ -24,22 +24,21 @@
 !  Notes       : Adapted from Hal Levison's Swift routine coord_vb2h.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_vb2vh(npl, swifter_pl1P)
+SUBROUTINE coord_vb2vh(npl, swiftest_plA)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => coord_vb2vh
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     TYPE(swifter_pl), DIMENSION(:),INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP), DIMENSION(NDIM) :: vtmp
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
      vtmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
@@ -56,13 +55,13 @@ SUBROUTINE coord_vb2vh(npl, swifter_pl1P)
           !swifter_plP => swifter_plP%nextP
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           !^^^^^^^^^^^^^^^^^^
-          vtmp(:) = vtmp(:) - swifter_plP%mass*swifter_plP%vb(:)
+          vtmp(:) = vtmp(:) - swiftest_plA%mass(i)*swiftest_plA%vb(:,i)
      END DO
      !$OMP END PARALLEL DO
-     vtmp(:) = vtmp(:)/swifter_pl1P%mass
-     swifter_pl1P%vb(:) = vtmp(:)
+     vtmp(:) = vtmp(:)/swiftest_plA%mass(1)
+     swiftest_plA%vb(:,1) = vtmp(:)
      !Removed by D. Minton
      !swifter_plP => swifter_pl1P
      !^^^^^^^^^^^^^^^^^^^^
@@ -75,9 +74,9 @@ SUBROUTINE coord_vb2vh(npl, swifter_pl1P)
           !swifter_plP => swifter_plP%nextP
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           !^^^^^^^^^^^^^^^^^^
-          swifter_plP%vh(:) = swifter_plP%vb(:) - vtmp(:)
+          swiftest_plA%vh(:,i) = swiftest_plA%vb(:,i) - vtmp(:)
      END DO
      !$OMP END PARALLEL DO
 

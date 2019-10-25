@@ -2,7 +2,7 @@
 !
 !  Unit Name   : coord_vh2vb_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : coord
 !  Language    : Fortran 90/95
 !
@@ -25,28 +25,25 @@
 !  Notes       : Adapted from Hal Levison's Swift routine coord_vh2b_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_vh2vb_tp(ntp, swifter_tp1P, vs)
+SUBROUTINE coord_vh2vb_tp(ntp, swiftest_tpA, vs)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => coord_vh2vb_tp
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)              :: ntp
      REAL(DP), DIMENSION(NDIM), INTENT(IN) :: vs
-     TYPE(swifter_tp), POINTER             :: swifter_tp1P
+     TYPE(swiftest_tp), POINTER             :: swiftest_tpA
 
 ! Internals
      INTEGER(I4B)              :: i
-     TYPE(swifter_tp), POINTER :: swifter_tpP
 
 ! Executable code
-     swifter_tpP => swifter_tp1P
      DO i = 1, ntp
-          IF (swifter_tpP%status == ACTIVE) swifter_tpP%vb(:) = swifter_tpP%vh(:) + vs(:)
-          swifter_tpP => swifter_tpP%nextP
+          IF (swiftest_tpA%status(i) == ACTIVE) swiftest_tpA%vb(:,i) = swiftest_tpA%vh(:,i) + vs(:)
      END DO
 
      RETURN
