@@ -2,7 +2,7 @@
 !
 !  Unit Name   : drift_kepu_stumpff
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : drift
 !  Language    : Fortran 90/95
 !

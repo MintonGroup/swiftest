@@ -2,7 +2,7 @@
 !
 !  Unit Name   : drift_one
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : drift
 !  Language    : Fortran 90/95
 !
