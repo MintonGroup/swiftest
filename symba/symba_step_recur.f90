@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_step_recur
 !  Unit Type   : recursive subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -53,12 +53,12 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_step_recur.F
 !
 !**********************************************************************************************************************************
-RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl1P, symba_tp1P, dt0, eoffset, nplplenc, npltpenc, &
+RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, npltpenc, &
      plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_step_recur
@@ -71,21 +71,17 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      REAL(DP), INTENT(IN)                             :: t, dt0
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-     TYPE(symba_pl), POINTER                          :: symba_pl1P
-     TYPE(symba_tp), POINTER                          :: symba_tp1P
+     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)      :: symba_plA
+     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)      :: symba_tpA
      TYPE(symba_plplenc), DIMENSION(:), INTENT(INOUT) :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(:), INTENT(INOUT) :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), INTENT(INOUT)  :: mergeadd_list, mergesub_list
 
 ! Internals
      LOGICAL(LGT)              :: lencounter
-     INTEGER(I4B)              :: i, j, irecp, icflg
+     INTEGER(I4B)              :: i, j, irecp, icflg, index_i, index_j
      REAL(DP)                  :: dtl, dth, sgn
      REAL(DP), DIMENSION(NDIM) :: xr, vr, vbs
-     TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP
-     TYPE(swifter_tp), POINTER :: swifter_tpP
-     TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP
-     TYPE(symba_tp), POINTER   :: symba_tpP
 
 ! Executable code
      dtl = dt0/(NTENC**ireci)
@@ -103,45 +99,42 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           !$OMP PRIVATE(i,symba_pliP,symba_pljP,swifter_pliP,swifter_pljP,xr,vr,lencounter) &
           !$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
           DO i = 1, nplplenc
-               IF ((plplenc_list(i)%status == ACTIVE) .AND. (plplenc_list(i)%level == ireci)) THEN
-                    symba_pliP => plplenc_list(i)%pl1P
-                    symba_pljP => plplenc_list(i)%pl2P
-                    swifter_pliP => symba_pliP%helio%swifter
-                    swifter_pljP => symba_pljP%helio%swifter
-                    xr(:) = swifter_pljP%xh(:) - swifter_pliP%xh(:)
-                    vr(:) = swifter_pljP%vb(:) - swifter_pliP%vb(:)
-                    CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, swifter_pljP%rhill, dtl, irecp, lencounter,                  &
-                         plplenc_list(i)%lvdotr)
+               IF ((plplenc_list%status(i) == ACTIVE) .AND. (plplenc_list%level(i) == ireci)) THEN
+                    index_i  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id1(i) )
+                    index_j  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = plplenc_list%id2(i) )
+                    xr(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
+                    vr(:) = symba_plA%helio%swiftest%vb(:,index_j) - symba_plA%helio%swiftest%vb(:,index_i)
+                    CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(index_i), symba_plA%helio%swiftest%rhill(index_j), dtl, irecp, lencounter,                  &
+                         plplenc_list%lvdotr(i))
                     IF (lencounter) THEN
                          !Added by D. Minton
                          !$OMP CRITICAL
                          icflg = 1
-                         symba_pliP%levelg = irecp
-                         symba_pliP%levelm = MAX(irecp, symba_pliP%levelm)
-                         symba_pljP%levelg = irecp
-                         symba_pljP%levelm = MAX(irecp, symba_pljP%levelm)
-                         plplenc_list(i)%level = irecp
+                         symba_plA%helio%swiftest%levelg(index_i) = irecp
+                         symba_plA%helio%swiftest%levelm(index_i) = MAX(irecp, symba_plA%helio%swiftest%levelm(index_i))
+                         symba_plA%helio%swiftest%levelg(index_j) = irecp
+                         symba_plA%helio%swiftest%levelm(index_j) = MAX(irecp, symba_plA%helio%swiftest%levelm(index_j))
+                         plplenc_list%level(i) = irecp
                          !$OMP END CRITICAL
                     END IF
                END IF
           END DO
           !$OMP END PARALLEL DO
           DO i = 1, npltpenc
-               IF ((pltpenc_list(i)%status == ACTIVE) .AND. (pltpenc_list(i)%level == ireci)) THEN
-                    symba_pliP => pltpenc_list(i)%plP
-                    symba_tpP => pltpenc_list(i)%tpP
-                    swifter_pliP => symba_pliP%helio%swifter
-                    swifter_tpP => symba_tpP%helio%swifter
-                    xr(:) = swifter_tpP%xh(:) - swifter_pliP%xh(:)
-                    vr(:) = swifter_tpP%vb(:) - swifter_pliP%vb(:)
-                    CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, 0.0_DP, dtl, irecp, lencounter, pltpenc_list(i)%lvdotr)
+               IF ((pltpenc_list%status(i) == ACTIVE) .AND. (pltpenc_list%level(i) == ireci)) THEN
+                    index_pl  = FINDLOC(symba_plA%helio%swiftest%id(:), VALUE = pltpenc_list%idpl(i) )
+                    index_tp  = FINDLOC(symba_tpA%helio%swiftest%id(:), VALUE = pltpenc_list%idtp(i) )
+                    
+                    xr(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
+                    vr(:) = symba_tpA%helio%swiftest%vb(:,index_tp) - symba_plA%helio%swiftest%vb(:,index_pl)
+                    CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(index_pl), 0.0_DP, dtl, irecp, lencounter, pltpenc_list%lvdotr(i))
                     IF (lencounter) THEN
                          icflg = 1
-                         symba_pliP%levelg = irecp
-                         symba_pliP%levelm = MAX(irecp, symba_pliP%levelm)
-                         symba_tpP%levelg = irecp
-                         symba_tpP%levelm = MAX(irecp, symba_tpP%levelm)
-                         pltpenc_list(i)%level = irecp
+                         symba_plA%helio%swiftest%levelg(index_pl) = irecp
+                         symba_plA%helio%swiftest%levelm(index_pl) = MAX(irecp, symba_plA%helio%swiftest%levelm(index_pl))
+                         symba_tpA%helio%swiftest%levelg(index_tp) = irecp
+                         symba_tpA%helio%swiftest%levelm(index_tp) = MAX(irecp, symba_tpA%helio%swiftest%levelm(index_tp))
+                         pltpenc_list%level(i) = irecp
                     END IF
                END IF
           END DO
