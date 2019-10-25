@@ -56,10 +56,13 @@ sUBROUTINE ringmoons_deallocate(ring,seeds)
       deallocate(ring%Torque_to_disk)
       deallocate(ring%r_hstar)
 
+      deallocate(seeds%active)
       deallocate(seeds%a)
       deallocate(seeds%Gm)
       deallocate(seeds%Rhill)
       deallocate(seeds%rbin)
+      deallocate(seeds%fz_bin_inner)
+      deallocate(seeds%fz_bin_outer)
       
 
       return

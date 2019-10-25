@@ -23,18 +23,23 @@ def init():
 
 
 ring = {}
+seeds = {}
 with FortranFile('ring.dat', 'r') as f:
     while True:
         try:
             t = f.read_reals(np.float64)
         except:
             break
-        N = f.read_ints(np.int32)
+        Nbin = f.read_ints(np.int32)
         r = f.read_reals(np.float64)
         Gsigma = f.read_reals(np.float64)
         nu = f.read_reals(np.float64)
         kval = int(t / ic.t_print)
         ring[kval] = [r, Gsigma, nu]
+        Nseeds = f.read_ints(np.int32)
+        a = f.read_reals(np.float64)
+        Gm = f.read_reals(np.float64)
+        seeds[kval] = [a, Gm]
 
 #convert the units
 for key in ring:

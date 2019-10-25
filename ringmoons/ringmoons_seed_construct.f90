@@ -43,8 +43,8 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       type(ringmoons_seeds), intent(inout) :: seeds
 
 ! Internals
-      integer(I4B)                        :: i,iFRL,rbin
-      real(DP)                            :: rhill,mseed,dfac
+      integer(I4B)                        :: i,j,iFRL,rbin
+      real(DP)                            :: rhill,mseed,dfac,fz_width
 
 ! Executable code
    
@@ -63,6 +63,18 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
          seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
          ring%Gm(rbin) = max(ring%Gm(rbin) - seeds%Gminit, 0.0_DP)
          ring%Gsigma(rbin) = ring%Gm(rbin) / ring%deltaA(rbin)
+         fz_width = FEEDING_ZONE_FACTOR * seeds%rhill(i)
+         seeds%fz_bin_inner(i) = rbin
+         seeds%fz_bin_outer(i) = rbin
+         do j = seeds%fz_bin_inner(i),1,-1
+            if (ring%rinner(j) < seeds%a(i) - fz_width) exit
+            seeds%fz_bin_inner(i) = j
+         end do
+         do j = seeds%fz_bin_outer(i),ring%N
+            if (ring%router(j) > seeds%a(i) + fz_width) exit
+            seeds%fz_bin_outer(i) = j
+         end do
+         seeds%active(i) = .true.
       end do
       write(*,*) "Number of seeds created: ",seeds%N
       write(*,*) "Mass of seeds / mass of disk particles: ",seeds%Gminit / ring%Gm_pdisk

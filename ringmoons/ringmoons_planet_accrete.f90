@@ -57,13 +57,13 @@
             !Add ring mass to planet
             swifter_pl1P%radius = swifter_pl1P%radius * ((swifter_pl1P%mass + ring%Gm(i)) / swifter_pl1P%mass)**(1.0_DP / 3.0_DP)
             swifter_pl1P%mass = swifter_pl1P%mass + ring%Gm(i)
-            ring%Gm(i) = 0.0_DP
-            ring%Gsigma(i) = 0.0_DP
            
             !Conserve angular momentum 
-            Ltot = ring%Iz(i) * ring%w(i) + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3)
+            Ltot = ring%Iz(i) * ring%Gm(i) * ring%w(i)  + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3)
             swifter_pl1P%rot(3) = Ltot / swifter_pl1P%Ip(3)
-            ring%Iz(i) = 0.0_DP
+            
+            ring%Gm(i) = 0.0_DP
+            ring%Gsigma(i) = 0.0_DP
          end do
          if (ring%rinner(iin) > swifter_pl1P%radius) exit !Find out if we need to update the inside bin
          ring%inside = ring%inside + 1

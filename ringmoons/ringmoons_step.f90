@@ -45,7 +45,7 @@ subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst)
 
 ! Internals
       integer(I4B) :: i,loop
-      real(DP) :: dtstab,dtleft,dt
+      real(DP) :: dtstab,dtleft,dt,seedmass
       real(DP),save :: GM_Planet
 
 ! Executable code
@@ -58,7 +58,7 @@ subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst)
          end if
          call ringmoons_viscosity(ring)
          dtstab = ring%stability_factor / maxval(ring%nu)
-         write(*,*) dtstab,ceiling(dtin/dtstab),(sum(ring%Gm) + (swifter_pl1P%mass - GM_Planet)) / GU
+         write(*,*) dtstab,ceiling(dtin/dtstab),(sum(ring%Gm) + (swifter_pl1P%mass - GM_Planet) + sum(seeds%Gm)) / GU
       !^^^^^^^^  
       do loop = 1, LOOPMAX
          call ringmoons_viscosity(ring)
@@ -66,7 +66,7 @@ subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst)
          dt = min(dtleft,dtstab)
          call ringmoons_sigma_solver(ring,dt)
          ring%Gm = ring%Gsigma * ring%deltaA
-         ring%Iz = 0.5_DP * ring%Gm / GU * (ring%rinner**2 + ring%router**2)
+         call ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
          dtleft = dtleft - dt
          if (dtleft <= 0.0_DP) exit

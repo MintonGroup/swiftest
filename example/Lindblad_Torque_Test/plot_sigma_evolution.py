@@ -16,7 +16,7 @@ xmax = 5.0
 ymin = 1.0
 ymax = 5e4
 
-y2min = 1e13
+y2min = 1e16
 y2max = 1e23
 secaxes = {}
 
@@ -81,13 +81,7 @@ tn = {  'a' : nt[0],
 for key in axes:
     axes[key].plot(ring[tn[key]][0], ring[tn[key]][1], '-', color="black", linewidth=1.0, zorder = 50, label = "SyMBA-RINGMOONS")
     secaxes[key].scatter(seeds[tn[key]][0], seeds[tn[key]][1], marker='o', color="black", s=1)
-
-#axes['b'].plot(ring[nt[1]][0], ring[nt[1]][1], '-', color="black", linewidth=1.0, zorder = 50)
-#axes['c'].plot(ring[nt[2]][0], ring[nt[2]][1], '-', color="black", linewidth=1.0, zorder = 50)
-#axes['d'].plot(ring[nt[3]][0], ring[nt[3]][1], '-', color="black", linewidth=1.0, zorder = 50)
-#axes['e'].plot(ring[nt[4]][0], ring[nt[4]][1], '-', color="black", linewidth=1.0, zorder = 50)
-#axes['f'].plot(ring[nt[5]][0], ring[nt[5]][1], '-', color="black", linewidth=1.0, zorder = 50)
-axes['a'].legend(loc='upper left',prop={'size': 8})
+#axes['a'].legend(loc='upper left',prop={'size': 8})
 figure.tight_layout()
 #plt.show()
 

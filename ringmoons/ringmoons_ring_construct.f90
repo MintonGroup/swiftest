@@ -75,8 +75,8 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
          ring%deltaA(i) = 2 * PI * deltar * ring%r(i)
          ring%Gm(i) = ring%Gsigma(i) * ring%deltaA(i)
       
-         ! Moment of inertia of the ring bin
-         ring%Iz(i) = 0.5_DP * ring%Gm(i) / GU * (rlo**2 + rhi**2)
+         ! Specific moment of inertia of the ring bin
+         ring%Iz(i) = 0.5_DP * (rlo**2 + rhi**2)
          ring%w(i) = sqrt(GMP / ring%r(i)**3)
 
          ring%Torque_to_disk(i) = 0.0_DP

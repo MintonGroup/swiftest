@@ -63,10 +63,13 @@ module module_ringmoons
    type ringmoons_seeds ! Satellite "seeds" that eventually turn into SyMBA massive bodies
       integer(I4B)                              :: N            ! Number of satellite seeds
       real(DP)                                  :: Gminit       ! initial mass of seeds
+      logical(LGT), dimension(:), allocatable   :: active       ! Flag to determine whether this body is active or not
       real(DP), dimension(:), allocatable       :: a            ! Semimajor axis of seed
       real(DP), dimension(:), allocatable       :: Gm           ! Mass of seed
       real(DP), dimension(:), allocatable       :: Rhill        ! Hill's sphere radius of seed
       integer(I4B), dimension(:), allocatable   :: rbin         ! Ring bin location of seed
+      integer(I4B), dimension(:), allocatable   :: fz_bin_inner ! Ring bin location of inner edge of seed feeding zone
+      integer(I4B), dimension(:), allocatable   :: fz_bin_outer ! Ring bin location of inner edge of seed feeding zone
    end type ringmoons_seeds
 
 
