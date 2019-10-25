@@ -26,7 +26,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine helio_lindrift_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_lindrift_tp(ntp, symba_tpA, dt, pt)
+SUBROUTINE helio_lindrift_tp(ntp, swiftest_tpA, dt, pt)
 
 ! Modules
      USE module_parameters
@@ -39,14 +39,14 @@ SUBROUTINE helio_lindrift_tp(ntp, symba_tpA, dt, pt)
      INTEGER(I4B), INTENT(IN)              :: ntp
      REAL(DP), INTENT(IN)                  :: dt
      REAL(DP), DIMENSION(NDIM), INTENT(IN) :: pt
-     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)             :: symba_tpA
+     TYPE(swiftest_tp), DIMENSION(:), INTENT(INOUT)             :: swiftest_tpA
 
 ! Internals
      INTEGER(I4B)              :: i
 
 ! Executable code
      DO i = 1, ntp
-          IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) symba_tpA%helio%swiftest%xh(:,i) = symba_tpA%helio%swiftest%xh(:,i) + pt(:)*dt
+          IF (swiftest_tpA%status(i) == ACTIVE) swiftest_tpAt%xh(:,i) = swiftest_tpA%xh(:,i) + pt(:)*dt
      END DO
 
      RETURN

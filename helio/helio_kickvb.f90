@@ -2,7 +2,7 @@
 !
 !  Unit Name   : helio_kickvb
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : helio
 !  Language    : Fortran 90/95
 !
@@ -25,11 +25,11 @@
 !  Notes       : Adapted from Martin Duncan and Hal Levison's Swift routine kickvh.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_kickvb(npl, helio_pl1P, dt)
+SUBROUTINE helio_kickvb(npl, helio_plA, dt)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_interfaces, EXCEPT_THIS_ONE => helio_kickvb
      IMPLICIT NONE
@@ -37,12 +37,10 @@ SUBROUTINE helio_kickvb(npl, helio_pl1P, dt)
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: npl
      REAL(DP), INTENT(IN)     :: dt
-     TYPE(helio_pl), POINTER  :: helio_pl1P
+     TYPE(helio_pl), DIMENSION(:), INTENT(INOUT) :: helio_plA
 
 ! Internals
      INTEGER(I4B)              :: i
-     TYPE(swifter_pl), POINTER :: swifter_plP
-     TYPE(helio_pl), POINTER   :: helio_plP
 
 ! Executable code
      !Removed by D. Minton
@@ -57,9 +55,9 @@ SUBROUTINE helio_kickvb(npl, helio_pl1P, dt)
           !helio_plP => helio_plP%nextP
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          helio_plP => helio_pl1P%helio_plPA(i)%thisP
-          swifter_plP => helio_plP%swifter
-          swifter_plP%vb(:) = swifter_plP%vb(:) + helio_plP%ah(:)*dt
+          !helio_plP => helio_pl1P%helio_plPA(i)%thisP
+
+          helio_plA%swiftest%vb(:,i) = helio_plA%swiftest%vb(:,i) + helio_plA%ah(:,i)*dt
      END DO
      !$OMP END PARALLEL DO
 

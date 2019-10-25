@@ -2,7 +2,7 @@
 !
 !  Unit Name   : helio_drift
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : helio
 !  Language    : Fortran 90/95
 !
@@ -25,35 +25,32 @@
 !  Notes       : Adapted from Hal Levison's Swift routine drift.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_drift(npl, swifter_pl1P, dt)
+SUBROUTINE helio_drift(npl, swiftest_plA, dt)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => helio_drift
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
      REAL(DP), INTENT(IN)      :: dt
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     TYPE(swifter_pl), DIMENSION(:),INTENT(INOUT) :: swifter_plA
 
 ! Internals
      INTEGER(I4B)              :: i, iflag
      REAL(DP)                  :: mu
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
-     mu = swifter_pl1P%mass
-     swifter_plP => swifter_pl1P
+     mu = swiftest_plA%mass(1)
      DO i = 2, npl
-          swifter_plP => swifter_plP%nextP
-          CALL drift_one(mu, swifter_plP%xh(:), swifter_plP%vb(:), dt, iflag)
+          CALL drift_one(mu, swiftest_plA%xh(:,i), swiftest_plA%vb(:,i), dt, iflag)
           IF (iflag /= 0) THEN
-               WRITE(*, *) " Planet ", swifter_plP%id, " is lost!!!!!!!!!!"
+               WRITE(*, *) " Planet ", swiftest_plA%id(i), " is lost!!!!!!!!!!"
                WRITE(*, *) mu, dt
-               WRITE(*, *) swifter_plP%xh(:)
-               WRITE(*, *) swifter_plP%vb(:)
+               WRITE(*, *) swiftest_plA%xh(:,i)
+               WRITE(*, *) swiftest_plA%vb(:,i)
                WRITE(*, *) " STOPPING "
                CALL util_exit(FAILURE)
           END IF

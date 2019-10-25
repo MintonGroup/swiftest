@@ -26,7 +26,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine helio_lindrift.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_lindrift(npl, symba_plA, dt, pt)
+SUBROUTINE helio_lindrift(npl, swiftest_plA, dt, pt)
 
 ! Modules
      USE module_parameters
@@ -39,7 +39,7 @@ SUBROUTINE helio_lindrift(npl, symba_plA, dt, pt)
      INTEGER(I4B), INTENT(IN)                          :: npl
      REAL(DP), INTENT(IN)                              :: dt
      REAL(DP), DIMENSION(NDIM), INTENT(OUT)            :: pt
-     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)     :: symba_plA
+     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT)     :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
@@ -69,8 +69,8 @@ SUBROUTINE helio_lindrift(npl, symba_plA, dt, pt)
           !pt(:) = pt(:) + swifter_plP%mass*swifter_plP%vb(:)
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          pttmp(:) = pttmp(:) + swifter_plP%mass*swifter_plP%vb(:)
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          pttmp(:) = pttmp(:) + swiftest_plA%mass(i)*swiftest_plA%vb(:,i)
           !^^^^^^^^^^^^^^^^^^^^
      END DO
      !$OMP END PARALLEL DO
@@ -79,7 +79,7 @@ SUBROUTINE helio_lindrift(npl, symba_plA, dt, pt)
      !swifter_plP => swifter_pl1P
      !^^^^^^^^^^^^^^^^^^^^^
      !Added by D. Minton
-     pttmp(:) = pttmp(:)/swifter_pl1P%mass
+     pttmp(:) = pttmp(:)/swiftest_plA%mass(1)
      !^^^^^^^^^^^^^^^^^^
      !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
      !$OMP PRIVATE(i,swifter_plP) &
@@ -90,8 +90,8 @@ SUBROUTINE helio_lindrift(npl, symba_plA, dt, pt)
           !swifter_plP%xh(:) = swifter_plP%xh(:) + pt(:)*dt
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          swifter_plP%xh(:) = swifter_plP%xh(:) + pttmp(:)*dt
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          swiftest_plA%xh(:,i) = swiftest_plA%xh(:,i) + pttmp(:)*dt
           !^^^^^^^^^^^^^^^^^^
      END DO
      !$OMP END PARALLEL DO
