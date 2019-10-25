@@ -2,7 +2,7 @@
 !
 !  Unit Name   : rmvs_chk_ind
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : rmvs
 !  Language    : Fortran 90/95
 !
