@@ -2,7 +2,7 @@
 !
 !  Unit Name   : helio_step_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : helio
 !  Language    : Fortran 90/95
 !
@@ -40,12 +40,12 @@
 !  Notes       : Adapted from Hal Levison's Swift routine helio_step_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_pl1P, helio_tp1P, j2rp2, j4rp4, dt, xbeg,     &
+SUBROUTINE helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt, xbeg,     &
      xend, ptb, pte)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_interfaces, EXCEPT_THIS_ONE => helio_step_tp
      IMPLICIT NONE
@@ -57,32 +57,30 @@ SUBROUTINE helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, he
      REAL(DP), INTENT(IN)                       :: t, j2rp2, j4rp4, dt
      REAL(DP), DIMENSION(NDIM), INTENT(IN)      :: ptb, pte
      REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xbeg, xend
-     TYPE(helio_pl), POINTER                    :: helio_pl1P
-     TYPE(helio_tp), POINTER                    :: helio_tp1P
+     TYPE(helio_pl), DIMENSION(:), INTENT(INOUT):: helio_plA
+     TYPE(helio_tp), DIMENSION(:), INTENT(INOUT):: helio_tpA
 
 ! Internals
      LOGICAL(LGT)              :: lflag
      REAL(DP)                  :: dth, mu
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
 
 ! Executable code
      dth = 0.5_DP*dt
      lflag = lfirsttp
-     mu = helio_pl1P%swifter%mass
-     swifter_tp1P => helio_tp1P%swifter
+     mu = helio_plA%swiftest%mass(1)
      IF (lfirsttp) THEN
-          CALL coord_vh2vb_tp(ntp, swifter_tp1P, -ptb)
+          CALL coord_vh2vb_tp(ntp, swifter_tpA, -ptb)
           lfirsttp = .FALSE.
      END IF
-     CALL helio_lindrift_tp(ntp, swifter_tp1P, dth, ptb)
-     CALL helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_pl1P, helio_tp1P, xbeg, j2rp2, j4rp4)
+     CALL helio_lindrift_tp(ntp, swifter_tpA, dth, ptb)
+     CALL helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xbeg, j2rp2, j4rp4)
      lflag = .TRUE.
-     CALL helio_kickvb_tp(ntp, helio_tp1P, dth)
-     CALL helio_drift_tp(ntp, swifter_tp1P, mu, dt)
-     CALL helio_getacch_tp(lflag, lextra_force, t+dt, npl, nplmax, ntp, ntpmax, helio_pl1P, helio_tp1P, xend, j2rp2, j4rp4)
-     CALL helio_kickvb_tp(ntp, helio_tp1P, dth)
-     CALL helio_lindrift_tp(ntp, swifter_tp1P, dth, pte)
-     CALL coord_vb2vh_tp(ntp, swifter_tp1P, -pte)
+     CALL helio_kickvb_tp(ntp, helio_tpA, dth)
+     CALL helio_drift_tp(ntp, swifter_tpA, mu, dt)
+     CALL helio_getacch_tp(lflag, lextra_force, t+dt, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xend, j2rp2, j4rp4)
+     CALL helio_kickvb_tp(ntp, helio_tpA, dth)
+     CALL helio_lindrift_tp(ntp, swifter_tpA, dth, pte)
+     CALL coord_vb2vh_tp(ntp, swifter_tpA, -pte)
 
      RETURN
 

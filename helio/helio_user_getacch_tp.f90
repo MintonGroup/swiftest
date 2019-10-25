@@ -2,7 +2,7 @@
 !
 !  Unit Name   : helio_user_getacch_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : helio
 !  Language    : Fortran 90/95
 !
@@ -25,7 +25,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_user_getacch_tp(t, ntp, helio_tp1P)
+SUBROUTINE helio_user_getacch_tp(t, ntp, helio_tpA)
 
 ! Modules
      USE module_parameters
@@ -36,7 +36,7 @@ SUBROUTINE helio_user_getacch_tp(t, ntp, helio_tp1P)
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: ntp
      REAL(DP), INTENT(IN)     :: t
-     TYPE(helio_tp), POINTER  :: helio_tp1P
+     TYPE(helio_tp), DIMENSION(:),INTENT(INOUT)  :: helio_tpA
 
 ! Internals
 
