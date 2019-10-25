@@ -2,7 +2,7 @@
 !
 !  Unit Name   : orbel_scget
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : orbel
 !  Language    : Fortran 90/95
 !
