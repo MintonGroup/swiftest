@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_kick
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
