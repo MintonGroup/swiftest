@@ -52,13 +52,13 @@ subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst)
       !if (lfirst) then
       dtleft = dtin
       !TESTING
-         if (lfirst) then
-            GM_Planet = swifter_pl1P%mass
-            lfirst = .false.
-         end if
-         call ringmoons_viscosity(ring)
-         dtstab = ring%stability_factor / maxval(ring%nu)
-         write(*,*) dtstab,ceiling(dtin/dtstab),(sum(ring%Gm) + (swifter_pl1P%mass - GM_Planet) + sum(seeds%Gm)) / GU
+       !  if (lfirst) then
+       !     GM_Planet = swifter_pl1P%mass
+       !     lfirst = .false.
+       !  end if
+       !  call ringmoons_viscosity(ring)
+       !  dtstab = ring%stability_factor / maxval(ring%nu)
+       !  write(*,*) dtstab,ceiling(dtin/dtstab),(sum(ring%Gm) + (swifter_pl1P%mass - GM_Planet) + sum(seeds%Gm)) / GU
       !^^^^^^^^  
       do loop = 1, LOOPMAX
          call ringmoons_viscosity(ring)

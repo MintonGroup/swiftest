@@ -21,11 +21,11 @@ rho_sat   = 1.2000 # Satellite/ring particle mass density in gm/cm**3
 
 t_0	= 0
 t_print = 1.e6 * year / TU2S #output interval to print results
-deltaT	= 1.e6 * year / TU2S  #timestep simulation
+deltaT	= 1.e3 * year / TU2S  #timestep simulation
 end_sim = 720.e6 * year / TU2S + deltaT #end time
 
 Nbins    = 240           #number of bins in disk
-Nseeds   = 100         #initial number of seeds
+Nseeds   = 1000         #initial number of seeds
 
 
 ###***Define initial conditions***###
@@ -130,7 +130,7 @@ print(0,file=tpfile)
 tpfile.close()
 
 
-iout = int(np.ceil(end_sim / (deltaT * t_print)))
+iout = int(np.ceil(t_print / deltaT))
 rmin = RP
 rmax = Rhill_Uranus / DU2CM
 
