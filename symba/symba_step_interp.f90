@@ -112,10 +112,9 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
      irec = -1
      CALL symba_helio_drift(irec, npl, symba_plA, dt)
-     IF (ntp > 0) CALL symba_helio_drift_tp(irec, ntp, symba_tpA, symba_plA%helio%swiftest%mass, dt)
+     IF (ntp > 0) CALL symba_helio_drift_tp(irec, ntp, symba_tpA, symba_plA%helio%swiftest%mass(1), dt)
      irec = 0
-     !skipped this for now
-     CALL symba_step_recur(lclose, t, irec, npl, nplm, ntp, symba_pl1P, symba_tp1P, dt, eoffset, nplplenc, npltpenc,              &
+     CALL symba_step_recur(lclose, t, irec, npl, nplm, ntp, symba_plA, symba_tpA, dt, eoffset, nplplenc, npltpenc,              &
           plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
      IF (ntp > 0) THEN
           DO i = 2, npl
