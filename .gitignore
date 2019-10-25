@@ -41,5 +41,3 @@
 !collresolve/cambioni2019/*.h
 !collresolve/cambioni2019/*.c
 collresolve/config.h
-
-Makefile.Defines
