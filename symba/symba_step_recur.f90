@@ -160,10 +160,10 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
                          IF (lfragmentation) THEN
-                            CALL symba_fragmentation_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,& !check later
+                            CALL symba_fragmentation_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,&              ! check later
                                    mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)                                                       
                          ELSE
-                            CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,   &  !check later
+                            CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,   &                    !check later
                                    mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)
                          END IF
                      END IF
@@ -174,7 +174,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                     IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                                                  &
                         (symba_plA%levelg(index_pl) >= ireci) .AND.                                                               &
                         (symba_tpA%levelg(index_tp) >= ireci))                                                                    &
-                         CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type) !check later !CARLISLE JENNIFER STOPPED HERE 10/25
+                         CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type)                    !check later 
                END DO
           END IF
           DO i = 1, nplplenc
@@ -266,7 +266,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          IF ((pltpenc_list(i)%status == ACTIVE) .AND.                                                             &
                              (symba_plA%levelg(index_pl) >= ireci) .AND.                                                          &
                              (symba_tpA%levelg(index_tp) >= ireci))                                                               &
-                              CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type) !check that later
+                              CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type)                !check that later
                     END DO
                END IF
                DO i = 1, nplplenc
