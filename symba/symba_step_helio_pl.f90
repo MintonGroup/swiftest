@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_step_helio_pl
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -38,11 +38,11 @@
 !  Notes       : Adapted from Hal Levison's Swift routines symba5_step_helio.f and helio_step_pl.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_pl1P, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
+SUBROUTINE symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_step_helio_pl
@@ -55,41 +55,35 @@ SUBROUTINE symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio
      REAL(DP), INTENT(IN)                         :: t, j2rp2, j4rp4, dt
      REAL(DP), DIMENSION(NDIM, nplm), INTENT(OUT) :: xbeg, xend
      REAL(DP), DIMENSION(NDIM), INTENT(OUT)       :: ptb, pte
-     TYPE(helio_pl), POINTER                      :: helio_pl1P
+     TYPE(helio_pl), DIMENSION(:),INTENT(INOUT)   :: helio_plA
 
 ! Internals
      LOGICAL(LGT)              :: lflag
      INTEGER(I4B)              :: i
      REAL(DP)                  :: dth, msys
-     TYPE(swifter_pl), POINTER :: swifter_pl1P, swifter_plP
 
 ! Executable code
      dth = 0.5_DP*dt
      lflag = lfirst
-     swifter_pl1P => helio_pl1P%swifter
      IF (lfirst) THEN
-          CALL coord_vh2vb(npl, swifter_pl1P, msys)
+          CALL coord_vh2vb(npl, helio_plA%swiftest, msys) 
           lfirst = .FALSE.
      END IF
-     CALL helio_lindrift(npl, swifter_pl1P, dth, ptb)
-     CALL symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_pl1P, j2rp2, j4rp4)
+     CALL helio_lindrift(npl, helio_plA%swiftest, dth, ptb) 
+     CALL symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4) 
      lflag = .TRUE.
-     CALL helio_kickvb(npl, helio_pl1P, dth)
-     swifter_plP => swifter_pl1P
+     CALL helio_kickvb(npl, helio_plA, dth) 
      DO i = 2, nplm
-          swifter_plP => swifter_plP%nextP
-          xbeg(:, i) = swifter_plP%xh(:)
+          xbeg(:, i) = helio_plA%swiftest%xh(:,i)
      END DO
-     CALL helio_drift(npl, swifter_pl1P, dt)
-     swifter_plP => swifter_pl1P
+     CALL helio_drift(npl, swifter_plA, dt) 
      DO i = 2, nplm
-          swifter_plP => swifter_plP%nextP
-          xend(:, i) = swifter_plP%xh(:)
+          xend(:, i) = helio_plA%swiftest%xh(:,i)
      END DO
-     CALL symba_helio_getacch(lflag, lextra_force, t+dt, npl, nplm, nplmax, helio_pl1P, j2rp2, j4rp4)
-     CALL helio_kickvb(npl, helio_pl1P, dth)
-     CALL helio_lindrift(npl, swifter_pl1P, dth, pte)
-     CALL coord_vb2vh(npl, swifter_pl1P)
+     CALL symba_helio_getacch(lflag, lextra_force, t+dt, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4) 
+     CALL helio_kickvb(npl, helio_plA, dth)
+     CALL helio_lindrift(npl, helio_plA%swiftest, dth, pte)
+     CALL coord_vb2vh(npl, helio_plA%swiftest)
 
      RETURN
 

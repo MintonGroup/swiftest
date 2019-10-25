@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_helio_getacch
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -31,21 +31,21 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_helio_getacch.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_pl1P, j2rp2, j4rp4)
+SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_getacch
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN) :: lflag, lextra_force
-     INTEGER(I4B), INTENT(IN) :: npl, nplm, nplmax
-     REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4
-     TYPE(helio_pl), POINTER  :: helio_pl1P
+     LOGICAL(LGT), INTENT(IN)                     :: lflag, lextra_force
+     INTEGER(I4B), INTENT(IN)                     :: npl, nplm, nplmax
+     REAL(DP), INTENT(IN)                         :: t, j2rp2, j4rp4
+     TYPE(helio_pl), DIMENSION(:),INTENT(INOUT)   :: helio_plA
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
@@ -53,45 +53,35 @@ SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_
      REAL(DP)                                     :: r2, fac
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
-     TYPE(swifter_pl), POINTER                    :: swifter_pl1P, swifter_plP
-     TYPE(helio_pl), POINTER                      :: helio_plP
+
 
 ! Executable code
      IF (lflag) THEN
-          helio_plP => helio_pl1P
           DO i = 2, npl
-               helio_plP => helio_plP%nextP
-               helio_plP%ahi(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+               helio_plA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
           END DO
-          CALL symba_helio_getacch_int(npl, nplm, helio_pl1P)
+          CALL symba_helio_getacch_int(npl, nplm, helio_plA) 
      END IF
      IF (j2rp2 /= 0.0_DP) THEN
-          swifter_pl1P => helio_pl1P%swifter
           IF (lmalloc) THEN
                ALLOCATE(xh(NDIM, nplmax), aobl(NDIM, nplmax), irh(nplmax))
                lmalloc = .FALSE.
           END IF
-          swifter_plP => swifter_pl1P
           DO i = 2, npl
-               swifter_plP => swifter_plP%nextP
-               xh(:, i) = swifter_plP%xh(:)
+               xh(:, i) = helio_plA%swiftest%xh(:,i)
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
-          helio_plP => helio_pl1P
+          CALL obl_acc(npl, swifter_plA, j2rp2, j4rp4, xh, irh, aobl) 
           DO i = 2, npl
-               helio_plP => helio_plP%nextP
-               helio_plP%ah(:) = helio_plP%ahi(:) + aobl(:, i) - aobl(:, 1)
+               helio_plA%ah(:,i) = helio_plA%ahi(:,i) + aobl(:, i) - aobl(:, 1)
           END DO
      ELSE
-          helio_plP => helio_pl1P
           DO i = 2, npl
-               helio_plP => helio_plP%nextP
-               helio_plP%ah(:) = helio_plP%ahi(:)
+               helio_plA%ah(:,i) = helio_plA%ahi(:,i)
           END DO
      END IF
-     IF (lextra_force) CALL helio_user_getacch(t, npl, helio_pl1P)
+     IF (lextra_force) CALL helio_user_getacch(t, npl, helio_plA) 
 
      RETURN
 

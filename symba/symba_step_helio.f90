@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_step_helio
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -38,29 +38,29 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_pl1P, helio_tp1P, j2rp2, j4rp4, dt)
+SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_step_helio
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN)    :: lextra_force
-     LOGICAL(LGT), INTENT(INOUT) :: lfirst
-     INTEGER(I4B), INTENT(IN)    :: npl, nplm, nplmax, ntp, ntpmax
-     REAL(DP), INTENT(IN)        :: t, j2rp2, j4rp4, dt
-     TYPE(helio_pl), POINTER     :: helio_pl1P
-     TYPE(helio_tp), POINTER     :: helio_tp1P
+     LOGICAL(LGT), INTENT(IN)                       :: lextra_force
+     LOGICAL(LGT), INTENT(INOUT)                    :: lfirst
+     INTEGER(I4B), INTENT(IN)                       :: npl, nplm, nplmax, ntp, ntpmax
+     REAL(DP), INTENT(IN)                           :: t, j2rp2, j4rp4, dt
+     TYPE(helio_pl), DIMENSION(:),INTENT(INOUT)     :: helio_plA
+     TYPE(helio_tp), DIMENSION(:),INTENT(INOUT)     :: helio_tpA
 
 ! Internals
-     LOGICAL(LGT)                                 :: lfirsttp
-     LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     REAL(DP), DIMENSION(NDIM)                    :: ptb, pte
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xbeg, xend
+     LOGICAL(LGT)                                   :: lfirsttp
+     LOGICAL(LGT), SAVE                             :: lmalloc = .TRUE.
+     REAL(DP), DIMENSION(NDIM)                      :: ptb, pte
+     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE   :: xbeg, xend
 
 ! Executable code
      IF (lmalloc) THEN
@@ -69,7 +69,7 @@ SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntp
      END IF
      lfirsttp = lfirst
      CALL symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_pl1P, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
-     IF (ntp > 0) CALL helio_step_tp(lfirsttp, lextra_force, t, nplm, nplmax, ntp, ntpmax, helio_pl1P, helio_tp1P, j2rp2, j4rp4,  &
+     IF (ntp > 0) CALL helio_step_tp(lfirsttp, lextra_force, t, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4,  &
           dt, xbeg, xend, ptb, pte)
 
      RETURN
