@@ -119,8 +119,8 @@ PROGRAM swiftest_symba_omp
 
      ! Create arrays of data structures big enough to store the number of bodies we are adding
      CALL symba_pl_allocate(symba_plA,nplmax)
-     CALL symba_pl_allocate(mergeadd_list,nplmax)
-     CALL symba_pl_allocate(mergesub_list,npltmax)
+     CALL symba_merger_allocate(mergeadd_list,nplmax)
+     CALL symba_merger_allocate(mergesub_list,npltmax)
 
      IF (ntp > 0) THEN
           CALL symba_tp_allocate(symba_tpA, ntpmax)
@@ -146,10 +146,10 @@ PROGRAM swiftest_symba_omp
      nsppl = 0
      nsptp = 0
      eoffset = 0.0_DP
-     IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+     IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
-          CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
+          CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
                mtiny, encounter_file, out_type) !CARLISLE AND JENNIFER OCT 25, 2019
           iloop = iloop + 1
@@ -159,35 +159,35 @@ PROGRAM swiftest_symba_omp
           END IF
           t = tbase + iloop*dt
           ! Take the merger info and create fragments
-          ! CALL some subroutine that returns the number of fragments and an array of new bodies (swifter_pl type)
+          ! CALL some subroutine that returns the number of fragments and an array of new bodies (swifter_pl type)                     
           IF (lfragmentation) THEN
-               CALL symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)
+               CALL symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)                               ! CHECK THIS 
                ! update nplmax to add in the new number of bodies
                ! add new bodies into the current body linked list as in CALL symba_setup
                ! reorder bodies (if that is not already going to happen..check the discard subroutines
-               CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)
+               CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)                                          ! CHECK THIS 
           END IF
 
           !
-          CALL symba_discard_merge_pl(t, npl, nsppl, symba_pl1P, symba_pld1P, nplplenc, plplenc_list)
-          CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_pl1P, symba_pld1P, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &
+          CALL symba_discard_merge_pl(t, npl, nsppl, symba_pl1P, symba_pld1P, nplplenc, plplenc_list)                                  ! CHECK THIS 
+          CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_pl1P, symba_pld1P, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
                qmin_ahi, j2rp2, j4rp4, eoffset)
-          CALL symba_discard_tp(t, npl, ntp, nsptp, symba_pl1P, symba_tp1P, symba_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &
+          CALL symba_discard_tp(t, npl, ntp, nsptp, symba_pl1P, symba_tp1P, symba_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
           IF ((nsppl > 0) .OR. (nsptp > 0)) THEN
-               swifter_tp1P => symba_tp1P%helio%swifter
-               CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_pl1P, symba_pld1P,            &
+               !swifter_tp1P => symba_tp1P%helio%swifter
+               CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_pl1P, symba_pld1P,            &    ! CHECK THIS 
                     symba_tpd1P, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard)
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
                nsptp = 0
-               NULLIFY(symba_pld1P, symba_tpd1P)
+               NULLIFY(symba_pld1P, symba_tpd1P)                                                                                       ! CHECK THIS 
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1
                IF (iout == 0) THEN
-                    CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+                    CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
                     iout = istep_out
                END IF
           END IF
@@ -200,8 +200,8 @@ PROGRAM swiftest_symba_omp
                     CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
                          istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
                          encounter_file, lextra_force, lbig_discard, lrhill_present)
-                    CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
-                    IF (ntp > 0) CALL io_dump_tp(ntp, swifter_tp1P)
+                    CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
+                    IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
                     idump = istep_dump
                END IF
           END IF
@@ -209,12 +209,14 @@ PROGRAM swiftest_symba_omp
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
           j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
           lrhill_present)
-     CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
-     IF (ntp > 0) CALL io_dump_tp(ntp, swifter_tp1P)
-     IF (ALLOCATED(symba_plA)) DEALLOCATE(symba_plA)
-     IF (ALLOCATED(mergeadd_list)) DEALLOCATE(mergeadd_list)
-     IF (ALLOCATED(mergesub_list)) DEALLOCATE(mergesub_list)
-     IF (ALLOCATED(symba_tpA)) DEALLOCATE(symba_tpA)
+     CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
+     IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
+     CALL symba_pl_deallocate(symba_plA,nplmax)
+     CALL symba_merger_deallocate(mergeadd_list,nplmax)
+     CALL symba_merger_deallocate(mergesub_list,npltmax)
+     IF (ntp > 0) THEN
+          CALL symba_tp_deallocate(symba_tpA, ntpmax)
+     END IF
      CALL util_exit(SUCCESS)
 
      STOP
