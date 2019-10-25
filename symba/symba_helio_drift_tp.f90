@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_helio_drift_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -27,11 +27,11 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_helio_drift.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tp1P, mu, dt)
+SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift_tp
@@ -40,12 +40,10 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tp1P, mu, dt)
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: irec, ntp
      REAL(DP), INTENT(IN)     :: mu, dt
-     TYPE(symba_tp), POINTER  :: symba_tp1P
+     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT) :: symba_tpA
 
 ! Internals
      INTEGER(I4B)              :: i, iflag
-     TYPE(swifter_tp), POINTER :: swifter_tpP
-     TYPE(symba_tp), POINTER   :: symba_tpP
 
 ! Executable code
      !Removed by D. Minton
@@ -56,13 +54,11 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tp1P, mu, dt)
      !$OMP PRIVATE(i,swifter_tpP,symba_tpP,iflag) &
      !$OMP SHARED(ntp,symba_tp1P,mu,dt,irec) 
      DO i = 1, ntp
-          symba_tpP => symba_tp1P%symba_tpPA(i)%thisP
-          swifter_tpP => symba_tpP%helio%swifter
-          IF ((symba_tpP%levelg == irec) .AND. (swifter_tpP%status == ACTIVE)) THEN
-               CALL drift_one(mu, swifter_tpP%xh(:), swifter_tpP%vb(:), dt, iflag)
+          IF ((symba_tpA%levelg(i) == irec) .AND. (symba_tpA%helio%swiftest%status(i) == ACTIVE)) THEN
+               CALL drift_one(mu, symba_tpA%helio%swiftest%xh(:,i), symba_tpA%helio%swiftest%vb(:,i), dt, iflag)
                IF (iflag /= 0) THEN
-                    swifter_tpP%status = DISCARDED_DRIFTERR
-                    WRITE(*, *) "Particle ", swifter_tpP%id, " lost due to error in Danby drift"
+                    symba_tpA%helio%swiftest%status(i) = DISCARDED_DRIFTERR
+                    WRITE(*, *) "Particle ", symba_tpA%helio%swiftest%id(i), " lost due to error in Danby drift"
                END IF
           END IF
           !Removed by D. Minton
