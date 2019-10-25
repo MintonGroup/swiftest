@@ -96,47 +96,42 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
           lmalloc = .FALSE.
      END IF
      dth = 0.5_DP*dt
-     CALL coord_vh2vb(npl, swifter_plA, msys)
-     CALL helio_lindrift(npl, swifter_plA, dth, ptb)
+     CALL coord_vh2vb(npl, symba_plA%helio%swiftest, msys)
+     CALL helio_lindrift(npl, symba_plA%helio%swiftest, dth, ptb)
      IF (ntp > 0) THEN
-          helio_tp1P => symba_tp1P%helio
-          swifter_tp1P => helio_tp1P%swifter
-          CALL coord_vh2vb_tp(ntp, swifter_tp1P, -ptb)
-          CALL helio_lindrift_tp(ntp, swifter_tp1P, dth, ptb) !CARLISLE AND JENNIFER OCT 21, 2019
-          swifter_plP => swifter_pl1P
+          CALL coord_vh2vb_tp(ntp, symba_tpA%helio%swiftest, -ptb)
+          CALL helio_lindrift_tp(ntp, symba_tpA%helio%swiftest, dth, ptb) 
           DO i = 2, npl
-               swifter_plP => swifter_plP%nextP
-               xbeg(:, i) = swifter_plP%xh(:)
+               xbeg(:, i) = symba_plA%helio%swiftest%xh(:,i)
           END DO
      END IF
-     CALL symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, j4rp4, nplplenc, plplenc_list)
-     IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, xbeg, j2rp2,     &
+     CALL symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
+     IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xbeg, j2rp2,     &
           j4rp4, npltpenc, pltpenc_list)
-     CALL helio_kickvb(npl, helio_pl1P, dth)
-     IF (ntp > 0) CALL helio_kickvb_tp(ntp, helio_tp1P, dth)
+     CALL helio_kickvb(npl, symba_plA%helio, dth)
+     IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
      irec = -1
-     CALL symba_helio_drift(irec, npl, symba_pl1P, dt)
-     IF (ntp > 0) CALL symba_helio_drift_tp(irec, ntp, symba_tp1P, swifter_pl1P%mass, dt)
+     CALL symba_helio_drift(irec, npl, symba_plA, dt)
+     IF (ntp > 0) CALL symba_helio_drift_tp(irec, ntp, symba_tpA, symba_plA%helio%swiftest%mass, dt)
      irec = 0
+     !skipped this for now
      CALL symba_step_recur(lclose, t, irec, npl, nplm, ntp, symba_pl1P, symba_tp1P, dt, eoffset, nplplenc, npltpenc,              &
           plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
      IF (ntp > 0) THEN
-          swifter_plP => swifter_pl1P
           DO i = 2, npl
-               swifter_plP => swifter_plP%nextP
-               xend(:, i) = swifter_plP%xh(:)
+               xend(:, i) = symba_plA%helio%swiftest%xh(:,i)
           END DO
      END IF
-     CALL symba_getacch(lextra_force, t+dt, npl, nplm, nplmax, symba_pl1P, j2rp2, j4rp4, nplplenc, plplenc_list)
-     IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t+dt, npl, nplm, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, xend, j2rp2,  &
+     CALL symba_getacch(lextra_force, t+dt, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
+     IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t+dt, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xend, j2rp2,  &
           j4rp4, npltpenc, pltpenc_list)
-     CALL helio_kickvb(npl, helio_pl1P, dth)
-     IF (ntp > 0) CALL helio_kickvb_tp(ntp, helio_tp1P, dth)
-     CALL coord_vb2vh(npl, swifter_pl1P)
-     CALL helio_lindrift(npl, swifter_pl1P, dth, pte)
+     CALL helio_kickvb(npl, symba_plA%helio, dth)
+     IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
+     CALL coord_vb2vh(npl, symba_plA%helio%swiftest)
+     CALL helio_lindrift(npl, symba_plA%helio%swiftest, dth, pte)
      IF (ntp > 0) THEN
-          CALL coord_vb2vh_tp(ntp, swifter_tp1P, -pte)
-          CALL helio_lindrift_tp(ntp, swifter_tp1P, dth, pte)
+          CALL coord_vb2vh_tp(ntp, symba_tpA%helio%swiftest, -pte)
+          CALL helio_lindrift_tp(ntp, symba_tpA%helio%swiftest, dth, pte)
      END IF
 
      RETURN
