@@ -2,7 +2,7 @@
 !
 !  Unit Name   : module_helio
 !  Unit Type   : module
-!  Project     : SWIFTER
+!  Project     : SWIFTEST
 !  Package     : module
 !  Language    : Fortran 90/95
 !
@@ -26,42 +26,29 @@
 MODULE module_helio
 
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      IMPLICIT NONE
 
      ! Added by D. Minton
-     TYPE helio_ptr_arr
-        TYPE(helio_pl), POINTER :: thisP   ! pointer to current swifter planet
-     END TYPE helio_ptr_arr
-     TYPE helio_ptr_arr_tp
-        TYPE(helio_tp), POINTER :: thisP   ! pointer to current swifter particle
-     END TYPE helio_ptr_arr_tp
+     !TYPE helio_ptr_arr
+     !   TYPE(helio_pl), POINTER :: thisP   ! pointer to current swifter planet
+     !END TYPE helio_ptr_arr
+     !TYPE helio_ptr_arr_tp
+     !   TYPE(helio_tp), POINTER :: thisP   ! pointer to current swifter particle
+     !END TYPE helio_ptr_arr_tp
      !^^^^^^^^^^^^^^^^^^^
 
-     TYPE helio_pl
-          REAL(DP), DIMENSION(NDIM) :: ah       ! total heliocentric acceleration
-          REAL(DP), DIMENSION(NDIM) :: ahi      ! heliocentric acceleration due to interactions
-          TYPE(swifter_pl)          :: swifter  ! SWIFTER planet structure
-          TYPE(helio_pl), POINTER   :: prevP    ! pointer to previous HELIO planet
-          TYPE(helio_pl), POINTER   :: nextP    ! pointer to next HELIO planet
-          ! Added by D. Minton
-          ! Used for OpenMP parallelized loops
-          TYPE(helio_ptr_arr),DIMENSION(:),ALLOCATABLE :: helio_plPA ! Array of pointers to Swifter planet structures 
-          !^^^^^^^^^^^^^^^^^^^          
-     END TYPE helio_pl
+     type helio_pl
+       real(DP),     dimension(:,:),   allocatable :: ah     ! total heliocentric acceleration
+       real(DP),     dimension(:,:),   allocatable :: ahi    ! heliocentric acceleration due to interactions
+       type(swiftest_pl)                           :: swiftest  ! swifter planet structure
+     end type helio_pl
 
-     TYPE helio_tp
-          REAL(DP), DIMENSION(NDIM) :: ah       ! total heliocentric acceleration
-          REAL(DP), DIMENSION(NDIM) :: ahi      ! heliocentric acceleration due to interactions
-          TYPE(swifter_tp)          :: swifter  ! SWIFTER test particle structure
-          TYPE(helio_tp), POINTER   :: prevP    ! pointer to previous HELIO test particle
-          TYPE(helio_tp), POINTER   :: nextP    ! pointer to next HELIO test particle
-          ! Added by D. Minton
-          ! Used for OpenMP parallelized loops
-          TYPE(helio_ptr_arr_tp),DIMENSION(:),ALLOCATABLE :: helio_tpPA ! Array of pointers to Swifter planet structures 
-          !^^^^^^^^^^^^^^^^^^^          
-     END TYPE helio_tp
-
+     type helio_tp
+       real(DP),     dimension(:,:),   allocatable :: ah       ! total heliocentric acceleration
+       real(DP),     dimension(:,:),   allocatable :: ahi      ! heliocentric acceleration due to interactions
+       type(swiftest_tp)                           :: swiftest  ! swifter test particle structure
+     end type helio_tp
 END MODULE module_helio
 !**********************************************************************************************************************************
 !

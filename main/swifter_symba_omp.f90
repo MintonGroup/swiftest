@@ -35,7 +35,7 @@ PROGRAM swiftest_symba_omp
      USE module_parameters
      USE module_swiftest
      USE module_symba
-     USE module_random_access
+     !USE module_random_access
      USE module_interfaces
      USE module_swiftest_allocation
      !Added by D. Minton

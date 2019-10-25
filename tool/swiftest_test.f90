@@ -1,12 +1,12 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : swifter_whm
+!  Unit Name   : Unit_test
 !  Unit Type   : program
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : main
 !  Language    : Fortran 90/95
 !
-!  Description : Driver program for the Wisdom-Holman Mapping
+!  Description : Unit test for symba_add function
 !
 !  Input
 !    Arguments : none
@@ -15,24 +15,25 @@
 !
 !  Output
 !    Arguments : none
-!    Terminal  : status messages
+!    Terminal  : error message
+!                status messages
 !    File      : none
 !
-!  Invocation  : % swifter_whm
+!  Invocation  : % tool_timetest
 !
-!  Notes       : Reference: Wisdom, J. & Holman, M. 1991. Astron. J., 102, 1528.
-!
-!                Adapted from Hal Levison and Martin Duncan's Swift program swift_whm.f
+!  Notes       : 
 !
 !**********************************************************************************************************************************
-PROGRAM swifter_whm
+PROGRAM swiftest_test
 
 ! Modules
      USE module_parameters
-     USE module_swifter
-     USE module_whm
-     USE module_random_access
+     USE module_swiftest
+     USE module_symba
      USE module_interfaces
+     USE module_swiftest_allocation
+     !Added by D. Minton
+     !$ USE omp_lib
      IMPLICIT NONE
 
 ! Arguments
@@ -66,37 +67,67 @@ PROGRAM swifter_whm
      CHARACTER(STRMAX) :: out_stat       ! Open status for output binary file
 
 ! Internals
-     LOGICAL(LGT)                                    :: lfirst
-     INTEGER(I4B)                                    :: npl, ntp, ntp0, nsp, iout, idump, iloop
-     REAL(DP)                                        :: t, tfrac, tbase, eoffset
-     CHARACTER(STRMAX)                               :: inparfile
-     TYPE(swifter_pl), POINTER                       :: swifter_pl1P
-     TYPE(swifter_tp), POINTER                       :: swifter_tp1P, swifter_tpd1P
-     TYPE(whm_pl), DIMENSION(:), ALLOCATABLE, TARGET :: whm_plA
-     TYPE(whm_tp), DIMENSION(:), ALLOCATABLE, TARGET :: whm_tpA
-     TYPE(whm_pl), POINTER                           :: whm_pl1P
-     TYPE(whm_tp), POINTER                           :: whm_tp1P, whm_tpd1P
+     LOGICAL(LGT)                                               :: lfirst
+     INTEGER(I4B)                                               :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
+     INTEGER(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub
+     REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
+     REAL(DP), DIMENSION(NDIM)                                  :: htot
+     CHARACTER(STRMAX)                                          :: inparfile
+
+     TYPE(symba_pl), DIMENSION(:), ALLOCATABLE                  :: symba_plA
+     TYPE(symba_tp), DIMENSION(:), ALLOCATABLE                  :: symba_tpA
+     TYPE(swiftest_pl), DIMENSION(:), ALLOCATABLE               :: swiftest_plA
+     TYPE(swiftest_tp), DIMENSION(:), ALLOCATABLE               :: swiftest_tpA
+     TYPE(helio_pl), DIMENSION(:), ALLOCATABLE                  :: helio_plA
+     TYPE(helio_tp), DIMENSION(:), ALLOCATABLE                  :: helio_tpA
+
+     TYPE(symba_plplenc), DIMENSION(NENMAX), ALLOCATABLE        :: plplenc_list
+     TYPE(symba_pltpenc), DIMENSION(NENMAX), ALLOCATABLE        :: pltpenc_list
+     TYPE(symba_merger), DIMENSION(:), ALLOCATABLE              :: mergeadd_list, mergesub_list
 
 ! Executable code
      CALL util_version
+     ! OpenMP code added by D. Minton
+     ! Define the maximum number of threads
+     nthreads = 1                        ! In the *serial* case
+     !$ write(*,*) 'Dynamic thread allocation: ',OMP_get_dynamic()
+     !$ nthreads = OMP_get_max_threads() ! In the *parallel* case
+     !$ write(*,'(a)')      ' OpenMP parameters:'
+     !$ write(*,'(a)')      ' ------------------'
+     !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
      WRITE(*, 100, ADVANCE = "NO") "Enter name of parameter data file: "
      READ(*, 100) inparfile
  100 FORMAT(A)
      inparfile = TRIM(ADJUSTL(inparfile))
+     ! Read in the param.in file and get simulation parameters
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
           encounter_file, lextra_force, lbig_discard, lrhill_present)
-     CALL io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
-     ALLOCATE(whm_plA(nplmax))
-     CALL set_point(whm_plA)
-     IF (ntp > 0) THEN
-          ALLOCATE(whm_tpA(ntpmax))
-          CALL set_point(whm_tpA)
+     IF (.NOT. lrhill_present) THEN
+          WRITE(*, *) "SWIFTEST Error:"
+          WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
+          CALL util_exit(FAILURE)
      END IF
-     CALL whm_setup(npl, ntp, whm_plA, whm_tpA, whm_pl1P, whm_tp1P, swifter_pl1P, swifter_tp1P)
-     CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swifter_pl1P)
-     CALL io_init_tp(intpfile, in_type, ntp, swifter_tp1P)
-     CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
+     ! Read in the total number of bodies from the input files
+     CALL io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
+
+     ! Create arrays of data structures big enough to store the number of bodies we are adding
+     CALL symba_pl_allocate(symba_plA,nplmax)
+     CALL symba_merger_allocate(mergeadd_list,nplmax)
+     CALL symba_merger_allocate(mergesub_list,npltmax)
+
+     IF (ntp > 0) THEN
+          CALL symba_tp_allocate(symba_tpA, ntpmax)
+     END IF
+
+     ! Reads in initial conditions of all massive bodies from input file and fills the linked list
+     CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
+     WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
+     READ(*, *) mtiny
+
+     ! Reorder linked list by mass 
+     CALL io_init_tp(intpfile, in_type, ntp, swiftest_tpA)
+     CALL util_valid(n pl, ntp, swiftest_plA, swiftest_tpA)
      lfirst = .TRUE.
      ntp0 = ntp
      t = t0
@@ -104,32 +135,27 @@ PROGRAM swifter_whm
      iloop = 0
      iout = istep_out
      idump = istep_dump
-     nsp = 0
+     nmergeadd = 0
+     nmergesub = 0
+     nsppl = 0
+     nsptp = 0
      eoffset = 0.0_DP
-     NULLIFY(whm_tpd1P)
-     IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+     IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
-          CALL whm_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, whm_pl1P, whm_tp1P, j2rp2, j4rp4, dt)
+          CALL symba_step_test(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,    &
+               nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
+               mtiny, encounter_file, out_type) !CARLISLE AND JENNIFER OCT 25, 2019
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
                iloop = 0
           END IF
-          t = tbase + iloop*dt
-          CALL whm_discard(t, npl, ntp, nsp, whm_pl1P, whm_tp1P, whm_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &
-               qmin_ahi, lclose, lrhill_present)
-          IF (nsp > 0) THEN
-               swifter_tp1P => whm_tp1P%swifter
-               swifter_tpd1P => whm_tpd1P%swifter
-               CALL io_discard_write(t, npl, nsp, swifter_pl1P, swifter_tpd1P, DISCARD_FILE, lbig_discard)
-               nsp = 0
-               NULLIFY(whm_tpd1P)
-          END IF
+          t = tbase + iloop*dt                
           IF (istep_out > 0) THEN
                iout = iout - 1
                IF (iout == 0) THEN
-                    CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+                    CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
                     iout = istep_out
                END IF
           END IF
@@ -142,8 +168,8 @@ PROGRAM swifter_whm
                     CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
                          istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
                          encounter_file, lextra_force, lbig_discard, lrhill_present)
-                    CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
-                    IF (ntp > 0) CALL io_dump_tp(ntp, swifter_tp1P)
+                    CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
+                    IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
                     idump = istep_dump
                END IF
           END IF
@@ -151,18 +177,22 @@ PROGRAM swifter_whm
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
           j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
           lrhill_present)
-     CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
-     IF (ntp > 0) CALL io_dump_tp(ntp, swifter_tp1P)
-     IF (ALLOCATED(whm_plA)) DEALLOCATE(whm_plA)
-     IF (ALLOCATED(whm_tpA)) DEALLOCATE(whm_tpA)
+     CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
+     IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
+     CALL symba_pl_deallocate(symba_plA,nplmax)
+     CALL symba_merger_deallocate(mergeadd_list,nplmax)
+     CALL symba_merger_deallocate(mergesub_list,npltmax)
+     IF (ntp > 0) THEN
+          CALL symba_tp_deallocate(symba_tpA, ntpmax)
+     END IF
      CALL util_exit(SUCCESS)
 
      STOP
 
-END PROGRAM swifter_whm
+END PROGRAM swiftest_test
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  Author(s)   : Jennifer Pouplin & Carlisle Wishard
 !
 !  Revision Control System (RCS) Information
 !
