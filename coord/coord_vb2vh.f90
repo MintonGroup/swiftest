@@ -34,7 +34,7 @@ SUBROUTINE coord_vb2vh(npl, swiftest_plA)
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
-     TYPE(swifter_pl), DIMENSION(:),INTENT(INOUT) :: swiftest_plA
+     TYPE(swiftest_pl), DIMENSION(:),INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
