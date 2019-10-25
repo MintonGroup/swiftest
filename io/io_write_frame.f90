@@ -33,11 +33,11 @@
 !                There is no direct file output from this subroutine
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_write_frame(t, npl, ntp, swifter_plA, swifter_tpA, outfile, out_type, out_form, out_stat)
+SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_type, out_form, out_stat)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_frame
      IMPLICIT NONE
@@ -121,30 +121,30 @@ SUBROUTINE io_write_frame(t, npl, ntp, swifter_plA, swifter_tpA, outfile, out_ty
      SELECT CASE (iout_form)
           CASE (EL)
                DO i = 2, npl
-                    mu = swifter_plA(i)%mass + swifter_plA(i)%mass
-                    j = swifter_plA(i)%id
-                    CALL orbel_xv2el(swifter_plA(i)%xh(:), swifter_plA(i)%vh(:), mu, a, e, inc, capom, omega, capm)
-                    CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type, MASS = swifter_plA(i)%mass,                   &
-                         RADIUS = swifter_plA(i)%radius)
+                    mu = swifter_plA%mass(1) + swifter_plA%mass(i)
+                    j = swifter_plA%id(i)
+                    CALL orbel_xv2el(swifter_plA%xh(:,i), swifter_plA%vh(:,i), mu, a, e, inc, capom, omega, capm)
+                    CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type, MASS = swifter_plA%mass(i),                   &
+                         RADIUS = swifter_plA%radius(i))
                END DO
-               mu = swifter_plA(1)%mass
+               mu = swifter_plA%mass(1)
                DO i = 1, ntp
-                    j = swifter_tpA(i)%id
-                    CALL orbel_xv2el(swifter_tpA(i)%xh(:), swifter_tpA(i)%vh(:), mu, a, e, inc, capom, omega, capm)
+                    j = swifter_tpA%id(i)
+                    CALL orbel_xv2el(swifter_tpA%xh(:,i), swifter_tpA%vh(:,i), mu, a, e, inc, capom, omega, capm)
                     CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type)
                END DO
           CASE (XV)
                DO i = 2, npl
-                    xtmp(:) = swifter_plA(i)%xh(:)
-                    vtmp(:) = swifter_plA(i)%vh(:)
-                    j = swifter_plA(i)%id
+                    xtmp(:) = swifter_plA%xh(:,i)
+                    vtmp(:) = swifter_plA%vh(:,i)
+                    j = swifter_plA%id(i)
                     CALL io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type,                     &
-                         MASS = swifter_plA(i)%mass, RADIUS = swifter_plA(i)%radius)
+                         MASS = swifter_plA%mass(i), RADIUS = swifter_plA%radius(i))
                END DO
                DO i = 1, ntp
-                    xtmp(:) = swifter_tpA(i)%xh(:)
-                    vtmp(:) = swifter_tpA(i)%vh(:)
-                    j = swifter_tpA(i)%id
+                    xtmp(:) = swifter_tpA%xh(:,i)
+                    vtmp(:) = swifter_tpA%vh(:,i)
+                    j = swifter_tpA%id(i)
                     CALL io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type)
                END DO
           CASE (FILT)
