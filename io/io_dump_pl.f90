@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_dump_pl
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -33,11 +33,11 @@
 !  Notes       : Adapted from Martin Duncan's Swift routine io_dump_pl.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
+SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_dump_pl
      IMPLICIT NONE
@@ -45,34 +45,31 @@ SUBROUTINE io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
 ! Arguments
      LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
      INTEGER(I4B), INTENT(IN)  :: npl
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i, iu, ierr
      INTEGER(I4B), SAVE        :: idx = 1
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
      CALL io_open_fxdr(DUMP_PL_FILE(idx), "W", .TRUE., iu, ierr)
      IF (ierr /= 0) THEN
-          WRITE(*, *) "SWIFTER Error:"
+          WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Unable to open binary dump file ", TRIM(DUMP_PL_FILE(idx))
           CALL util_exit(FAILURE)
      END IF
      ierr = ixdrint(iu, npl)
-     ierr = ixdrint(iu, swifter_pl1P%id)
-     ierr = ixdrdouble(iu, swifter_pl1P%mass)
-     ierr = ixdrdmat(iu, NDIM, swifter_pl1P%xh)
-     ierr = ixdrdmat(iu, NDIM, swifter_pl1P%vh)
-     swifter_plP => swifter_pl1P
+     ierr = ixdrint(iu, swiftest_plA%id(1))
+     ierr = ixdrdouble(iu, swiftest_plA%mass(1))
+     ierr = ixdrdmat(iu, NDIM, swiftest_plA%xh(:,1))
+     ierr = ixdrdmat(iu, NDIM, swiftest_plA%vh(:,1))
      DO i = 2, npl
-          swifter_plP => swifter_plP%nextP
-          ierr = ixdrint(iu, swifter_plP%id)
-          ierr = ixdrdouble(iu, swifter_plP%mass)
-          IF (lrhill_present) ierr = ixdrdouble(iu, swifter_plP%rhill)
-          IF (lclose) ierr = ixdrdouble(iu, swifter_plP%radius)
-          ierr = ixdrdmat(iu, NDIM, swifter_plP%xh)
-          ierr = ixdrdmat(iu, NDIM, swifter_plP%vh)
+          ierr = ixdrint(iu, swiftest_plA%id(i))
+          ierr = ixdrdouble(iu, swiftest_plA%mass(i))
+          IF (lrhill_present) ierr = ixdrdouble(iu, swifter_plA%rhill(i))
+          IF (lclose) ierr = ixdrdouble(iu, swifter_plA%radius(i))
+          ierr = ixdrdmat(iu, NDIM, swifter_plA%xh(:,i))
+          ierr = ixdrdmat(iu, NDIM, swifter_plA%vh(:,i))
      END DO
      ierr = ixdrclose(iu)
      idx = idx + 1
