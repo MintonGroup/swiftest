@@ -52,7 +52,7 @@ SUBROUTINE coord_vh2vb(npl, swiftest_plA, msys)
      !^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
 
-! EDIT FOR THE TREE FUNCTION FOR PARALLELIZATION
+! EDIT FOR PARALLELIZATION
 
      !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
      !$OMP PRIVATE(i,swifter_plP) &
