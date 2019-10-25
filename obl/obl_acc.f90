@@ -2,7 +2,7 @@
 !
 !  Unit Name   : obl_acc
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : obl
 !  Language    : Fortran 90/95
 !
@@ -30,29 +30,28 @@
 !                Returned values do not include monopole term or terms higher than J4
 !
 !**********************************************************************************************************************************
-SUBROUTINE obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
+SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => obl_acc
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                    :: npl
-     REAL(DP), INTENT(IN)                        :: j2rp2, j4rp4
-     REAL(DP), DIMENSION(npl), INTENT(IN)        :: irh
-     REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)  :: xh
-     REAL(DP), DIMENSION(NDIM, npl), INTENT(OUT) :: aobl
-     TYPE(swifter_pl), POINTER                   :: swifter_pl1P
+     INTEGER(I4B), INTENT(IN)                     :: npl
+     REAL(DP), INTENT(IN)                         :: j2rp2, j4rp4
+     REAL(DP), DIMENSION(npl), INTENT(IN)         :: irh
+     REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)   :: xh
+     REAL(DP), DIMENSION(NDIM, npl), INTENT(OUT)  :: aobl
+     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT):: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP)                  :: rinv2, t0, t1, t2, t3, fac1, fac2, msun
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
-     msun = swifter_pl1P%mass
+     msun = swiftest_plA%mass(1)
      !Removed by D. Minton
      !swifter_plP => swifter_pl1P
      !^^^^^^^^^^^^^^^^^^^^^
@@ -65,7 +64,7 @@ SUBROUTINE obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
           !swifter_plP => swifter_plP%nextP
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           !^^^^^^^^^^^^^^^^^^
           rinv2 = irh(i)**2
           t0 = -msun*rinv2*rinv2*irh(i)
@@ -92,7 +91,7 @@ SUBROUTINE obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
           !aobl(:, 1) = aobl(:, 1) - swifter_plP%mass*aobl(:, i)/msun
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          aobl(:, 1) = aobl(:, 1) - swifter_pl1P%swifter_plPA(i)%thisP%mass*aobl(:, i)/msun
+          aobl(:, 1) = aobl(:, 1) - swifter_pl1P%swifter_plPA(i)%thisP%mass*aobl(:, i)/msun !redo with OpenMP 
           !^^^^^^^^^^^^^^^^^^
      END DO
      !$OMP END PARALLEL DO

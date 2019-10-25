@@ -2,7 +2,7 @@
 !
 !  Unit Name   : obl_acc_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : obl
 !  Language    : Fortran 90/95
 !
