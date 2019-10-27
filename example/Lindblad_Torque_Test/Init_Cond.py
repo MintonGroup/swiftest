@@ -11,7 +11,7 @@ M_Sun   = 1.9891e33
 #The following are Unit conversion factors
 MU2GM    =     1.0 #M_Uranus          #Conversion from mass unit to grams
 DU2CM    =     1.0 #R_Uranus                       #Conversion from radius unit to centimeters
-TU2S     =     1.0 #year                           #Conversion from time unit to seconds
+TU2S     =     year                                #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
 r_pdisk = 100.0  #disk particle size
@@ -21,11 +21,11 @@ rho_sat   = 1.2000 # Satellite/ring particle mass density in gm/cm**3
 
 t_0	= 0
 t_print = 1.e6 * year / TU2S #output interval to print results
-deltaT	= 1.e3 * year / TU2S  #timestep simulation
+deltaT	= 1.e6 * year / TU2S  #timestep simulation
 end_sim = 720.e6 * year / TU2S + deltaT #end time
 
-Nbins    = 240           #number of bins in disk
-Nseeds   = 1000         #initial number of seeds
+Nbins    = 240          #number of bins in disk
+Nseeds   = 10000         #initial number of seeds
 
 
 ###***Define initial conditions***###

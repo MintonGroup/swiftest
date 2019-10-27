@@ -93,6 +93,7 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
          ring%Gsigma(seed_bin) = ring%Gm(seed_bin) / ring%deltaA(seed_bin)
          Gmleft = Gmleft - dGm
          seeds%Gm(i) = seeds%Gm(i) + (dGmseeds(i) - Gmleft)
+         
         
          ! Conserve angular momentum 
          seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass
@@ -115,7 +116,14 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
               
          !Update the Hill's sphere
          seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP) 
-            
+
+         !Update the seed location
+         do while (seeds%a(i) < ring%rinner(seeds%rbin(i)))
+            seeds%rbin(i) = seeds%rbin(i) - 1
+         end do
+         do while (seeds%a(i) >= ring%router(seeds%rbin(i)))
+            seeds%rbin(i) = seeds%rbin(i) + 1
+         end do   
          
       end do   
       

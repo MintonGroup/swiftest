@@ -16,8 +16,8 @@ xmax = 5.0
 ymin = 1.0
 ymax = 5e4
 
-y2min = 1e16
-y2max = 1e23
+y2min = 1e13
+y2max = 1e24
 secaxes = {}
 
 for key in axes:
@@ -68,7 +68,7 @@ for key in ring:
 
 # These are the output times to plot
 
-tout = np.array([0.0, 17e6, 183e6, 545e6, 546e6, 720e6]) * ic.year / ic.TU2S
+tout = np.array([0.0, 17e6, 183e6, 545e6, 546e6, 550e6]) * ic.year / ic.TU2S
 nt = np.rint(tout / ic.t_print).astype(int)
 
 tn = {  'a' : nt[0],

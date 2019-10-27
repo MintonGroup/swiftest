@@ -43,7 +43,7 @@
 ! Internals
       integer(I4B) :: i,j,iin
       real(DP) :: rlo,rhi,GMP, RP,rhoP, Mratio, Rratio, Mratiosqrt,MratioHill
-      real(DP) :: Lplanet, Lring, Ltot
+      real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew
       real(DP),dimension(1:ring%N) :: rhill
      
 ! Executable code
@@ -54,13 +54,18 @@
          iin = ring%inside
          do i = 1,iin 
 
-            !Add ring mass to planet
-            swifter_pl1P%radius = swifter_pl1P%radius * ((swifter_pl1P%mass + ring%Gm(i)) / swifter_pl1P%mass)**(1.0_DP / 3.0_DP)
-            swifter_pl1P%mass = swifter_pl1P%mass + ring%Gm(i)
            
             !Conserve angular momentum 
-            Ltot = ring%Iz(i) * ring%Gm(i) * ring%w(i)  + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3)
-            swifter_pl1P%rot(3) = Ltot / swifter_pl1P%Ip(3)
+            Ltot = ring%Gm(i) * ring%Iz(i) * ring%w(i) + &
+                   swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%radius**2
+            
+            !Add ring mass to planet
+            Mnew = swifter_pl1P%mass + ring%Gm(i)
+            Rnew = swifter_pl1P%radius * (Mnew / swifter_pl1P%mass)**(1.0_DP / 3.0_DP)
+            swifter_pl1P%mass = Mnew
+            swifter_pl1P%radius = Rnew
+
+            swifter_pl1P%rot(3) = Ltot / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
             
             ring%Gm(i) = 0.0_DP
             ring%Gsigma(i) = 0.0_DP

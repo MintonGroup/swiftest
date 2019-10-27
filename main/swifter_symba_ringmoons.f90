@@ -90,6 +90,7 @@ PROGRAM swifter_symba_ringmoons
      TYPE(symba_plplenc), DIMENSION(NENMAX)            :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
+      real(DP)                                           :: Merror,Lerror
 
      TYPE(ringmoons_ring) :: ring
      TYPE(ringmoons_seeds) :: seeds
@@ -148,14 +149,18 @@ PROGRAM swifter_symba_ringmoons
      nsppl = 0
      nsptp = 0
      eoffset = 0.0_DP
+     Merror = 0.0_DP
+     Lerror = 0.0_DP
      NULLIFY(symba_pld1P, symba_tpd1P)
       if (istep_out > 0) then
          CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
          call ringmoons_io_write_frame(t, ring, seeds, ring_outfile, out_stat = "NEW")
+         WRITE(*, 200) t, tfrac, npl, ntp
+         WRITE(*,300) Merror,Lerror,count(seeds%active)
       end if
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE (t < tstop) 
-          CALL ringmoons_step(swifter_pl1P,ring,seeds,dt,lrmfirst)
+          CALL ringmoons_step(swifter_pl1P,ring,seeds,dt,lrmfirst,Merror,Lerror)
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
                mtiny, encounter_file, out_type)
@@ -185,7 +190,9 @@ PROGRAM swifter_symba_ringmoons
                IF (iout == 0) THEN
                     tfrac = (t - t0) / (tstop - t0)
                     WRITE(*, 200) t, tfrac, npl, ntp
+                    WRITE(*,300) Merror,Lerror,count(seeds%active)
  200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
+ 300                FORMAT("dM/M0 = ", ES12.5, ";  dL/L0 = ",ES12.5,       "; Number or active seeds  = ",I5)
                     CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
                     call ringmoons_io_write_frame(t, ring, seeds, ring_outfile, out_stat = "APPEND")
                     iout = istep_out

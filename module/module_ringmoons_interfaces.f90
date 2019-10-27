@@ -55,7 +55,7 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst)
+         subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             use module_parameters
             use module_swifter
             use module_ringmoons
@@ -65,6 +65,7 @@ module module_ringmoons_interfaces
             type(ringmoons_ring),intent(inout)               :: ring
             type(ringmoons_seeds),intent(inout)              :: seeds
             logical(LGT), intent(inout)                      :: lfirst
+            real(DP), intent(out)                            :: Merror,Lerror
          end subroutine ringmoons_step 
       end interface
 

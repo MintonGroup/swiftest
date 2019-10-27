@@ -27,7 +27,7 @@
 !  Notes       : Adapted from Andy Hesselbrock's RING-MOONS Python scripts
 !
 !**********************************************************************************************************************************
-subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst)
+subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
 ! Modules
      use module_parameters
@@ -37,28 +37,37 @@ subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst)
      implicit none
 
 ! Arguments
-     type(swifter_pl), pointer                        :: swifter_pl1P
-     real(DP), intent(in)                             :: dtin
-     type(ringmoons_ring),intent(inout)               :: ring
-     type(ringmoons_seeds),intent(inout)              :: seeds
-     logical(LGT), intent(inout)                      :: lfirst
+      type(swifter_pl), pointer                       :: swifter_pl1P
+      real(DP), intent(in)                            :: dtin
+      type(ringmoons_ring),intent(inout)              :: ring
+      type(ringmoons_seeds),intent(inout)             :: seeds
+      logical(LGT), intent(inout)                     :: lfirst
+      real(DP),intent(out)                            :: Merror,Lerror
 
 ! Internals
       integer(I4B) :: i,loop
       real(DP) :: dtstab,dtleft,dt,seedmass
-      real(DP),save :: GM_Planet
+      real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now
 
 ! Executable code
       !if (lfirst) then
       dtleft = dtin
       !TESTING
-       !  if (lfirst) then
-       !     GM_Planet = swifter_pl1P%mass
-       !     lfirst = .false.
-       !  end if
-       !  call ringmoons_viscosity(ring)
-       !  dtstab = ring%stability_factor / maxval(ring%nu)
-       !  write(*,*) dtstab,ceiling(dtin/dtstab),(sum(ring%Gm) + (swifter_pl1P%mass - GM_Planet) + sum(seeds%Gm)) / GU
+         if (lfirst) then
+            Mtot_orig = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm)
+            Ltot_orig = sum(seeds%Gm(:) * sqrt(swifter_pl1P%mass * seeds%a(:))) 
+            Ltot_orig = Ltot_orig + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+            Ltot_orig = Ltot_orig + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+            lfirst = .false.
+         end if
+         call ringmoons_viscosity(ring)
+         dtstab = ring%stability_factor / maxval(ring%nu)
+         Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm)
+         Ltot_now = sum(seeds%Gm(:) * sqrt(swifter_pl1P%mass * seeds%a(:))) 
+         Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+         Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+         Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+         Lerror = (Ltot_now - Ltot_orig) / Ltot_orig
       !^^^^^^^^  
       do loop = 1, LOOPMAX
          call ringmoons_viscosity(ring)

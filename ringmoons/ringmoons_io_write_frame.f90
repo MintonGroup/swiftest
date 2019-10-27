@@ -44,10 +44,11 @@ subroutine ringmoons_io_write_frame(t, ring, seeds, ring_outfile, out_stat)
    character(*), intent(in)  :: ring_outfile, out_stat
 
    ! internals
-   logical(lgt), save        :: lfirst = .true.
-   integer(i4b), parameter   :: lun = 88
-   integer(i4b)              :: i,ierr 
-   integer(i4b), save        :: iu = lun
+   logical(LGT), save        :: lfirst = .true.
+   integer(I4B), parameter   :: lun = 88
+   integer(I4B)              :: i,ierr 
+   integer(I4B), save        :: iu = lun
+   real(DP),dimension(count(seeds%active)) :: aseeds, Gmseeds
 
    ! executable code
    if (lfirst) then
@@ -82,9 +83,14 @@ subroutine ringmoons_io_write_frame(t, ring, seeds, ring_outfile, out_stat)
    write(iu, iostat = ierr) ring%r
    write(iu, iostat = ierr) ring%Gsigma
    write(iu, iostat = ierr) ring%nu
-   write(iu, iostat = ierr) seeds%N
-   write(iu, iostat = ierr) seeds%a
-   write(iu, iostat = ierr) seeds%Gm
+   !write(iu, iostat = ierr) seeds%N
+   !write(iu, iostat = ierr) seeds%a
+   !write(iu, iostat = ierr) seeds%Gm
+   write(iu, iostat = ierr) count(seeds%active)
+   aseeds = pack(seeds%a,seeds%active) 
+   Gmseeds = pack(seeds%Gm,seeds%active) 
+   write(iu, iostat = ierr) aseeds
+   write(iu, iostat = ierr) Gmseeds
    close(unit = iu, iostat = ierr)
    if (ierr /= 0) then
        write(*, *) "RINGMOONS error:"
