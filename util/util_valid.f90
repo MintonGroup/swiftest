@@ -35,9 +35,9 @@ SUBROUTINE util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: npl, ntp
-     TYPE(swifter_pl), DIMENSION(:), INTENT(INOUT) :: swifter_plA
-     TYPE(swifter_tp), DIMENSION(:), INTENT(INOUT) :: swifter_tpA
+     INTEGER(I4B), INTENT(IN)        :: npl, ntp
+     TYPE(swifter_pl), INTENT(INOUT) :: swifter_plA
+     TYPE(swifter_tp), INTENT(INOUT) :: swifter_tpA
 
 ! Internals
      INTEGER(I4B)                            :: i
