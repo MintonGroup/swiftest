@@ -79,17 +79,15 @@ PROGRAM swiftest_symba_omp
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                                  :: htot
      CHARACTER(STRMAX)                                          :: inparfile
-
-     TYPE(symba_pl), DIMENSION(:), ALLOCATABLE                  :: symba_plA
-     TYPE(symba_tp), DIMENSION(:), ALLOCATABLE                  :: symba_tpA
-     TYPE(swiftest_pl), DIMENSION(:), ALLOCATABLE               :: swiftest_plA
-     TYPE(swiftest_tp), DIMENSION(:), ALLOCATABLE               :: swiftest_tpA
-     TYPE(helio_pl), DIMENSION(:), ALLOCATABLE                  :: helio_plA
-     TYPE(helio_tp), DIMENSION(:), ALLOCATABLE                  :: helio_tpA
-
-     TYPE(symba_plplenc), DIMENSION(NENMAX), ALLOCATABLE        :: plplenc_list
-     TYPE(symba_pltpenc), DIMENSION(NENMAX), ALLOCATABLE        :: pltpenc_list
-     TYPE(symba_merger), DIMENSION(:), ALLOCATABLE              :: mergeadd_list, mergesub_list
+     TYPE(symba_pl)                  :: symba_plA
+     TYPE(symba_tp)                  :: symba_tpA
+     TYPE(swiftest_pl)               :: swiftest_plA
+     TYPE(swiftest_tp)               :: swiftest_tpA
+     TYPE(helio_pl)                  :: helio_plA
+     TYPE(helio_tp)                  :: helio_tpA
+     TYPE(symba_plplenc)             :: plplenc_list
+     TYPE(symba_pltpenc)             :: pltpenc_list
+     TYPE(symba_merger)              :: mergeadd_list, mergesub_list
 
 ! Executable code
      CALL util_version
@@ -211,11 +209,11 @@ PROGRAM swiftest_symba_omp
           lrhill_present)
      CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
-     CALL symba_pl_deallocate(symba_plA,nplmax)
-     CALL symba_merger_deallocate(mergeadd_list,nplmax)
-     CALL symba_merger_deallocate(mergesub_list,npltmax)
+     CALL symba_pl_deallocate(symba_plA)
+     CALL symba_merger_deallocate(mergeadd_list)
+     CALL symba_merger_deallocate(mergesub_list)
      IF (ntp > 0) THEN
-          CALL symba_tp_deallocate(symba_tpA, ntpmax)
+          CALL symba_tp_deallocate(symba_tpA)
      END IF
      CALL util_exit(SUCCESS)
 
