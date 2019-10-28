@@ -35,9 +35,9 @@ SUBROUTINE coord_vh2vb(npl, swiftest_plA, msys)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: npl
-     REAL(DP), INTENT(OUT)     :: msys
-     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT) :: swiftest_plA
+     INTEGER(I4B), INTENT(IN)         :: npl
+     REAL(DP), INTENT(OUT)            :: msys
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
