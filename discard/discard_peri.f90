@@ -34,11 +34,11 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_peri.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE discard_peri(t, npl, ntp, swifter_pl1P, swifter_tp1P, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, lrhill_present)
+SUBROUTINE discard_peri(t, npl, ntp, swiftest_plA, swiftest_tpA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, lrhill_present)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => discard_peri
      IMPLICIT NONE
 
@@ -47,46 +47,42 @@ SUBROUTINE discard_peri(t, npl, ntp, swifter_pl1P, swifter_tp1P, msys, qmin, qmi
      INTEGER(I4B), INTENT(IN)  :: npl, ntp
      REAL(DP), INTENT(IN)      :: t, msys, qmin, qmin_alo, qmin_ahi
      CHARACTER(*), INTENT(IN)  :: qmin_coord
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
      LOGICAL(LGT), SAVE        :: lfirst = .TRUE.
      INTEGER(I4B)              :: i, j, ih
      REAL(DP)                  :: r2
      REAL(DP), DIMENSION(NDIM) :: dx
-     TYPE(swifter_pl), POINTER :: swifter_plP
-     TYPE(swifter_tp), POINTER :: swifter_tpP
+
 
 ! Executable code
      IF (lfirst) THEN
-          IF (.NOT. lrhill_present) CALL util_hills(npl, swifter_pl1P)
-          CALL util_peri(lfirst, ntp, swifter_tp1P, swifter_pl1P%mass, msys, qmin_coord)
+          IF (.NOT. lrhill_present) CALL util_hills(npl, swiftest_plA)
+          CALL util_peri(lfirst, ntp, swiftest_tpA, swiftest_plA%mass(1), msys, qmin_coord)
           lfirst = .FALSE.
      ELSE
-          CALL util_peri(lfirst, ntp, swifter_tp1P, swifter_pl1P%mass, msys, qmin_coord)
-          swifter_tpP => swifter_tp1P
+          CALL util_peri(lfirst, ntp, swiftest_tpA, swiftest_plA%mass(1), msys, qmin_coord)
           DO i = 1, ntp
-               IF (swifter_tpP%status == ACTIVE) THEN
-                    IF (swifter_tpP%isperi == 0) THEN
+               IF (swiftest_tpA%status(i) == ACTIVE) THEN
+                    IF (swiftest_tpA%isperi(i) == 0) THEN
                          ih = 1
-                         swifter_plP => swifter_pl1P
                          DO j = 2, npl
-                              swifter_plP => swifter_plP%nextP
-                              dx(:) = swifter_tpP%xh(:) - swifter_plP%xh(:)
+                              dx(:) = swiftest_tpA%xh(:,i) - swiftest_plA%xh(:,j)
                               r2 = DOT_PRODUCT(dx(:), dx(:))
-                              IF (r2 <= swifter_plP%rhill*swifter_plP%rhill) ih = 0
+                              IF (r2 <= swiftest_plA%rhill(j)*swiftest_plA%rhill(j)) ih = 0
                          END DO
                          IF (ih == 1) THEN
-                              IF ((swifter_tpP%atp >= qmin_alo) .AND. (swifter_tpP%atp <= qmin_ahi) .AND.                         &
-                                  (swifter_tpP%peri <= qmin)) THEN
-                                   swifter_tpP%status = DISCARDED_PERI
-                                   WRITE(*, *) "Particle ", swifter_tpP%id, " perihelion distance too small at t = ", t
+                              IF ((swiftest_tpA%atp(i) >= qmin_alo) .AND.      &
+                                   (swiftest_tpA%atp(i) <= qmin_ahi) .AND.      &                 
+                                  (swiftest_tpA%peri(i) <= qmin)) THEN
+                                   swiftest_tpA%status(i) = DISCARDED_PERI
+                                   WRITE(*, *) "Particle ", swiftest_tpA%id(i), " perihelion distance too small at t = ", t
                               END IF
                          END IF
                     END IF
                END IF
-               swifter_tpP => swifter_tpP%nextP
           END DO
      END IF
 
