@@ -2,7 +2,7 @@
 !
 !  Unit Name   : util_hills
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : util
 !  Language    : Fortran 90/95
 !
@@ -24,38 +24,35 @@
 !  Notes       : Adapted from Hal Levison's Swift routine util_hills.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_hills(npl, swifter_pl1P)
+SUBROUTINE util_hills(npl, swiftest_plA)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => util_hills
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     TYPE(swifter_pl), INTENT(INOUT) :: swifter_plA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP)                  :: msun, mp, mu, energy, ap, r, v2
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
-     msun = swifter_pl1P%mass
-     swifter_plP => swifter_pl1P
+     msun = swiftest_plA%mass(1)
      DO i = 2, npl
-          swifter_plP => swifter_plP%nextP
-          mp = swifter_plP%mass
+          mp = swiftest_plA%mass(i)
           IF (mp > 0.0_DP) THEN
                mu = msun + mp
-               r = SQRT(DOT_PRODUCT(swifter_plP%xh(:), swifter_plP%xh(:)))
-               v2 = DOT_PRODUCT(swifter_plP%vh(:), swifter_plP%vh(:))
+               r = SQRT(DOT_PRODUCT(swiftest_plA%xh(:,i), swiftest_plA%xh(:,i)))
+               v2 = DOT_PRODUCT(swiftest_plA%vh(:,i), swiftest_plP%vh(:,i))
                energy = 0.5_DP*v2 - mu/r
                ap = -0.5_DP*mu/energy
-               swifter_plP%rhill = ap*(((mp/mu)/3.0_DP)**(1.0_DP/3.0_DP))
+               swiftest_plA%rhill(i) = ap*(((mp/mu)/3.0_DP)**(1.0_DP/3.0_DP))
           ELSE
-               swifter_plP%rhill = 0.0_DP
+               swiftest_plA%rhill(i) = 0.0_DP
           END IF
      END DO
 
