@@ -257,7 +257,7 @@ MODULE module_swiftestalloc
 			DEALLOCATE(symba_plA%isperi)
 			DEALLOCATE(symba_plA%peri)
 			DEALLOCATE(symba_plA%atp)
-			CALL helio_pl_deallocate(symba_plA%helio,npl)
+			CALL helio_pl_deallocate(symba_plA%helio)
 			return
 		END SUBROUTINE symba_pl_deallocate
 
