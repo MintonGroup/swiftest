@@ -2,7 +2,7 @@
 !
 !  Unit Name   : module_nrutil
 !  Unit Type   : module
-!  Project     : SWIFTER
+!  Project     : SWIFTEST
 !  Package     : module
 !  Language    : Fortran 90/95
 !
