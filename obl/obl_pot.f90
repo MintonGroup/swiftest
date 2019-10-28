@@ -2,7 +2,7 @@
 !
 !  Unit Name   : obl_pot
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : obl
 !  Language    : Fortran 90/95
 !
@@ -32,11 +32,11 @@
 !                Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
 !
 !**********************************************************************************************************************************
-SUBROUTINE obl_pot(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, oblpot)
+SUBROUTINE obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => obl_pot
      IMPLICIT NONE
 
@@ -46,21 +46,18 @@ SUBROUTINE obl_pot(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, oblpot)
      REAL(DP), INTENT(OUT)                      :: oblpot
      REAL(DP), DIMENSION(npl), INTENT(IN)       :: irh
      REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
-     TYPE(swifter_pl), POINTER                  :: swifter_pl1P
+     TYPE(swiftest_pl), INTENT(INOUT)           :: swifter_plA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4, mu
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
      oblpot = 0.0_DP
-     mu = swifter_pl1P%mass
-     swifter_plP => swifter_pl1P
+     mu = swiftest_plAP%mass(1)
      DO i = 2, npl
-          swifter_plP => swifter_plP%nextP
           rinv2 = irh(i)**2
-          t0 = mu*swifter_plP%mass*rinv2*irh(i)
+          t0 = mu*swiftest_plPA%mass(i)*rinv2*irh(i)
           t1 = j2rp2
           t2 = xh(3, i)*xh(3, i)*rinv2
           t3 = j4rp4*rinv2
