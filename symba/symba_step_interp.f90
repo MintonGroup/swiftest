@@ -77,11 +77,11 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)      :: symba_plA
-     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)      :: symba_tpA
-     TYPE(symba_plplenc), DIMENSION(:), INTENT(INOUT) :: plplenc_list
-     TYPE(symba_pltpenc), DIMENSION(:), INTENT(INOUT) :: pltpenc_list
-     TYPE(symba_merger), DIMENSION(:), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+     TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+     TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
+     TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
+     TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.

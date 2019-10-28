@@ -35,15 +35,15 @@ SUBROUTINE symba_reorder_pl(npl, symba_pl1P)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN) :: npl
-     TYPE(symba_pl), POINTER  :: symba_pl1P
+     INTEGER(I4B), INTENT(IN)                  :: npl
+     TYPE(symba_pl), INTENT(INOUT)             :: symba_plA
 
 ! Internals
      INTEGER(I4B)                              :: i
      INTEGER(I4B), DIMENSION(:), ALLOCATABLE   :: index
      REAL(DP), DIMENSION(:), ALLOCATABLE       :: mass
-     TYPE(symba_pl), DIMENSION(:), ALLOCATABLE :: symba_plwkspA
-     TYPE(symba_pl), POINTER                   :: symba_plP
+     TYPE(symba_pl)                            :: symba_plwkspA
+     TYPE(symba_pl)                            :: symba_plP
 
 ! Executable code
      ALLOCATE(index(npl), mass(npl), symba_plwkspA(npl))

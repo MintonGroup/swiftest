@@ -36,7 +36,7 @@ SUBROUTINE symba_helio_getacch_int(npl, nplm, helio_plA)
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                    :: npl, nplm
-     TYPE(helio_pl), DIMENSION(:),INTENT(INOUT)  :: helio_plA
+     TYPE(helio_pl), INTENT(INOUT)               :: helio_plA
 
 ! Internals
      INTEGER(I4B)                                :: i, j

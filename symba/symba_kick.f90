@@ -43,10 +43,10 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: irec, nplplenc, npltpenc
      REAL(DP), INTENT(IN)                             :: dt, sgn
-     TYPE(symba_plplenc), DIMENSION(:), INTENT(IN) :: plplenc_list
-     TYPE(symba_pltpenc), DIMENSION(:), INTENT(IN) :: pltpenc_list
-     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)      :: symba_plA
-     TYPE(symba_tp), DIMENSION(:), INTENT(INOUT)      :: symba_tpA
+     TYPE(symba_plplenc), INTENT(IN)                  :: plplenc_list
+     TYPE(symba_pltpenc), INTENT(IN)                  :: pltpenc_list
+     TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
 
 ! Internals
      INTEGER(I4B)              :: i, j, irm1, irecl

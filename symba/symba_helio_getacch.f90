@@ -45,7 +45,7 @@ SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_
      LOGICAL(LGT), INTENT(IN)                     :: lflag, lextra_force
      INTEGER(I4B), INTENT(IN)                     :: npl, nplm, nplmax
      REAL(DP), INTENT(IN)                         :: t, j2rp2, j4rp4
-     TYPE(helio_pl), DIMENSION(:),INTENT(INOUT)   :: helio_plA
+     TYPE(helio_pl), INTENT(INOUT)                :: helio_plA
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.

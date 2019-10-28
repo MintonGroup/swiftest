@@ -37,9 +37,9 @@ SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN) :: irec, npl
-     REAL(DP), INTENT(IN)     :: dt
-     TYPE(symba_pl), DIMENSION(:),INTENT(INOUT)  :: symba_plA
+     INTEGER(I4B), INTENT(IN)       :: irec, npl
+     REAL(DP), INTENT(IN)           :: dt
+     TYPE(symba_pl), INTENT(INOUT)  :: symba_plA
 
 ! Internals
      INTEGER(I4B)              :: i, iflag

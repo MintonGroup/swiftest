@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_discard_merge_pl
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -47,7 +47,7 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_pl1P, symba_pld1P, nplple
      INTEGER(I4B), INTENT(INOUT)                   :: npl, nsppl
      REAL(DP), INTENT(IN)                          :: t
      TYPE(symba_pl), POINTER                       :: symba_pl1P, symba_pld1P
-     TYPE(symba_plplenc), DIMENSION(:), INTENT(IN) :: plplenc_list
+     TYPE(symba_plplenc), INTENT(IN) :: plplenc_list
 
 ! Internals
      INTEGER(I4B)              :: i, j, nchild

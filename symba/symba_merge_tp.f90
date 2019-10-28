@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_merge_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -45,7 +45,7 @@ SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_f
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-     TYPE(symba_pltpenc), DIMENSION(:), INTENT(INOUT) :: pltpenc_list
+     TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
 
 ! Internals
      LOGICAL(LGT)              :: lmerge

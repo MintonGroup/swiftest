@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_fragmentation
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -46,8 +46,8 @@ SUBROUTINE symba_fragmentation (t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplen
      INTEGER(I4B), INTENT(IN)                      :: nplplenc
      INTEGER(I4B), INTENT(INOUT)                   :: npl, nplmax, ntp, ntpmax
      REAL(DP), INTENT(IN)                          :: t
-     TYPE(symba_pl), POINTER                       :: symba_pl1P
-     TYPE(symba_plplenc), DIMENSION(:), INTENT(IN) :: plplenc_list
+     TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
+     TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
 
 ! Internals
  

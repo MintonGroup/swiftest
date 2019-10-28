@@ -53,8 +53,8 @@ SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntp
      LOGICAL(LGT), INTENT(INOUT)                    :: lfirst
      INTEGER(I4B), INTENT(IN)                       :: npl, nplm, nplmax, ntp, ntpmax
      REAL(DP), INTENT(IN)                           :: t, j2rp2, j4rp4, dt
-     TYPE(helio_pl), DIMENSION(:),INTENT(INOUT)     :: helio_plA
-     TYPE(helio_tp), DIMENSION(:),INTENT(INOUT)     :: helio_tpA
+     TYPE(helio_pl), INTENT(INOUT)                  :: helio_plA
+     TYPE(helio_tp), INTENT(INOUT)                  :: helio_tpA
 
 ! Internals
      LOGICAL(LGT)                                   :: lfirsttp

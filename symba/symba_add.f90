@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_add
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -46,7 +46,7 @@ SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mt
      INTEGER(I4B), INTENT(IN)                            :: nmergeadd
      REAL(DP), INTENT(IN)                                :: mtiny
      TYPE(swifter_pl), POINTER                           :: swifter_pl1P
-     TYPE(symba_merger), DIMENSION(:), INTENT(IN)        :: mergeadd_list
+     TYPE(symba_merger), INTENT(IN)                      :: mergeadd_list
      TYPE(symba_pl), POINTER                             :: symba_pl1P
 ! Internals
      INTEGER(I4B)              :: i, nplm, add_nplm

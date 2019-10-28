@@ -48,8 +48,8 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      LOGICAL(LGT), INTENT(IN)                      :: lextra_force
      INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
      REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
-     TYPE(symba_pl), DIMENSION(:), INTENT(INOUT)   :: symba_plA
-     TYPE(symba_plplenc), DIMENSION(:), INTENT(IN) :: plplenc_list
+     TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
+     TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
