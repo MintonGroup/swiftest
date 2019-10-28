@@ -74,16 +74,16 @@ PROGRAM swiftest_test
      REAL(DP), DIMENSION(NDIM)                                  :: htot
      CHARACTER(STRMAX)                                          :: inparfile
 
-     TYPE(symba_pl), DIMENSION(:), ALLOCATABLE                  :: symba_plA
-     TYPE(symba_tp), DIMENSION(:), ALLOCATABLE                  :: symba_tpA
-     TYPE(swiftest_pl), DIMENSION(:), ALLOCATABLE               :: swiftest_plA
-     TYPE(swiftest_tp), DIMENSION(:), ALLOCATABLE               :: swiftest_tpA
-     TYPE(helio_pl), DIMENSION(:), ALLOCATABLE                  :: helio_plA
-     TYPE(helio_tp), DIMENSION(:), ALLOCATABLE                  :: helio_tpA
+     TYPE(symba_pl), ALLOCATABLE                                :: symba_plA
+     TYPE(symba_tp), ALLOCATABLE                                :: symba_tpA
+     TYPE(swiftest_pl), ALLOCATABLE                             :: swiftest_plA
+     TYPE(swiftest_tp), ALLOCATABLE                             :: swiftest_tpA
+     TYPE(helio_pl), ALLOCATABLE                                :: helio_plA
+     TYPE(helio_tp), ALLOCATABLE                                :: helio_tpA
 
      TYPE(symba_plplenc), DIMENSION(NENMAX), ALLOCATABLE        :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(NENMAX), ALLOCATABLE        :: pltpenc_list
-     TYPE(symba_merger), DIMENSION(:), ALLOCATABLE              :: mergeadd_list, mergesub_list
+     TYPE(symba_merger), ALLOCATABLE                            :: mergeadd_list, mergesub_list
 
 ! Executable code
      CALL util_version
