@@ -38,12 +38,12 @@ SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: ntp
-     TYPE(swiftest_tp), DIMENSION(:), INTENT(INOUT)    :: swiftest_tpA
+     INTEGER(I4B), INTENT(IN)            :: ntp
+     TYPE(swiftest_tp), INTENT(INOUT)    :: swiftest_tpA
 
 ! Internals
-     INTEGER(I4B)              :: i, iu, ierr
-     INTEGER(I4B), SAVE        :: idx = 1
+     INTEGER(I4B)                        :: i, iu, ierr
+     INTEGER(I4B), SAVE                  :: idx = 1
 
 ! Executable code
      CALL io_open_fxdr(DUMP_TP_FILE(idx), "W", .TRUE., iu, ierr)

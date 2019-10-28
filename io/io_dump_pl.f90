@@ -43,13 +43,13 @@ SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
-     INTEGER(I4B), INTENT(IN)  :: npl
-     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT) :: swiftest_plA
+     LOGICAL(LGT), INTENT(IN)         :: lclose, lrhill_present
+     INTEGER(I4B), INTENT(IN)         :: npl
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
 
 ! Internals
-     INTEGER(I4B)              :: i, iu, ierr
-     INTEGER(I4B), SAVE        :: idx = 1
+     INTEGER(I4B)                     :: i, iu, ierr
+     INTEGER(I4B), SAVE               :: idx = 1
 
 ! Executable code
      CALL io_open_fxdr(DUMP_PL_FILE(idx), "W", .TRUE., iu, ierr)

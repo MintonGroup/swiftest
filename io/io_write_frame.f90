@@ -43,11 +43,11 @@ SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: npl, ntp
-     REAL(DP), INTENT(IN)      :: t
-     CHARACTER(*), INTENT(IN)  :: outfile, out_type, out_form, out_stat
-     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT) :: swiftest_plA
-     TYPE(swiftest_tp), DIMENSION(:), INTENT(INOUT) :: swiftest_tpA
+     INTEGER(I4B), INTENT(IN)         :: npl, ntp
+     REAL(DP), INTENT(IN)             :: t
+     CHARACTER(*), INTENT(IN)         :: outfile, out_type, out_form, out_stat
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
      LOGICAL(LGT)              :: lxdr

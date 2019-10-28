@@ -38,13 +38,13 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: ntp
-     CHARACTER(*), INTENT(IN)  :: intpfile, in_type
-     TYPE(symba_tpA), DIMENSION(:), INTENT(INOUT)      :: symba_tpA
+     INTEGER(I4B), INTENT(IN)            :: ntp
+     CHARACTER(*), INTENT(IN)            :: intpfile, in_type
+     TYPE(symba_tpA), INTENT(INOUT)      :: symba_tpA
 
 ! Internals
-     INTEGER(I4B), PARAMETER   :: LUN = 7
-     INTEGER(I4B)              :: i, iu, ierr, intp
+     INTEGER(I4B), PARAMETER             :: LUN = 7
+     INTEGER(I4B)                        :: i, iu, ierr, intp
     
 
 ! Executable code

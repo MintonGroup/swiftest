@@ -43,14 +43,14 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
-     INTEGER(I4B), INTENT(IN)  :: npl
-     CHARACTER(*), INTENT(IN)  :: inplfile, in_type
-     TYPE(swiftest_pl), DIMENSION(:), INTENT(INOUT)        :: swifter_plA
+     LOGICAL(LGT), INTENT(IN)         :: lclose, lrhill_present
+     INTEGER(I4B), INTENT(IN)         :: npl
+     CHARACTER(*), INTENT(IN)         :: inplfile, in_type
+     TYPE(swiftest_pl), INTENT(INOUT) :: swifter_plA
 
 ! Internals
-     INTEGER(I4B), PARAMETER   :: LUN = 7
-     INTEGER(I4B)              :: i, iu, ierr, inpl
+     INTEGER(I4B), PARAMETER          :: LUN = 7
+     INTEGER(I4B)                     :: i, iu, ierr, inpl
     
 ! Executable code
      IF (in_type == "ASCII") THEN
