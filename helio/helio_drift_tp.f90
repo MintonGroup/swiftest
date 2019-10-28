@@ -33,12 +33,12 @@ SUBROUTINE helio_drift_tp(ntp, swiftest_tpA, mu, dt)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: ntp
-     REAL(DP), INTENT(IN)      :: mu, dt
-     TYPE(swiftest_tp), DIMENSION(:), INTENT(INOUT) :: swiftest_tpA
+     INTEGER(I4B), INTENT(IN)         :: ntp
+     REAL(DP), INTENT(IN)             :: mu, dt
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
-     INTEGER(I4B)              :: i, iflag
+     INTEGER(I4B)                     :: i, iflag
 
 ! Executable code
      DO i = 1, ntp

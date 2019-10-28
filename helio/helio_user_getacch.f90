@@ -36,7 +36,7 @@ SUBROUTINE helio_user_getacch(t, npl, helio_plA)
 ! Arguments
      INTEGER(I4B), INTENT(IN)                    :: npl
      REAL(DP), INTENT(IN)                        :: t
-     TYPE(helio_pl), DIMENSION(:),INTENT(INOUT)  :: helio_plA
+     TYPE(helio_pl), INTENT(INOUT)  :: helio_plA
 
 ! Internals
 

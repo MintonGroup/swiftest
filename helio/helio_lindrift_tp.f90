@@ -39,7 +39,7 @@ SUBROUTINE helio_lindrift_tp(ntp, swiftest_tpA, dt, pt)
      INTEGER(I4B), INTENT(IN)              :: ntp
      REAL(DP), INTENT(IN)                  :: dt
      REAL(DP), DIMENSION(NDIM), INTENT(IN) :: pt
-     TYPE(swiftest_tp), DIMENSION(:), INTENT(INOUT)             :: swiftest_tpA
+     TYPE(swiftest_tp), INTENT(INOUT)             :: swiftest_tpA
 
 ! Internals
      INTEGER(I4B)              :: i
