@@ -51,19 +51,29 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
 
       ! Estimate the growth using Runge Kutta Calculate instantaneous growth ra
       do concurrent(i=1:seeds%N,seeds%active(i)) !local(P,Q,R,S)
-         P = ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i)                ,seeds%a(i))
-         Q = ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) + 0.5_DP * P,seeds%a(i))
-         R = ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) + 0.5_DP * Q,seeds%a(i))
-         S = ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) +          R,seeds%a(i))
-         dGmseeds(i) = (dt / 6._DP) * (P + Q + R + S)
+         P = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i)             ,seeds%a(i))
+         Q = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) + 0.5_DP * P,seeds%a(i))
+         R = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) + 0.5_DP * Q,seeds%a(i))
+         S = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) +          R,seeds%a(i))
+         dGmseeds(i) = (P + 2 * Q + 2 * R + S) / 6._DP
       end do
 
       ! Get the mass out of the feeding zone (if it's there), starting from the bin the seed is in and working its way outward
       do i = 1, seeds%N
          if (.not.seeds%active(i)) cycle
+         !write(*,*) i,dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i),seeds%a(i))/seeds%Gm(i), dGmseeds(i)/seeds%Gm(i)
+         !ead(*,*)
          Lseed_original = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i))
 
+         ! Find our position in bin space (very inefficient right now)
+         seeds%rbin(i) = 1 
+         do j = 1,ring%N
+            if ((seeds%a(i) >= ring%rinner(j)) .and. (seeds%a(i) < ring%router(j)))  exit
+            seeds%rbin(i) = j 
+         end do
          seed_bin = seeds%rbin(i)
+         seeds%fz_bin_inner(i) = seed_bin
+         seeds%fz_bin_outer(i) = seed_bin
          fz_width = FEEDING_ZONE_FACTOR * seeds%rhill(i)
          do j = seeds%fz_bin_inner(i),1,-1
             if (ring%rinner(j) < seeds%a(i) - fz_width) exit

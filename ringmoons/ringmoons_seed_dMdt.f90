@@ -48,10 +48,10 @@ elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
 
 ! Executable code
       
-      if (a <= ring%FRL) then
+      if (a < ring%FRL) then
          Gmdot = 0.0_DP
       else
-         C = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * ring%rho_pdisk))**(1._DP / 3._DP) / sqrt(GMP) / GU**(1._DP / 3._DP)
+         C = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * ring%rho_pdisk))**(1._DP / 3._DP) / sqrt(GMP) 
          Gmeff = GMseed * (1._DP - ring%FRL / a**3) ! Reduces the growth rate near the FRL
          Gmdot = C * Gsigma / (eff2 * sqrt(a)) * Gmeff**(growth_exponent)
       end if

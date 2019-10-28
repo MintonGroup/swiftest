@@ -168,6 +168,20 @@ module module_ringmoons_interfaces
          end subroutine ringmoons_seed_grow
       end interface
 
+
+      interface
+         subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer :: swifter_pl1P
+         type(ringmoons_ring),intent(inout) :: ring
+         type(ringmoons_seeds),intent(inout) :: seeds
+         real(DP),intent(in)                 :: dt
+         end subroutine ringmoons_seed_evolve
+      end interface
+
       interface
          elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
          use module_parameters
@@ -179,6 +193,21 @@ module module_ringmoons_interfaces
          real(DP)                               :: Gmdot
          end function ringmoons_seed_dMdt
       end interface
+
+      interface
+         function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer               :: swifter_pl1P
+         type(ringmoons_ring),intent(in)        :: ring
+         type(ringmoons_seeds),intent(in)       :: seeds
+         real(DP),intent(in)                    :: dtin
+         real(DP)                               :: dtout
+         end function ringmoons_timestep
+      end interface
+
 
 
 

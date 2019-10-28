@@ -76,7 +76,7 @@ PROGRAM swifter_symba_ringmoons
 
 ! Internals
      LOGICAL(LGT)                                      :: lfirst,lrmfirst
-     INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, iloop
+     INTEGER(I4B)                                      :: npl, ntp, ntp0, nsppl, nsptp, iout, iloop, i
      INTEGER(I4B)                                      :: nplplenc, npltpenc, nmergeadd, nmergesub
      REAL(DP)                                          :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                         :: htot
@@ -90,7 +90,7 @@ PROGRAM swifter_symba_ringmoons
      TYPE(symba_plplenc), DIMENSION(NENMAX)            :: plplenc_list
      TYPE(symba_pltpenc), DIMENSION(NENMAX)            :: pltpenc_list
      TYPE(symba_merger), DIMENSION(:), ALLOCATABLE     :: mergeadd_list, mergesub_list
-      real(DP)                                           :: Merror,Lerror
+      real(DP)                                         :: Merror,Lerror
 
      TYPE(ringmoons_ring) :: ring
      TYPE(ringmoons_seeds) :: seeds

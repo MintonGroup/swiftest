@@ -7,27 +7,6 @@ year    = 3600*24*365.25                #seconds in 1 year
 AU      = 1.4960e13
 M_Sun   = 1.9891e33
 
-
-#The following are Unit conversion factors
-MU2GM    =     1.0 #M_Uranus          #Conversion from mass unit to grams
-DU2CM    =     1.0 #R_Uranus                       #Conversion from radius unit to centimeters
-TU2S     =     year                                #Conversion from time unit to seconds
-GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
-
-r_pdisk = 100.0  #disk particle size
-rho_pdisk = 1.2000 # Satellite/ring particle mass density in gm/cm**3
-rho_sat   = 1.2000 # Satellite/ring particle mass density in gm/cm**3
-
-
-t_0	= 0
-t_print = 1.e6 * year / TU2S #output interval to print results
-deltaT	= 1.e6 * year / TU2S  #timestep simulation
-end_sim = 720.e6 * year / TU2S + deltaT #end time
-
-Nbins    = 240          #number of bins in disk
-Nseeds   = 10000         #initial number of seeds
-
-
 ###***Define initial conditions***###
 M_Uranus    = 8.6127e28
 R_Uranus    = 25362e5
@@ -35,6 +14,29 @@ R_Uranus_eq = 25559e5
 a_Uranus    = 19.2184 * AU
 T_Uranus    = 0.71833 * 24 * 3600
 W_Uranus    = 2.0 * np.pi / T_Uranus
+
+
+#The following are Unit conversion factors
+MU2GM    =     M_Uranus          #Conversion from mass unit to grams
+DU2CM    =     R_Uranus                       #Conversion from radius unit to centimeters
+TU2S     =     year                           #Conversion from time unit to seconds
+GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
+
+r_pdisk = 100.0 / DU2CM #disk particle size
+rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
+rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
+
+
+t_0	= 0
+t_print = 1e6 * year / TU2S #output interval to print results
+deltaT	= 1e6 * year / TU2S  #timestep simulation
+end_sim = 720.e6 * year / TU2S + deltaT #end time
+
+Nbins    = 240          #number of bins in disk
+Nseeds   = 1000       #initial number of seeds
+
+
+
 
 Rhill_Uranus = a_Uranus * (M_Uranus / (3 * M_Sun))**(1.0 / 3.0)
 Ipolar_Uranus = 0.230
@@ -84,7 +86,7 @@ R = []
 Torque_to_disk = []
 
 def f():
-    sigma_peak = 1.2e4  # scale factor to get a given mass
+    sigma_peak = 1.2e4 * DU2CM**2 / MU2GM # scale factor to get a given mass
 
     #Creates initial values for the disk and prints them out
     for a in range(int(Nbins)):

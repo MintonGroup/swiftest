@@ -52,6 +52,7 @@ subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 ! Executable code
       !if (lfirst) then
       dtleft = dtin
+
       !TESTING
          if (lfirst) then
             Mtot_orig = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm)
@@ -61,7 +62,6 @@ subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             lfirst = .false.
          end if
          call ringmoons_viscosity(ring)
-         dtstab = ring%stability_factor / maxval(ring%nu)
          Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm)
          Ltot_now = sum(seeds%Gm(:) * sqrt(swifter_pl1P%mass * seeds%a(:))) 
          Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
@@ -71,11 +71,11 @@ subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       !^^^^^^^^  
       do loop = 1, LOOPMAX
          call ringmoons_viscosity(ring)
-         dtstab = ring%stability_factor / maxval(ring%nu)
-         dt = min(dtleft,dtstab)
+         dt = ringmoons_timestep(swifter_pl1P,ring,seeds,dtleft)
+         call ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
+         call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
          call ringmoons_sigma_solver(ring,dt)
          ring%Gm = ring%Gsigma * ring%deltaA
-         call ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
          dtleft = dtleft - dt
          if (dtleft <= 0.0_DP) exit
