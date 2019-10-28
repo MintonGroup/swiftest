@@ -37,7 +37,7 @@ SUBROUTINE helio_kickvb(npl, helio_plA, dt)
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: npl
      REAL(DP), INTENT(IN)     :: dt
-     TYPE(helio_pl), DIMENSION(:), INTENT(INOUT) :: helio_plA
+     TYPE(helio_pl), INTENT(INOUT) :: helio_plA
 
 ! Internals
      INTEGER(I4B)              :: i

@@ -37,7 +37,7 @@ SUBROUTINE helio_kickvb_tp(ntp, helio_tpA, dt)
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: ntp
      REAL(DP), INTENT(IN)     :: dt
-     TYPE(helio_tp), DIMENSION(:),INTENT(INOUT)  :: helio_tpA
+     TYPE(helio_tp), INTENT(INOUT)  :: helio_tpA
 
 ! Internals
      INTEGER(I4B)              :: i

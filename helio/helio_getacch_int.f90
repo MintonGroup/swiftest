@@ -2,7 +2,7 @@
 !
 !  Unit Name   : helio_getacch_int
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : helio
 !  Language    : Fortran 90/95
 !
@@ -24,7 +24,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine getacch_ah3.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_getacch_int(npl, helio_pl1P)
+SUBROUTINE helio_getacch_int(npl, helio_plA)
 
 ! Modules
      USE module_parameters
@@ -33,29 +33,25 @@ SUBROUTINE helio_getacch_int(npl, helio_pl1P)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN) :: npl
-     TYPE(helio_pl), POINTER  :: helio_pl1P
+     INTEGER(I4B), INTENT(IN)       :: npl
+     TYPE(helio_pl), INTENT(INOUT)  :: helio_plA
 
 ! Internals
      INTEGER(I4B)              :: i, j
      REAL(DP)                  :: rji2, irij3, faci, facj
      REAL(DP), DIMENSION(NDIM) :: dx
-     TYPE(helio_pl), POINTER   :: helio_pliP, helio_pljP
+
 
 ! Executable code
-     helio_pliP => helio_pl1P
      DO i = 2, npl - 1
-          helio_pliP => helio_pliP%nextP
-          helio_pljP => helio_pliP
           DO j = i + 1, npl
-               helio_pljP => helio_pljP%nextP
-               dx(:) = helio_pljP%swifter%xh(:) - helio_pliP%swifter%xh(:)
+               dx(:) = helio_plA%swiftest%xh(:,j) - helio_plA%swiftest%xh(:,i)
                rji2 = DOT_PRODUCT(dx(:), dx(:))
                irij3 = 1.0_DP/(rji2*SQRT(rji2))
-               faci = helio_pliP%swifter%mass*irij3
-               facj = helio_pljP%swifter%mass*irij3
-               helio_pliP%ahi(:) = helio_pliP%ahi(:) + facj*dx(:)
-               helio_pljP%ahi(:) = helio_pljP%ahi(:) - faci*dx(:)
+               faci = helio_plA%swiftest%mass(i)*irij3
+               facj = helio_plA%swiftest%mass(j)*irij3
+               helio_plA%ahi(:,i) = helio_plA%ahi(:,i) + facj*dx(:)
+               helio_plA%ahi(:,i) = helio_plA%ahi(:,j) - faci*dx(:)
           END DO
      END DO
 

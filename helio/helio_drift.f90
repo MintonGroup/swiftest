@@ -34,13 +34,13 @@ SUBROUTINE helio_drift(npl, swiftest_plA, dt)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: npl
-     REAL(DP), INTENT(IN)      :: dt
-     TYPE(swifter_pl), DIMENSION(:),INTENT(INOUT) :: swifter_plA
+     INTEGER(I4B), INTENT(IN)       :: npl
+     REAL(DP), INTENT(IN)           :: dt
+     TYPE(swifter_pl),INTENT(INOUT) :: swifter_plA
 
 ! Internals
-     INTEGER(I4B)              :: i, iflag
-     REAL(DP)                  :: mu
+     INTEGER(I4B)                   :: i, iflag
+     REAL(DP)                       :: mu
 
 ! Executable code
      mu = swiftest_plA%mass(1)

@@ -2,7 +2,7 @@
 !
 !  Unit Name   : helio_getacch_int_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : helio
 !  Language    : Fortran 90/95
 !
@@ -39,8 +39,8 @@ SUBROUTINE helio_getacch_int_tp(npl, ntp, swifter_plA, helio_tpA, xh)
 ! Arguments
      INTEGER(I4B), INTENT(IN)                    :: npl, ntp
      REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)  :: xh
-     TYPE(swifter_pl), DIMENSION(:),INTENT(INOUT):: swifter_plA
-     TYPE(helio_tp), DIMENSION(:),INTENT(INOUT)  :: helio_tpA
+     TYPE(swifter_pl), INTENT(INOUT)             :: swifter_plA
+     TYPE(helio_tp), INTENT(INOUT)               :: helio_tpA
 
 ! Internals
      INTEGER(I4B)              :: i, j

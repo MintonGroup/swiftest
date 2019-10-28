@@ -36,7 +36,7 @@ SUBROUTINE helio_user_getacch_tp(t, ntp, helio_tpA)
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: ntp
      REAL(DP), INTENT(IN)     :: t
-     TYPE(helio_tp), DIMENSION(:),INTENT(INOUT)  :: helio_tpA
+     TYPE(helio_tp), INTENT(INOUT)  :: helio_tpA
 
 ! Internals
 

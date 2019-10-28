@@ -57,8 +57,8 @@ SUBROUTINE helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, he
      REAL(DP), INTENT(IN)                       :: t, j2rp2, j4rp4, dt
      REAL(DP), DIMENSION(NDIM), INTENT(IN)      :: ptb, pte
      REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xbeg, xend
-     TYPE(helio_pl), DIMENSION(:), INTENT(INOUT):: helio_plA
-     TYPE(helio_tp), DIMENSION(:), INTENT(INOUT):: helio_tpA
+     TYPE(helio_pl), INTENT(INOUT):: helio_plA
+     TYPE(helio_tp), INTENT(INOUT):: helio_tpA
 
 ! Internals
      LOGICAL(LGT)              :: lflag
