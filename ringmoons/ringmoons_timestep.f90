@@ -49,9 +49,9 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 
 ! Executable code
 
-      dtout = ring%stability_factor / maxval(ring%nu)
+      dtout = ring%stability_factor / maxval(ring%nu)  ! smallest timestep for the viscous evolution equation
       dGm_max = maxval(ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(:)),seeds%Gm(:),seeds%a(:)) / seeds%Gm(:),seeds%active)
-      dtout = min(dtout,SEED_GROWTH_FACTOR / dGm_max) 
+      dtout = min(dtout,SEED_GROWTH_FACTOR / dGm_max)  ! smallest timestep for the seed growth equation 
       dtout = min(dtin,dtout)
 
       return

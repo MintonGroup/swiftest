@@ -53,7 +53,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       seeds%Gminit = 3 * swifter_pl1P%mass * ((1.0_DP / FEEDING_ZONE_FACTOR) * (dfac - 1.0_DP))**3
       rbin = 1
       do i = 1,seeds%N
-         seeds%a(i) = ring%FRL * (dfac)**(i - 1)
+         seeds%a(i) = ring%FRL * (dfac)**(i)
          do
             if ((seeds%a(i) >= ring%rinner(rbin)) .and. (seeds%a(i) < ring%router(rbin)) .or. (rbin == ring%N))  exit
             rbin = rbin + 1

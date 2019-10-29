@@ -33,7 +33,7 @@ deltaT	= 1e6 * year / TU2S  #timestep simulation
 end_sim = 720.e6 * year / TU2S + deltaT #end time
 
 Nbins    = 240          #number of bins in disk
-Nseeds   = 1000       #initial number of seeds
+Nseeds   = 100       #initial number of seeds
 
 
 
@@ -95,7 +95,7 @@ def f():
         deltar = (0.5 * (X[a] + deltaX))**2 - (0.5 * X[a])**2
         deltaA.append(2*np.pi*r[a]*deltar)
 
-        if a == Nbins - 1:
+        if a >= Nbins - 1:
             sigma.append(0.0)
         else:
             sigma.append(sigma_peak * (r[a] / RP) ** (-3))
