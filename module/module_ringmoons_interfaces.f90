@@ -195,6 +195,18 @@ module module_ringmoons_interfaces
       end interface
 
       interface
+         elemental function ringmoons_ring_bin_finder(ring,r) result(bin)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(ringmoons_ring), intent(in)       :: ring
+         real(DP), intent(in)                   :: r
+         integer(I4B)                           :: bin
+         end function ringmoons_ring_bin_finder
+      end interface
+
+      interface
          function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
          use module_parameters
          use module_swifter

@@ -42,14 +42,17 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
       real(DP), intent(in)                   :: dt
 
 ! Internals
-      integer(I4B)                           :: i,j,k,seed_bin,fz_bin_outer,fz_bin_inner,nfz
+      integer(I4B)                           :: i,j,k,seed_bin
       real(DP)                               :: P,Q,R,S
-      real(DP)                               :: Gmleft,fz_width,dGm,Gmdisk,Lfromring,Lseed_original,Ldiff
-      real(DP),dimension(seeds%N)            :: dGmseeds
+      real(DP)                               :: Gmleft,dGm,Gmdisk,Lfromring,Lseed_original,Ldiff
+      real(DP),dimension(seeds%N)            :: dGmseeds, fz_width
+      integer(I4B),dimension(seeds%N)        :: nfz
 
 ! Executable code
 
-      ! Estimate the growth using Runge Kutta Calculate instantaneous growth ra
+   
+      ! Estimate the growth using Runge Kutta
+      !$OMP SIMD
       do concurrent(i=1:seeds%N,seeds%active(i)) !local(P,Q,R,S)
          P = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i)             ,seeds%a(i))
          Q = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) + 0.5_DP * P,seeds%a(i))
@@ -58,37 +61,18 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
          dGmseeds(i) = (P + 2 * Q + 2 * R + S) / 6._DP
       end do
 
+      do concurrent(i=1:seeds%N,seeds%active(i))
+         nfz(i) = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
+      end do
       ! Get the mass out of the feeding zone (if it's there), starting from the bin the seed is in and working its way outward
       do i = 1, seeds%N
          if (.not.seeds%active(i)) cycle
-         !write(*,*) i,dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i),seeds%a(i))/seeds%Gm(i), dGmseeds(i)/seeds%Gm(i)
-         !ead(*,*)
          Lseed_original = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i))
-
-         ! Find our position in bin space (very inefficient right now)
-         seeds%rbin(i) = 1 
-         do j = 1,ring%N
-            if ((seeds%a(i) >= ring%rinner(j)) .and. (seeds%a(i) < ring%router(j)))  exit
-            seeds%rbin(i) = j 
-         end do
          seed_bin = seeds%rbin(i)
-         seeds%fz_bin_inner(i) = seed_bin
-         seeds%fz_bin_outer(i) = seed_bin
-         fz_width = FEEDING_ZONE_FACTOR * seeds%rhill(i)
-         do j = seeds%fz_bin_inner(i),1,-1
-            if (ring%rinner(j) < seeds%a(i) - fz_width) exit
-            seeds%fz_bin_inner(i) = j
-         end do
-         do j = seeds%fz_bin_outer(i),ring%N
-            if (ring%router(j) > seeds%a(i) + fz_width) exit
-            seeds%fz_bin_outer(i) = j
-         end do
-         nfz = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1 
-
          Gmleft = dGmseeds(i)
          Lfromring = 0.0_DP
          do j = seeds%fz_bin_inner(i),seeds%fz_bin_outer(i) ! loop over bins of the feeding zone and grab mass from them
-            dGm = min(Gmleft / nfz,ring%Gm(j))
+            dGm = min(Gmleft / nfz(i),ring%Gm(j))
             ring%Gm(j) = ring%Gm(j) - dGm
             ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
             Gmleft = Gmleft - dGm
@@ -104,14 +88,25 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
          Gmleft = Gmleft - dGm
          seeds%Gm(i) = seeds%Gm(i) + (dGmseeds(i) - Gmleft)
          
-        
          ! Conserve angular momentum 
          seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass
+      end do
+      
+      ! Adjust seed parameters 
+      do concurrent(i=1:seeds%N,seeds%active(i))
+         seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
+         fz_width(i) = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
+         seeds%rbin(i) = ringmoons_ring_bin_finder(ring,seeds%a(i))
+         seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - FEEDING_ZONE_FACTOR * seeds%Rhill(i))
+         seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + FEEDING_ZONE_FACTOR * seeds%Rhill(i))
+      end do 
 
-         !I'm hungry! What's there to eat?!
+      !I'm hungry! What's there to eat?! Look for neighboring seeds
+      do i = 1, seeds%N
+         if (.not.seeds%active(i)) cycle
          do j = 1,seeds%N
             if (seeds%active(j).and.(j /= i)) then
-               if ((seeds%a(j) > seeds%a(i) - fz_width).and.(seeds%a(j) < seeds%a(i) + fz_width)) then ! This one is in the feeding zone
+               if ((seeds%a(j) > seeds%a(i) - fz_width(i)).and.(seeds%a(j) < seeds%a(i) + fz_width(i))) then ! This one is in the feeding zone
                   ! conserve orbital angular momentum
                   seeds%a(i) = ((seeds%Gm(i) * sqrt(seeds%a(i)) + seeds%Gm(j) * sqrt(seeds%a(j))) / (seeds%Gm(i) + seeds%Gm(j)))**2
                   ! conserve mass
@@ -123,20 +118,16 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
                end if
             end if
          end do
-              
-         !Update the Hill's sphere
-         seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP) 
+      end do         
+      ! Adjust seed parameters 
 
-         !Update the seed location
-         do while (seeds%a(i) < ring%rinner(seeds%rbin(i)))
-            seeds%rbin(i) = seeds%rbin(i) - 1
-         end do
-         do while (seeds%a(i) >= ring%router(seeds%rbin(i)))
-            seeds%rbin(i) = seeds%rbin(i) + 1
-         end do   
-         
-      end do   
-      
-   
+      do concurrent(i=1:seeds%N,seeds%active(i))
+         seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
+         fz_width(i) = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
+         seeds%rbin(i) = ringmoons_ring_bin_finder(ring,seeds%a(i))
+         seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - FEEDING_ZONE_FACTOR * seeds%Rhill(i))
+         seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + FEEDING_ZONE_FACTOR * seeds%Rhill(i))
+      end do       
+
       return
 end subroutine ringmoons_seed_grow
