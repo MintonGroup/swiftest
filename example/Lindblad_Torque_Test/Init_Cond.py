@@ -32,8 +32,8 @@ t_print = 1e6 * year / TU2S #output interval to print results
 deltaT	= 1e6 * year / TU2S  #timestep simulation
 end_sim = 720.e6 * year / TU2S + deltaT #end time
 
-Nbins    = 240          #number of bins in disk
-Nseeds   = 100       #initial number of seeds
+Nbins    = 480          #number of bins in disk
+Nseeds   = 1000       #initial number of seeds
 
 
 

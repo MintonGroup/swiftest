@@ -45,14 +45,23 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 ! Internals
       integer(I4B)                           :: i
       real(DP),parameter                     :: SEED_GROWTH_FACTOR = 0.01_DP ! smallest increase in fractional mass allowable in a single time step
-      real(DP)                               :: dGm_max
+      real(DP)                               :: dGm_max,nu_max
 
 ! Executable code
 
-      dtout = ring%stability_factor / maxval(ring%nu)  ! smallest timestep for the viscous evolution equation
-      dGm_max = maxval(ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(:)),seeds%Gm(:),seeds%a(:)) / seeds%Gm(:),seeds%active)
-      dtout = min(dtout,SEED_GROWTH_FACTOR / dGm_max)  ! smallest timestep for the seed growth equation 
-      dtout = min(dtin,dtout)
+      ! Start with viscous stability
+      nu_max = maxval(ring%nu)
+      dtout = dtin
+      if (nu_max > 0.0_DP) then
+         dtout = min(dtout,ring%stability_factor / nu_max)  ! smallest timestep for the viscous evolution equation
+      end if
+
+      ! Now aim for seed growth accuracy
+      dGm_max = maxval(ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(:)), &
+                       seeds%Gm(:),seeds%a(:)) / seeds%Gm(:),seeds%active)
+      if (dGm_max > 0.0_DP) then
+         dtout = min(dtout,SEED_GROWTH_FACTOR / dGm_max)  ! smallest timestep for the seed growth equation 
+      end if
 
       return
 end function ringmoons_timestep

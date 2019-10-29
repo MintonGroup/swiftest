@@ -151,6 +151,7 @@ PROGRAM swifter_symba_ringmoons
      eoffset = 0.0_DP
      Merror = 0.0_DP
      Lerror = 0.0_DP
+     tfrac = 0.0_DP
      NULLIFY(symba_pld1P, symba_tpd1P)
       if (istep_out > 0) then
          CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)

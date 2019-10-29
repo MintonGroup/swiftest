@@ -78,10 +78,10 @@
       Mratiosqrt = sqrt(Mratio)
       MratioHill = Mratio**(-1._DP / 3._DP)
       ! update body-dependent parameters as needed
-      !$OMP PARALLEL WORKSHARE SHARED(Mratiosqrt,MratioHill)
-      ring%w(:) = ring%w(:) * Mratiosqrt
-      ring%r_hstar(:) = ring%r_hstar(:) * MRatioHill
-      !$OMP END PARALLEL WORKSHARE
+      do concurrent(i = 1:ring%N)
+         ring%w(i) = ring%w(i) * Mratiosqrt
+         ring%r_hstar(i) = ring%r_hstar(i) * MRatioHill
+      end do
       ring%FRL = ring%FRL * Rratio
       ring%RRL = ring%RRL * Rratio 
 
@@ -99,9 +99,9 @@
          ring%iFRL = i
       end do
 
-      !$OMP PARALLEL WORKSHARE SHARED(MratioHill)
-      seeds%Rhill(:) = seeds%Rhill(:) *  MratioHill
-      !$OMP END PARALLEL WORKSHARE
+      do concurrent(i = 1:seeds%N,seeds%active(i))
+         seeds%Rhill(i) = seeds%Rhill(i) *  MratioHill
+      end do
 
       
       return

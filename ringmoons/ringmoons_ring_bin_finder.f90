@@ -19,7 +19,7 @@
 !    Teringinal  : 
 !    File      : 
 !
-!  Invocation  : CALL ringmoons_ring_bin_finder(dt,r) result(bin)
+!  Invocation  : CALL ringmoons_ring_bin_finder(ring,r) result(bin)
 !
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts, but uses a different growth model
 !
@@ -43,7 +43,7 @@ elemental function ringmoons_ring_bin_finder(ring,r) result(bin)
 
 ! Executable code
 
-      bin = ceiling(2 * (sqrt(r) - sqrt(ring%r_I)) / ring%deltaX) + 1 
+      bin = ceiling(2 * (sqrt(r) - sqrt(ring%r_I)) / ring%deltaX) !+ 1 
       bin = min(max(1,bin),ring%N)
     
       return

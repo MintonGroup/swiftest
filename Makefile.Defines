@@ -48,7 +48,8 @@ USER_MODULES    =
 #FFLAGS          = -O3 -qopenmp -parallel -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens -no-wrap-margin
 
 FORTRAN         = gfortran
-FFLAGS          = -O3 -fopenmp -ffree-line-length-none -g3
+FFLAGS          = -O3 -fopenmp
+#FFLAGS          = -O0 -ffree-line-length-none -g -ffpe-trap=denormal -fbacktrace -fbounds-check -ffpe-summary=denormal
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile

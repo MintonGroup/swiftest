@@ -47,18 +47,18 @@ subroutine ringmoons_sigma_solver(ring,dt)
 
       S(0:ring%inside - 1) = 0.0_DP
       S(ring%N+1) = 0.0_DP
-      S(1:ring%N) = ring%Gsigma(:) / GU * ring%X(:)
+      S(1:ring%N) = ring%Gsigma(:) * ring%X(:)
 
       fac = 12 * dt / ring%deltaX**2 
 
-      !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
-      !$OMP SHARED(ring,S,fac,GU)
-      do i = 1,ring%N
+      !!$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
+      !!$OMP SHARED(ring,S,fac)
+      do concurrent(i = 1:ring%N)
          Snew = S(i) + fac / (ring%X2(i)) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
-         ring%Gsigma(i) = GU * Snew / ring%X(i)
+         ring%Gsigma(i) = Snew / ring%X(i)
+         ring%Gm(i) = ring%Gsigma(i) * ring%deltaA(i)
       end do
-      !$OMP END PARALLEL DO
-
+      !!$OMP END PARALLEL DO
 
       return
 
