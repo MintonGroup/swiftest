@@ -52,7 +52,6 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
 
    
       ! Estimate the growth using Runge Kutta
-      !$OMP SIMD
       do concurrent(i=1:seeds%N,seeds%active(i)) !local(P,Q,R,S)
          P = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i)             ,seeds%a(i))
          Q = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) + 0.5_DP * P,seeds%a(i))
