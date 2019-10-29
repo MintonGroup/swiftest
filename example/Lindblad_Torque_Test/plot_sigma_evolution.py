@@ -89,7 +89,7 @@ for key in ring_cgs:
 # These are the output times to plot
 
 #tout = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0]) * ic.t_print #* ic.year / ic.TU2S
-nt = np.array([0,1,10,100,200,720]).astype(int) #np.rint(tout / ic.t_print).astype(int)
+nt = np.array([0,1,2,10,20,72]).astype(int) #np.rint(tout / ic.t_print).astype(int)
 
 tn = {  'a' : nt[0],
         'b' : nt[1],
@@ -99,8 +99,8 @@ tn = {  'a' : nt[0],
         'f' : nt[5]}
 
 for key in axes:
-    axes[key].plot(ring_cgs[tn[key]][0], ring_cgs[tn[key]][1], '-', color="blue", linewidth=1.0, zorder = 40)
-    secaxes[key].scatter(seeds_cgs[tn[key]][0], seeds_cgs[tn[key]][1], marker='o', color="blue", s=1.5, zorder = 40)
+    #axes[key].plot(ring_cgs[tn[key]][0], ring_cgs[tn[key]][1], '-', color="blue", linewidth=1.0, zorder = 40)
+    #secaxes[key].scatter(seeds_cgs[tn[key]][0], seeds_cgs[tn[key]][1], marker='o', color="blue", s=1.5, zorder = 40)
     axes[key].plot(ring[tn[key]][0], ring[tn[key]][1], '-', color="black", linewidth=1.0, zorder = 50, label = "SyMBA-RINGMOONS")
     secaxes[key].scatter(seeds[tn[key]][0], seeds[tn[key]][1], marker='o', color="black", s=1, zorder = 50)
     axes[key].title.set_text(f'${tn[key]*ic.t_print*ic.TU2S/ic.year * 1e-6:5.1f}$ My')

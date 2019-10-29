@@ -39,26 +39,25 @@ subroutine ringmoons_sigma_solver(ring,dt)
 
 ! Internals
 
-      real(DP),dimension(0:ring%N+1)      :: S
-      integer(I4B)                        :: i
-      real(DP)                            :: fac, Snew
+      real(DP),dimension(0:ring%N+1)      :: S,Snew
+      integer(I4B)                        :: i,N
+      real(DP),dimension(ring%N)          :: fac
 
 ! Executable code
 
+      N = ring%N
       S(0:ring%inside - 1) = 0.0_DP
-      S(ring%N+1) = 0.0_DP
-      S(1:ring%N) = ring%Gsigma(:) * ring%X(:)
+      S(1:N) = ring%Gsigma(:) * ring%X(:)
+      S(N+1) = 0.0_DP
 
-      fac = 12 * dt / ring%deltaX**2 
+      fac = 12 * dt / ring%deltaX**2  / ring%X2(:)
 
-      !!$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
-      !!$OMP SHARED(ring,S,fac)
-      do concurrent(i = 1:ring%N)
-         Snew = S(i) + fac / (ring%X2(i)) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
-         ring%Gsigma(i) = Snew / ring%X(i)
-         ring%Gm(i) = ring%Gsigma(i) * ring%deltaA(i)
+      do concurrent (i = 1:N) 
+         Snew(i) = S(i) + fac(i) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
       end do
-      !!$OMP END PARALLEL DO
+
+      ring%Gsigma(:) = Snew(1:N) / ring%X(:)
+      ring%Gm(:) = ring%Gsigma(:) * ring%deltaA(:)
 
       return
 

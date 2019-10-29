@@ -111,7 +111,7 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         function ringmoons_transition_function(y) result(kappa)
+         pure function ringmoons_transition_function(y) result(kappa)
          use module_parameters
          implicit none
          real(DP),intent(in) :: y

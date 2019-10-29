@@ -43,10 +43,8 @@ SUBROUTINE ringmoons_viscosity(ring)
       real(DP) :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable,y,nu_trans,nu_grav,nu_coll
 
 ! Executable code
-   
-   !!$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE(STATIC) &
-   !!$OMP SHARED(ring)
-   do i = 1, ring%N 
+ 
+   do concurrent (i = 1:ring%N) 
 
       if (ring%Gsigma(i) <= sqrt(TINY)) then
          ring%nu(i) = 0.0_DP
@@ -74,7 +72,6 @@ SUBROUTINE ringmoons_viscosity(ring)
       nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
       ring%nu(i) = nu_trans + nu_grav + nu_coll
    end do
-   !!$OMP END PARALLEL DO
 
 
 END SUBROUTINE ringmoons_viscosity
