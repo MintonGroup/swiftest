@@ -221,7 +221,24 @@ module module_ringmoons_interfaces
       end interface
 
 
+      interface
+         recursive function ringmoons_laplace_coefficient(alpha,j,s,n) result(ans)
+         use module_parameters
+         implicit none
+         real(DP),intent(in)  :: alpha,s
+         integer, intent(in)  :: j,n
+         real(DP)             :: ans         
+         end function ringmoons_laplace_coefficient
+      end interface
 
-
+      interface
+         subroutine ringmoons_seed_lindblad(ring,seeds)
+         use module_parameters
+         use module_ringmoons
+         implicit none
+         type(ringmoons_ring), intent(inout)       :: ring
+         type(ringmoons_seeds), intent(inout)      :: seeds
+         end subroutine ringmoons_seed_lindblad
+      end interface
 
 end module module_ringmoons_interfaces
