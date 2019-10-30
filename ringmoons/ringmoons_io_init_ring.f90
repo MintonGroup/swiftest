@@ -58,6 +58,10 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
             write(*,*) 'File read error in ',trim(adjustl(ringfile))
          end if
       end do
+      ring%Gsigma(0) = 0.0_DP
+      ring%Gm(0) = 0.0_DP
+      ring%Gsigma(ring%N) = 0.0_DP
+      ring%Gm(ring%N) = 0.0_DP
 
 
       return

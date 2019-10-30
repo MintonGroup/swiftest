@@ -232,13 +232,16 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_seed_lindblad(ring,seeds)
+         function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
          use module_parameters
+         use module_swifter
          use module_ringmoons
          implicit none
+         type(swifter_pl),pointer                  :: swifter_pl1P
          type(ringmoons_ring), intent(inout)       :: ring
-         type(ringmoons_seeds), intent(inout)      :: seeds
-         end subroutine ringmoons_seed_lindblad
+         real(DP),intent(in)                       :: Gm,a,e,inc
+         real(DP)                                  :: Torque         
+         end function ringmoons_lindblad_torque
       end interface
 
 end module module_ringmoons_interfaces

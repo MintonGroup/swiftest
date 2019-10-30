@@ -57,7 +57,7 @@ module module_ringmoons
       real(DP), dimension(:), allocatable :: sigma_threshold   ! bounds are set up from lindblad resonance locations at frl and synch
       real(DP), dimension(:), allocatable :: Iz                ! polar moment of inertia of ring bin
       real(DP), dimension(:), allocatable :: w                 ! Keplerian angular velocity of ring bin
-      real(DP), dimension(:), allocatable :: torque_to_disk    ! total satellite torque acting on the ring bin
+      real(DP), dimension(:), allocatable :: Torque            ! total satellite torque acting on the ring bin
    end type ringmoons_ring
 
    type ringmoons_seeds ! Satellite "seeds" that eventually turn into SyMBA massive bodies

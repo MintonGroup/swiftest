@@ -53,7 +53,7 @@ sUBROUTINE ringmoons_deallocate(ring,seeds)
       deallocate(ring%sigma_threshold)
       deallocate(ring%Iz)
       deallocate(ring%w)
-      deallocate(ring%Torque_to_disk)
+      deallocate(ring%Torque)
       deallocate(ring%r_hstar)
 
       deallocate(seeds%active)

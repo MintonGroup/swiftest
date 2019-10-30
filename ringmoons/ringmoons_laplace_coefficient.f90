@@ -8,10 +8,7 @@
 !
 !  Description :  Evaluates the Laplace coefficient for alpha<1.0  using F(x) series given in Eq. 6.68 from Murray & Dermott (1999) or
 !                 G(y) series (solution to problem 6.2) depending on how close alpha is to 1
-!                 optional argument ver lets you specify the method:
-!                 ver = 1 : F(x) series
-!                 ver = 2 : G(y) series
-!                 ver = 3 : Direct integration using Simpson's rule
+!                 b_s^j(alpha)
 !
 !  Input
 !    Arguments : 

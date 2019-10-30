@@ -53,7 +53,7 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
       ring%rho_pdisk = ring%Gm_pdisk / ((4.0_DP / 3.0_DP) * PI * ring%r_pdisk**3)
       ring%FRL = 2.456_DP * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
       ring%RRL = 1.44_DP  * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
-      do i = 1,ring%N
+      do i = 0,ring%N + 1
          ! Set up X coordinate system (see Bath & Pringle 1981)
          Xlo = 2 * sqrt(ring%r_I) + ring%deltaX * (1._DP * i - 1._DP)
          Xhi = Xlo + ring%deltaX
@@ -79,7 +79,7 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
          ring%Iz(i) = 0.5_DP * (rlo**2 + rhi**2)
          ring%w(i) = sqrt(GMP / ring%r(i)**3)
 
-         ring%Torque_to_disk(i) = 0.0_DP
+         ring%Torque(i) = 0.0_DP
          rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GMP))**(1._DP/3._DP) ! See Salmon et al. 2010 for this
          ring%r_hstar(i) = rhill / (2 * ring%r_pdisk)  
       end do
