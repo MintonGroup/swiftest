@@ -118,7 +118,7 @@ f(1) #Make a Gaussian ring
 
 
 outfile = open('ring.in', 'w')
-print(N, file=outfile)
+print(N, 0, file=outfile)
 print(r_I, r_F, file=outfile)
 print(r_pdisk, GU * m_pdisk, file=outfile)
 

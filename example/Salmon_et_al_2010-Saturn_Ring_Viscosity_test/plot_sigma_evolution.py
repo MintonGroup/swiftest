@@ -33,7 +33,9 @@ axes['a'].title.set_text('$0$ years')
 axes['b'].title.set_text('$10^3$ years')
 axes['c'].title.set_text('$10^4$ years')
 axes['d'].title.set_text('$10^5$ years')
+
 ring = {}
+seeds = {}
 
 with FortranFile('ring.dat', 'r') as f:
     while True:
@@ -41,12 +43,17 @@ with FortranFile('ring.dat', 'r') as f:
             t = f.read_reals(np.float64)
         except:
             break
-        N = f.read_ints(np.int32)
+        Nbin = f.read_ints(np.int32)
         r = f.read_reals(np.float64)
         Gsigma = f.read_reals(np.float64)
         nu = f.read_reals(np.float64)
         kval = int(t / ic.t_print)
-        ring[f'{kval}'] = [r, Gsigma, nu]
+        ring[kval] = [r, Gsigma, nu]
+        Nseeds = f.read_ints(np.int32)
+        a = f.read_reals(np.float64)
+        Gm = f.read_reals(np.float64)
+        seeds[kval] = [a, Gm]
+
 
 #convert the units
 for key in ring:
@@ -58,10 +65,10 @@ for key in ring:
 tout = np.array([0.0, 1e3, 1e4, 1e5]) * ic.year / ic.TU2S
 nt = np.rint(tout / ic.t_print).astype(int)
 
-axes['a'].plot(ring[f'{nt[0]}'][0], ring[f'{nt[0]}'][1], '-', color="black", linewidth=1.0, zorder = 50, label = "SyMBA-RINGMOONS")
-axes['b'].plot(ring[f'{nt[1]}'][0], ring[f'{nt[1]}'][1], '-', color="black", linewidth=1.0, zorder = 50)
-axes['c'].plot(ring[f'{nt[2]}'][0], ring[f'{nt[2]}'][1], '-', color="black", linewidth=1.0, zorder = 50)
-axes['d'].plot(ring[f'{nt[3]}'][0], ring[f'{nt[3]}'][1], '-', color="black", linewidth=1.0, zorder = 50)
+axes['a'].plot(ring[nt[0]][0], ring[nt[0]][1], '-', color="black", linewidth=1.0, zorder = 50, label = "SyMBA-RINGMOONS")
+axes['b'].plot(ring[nt[1]][0], ring[nt[1]][1], '-', color="black", linewidth=1.0, zorder = 50)
+axes['c'].plot(ring[nt[2]][0], ring[nt[2]][1], '-', color="black", linewidth=1.0, zorder = 50)
+axes['d'].plot(ring[nt[3]][0], ring[nt[3]][1], '-', color="black", linewidth=1.0, zorder = 50)
 axes['a'].legend(loc='upper left',prop={'size': 8})
 figure.tight_layout()
 #plt.show()
