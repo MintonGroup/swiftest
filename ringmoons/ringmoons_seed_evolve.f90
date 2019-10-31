@@ -43,25 +43,35 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
 
 ! Internals
    integer(I4B)                           :: i,iRRL
-   real(DP)                               :: dadt, e, inc,Loriginal,deltaL
+   real(DP)                               :: dadt, e, inc,Loriginal,deltaL,P,Q,R,S
+   real(DP),dimension(seeds%N)            :: daseeds
 
 ! Executable code
 
    !e = 0.0_DP
    !inc = 0.0_DP
+
+   do concurrent(i=1:seeds%N,seeds%active(i)) 
+      P = dt * ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(i),seeds%a(i),         seeds%Torque(i))
+      Q = dt * ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(i),seeds%a(i)+0.5_DP*P,seeds%Torque(i))
+      R = dt * ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(i),seeds%a(i)+0.5_DP*Q,seeds%Torque(i))
+      S = dt * ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(i),seeds%a(i)+       R,seeds%Torque(i))
+      daseeds(i) = (P + 2 * Q + 2 * R + S) / 6._DP
+   end do
+
    do i = 1, seeds%N
-      if (.not.seeds%active(i)) cycle
-      dadt = 2 * seeds%Torque(i) / seeds%Gm(i) * sqrt(seeds%a(i) / swifter_pl1P%mass)
-      seeds%a(i) = seeds%a(i) + dadt
-      if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
-         seeds%active(i) = .false.
-         Loriginal = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i)) 
-         iRRL = ring%iRRL
-         ring%Gm(iRRL) = ring%Gm(iRRL) + seeds%Gm(i)
-         ring%Gsigma(iRRL) = ring%Gm(iRRL) / ring%deltaA(iRRL)
-         deltaL = Loriginal - seeds%Gm(i) * ring%Iz(iRRL) * ring%w(iRRL) ! TODO: conserve angular momentum properly
+      if (seeds%active(i)) then
+         seeds%a(i) = seeds%a(i) + daseeds(i)
+         if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
+            write(*,*) 'We are on our way to destruction!'
+            seeds%active(i) = .false.
+            Loriginal = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i)) 
+            iRRL = ring%iRRL
+            ring%Gm(iRRL) = ring%Gm(iRRL) + seeds%Gm(i)
+            ring%Gsigma(iRRL) = ring%Gm(iRRL) / ring%deltaA(iRRL)
+            deltaL = Loriginal - seeds%Gm(i) * ring%Iz(iRRL) * ring%w(iRRL) ! TODO: conserve angular momentum properly
+         end if
       end if
-         
    end do
          
 

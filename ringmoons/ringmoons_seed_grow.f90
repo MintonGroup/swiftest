@@ -102,20 +102,22 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
 
       !I'm hungry! What's there to eat?! Look for neighboring seeds
       do i = 1, seeds%N
-         if (.not.seeds%active(i)) cycle
-         do j = 1,seeds%N
-            if (seeds%active(j).and.(j /= i)) then
-               if ((seeds%a(j) > seeds%a(i) - fz_width(i)).and.(seeds%a(j) < seeds%a(i) + fz_width(i))) then ! This one is in the feeding zone
-                  ! conserve orbital angular momentum
-                  seeds%a(i) = ((seeds%Gm(i) * sqrt(seeds%a(i)) + seeds%Gm(j) * sqrt(seeds%a(j))) / (seeds%Gm(i) + seeds%Gm(j)))**2
-                  ! conserve mass
-                  seeds%Gm(i) = seeds%Gm(i) + seeds%Gm(j)
-                  ! deactivate particle for now and position it at the FRL to potentially activate later
-                  seeds%Gm(j) = 0.0_DP
-                  seeds%active(j) = .false.
+         if (seeds%active(i)) then
+            do j = 1,seeds%N
+               if (seeds%active(j).and.(j /= i)) then
+                  if ((seeds%a(j) > seeds%a(i) - fz_width(i)).and.(seeds%a(j) < seeds%a(i) + fz_width(i))) then ! This one is in the feeding zone
+                     ! conserve orbital angular momentum
+                     seeds%a(i) = ((seeds%Gm(i) * sqrt(seeds%a(i)) + seeds%Gm(j) * sqrt(seeds%a(j))) &
+                                    / (seeds%Gm(i) + seeds%Gm(j)))**2
+                     ! conserve mass
+                     seeds%Gm(i) = seeds%Gm(i) + seeds%Gm(j)
+                     ! deactivate particle for now and position it at the FRL to potentially activate later
+                     seeds%Gm(j) = 0.0_DP
+                     seeds%active(j) = .false.
+                  end if
                end if
-            end if
-         end do
+            end do
+         end if
       end do         
       ! Adjust seed parameters 
 

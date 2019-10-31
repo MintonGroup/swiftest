@@ -5,82 +5,105 @@ import Init_Cond as ic
 from scipy.io import FortranFile
 
 # First set up the figure, the axis, and the plot element we want to animate
-fig = plt.figure()
-xmin = 1.0
-xmax = 5.0
-ymin = 1.0
-ymax = 5e4
-
-y2min = 1e13
-y2max = 1e26
-ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin,ymax))
-
-ax.set_xlim(xmin,xmax)
-ax.set_ylim(ymin, ymax)
-ax.set_xlabel('Distance to Uranus (RU)')
-ax.set_ylabel('$\Sigma$ (g$\cdot$cm$^{-2}$)')
-ax.set_yscale('log')
-secax = ax.twinx()
-secax.set_yscale('log')
-secax.set_ylabel('Mass of satellite (g)')
-secax.set_ylim(y2min, y2max)
-line, = ax.plot([], [], lw=2)
-scatter, = secax.scatter([], [], marker='o', color="black", s=1, zorder = 50)
-
-# initialization function: plot the background of each frame
-def init():
-    line.set_data([], [])
-    return line,
-
-def init2():
-    scatter.set_data([], [])
-    return scatter,
 
 
-ring = {}
-seeds = {}
+class AnimatedScatter(object):
+    """An animated scatter plot using matplotlib.animations.FuncAnimation."""
+    def __init__(self):
+        self.stream = self.data_stream()
 
-with FortranFile('ring.dat', 'r') as f:
-    while True:
-        try:
-            t = f.read_reals(np.float64)
-        except:
-            break
-        Nbin = f.read_ints(np.int32)
-        r = f.read_reals(np.float64)
-        Gsigma = f.read_reals(np.float64)
-        nu = f.read_reals(np.float64)
-        kval = int(t / ic.t_print)
-        ring[kval] = [r, Gsigma, nu]
-        Nseeds = f.read_ints(np.int32)
-        a = f.read_reals(np.float64)
-        Gm = f.read_reals(np.float64)
-        seeds[kval] = [a, Gm]
+        # Setup the figure and axes...
+        self.fig, self.ax = plt.subplots()
+        # Then setup FuncAnimation.
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=3,
+                                          init_func=self.setup_plot, blit=True)
+        self.ani.save('uranian_ringsat.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
-#convert the units
-for key in ring:
-    ring[key][0] /= ic.RP  #convert radius to planet radius
-    ring[key][1] *= ic.MU2GM / ic.DU2CM**2 / ic.GU  # convert surface mass density to cgs
-    ring[key][2] *= ic.DU2CM**2 / ic.TU2S # convert viscosity to cgs
-    seeds[key][0] /= ic.RP
-    seeds[key][1] *= ic.MU2GM / ic.GU
+    def setup_plot(self):
+        """Initial drawing of the scatter plot."""
+        t, seeds, ring = next(self.stream)
+        x = seeds[:,0]
+        y = seeds[:,1]
+        r = ring[:,0]
+        s = ring[:,1]
+        xmin = 1.0
+        xmax = 5.0
+        ymin = 1.0
+        ymax = 5e4
+
+        y2min = 1e13
+        y2max = 1e24
+        self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
+
+        self.ax.set_xlim(xmin, xmax)
+        self.ax.set_ylim(ymin, ymax)
+        self.ax.set_xlabel('Distance to Uranus (RU)')
+        self.ax.set_ylabel('$\Sigma$ (g$\cdot$cm$^{-2}$)')
+        self.ax.set_yscale('log')
+
+        self.secax = self.ax.twinx()
+        self.secax.set_yscale('log')
+        self.secax.set_ylabel('Mass of satellite (g)')
+        self.secax.set_ylim(y2min, y2max)
+
+        self.line, = self.ax.plot(r, s, '-', color="black", linewidth=1.0, zorder=50)
+
+        self.title = self.ax.text(0.25, 0.85, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5},
+                        transform=self.ax.transAxes, ha="center")
+        #self.line.set_label(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:5.1f}$ My')
+        #self.legend = plt.legend()
+        #self.legend.remove()
+        self.scat = self.secax.scatter(x,y, marker='o', color="black", s=2, zorder=50)
+
+        # For FuncAnimation's sake, we need to return the artist we'll be using
+        # Note that it expects a sequence of artists, thus the trailing comma.
+        return self.scat, self.line, self.title,
+
+    def data_stream(self):
+        with FortranFile('ring.dat', 'r') as f:
+            while True:
+                try:
+                    t = f.read_reals(np.float64)
+                except:
+                    f.close()
+                    break
+                Nbin = f.read_ints(np.int32)
+                r = f.read_reals(np.float64)
+                Gsigma = f.read_reals(np.float64)
+                nu = f.read_reals(np.float64)
+                kval = int(t / ic.t_print)
+                Nseeds = f.read_ints(np.int32)
+                a = f.read_reals(np.float64)
+                Gm = f.read_reals(np.float64)
+
+                yield t,np.c_[a / ic.RP, Gm * ic.MU2GM / ic.GU], np.c_[r / ic.RP, Gsigma * ic.MU2GM / ic.DU2CM**2 / ic.GU]
 
 
-# animation function.  This is called sequentially
-def animate(i):
-    line.set_data(ring[i][0], ring[i][1])
-    scatter.set_data(seeds[i][0], seeds[i][1])
-    return line,scatter,
+    def update(self, i):
+        """Update the scatter plot."""
+        t, seeds, ring = next(self.stream)
+        #seeds = next(self.stream)
 
-# call the animator.  blit=True means only re-draw the parts that have changed.
-anim = animation.FuncAnimation(fig, animate, init_func=init,
-                               frames=200, interval=20, blit=True)
+        # Set x and y data...
+        r = ring[:,0]
+        s = ring[:,1]
+        self.scat.set_offsets(seeds[:, :2]) #data[:, :2])
+        self.line.set_data(r, s) # :, :3])
 
-# save the animation as an mp4.  This requires ffmpeg or mencoder to be
-# installed.  The extra_args ensure that the x264 codec is used, so that
-# the video can be embedded in html5.  You may need to adjust this for
-# your system: for more information, see
-# http://matplotlib.sourceforge.net/api/animation_api.html
-anim.save('sigma_animate.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+        # Set sizes...
+        #self.scat.set_sizes(300 * abs(data[:, 2])**1.5 + 100)
+        # Set colors..
+        #self.scat.set_array(x,y)
 
-plt.show()
+        self.title.set_text(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:5.1f}$ My')
+        # We need to return the updated artist for FuncAnimation to draw..
+        # Note that it expects a sequence of artists, thus the trailing comma.
+        return self.scat, self.line, self.title,
+
+
+if __name__ == '__main__':
+    anim = AnimatedScatter()
+
+    plt.show()
+
+

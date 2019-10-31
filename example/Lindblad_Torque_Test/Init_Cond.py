@@ -22,7 +22,7 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 100.0 / DU2CM #disk particle size
+r_pdisk = 100.0e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 

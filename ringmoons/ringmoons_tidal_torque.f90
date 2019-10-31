@@ -49,9 +49,8 @@ function ringmoons_tidal_torque(swifter_pl1P,Gm,n,a,e,inc) result(Torque)
 
      
       Torque = sign(1._DP,swifter_pl1P%rot(3) - n) * &
-               3 * n * Gm * swifter_pl1P%radius**5 / (a**4 * swifter_pl1P%mass) * &
-               swifter_pl1P%k2 / swifter_pl1P%Q * &
-               (1._DP + 51 * e**2 / 4._DP)
+               1.5_DP * swifter_pl1P%k2 / swifter_pl1P%Q * &
+               Gm**2 * swifter_pl1P%radius**5 / a**6
 
       return
 end function ringmoons_tidal_torque

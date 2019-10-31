@@ -44,8 +44,8 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 
 ! Internals
       integer(I4B)                           :: i
-      real(DP),parameter                     :: SEED_GROWTH_FACTOR = 0.01_DP ! smallest increase in fractional mass allowable in a single time step
-      real(DP)                               :: dGm_max,nu_max
+      real(DP),parameter                     :: RK_FACTOR = 0.01_DP ! smallest increase in fractional mass allowable in a single time step
+      real(DP)                               :: dGm_max,nu_max,da_max
 
 ! Executable code
 
@@ -60,7 +60,14 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
       dGm_max = maxval(ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(:)), &
                        seeds%Gm(:),seeds%a(:)) / seeds%Gm(:),seeds%active)
       if (dGm_max > 0.0_DP) then
-         dtout = min(dtout,SEED_GROWTH_FACTOR / dGm_max)  ! smallest timestep for the seed growth equation 
+         dtout = min(dtout,RK_FACTOR / dGm_max)  ! smallest timestep for the seed growth equation 
+      end if
+
+      ! Now aim for seed migration accuracy
+      da_max = maxval(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(:),seeds%a(:),seeds%Torque(:)) &
+                     / seeds%a(:),seeds%active)
+      if (da_max > 0.0_DP) then
+         dtout = min(dtout,RK_FACTOR / da_max)  ! smallest timestep for the seed migration equation 
       end if
 
       return

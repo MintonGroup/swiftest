@@ -195,6 +195,18 @@ module module_ringmoons_interfaces
          end function ringmoons_seed_dMdt
       end interface
 
+
+      interface
+         elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque) result(adot)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         real(DP), intent(in)                   :: GMP,Gmseed,a,Torque
+         real(DP)                               :: adot
+         end function ringmoons_seed_dadt
+      end interface
+
       interface
          elemental function ringmoons_ring_bin_finder(ring,r) result(bin)
          use module_parameters
