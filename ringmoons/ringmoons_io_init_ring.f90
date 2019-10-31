@@ -30,6 +30,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
 
 ! Modules
       use module_parameters
+      use module_swifter
       use module_ringmoons
       use module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_io_init_ring
       implicit none

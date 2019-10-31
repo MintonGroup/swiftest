@@ -27,7 +27,6 @@
 !**********************************************************************************************************************************
 module module_ringmoons
    use module_parameters
-   use module_symba
    implicit none
 
    real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 4.0_DP  ! Size of the feeding zone relative to Hill's sphere

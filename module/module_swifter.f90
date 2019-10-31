@@ -49,6 +49,8 @@ MODULE module_swifter
           REAL(DP), DIMENSION(NDIM) :: vb       ! barycentric velocity
           REAL(DP), DIMENSION(NDIM) :: Ip       ! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
           REAL(DP), DIMENSION(NDIM) :: rot      ! body rotation vector in inertial coordinate frame 
+          REAL(DP)                  :: k2       ! tidal Love number
+          REAL(DP)                  :: Q        ! tidal quality factor
           TYPE(swifter_pl), POINTER :: prevP    ! pointer to previous planet
           TYPE(swifter_pl), POINTER :: nextP    ! pointer to next planet
           ! Added by D. Minton

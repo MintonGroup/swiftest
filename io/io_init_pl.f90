@@ -64,7 +64,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, lrotation, npl,
           READ(LUN, *) swifter_plP%id, swifter_plP%mass
           swifter_plP%rhill = 0.0_DP  
           IF (lclose) THEN
-              READ(LUN, *) swifter_plP%radius
+              READ(LUN, *) swifter_plP%radius,swifter_plP%k2,swifter_plP%Q
           ELSE
               swifter_plP%radius = 0.0_DP
           END IF
@@ -94,7 +94,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, lrotation, npl,
                     swifter_plP%rhill = 0.0_DP
                END IF
                IF (lclose) THEN
-                    READ(LUN, *) swifter_plP%radius
+                    READ(LUN, *) swifter_plP%radius,swifter_plP%k2,swifter_plP%Q
                ELSE
                     swifter_plP%radius = 0.0_DP
                END IF

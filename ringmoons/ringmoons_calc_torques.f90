@@ -42,7 +42,7 @@ subroutine ringmoons_calc_torques(swifter_pl1P,ring,seeds)
 
 ! Internals
    integer(I4B)                           :: i
-   real(DP)                               :: e, inc
+   real(DP)                               :: e, inc, n, Ttide
 
 ! Executable code
 
@@ -52,6 +52,10 @@ subroutine ringmoons_calc_torques(swifter_pl1P,ring,seeds)
    do i = 1, seeds%N
       if (.not.seeds%active(i)) cycle
       seeds%Torque(i) = ringmoons_lindblad_torque(swifter_pl1P,ring,seeds%Gm(i),seeds%a(i),e,inc)
+      n = sqrt((swifter_pl1P%mass + seeds%Gm(i)) / seeds%a(i)**3)
+      Ttide = ringmoons_tidal_torque(swifter_pl1P,seeds%Gm(i),n,seeds%a(i),e,inc) 
+      seeds%Torque(i) = seeds%Torque(i) + Ttide
+      swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - Ttide / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
    end do
          
 

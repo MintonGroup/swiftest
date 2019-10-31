@@ -42,8 +42,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
    real(DP), intent(in)                   :: dt
 
 ! Internals
-   integer(I4B)                           :: i
-   real(DP)                               :: dadt, e, inc
+   integer(I4B)                           :: i,iRRL
+   real(DP)                               :: dadt, e, inc,Loriginal,deltaL
 
 ! Executable code
 
@@ -53,6 +53,15 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
       if (.not.seeds%active(i)) cycle
       dadt = 2 * seeds%Torque(i) / seeds%Gm(i) * sqrt(seeds%a(i) / swifter_pl1P%mass)
       seeds%a(i) = seeds%a(i) + dadt
+      if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
+         seeds%active(i) = .false.
+         Loriginal = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i)) 
+         iRRL = ring%iRRL
+         ring%Gm(iRRL) = ring%Gm(iRRL) + seeds%Gm(i)
+         ring%Gsigma(iRRL) = ring%Gm(iRRL) / ring%deltaA(iRRL)
+         deltaL = Loriginal - seeds%Gm(i) * ring%Iz(iRRL) * ring%w(iRRL) ! TODO: conserve angular momentum properly
+      end if
+         
    end do
          
 
