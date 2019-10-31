@@ -161,7 +161,7 @@ PROGRAM swifter_symba_ringmoons
       end if
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE (t < tstop) 
-          CALL ringmoons_step(swifter_pl1P,ring,seeds,dt,lrmfirst,Merror,Lerror)
+          CALL ringmoons_step(t,swifter_pl1P,ring,seeds,dt,lrmfirst,Merror,Lerror)
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
                mtiny, encounter_file, out_type)

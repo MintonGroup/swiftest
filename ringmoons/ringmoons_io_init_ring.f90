@@ -48,9 +48,10 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
 ! Executable code
       ringfile='ring.in'
       open(unit=LUN,file=ringfile,status='old',iostat=ioerr)
-      read(LUN,*) ring%N, seeds%N
+      read(LUN,*) ring%N !, seeds%N
       read(LUN,*) ring%r_I, ring%r_F
       read(LUN,*) ring%r_pdisk,ring%Gm_pdisk
+      seeds%N = 1
       call ringmoons_allocate(ring,seeds)
       do i = 1,ring%N
          read(LUN,*,iostat=ioerr) ring%Gsigma(i)

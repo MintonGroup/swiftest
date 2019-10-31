@@ -31,6 +31,7 @@ module module_ringmoons
    implicit none
 
    real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 4.0_DP  ! Size of the feeding zone relative to Hill's sphere
+   real(DP),public,parameter  :: INITIAL_MASS_FACTOR = 1000_DP ! Initial mass of seeds relative to ring particles
 
    type ringmoons_ring
       real(DP)     :: r_pdisk             ! disk particle radius
@@ -70,6 +71,7 @@ module module_ringmoons
       integer(I4B), dimension(:), allocatable   :: rbin         ! Ring bin location of seed
       integer(I4B), dimension(:), allocatable   :: fz_bin_inner ! Ring bin location of inner edge of seed feeding zone
       integer(I4B), dimension(:), allocatable   :: fz_bin_outer ! Ring bin location of inner edge of seed feeding zone
+      real(DP), dimension(:), allocatable       :: Torque       ! Total torque acting on the seed
    end type ringmoons_seeds
 
 

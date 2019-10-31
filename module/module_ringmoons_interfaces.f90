@@ -55,13 +55,13 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_step(swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
+         subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             use module_parameters
             use module_swifter
             use module_ringmoons
             implicit none
             type(swifter_pl), pointer                        :: swifter_pl1P
-            real(DP), intent(in)                             :: dtin
+            real(DP), intent(in)                             :: t,dtin
             type(ringmoons_ring),intent(inout)               :: ring
             type(ringmoons_seeds),intent(inout)              :: seeds
             logical(LGT), intent(inout)                      :: lfirst
@@ -242,6 +242,32 @@ module module_ringmoons_interfaces
          real(DP),intent(in)                       :: Gm,a,e,inc
          real(DP)                                  :: Torque         
          end function ringmoons_lindblad_torque
+      end interface
+
+
+      interface
+         subroutine ringmoons_calc_torques(swifter_pl1P,ring,seeds)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer :: swifter_pl1P
+         type(ringmoons_ring),intent(inout) :: ring
+         type(ringmoons_seeds),intent(inout) :: seeds
+         end subroutine ringmoons_calc_torques
+      end interface
+
+      interface
+         subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer               :: swifter_pl1P
+         type(ringmoons_ring), intent(inout)    :: ring
+         type(ringmoons_seeds), intent(inout)   :: seeds
+         real(DP), intent(in)                   :: a, Gm
+         end subroutine
       end interface
 
 end module module_ringmoons_interfaces

@@ -39,9 +39,8 @@ subroutine ringmoons_sigma_solver(ring,dt)
 
 ! Internals
 
-      real(DP),dimension(0:ring%N+1)      :: S,Snew
+      real(DP),dimension(0:ring%N+1)      :: S,Snew,fac
       integer(I4B)                        :: i,N
-      real(DP),dimension(ring%N)          :: fac
 
 ! Executable code
 

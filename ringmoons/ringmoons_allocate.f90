@@ -63,6 +63,7 @@ subroutine ringmoons_allocate(ring,seeds)
       allocate(seeds%rbin(seeds%N))
       allocate(seeds%fz_bin_inner(seeds%N))
       allocate(seeds%fz_bin_outer(seeds%N))
+      allocate(seeds%Torque(seeds%N))
       
 
       return

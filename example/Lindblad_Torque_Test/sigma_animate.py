@@ -10,20 +10,36 @@ xmin = 1.0
 xmax = 5.0
 ymin = 1.0
 ymax = 5e4
+
+y2min = 1e13
+y2max = 1e26
 ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin,ymax))
-ax.set_yscale('log')
-line, = ax.plot([], [], lw=2)
+
+ax.set_xlim(xmin,xmax)
+ax.set_ylim(ymin, ymax)
 ax.set_xlabel('Distance to Uranus (RU)')
 ax.set_ylabel('$\Sigma$ (g$\cdot$cm$^{-2}$)')
+ax.set_yscale('log')
+secax = ax.twinx()
+secax.set_yscale('log')
+secax.set_ylabel('Mass of satellite (g)')
+secax.set_ylim(y2min, y2max)
+line, = ax.plot([], [], lw=2)
+scatter, = secax.scatter([], [], marker='o', color="black", s=1, zorder = 50)
 
 # initialization function: plot the background of each frame
 def init():
     line.set_data([], [])
     return line,
 
+def init2():
+    scatter.set_data([], [])
+    return scatter,
+
 
 ring = {}
 seeds = {}
+
 with FortranFile('ring.dat', 'r') as f:
     while True:
         try:
@@ -46,12 +62,15 @@ for key in ring:
     ring[key][0] /= ic.RP  #convert radius to planet radius
     ring[key][1] *= ic.MU2GM / ic.DU2CM**2 / ic.GU  # convert surface mass density to cgs
     ring[key][2] *= ic.DU2CM**2 / ic.TU2S # convert viscosity to cgs
+    seeds[key][0] /= ic.RP
+    seeds[key][1] *= ic.MU2GM / ic.GU
 
 
 # animation function.  This is called sequentially
 def animate(i):
     line.set_data(ring[i][0], ring[i][1])
-    return line,
+    scatter.set_data(seeds[i][0], seeds[i][1])
+    return line,scatter,
 
 # call the animator.  blit=True means only re-draw the parts that have changed.
 anim = animation.FuncAnimation(fig, animate, init_func=init,

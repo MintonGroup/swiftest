@@ -50,7 +50,7 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 ! Executable code
 
       ! Start with viscous stability
-      nu_max = maxval(ring%nu)
+      nu_max = maxval(abs(ring%nu))
       dtout = dtin
       if (nu_max > 0.0_DP) then
          dtout = min(dtout,ring%stability_factor / nu_max)  ! smallest timestep for the viscous evolution equation

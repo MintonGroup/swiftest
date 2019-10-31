@@ -44,48 +44,28 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
 
 ! Internals
       integer(I4B)                        :: i,j,seed_bin
-      real(DP)                            :: dfac, dGm, Gmleft
-      real(DP), dimension(seeds%N)        :: fz_width 
-      integer(I4B),dimension(seeds%N)     :: nfz
+      real(DP)                            :: a, Gm, Gmleft
+      logical(LGT)                        :: open_space
 
 ! Executable code
-   
-       
-      seeds%active = .true. 
-
-      ! Find the initial seed spacing
-      dfac = exp(1._DP / seeds%N * log(ring%r_F / ring%FRL)) 
-      do i = 1,seeds%N
-         seeds%a(i) = ring%FRL * (dfac)**(i)
-      end do
-      ! Set the initial mass of the seed so that their feeding zones touch
-      seeds%Gminit = 3 * swifter_pl1P%mass * ((1.0_DP / FEEDING_ZONE_FACTOR) * (dfac - 1.0_DP))**3
-      seeds%Gm = seeds%Gminit
-      seeds%Rhill = seeds%a * (seeds%Gm / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
-
-      ! Find the corresponding ring bins that the seeds are embedded (returns the final ring bin if it is outside, which always has 0 mass)
-      seeds%rbin = ringmoons_ring_bin_finder(ring,seeds%a)
-      fz_width = FEEDING_ZONE_FACTOR * seeds%Rhill
-      seeds%fz_bin_inner = ringmoons_ring_bin_finder(ring,seeds%a - FEEDING_ZONE_FACTOR * seeds%rhill)
-      seeds%fz_bin_outer = ringmoons_ring_bin_finder(ring,seeds%a + FEEDING_ZONE_FACTOR * seeds%rhill)
-      nfz = seeds%fz_bin_outer - seeds%fz_bin_inner + 1
-
-      ! Take mass out of local ring material if it is available
-      do i = 1,seeds%N
-         seed_bin = seeds%rbin(i)
-         Gmleft = seeds%Gm(i)
-         do j = seeds%fz_bin_inner(i),seeds%fz_bin_outer(i) ! loop over bins of the feeding zone and grab mass from them
-            dGm = min(Gmleft / nfz(i),ring%Gm(j))
-            ring%Gm(j) = ring%Gm(j) - dGm
-            ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
-            Gmleft = Gmleft - dGm
+  
+      
+      ! Make seeds small enough to fit into each bin 
+      do i = ring%iFrl,ring%N
+         if (ring%Gm(i) < INITIAL_MASS_FACTOR * ring%Gm_pdisk) cycle
+         open_space = .true.
+         do j = 1, seeds%N
+            if (.not.seeds%active(j)) cycle
+            if ((i >= seeds%fz_bin_inner(j)) .and. (i <= seeds%fz_bin_outer(j))) then
+               open_space = .false. ! There is already a seed with a feeding zone here
+               exit
+            end if
          end do
-         ! If there is still mass left, take it from the innermost feeding zone
-         dGm = min(Gmleft,ring%Gm(seed_bin)) 
-         ring%Gm(seed_bin) = ring%Gm(seed_bin) - dGm
-         ring%Gsigma(seed_bin) = ring%Gm(seed_bin) / ring%deltaA(seed_bin)
-      end do
-      write(*,*) "Number of seeds created: ",seeds%N
-      write(*,*) "Mass of seeds / mass of disk particles: ",seeds%Gminit / ring%Gm_pdisk
+         if (open_space) then
+            a = ring%r(i)
+            Gm = INITIAL_MASS_FACTOR * ring%Gm_pdisk !3 * swifter_pl1P%mass * ((ring%router(i) - ring%rinner(i)) / (1.25_DP * FEEDING_ZONE_FACTOR * a))**3
+            call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
+         end if
+      end do             
 
 end subroutine ringmoons_seed_construct
