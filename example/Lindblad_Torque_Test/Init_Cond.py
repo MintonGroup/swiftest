@@ -30,7 +30,7 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 t_0	= 0
 t_print = 1e6 * year / TU2S #output interval to print results
 deltaT	= 1e6 * year / TU2S  #timestep simulation
-end_sim = 10.e7 * year / TU2S + deltaT #end time
+end_sim = 1.e9 * year / TU2S + deltaT #end time
 
 Nbins    = 240        #number of bins in disk
 Nseeds   = 2       #initial number of seeds
@@ -95,7 +95,7 @@ def f():
         deltar = (0.5 * (X[a] + deltaX))**2 - (0.5 * X[a])**2
         deltaA.append(2*np.pi*r[a]*deltar)
 
-        if a >= Nbins - 23:
+        if a >= Nbins - 45:
             #if r[a] > FRL:
             sigma.append(0.0)
         else:

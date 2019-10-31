@@ -52,7 +52,7 @@ subroutine ringmoons_sigma_solver(ring,dt)
       fac = 12 * dt / ring%deltaX**2  / ring%X2(:)
 
       do concurrent (i = 1:N) 
-         Snew(i) = S(i) + fac(i) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
+         Snew(i) = max(S(i) + fac(i) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1)),0.0_DP)
       end do
 
       ring%Gsigma(1:N) = Snew(1:N) / ring%X(1:N)

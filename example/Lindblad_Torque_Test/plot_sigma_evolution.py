@@ -66,7 +66,7 @@ for key in ring:
 # These are the output times to plot
 
 #tout = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0]) * ic.t_print #* ic.year / ic.TU2S
-nt = np.array([1,2,3,4,5,10]).astype(int) #np.rint(tout / ic.t_print).astype(int)
+nt = np.array([1,10,80,87,88,90]).astype(int) #np.rint(tout / ic.t_print).astype(int)
 
 tn = {  'a' : nt[0],
         'b' : nt[1],
