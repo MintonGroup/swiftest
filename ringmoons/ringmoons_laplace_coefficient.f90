@@ -41,26 +41,26 @@ recursive function ringmoons_laplace_coefficient(alpha,j,s,n) result(ans)
 
 ! Internals
    real(DP) :: T1,T2,T3,T4
-   
-   if (n==0) then
-      ans=laplace(alpha,j,s)
+  
+   if (n == 0) then
+      ans = laplace(alpha,j,s)
       return
    else if (n==1) then
-      T1=laplace(alpha,j-1,s+1._DP)
-      T2=-2*alpha*laplace(alpha,j,s+1._DP)
-      T3=laplace(alpha,j+1,s+1._DP)
-      ans=s*(T1+T2+T3)
+      T1 = laplace(alpha,j - 1,s + 1._DP)
+      T2 = -2 * alpha * laplace(alpha,j,s + 1._DP)
+      T3 = laplace(alpha, j + 1,s + 1._DP)
+      ans = s * (T1 + T2 + T3)
       return
    else 
-      T1=ringmoons_laplace_coefficient(alpha,j-1,s+1._DP,n-1)
-      T2=-2*alpha*ringmoons_laplace_coefficient(alpha,j,s+1._DP,n-1)
-      T3=ringmoons_laplace_coefficient(alpha,j+1,s+1._DP,n-1)
-      T4=-2*(n-1)*ringmoons_laplace_coefficient(alpha,j,s+1._DP,n-2)
-      ans=s*(T1+T2+T3+T4)
+      T1 = ringmoons_laplace_coefficient(alpha,j - 1,s + 1._DP,n - 1)
+      T2 = -2 * alpha * ringmoons_laplace_coefficient(alpha,j,s + 1._DP,n - 1)
+      T3 = ringmoons_laplace_coefficient(alpha,j + 1,s + 1._DP,n - 1)
+      T4 = -2 * (n - 1) * ringmoons_laplace_coefficient(alpha,j,s + 1._DP,n - 2)
+      ans = s * (T1 + T2 + T3 + T4)
+      return
    end if
 
 
-   return
 contains
 
    function laplace(alpha,jp,s,ver) result(ans)
@@ -79,27 +79,27 @@ contains
    real(DP),dimension(2,2) :: G,Ginv
    real(DP) :: A0,C2,F1,F2,det
 
-   j=abs(jp)
+   j = abs(jp)
    if (.not.present(ver)) then
-      if (alpha<alphaG) then 
-         v=1
+      if (alpha < alphaG) then 
+         v = 1
       else
-         v=2
+         v = 2
       end if
    else 
-      v=ver
+      v = ver
    end if
    select case(v)
    case(1) ! F(x) series
-      T1=1._DP
-      do i=0,j-1
-         num=s+i
-         denom=(j-i)*1._DP
-         T1=T1*num/denom
+      T1 = 1._DP
+      do i = 0, j - 1
+         num = s + real(i,kind=DP)
+         denom = real(j - i, kind=DP)
+         T1 = T1 * num / denom
       end do
-      T1=T1*alpha**j
+      T1 = T1 * alpha**j
       F = Fseries(alpha**2,s,j,tol)
-      ans=2._DP*T1*F
+      ans = 2._DP * T1 * F
    case(2) ! G(y) series: based on solution to problem 6.2 in Murray & Dermott (1999)
 
       ! Use an "easy" problem for the F(x) series to bootstrap a solution to the G(y) series coefficients A0 and C2
@@ -107,30 +107,30 @@ contains
       G(1,2) = Gseries(1._DP-x1,0._DP,1._DP,s,jp,tol)
       G(2,1) = Gseries(1._DP-x2,1._DP,0._DP,s,jp,tol)
       G(2,2) = Gseries(1._DP-x2,0._DP,1._DP,s,jp,tol)
-      det=(G(1,1)*G(2,2)-G(1,2)*G(2,1))
+      det = (G(1,1) * G(2,2) - G(1,2) * G(2,1))
       Ginv(1,1) = G(2,2)
       Ginv(1,2) = -G(1,2)
       Ginv(2,1) = -G(2,1)
       Ginv(2,2) = G(1,1)
       Ginv = Ginv / det
-      F1=Fseries(x1,s,jp,tol)
-      F2=Fseries(x2,s,jp,tol)
+      F1 = Fseries(x1,s,jp,tol)
+      F2 = Fseries(x2,s,jp,tol)
 
-      A0 = Ginv(1,1)*F1+Ginv(1,2)*F2
+      A0 = Ginv(1,1) * F1 + Ginv(1,2) * F2
       C2 = Ginv(2,1)*F1+Ginv(2,2)*F2
-      F = Gseries(1._DP-alpha**2,A0,C2,s,j,tol)
+      F = Gseries(1._DP - alpha**2,A0,C2,s,j,tol)
 
-      T1=1._DP
-      do i=0,j-1
-         num=s+i
-         denom=(j-i)*1._DP
-         T1=T1*num/denom
+      T1 = 1._DP
+      do i = 0,j - 1
+         num = s + real(i, kind=DP)
+         denom = real(j-i, kind=DP)
+         T1 = T1 * num / denom
       end do
-      T1=T1*alpha**j
-      ans=2._DP*T1*F
+      T1 = T1 * alpha**j
+      ans = 2._DP * T1 * F
 
    case(3) ! Simpson's rule (this is very slow, but is included here for testing purposes
-      ans=1._DP/pi*simp(bfunci,0._DP,2._DP*pi,10000000,alpha,jp,s)
+      ans = 1._DP / PI * simp(bfunci,0._DP,2._DP*pi,10000000,alpha,jp,s)
    end select
 
    return
@@ -144,20 +144,20 @@ contains
    real(DP) :: F0,F,tmp,num,denom
    integer :: i,k
 
-   F0=0._DP
-   F=1._DP
-   k=1
+   F0 = 0._DP
+   F = 1._DP
+   k = 1
    do 
-      if (abs(1._DP-F/F0)<tol) exit 
-      tmp=1.0
+      tmp = 1.0_DP
       do i=1,k
-         num=(s+(i-1))*(s+(jp+i-1))
-         denom=i*(jp+i)
-         tmp=tmp*num/denom*x
+         num = (s + real(i - 1, kind=DP)) * (s + real(jp + i - 1,kind=DP))
+         denom = real(i * (jp + i),kind=DP)
+         tmp = tmp * num / denom * x
       end do
-      F0=F
-      F=F+tmp
-      k=k+1
+      F0 = F
+      F = F + tmp
+      k = k + 1
+      if (abs(1._DP - F / F0) < tol) exit 
    end do
    ans = F
    return
@@ -175,51 +175,51 @@ contains
    real(DP) :: G0,Bl2s1,Bl2s2,Bl,Al
    real(DP),dimension(:),allocatable :: Bold
 
-   s2 = nint(2*s)
+   s2 = nint(2 * s)
    allocate(Bold(s2))
-   ans = 0._DP
-   G0=-1._DP
-   Al=A0
+   ans = 1e-8_DP
+   G0 = -1._DP
+   Al = A0
    l = 0
-   if (s2==1) then
-      Bl=C2
-      do l=0,lmax
+   if (s2 == 1) then
+      Bl = C2
+      do l = 0,lmax
          G0 = ans
-         ans = ans + Al*y**(l-s2+1) + log(y)*Bl*y**l
-         if (abs(1._DP-ans/G0)<tol) exit 
-         Bold(1)=Bl
-         Bl=Blp1(Bl,s,jp,l)
-         Al=Alp1(Al,Bold(1),Bl,s,jp,l)
+         ans = ans + Al * y**(l - s2 + 1) + log(y) * Bl * y**l
+         if (abs(1._DP - ans / G0) < tol) exit 
+         Bold(1) = Bl
+         Bl = Blp1(Bl,s,jp,l)
+         Al = Alp1(Al,Bold(1),Bl,s,jp,l)
       end do
    else
-      Bl=B0func(A0,s,jp)
-      Bl2s1=0._DP
-      Bl2s2=0._DP
-      tic=1
+      Bl = B0func(A0,s,jp)
+      Bl2s1 = 0._DP
+      Bl2s2 = 0._DP
+      tic = 1
       Bold(tic) = Bl
-      do l=0,lmax
+      do l =0, lmax
          G0 = ans
-         ans = ans + Al*y**(l-s2+1) + log(y)*Bl*y**l
-         if ((l>s2-2) .and. (abs(1._DP-ans/G0)<tol)) exit 
-         if (l/=s2-2) then 
-            if (l-s2+1>=0) then
+         ans = ans + Al*y**(l - s2 + 1) + log(y) * Bl * y**l
+         if ((l > s2 - 2) .and. (abs(1._DP - ans / G0) < tol)) exit 
+         if (l /= s2 - 2) then 
+            if (l - s2 + 1 >= 0) then
                toc = tic - s2 + 1
                if (toc <= 0) toc = size(Bold) + toc
                Bl2s1 = Bold(toc)
             end if
-            if (l-s2+2>=0) then
+            if (l - s2 + 2 >= 0) then
                toc = tic - s2 + 2
                if (toc <= 0) toc = size(Bold) + toc
                Bl2s2 = Bold(toc)
             end if
-            Al=Alp1(Al,Bl2s1,Bl2s2,s,jp,l)
+            Al = Alp1(Al,Bl2s1,Bl2s2,s,jp,l)
          else
             Al = C2
          end if
-         Bl=Blp1(Bl,s,jp,l)
+         Bl = Blp1(Bl,s,jp,l)
          tic = tic + 1
          if (tic > size(Bold)) tic = 1
-         Bold(tic)=Bl ! tic keeps a looping array of old Bl values
+         Bold(tic) = Bl ! tic keeps a looping array of old Bl values
       end do
 
    end if
@@ -238,9 +238,10 @@ contains
    real(DP) :: ans
    integer :: s2,n,start
 
-   s2=nint(2*s)
-   ans = Al*((l-s2+1)*(l+jp+1._DP)+s*(s+jp))+Bl2s1*(2*l-s2+jp+2)-Bl2s2*(2*l-s2+3)
-   ans = ans / ((l+1)*(l-s2+2._DP))
+   s2 = nint(2 * s)
+   ans = Al * ((l - s2 + 1) * (l + jp + 1) + s * (s + real(jp, kind=DP))) + &
+         Bl2s1 * (2 * l - s2 + jp + 2) - Bl2s2 * (2 * l - s2 + 3)
+   ans = ans / real(((l + 1) * (l - s2 + 2)),kind=DP)
 
    return
    end function Alp1
@@ -254,7 +255,7 @@ contains
    real(DP) :: ans
    integer :: n
 
-   ans = Bl*(l*(2*s+jp+l)+s*(s+jp))/((l+1)*(2*s+l))
+   ans = Bl * (l * (2 * s + jp + l) + s * (s + real(jp,kind=DP))) / ((l + 1) * (2 * s + real(l,kind=DP)))
 
    return
    end function Blp1
@@ -266,12 +267,13 @@ contains
    real(DP) :: ans
    integer :: n,s2
 
-   s2 = nint(2*s)
+   s2 = nint(2 * s)
    ans = A0
-   do n=1,s2-2
-      ans = ans*((n-s2)*(n+jp)+s*(s+jp))/(n*(n-s2+1._DP))
+   do n = 1, s2 - 2
+      ans = ans * (real((n - s2) * (n + jp),kind=DP) + s * (s + real(jp,kind=DP))) &
+                / real(n * (n - s2 + 1),kind=DP)
    end do
-   ans = ans * (1._DP-s2-jp+s*(s+jp))/(s2-1._DP)
+   ans = ans * (real(1 - s2 - jp,kind=DP) + s * (s + real(jp,kind=DP))) / real(s2 - 1,kind=DP)
   
    return
    end function B0func
@@ -286,7 +288,7 @@ contains
    real(DP) :: f1,f2,f3,f4,ans,h
    integer :: k
 
-   h=(b-a)/(3.0*m)
+   h=(b-a)/(3._DP*m)
 
    ans=0.0
    do k=1,m
@@ -305,7 +307,7 @@ contains
    integer,intent(in) :: jp
    real(DP), intent(in) :: s,psi,alpha
    
-   bfunci=cos(real(jp,8)*psi)/(1._DP-2._DP*alpha*cos(psi)+alpha**2)**(s)
+   bfunci=cos(real(jp,kind=DP)*psi)/(1._DP-2._DP*alpha*cos(psi)+alpha**2)**(s)
    
    return
    end function

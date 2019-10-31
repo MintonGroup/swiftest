@@ -29,7 +29,7 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 t_0	= 0
 t_print = 1e6 * year / TU2S #output interval to print results
-deltaT	= 1e6 * year / TU2S  #timestep simulation
+deltaT	= 1e3 * year / TU2S  #timestep simulation
 end_sim = 1.e9 * year / TU2S + deltaT #end time
 
 Nbins    = 240        #number of bins in disk
@@ -60,6 +60,7 @@ IPp = Ipolar_Uranus # Polar moment of inertia of primary
 IPe = J2 + IPp # equatorial moment of inertia of primary
 FRL = 2.456 * RP * (rhoP / rho_pdisk)**(1./3.)
 RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
+Rsync = (GU * MP * TP**2 / (4 * np.pi**2))**(1./3.)
 
 r_I	= 0.999 * RP      #inside radius of disk is at the embryo's surface
 r_F	= 1.2 * FRL  #outside radius of disk

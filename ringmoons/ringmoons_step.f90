@@ -48,6 +48,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       integer(I4B) :: i,loop
       real(DP) :: dtstab,dtleft,dt,seedmass
       real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now
+      CHARACTER(*),parameter :: ring_outfile = "ring.dat"   ! Name of ringmoons output binary file
 
 ! Executable code
       !if (lfirst) then
@@ -70,16 +71,24 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          Lerror = (Ltot_now - Ltot_orig) / Ltot_orig
       !^^^^^^^^  
       do loop = 1, LOOPMAX
+         !write(*,*) t + (dtin - dtleft)
          call ringmoons_calc_torques(swifter_pl1P,ring,seeds)
-         call ringmoons_viscosity(ring)
-         !write(*,*) loop,dtleft,maxval(ring%nu),minval(ring%nu)
          dt = ringmoons_timestep(swifter_pl1P,ring,seeds,dtleft)
-         call ringmoons_sigma_solver(ring,dt)
-         call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
          call ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
          call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
+         call ringmoons_viscosity(ring)
+         call ringmoons_sigma_solver(ring,dt)
+         call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
          call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
          dtleft = dtleft - dt
+         if (DESTRUCTION_EVENT) then
+            call ringmoons_io_write_frame(t + (dtin - dtleft), ring, seeds, ring_outfile, out_stat = "APPEND")
+            DESTRUCTION_COUNTER = DESTRUCTION_COUNTER + 1
+            if (DESTRUCTION_COUNTER > 1000) then
+               DESTRUCTION_EVENT = .false.
+               DESTRUCTION_COUNTER = 0
+            end if
+         end if
          if (dtleft <= 0.0_DP) exit
          Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
          if (Mtot_now /= Mtot_now) then

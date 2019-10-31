@@ -59,11 +59,14 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
       daseeds(i) = (P + 2 * Q + 2 * R + S) / 6._DP
    end do
 
+
    do i = 1, seeds%N
       if (seeds%active(i)) then
          seeds%a(i) = seeds%a(i) + daseeds(i)
          if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
             write(*,*) 'We are on our way to destruction!'
+            DESTRUCTION_EVENT = .true.
+            DESTRUCTION_COUNTER = 0
             seeds%active(i) = .false.
             Loriginal = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i)) 
             iRRL = ring%iRRL

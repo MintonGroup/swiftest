@@ -135,6 +135,8 @@ PROGRAM swifter_symba_ringmoons
      call ringmoons_ring_construct(swifter_pl1P,ring)
      call ringmoons_viscosity(ring)
      call ringmoons_seed_construct(swifter_pl1P,ring,seeds) 
+     DESTRUCTION_EVENT = .false.
+     DESTRUCTION_COUNTER = 0
 
      !Set up integration
      lfirst = .TRUE.

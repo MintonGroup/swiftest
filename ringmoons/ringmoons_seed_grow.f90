@@ -43,7 +43,7 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
 
 ! Internals
       integer(I4B)                           :: i,j,k,seed_bin
-      real(DP)                               :: P,Q,R,S
+      real(DP)                               :: P,Q,R,S,da
       real(DP)                               :: Gmleft,dGm,Gmdisk,Lfromring,Lseed_original,Ldiff
       real(DP),dimension(seeds%N)            :: dGmseeds, fz_width
       integer(I4B),dimension(seeds%N)        :: nfz
@@ -88,6 +88,7 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
          seeds%Gm(i) = seeds%Gm(i) + (dGmseeds(i) - Gmleft)
          
          ! Conserve angular momentum 
+         da =  ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass - seeds%a(i)
          seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass
       end do
       

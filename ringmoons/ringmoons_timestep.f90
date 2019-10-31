@@ -45,29 +45,38 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 ! Internals
       integer(I4B)                           :: i
       real(DP),parameter                     :: RK_FACTOR = 0.01_DP ! smallest increase in fractional mass allowable in a single time step
-      real(DP)                               :: dGm_max,nu_max,da_max
+      real(DP)                               :: dGm_max,nu_max,da_max,dadot_max
 
 ! Executable code
 
+      dtout = dtin
+
       ! Start with viscous stability
       nu_max = maxval(abs(ring%nu))
-      dtout = dtin
       if (nu_max > 0.0_DP) then
          dtout = min(dtout,ring%stability_factor / nu_max)  ! smallest timestep for the viscous evolution equation
+         !write(*,*) 'Viscous dt/dtin: ', ring%stability_factor / nu_max / dtin
       end if
+       
 
       ! Now aim for seed growth accuracy
       dGm_max = maxval(ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(:)), &
                        seeds%Gm(:),seeds%a(:)) / seeds%Gm(:),seeds%active)
       if (dGm_max > 0.0_DP) then
          dtout = min(dtout,RK_FACTOR / dGm_max)  ! smallest timestep for the seed growth equation 
+         !write(*,*) 'Growth dt/dtin: ', RK_FACTOR / dGm_max / dtin
       end if
 
       ! Now aim for seed migration accuracy
-      da_max = maxval(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(:),seeds%a(:),seeds%Torque(:)) &
-                     / seeds%a(:),seeds%active)
+      !da_max = maxval(abs(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(:),seeds%a(:),seeds%Torque(:))) &
+      !               / seeds%a(:),seeds%active)
+      
+      dadot_max = maxval(abs(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(:),seeds%a(:),seeds%Torque(:))),seeds%active) 
+                     
       if (da_max > 0.0_DP) then
-         dtout = min(dtout,RK_FACTOR / da_max)  ! smallest timestep for the seed migration equation 
+         !dtout = min(dtout,RK_FACTOR / da_max)  ! smallest timestep for the seed migration equation 
+         !write(*,*) RK_Factor / da_max, 
+         dtout = min(dtout, (ring%deltaX / 2._DP)**2 / dadot_max) ! smallest step that keeps the body within a approximately single bin size 
       end if
 
       return

@@ -103,6 +103,6 @@ subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
       ring%Gm(j) = ring%Gm(j) - seeds%Gm(i)
       ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
 
-
+      return
 
 end subroutine ringmoons_seed_spawn

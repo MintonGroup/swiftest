@@ -45,7 +45,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
 
 ! Internals
       integer(I4B)                           :: j, m, inner_outer_sign
-      integer(I4B), parameter                :: m_max = 4 ! Maximum mode number 
+      integer(I4B), parameter                :: m_max = 3 ! Maximum mode number 
       real(DP)                               :: y, dTorque, beta, Amk
 
 ! Executable code
