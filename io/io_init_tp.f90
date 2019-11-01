@@ -33,6 +33,8 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
 ! Modules
      USE module_parameters
      USE module_symba
+     USE module_helio
+     USE module_swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_init_tp
      IMPLICIT NONE
@@ -40,7 +42,7 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
 ! Arguments
      INTEGER(I4B), INTENT(IN)            :: ntp
      CHARACTER(*), INTENT(IN)            :: intpfile, in_type
-     TYPE(symba_tpA), INTENT(INOUT)      :: symba_tpA
+     TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
 
 ! Internals
      INTEGER(I4B), PARAMETER             :: LUN = 7

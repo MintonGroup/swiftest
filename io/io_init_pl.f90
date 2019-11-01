@@ -38,6 +38,8 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
 ! Modules
      USE module_parameters
      USE module_symba
+     USE module_helio
+     USE module_swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_init_pl
      IMPLICIT NONE
@@ -46,7 +48,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
      LOGICAL(LGT), INTENT(IN)         :: lclose, lrhill_present
      INTEGER(I4B), INTENT(IN)         :: npl
      CHARACTER(*), INTENT(IN)         :: inplfile, in_type
-     TYPE(swiftest_pl), INTENT(INOUT) :: swifter_plA
+     TYPE(symba_pl), INTENT(INOUT)    :: symba_plA
 
 ! Internals
      INTEGER(I4B), PARAMETER          :: LUN = 7
@@ -84,8 +86,8 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
                ELSE
                     symba_plA%helio%swiftest%radius(i) = 0.0_DP
                END IF
-               READ(LUN, *) symba_plA%helio%swiftest%xh(:,1)
-               READ(LUN, *) symba_plA%helio%swiftest%vh(:,1)
+               READ(LUN, *) symba_plA%helio%swiftest%xh(:,i)
+               READ(LUN, *) symba_plA%helio%swiftest%vh(:,i)
                symba_plA%helio%swiftest%status(i) = ACTIVE
           END DO
           CLOSE(UNIT = LUN)
@@ -97,7 +99,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
           symba_plA%helio%swiftest%rhill(1) = 0.0_DP
           symba_plA%helio%swiftest%radius(1) = 0.0_DP
           ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%xh(:,1))
-          ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftestswiftest_plA%vh(:,1))
+          ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%vh(:,1))
           DO i = 1, NDIM
                IF ((symba_plA%helio%swiftest%xh(i,1) /= 0.0_DP) .OR. (symba_plA%helio%swiftest%vh(i,1) /= 0.0_DP)) THEN
                     WRITE(*, *) "SWIFTEST Error:"
@@ -115,15 +117,15 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
                IF (lrhill_present) THEN
                     ierr = ixdrdouble(iu, symba_plA%helio%swiftest%rhill(i))
                ELSE
-                    symba_plA%helio%swiftest)%rhill(i) = 0.0_DP
+                    symba_plA%helio%swiftest%rhill(i) = 0.0_DP
                END IF
                IF (lclose) THEN
                     ierr = ixdrdouble(iu, symba_plA%helio%swiftest%radius(i))
                ELSE
                     symba_plA%helio%swiftest%radius(i) = 0.0_DP
                END IF
-               ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%xh(i))
-               ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%vh(i))
+               ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%xh(:,i))
+               ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%vh(:,i))
                symba_plA%helio%swiftest%status(i) = ACTIVE
           END DO
           ierr = ixdrclose(iu)

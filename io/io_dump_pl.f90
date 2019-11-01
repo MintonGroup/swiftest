@@ -66,10 +66,10 @@ SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
      DO i = 2, npl
           ierr = ixdrint(iu, swiftest_plA%id(i))
           ierr = ixdrdouble(iu, swiftest_plA%mass(i))
-          IF (lrhill_present) ierr = ixdrdouble(iu, swifter_plA%rhill(i))
-          IF (lclose) ierr = ixdrdouble(iu, swifter_plA%radius(i))
-          ierr = ixdrdmat(iu, NDIM, swifter_plA%xh(:,i))
-          ierr = ixdrdmat(iu, NDIM, swifter_plA%vh(:,i))
+          IF (lrhill_present) ierr = ixdrdouble(iu, swiftest_plA%rhill(i))
+          IF (lclose) ierr = ixdrdouble(iu, swiftest_plA%radius(i))
+          ierr = ixdrdmat(iu, NDIM, swiftest_plA%xh(:,i))
+          ierr = ixdrdmat(iu, NDIM, swiftest_plA%vh(:,i))
      END DO
      ierr = ixdrclose(iu)
      idx = idx + 1

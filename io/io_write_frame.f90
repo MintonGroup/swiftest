@@ -12,8 +12,8 @@
 !    Arguments : t            : time
 !                npl          : number of planets
 !                ntp          : number of active test particles
-!                swifter_pl1P : pointer to head of Swifter planet structure linked-list
-!                swifter_tp1P : pointer to head of active Swifter test particle structure linked-list
+!                swiftest_pl1P : pointer to head of swiftest planet structure linked-list
+!                swiftest_tp1P : pointer to head of active swiftest test particle structure linked-list
 !                outfile      : name of output binary file
 !                out_type     : binary format of output file
 !                out_form     : data to write to output file (elements / heliocentric coordinates / filtered elements)
@@ -26,7 +26,7 @@
 !    Terminal  : error message
 !    File      : none
 !
-!  Invocation  : CALL io_write_frame(t, npl, ntp, swifter_pl1P, swifter_tp1P, outfile, out_type, out_form, out_stat)
+!  Invocation  : CALL io_write_frame(t, npl, ntp, swiftest_pl1P, swiftest_tp1P, outfile, out_type, out_form, out_stat)
 !
 !  Notes       : Adapted from Hal Levison's Swift routine io_write_frame.F
 !
@@ -121,30 +121,30 @@ SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_
      SELECT CASE (iout_form)
           CASE (EL)
                DO i = 2, npl
-                    mu = swifter_plA%mass(1) + swifter_plA%mass(i)
-                    j = swifter_plA%id(i)
-                    CALL orbel_xv2el(swifter_plA%xh(:,i), swifter_plA%vh(:,i), mu, a, e, inc, capom, omega, capm)
-                    CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type, MASS = swifter_plA%mass(i),                   &
-                         RADIUS = swifter_plA%radius(i))
+                    mu = swiftest_plA%mass(1) + swiftest_plA%mass(i)
+                    j = swiftest_plA%id(i)
+                    CALL orbel_xv2el(swiftest_plA%xh(:,i), swiftest_plA%vh(:,i), mu, a, e, inc, capom, omega, capm)
+                    CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type, &
+                     MASS = swiftest_plA%mass(i),RADIUS = swiftest_plA%radius(i))
                END DO
-               mu = swifter_plA%mass(1)
+               mu = swiftest_plA%mass(1)
                DO i = 1, ntp
-                    j = swifter_tpA%id(i)
-                    CALL orbel_xv2el(swifter_tpA%xh(:,i), swifter_tpA%vh(:,i), mu, a, e, inc, capom, omega, capm)
+                    j = swiftest_tpA%id(i)
+                    CALL orbel_xv2el(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i), mu, a, e, inc, capom, omega, capm)
                     CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type)
                END DO
           CASE (XV)
                DO i = 2, npl
-                    xtmp(:) = swifter_plA%xh(:,i)
-                    vtmp(:) = swifter_plA%vh(:,i)
-                    j = swifter_plA%id(i)
+                    xtmp(:) = swiftest_plA%xh(:,i)
+                    vtmp(:) = swiftest_plA%vh(:,i)
+                    j = swiftest_plA%id(i)
                     CALL io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type,                     &
-                         MASS = swifter_plA%mass(i), RADIUS = swifter_plA%radius(i))
+                         MASS = swiftest_plA%mass(i), RADIUS = swiftest_plA%radius(i))
                END DO
                DO i = 1, ntp
-                    xtmp(:) = swifter_tpA%xh(:,i)
-                    vtmp(:) = swifter_tpA%vh(:,i)
-                    j = swifter_tpA%id(i)
+                    xtmp(:) = swiftest_tpA%xh(:,i)
+                    vtmp(:) = swiftest_tpA%vh(:,i)
+                    j = swiftest_tpA%id(i)
                     CALL io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type)
                END DO
           CASE (FILT)

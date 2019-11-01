@@ -183,15 +183,15 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
      IF (idx > 2) idx = 1
 
      ! The fragmentation model requires the user to set the unit system explicitly.
-     WRITE(*, 100, ADVANCE = "NO") "FRAGMENTATION  = "
-     WRITE(*, *) lfragmentation
+     WRITE(LUN, 100, ADVANCE = "NO") "FRAGMENTATION  = "
+     WRITE(LUN, *) lfragmentation
      IF (lfragmentation) THEN
-          WRITE(*, 100, ADVANCE = "NO") "MU2GM          = "
-          WRITE(*, *) MU2GM
-          WRITE(*, 100, ADVANCE = "NO") "TU2S           = "
-          WRITE(*, *) TU2S 
-          WRITE(*, 100, ADVANCE = "NO") "DU2CM          = "
-          WRITE(*, *) DU2CM
+          WRITE(LUN, 100, ADVANCE = "NO") "MU2GM          = "
+          WRITE(LUN, *) MU2GM
+          WRITE(LUN, 100, ADVANCE = "NO") "TU2S           = "
+          WRITE(LUN, *) TU2S 
+          WRITE(LUN, 100, ADVANCE = "NO") "DU2CM          = "
+          WRITE(LUN, *) DU2CM
           IF ((MU2GM < 0.0_DP) .OR. (TU2S < 0.0_DP) .OR. (DU2CM < 0.0_DP)) ierr = -1
      END IF 
 
