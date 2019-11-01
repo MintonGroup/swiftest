@@ -49,11 +49,20 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 #FORTRAN         = ifort
 #FFLAGS          = -O3 -qopenmp -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
 
+<<<<<<< Updated upstream
 #FORTRAN         = gfortran
 #FFLAGS          = -O3 
 
 #DEBUG ONLY 
 FFLAGS		= -O0 -fcheck=all -fbounds-check -fbacktrace -Wall -Warray-bounds -Warray-temporaries -Wimplicit-interface -g3
+=======
+FORTRAN         = gfortran
+#FFLAGS          = -O3 
+
+#DEBUG ONLY 
+FFLAGS		= -O3 
+#-fbounds-check -fbacktrace -Wall 
+>>>>>>> Stashed changes
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile

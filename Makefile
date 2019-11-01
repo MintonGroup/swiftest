@@ -49,10 +49,11 @@ SWIFTER_MODULES = module_parameters.f90 \
 		  module_swiftest.f90 \
 		  module_swifter.f90 \
 		  module_helio.f90 \
-        module_nrutil.f90 \
+        	  module_nrutil.f90 \
 		  module_symba.f90 \
 		  module_fxdr.f90 \
-        module_interfaces.f90 \
+       		  module_interfaces.f90 \
+                  module_nrutil.f90 \
 		  module_swiftestalloc.f90
 
 include Makefile.Defines
