@@ -28,12 +28,12 @@ MODULE module_interfaces
      IMPLICIT NONE
 
      INTERFACE
-          SUBROUTINE coord_b2h(npl, swifter_pl1P)
+          SUBROUTINE coord_b2h(npl, swiftest_plA)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
+               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
           END SUBROUTINE coord_b2h
      END INTERFACE
 
@@ -49,13 +49,13 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
+          SUBROUTINE coord_h2b(npl, swiftest_plA, msys)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl
                REAL(DP), INTENT(OUT)     :: msys
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
+               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
           END SUBROUTINE coord_h2b
      END INTERFACE
 
@@ -615,27 +615,31 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, swiftest_plA)
+          SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
                USE module_parameters
                USE module_swiftest
+               USE module_symba
+               USE module_helio
                USE module_fxdr
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)         :: lclose, lrhill_present
                INTEGER(I4B), INTENT(IN)         :: npl
                CHARACTER(*), INTENT(IN)         :: inplfile, in_type
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+               TYPE(symba_pl), INTENT(INOUT)    :: symba_plA
           END SUBROUTINE io_init_pl
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_init_tp(intpfile, in_type, ntp, swiftest_tpA)
+          SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
                USE module_parameters
                USE module_swiftest
+               USE module_symba
+               USE module_helio
                USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: ntp
                CHARACTER(*), INTENT(IN)         :: intpfile, in_type
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
+               TYPE(symba_tp), INTENT(INOUT)    :: symba_tpA
           END SUBROUTINE io_init_tp
      END INTERFACE
 

@@ -1,4 +1,4 @@
-!**********************************************************************************************************************************
+                               !**********************************************************************************************************************************
 !
 !  Unit Name   : module_swiftest
 !  Unit Type   : module
@@ -40,7 +40,7 @@ module module_swiftest
    !real(DP), parameter     :: RSHELL = 0.48075_DP
 
    type swiftest_pl
-       integer(I4B), dimension(:),     allocatable :: id     ! external identifier
+       integer(I4B), dimension(:),     allocatable :: id     ! external identifier (hash)
        integer(I4B), dimension(:),     allocatable :: status ! status
        real(DP),     dimension(:),     allocatable :: mass   ! mass
        real(DP),     dimension(:),     allocatable :: radius ! radius
@@ -49,10 +49,11 @@ module module_swiftest
        real(DP),     dimension(:,:),   allocatable :: vh     ! heliocentric velocity
        real(DP),     dimension(:,:),   allocatable :: xb     ! barycentric position
        real(DP),     dimension(:,:),   allocatable :: vb     ! barycentric velocity
+       integer(I4B), dimension(:),     allocatable :: index  ! particle position in the array 
    end type swiftest_pl
 
    type swiftest_tp
-       integer(I4B), dimension(:),     allocatable :: id     ! external identifier
+       integer(I4B), dimension(:),     allocatable :: id     ! external identifier (hash)
        integer(I4B), dimension(:),     allocatable :: status ! status
        integer(I4B), dimension(:),     allocatable :: isperi ! perihelion passage flag
        real(DP),     dimension(:),     allocatable :: peri   ! perihelion distance
@@ -61,6 +62,7 @@ module module_swiftest
        real(DP),     dimension(:,:),   allocatable :: vh     ! heliocentric velocity
        real(DP),     dimension(:,:),   allocatable :: xb     ! barycentric position
        real(DP),     dimension(:,:),   allocatable :: vb     ! barycentric velocity
+       integer(I4B), dimension(:),     allocatable :: index  ! particle position in the array 
    end type swiftest_tp
 
 end module module_swiftest
