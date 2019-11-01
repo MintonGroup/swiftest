@@ -72,15 +72,9 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       !^^^^^^^^  
       do loop = 1, LOOPMAX
          !write(*,*) t + (dtin - dtleft)
-         write(*,*) 1,seeds%a
-         write(*,*) 1,seeds%active
          call ringmoons_calc_torques(swifter_pl1P,ring,seeds)
-         write(*,*) 2,seeds%a
-         write(*,*) 2,seeds%active
          dt = ringmoons_timestep(swifter_pl1P,ring,seeds,dtleft)
          call ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
-         write(*,*) 3,seeds%a
-         write(*,*) 3,seeds%active
          call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
          call ringmoons_viscosity(ring)
          call ringmoons_sigma_solver(ring,dt)
