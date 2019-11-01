@@ -119,6 +119,7 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
                      ! deactivate particle for now and position it at the FRL to potentially activate later
                      seeds%Gm(j) = 0.0_DP
                      seeds%active(j) = .false.
+                     seeds%a(j) = 0.0_DP
                   end if
                end if
             end do

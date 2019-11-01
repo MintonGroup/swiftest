@@ -72,23 +72,20 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       !^^^^^^^^  
       do loop = 1, LOOPMAX
          !write(*,*) t + (dtin - dtleft)
-         write(*,*) 1,seeds%a(:)
+         write(*,*) 1,seeds%a
+         write(*,*) 1,seeds%active
          call ringmoons_calc_torques(swifter_pl1P,ring,seeds)
-         write(*,*) 2,seeds%a(:)
+         write(*,*) 2,seeds%a
+         write(*,*) 2,seeds%active
          dt = ringmoons_timestep(swifter_pl1P,ring,seeds,dtleft)
-         write(*,*) 3,seeds%a(:)
          call ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
-         write(*,*) 4,seeds%a(:)
+         write(*,*) 3,seeds%a
+         write(*,*) 3,seeds%active
          call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
-         write(*,*) 5,seeds%a(:)
          call ringmoons_viscosity(ring)
-         write(*,*) 6,seeds%a(:)
          call ringmoons_sigma_solver(ring,dt)
-         write(*,*) 7,seeds%a(:)
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
-         write(*,*) 8,seeds%a(:)
          call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
-         write(*,*) 9,seeds%a(:)
          dtleft = dtleft - dt
          if (DESTRUCTION_EVENT) then
             call ringmoons_io_write_frame(t + (dtin - dtleft), ring, seeds, ring_outfile, out_stat = "APPEND")
