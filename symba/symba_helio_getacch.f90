@@ -72,7 +72,7 @@ SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_acc(npl, swifter_plA, j2rp2, j4rp4, xh, irh, aobl) 
+          CALL obl_acc(npl, helio_plA%swiftest, j2rp2, j4rp4, xh, irh, aobl) 
           DO i = 2, npl
                helio_plA%ah(:,i) = helio_plA%ahi(:,i) + aobl(:, i) - aobl(:, 1)
           END DO

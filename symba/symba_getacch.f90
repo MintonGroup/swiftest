@@ -49,7 +49,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
      REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
      TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
-     TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
+     TYPE(symba_plplenc), INTENT(INOUT)            :: plplenc_list
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
@@ -76,9 +76,9 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
           !helio_pliP => helio_pliP%nextP
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          helio_pliP => symba_pl1P%symba_plPA(i)%thisP%helio
+          !helio_pliP => symba_pl1P%symba_plPA(i)%thisP%helio
           !^^^^^^^^^^^^^^^^^^
-          helio_pliP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          symba_plA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
      !$OMP END PARALLEL DO
      DO i = 2, nplm
@@ -100,8 +100,11 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                !Added by D. Minton
                !symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
                !^^^^^^^^^^^^^^^^^^
-               IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR.                                                &
-                   (.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) THEN !need to handle parents and children separately
+               IF ((.NOT. symba_plA%lmerged(i)) .OR. &
+                    (.NOT. symba_plA%lmerged(j))) &
+                    ! .OR.  &
+                   !(.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) & !need to handle parents and children separately
+                   THEN !need to handle parents and children separately
                     dx(:) = symba_plA%helio%swiftest%xh(:,i) - symba_plA%helio%swiftest%xh(:,j)
                     rji2 = DOT_PRODUCT(dx(:), dx(:))
                     irij3 = 1.0_DP/(rji2*SQRT(rji2))
@@ -126,10 +129,13 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      !$OMP PRIVATE(i,symba_pliP,symba_pljP,helio_pliP,helio_pljP,dx,rji2,irij3,faci,facj) &
      !$OMP SHARED(plplenc_list,nplplenc)
      DO i = 1, nplplenc
-          index_i = FINDLOC(symba_plA%helio%swiftest%id(:),VALUE = plplenc_list(i)%id1)
-          index_j = FINDLOC(symba_plA%helio%swiftest%id(:),VALUE = plplenc_list(i)%id2)
-          IF ((.NOT. symba_plA%lmerged(index_i)) .OR. (.NOT. symba_plA%lmerged(index_j)) .OR.                                                     &
-              (.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) THEN !need to update parent/children
+          index_i = plplenc_list%id1(i)
+          index_j = plplenc_list%id2(i)
+          IF ((.NOT. symba_plA%lmerged(index_i)) .OR. &
+               (.NOT. symba_plA%lmerged(index_j)))  &
+               ! .OR. &
+              !(.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) & !need to update parent/children
+               THEN !need to update parent/children
                dx(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
                rji2 = DOT_PRODUCT(dx(:), dx(:))
                irij3 = 1.0_DP/(rji2*SQRT(rji2))

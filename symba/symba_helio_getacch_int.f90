@@ -55,7 +55,6 @@ SUBROUTINE symba_helio_getacch_int(npl, nplm, helio_plA)
                helio_plA%ahi(:,j) = helio_plA%ahi(:,j) - faci*dx(:)
           END DO
      END DO
-
      RETURN
 
 END SUBROUTINE symba_helio_getacch_int

@@ -69,20 +69,28 @@ SUBROUTINE symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio
           CALL coord_vh2vb(npl, helio_plA%swiftest, msys) 
           lfirst = .FALSE.
      END IF
-     CALL helio_lindrift(npl, helio_plA%swiftest, dth, ptb) 
+     
+     CALL helio_lindrift(npl, helio_plA%swiftest, dth, ptb)
+
      CALL symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4) 
      lflag = .TRUE.
-     CALL helio_kickvb(npl, helio_plA, dth) 
+
+     CALL helio_kickvb(npl, helio_plA, dth)
+
      DO i = 2, nplm
           xbeg(:, i) = helio_plA%swiftest%xh(:,i)
      END DO
-     CALL helio_drift(npl, swifter_plA, dt) 
+     CALL helio_drift(npl, helio_plA%swiftest, dt) 
+
      DO i = 2, nplm
           xend(:, i) = helio_plA%swiftest%xh(:,i)
      END DO
      CALL symba_helio_getacch(lflag, lextra_force, t+dt, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4) 
+
      CALL helio_kickvb(npl, helio_plA, dth)
+
      CALL helio_lindrift(npl, helio_plA%swiftest, dth, pte)
+
      CALL coord_vb2vh(npl, helio_plA%swiftest)
 
      RETURN

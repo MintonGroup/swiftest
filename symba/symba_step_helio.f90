@@ -68,7 +68,7 @@ SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntp
           lmalloc = .FALSE.
      END IF
      lfirsttp = lfirst
-     CALL symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_pl1P, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
+     CALL symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
      IF (ntp > 0) CALL helio_step_tp(lfirsttp, lextra_force, t, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4,  &
           dt, xbeg, xend, ptb, pte)
 

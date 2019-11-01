@@ -80,7 +80,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
           !helio_tpP => symba_tp1P%symba_tpPA(i)%thisP%helio
           !^^^^^^^^^^^^^^^^^^
           symba_tpA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-          IF (symba_tpA%helio%swiftest%status == ACTIVE) THEN
+          IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) THEN
                !swifter_plP => swifter_pl1P
                !DO j = 2, nplm
                DO j = 2, npl
@@ -103,10 +103,10 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      DO i = 1, npltpenc
           !swifter_plP => pltpenc_list(i)%plP%helio%swifter
           !helio_tpP => pltpenc_list(i)%tpP%helio
-          index_pl = FINDLOC(symba_plA%helio%swiftest%id(:),VALUE  = pltpenc_list%idpl(i))
-          index_tp = FINDLOC(symba_tpA%helio%swiftest%id(:),VALUE  = pltpenc_list%idtp(i))
+          index_pl = pltpenc_list%idpl(i)
+          index_tp = pltpenc_list%idtp(i)
           IF (symba_tpA%helio%swiftest%status(index_tp) == ACTIVE) THEN
-               dx(:) = symba_tpA%helio%swiftest%xh(:,idtp) - symba_plA%helio%swiftest%xh(:,idpl)
+               dx(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
                r2 = DOT_PRODUCT(dx(:), dx(:))
                fac = symba_plA%helio%swiftest%mass(index_pl)/(r2*SQRT(r2))
                symba_tpA%helio%ah(:,index_tp) = symba_tpA%helio%ah(:,index_tp) + fac*dx(:)
@@ -131,10 +131,11 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
           END DO
           CALL obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, mu)
           DO i = 1, ntp
-               IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) symba_tpA%helio%ah(:,i) = symba_tpA%helio%ah(:,i) + aoblt(:, i) - aobl(:, 1)
+               IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) &
+               symba_tpA%helio%ah(:,i) = symba_tpA%helio%ah(:,i) + aoblt(:, i) - aobl(:, 1)
           END DO
      END IF
-     IF (lextra_force) CALL symba_user_getacch_tp(t, ntp, symba_tp1P)
+     IF (lextra_force) CALL symba_user_getacch_tp(t, ntp, symba_tpA)
 
      RETURN
 

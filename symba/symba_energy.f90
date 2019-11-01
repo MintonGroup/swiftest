@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_energy
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -11,7 +11,7 @@
 !  Input
 !    Arguments : npl          : number of planets
 !                nplmax       : maximum allowed number of planets
-!                swifter_pl1P : pointer to head of Swifter planet structure linked-list
+!                swiftest_pl1P : pointer to head of Swiftest planet structure linked-list
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
 !    Terminal  : none
@@ -25,16 +25,16 @@
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL symba_energy(npl, nplmax, swifter_pl1P, j2rp2, j4rp4, ke, pe, te, htot)
+!  Invocation  : CALL symba_energy(npl, nplmax, swiftest_pl1P, j2rp2, j4rp4, ke, pe, te, htot)
 !
 !  Notes       : Adapted from Martin Duncan's Swift routine anal_energy.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_energy(npl, nplmax, swifter_pl1P, j2rp2, j4rp4, ke, pe, te, htot)
+SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => symba_energy
      IMPLICIT NONE
 
@@ -43,7 +43,7 @@ SUBROUTINE symba_energy(npl, nplmax, swifter_pl1P, j2rp2, j4rp4, ke, pe, te, hto
      REAL(DP), INTENT(IN)                   :: j2rp2, j4rp4
      REAL(DP), INTENT(OUT)                  :: ke, pe, te
      REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: htot
-     TYPE(swifter_pl), POINTER              :: swifter_pl1P
+     TYPE(swiftest_pl), INTENT(INOUT)       :: swiftest_plA
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
@@ -52,36 +52,31 @@ SUBROUTINE symba_energy(npl, nplmax, swifter_pl1P, j2rp2, j4rp4, ke, pe, te, hto
      REAL(DP), DIMENSION(NDIM)                    :: h, x, v, dx
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh
-     TYPE(swifter_pl), POINTER                    :: swifter_pliP, swifter_pljP
 
 ! Executable code
-     CALL coord_h2b(npl, swifter_pl1P, msys)
+     CALL coord_h2b(npl, swiftest_plA, msys)
      htot = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      ke = 0.0_DP
      pe = 0.0_DP
-     swifter_pliP => swifter_pl1P
      DO i = 1, npl - 1
-          x(:) = swifter_pliP%xb(:)
-          v(:) = swifter_pliP%vb(:)
-          mass = swifter_pliP%mass
+          x(:) = swiftest_plA%xb(:,i)
+          v(:) = swiftest_plA%vb(:,i)
+          mass = swiftest_plA%mass(i)
           h(1) = mass*(x(2)*v(3) - x(3)*v(2))
           h(2) = mass*(x(3)*v(1) - x(1)*v(3))
           h(3) = mass*(x(1)*v(2) - x(2)*v(1))
           htot(:) = htot(:) + h(:)
           v2 = DOT_PRODUCT(v(:), v(:))
           ke = ke + 0.5_DP*mass*v2
-          swifter_pljP => swifter_pliP
           DO j = i + 1, npl
-               swifter_pljP => swifter_pljP%nextP
-               dx(:) = swifter_pljP%xb(:) - x(:)
+               dx(:) = swiftest_plA%xb(:,j) - x(:)
                r2 = DOT_PRODUCT(dx(:), dx(:))
-               pe = pe - mass*swifter_pljP%mass/SQRT(r2)
+               pe = pe - mass*swiftest_plA%mass(j)/SQRT(r2)
           END DO
-          swifter_pliP => swifter_pliP%nextP
      END DO
-     x(:) = swifter_pliP%xb(:)
-     v(:) = swifter_pliP%vb(:)
-     mass = swifter_pliP%mass
+     x(:) = swiftest_plA%xb(:,i)
+     v(:) = swiftest_plA%vb(:,i)
+     mass = swiftest_plA%mass(i)
      h(1) = mass*(x(2)*v(3) - x(3)*v(2))
      h(2) = mass*(x(3)*v(1) - x(1)*v(3))
      h(3) = mass*(x(1)*v(2) - x(2)*v(1))
@@ -93,14 +88,12 @@ SUBROUTINE symba_energy(npl, nplmax, swifter_pl1P, j2rp2, j4rp4, ke, pe, te, hto
                ALLOCATE(xh(NDIM, nplmax), irh(nplmax))
                lmalloc = .FALSE.
           END IF
-          swifter_pliP => swifter_pl1P
           DO i = 2, npl
-               swifter_pliP => swifter_pliP%nextP
-               xh(:, i) = swifter_pliP%xh(:)
+               xh(:, i) = swiftest_plA%xh(:,i)
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_pot(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, oblpot)
+          CALL obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
           pe = pe + oblpot
      END IF
      te = ke + pe
