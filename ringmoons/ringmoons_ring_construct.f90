@@ -53,6 +53,8 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
       ring%rho_pdisk = ring%Gm_pdisk / ((4.0_DP / 3.0_DP) * PI * ring%r_pdisk**3)
       ring%FRL = 2.456_DP * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
       ring%RRL = 1.44_DP  * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
+      ring%iFRL = ringmoons_ring_bin_finder(ring,ring%FRL)
+      ring%iRRL = ringmoons_ring_bin_finder(ring,ring%RRL)
       do i = 0,ring%N + 1
          ! Set up X coordinate system (see Bath & Pringle 1981)
          Xlo = 2 * sqrt(ring%r_I) + ring%deltaX * (1._DP * i - 1._DP)
@@ -68,8 +70,6 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
          ring%r(i) = (0.5_DP * ring%X(i))**2
          ring%rinner(i) = rlo
          ring%router(i) = rhi
-         if ((ring%RRL >= rlo) .and. (ring%RRL < rhi)) ring%iRRL = i
-         if ((ring%FRL >= rlo) .and. (ring%FRL < rhi)) ring%iFRL = i
         
          ! Factors to convert surface mass density into mass 
          ring%deltaA(i) = 2 * PI * deltar * ring%r(i)

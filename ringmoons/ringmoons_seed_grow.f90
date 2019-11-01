@@ -92,8 +92,6 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
             
             ! Conserve angular momentum 
             da =  ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass - seeds%a(i)
-            write(*,*) 'ang mtm cons', i,seeds%a(i),seeds%Gm(i)
-            write(*,*) Lseed_original,Lfromring,swifter_pl1P%mass
             seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass
          end if
       end do
