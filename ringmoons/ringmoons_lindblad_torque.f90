@@ -58,19 +58,20 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
          do inner_outer_sign = -1,1,2
             y = (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(2._DP / 3._DP) * a   !resonance location for first order resonances
             j = ringmoons_ring_bin_finder(ring, y) !disk location of resonance
-            if ((j == 0).or.(j == ring%N + 1)) cycle
-            select case(inner_outer_sign)
-            case(-1) 
-               beta = ring%r(j) / a
-            case(1)
-               beta = a / ring%r(j)
-            end select
-            Amk = 0.5_DP * (2 * m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) + &
-                           beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1))
-            dTorque = inner_outer_sign * 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) * &
-                      ring%Gsigma(j) * (ring%r(j)**2 * beta * ring%w(j) * Gm / swifter_pl1P%mass * Amk)**2
-            ring%Torque(j) = ring%Torque(j) + dTorque
-            Torque = Torque - dTorque
+            if ((j > 0).or.(j < ring%N + 1)) then 
+               select case(inner_outer_sign)
+               case(-1) 
+                  beta = ring%r(j) / a
+               case(1)
+                  beta = a / ring%r(j)
+               end select
+               Amk = 0.5_DP * (2 * m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) + &
+                              beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1))
+               dTorque = inner_outer_sign * 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) * &
+                         ring%Gsigma(j) * (ring%r(j)**2 * beta * ring%w(j) * Gm / swifter_pl1P%mass * Amk)**2
+               ring%Torque(j) = ring%Torque(j) + dTorque
+               Torque = Torque - dTorque
+            end if
          end do
       end do
 
