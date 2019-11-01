@@ -46,7 +46,7 @@ SUBROUTINE obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
      REAL(DP), INTENT(OUT)                      :: oblpot
      REAL(DP), DIMENSION(npl), INTENT(IN)       :: irh
      REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
-     TYPE(swiftest_pl), INTENT(INOUT)           :: swifter_plA
+     TYPE(swiftest_pl), INTENT(INOUT)           :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
@@ -54,10 +54,10 @@ SUBROUTINE obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
 
 ! Executable code
      oblpot = 0.0_DP
-     mu = swiftest_plAP%mass(1)
+     mu = swiftest_plA%mass(1)
      DO i = 2, npl
           rinv2 = irh(i)**2
-          t0 = mu*swiftest_plPA%mass(i)*rinv2*irh(i)
+          t0 = mu*swiftest_plA%mass(i)*rinv2*irh(i)
           t1 = j2rp2
           t2 = xh(3, i)*xh(3, i)*rinv2
           t3 = j4rp4*rinv2

@@ -91,7 +91,8 @@ SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
           !aobl(:, 1) = aobl(:, 1) - swifter_plP%mass*aobl(:, i)/msun
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          aobl(:, 1) = aobl(:, 1) - swifter_pl1P%swifter_plPA(i)%thisP%mass*aobl(:, i)/msun !redo with OpenMP 
+          !aobl(:, 1) = aobl(:, 1) - swifter_pl1P%swifter_plPA(i)%thisP%mass*aobl(:, i)/msun !redo with OpenMP 
+          aobl(:, 1) = aobl(:, 1) - swiftest_plA%mass(i)*aobl(:, i)/msun
           !^^^^^^^^^^^^^^^^^^
      END DO
      !$OMP END PARALLEL DO
