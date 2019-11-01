@@ -87,7 +87,7 @@ R = []
 Torque_to_disk = []
 
 def f():
-    sigma_peak = 1.2e4 * DU2CM**2 / MU2GM # scale factor to get a given mass
+    sigma_peak = 0.6e4 * DU2CM**2 / MU2GM # scale factor to get a given mass
 
     #Creates initial values for the disk and prints them out
     for a in range(int(Nbins)):

@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 import Init_Cond as ic
 from scipy.io import FortranFile
+from uranian_satellites import *
 
 # First set up the figure, the axis, and the plot element we want to animate
 
@@ -19,7 +20,7 @@ class AnimatedScatter(object):
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")
-        self.ani.save('uranian_ringsat.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
+        self.ani.save('uranian_ringsat-S00.6e4g_cm2.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
 
     def setup_plot(self):
         """Initial drawing of the scatter plot."""
@@ -33,7 +34,7 @@ class AnimatedScatter(object):
         ymin = 1
         ymax = 5e4
 
-        y2min = 1e13
+        y2min = 1e16
         y2max = 1e24
         self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
 
@@ -62,14 +63,16 @@ class AnimatedScatter(object):
         #self.line.set_label(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:5.1f}$ My')
         #self.legend = plt.legend()
         #self.legend.remove()
-        self.scat = self.secax.scatter(seeds[:,0], seeds[:,1], marker='o', color="black", s=2, zorder=50)
+        self.title.set_text(f'Time = ${t[0] * ic.TU2S / ic.year * 1e-6:7.2f}$ My')
+        self.usats = self.secax.scatter(Sat_r_RM, Sat_M_Mass, marker='o', color="silver", s=5, zorder=50)
+        self.scat = self.secax.scatter(seeds[:,0], seeds[:,1], marker='o', color="black", s=5, zorder=50)
 
         # For FuncAnimation's sake, we need to return the artist we'll be using
         # Note that it expects a sequence of artists, thus the trailing comma.
         return self.scat, self.line, self.title,
 
     def data_stream(self):
-        with FortranFile('ring.dat', 'r') as f:
+        with FortranFile('ring-S01.2e4g_cm2.dat', 'r') as f:
             while True:
                 try:
                     t = f.read_reals(np.float64)
@@ -104,7 +107,7 @@ class AnimatedScatter(object):
         # Set colors..
         #self.scat.set_array(x,y)
 
-        self.title.set_text(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:5.1f}$ My')
+        self.title.set_text(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:7.2f}$ My')
         # We need to return the updated artist for FuncAnimation to draw..
         # Note that it expects a sequence of artists, thus the trailing comma.
         return self.scat, self.line, self.title,
