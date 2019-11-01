@@ -52,19 +52,20 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       
       ! Make seeds small enough to fit into each bin 
       do i = ring%iFrl,ring%N
-         if (ring%Gm(i) < INITIAL_MASS_FACTOR * ring%Gm_pdisk) cycle
-         open_space = .true.
-         do j = 1, seeds%N
-            if (.not.seeds%active(j)) cycle
-            if ((i >= seeds%fz_bin_inner(j)) .and. (i <= seeds%fz_bin_outer(j))) then
-               open_space = .false. ! There is already a seed with a feeding zone here
-               exit
+         if (ring%Gm(i) > INITIAL_MASS_FACTOR * ring%Gm_pdisk) then 
+            open_space = .true.
+            do j = 1, seeds%N
+               if (.not.seeds%active(j)) cycle
+               if ((i >= seeds%fz_bin_inner(j)) .and. (i <= seeds%fz_bin_outer(j))) then
+                  open_space = .false. ! There is already a seed with a feeding zone here
+                  exit
+               end if
+            end do
+            if (open_space) then
+               a = ring%r(i)
+               Gm = INITIAL_MASS_FACTOR * ring%Gm_pdisk !3 * swifter_pl1P%mass * ((ring%router(i) - ring%rinner(i)) / (1.25_DP * FEEDING_ZONE_FACTOR * a))**3
+               call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
             end if
-         end do
-         if (open_space) then
-            a = ring%r(i)
-            Gm = INITIAL_MASS_FACTOR * ring%Gm_pdisk !3 * swifter_pl1P%mass * ((ring%router(i) - ring%rinner(i)) / (1.25_DP * FEEDING_ZONE_FACTOR * a))**3
-            call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
          end if
       end do             
 
