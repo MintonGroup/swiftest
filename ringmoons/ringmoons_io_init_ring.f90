@@ -54,6 +54,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
       read(LUN,*) ring%r_pdisk,ring%Gm_pdisk
       seeds%N = 1
       call ringmoons_allocate(ring,seeds)
+      seeds%active(1) = .false.
       do i = 1,ring%N
          read(LUN,*,iostat=ioerr) ring%Gsigma(i)
          if (ioerr /= 0) then 
