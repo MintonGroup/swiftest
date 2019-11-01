@@ -70,9 +70,6 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
             seed_bin = seeds%rbin(i)
             Gmleft = dGmseeds(i)
             Lfromring = 0.0_DP
-            if ((seeds%fz_bin_inner(i) > ring%N).or.(seeds%fz_bin_outer(i) > ring%N)) then
-               write(*,*) 'there is a problem: ',i,seeds%fz_bin_inner(i), seeds%fz_bin_outer(i) 
-            end if
             do j = seeds%fz_bin_inner(i),seeds%fz_bin_outer(i) ! loop over bins of the feeding zone and grab mass from them
                dGm = min(Gmleft / nfz(i),ring%Gm(j))
                ring%Gm(j) = ring%Gm(j) - dGm
