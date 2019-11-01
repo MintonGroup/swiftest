@@ -25,26 +25,25 @@
 !  Notes       : Adapted from Martin Duncan and Hal Levison's Swift routine coord_h2b.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
+SUBROUTINE coord_h2b(npl, swiftest_plA, msys)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => coord_h2b
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
      REAL(DP), INTENT(OUT)     :: msys
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     TYPE(swiftest_pl),INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP), DIMENSION(NDIM) :: xtmp, vtmp
-     TYPE(swifter_pl), POINTER :: swifter_plP
 
 ! Executable code
-     msys = swifter_pl1P%mass
+     msys = swiftest_plA%mass(1)
      !Removed by D. minton
      !swifter_plP => swifter_pl1P
      !^^^^^^^^^^^^^^^^^^^^^
@@ -61,18 +60,17 @@ SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
           !swifter_plP => swifter_plP%nextP
           !^^^^^^^^^^^^^^^^^^^^^
           ! Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           !^^^^^^^^^^^^^^^^^^^
-          msys = msys + swifter_plP%mass
-          xtmp(:) = xtmp(:) + swifter_plP%mass*swifter_plP%xh(:)
-          vtmp(:) = vtmp(:) + swifter_plP%mass*swifter_plP%vh(:)
+          msys = msys + swiftest_plA%mass(i)
+          xtmp(:) = xtmp(:) + swiftest_plA%mass(i)*swiftest_plA%xh(:,i)
+          vtmp(:) = vtmp(:) + swiftest_plA%mass(i)*swiftest_plA%vh(:,i)
      END DO
      !$OMP END PARALLEL DO
-     swifter_plP => swifter_pl1P
-     swifter_plP%xb(:) = -xtmp(:)/msys
-     swifter_plP%vb(:) = -vtmp(:)/msys
-     xtmp(:) = swifter_plP%xb(:)
-     vtmp(:) = swifter_plP%vb(:)
+     swiftest_plA%xb(:,1) = -xtmp(:)/msys
+     swiftest_plA%vb(:,1) = -vtmp(:)/msys
+     xtmp(:) = swiftest_plA%xb(:,1)
+     vtmp(:) = swiftest_plA%vb(:,1)
      ! OpenMP parallelization added by D. Minton
      !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
      !$OMP PRIVATE(i,swifter_plP) &
@@ -82,10 +80,10 @@ SUBROUTINE coord_h2b(npl, swifter_pl1P, msys)
           !swifter_plP => swifter_plP%nextP
           !^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
+          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           !^^^^^^^^^^^^^^^^^^
-          swifter_plP%xb(:) = swifter_plP%xh(:) + xtmp(:)
-          swifter_plP%vb(:) = swifter_plP%vh(:) + vtmp(:)
+          swiftest_plA%xb(:,i) = swiftest_plA%xh(:,i) + xtmp(:)
+          swiftest_plA%vb(:,i) = swiftest_plA%vh(:,i) + vtmp(:)
      END DO
      !$OMP END PARALLEL DO
 
