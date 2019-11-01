@@ -65,31 +65,35 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
       end do
       ! Get the mass out of the feeding zone (if it's there), starting from the bin the seed is in and working its way outward
       do i = 1, seeds%N
-         if (.not.seeds%active(i)) cycle
-         Lseed_original = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i))
-         seed_bin = seeds%rbin(i)
-         Gmleft = dGmseeds(i)
-         Lfromring = 0.0_DP
-         do j = seeds%fz_bin_inner(i),seeds%fz_bin_outer(i) ! loop over bins of the feeding zone and grab mass from them
-            dGm = min(Gmleft / nfz(i),ring%Gm(j))
-            ring%Gm(j) = ring%Gm(j) - dGm
-            ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
+         if (seeds%active(i)) then
+            Lseed_original = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i))
+            seed_bin = seeds%rbin(i)
+            Gmleft = dGmseeds(i)
+            Lfromring = 0.0_DP
+            if ((seeds%fz_bin_inner(i) > ring%N).or.(seeds%fz_bin_outer(i) > ring%N)) then
+               write(*,*) 'there is a problem: ',i,seeds%fz_bin_inner(i), seeds%fz_bin_outer(i) 
+            end if
+            do j = seeds%fz_bin_inner(i),seeds%fz_bin_outer(i) ! loop over bins of the feeding zone and grab mass from them
+               dGm = min(Gmleft / nfz(i),ring%Gm(j))
+               ring%Gm(j) = ring%Gm(j) - dGm
+               ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
+               Gmleft = Gmleft - dGm
+               ! Because the angular momentum of the bin is computed from the bin center, but the seed can be anywhere, 
+               ! we have to make sure to keep track of it
+               Lfromring = Lfromring + dGm * ring%Iz(j) * ring%w(j)
+            end do
+            ! If there is still mass left, take it from the innermost feeding zone
+            dGm = min(Gmleft,ring%Gm(seed_bin)) 
+            ring%Gm(seed_bin) = ring%Gm(seed_bin) - dGm
+            Lfromring = Lfromring + dGm * ring%Iz(seed_bin) * ring%w(seed_bin)
+            ring%Gsigma(seed_bin) = ring%Gm(seed_bin) / ring%deltaA(seed_bin)
             Gmleft = Gmleft - dGm
-            ! Because the angular momentum of the bin is computed from the bin center, but the seed can be anywhere, 
-            ! we have to make sure to keep track of it
-            Lfromring = Lfromring + dGm * ring%Iz(j) * ring%w(j)
-         end do
-         ! If there is still mass left, take it from the innermost feeding zone
-         dGm = min(Gmleft,ring%Gm(seed_bin)) 
-         ring%Gm(seed_bin) = ring%Gm(seed_bin) - dGm
-         Lfromring = Lfromring + dGm * ring%Iz(seed_bin) * ring%w(seed_bin)
-         ring%Gsigma(seed_bin) = ring%Gm(seed_bin) / ring%deltaA(seed_bin)
-         Gmleft = Gmleft - dGm
-         seeds%Gm(i) = seeds%Gm(i) + (dGmseeds(i) - Gmleft)
-         
-         ! Conserve angular momentum 
-         da =  ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass - seeds%a(i)
-         seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass
+            seeds%Gm(i) = seeds%Gm(i) + (dGmseeds(i) - Gmleft)
+            
+            ! Conserve angular momentum 
+            da =  ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass - seeds%a(i)
+            seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass
+         end if
       end do
       
       ! Adjust seed parameters 

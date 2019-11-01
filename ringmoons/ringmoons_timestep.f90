@@ -60,8 +60,11 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
        
 
       ! Now aim for seed growth accuracy
-      dGm_max = maxval(ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(:)), &
-                       seeds%Gm(:),seeds%a(:)) / seeds%Gm(:),seeds%active)
+      dGm_max = -1._DP
+      do concurrent (i = 1:seeds%N, seeds%active(i))
+         dGm_max = max(dGm_max,ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)), &
+                       seeds%Gm(i),seeds%a(i)) / seeds%Gm(i))
+      end do
       if (dGm_max > 0.0_DP) then
          dtout = min(dtout,RK_FACTOR / dGm_max)  ! smallest timestep for the seed growth equation 
          !write(*,*) 'Growth dt/dtin: ', RK_FACTOR / dGm_max / dtin
