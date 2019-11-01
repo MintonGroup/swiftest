@@ -36,8 +36,8 @@ SUBROUTINE util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)        :: npl, ntp
-     TYPE(swifter_pl), INTENT(INOUT) :: swifter_plA
-     TYPE(swifter_tp), INTENT(INOUT) :: swifter_tpA
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
      INTEGER(I4B)                            :: i
@@ -45,8 +45,12 @@ SUBROUTINE util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
 
 ! Executable code
      ALLOCATE(idarr(npl+ntp))
-     idarr(1,npl) = swifter_plA%id(:)
-     idarr(npl+1,npl+ntp) = swifter_tpA%id(:)
+     DO i = 1, npl
+          idarr(i) = swiftest_plA%id(i)
+     END DO
+     DO i = 1, ntp
+          idarr(npl+i) = swiftest_tpA%id(i)
+     END DO
      CALL util_sort(idarr)
      DO i = 1, npl + ntp - 1
           IF (idarr(i) == idarr(i+1)) THEN

@@ -83,8 +83,8 @@ SUBROUTINE util_peri(lfirst, ntp, swiftest_tpA, mu, msys, qmin_coord)
                          IF (swiftest_tpA%isperi(i) == -1) THEN
                               IF (vdotr >= 0.0_DP) THEN
                                    swiftest_tpA%isperi(i) = 0
-                                   CALL orbel_xv2aeq(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i), mu, swiftest_tpA%atp(i), e,                &
-                                        swiftest_tpA%peri(i))
+                                   CALL orbel_xv2aeq(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i), mu, & 
+                                        swiftest_tpA%atp(i), e, swiftest_tpA%peri(i))
                               END IF
                          ELSE
                               IF (vdotr > 0.0_DP) THEN
@@ -102,8 +102,8 @@ SUBROUTINE util_peri(lfirst, ntp, swiftest_tpA, mu, msys, qmin_coord)
                          IF (swiftest_tpA%isperi(i) == -1) THEN
                               IF (vdotr >= 0.0_DP) THEN
                                    swiftest_tpA%isperi(i) = 0
-                                   CALL orbel_xv2aeq(swiftest_tpA%xb(:,i), swiftest_tpA%vb(:,i), msys, swiftest_tpA%atp(i), e,              &
-                                        swiftest_tpA%peri(i))
+                                   CALL orbel_xv2aeq(swiftest_tpA%xb(:,i), swiftest_tpA%vb(:,i), msys, & 
+                                    swiftest_tpA%atp(i), e, swiftest_tpA%peri(i))
                               END IF
                          ELSE
                               IF (vdotr > 0.0_DP) THEN

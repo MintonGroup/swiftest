@@ -34,7 +34,7 @@ SUBROUTINE util_hills(npl, swiftest_plA)
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
-     TYPE(swifter_pl), INTENT(INOUT) :: swifter_plA
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
@@ -47,7 +47,7 @@ SUBROUTINE util_hills(npl, swiftest_plA)
           IF (mp > 0.0_DP) THEN
                mu = msun + mp
                r = SQRT(DOT_PRODUCT(swiftest_plA%xh(:,i), swiftest_plA%xh(:,i)))
-               v2 = DOT_PRODUCT(swiftest_plA%vh(:,i), swiftest_plP%vh(:,i))
+               v2 = DOT_PRODUCT(swiftest_plA%vh(:,i), swiftest_plA%vh(:,i))
                energy = 0.5_DP*v2 - mu/r
                ap = -0.5_DP*mu/energy
                swiftest_plA%rhill(i) = ap*(((mp/mu)/3.0_DP)**(1.0_DP/3.0_DP))
