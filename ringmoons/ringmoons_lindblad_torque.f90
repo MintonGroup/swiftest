@@ -58,7 +58,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
          do inner_outer_sign = -1,1,2
             y = (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(2._DP / 3._DP) * a   !resonance location for first order resonances
             j = ringmoons_ring_bin_finder(ring, y) !disk location of resonance
-            if ((j > 0).or.(j < ring%N + 1)) then 
+            if ((j > 0).and.(j < ring%N + 1)) then 
                select case(inner_outer_sign)
                case(-1) 
                   beta = ring%r(j) / a
