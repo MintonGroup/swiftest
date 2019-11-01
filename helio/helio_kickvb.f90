@@ -10,17 +10,17 @@
 !
 !  Input
 !    Arguments : npl        : number of planets
-!                helio_pl1P : pointer to head of helio planet structure linked-list
+!                helio_plA : pointer to head of helio planet structure linked-list
 !                dt         : time step
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : helio_pl1P : pointer to head of helio planet structure linked-list
+!    Arguments : helio_plA : pointer to head of helio planet structure linked-list
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL helio_kickvb(npl, helio_pl1P, dt)
+!  Invocation  : CALL helio_kickvb(npl, helio_plA, dt)
 !
 !  Notes       : Adapted from Martin Duncan and Hal Levison's Swift routine kickvh.f
 !

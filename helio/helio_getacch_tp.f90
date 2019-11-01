@@ -16,8 +16,8 @@
 !                nplmax       : maximum allowed number of planets
 !                ntp          : number of active test particles
 !                ntpmax       : maximum allowed number of test particles
-!                helio_pl1P   : pointer to head of helio planet structure linked-list
-!                helio_tp1P   : pointer to head of active helio test particle structure linked-list
+!                helio_plA   : pointer to head of helio planet structure linked-list
+!                helio_tpA   : pointer to head of active helio test particle structure linked-list
 !                xh           : heliocentric positions of planets at time t
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
@@ -29,7 +29,7 @@
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_pl1P, helio_tp1P, xh, j2rp2, j4rp4)
+!  Invocation  : CALL helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xh, j2rp2, j4rp4)
 !
 !  Notes       : Adapted from Hal Levison's Swift routine helio_getacch_tp.f
 !
@@ -63,7 +63,7 @@ SUBROUTINE helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, he
           DO i = 1, ntp
                helio_tpA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
           END DO
-          CALL helio_getacch_int_tp(npl, ntp, swifter_plA, helio_tpA, xh)
+          CALL helio_getacch_int_tp(npl, ntp, helio_plA%swiftest, helio_tpA, xh)
      END IF
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN
@@ -74,7 +74,7 @@ SUBROUTINE helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, he
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_acc(npl, swifter_plA, j2rp2, j4rp4, xh, irh, aobl)
+          CALL obl_acc(npl, helio_plA%swiftest, j2rp2, j4rp4, xh, irh, aobl)
           mu = helio_plA%swiftest%mass(1)
           DO i = 1, ntp
                xht(:, i) = helio_tpA%swiftest%xh(:,i)

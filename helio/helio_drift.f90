@@ -36,7 +36,7 @@ SUBROUTINE helio_drift(npl, swiftest_plA, dt)
 ! Arguments
      INTEGER(I4B), INTENT(IN)       :: npl
      REAL(DP), INTENT(IN)           :: dt
-     TYPE(swifter_pl),INTENT(INOUT) :: swifter_plA
+     TYPE(swiftest_pl),INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)                   :: i, iflag

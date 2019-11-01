@@ -69,18 +69,18 @@ SUBROUTINE helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, he
      lflag = lfirsttp
      mu = helio_plA%swiftest%mass(1)
      IF (lfirsttp) THEN
-          CALL coord_vh2vb_tp(ntp, swifter_tpA, -ptb)
+          CALL coord_vh2vb_tp(ntp, helio_tpA%swiftest, -ptb)
           lfirsttp = .FALSE.
      END IF
-     CALL helio_lindrift_tp(ntp, swifter_tpA, dth, ptb)
+     CALL helio_lindrift_tp(ntp, helio_tpA%swiftest, dth, ptb)
      CALL helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xbeg, j2rp2, j4rp4)
      lflag = .TRUE.
      CALL helio_kickvb_tp(ntp, helio_tpA, dth)
-     CALL helio_drift_tp(ntp, swifter_tpA, mu, dt)
+     CALL helio_drift_tp(ntp, helio_tpA%swiftest, mu, dt)
      CALL helio_getacch_tp(lflag, lextra_force, t+dt, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xend, j2rp2, j4rp4)
      CALL helio_kickvb_tp(ntp, helio_tpA, dth)
-     CALL helio_lindrift_tp(ntp, swifter_tpA, dth, pte)
-     CALL coord_vb2vh_tp(ntp, swifter_tpA, -pte)
+     CALL helio_lindrift_tp(ntp, helio_tpA%swiftest, dth, pte)
+     CALL coord_vb2vh_tp(ntp, helio_tpA%swiftest, -pte)
 
      RETURN
 
