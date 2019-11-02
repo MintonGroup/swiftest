@@ -84,11 +84,9 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
             case(1)
                beta = a / ring%r(j)
             end select
-            !bdb = beta / dbeta
-            !ilap = ceiling(bdb)
-            lap =  m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
-            dlap = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1)
-            Amk = (lap + dlap)
+            !lap =  m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
+            !dlap = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1)
+            !Amk = (lap + dlap)
             !write(*,*) 'full Laplace: ',Amk
  
             lap  =  lapm(inner_outer_sign,m)
