@@ -71,8 +71,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
             DESTRUCTION_EVENT = .true.
             DESTRUCTION_COUNTER = 0
             seeds%active(i) = .false.
-            dzone_inner = ringmoons_ring_bin_finder(ring,ring%iRRL - dzone_width * ring%RRL)
-            dzone_outer = ringmoons_ring_bin_finder(ring,ring%iRRL + dzone_width * ring%RRL)
+            dzone_inner = ringmoons_ring_bin_finder(ring,ring%RRL * (1._DP - dzone_width))
+            dzone_outer = ringmoons_ring_bin_finder(ring,ring%RRL * (1._DP + dzone_width))
             ndz = real(dzone_outer - dzone_inner + 1, kind = DP)
             Loriginal = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i))
             do j = dzone_inner, dzone_outer
