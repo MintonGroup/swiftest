@@ -42,9 +42,12 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
    real(DP), intent(in)                   :: dt
 
 ! Internals
-   integer(I4B)                           :: i,iRRL
+   integer(I4B)                           :: i,j,iRRL
    real(DP)                               :: dadt, e, inc,Loriginal,deltaL,P,Q,R,S
    real(DP),dimension(seeds%N)            :: daseeds
+   real(DP), parameter                    :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
+   integer(I4B)                           :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
+   real(DP)                               :: ndz
 
 ! Executable code
 
@@ -68,11 +71,15 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
             DESTRUCTION_EVENT = .true.
             DESTRUCTION_COUNTER = 0
             seeds%active(i) = .false.
-            Loriginal = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i)) 
-            iRRL = ring%iRRL
-            ring%Gm(iRRL) = ring%Gm(iRRL) + seeds%Gm(i)
-            ring%Gsigma(iRRL) = ring%Gm(iRRL) / ring%deltaA(iRRL)
-            deltaL = Loriginal - seeds%Gm(i) * ring%Iz(iRRL) * ring%w(iRRL) ! TODO: conserve angular momentum properly
+            dzone_inner = ringmoons_ring_bin_finder(ring,ring%iRRL - dzone_width * ring%RRL)
+            dzone_outer = ringmoons_ring_bin_finder(ring,ring%iRRL + dzone_width * ring%RRL)
+            ndz = real(dzone_outer - dzone_inner + 1, kind = DP)
+            Loriginal = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i))
+            do j = dzone_inner, dzone_outer
+               ring%Gm(j) = ring%Gm(j) + seeds%Gm(i) / ndz
+               ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
+            end do
+               !deltaL = Loriginal - seeds%Gm(i) * ring%Iz(iRRL) * ring%w(iRRL) ! TODO: conserve angular momentum properly
          end if
       end if
    end do

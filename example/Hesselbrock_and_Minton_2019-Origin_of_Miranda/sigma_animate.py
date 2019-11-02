@@ -12,11 +12,12 @@ class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
     def __init__(self):
         self.stream = self.data_stream()
+        self.ringfilename = 'ring.dat'
 
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=343,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=5000,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")
@@ -72,7 +73,7 @@ class AnimatedScatter(object):
         return self.scat, self.line, self.title,
 
     def data_stream(self):
-        with FortranFile('ring.dat', 'r') as f:
+        with FortranFile(self.ringfilename, 'r') as f:
             while True:
                 try:
                     t = f.read_reals(np.float64)
