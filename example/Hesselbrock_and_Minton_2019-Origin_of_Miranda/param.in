@@ -2,7 +2,7 @@
 !NPLMAX         -1 
 !NTPMAX         -1
 T0             0 
-TSTOP          4000100000.0
+TSTOP          4001000000.0
 DT             100000.0
 PL_IN          pl.in
 TP_IN          tp.in

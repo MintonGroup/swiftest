@@ -44,13 +44,13 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
    
 
 ! Internals
-   integer(I4B)                           :: j, m, inner_outer_sign,w,w1,w2,ilap
+   integer(I4B)                           :: i,j, m, inner_outer_sign,w,w1,w2
    integer(I4B), parameter                :: m_max = 3 ! Maximum mode number 
    real(DP)                               :: y, dTorque, beta, Amk, width, nw,lap,dlap,rem, bdb
    logical(lgt), save                     :: first_run = .true.
    integer(I4B), parameter                :: NLAP = 10000 ! Number of laplace coefficient distance ratios to pre-compute
-   real(DP), dimension(NLAP,2:m_max), save :: lapm,dlapm
-   real(DP), parameter                    :: dbeta = 0.999999_DP / real(NLAP - 1, kind = DP)  
+   real(DP), dimension(-1:1,2:m_max), save :: lapm,dlapm
+   !real(DP), parameter                    :: dbeta = 0.999999_DP / real(NLAP - 1, kind = DP)  
 
 
 ! Executable code
@@ -59,10 +59,11 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
    ! For performance reasons, we compute a table of Laplace coefficient terms the first time through and then interpolate 
    if (first_run) then
       do m = 2, m_max
-         do j = 1, NLAP
-            lapm(j,m)  = m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
-            dlapm(j,m) = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1) 
-            beta = dbeta * (j - 1)
+         do inner_outer_sign = -1,1,2
+         !do j = 1, NLAP
+            beta =  (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(-inner_outer_sign * 2._DP / 3._DP)
+            lapm(inner_outer_sign,m)  = m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
+            dlapm(inner_outer_sign,m) = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1) 
          end do
       end do
       first_run  = .false.
@@ -83,12 +84,19 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
             case(1)
                beta = a / ring%r(j)
             end select
-            bdb = beta / dbeta
-            ilap = ceiling(bdb)
-            lap  =  lapm(ilap,m) + ( lapm(ilap + 1,m) -  lapm(ilap,m)) * (bdb - real(ilap - 1, kind = DP))
-            dlap = dlapm(ilap,m) + (dlapm(ilap + 1,m) - dlapm(ilap,m)) * (bdb - real(ilap - 1, kind = DP))
+            !bdb = beta / dbeta
+            !ilap = ceiling(bdb)
+            lap =  m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
+            dlap = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1)
+            Amk = (lap + dlap)
+            !write(*,*) 'full Laplace: ',Amk
+ 
+            lap  =  lapm(inner_outer_sign,m)
+            dlap = dlapm(inner_outer_sign,m)
 
             Amk = (lap + dlap)
+            !write(*,*) 'table Laplace: ',Amk
+            !read(*,*)
             dTorque = inner_outer_sign * 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) * &
                       ring%Gsigma(j) * (ring%r(j)**2 * beta * ring%w(j) * Gm / swifter_pl1P%mass * Amk)**2
             width = sqrt(Gm / swifter_pl1P%mass) * ring%r(j)
