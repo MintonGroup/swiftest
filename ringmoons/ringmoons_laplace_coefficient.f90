@@ -71,7 +71,7 @@ contains
    integer,intent(in),optional :: ver
    real(DP)           :: ans
    real(DP) :: num,denom,T1,tmp,F,F0
-   real(DP),parameter :: tol=1e-25_DP
+   real(DP),parameter :: tol=1e-15_DP
    real(DP),parameter :: alphaG=0.9_DP ! Switchover alpha to go to G series instead of F series
    integer :: i,j,k,v
    real(DP),parameter :: x1=0.4_DP ! For G series near alpha=1. Intermediate value that converges fast using F series

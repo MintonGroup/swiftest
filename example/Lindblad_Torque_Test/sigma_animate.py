@@ -16,11 +16,11 @@ class AnimatedScatter(object):
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=5000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=343,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")
-        self.ani.save('uranian_ringsat-S00.6e4g_cm2.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
+        #self.ani.save('uranian_ringsat.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
 
     def setup_plot(self):
         """Initial drawing of the scatter plot."""
@@ -72,7 +72,7 @@ class AnimatedScatter(object):
         return self.scat, self.line, self.title,
 
     def data_stream(self):
-        with FortranFile('ring-S01.2e4g_cm2.dat', 'r') as f:
+        with FortranFile('ring.dat', 'r') as f:
             while True:
                 try:
                     t = f.read_reals(np.float64)

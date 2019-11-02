@@ -29,10 +29,10 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 t_0	= 0
 t_print = 1e6 * year / TU2S #output interval to print results
-deltaT	= 1e3 * year / TU2S  #timestep simulation
-end_sim = 4.e9 * year / TU2S + deltaT #end time
+deltaT	= 1e5 * year / TU2S  #timestep simulation
+end_sim = 1.e9 * year / TU2S + deltaT #end time
 
-Nbins    = 240        #number of bins in disk
+Nbins    = 400        #number of bins in disk
 Nseeds   = 2       #initial number of seeds
 
 
@@ -87,7 +87,7 @@ R = []
 Torque_to_disk = []
 
 def f():
-    sigma_peak = 0.6e4 * DU2CM**2 / MU2GM # scale factor to get a given mass
+    sigma_peak = 1.2e4 * DU2CM**2 / MU2GM # scale factor to get a given mass
 
     #Creates initial values for the disk and prints them out
     for a in range(int(Nbins)):

@@ -44,9 +44,9 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
       
 
 ! Internals
-      integer(I4B)                           :: j, m, inner_outer_sign
+      integer(I4B)                           :: j, m, inner_outer_sign,w,w1,w2
       integer(I4B), parameter                :: m_max = 3 ! Maximum mode number 
-      real(DP)                               :: y, dTorque, beta, Amk
+      real(DP)                               :: y, dTorque, beta, Amk, width, nw
 
 ! Executable code
 
@@ -69,7 +69,13 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
                               beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1))
                dTorque = inner_outer_sign * 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) * &
                          ring%Gsigma(j) * (ring%r(j)**2 * beta * ring%w(j) * Gm / swifter_pl1P%mass * Amk)**2
-               ring%Torque(j) = ring%Torque(j) + dTorque
+               width = sqrt(Gm / swifter_pl1P%mass) * ring%r(j)
+               w1 = ringmoons_ring_bin_finder(ring,ring%r(j) - width)
+               w2 = ringmoons_ring_bin_finder(ring,ring%r(j) + width)
+               nw = real(w2 - w1 + 1,kind=DP)
+               do w = w1,w2 
+                  ring%Torque(w) = ring%Torque(w) + dTorque / nw
+               end do
                Torque = Torque - dTorque
             end if
          end do

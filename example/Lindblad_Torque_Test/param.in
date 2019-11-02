@@ -2,12 +2,12 @@
 !NPLMAX         -1 
 !NTPMAX         -1
 T0             0 
-TSTOP          4000001000.0
-DT             1000.0
+TSTOP          1000100000.0
+DT             100000.0
 PL_IN          pl.in
 TP_IN          tp.in
 IN_TYPE        ASCII
-ISTEP_OUT      1000
+ISTEP_OUT      10
 BIN_OUT        bin.dat
 OUT_TYPE       REAL8
 OUT_FORM       EL
