@@ -27,7 +27,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
+function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
 
 ! Modules
    use module_parameters
@@ -39,18 +39,16 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
 ! Arguments
    type(swifter_pl),pointer               :: swifter_pl1P
    type(ringmoons_ring), intent(inout)    :: ring
-   real(DP),intent(in)                    :: Gm, a, e, inc
+   real(DP),intent(in)                    :: Gm, as, e, inc
    real(DP)                               :: Torque
    
 
 ! Internals
-   integer(I4B)                           :: i,j, m, inner_outer_sign,w,w1,w2
-   integer(I4B), parameter                :: m_max = 3 ! Maximum mode number 
-   real(DP)                               :: y, dTorque, beta, Amk, width, nw,lap,dlap,rem, bdb
+   integer(I4B)                           :: i,j, m, inner_outer_sign,w,w1,w2, j0
+   integer(I4B), parameter                :: m_max = 6 ! Maximum mode number 
+   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,sigavg
    logical(lgt), save                     :: first_run = .true.
-   integer(I4B), parameter                :: NLAP = 10000 ! Number of laplace coefficient distance ratios to pre-compute
    real(DP), dimension(-1:1,2:m_max), save :: lapm,dlapm
-   !real(DP), parameter                    :: dbeta = 0.999999_DP / real(NLAP - 1, kind = DP)  
 
 
 ! Executable code
@@ -74,38 +72,34 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
    Torque = 0.0_DP
    do m  = 2, m_max
       !do inner Lindblad first
+      j0 = -1
       do inner_outer_sign = -1,1,2
-         y = (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(2._DP / 3._DP) * a   !resonance location for first order resonances
-         j = ringmoons_ring_bin_finder(ring, y) !disk location of resonance
-         if ((j > 0).and.(j < ring%N + 1)) then 
+         a = (1._DP + inner_outer_sign * 1._DP / real(m, kind=DP))**(2._DP / 3._DP) * as   !resonance location for first order resonances
+         j = ringmoons_ring_bin_finder(ring, a) !disk location of resonance
+         if ((j > 0).and.(j < ring%N + 1)) then !.and.(j /= j0)) then ! Resonance is in the bin, and don't consider overlapping
             select case(inner_outer_sign)
             case(-1) 
-               beta = ring%r(j) / a
+               beta = a / as
             case(1)
-               beta = a / ring%r(j)
+               beta = as / a
             end select
-            !lap =  m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
-            !dlap = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1)
-            !Amk = (lap + dlap)
-            !write(*,*) 'full Laplace: ',Amk
- 
             lap  =  lapm(inner_outer_sign,m)
             dlap = dlapm(inner_outer_sign,m)
 
             Amk = (lap + dlap)
-            !write(*,*) 'table Laplace: ',Amk
-            !read(*,*)
-            dTorque = inner_outer_sign * 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) * &
-                      ring%Gsigma(j) * (ring%r(j)**2 * beta * ring%w(j) * Gm / swifter_pl1P%mass * Amk)**2
-            width = sqrt(Gm / swifter_pl1P%mass) * ring%r(j)
-            w1 = ringmoons_ring_bin_finder(ring,ring%r(j) - width)
-            w2 = ringmoons_ring_bin_finder(ring,ring%r(j) + width)
+            width = sqrt(Gm / swifter_pl1P%mass) * a !ring%r(j)
+            w1 = ringmoons_ring_bin_finder(ring,a - width)
+            w2 = ringmoons_ring_bin_finder(ring,a + width)
             nw = real(w2 - w1 + 1,kind=DP)
+            sigavg = sum(ring%Gsigma(w1:w2)) / nw
             do w = w1,w2 
-               ring%Torque(w) = ring%Torque(w) + dTorque / nw
+               dTorque = inner_outer_sign * 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) / nw * &
+                      ring%Gsigma(w) * (a**2 * beta * sqrt(swifter_pl1P%mass / a**3) * Gm / swifter_pl1P%mass * Amk)**2 
+               ring%Torque(w) = ring%Torque(w) + dTorque 
+               Torque = Torque - dTorque
             end do
-            Torque = Torque - dTorque
          end if
+         j0 = j
       end do
    end do
 

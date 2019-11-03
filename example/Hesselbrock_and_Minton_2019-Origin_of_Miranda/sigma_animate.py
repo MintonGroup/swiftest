@@ -32,7 +32,7 @@ class AnimatedScatter(object):
         s = ring[:,1]
         xmin = 1.0
         xmax = 6
-        ymin = 1
+        ymin = 0.01
         ymax = 5e4
 
         y2min = 1e16

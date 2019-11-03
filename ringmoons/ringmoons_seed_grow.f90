@@ -43,7 +43,7 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
 
 ! Internals
       integer(I4B)                           :: i,j,k,seed_bin
-      real(DP)                               :: P,Q,R,S,da
+      real(DP)                               :: P,Q,R,S,da,sigavg
       real(DP)                               :: Gmleft,dGm,Gmdisk,Lfromring,Lseed_original,Ldiff
       real(DP),dimension(seeds%N)            :: dGmseeds, fz_width
       integer(I4B),dimension(seeds%N)        :: nfz
@@ -53,16 +53,18 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
    
       ! Estimate the growth using Runge Kutta
       do concurrent(i=1:seeds%N,seeds%active(i)) !local(P,Q,R,S)
-         P = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i)             ,seeds%a(i))
-         Q = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) + 0.5_DP * P,seeds%a(i))
-         R = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) + 0.5_DP * Q,seeds%a(i))
-         S = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,ring%Gsigma(seeds%rbin(i)),seeds%Gm(i) +          R,seeds%a(i))
+      !do i = 1, seeds%N
+      !   if (seeds%active(i)) then
+         nfz(i) = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
+         sigavg = sum(ring%Gsigma(seeds%fz_bin_inner(i):seeds%fz_bin_outer(i))) / real(nfz(i), kind = DP)
+         P = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,sigavg,seeds%Gm(i)             ,seeds%a(i))
+         Q = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,sigavg,seeds%Gm(i) + 0.5_DP * P,seeds%a(i))
+         R = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,sigavg,seeds%Gm(i) + 0.5_DP * Q,seeds%a(i))
+         S = dt * ringmoons_seed_dMdt(ring,swifter_pl1P%mass,sigavg,seeds%Gm(i) +          R,seeds%a(i))
          dGmseeds(i) = (P + 2 * Q + 2 * R + S) / 6._DP
+      !   end if
       end do
 
-      do concurrent(i=1:seeds%N,seeds%active(i))
-         nfz(i) = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
-      end do
       ! Get the mass out of the feeding zone (if it's there), starting from the bin the seed is in and working its way outward
       do i = 1, seeds%N
          if (seeds%active(i)) then

@@ -28,6 +28,7 @@
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
 elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
+!function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
 
 ! Modules
       use module_parameters
@@ -45,15 +46,20 @@ elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
       real(DP)                               :: Gmeff,C
       real(DP),parameter                     :: eff2   = 1e-7_DP ! This term gets the growth rate to match up closely to Andy's
       real(DP),parameter                     :: growth_exponent = 4._DP / 3._DP
+      real(DP), parameter                    :: SIGLIMIT = 1e-100_DP
 
 ! Executable code
-      
+     
       if (a < ring%FRL) then
          Gmdot = 0.0_DP
       else
          C = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * ring%rho_pdisk))**(1._DP / 3._DP) / sqrt(GMP) 
-         Gmeff = GMseed * (1._DP - ring%FRL / a**3) ! Reduces the growth rate near the FRL
-         Gmdot = C * Gsigma / (eff2 * sqrt(a)) * Gmeff**(growth_exponent)
+         if (Gsigma > SIGLIMIT) then
+            Gmeff = GMseed * (1._DP - (ring%FRL / a)**3) ! Reduces the growth rate near the FRL
+            Gmdot = C * Gsigma / (eff2 * sqrt(a)) * Gmeff**(growth_exponent)
+         else
+            Gmdot = 0.0_DP
+         end if
       end if
     
       return

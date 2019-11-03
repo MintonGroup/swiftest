@@ -55,6 +55,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       dtleft = dtin
 
       !TESTING
+      !write(*,*) 'Ring mass: ',sum(ring%Gm)
          if (lfirst) then
             Mtot_orig = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
             Ltot_orig = sum(seeds%Gm(:) * sqrt(swifter_pl1P%mass * seeds%a(:)),seeds%active)
@@ -71,14 +72,25 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          Lerror = (Ltot_now - Ltot_orig) / Ltot_orig
       !^^^^^^^^  
       do loop = 1, LOOPMAX
-         !write(*,*) t + (dtin - dtleft)
+         !write(*,*)
+         !write(*,*) (t + (dtin - dtleft)) * 1e-6_DP
+         !write(*,*) 'calc_torques'
          call ringmoons_calc_torques(swifter_pl1P,ring,seeds)
+         !write(*,*) 'timestep'
          dt = ringmoons_timestep(swifter_pl1P,ring,seeds,dtleft)
+         !write(*,*) 'seed_grow'
          call ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
+         !write(*,*) 'seed_evolve'
          call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
+         !write(*,*) 'sigma_torque'
+         !call ringmoons_sigma_torque(swifter_pl1P,ring,dt)
+         !write(*,*) 'viscosity'
          call ringmoons_viscosity(ring)
+         !write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,dt)
+         !write(*,*) 'planet_accrete'
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
+         !write(*,*) 'seed_construct'
          call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
          dtleft = dtleft - dt
          if (DESTRUCTION_EVENT) then

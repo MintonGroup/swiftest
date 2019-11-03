@@ -83,6 +83,14 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
          end if
       end if
    end do
+
+      ! Adjust seed parameters 
+      do concurrent(i=1:seeds%N,seeds%active(i))
+         seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
+         seeds%rbin(i) = ringmoons_ring_bin_finder(ring,seeds%a(i))
+         seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - FEEDING_ZONE_FACTOR * seeds%Rhill(i))
+         seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + FEEDING_ZONE_FACTOR * seeds%Rhill(i))
+      end do 
          
 
    return

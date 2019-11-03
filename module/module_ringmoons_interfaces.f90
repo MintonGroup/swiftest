@@ -185,6 +185,7 @@ module module_ringmoons_interfaces
 
       interface
          elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
+         !function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
          use module_parameters
          use module_swifter
          use module_ringmoons
@@ -245,14 +246,14 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,a,e,inc) result(Torque)
+         function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
          type(swifter_pl),pointer                  :: swifter_pl1P
          type(ringmoons_ring), intent(inout)       :: ring
-         real(DP),intent(in)                       :: Gm,a,e,inc
+         real(DP),intent(in)                       :: Gm,as,e,inc
          real(DP)                                  :: Torque         
          end function ringmoons_lindblad_torque
       end interface
@@ -291,6 +292,18 @@ module module_ringmoons_interfaces
          type(ringmoons_ring), intent(inout)    :: ring
          type(ringmoons_seeds), intent(inout)   :: seeds
          real(DP), intent(in)                   :: a, Gm
+         end subroutine
+      end interface
+
+      interface
+         subroutine ringmoons_sigma_torque(swifter_pl1P,ring,dt)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer               :: swifter_pl1P
+         type(ringmoons_ring), intent(inout)    :: ring
+         real(DP), intent(in)                   :: dt
          end subroutine
       end interface
 

@@ -41,6 +41,7 @@ subroutine ringmoons_sigma_solver(ring,dt)
 
       real(DP),dimension(0:ring%N+1)      :: S,Snew,fac
       integer(I4B)                        :: i,N
+      real(DP)                            :: Gin,Gout
 
 ! Executable code
 
@@ -50,14 +51,19 @@ subroutine ringmoons_sigma_solver(ring,dt)
       S(N+1) = 0.0_DP
 
       fac = 12 * dt / ring%deltaX**2  / ring%X2(:)
-
+      !Gin = sum(ring%Gm)
       do concurrent (i = 1:N) 
          Snew(i) = max(S(i) + fac(i) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1)),0.0_DP)
       end do
 
       ring%Gsigma(1:N) = Snew(1:N) / ring%X(1:N)
       ring%Gm(1:N) = ring%Gsigma(1:N) * ring%deltaA(1:N)
-
+      !Gout = sum(ring%Gm)
+      !if (Gout / Gin > 1.01_DP) then
+      !   write(*,*) 'The ring grew!'
+      !   write(*,*) Gout / Gin
+      !   call util_exit(FAILURE)
+      !end if
       return
 
 end subroutine ringmoons_sigma_solver

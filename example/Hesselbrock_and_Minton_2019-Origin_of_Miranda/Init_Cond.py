@@ -22,20 +22,19 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 100.0e2 / DU2CM #disk particle size
+r_pdisk = 1000.0e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 
 t_0	= 0
-t_print = 1e6 * year / TU2S #output interval to print results
-deltaT	= 1e5 * year / TU2S  #timestep simulation
+t_print = 1e5 * year / TU2S #output interval to print results
+deltaT	= 1e2 * year / TU2S  #timestep simulation
 end_sim = 4.e9 * year / TU2S + t_print #end time
 
 Nbins    = 480        #number of bins in disk
 
-
-
+sigma_peak = 0.6e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
 
 Rhill_Uranus = a_Uranus * (M_Uranus / (3 * M_Sun))**(1.0 / 3.0)
 Ipolar_Uranus = 0.230
@@ -62,7 +61,7 @@ RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 Rsync = (GU * MP * TP**2 / (4 * np.pi**2))**(1./3.)
 
 r_I	= 0.999 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 1.2 * FRL  #outside radius of disk
+r_F	= 1.5 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -86,7 +85,6 @@ R = []
 Torque_to_disk = []
 
 def f():
-    sigma_peak = 1.2e4 * DU2CM**2 / MU2GM # scale factor to get a given mass
 
     #Creates initial values for the disk and prints them out
     for a in range(int(Nbins)):
@@ -95,8 +93,8 @@ def f():
         deltar = (0.5 * (X[a] + deltaX))**2 - (0.5 * X[a])**2
         deltaA.append(2*np.pi*r[a]*deltar)
 
-        if a >= Nbins - 45:
-            #if r[a] > FRL:
+        #if a >= Nbins - 45:
+        if r[a] > FRL:
             sigma.append(0.0)
         else:
             sigma.append(sigma_peak * (r[a] / RP) ** (-3))
