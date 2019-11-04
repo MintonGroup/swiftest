@@ -71,8 +71,6 @@ SUBROUTINE ringmoons_viscosity(ring)
       nu_grav  = kappa * nu_grav_stable  + eta * nu_grav_unstable
       nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
       ring%nu(i) = nu_trans + nu_grav + nu_coll
-      ! Add in the "effective" viscosity arising from Torques
-      ring%nu(i) = ring%nu(i)  + ring%Torque(i) / (3 * PI * ring%Gsigma(i) * ring%w(i) * ring%r(i)**2)
    end do
 
 

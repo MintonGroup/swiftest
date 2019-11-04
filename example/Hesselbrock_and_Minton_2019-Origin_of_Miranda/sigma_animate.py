@@ -17,11 +17,11 @@ class AnimatedScatter(object):
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=5000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=41000,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")
-        #self.ani.save('uranian_ringsat.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
+        #self.ani.save('uranian_ringsat-S0.6e4g_cm2-480-dt10.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
 
     def setup_plot(self):
         """Initial drawing of the scatter plot."""

@@ -87,7 +87,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          !write(*,*) 'viscosity'
          call ringmoons_viscosity(ring)
          !write(*,*) 'sigma_solver'
-         call ringmoons_sigma_solver(ring,dt)
+         call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)
          !write(*,*) 'planet_accrete'
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
          !write(*,*) 'seed_construct'
