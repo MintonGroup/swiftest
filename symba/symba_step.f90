@@ -175,15 +175,18 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           !$OMP SHARED(i,npl,irec,symba_pl1P,symba_pliP,swifter_pliP,dt,plplenc_list,nplplenc) 
           DO j = i + 1, npl
                ! Added by D. Minton
-               symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
+               !symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
                !^^^^^^^^^^^^^^^^^^
                ! Removed by D. Minton
                !symba_pljP => symba_pljP%nextP
                !^^^^^^^^^^^^^^^^^^^^
-               swifter_pljP => symba_pljP%helio%swifter
-               xr(:) = swifter_pljP%xh(:) - swifter_pliP%xh(:)
-               vr(:) = swifter_pljP%vh(:) - swifter_pliP%vh(:)
-               CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, swifter_pljP%rhill, dt, irec, lencounter, lvdotr)
+               !swifter_pljP => symba_pljP%helio%swifter
+
+
+
+               xr(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
+               vr(:) = symba_plA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
+               CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), symba_plA%helio%swiftest%rhill(j), dt, irec, lencounter, lvdotr)
                IF (lencounter) THEN
                     ! Added by D. Minton
                     !$OMP CRITICAL 
@@ -194,26 +197,29 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                          WRITE(*, *) "   STOPPING..."
                          CALL util_exit(FAILURE)
                     END IF
-                    plplenc_list(nplplenc)%status = ACTIVE
-                    plplenc_list(nplplenc)%lvdotr = lvdotr
-                    plplenc_list(nplplenc)%level = irec
-                    plplenc_list(nplplenc)%pl1P => symba_pliP
-                    plplenc_list(nplplenc)%pl2P => symba_pljP
-                    symba_pliP%lmerged = .FALSE.
-                    symba_pliP%nplenc = symba_pliP%nplenc + 1
-                    symba_pliP%levelg = irec
-                    symba_pliP%levelm = irec
-                    symba_pliP%parentP => symba_pliP
+                    plplenc_list%status(nplplenc) = ACTIVE
+                    plplenc_list%lvdotr(nplplenc) = lvdotr
+                    plplenc_list%level(nplplenc) = irec
+                    !plplenc_list(nplplenc)%pl1P => symba_pliP
+                    !plplenc_list(nplplenc)%pl2P => symba_pljP
+                    plplenc_list%id1(nplplenc) = i
+                    plplenc_list%id2(nplplenc) = j
+
+                    symba_plA%lmerged(i) = .FALSE.
+                    symba_plA%nplenc(i) = symba_plA%nplenc(i) + 1
+                    symba_plA%levelg(i) = irec
+                    symba_plA%levelm(i) = irec
+                    !symba_pliP%parentP => symba_pliP
                     !$OMP END CRITICAL 
-                    NULLIFY(symba_pliP%childP)
-                    symba_pliP%nchild = 0
-                    symba_pljP%lmerged = .FALSE.
-                    symba_pljP%nplenc = symba_pljP%nplenc + 1
-                    symba_pljP%levelg = irec
-                    symba_pljP%levelm = irec
-                    symba_pljP%parentP => symba_pljP
-                    NULLIFY(symba_pljP%childP)
-                    symba_pljP%nchild = 0
+                    NULLIFY(symba_plA%childP) ????
+                    symba_plA%nchild(i) = 0 
+                    symba_plA%lmerged(j) = .FALSE.
+                    symba_plA%nplenc(j) = symba_plA%nplenc(j) + 1
+                    symba_plA%levelg(j) = irec
+                    symba_plA%levelm(j) = irec
+                    !symba_pl%parentP => symba_pljP
+                    NULLIFY(symba_plA%childP) ????
+                    symba_plA%nchild(j) = 0
                END IF
           END DO
           !$OMP END PARALLEL DO
@@ -226,19 +232,19 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           !$OMP SHARED(ntp,irec,symba_tp1P,dt,swifter_pliP,symba_pliP,pltpenc_list,npltpenc) 
           DO j = 1, ntp
                !Added by D. Minton
-               symba_tpP => symba_tp1P%symba_tpPA(j)%thisP
+               !symba_tpP => symba_tp1P%symba_tpPA(j)%thisP
                !^^^^^^^^^^^^^^^^^^
-               swifter_tpP => symba_tpP%helio%swifter
-               xr(:) = swifter_tpP%xh(:) - swifter_pliP%xh(:)
-               vr(:) = swifter_tpP%vh(:) - swifter_pliP%vh(:)
-               CALL symba_chk(xr(:), vr(:), swifter_pliP%rhill, 0.0_DP, dt, irec, lencounter, lvdotr)
+               !swifter_tpP => symba_tpP%helio%swifter
+               xr(:) = symba_tpA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
+               vr(:) = symba_tpA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
+               CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill, 0.0_DP, dt, irec, lencounter, lvdotr)
                IF (lencounter) THEN
-                    symba_pliP%ntpenc = symba_pliP%ntpenc + 1
-                    symba_pliP%levelg = irec
-                    symba_pliP%levelm = irec
-                    symba_tpP%nplenc = symba_tpP%nplenc + 1
-                    symba_tpP%levelg = irec
-                    symba_tpP%levelm = irec
+                    symba_plA%ntpenc(i) = symba_plA%ntpenc(i) + 1
+                    symba_plA%levelg(i) = irec
+                    symba_plA%levelm(i) = irec
+                    symba_tpA%nplenc(j) = symba_tpA%nplenc(j) + 1
+                    symba_tpA%levelg(j) = irec
+                    symba_tpA%levelm(j) = irec
                     ! Added by D. Minton
                     !$OMP CRITICAL 
                     npltpenc = npltpenc + 1
@@ -248,11 +254,11 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                          WRITE(*, *) "   STOPPING..."
                          CALL util_exit(FAILURE)
                     END IF
-                    pltpenc_list(npltpenc)%status = ACTIVE
-                    pltpenc_list(npltpenc)%lvdotr = lvdotr
-                    pltpenc_list(npltpenc)%level = irec
-                    pltpenc_list(npltpenc)%plP => symba_pliP
-                    pltpenc_list(npltpenc)%tpP => symba_tpP
+                    pltpenc_list%status(npltpenc) = ACTIVE
+                    pltpenc_list%lvdotr(npltpenc) = lvdotr
+                    pltpenc_list%level(npltpenc) = irec
+                    pltpenc_list%idpl(npltpenc) = i
+                    pltpenc_list%idtp(npltpenc) = j
                     !$OMP END CRITICAL 
                END IF
                !Removed by D. Minton

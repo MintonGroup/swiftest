@@ -66,21 +66,24 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
 
 ! Internals
      LOGICAL(LGT)              :: lmerge
-     INTEGER(I4B)              :: i, j, k, id1, id2, stat1, stat2
+     INTEGER(I4B)              :: i, j, k, id1, id2, stat1, stat2, index1, index2, index_keep, index_rm, indexchild
      REAL(DP)                  :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax, eold, enew, rad1, rad2, & 
      mass1, mass2
      REAL(DP), DIMENSION(NDIM) :: xr, vr, x1, v1, x2, v2, xnew, vnew
-     TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP, swifter_plP
-     TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP, symba_plP
+     TYPE(swiftest_pl)         :: swiftest_plA
+     TYPE(swiftest_tp)         :: swiftest_tpA
+     TYPE(symba_pl)            :: symba_plA
+     TYPE(symba_tp)            :: symba_tpA
+     !TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP, swifter_plP
+     !TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP, symba_plP
 
 ! Executable code
      lmerge = .FALSE.
-     symba_pliP => plplenc_list(index)%pl1P
-     symba_pljP => plplenc_list(index)%pl2P
-     swifter_pliP => symba_pliP%helio%swifter
-     swifter_pljP => symba_pljP%helio%swifter
-     rlim = swifter_pliP%radius + swifter_pljP%radius
-     xr(:) = swifter_pljP%xh(:) - swifter_pliP%xh(:)
+
+     index1 = plplenc_list%id1(index)
+     index2 = plplenc_list%id2(index)
+     rlim = symba_plA%helio%swiftest%radius(index1) + symba_plA%helio%swiftest%radius(index2)
+     xr(:) = symba_plA%helio%swiftest%xh(:,index2) - symba_plA%helio%swiftest%xh(:,index1)
      r2 = DOT_PRODUCT(xr(:), xr(:))
      rlim2 = rlim*rlim
      ! checks if bodies are actively colliding in this time step
@@ -89,29 +92,29 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
      ! if they are not actively colliding in  this time step, 
      !checks if they are going to collide next time step based on velocities and q
      ELSE 
-          vr(:) = swifter_pljP%vb(:) - swifter_pliP%vb(:)
+          vr(:) = symba_plA%helio%swiftest%vb(:,index2) - symba_plA%helio%swiftest%vb(:,index1)
           vdotr = DOT_PRODUCT(xr(:), vr(:))
-          IF (plplenc_list(index)%lvdotr .AND. (vdotr > 0.0_DP)) THEN
+          IF (plplenc_list%lvdotr(index) .AND. (vdotr > 0.0_DP)) THEN
                tcr2 = r2/DOT_PRODUCT(vr(:), vr(:))
                dt2 = dt*dt
                IF (tcr2 <= dt2) THEN
-                    mtot = swifter_pliP%mass + swifter_pljP%mass
+                    mtot = symba_plA%helio%swiftest%mass(index1) + symba_plA%helio%swiftest%mass(index2)
                     CALL orbel_xv2aeq(xr(:), vr(:), mtot, a, e, q)
                     IF (q < rlim) lmerge = .TRUE.
                END IF
                ! if no collision is going to happen, write as close encounter, not  merger
                IF (.NOT. lmerge) THEN
                     IF (encounter_file /= "") THEN
-                         id1 = swifter_pliP%id
-                         m1 = swifter_pliP%mass
-                         rad1 = swifter_pliP%radius
-                         x1(:) = swifter_pliP%xh(:)
-                         v1(:) = swifter_pliP%vb(:) - vbs(:)
-                         id2 = swifter_pljP%id
-                         m2 = swifter_pljP%mass
-                         rad2 = swifter_pljP%radius
-                         x2(:) = swifter_pljP%xh(:)
-                         v2(:) = swifter_pljP%vb(:) - vbs(:)
+                         id1 = symba_plA%helio%swiftest%id(index1)
+                         m1 = symba_plA%helio%swiftest%mass(index1)
+                         rad1 = ssymba_plA%helio%swiftest%radius(index1)
+                         x1(:) = symba_plA%helio%swiftest%xh(;,index1)
+                         v1(:) = symba_plA%helio%swiftest%vb(;,index1) - vbs(:)
+                         id2 = symba_plA%helio%swiftest%id(index2)
+                         m2 = symba_plA%helio%swiftest%mass(index2)
+                         rad2 = symba_plA%helio%swiftest%radius(index2)
+                         x2(:) = symba_plA%helio%swiftest%xh(:,index2)
+                         v2(:) = symba_plA%helio%swiftest%vb(:,index2) - vbs(:)
                          CALL io_write_encounter(t, id1, id2, m1, m2, rad1, rad2, x1(:), x2(:), v1(:), v2(:), encounter_file,     &
                               out_type)
                     END IF
@@ -120,52 +123,54 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
      END IF
      !Set up the merger for symba_discard_merge_pl 
      IF (lmerge) THEN
-          symba_pliP%lmerged = .TRUE.
-          symba_pljP%lmerged = .TRUE.
-          symba_pliP => symba_pliP%parentP
-          m1 = symba_pliP%helio%swifter%mass
+          symba_plA%lmerged(index1) = .TRUE.
+          symba_plA%lmerged(index2) = .TRUE.
+          !symba_pliP => symba_pliP%parentP
+          m1 = symba_plA%helio%swiftest%mass(index1)
           mass1 = m1 
-          rad1 =symba_pliP%helio%swifter%radius
-          x1(:) = m1*symba_pliP%helio%swifter%xh(:)
-          v1(:) = m1*symba_pliP%helio%swifter%vb(:)
+          rad1 = symba_plA%helio%swiftest%radius(index1)
+          x1(:) = m1*symba_plA%helio%swiftest%xh(:,index1)
+          v1(:) = m1*symba_plA%helio%swiftest%vb(:,index1)
           mmax = m1
-          id1 = symba_pliP%helio%swifter%id
-          stat1 = symba_pliP%helio%swifter%status
-          symba_plP => symba_pliP
-          DO i = 1, symba_pliP%nchild
-               symba_plP => symba_plP%childP
-               mtmp = symba_plP%helio%swifter%mass
+          id1 = symba_plA%helio%swiftest%id(index1)
+          stat1 = symba_plA%helio%swiftest%status(index1)
+          !symba_plP => symba_pliP
+          DO i = 1, symba_plA%nchild(index1) ! initialize an array of children
+               !symba_plP => symba_plP%childP
+               indexchild = ????
+               mtmp = symba_plA%helio%swiftest%mass(indexchild)
                IF (mtmp > mmax) THEN
                     mmax = mtmp
-                    id1 = symba_plP%helio%swifter%id
-                    stat1 = symba_plP%helio%swifter%status
+                    id1 = symba_plA%helio%swiftest%id(indexchild)
+                    stat1 = symba_plA%helio%swiftest%status(indexchild)
                END IF
                m1 = m1 + mtmp
-               x1(:) = x1(:) + mtmp*symba_plP%helio%swifter%xh(:)
-               v1(:) = v1(:) + mtmp*symba_plP%helio%swifter%vb(:)
+               x1(:) = x1(:) + mtmp*symba_plA%helio%swiftest%xh(indexchild)
+               v1(:) = v1(:) + mtmp*symba_plA%helio%swiftest%vb(indexchild)
           END DO
           x1(:) = x1(:)/m1
           v1(:) = v1(:)/m1
-          symba_pljP => symba_pljP%parentP
-          m2 = symba_pljP%helio%swifter%mass
+          !symba_pljP => symba_pljP%parentP
+          m2 = ssymba_plA%helio%swiftest%mass(index2)
           mass2 = m2
-          x2(:) = m2*symba_pljP%helio%swifter%xh(:)
-          v2(:) = m2*symba_pljP%helio%swifter%vb(:)
+          x2(:) = m2*symba_plA%helio%swiftest%xh(:,index2)
+          v2(:) = m2*symba_plA%helio%swiftest%vb(:,index2)
           mmax = m2
-          id2 = symba_pljP%helio%swifter%id
-          stat2 = symba_pljP%helio%swifter%status
-          symba_plP => symba_pljP
-          DO i = 1, symba_pljP%nchild
-               symba_plP => symba_plP%childP
-               mtmp = symba_plP%helio%swifter%mass
+          id2 = symba_plA%helio%swiftest%id(index2)
+          stat2 = symba_plA%helio%swiftest%status(index2)
+          !symba_plP => symba_pljP
+          DO i = 1, symba_plA%nchild(index2)
+               !symba_plP => symba_plP%childP
+               indexchild = ????
+               mtmp = symba_plA%helio%swiftest%mass(indexchild)
                IF (mtmp > mmax) THEN
                     mmax = mtmp
-                    id2 = symba_plP%helio%swifter%id
-                    stat2 = symba_plP%helio%swifter%status
+                    id2 = symba_plA%helio%swiftest%id(indexchild)
+                    stat2 = symba_plA%helio%swiftest%status(indexchild)
                END IF
                m2 = m2 + mtmp
-               x2(:) = x2(:) + mtmp*symba_plP%helio%swifter%xh(:)
-               v2(:) = v2(:) + mtmp*symba_plP%helio%swifter%vb(:)
+               x2(:) = x2(:) + mtmp*symba_plA%helio%swiftest%xh(indexchild)
+               v2(:) = v2(:) + mtmp*symba_plA%helio%swiftest%vb(indexchild)
           END DO
           x2(:) = x2(:)/m2
           v2(:) = v2(:)/m2
@@ -174,78 +179,84 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
           WRITE(*, *) "Merging particles ", id1, " and ", id2, " at time t = ",t
           nmergesub = nmergesub + 1
-          mergesub_list(nmergesub)%id = id1
-          mergesub_list(nmergesub)%status = MERGED
-          mergesub_list(nmergesub)%xh(:) = x1(:)
-          mergesub_list(nmergesub)%vh(:) = v1(:) - vbs(:)
-          mergesub_list(nmergesub)%mass = mass1
-          mergesub_list(nmergesub)%radius = rad1
+          mergesub_list%id(nmergesub) = id1
+          mergesub_list%status(nmergesub) = MERGED
+          mergesub_list%xh(:,nmergesub) = x1(:)
+          mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
+          mergesub_list%mass(nmergesub) = mass1
+          mergesub_list%radius(nmergesub) = rad1
           nmergesub = nmergesub + 1
-          mergesub_list(nmergesub)%id = id2
-          mergesub_list(nmergesub)%status = MERGED
-          mergesub_list(nmergesub)%xh(:) = x2(:)
-          mergesub_list(nmergesub)%vh(:) = v2(:) - vbs(:)
-          mergesub_list(nmergesub)%mass = mass2
-          mergesub_list(nmergesub)%radius = rad2
-
+          mergesub_list%id(nmergesub) = id2
+          mergesub_list%status(nmergesub) = MERGED
+          mergesub_list%xh(:,nmergesub) = x2(:)
+          mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
+          mergesub_list%mass(nmergesub) = mass2
+          mergesub_list%radius(nmergesub) = rad2
           nmergeadd = nmergeadd + 1
+
           IF (m2 > m1) THEN
-               mergeadd_list(nmergeadd)%id = id2
-               mergeadd_list(nmergeadd)%status = stat2
+               index_keep = index2
+               index_rm = index1
+               mergeadd_list%id(nmergeadd) = id2
+               mergeadd_list%status(nmergeadd) = stat2
 
           ELSE
-               mergeadd_list(nmergeadd)%id = id1
-               mergeadd_list(nmergeadd)%status = stat1
+               index_keep = index1
+               index_rm = index2
+               mergeadd_list%id(nmergeadd) = id1
+               mergeadd_list%status(nmergeadd) = stat1
 
           END IF
-          mergeadd_list(nmergeadd)%ncomp = 2
-          mergeadd_list(nmergeadd)%xh(:) = xnew(:)
-          mergeadd_list(nmergeadd)%vh(:) = vnew(:) - vbs(:)
+          mergeadd_list%ncomp(nmergeadd) = 2
+          mergeadd_list%xh(:,nmergeadd) = xnew(:)
+          mergeadd_list%vh(:,nmergeadd) = vnew(:) - vbs(:)
           eold = 0.5_DP*(m1*DOT_PRODUCT(v1(:), v1(:)) + m2*DOT_PRODUCT(v2(:), v2(:)))
           xr(:) = x2(:) - x1(:)
           eold = eold - m1*m2/SQRT(DOT_PRODUCT(xr(:), xr(:)))
           enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
           eoffset = eoffset + eold - enew
           DO k = 1, nplplenc
-               IF (plplenc_list(k)%status == ACTIVE) THEN
-                    symba_pliP => plplenc_list(index)%pl1P%parentP
-                    DO i = 0, symba_pliP%nchild
-                         symba_pljP => plplenc_list(index)%pl2P%parentP
-                         DO j = 0, symba_pljP%nchild
-                              IF (ASSOCIATED(plplenc_list(k)%pl1P, symba_pliP) .AND.                                              &
-                                  ASSOCIATED(plplenc_list(k)%pl2P, symba_pljP)) THEN
-                                   plplenc_list(k)%status = MERGED
-                              ELSE IF (ASSOCIATED(plplenc_list(k)%pl1P, symba_pljP) .AND.                                         &
-                                       ASSOCIATED(plplenc_list(k)%pl2P, symba_pliP)) THEN
-                                   plplenc_list(k)%status = MERGED
+               IF (plplenc_list%status(k) == ACTIVE) THEN
+                    !symba_pliP => plplenc_list(index)%pl1P%parentP
+                    index1 = plplenc_list%id1(index)
+                    DO i = 0, symba_plA%nchild(index1)
+                         !symba_pljP => plplenc_list(index)%pl2P%parentP
+                         index2 = plplenc_list%id2(index)
+                         DO j = 0, symba_plA%nchild(index2)
+                              IF (index1 = plplenc_list%id1(k)) .AND. (index2 = plplenc_list%id2(k)) THEN
+                                   plplenc_list%status(k) = MERGED
+                              ELSE IF (index1 = plplenc_list%id2(k)) .AND. (index2 = plplenc_list%id1(k)) THEN
+                                   plplenc_list%status(k) = MERGED
                               END IF
-                              symba_pljP => symba_pljP%childP
+                              !symba_pljP => symba_pljP%childP
+                              index1 = ???? 
                          END DO
-                         symba_pliP => symba_pliP%childP
+                         !symba_pliP => symba_pliP%childP
+                         index2 = ????
                     END DO
                END IF
           END DO
-          symba_pliP => plplenc_list(index)%pl1P%parentP
-          symba_plP => symba_pliP
-          swifter_plP => symba_plP%helio%swifter
-          swifter_plP%xh(:) = xnew(:)
-          swifter_plP%vb(:) = vnew(:)
-          DO i = 1, symba_pliP%nchild
-               symba_plP => symba_plP%childP
-               swifter_plP => symba_plP%helio%swifter
-               swifter_plP%xh(:) = xnew(:)
-               swifter_plP%vb(:) = vnew(:)
+          symba_plA%helio%swiftest%xh(:,index_keep) = xnew(:)
+          symba_plA%helio%swiftest%vb(:,index_keep) = vnew(:)
+
+          DO i = 1, symba_plA%nchild(index_keep)
+               !symba_plP => symba_plP%childP
+               indexchild = ????
+               !swifter_plP => symba_plP%helio%swifter
+               symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
+               symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
           END DO
-          symba_pljP => plplenc_list(index)%pl2P%parentP
-          symba_plP%childP => symba_pljP
-          DO i = 0, symba_pljP%nchild
-               symba_plP => symba_plP%childP
-               symba_plP%parentP => symba_pliP
-               swifter_plP => symba_plP%helio%swifter
-               swifter_plP%xh(:) = xnew(:)
-               swifter_plP%vb(:) = vnew(:)
+          !symba_pljP => plplenc_list(index)%pl2P%parentP
+          !symba_plP%childP => symba_pljP
+          DO i = 0, symba_plA%nchild(index_rm)
+               !symba_plP => symba_plP%childP
+               !symba_plP%parentP => symba_pliP
+               !swifter_plP => symba_plP%helio%swifter
+               indexchild = ????
+               symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
+               symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
           END DO
-          symba_pliP%nchild = symba_pliP%nchild + symba_pljP%nchild + 1
+          symba_plA%nchild(index_keep) = symba_plA%nchild(index_keep) + symba_plA%nchild(index_rm) + 1
      END IF
 
      RETURN

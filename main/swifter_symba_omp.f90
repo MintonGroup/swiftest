@@ -149,7 +149,7 @@ PROGRAM swiftest_symba_omp
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
-               mtiny, encounter_file, out_type) !CARLISLE AND JENNIFER OCT 25, 2019
+               mtiny, encounter_file, out_type) 
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
@@ -158,13 +158,14 @@ PROGRAM swiftest_symba_omp
           t = tbase + iloop*dt
           ! Take the merger info and create fragments
           ! CALL some subroutine that returns the number of fragments and an array of new bodies (swifter_pl type)                     
-          IF (lfragmentation) THEN
-               CALL symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)                               ! CHECK THIS 
+          !IF (lfragmentation) THEN
+               !CALL symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)                               ! CHECK THIS 
                ! update nplmax to add in the new number of bodies
                ! add new bodies into the current body linked list as in CALL symba_setup
                ! reorder bodies (if that is not already going to happen..check the discard subroutines
-               CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)                                          ! CHECK THIS 
-          END IF
+               
+               !CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)                                          ! CHECK THIS 
+          !END IF
 
           !
           CALL symba_discard_merge_pl(t, npl, nsppl, symba_pl1P, symba_pld1P, nplplenc, plplenc_list)                                  ! CHECK THIS 
@@ -172,15 +173,16 @@ PROGRAM swiftest_symba_omp
                qmin_ahi, j2rp2, j4rp4, eoffset)
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_pl1P, symba_tp1P, symba_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
+          CALL symba_discard_all(t, npl, ntp, symba_plA, symba_tpA, symba_pldA, symba_tpdA)
           IF ((nsppl > 0) .OR. (nsptp > 0)) THEN
                !swifter_tp1P => symba_tp1P%helio%swifter
-               CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_pl1P, symba_pld1P,            &    ! CHECK THIS 
-                    symba_tpd1P, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard)
+               CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, symba_pldA,            &    ! CHECK THIS 
+                    symba_tpdA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard)
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
                nsptp = 0
-               NULLIFY(symba_pld1P, symba_tpd1P)                                                                                       ! CHECK THIS 
+               NULLIFY(symba_pldA, symba_tpdA)                                                                                       ! CHECK THIS 
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1
