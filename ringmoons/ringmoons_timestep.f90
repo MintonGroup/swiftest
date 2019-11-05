@@ -53,11 +53,13 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
       dtout = dtin
 
       ! Start with viscous stability
-      nu_max = maxval(abs(ring%nu))
-      if (nu_max > 0.0_DP) then
-         dtout = min(dtout,0.5_DP * ring%stability_factor / nu_max)  ! smallest timestep for the viscous evolution equation
+      !nu_max = maxval(abs(ring%nu))
+      !Torque_max = maxval(abs(ring%Torque(:) * ring%X(:)))
+      !if (nu_max > 0.0_DP) then
+         dtout = min(dtout,(maxval(abs(8 * (12 * ring%nu(:) / (ring%X2(:) * ring%deltaX**2) - ring%X(:) * ring%Torque(:) / ring%deltaX))))**(-1))
+         !dtout = min(dtout,0.5_DP * ring%stability_factor / nu_max)  ! smallest timestep for the viscous evolution equation
          !write(*,*) 'Viscous dt/dtin: ', ring%stability_factor / nu_max / dtin
-      end if
+      !end if
 
       ! Satellite Torque stability
       !Torque_max = maxval(abs(ring%Torque))

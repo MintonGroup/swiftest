@@ -84,7 +84,7 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
          ring%r_hstar(i) = rhill / (2 * ring%r_pdisk)  
       end do
 
-      ring%stability_factor = 0.25_DP * minval(ring%X2) * ring%deltaX**2 / 24._DP 
+      
       
       
 
