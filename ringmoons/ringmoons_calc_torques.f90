@@ -52,15 +52,10 @@ subroutine ringmoons_calc_torques(swifter_pl1P,ring,seeds)
    Tring = 0.0_DP
    do i = 1, seeds%N
       if (seeds%active(i)) then 
-         !write(*,*) i
-         !write(*,*) 'lindblad'
          Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,ring,seeds%Gm(i),seeds%a(i),e,inc)
-         !write(*,*) maxval(Tlind(:)),minval(Tlind(:))
          Tring(:) = Tring(:) + Tlind(:)
          n = sqrt((swifter_pl1P%mass + seeds%Gm(i)) / seeds%a(i)**3)
-         !write(*,*) 'tide'
          Ttide = ringmoons_tidal_torque(swifter_pl1P,seeds%Gm(i),n,seeds%a(i),e,inc) 
-         !write(*,*) 'Ttide = ',Ttide
          seeds%Torque(i) = Ttide - sum(Tlind(:)) 
          swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - Ttide / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
       end if

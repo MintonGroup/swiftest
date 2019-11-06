@@ -1,0 +1,5 @@
+venv*
+!*.py
+!Salmon*
+!*.csv
+Salmon_et_al_2010-Saturn_Ring_Viscocity_evoloution.png

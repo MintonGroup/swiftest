@@ -42,27 +42,57 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
    real(DP), intent(in)                   :: dt
 
 ! Internals
-   integer(I4B)                           :: i,j,iRRL
-   real(DP)                               :: dadt, e, inc, P,Q,R,S
-   real(DP),dimension(seeds%N)            :: daseeds
-
+   integer(I4B)                              :: i,j,iRRL
+   real(DP)                                  :: dadt, e, inc, P,Q,R,S,ai
+   real(DP),dimension(seeds%N)               :: daseeds
+   type(ringmoons_ring)                      :: iring
+   type(ringmoons_seeds)                     :: iseeds
 
 ! Executable code
 
    !e = 0.0_DP
    !inc = 0.0_DP
+   
 
-   do concurrent(i=1:seeds%N,seeds%active(i)) 
-      P = dt * ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(i),seeds%a(i),         seeds%Torque(i))
-      Q = dt * ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(i),seeds%a(i)+0.5_DP*P,seeds%Torque(i))
-      R = dt * ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(i),seeds%a(i)+0.5_DP*Q,seeds%Torque(i))
-      S = dt * ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(i),seeds%a(i)+       R,seeds%Torque(i))
-      daseeds(i) = (P + 2 * Q + 2 * R + S) / 6._DP
+   !do concurrent(i=1:seeds%N,seeds%active(i)) 
+   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
+   !$OMP SHARED(dt,seeds,ring,swifter_pl1P,daseeds)
+   do i = 1, seeds%N
+      if (seeds%active(i)) then
+         iring = ring 
+         iseeds = seeds
+
+         ai = seeds%a(i)
+         call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
+         P = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
+
+         iseeds%a(i) = ai + 0.5_DP * P
+         call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
+         Q = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
+
+         iseeds%a(i) = ai + 0.5_DP * Q
+         call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
+         R = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
+         
+         iseeds%a(i) = ai + R
+         call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
+         S = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
+
+         daseeds(i) = (P + 2 * Q + 2 * R + S) / 6._DP
+      else
+         daseeds(i) = 0.0_DP
+      end if
    end do
+   !$OMP END PARALLEL DO
 
 
    do i = 1, seeds%N
+
       if (seeds%active(i)) then
+         !if (daseeds(i) > (ring%deltaX / 2._DP)**2) then
+         !   write(*,*) 'big migration. timestep too long?'
+         !   write(*,*) i,daseeds(i) / (ring%deltaX / 2._DP)**2
+         !end if
          seeds%a(i) = seeds%a(i) + daseeds(i)
          if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
             write(*,*) 'We are on our way to destruction!'

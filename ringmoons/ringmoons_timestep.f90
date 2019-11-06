@@ -44,8 +44,8 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 
 ! Internals
       integer(I4B)                           :: i,nfz
-      real(DP),parameter                     :: RK_FACTOR = 0.0001_DP ! smallest increase in fractional mass allowable in a single time step
-      real(DP)                               :: dGm_max,da_max,dadot_max,sigavg,sig_max,nu_max
+      real(DP),parameter                     :: RK_FACTOR = 0.1_DP ! smallest increase in fractional mass allowable in a single time step
+      real(DP)                               :: dGm_max,da_max,sigavg,sig_max,nu_max
       real(DP),dimension(0:ring%N+1)         :: torque_term
       
 
@@ -84,10 +84,10 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 
       ! Now aim for seed migration accuracy
          !write(*,*) 'migration'
-      dadot_max = maxval(abs(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(:),seeds%a(:),seeds%Torque(:))),seeds%active) 
+      da_max = maxval(abs(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(:),seeds%a(:),seeds%Torque(:))) / seeds%a(:),seeds%active) 
                      
       if (da_max > 0.0_DP) then
-         dtout = min(dtout, (ring%deltaX / 2._DP)**2 / dadot_max) ! smallest step that keeps the body within a approximately single bin size 
+         dtout = min(dtout, RK_FACTOR / da_max) ! smallest step that keeps the body within a approximately single bin size 
       end if
 
       return
