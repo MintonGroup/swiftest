@@ -55,8 +55,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
    
 
    !do concurrent(i=1:seeds%N,seeds%active(i)) 
-   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
-   !$OMP SHARED(dt,seeds,ring,swifter_pl1P,daseeds)
+   !!$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
+   !!$OMP SHARED(dt,seeds,ring,swifter_pl1P,daseeds)
    do i = 1, seeds%N
       if (seeds%active(i)) then
          iring = ring 
@@ -83,7 +83,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
          daseeds(i) = 0.0_DP
       end if
    end do
-   !$OMP END PARALLEL DO
+  ! !$OMP END PARALLEL DO
 
 
    do i = 1, seeds%N
