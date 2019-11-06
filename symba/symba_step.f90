@@ -131,14 +131,17 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
     !      symba_pliP => symba_pliP%nextP
     ! END DO
      !symba_tpP => symba_tp1P
-
+     DO i = 1,nplmax
      symba_plA%nplenc(:) = 0
      symba_plA%ntpenc(:) = 0
      symba_plA%levelg(:) = -1
      symba_plA%levelm(:) = -1
+     END DO
+     DO i =1,nptmax
      symba_tpA%nplenc(:) = 0 
      symba_tpA%levelg(:) = -1
      symba_tpA%levelm(:) = -1
+     END DO 
 
 
      !THERE SHOULD BE SOME PARALLEL BITS IN HERE
