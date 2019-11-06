@@ -53,7 +53,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
    !e = 0.0_DP
    !inc = 0.0_DP
    
-
+   iring%N = ring%N
+   iseeds%N = seeds%N
+   call ringmoons_allocate(iring,iseeds)
    !do concurrent(i=1:seeds%N,seeds%active(i)) 
    !!$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) &
    !!$OMP SHARED(dt,seeds,ring,swifter_pl1P,daseeds)
@@ -83,6 +85,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
          daseeds(i) = 0.0_DP
       end if
    end do
+   call ringmoons_deallocate(iring,iseeds)
   ! !$OMP END PARALLEL DO
 
 
