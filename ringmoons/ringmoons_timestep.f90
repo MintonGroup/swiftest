@@ -44,7 +44,7 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 
 ! Internals
       integer(I4B)                           :: i,nfz
-      real(DP),parameter                     :: RK_FACTOR = 0.001_DP ! smallest increase in fractional mass allowable in a single time step
+      real(DP),parameter                     :: RK_FACTOR = 0.0001_DP ! smallest increase in fractional mass allowable in a single time step
       real(DP)                               :: dGm_max,da_max,dadot_max,sigavg,sig_max,nu_max
       real(DP),dimension(0:ring%N+1)         :: torque_term
       
