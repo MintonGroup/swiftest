@@ -28,7 +28,6 @@
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
 elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
-!function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
 
 ! Modules
       use module_parameters

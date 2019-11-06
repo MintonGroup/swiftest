@@ -44,11 +44,12 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    
 
 ! Internals
-   integer(I4B)                           :: i,j, m, inner_outer_sign,w,w1,w2, j0
-   integer(I4B), parameter                :: m_max = 20 ! Maximum mode number 
-   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap
+   integer(I4B)                           :: i,j, m, inner_outer_sign,w,w1,w2
+   integer(I4B), parameter                :: m_max = 100 ! Maximum mode number 
+   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,da
    logical(lgt), save                     :: first_run = .true.
    real(DP), dimension(-1:1,2:m_max), save :: lapm,dlapm
+   real(DP), parameter                    :: g = 2.24_DP
 
 
 ! Executable code
@@ -70,8 +71,8 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    ! Just do the first order resonances for now. The full suite of resonances will come later
    Torque(:) = 0.0_DP
    do m  = 2, m_max
-      !do inner Lindblad first
-      j0 = -1
+      ! Go through modes up until resonance overlap occurs
+      if ((swifter_pl1P%mass / (m**4 * Gm)) < 1._DP) exit
       do inner_outer_sign = -1,1,2
          a = (1._DP + inner_outer_sign * 1._DP / real(m, kind=DP))**(2._DP / 3._DP) * as   !resonance location for first order resonances
          j = ringmoons_ring_bin_finder(ring, a) !disk location of resonance
@@ -96,8 +97,13 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
                Torque(w) = Torque(w) + dTorque
             end do
          end if
-         j0 = j
       end do
+   end do
+   ! Add in shepherding torques
+   do i = 1, ring%N
+      da = ring%r(i) - as
+      dTorque = g**2 / 6._DP * (ring%r(i) / da)**3 * (Gm / swifter_pl1P%mass)**2 * ring%Gsigma(i) * ring%w(i)**2 * ring%r(i)**4
+      Torque(i) = Torque(i) + dTorque
    end do
 
    return
