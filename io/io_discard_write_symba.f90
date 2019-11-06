@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_discard_write_symba
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -37,7 +37,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine io_discard_mass.f and io_discard_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_pl1P, symba_pld1P, symba_tpd1P,        &
+SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, symba_pldA, symba_tpdA,        &
      mergeadd_list, mergesub_list, fname, lbig_discard)
 
 ! Modules
@@ -52,83 +52,70 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmerge
      INTEGER(I4B), INTENT(IN)                     :: npl, nsppl, nsptp, nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                         :: t, mtiny
      CHARACTER(*), INTENT(IN)                     :: fname
-     TYPE(symba_pl), POINTER                      :: symba_pl1P, symba_pld1P
-     TYPE(symba_tp), POINTER                      :: symba_tpd1P
+     TYPE(symba_pl), INTENT(INOUT)                :: symba_plA, symba_pldA
+     TYPE(symba_tp), INTENT(INOUT)                :: symba_tpdA
      TYPE(symba_merger), DIMENSION(:), INTENT(IN) :: mergeadd_list, mergesub_list
 
 ! Internals
      INTEGER(I4B), PARAMETER   :: LUN = 40
      INTEGER(I4B)              :: i, index, j, ncomp, ierr, nplm
-     TYPE(swifter_pl), POINTER :: swifter_plP
-     TYPE(swifter_tp), POINTER :: swifter_tpP
-     TYPE(symba_pl), POINTER   :: symba_plP
-     TYPE(symba_tp), POINTER   :: symba_tpP
 
 ! Executable code
      CALL io_open(LUN, fname, "APPEND", "FORMATTED", ierr)
      IF (ierr /= 0) THEN
           CALL io_open(LUN, fname, "NEW", "FORMATTED", ierr)
           IF (ierr /= 0) THEN
-               WRITE(*, *) "SWIFTER Error:"
+               WRITE(*, *) "SWIFTEST Error:"
                WRITE(*, *) "   Unable to open discard output file, ", fname
                CALL util_exit(FAILURE)
           END IF
      END IF
-     WRITE(LUN, 100) t, nsppl + 2*nmergeadd + nsptp, lbig_discard
+     WRITE(LUN, 100) t, nsppl + 2*nmergeadd + nsptp, lbig_discard !need to change to nmergesub later
  100 FORMAT(E23.16, 1X, I8, 1X, L1)
      index = 0
      DO i = 1, nmergeadd
-          WRITE(LUN, 200) ADD, mergeadd_list(i)%id, mergeadd_list(i)%status
+          WRITE(LUN, 200) ADD, mergeadd_list%id(i), mergeadd_list%status(i)
  200      FORMAT(A, 2(1X, I8))
-          WRITE(LUN, 300) mergeadd_list(i)%xh(:)
+          WRITE(LUN, 300) mergeadd_list%xh(:,i)
  300      FORMAT(3(E23.16, 1X))
-          WRITE(LUN, 300) mergeadd_list(i)%vh(:)
-          ncomp = mergeadd_list(i)%ncomp
+          WRITE(LUN, 300) mergeadd_list%vh(:,i)
+          ncomp = mergeadd_list%ncomp(i)
           DO j = 1, ncomp
                index = index + 1
-               WRITE(LUN, 200) SUB, mergesub_list(index)%id, mergesub_list(index)%status
-               WRITE(LUN, 300) mergesub_list(index)%xh(:)
-               WRITE(LUN, 300) mergesub_list(index)%vh(:)
-               WRITE(LUN, 500) mergesub_list(index)%id, mergesub_list(index)%mass, mergesub_list(index)%radius
+               WRITE(LUN, 200) SUB, mergesub_list%id(index), mergesub_list%status(index)
+               WRITE(LUN, 300) mergesub_list%xh(:,index)
+               WRITE(LUN, 300) mergesub_list%vh(:,index)
+               WRITE(LUN, 500) mergesub_list%id(index), mergesub_list%mass(index), mergesub_list%radius(index)
           END DO
      END DO
-     symba_plP => symba_pld1P
      DO i = 1, nsppl
-          swifter_plP => symba_plP%helio%swifter
-          IF (swifter_plP%status /= MERGED) THEN
-               WRITE(LUN, 200) SUB, swifter_plP%id, swifter_plP%status
-               WRITE(LUN, 300) swifter_plP%xh(:)
-               WRITE(LUN, 300) swifter_plP%vh(:)
-               WRITE(LUN, 500) swifter_plP%id, swifter_plP%mass, swifter_plP%radius
+          IF (symba_pldA%helio%swiftest%status /= MERGED) THEN
+               WRITE(LUN, 200) SUB, symba_pldA%helio%swiftest%id(i), symba_pldA%helio%swiftest%status(i)
+               WRITE(LUN, 300) symba_pldA%helio%swiftest%xh(:,i)
+               WRITE(LUN, 300) symba_pldA%helio%swiftest%vh(:,i)
+               WRITE(LUN, 500) symba_pldA%helio%swiftest%id(i), symba_pldA%helio%swiftest%mass(i), & 
+               symba_pldA%helio%swiftest%radius(i)
           END IF
-          symba_plP => symba_plP%nextP
      END DO
-     symba_tpP => symba_tpd1P
      DO i = 1, nsptp
-          swifter_tpP => symba_tpP%helio%swifter
-          WRITE(LUN, 200) SUB, swifter_tpP%id, swifter_tpP%status
-          WRITE(LUN, 300) swifter_tpP%xh(:)
-          WRITE(LUN, 300) swifter_tpP%vh(:)
-          symba_tpP => symba_tpP%nextP
+          WRITE(LUN, 200) SUB, symba_tpdA%helio%swiftest%id(i), symba_tpdA%helio%swiftest%status(i)
+          WRITE(LUN, 300) symba_tpdA%helio%swiftest%xh(:,i)
+          WRITE(LUN, 300) symba_tpdA%helio%swiftest%vh(:,i)
      END DO
      IF (lbig_discard) THEN
           nplm = 0
-          swifter_plP => symba_pl1P%helio%swifter
           DO i = 1, npl
-               IF (swifter_plP%mass < mtiny) EXIT
+               IF (symba_plA%helio%swiftest%mass(i) < mtiny) EXIT
                nplm = nplm + 1
-               swifter_plP => swifter_plP%nextP
           END DO
           IF (nplm > 1) THEN
                WRITE(LUN, 400) nplm
  400           FORMAT(I8)
-               swifter_plP => symba_pl1P%helio%swifter
                DO i = 2, nplm
-                    swifter_plP => swifter_plP%nextP
-                    WRITE(LUN, 500) swifter_plP%id, swifter_plP%mass, swifter_plP%radius
+                    WRITE(LUN, 500) symba_plA%helio%swiftest%id(i), symba_plA%helio%swiftest%mass(i), symba_plA%helio%swiftest%radius(i)
  500                FORMAT(I8, 2(1X, E23.16))
-                    WRITE(LUN, 300) swifter_plP%xh(:)
-                    WRITE(LUN, 300) swifter_plP%vh(:)
+                    WRITE(LUN, 300) symba_plA%helio%swiftest%xh(:,i)
+                    WRITE(LUN, 300) symba_plA%helio%swiftest%vh(:,i)
                END DO
           END IF
      END IF
