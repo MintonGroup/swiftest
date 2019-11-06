@@ -44,8 +44,9 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 
 ! Internals
       integer(I4B)                           :: i,nfz
-      real(DP),parameter                     :: RK_FACTOR = 0.01_DP ! smallest increase in fractional mass allowable in a single time step
-      real(DP)                               :: dGm_max,nu_max,da_max,dadot_max,sigavg,Torque_max
+      real(DP),parameter                     :: RK_FACTOR = 0.001_DP ! smallest increase in fractional mass allowable in a single time step
+      real(DP)                               :: dGm_max,da_max,dadot_max,sigavg,sig_max,nu_max
+      real(DP),dimension(0:ring%N+1)         :: torque_term
       
 
 ! Executable code
@@ -53,25 +54,24 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
       dtout = dtin
 
       ! Start with viscous stability
-      !nu_max = maxval(abs(ring%nu))
-      !Torque_max = maxval(abs(ring%Torque(:) * ring%X(:)))
-      !if (nu_max > 0.0_DP) then
-         dtout = min(dtout,(maxval(abs(8 * (12 * ring%nu(:) / (ring%X2(:) * ring%deltaX**2) - &
-                     ring%X(:) * ring%Torque(:) / (3 * PI * sqrt(swifter_pl1P%mass) * ring%deltaX)))))**(-1))
-         !dtout = min(dtout,0.5_DP * ring%stability_factor / nu_max)  ! smallest timestep for the viscous evolution equation
-         !write(*,*) 'Viscous dt/dtin: ', ring%stability_factor / nu_max / dtin
-      !end if
-
-      ! Satellite Torque stability
-      !Torque_max = maxval(abs(ring%Torque))
-      !if (Torque_max > 0.0_DP) then
-      !   !write(*,*) dtout
-      !   dtout = min(dtout, 1e-3 * ring%deltaX * sqrt(swifter_pl1P%mass) * minval(ring%deltaA(:)) / Torque_max)
-      !   !write(*,*) dtout
-      !end if 
-       
+         !write(*,*) 'Viscous'
+      
+    
+      torque_term = 0.0_DP 
+      sig_max = 1.0_DP / dtout
+      do i = 1,ring%N
+         if (ring%Gsigma(i) * ring%nu(i) > 0.0_DP) then 
+            torque_term(i) = (ring%Torque(i) / ring%Gsigma(i)) / (3 * PI * sqrt(swifter_pl1P%mass))
+            sig_max = max(sig_max,10 * (12 / ring%X2(0) / ring%deltaX**2) * ring%nu(i) * abs(1._DP - torque_term(i) / ring%nu(i)))
+         end if
+      end do
+      
+      if (sig_max > 0.0_DP) then
+         dtout = min(dtout,(sig_max)**(-1))
+      end if
 
       ! Now aim for seed growth accuracy
+         !write(*,*) 'growth'
       dGm_max = -1._DP
       do concurrent (i = 1:seeds%N, seeds%active(i))
          nfz = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
@@ -83,6 +83,7 @@ function ringmoons_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
       end if
 
       ! Now aim for seed migration accuracy
+         !write(*,*) 'migration'
       dadot_max = maxval(abs(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(:),seeds%a(:),seeds%Torque(:))),seeds%active) 
                      
       if (da_max > 0.0_DP) then

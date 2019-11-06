@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import uranian_satellites
 
 #Units will be in terms of planet mass, planet radius, and years
 G	    = 6.674e-8                          #Gravitational constant (cgs)
@@ -28,12 +29,13 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 
 t_0	= 0
-t_print = 1e5 * year / TU2S #output interval to print results
+t_print = 1e6 * year / TU2S #output interval to print results
 deltaT	= 1e2 * year / TU2S  #timestep simulation
 end_sim = 4.5e9 * year / TU2S + t_print #end time
 
 Nbins    = 480        #number of bins in disk
-Nseeds   = 0
+
+
 
 sigma_peak = 0.6e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
 
@@ -95,10 +97,10 @@ def f():
         deltaA.append(2*np.pi*r[a]*deltar)
 
         #if a >= Nbins - 45:
-        if r[a] > FRL:
-            sigma.append(0.0)
-        else:
-            sigma.append(sigma_peak * (r[a] / RP) ** (-3))
+        #if r[a] > FRL:
+        sigma.append(0.0)
+        #else:
+        #    sigma.append(sigma_peak * (r[a] / RP) ** (-3))
         m.append(sigma[a] * deltaA[a])
         R.append(r[a]**2 + deltar**2/4)
         I.append(m[a]*R[a])
@@ -106,6 +108,10 @@ def f():
         Torque_to_disk.append(0.0)
 
 f() #Make a power law ring
+
+Nseeds   = 1
+Gmseed = [4 * uranian_satellites.M_Mira * GU / MU2GM]
+aseed= [FRL]
 
 
 outfile = open('ring.in', 'w')
@@ -115,6 +121,9 @@ print(r_pdisk, GU * m_pdisk, file=outfile)
 
 for a in range(int(Nbins)):
     print(GU * sigma[a],file=outfile)
+
+for a in range(int(Nseeds)):
+    print(aseed[a], Gmseed[a], file=outfile)
 
 plfile = open('pl.in', 'w')
 print(1,file=plfile)

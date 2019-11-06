@@ -129,7 +129,7 @@ for a in range(int(N)):
 plfile = open('pl.in', 'w')
 print(1,file=plfile)
 print(f'1 {GU*MP}',file=plfile)
-print(f'{RP}', file=plfile)
+print(f'{RP} {k_2} {Q}', file=plfile)
 np.savetxt(plfile, IP, newline=' ')
 print('',file=plfile)
 np.savetxt(plfile, wP, newline=' ')

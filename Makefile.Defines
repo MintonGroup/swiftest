@@ -49,7 +49,7 @@ USER_MODULES    =
 
 FORTRAN         = gfortran
 #FFLAGS          = -O3  -fopenmp 
-FFLAGS          = -O3 -fopenmp -ffree-line-length-none  -fbacktrace -fbounds-check  -ffpe-trap=zero,overflow,underflow -fcheck=all -ftrapv -g3
+FFLAGS          = -O3 -fopenmp -ffree-line-length-none  -fbacktrace -fbounds-check  -ffpe-trap=zero,overflow -fcheck=all -ftrapv -g3
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile

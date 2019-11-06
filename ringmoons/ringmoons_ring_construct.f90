@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-subroutine ringmoons_ring_construct(swifter_pl1P,ring)
+subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
 
 ! Modules
       use module_parameters
@@ -38,11 +38,12 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
 ! Arguments
       type(swifter_pl),pointer            :: swifter_pl1P
       type(ringmoons_ring), intent(inout) :: ring
+      type(ringmoons_seeds), intent(inout) :: seeds
 
 ! Internals
       integer(I4B)                        :: i
       real(DP)                            :: Xlo,Xhi,rlo,rhi,rhill,deltar
-      real(DP)                            :: GMP, RP, rhoP
+      real(DP)                            :: GMP, RP, rhoP,fz_width
 
 ! Executable code
       GMP = swifter_pl1P%mass
@@ -82,6 +83,14 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring)
          ring%Torque(i) = 0.0_DP
          rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GMP))**(1._DP/3._DP) ! See Salmon et al. 2010 for this
          ring%r_hstar(i) = rhill / (2 * ring%r_pdisk)  
+      end do
+
+      do i = 1,seeds%N
+         seeds%Rhill(i)  = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
+         seeds%rbin(i)   = ringmoons_ring_bin_finder(ring,seeds%a(i))
+         fz_width = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
+         seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width)
+         seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width)
       end do
 
       

@@ -68,7 +68,7 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
       ! Get the mass out of the feeding zone (if it's there), starting from the bin the seed is in and working its way outward
       do i = 1, seeds%N
          if (seeds%active(i)) then
-            Lseed_original = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i))
+            Lseed_original = seeds%Gm(i) * sqrt((swifter_pl1P%mass + seeds%Gm(i)) * seeds%a(i))
             seed_bin = seeds%rbin(i)
             Gmleft = dGmseeds(i)
             Lfromring = 0.0_DP
@@ -91,7 +91,7 @@ subroutine ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
             
             ! Conserve angular momentum 
             da =  ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass - seeds%a(i)
-            seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass
+            seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / (swifter_pl1P%mass + seeds%Gm(i))
          end if
       end do
       

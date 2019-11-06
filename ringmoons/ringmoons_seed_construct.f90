@@ -43,13 +43,48 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       type(ringmoons_seeds), intent(inout) :: seeds
 
 ! Internals
-      integer(I4B)                        :: i,j,seed_bin
-      real(DP)                            :: a, Gm, Gmleft
+      integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin
+      real(DP)                            :: a, dGm, Gmleft
       logical(LGT)                        :: open_space
+      real(DP), parameter                 :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
+      integer(I4B)                        :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
+      real(DP)                            :: ndz,deltaL,c,b,dr
+      
 
 ! Executable code
   
       
+      ! First convert any recently destroyed satellites into ring material
+      do i = 1,seeds%N
+         if ((.not.seeds%active(i)).and.(seeds%Gm(i) > 0.0_DP)) then
+            Gmleft = seeds%Gm(i)
+            deltaL = Gmleft * sqrt((swifter_pl1P%mass + Gmleft) * seeds%a(i)) 
+            c = dzone_width * ring%RRL ! Create an approximately Gaussian distribution of mass
+            a = Gmleft / (sqrt(2 * PI) * c)
+            do j = 0,(ring%iRRL-ring%inside)
+               do inner_outer_sign = -1,1,2
+                  nbin = ring%iRRL + inner_outer_sign * j
+                  if ((nbin > 0).and.(nbin < ring%N).and.(Gmleft > 0.0_DP)) then
+                     dr = ring%router(nbin) - ring%rinner(nbin)
+                     dGm = min(Gmleft,a * dr *exp(-(ring%r(nbin) - ring%RRL)**2 / (2 * c**2)))
+                     ring%Gm(nbin) = ring%Gm(nbin) + dGm
+                     Gmleft = Gmleft - dGm
+                     deltaL = deltaL - (dGm * ring%Iz(nbin) * ring%w(nbin))
+                  end if
+               end do
+               if (Gmleft == 0.0_DP) exit
+            end do 
+            seeds%Gm(i) = 0.0_DP
+            j = ring%iRRL
+            dGm = deltaL / (ring%Iz(j) * ring%w(j) - ring%Iz(j + 1) * ring%w(j + 1))
+            ring%Gm(j) = ring%Gm(j) - dGm
+            ring%Gm(j + 1) = ring%Gm(j + 1) + dGm
+            ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
+            call ringmoons_viscosity(ring)
+         end if
+      end do
+
+
       ! Make seeds small enough to fit into each bin 
       do i = ring%iFrl,ring%N
          if (ring%Gm(i) > INITIAL_MASS_FACTOR * ring%Gm_pdisk) then 
@@ -63,10 +98,12 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             end do
             if (open_space) then
                a = ring%r(i)
-               Gm = INITIAL_MASS_FACTOR * ring%Gm_pdisk !3 * swifter_pl1P%mass * ((ring%router(i) - ring%rinner(i)) / (1.25_DP * FEEDING_ZONE_FACTOR * a))**3
-               call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
+               dGm = INITIAL_MASS_FACTOR * ring%Gm_pdisk !3 * swifter_pl1P%mass * ((ring%router(i) - ring%rinner(i)) / (1.25_DP * FEEDING_ZONE_FACTOR * a))**3
+               call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,dGm)
             end if
          end if
-      end do             
+      end do      
+
+          
 
 end subroutine ringmoons_seed_construct

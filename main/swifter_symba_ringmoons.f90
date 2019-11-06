@@ -132,7 +132,7 @@ PROGRAM swifter_symba_ringmoons
 
      !Read in RING-MOONS parameters and data
      call ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
-     call ringmoons_ring_construct(swifter_pl1P,ring)
+     call ringmoons_ring_construct(swifter_pl1P,ring,seeds)
      call ringmoons_viscosity(ring)
      call ringmoons_seed_construct(swifter_pl1P,ring,seeds) 
      DESTRUCTION_EVENT = .false.

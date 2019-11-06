@@ -42,28 +42,48 @@ subroutine ringmoons_allocate(ring,seeds)
 
 ! Executable code
       allocate(ring%r(0:ring%N+1))
+      ring%r = 0.0_DP
       allocate(ring%rinner(0:ring%N+1))
+      ring%rinner = 0.0_DP
       allocate(ring%router(0:ring%N+1))
+      ring%router = 0.0_DP
       allocate(ring%X(0:ring%N + 1))
+      ring%X = 0.0_DP
       allocate(ring%X2(0:ring%N + 1))
+      ring%X2 = 0.0_DP
       allocate(ring%deltaA(0:ring%N + 1))
+      ring%deltaA = 0.0_DP
       allocate(ring%Gm(0:ring%N + 1))
+      ring%Gm = 0.0_DP
       allocate(ring%Gsigma(0:ring%N + 1))
+      ring%Gsigma = 0.0_DP
       allocate(ring%nu(0:ring%N + 1))
-      allocate(ring%sigma_threshold(0:ring%N + 1))
+      ring%nu = 0.0_DP
       allocate(ring%Iz(0:ring%N + 1))
+      ring%Iz = 0.0_DP
       allocate(ring%w(0:ring%N + 1))
+      ring%w = 0.0_DP
       allocate(ring%Torque(0:ring%N + 1))
+      ring%Torque = 0.0_DP
       allocate(ring%r_hstar(0:ring%N + 1))
+      ring%r_hstar = 0.0_DP
 
       allocate(seeds%active(seeds%N))
+      seeds%active = .false.
       allocate(seeds%a(seeds%N))
+      seeds%a = 0.0_DP
       allocate(seeds%Gm(seeds%N))
+      seeds%Gm = 0.0_DP
       allocate(seeds%Rhill(seeds%N))
+      seeds%Rhill = 0.0_DP
       allocate(seeds%rbin(seeds%N))
+      seeds%rbin = 0
       allocate(seeds%fz_bin_inner(seeds%N))
+      seeds%fz_bin_inner = 0
       allocate(seeds%fz_bin_outer(seeds%N))
+      seeds%fz_bin_outer = 0
       allocate(seeds%Torque(seeds%N))
+      seeds%Torque = 0.0_DP
       
 
       return

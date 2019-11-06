@@ -133,13 +133,14 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_ring_construct(swifter_pl1P,ring)
+         subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
          type(swifter_pl),pointer :: swifter_pl1P
          type(ringmoons_ring),intent(inout) :: ring
+         type(ringmoons_seeds),intent(inout) :: seeds
          end subroutine ringmoons_ring_construct
       end interface
 
@@ -252,9 +253,9 @@ module module_ringmoons_interfaces
          use module_ringmoons
          implicit none
          type(swifter_pl),pointer                  :: swifter_pl1P
-         type(ringmoons_ring), intent(inout)       :: ring
+         type(ringmoons_ring), intent(in)          :: ring
          real(DP),intent(in)                       :: Gm,as,e,inc
-         real(DP)                                  :: Torque         
+         real(DP),dimension(0:ring%N+1)            :: Torque         
          end function ringmoons_lindblad_torque
       end interface
 
@@ -292,18 +293,6 @@ module module_ringmoons_interfaces
          type(ringmoons_ring), intent(inout)    :: ring
          type(ringmoons_seeds), intent(inout)   :: seeds
          real(DP), intent(in)                   :: a, Gm
-         end subroutine
-      end interface
-
-      interface
-         subroutine ringmoons_sigma_torque(swifter_pl1P,ring,dt)
-         use module_parameters
-         use module_swifter
-         use module_ringmoons
-         implicit none
-         type(swifter_pl),pointer               :: swifter_pl1P
-         type(ringmoons_ring), intent(inout)    :: ring
-         real(DP), intent(in)                   :: dt
          end subroutine
       end interface
 

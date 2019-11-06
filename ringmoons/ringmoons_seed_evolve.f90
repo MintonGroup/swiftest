@@ -43,11 +43,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
 
 ! Internals
    integer(I4B)                           :: i,j,iRRL
-   real(DP)                               :: dadt, e, inc,Loriginal,deltaL,P,Q,R,S
+   real(DP)                               :: dadt, e, inc, P,Q,R,S
    real(DP),dimension(seeds%N)            :: daseeds
-   real(DP), parameter                    :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
-   integer(I4B)                           :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
-   real(DP)                               :: ndz
+
 
 ! Executable code
 
@@ -71,26 +69,17 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
             DESTRUCTION_EVENT = .true.
             DESTRUCTION_COUNTER = 0
             seeds%active(i) = .false.
-            dzone_inner = ringmoons_ring_bin_finder(ring,ring%RRL * (1._DP - dzone_width))
-            dzone_outer = ringmoons_ring_bin_finder(ring,ring%RRL * (1._DP + dzone_width))
-            ndz = real(dzone_outer - dzone_inner + 1, kind = DP)
-            Loriginal = seeds%Gm(i) * sqrt(swifter_pl1P%mass * seeds%a(i))
-            do j = dzone_inner, dzone_outer
-               ring%Gm(j) = ring%Gm(j) + seeds%Gm(i) / ndz
-               ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
-            end do
-               !deltaL = Loriginal - seeds%Gm(i) * ring%Iz(iRRL) * ring%w(iRRL) ! TODO: conserve angular momentum properly
          end if
       end if
    end do
 
-      ! Adjust seed parameters 
-      do concurrent(i=1:seeds%N,seeds%active(i))
-         seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
-         seeds%rbin(i) = ringmoons_ring_bin_finder(ring,seeds%a(i))
-         seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - FEEDING_ZONE_FACTOR * seeds%Rhill(i))
-         seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + FEEDING_ZONE_FACTOR * seeds%Rhill(i))
-      end do 
+   ! Adjust seed parameters 
+   do concurrent(i=1:seeds%N,seeds%active(i))
+      seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
+      seeds%rbin(i) = ringmoons_ring_bin_finder(ring,seeds%a(i))
+      seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - FEEDING_ZONE_FACTOR * seeds%Rhill(i))
+      seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + FEEDING_ZONE_FACTOR * seeds%Rhill(i))
+   end do 
          
 
    return

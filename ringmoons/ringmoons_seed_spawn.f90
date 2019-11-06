@@ -99,7 +99,6 @@ subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
       fz_width = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
       seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width)
       seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width)
-      seeds%Torque(i) = 0.0_DP
       ring%Gm(j) = ring%Gm(j) - seeds%Gm(i)
       ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
 

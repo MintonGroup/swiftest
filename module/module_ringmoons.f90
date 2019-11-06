@@ -43,7 +43,6 @@ module module_ringmoons
       real(DP)     :: r_F                 ! outside radius of disk
       real(DP)     :: r_I                 ! inside radius of disk
       real(DP)     :: deltaX              ! variable changed bin width used for viscosity calculations
-      real(DP)     :: stability_factor    ! constant factor used to determine the stability of the pde solver
       real(DP)     :: RRL,FRL             ! Rigid and fluid Roche limits
       integer(I4B) :: iRRL,iFRL           ! Indexes of Roche limit bins
       real(DP), dimension(:), allocatable :: r                 ! radial distance of center of bin
@@ -56,10 +55,9 @@ module module_ringmoons
       real(DP), dimension(:), allocatable :: Gm                ! mass of ring particles in bin
       real(DP), dimension(:), allocatable :: Gsigma            ! surface mass density of ring
       real(DP), dimension(:), allocatable :: nu                ! viscocity of the ring
-      real(DP), dimension(:), allocatable :: sigma_threshold   ! bounds are set up from lindblad resonance locations at frl and synch
       real(DP), dimension(:), allocatable :: Iz                ! polar moment of inertia of ring bin
       real(DP), dimension(:), allocatable :: w                 ! Keplerian angular velocity of ring bin
-      real(DP), dimension(:), allocatable :: Torque            ! total satellite torque acting on the ring bin
+      real(DP), dimension(:), allocatable :: Torque            ! total satellite torque density acting on the ring bin
    end type ringmoons_ring
 
    type ringmoons_seeds ! Satellite "seeds" that eventually turn into SyMBA massive bodies

@@ -39,9 +39,9 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
 
 ! Internals
 
-      real(DP),dimension(0:ring%N+1)      :: S,Snew,fac
+      real(DP),dimension(0:ring%N+1)      :: S,Snew,fac,fac2,TdSX
       integer(I4B)                        :: i,N
-      real(DP)                            :: Gin,Gout,fac2
+      real(DP)                            :: Gin,Gout
 
 ! Executable code
 
@@ -50,13 +50,20 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
       S(1:N) = ring%Gsigma(1:N) * ring%X(1:N)
       S(N+1) = 0.0_DP
 
-      fac = 12 * dt / ring%deltaX**2  / ring%X2(:)
-      fac2 = 1._DP / (3 * PI * sqrt(GMP) * ring%deltaX)
+      fac(:)  = 12 * dt / ring%deltaX**2  / ring%X2(:)
+      fac2(:) = fac * 2._DP / (3 * PI * sqrt(GMP))
       !Gin = sum(ring%Gm)
       do concurrent (i = 1:N) 
-         Snew(i) = S(i) + fac(i) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
-         Snew(i) = Snew(i) - fac2 * (ring%X(i+1) * ring%Torque(i+1) - ring%X(i - 1) * ring%Torque(i - 1))
+         !write(*,*) i,fac(i),fac2(i)
+         !write(*,*) S(i-1),S(i),S(i+1)
+         !write(*,*) ring%nu(i-1),ring%nu(i),ring%nu(i+1)
+         !write(*,*) 'Old value',S(i)
+         Snew(i) = S(i)     + fac(i) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
+         !write(*,*) 'New 1    ',Snew(i)
+         Snew(i) = Snew(i) - fac2(i) * (ring%Torque(i + 1) - 2 * ring%Torque(i) + ring%Torque(i - 1))
+         !write(*,*) 'New 2    ',Snew(i)
          Snew(i) = max(Snew(i),0.0_DP) 
+         !write(*,*) 'New 3    ',Snew(i)
       end do
 
       ring%Gsigma(1:N) = Snew(1:N) / ring%X(1:N)

@@ -49,22 +49,29 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
 ! Executable code
       ringfile='ring.in'
       open(unit=LUN,file=ringfile,status='old',iostat=ioerr)
-      read(LUN,*) ring%N !, seeds%N
+      read(LUN,*) ring%N, seeds%N
       read(LUN,*) ring%r_I, ring%r_F
       read(LUN,*) ring%r_pdisk,ring%Gm_pdisk
-      seeds%N = 1
       call ringmoons_allocate(ring,seeds)
-      seeds%active(1) = .false.
       do i = 1,ring%N
          read(LUN,*,iostat=ioerr) ring%Gsigma(i)
          if (ioerr /= 0) then 
             write(*,*) 'File read error in ',trim(adjustl(ringfile))
+            write(*,*) 'Reading ring element ', i,' of ',ring%N
+            call util_exit(FAILURE)
          end if
       end do
-      ring%Gsigma(0) = 0.0_DP
-      ring%Gm(0) = 0.0_DP
-      ring%Gsigma(ring%N) = 0.0_DP
-      ring%Gm(ring%N) = 0.0_DP
+
+      do i = 1,seeds%N
+         read(LUN,*,iostat=ioerr) seeds%a(i), seeds%Gm(i)
+         if (ioerr /= 0) then 
+            write(*,*) 'File read error in ',trim(adjustl(ringfile))
+            write(*,*) 'Reading seed ', i,' of ',seeds%N
+            call util_exit(FAILURE)
+         end if
+         seeds%active(i) = .true.
+
+      end do
 
 
       return

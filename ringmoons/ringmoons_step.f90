@@ -58,14 +58,14 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       !write(*,*) 'Ring mass: ',sum(ring%Gm)
          if (lfirst) then
             Mtot_orig = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
-            Ltot_orig = sum(seeds%Gm(:) * sqrt(swifter_pl1P%mass * seeds%a(:)),seeds%active)
+            Ltot_orig = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
             Ltot_orig = Ltot_orig + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
             Ltot_orig = Ltot_orig + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
             lfirst = .false.
          end if
          !call ringmoons_viscosity(ring)
          Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
-         Ltot_now = sum(seeds%Gm(:) * sqrt(swifter_pl1P%mass * seeds%a(:)),seeds%active)
+         Ltot_now = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
          Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
          Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
          Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
@@ -78,12 +78,11 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          call ringmoons_calc_torques(swifter_pl1P,ring,seeds)
          !write(*,*) 'timestep'
          dt = ringmoons_timestep(swifter_pl1P,ring,seeds,dtleft)
+         !write(*,*) 'dt = ',dt
          !write(*,*) 'seed_grow'
          call ringmoons_seed_grow(swifter_pl1P,ring,seeds,dt)
          !write(*,*) 'seed_evolve'
          call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt)
-         !write(*,*) 'sigma_torque'
-         !call ringmoons_sigma_torque(swifter_pl1P,ring,dt)
          !write(*,*) 'viscosity'
          call ringmoons_viscosity(ring)
          !write(*,*) 'sigma_solver'

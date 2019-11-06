@@ -38,15 +38,15 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
 
 ! Arguments
    type(swifter_pl),pointer               :: swifter_pl1P
-   type(ringmoons_ring), intent(inout)    :: ring
+   type(ringmoons_ring), intent(in)       :: ring
    real(DP),intent(in)                    :: Gm, as, e, inc
-   real(DP)                               :: Torque
+   real(DP),dimension(0:ring%N+1)         :: Torque
    
 
 ! Internals
    integer(I4B)                           :: i,j, m, inner_outer_sign,w,w1,w2, j0
-   integer(I4B), parameter                :: m_max = 6 ! Maximum mode number 
-   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,sigavg
+   integer(I4B), parameter                :: m_max = 100 ! Maximum mode number 
+   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap
    logical(lgt), save                     :: first_run = .true.
    real(DP), dimension(-1:1,2:m_max), save :: lapm,dlapm
 
@@ -58,7 +58,6 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    if (first_run) then
       do m = 2, m_max
          do inner_outer_sign = -1,1,2
-         !do j = 1, NLAP
             beta =  (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(-inner_outer_sign * 2._DP / 3._DP)
             lapm(inner_outer_sign,m)  = m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
             dlapm(inner_outer_sign,m) = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1) 
@@ -69,7 +68,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
       
   
    ! Just do the first order resonances for now. The full suite of resonances will come later
-   Torque = 0.0_DP
+   Torque(:) = 0.0_DP
    do m  = 2, m_max
       !do inner Lindblad first
       j0 = -1
@@ -91,12 +90,10 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
             w1 = ringmoons_ring_bin_finder(ring,a - width)
             w2 = ringmoons_ring_bin_finder(ring,a + width)
             nw = real(w2 - w1 + 1,kind=DP)
-            sigavg = sum(ring%Gsigma(w1:w2)) / nw
             do w = w1,w2 
                dTorque = inner_outer_sign * 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) / nw * &
                       ring%Gsigma(w) * (a**2 * beta * sqrt(swifter_pl1P%mass / a**3) * Gm / swifter_pl1P%mass * Amk)**2 
-               ring%Torque(w) = ring%Torque(w) + dTorque 
-               Torque = Torque - dTorque
+               Torque(w) = Torque(w) + dTorque
             end do
          end if
          j0 = j
