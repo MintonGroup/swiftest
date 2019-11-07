@@ -61,7 +61,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             deltaL = Gmleft * sqrt((swifter_pl1P%mass + Gmleft) * seeds%a(i)) 
             c = dzone_width * ring%RRL ! Create an approximately Gaussian distribution of mass
             a = Gmleft / (sqrt(2 * PI) * c)
-            do j = 0,(ring%iRRL-ring%inside)
+            do j = 0,(ring%N - ring%iRRL)
                do inner_outer_sign = -1,1,2
                   nbin = ring%iRRL + inner_outer_sign * j
                   if ((nbin > 0).and.(nbin < ring%N).and.(Gmleft > 0.0_DP)) then
