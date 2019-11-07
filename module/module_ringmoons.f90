@@ -33,6 +33,8 @@ module module_ringmoons
    real(DP),public,parameter  :: INITIAL_MASS_FACTOR = 100_DP ! Initial mass of seeds relative to ring particles
    logical(LGT),public        :: DESTRUCTION_EVENT
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
+   integer(I4B),public,parameter :: M_MAX = 100
+   real(DP),dimension(-1:1,2:m_max),public,save :: lapm,dlapm
 
    type ringmoons_ring
       real(DP)     :: r_pdisk             ! disk particle radius
