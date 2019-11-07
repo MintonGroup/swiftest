@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_peri
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -41,10 +41,10 @@ SUBROUTINE symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN) :: lfirst
-     INTEGER(I4B), INTENT(IN) :: npl
-     REAL(DP), INTENT(IN)     :: msys
-     CHARACTER(*), INTENT(IN) :: qmin_coord
+     LOGICAL(LGT), INTENT(IN)       :: lfirst
+     INTEGER(I4B), INTENT(IN)       :: npl
+     REAL(DP), INTENT(IN)           :: msys
+     CHARACTER(*), INTENT(IN)       :: qmin_coord
      TYPE(symba_pl), INTENT(INOUT)  :: symba_plA
 
 ! Internals

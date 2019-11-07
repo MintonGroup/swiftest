@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_discard_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -43,46 +43,35 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_pl1P, symba_tp1P, symba_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord,       &
+SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, symba_tpdA, dt, rmin, rmax, rmaxu, qmin, qmin_coord,       &
      qmin_alo, qmin_ahi, lclose, lrhill_present)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_discard_tp
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN)    :: lclose, lrhill_present
-     INTEGER(I4B), INTENT(IN)    :: npl
-     INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
-     REAL(DP), INTENT(IN)        :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-     CHARACTER(*), INTENT(IN)    :: qmin_coord
-     TYPE(symba_pl), POINTER     :: symba_pl1P
-     TYPE(symba_tp), POINTER     :: symba_tp1P, symba_tpd1P
+     LOGICAL(LGT), INTENT(IN)     :: lclose, lrhill_present
+     INTEGER(I4B), INTENT(IN)     :: npl
+     INTEGER(I4B), INTENT(INOUT)  :: ntp, nsp
+     REAL(DP), INTENT(IN)         :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+     CHARACTER(*), INTENT(IN)     :: qmin_coord
+     TYPE(symba_pl), INTENT(INOUT):: symba_plA
+     TYPE(symba_tp), INTENT(INOUT):: symba_tpA, symba_tpdA
 
 ! Internals
      LOGICAL(LGT)              :: lclosel = .FALSE.
      INTEGER(I4B)              :: i
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
-     TYPE(swifter_tp), POINTER :: swifter_tp1P, swifter_tpspP
-     TYPE(symba_tp), POINTER   :: symba_tpP, symba_tpspP
 
 ! Executable code
      swifter_pl1P => symba_pl1P%helio%swifter
      swifter_tp1P => symba_tp1P%helio%swifter
-     CALL discard(t, dt, npl, ntp, swifter_pl1P, swifter_tp1P, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, qmin_coord, lclosel,  &
+     CALL discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, qmin_coord, lclosel,  &
           lrhill_present)
-     symba_tpP => symba_tp1P
-     DO i = 1, ntp
-          symba_tpspP => symba_tpP
-          symba_tpP => symba_tpP%nextP
-          swifter_tpspP => symba_tpspP%helio%swifter
-          IF (swifter_tpspP%status /= ACTIVE) CALL symba_discard_spill_tp(ntp, nsp, symba_tp1P, symba_tpd1P, symba_tpspP)
-     END DO
-
      RETURN
 
 END SUBROUTINE symba_discard_tp

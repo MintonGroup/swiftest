@@ -2,7 +2,7 @@
 !
 !  Unit Name   : symba_discard_peri_pl
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
@@ -32,47 +32,45 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_mass_peri.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_discard_peri_pl(t, npl, symba_pl1P, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
+SUBROUTINE symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_discard_peri_pl
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(INOUT) :: ldiscards
-     INTEGER(I4B), INTENT(IN)    :: npl
-     REAL(DP), INTENT(IN)        :: t, msys, qmin, qmin_alo, qmin_ahi
-     CHARACTER(*), INTENT(IN)    :: qmin_coord
-     TYPE(symba_pl), POINTER     :: symba_pl1P
+     LOGICAL(LGT), INTENT(INOUT)   :: ldiscards
+     INTEGER(I4B), INTENT(IN)      :: npl
+     REAL(DP), INTENT(IN)          :: t, msys, qmin, qmin_alo, qmin_ahi
+     CHARACTER(*), INTENT(IN)      :: qmin_coord
+     TYPE(symba_pl), INTENT(INOUT) :: symba_plA
 
 ! Internals
      LOGICAL(LGT), SAVE        :: lfirst = .TRUE.
      INTEGER(I4B)              :: i, j, ih
      REAL(DP)                  :: r2
      REAL(DP), DIMENSION(NDIM) :: dx
-     TYPE(swifter_pl), POINTER :: swifter_plP
-     TYPE(symba_pl), POINTER   :: symba_plP
+
 
 ! Executable code
      IF (lfirst) THEN
-          CALL symba_peri(lfirst, npl, symba_pl1P, msys, qmin_coord)
+          CALL symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
           lfirst = .FALSE.
      ELSE
-          CALL symba_peri(lfirst, npl, symba_pl1P, msys, qmin_coord)
-          symba_plP => symba_pl1P
+          CALL symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
           DO i = 2, npl
-               symba_plP => symba_plP%nextP
-               swifter_plP => symba_plP%helio%swifter
-               IF (swifter_plP%status == ACTIVE) THEN
-                    IF ((symba_plP%isperi == 0) .AND. (symba_plP%nplenc == 0)) THEN
-                         IF ((symba_plP%atp >= qmin_alo) .AND. (symba_plP%atp <= qmin_ahi) .AND. (symba_plP%peri <= qmin)) THEN
+               IF (symba_plA%helio%swiftest%status(i) == ACTIVE) THEN
+                    IF ((symba_plA%isperi(i) == 0) .AND. (symba_plA%nplenc(i)== 0)) THEN
+                         IF ((symba_plA%atp(i) >= qmin_alo) .AND. (symba_plA%atp(i) <= qmin_ahi) &
+                          .AND. (symba_plA%peri(i) <= qmin)) THEN
                               ldiscards = .TRUE.
-                              swifter_plP%status = DISCARDED_PERI
-                              WRITE(*, *) "Particle ", swifter_plP%id, " perihelion distance too small at t = ", t
+                              symba_plA%helio%swiftest%status(i) = DISCARDED_PERI
+                              WRITE(*, *) "Particle ", symba_plA%helio%swiftest%id(i), &
+                               " perihelion distance too small at t = ", t
                          END IF
                     END IF
                END IF
