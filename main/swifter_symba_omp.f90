@@ -168,7 +168,7 @@ PROGRAM swiftest_symba_omp
           !END IF
 
           !
-          CALL symba_discard_merge_pl(t, npl, nsppl, symba_pl1P, symba_pld1P, nplplenc, plplenc_list)                                  ! CHECK THIS 
+          CALL symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc, plplenc_list)                                  ! CHECK THIS 
           CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_pl1P, symba_pld1P, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
                qmin_ahi, j2rp2, j4rp4, eoffset)
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_pl1P, symba_tp1P, symba_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
