@@ -2,7 +2,7 @@
 !
 !  Unit Name   : discard_pl_close
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : discard
 !  Language    : Fortran 90/95
 !

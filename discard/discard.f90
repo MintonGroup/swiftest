@@ -2,7 +2,7 @@
 !
 !  Unit Name   : discard
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : discard
 !  Language    : Fortran 90/95
 !
@@ -39,12 +39,12 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE discard(t, dt, npl, ntp, swifter_pl1P, swifter_tp1P, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, qmin_coord, lclose,  &
+SUBROUTINE discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, qmin_coord, lclose,  &
      lrhill_present)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => discard
      IMPLICIT NONE
 
@@ -53,22 +53,22 @@ SUBROUTINE discard(t, dt, npl, ntp, swifter_pl1P, swifter_tp1P, rmin, rmax, rmax
      INTEGER(I4B), INTENT(IN)  :: npl, ntp
      REAL(DP), INTENT(IN)      :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
      CHARACTER(*), INTENT(IN)  :: qmin_coord
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
      REAL(DP) :: msys
 
 ! Executable code
      IF ((rmin >= 0.0_DP) .OR. (rmax >= 0.0_DP) .OR. (rmaxu >= 0.0_DP) .OR. ((qmin >= 0.0_DP) .AND. (qmin_coord == "BARY"))) THEN
-          CALL coord_h2b(npl, swifter_pl1P, msys)
-          CALL coord_h2b_tp(ntp, swifter_tp1P, swifter_pl1P)
+          CALL coord_h2b(npl, swiftest_plA, msys)
+          CALL coord_h2b_tp(ntp, swiftest_tpA, swiftest_plA)
      END IF
-     IF ((rmin >= 0.0_DP) .OR. (rmax >= 0.0_DP) .OR. (rmaxu >= 0.0_DP)) CALL discard_sun(t, ntp, msys, swifter_tp1P, rmin, rmax,  &
+     IF ((rmin >= 0.0_DP) .OR. (rmax >= 0.0_DP) .OR. (rmaxu >= 0.0_DP)) CALL discard_sun(t, ntp, msys, swifter_tpA, rmin, rmax,  &
           rmaxu)
-     IF (qmin >= 0.0_DP) CALL discard_peri(t, npl, ntp, swifter_pl1P, swifter_tp1P, msys, qmin, qmin_alo, qmin_ahi, qmin_coord,   &
+     IF (qmin >= 0.0_DP) CALL discard_peri(t, npl, ntp, swifter_plA, swifter_tpA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord,   &
           lrhill_present)
-     IF (lclose) CALL discard_pl(t, dt, npl, ntp, swifter_pl1P, swifter_tp1P)
+     IF (lclose) CALL discard_pl(t, dt, npl, ntp, swifter_plA, swifter_tpA)
 
      RETURN
 

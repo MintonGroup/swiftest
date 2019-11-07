@@ -2,7 +2,7 @@
 !
 !  Unit Name   : discard_pl
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : discard
 !  Language    : Fortran 90/95
 !
@@ -28,46 +28,40 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_pl.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE discard_pl(t, dt, npl, ntp, swifter_pl1P, swifter_tp1P)
+SUBROUTINE discard_pl(t, dt, npl, ntp, swifter_plA, swifter_tpA)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => discard_pl
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: npl, ntp
-     REAL(DP), INTENT(IN)      :: t, dt
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
+     INTEGER(I4B), INTENT(IN)         :: npl, ntp
+     REAL(DP), INTENT(IN)             :: t, dt
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
      INTEGER(I4B)              :: i, j, isp
      REAL(DP)                  :: r2min, radius
      REAL(DP), DIMENSION(NDIM) :: dx, dv
-     TYPE(swifter_pl), POINTER :: swifter_plP
-     TYPE(swifter_tp), POINTER :: swifter_tpP
 
 ! Executable code
-     swifter_tpP => swifter_tp1P
      DO i = 1, ntp
-          IF (swifter_tpP%status == ACTIVE) THEN
-               swifter_plP => swifter_pl1P
+          IF (swifter_tpA%status(i) == ACTIVE) THEN
                DO j = 2, npl
-                    swifter_plP => swifter_plP%nextP
-                    dx(:) = swifter_tpP%xh(:) - swifter_plP%xh(:)
-                    dv(:) = swifter_tpP%vh(:) - swifter_plP%vh(:)
-                    radius = swifter_plP%radius
+                    dx(:) = swiftest_tpA%xh(:,i) - swiftest_plA%xh(:,i)
+                    dv(:) = swiftest_tpA%vh(:,i) - swiftest_plA%vh(:,i)
+                    radius = swiftest_plA%radius(i)
                     CALL discard_pl_close(dx(:), dv(:), dt, radius*radius, isp, r2min)
                     IF (isp /= 0) THEN
-                         swifter_tpP%status = DISCARDED_PLR
-                         WRITE(*, *) "Particle ", swifter_tpP%id, " too close to Planet ", swifter_plP%id, " at t = ", t
+                         swiftest_tpA%status(i) = DISCARDED_PLR
+                         WRITE(*, *) "Particle ", swiftest_tpA%id(i), " too close to Planet ", swiftest_plA%id(i), " at t = ", t
                          EXIT
                     END IF
                END DO
           END IF
-          swifter_tpP => swifter_tpP%nextP
      END DO
 
      RETURN

@@ -2,7 +2,7 @@
 !
 !  Unit Name   : discard_sun
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : discard
 !  Language    : Fortran 90/95
 !
@@ -30,49 +30,46 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_sun.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE discard_sun(t, ntp, msys, swifter_tp1P, rmin, rmax, rmaxu)
+SUBROUTINE discard_sun(t, ntp, msys, swifter_tpA, rmin, rmax, rmaxu)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => discard_sun
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: ntp
-     REAL(DP), INTENT(IN)      :: t, msys, rmin, rmax, rmaxu
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
+     INTEGER(I4B), INTENT(IN)         :: ntp
+     REAL(DP), INTENT(IN)             :: t, msys, rmin, rmax, rmaxu
+     TYPE(swiftest_tp), INTENT(INOUT) :: swifter_tpA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP)                  :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
-     TYPE(swifter_tp), POINTER :: swifter_tpP
 
 ! Executable code
      rmin2 = rmin*rmin
      rmax2 = rmax*rmax
      rmaxu2 = rmaxu*rmaxu
-     swifter_tpP => swifter_tp1P
      DO i = 1, ntp
-          IF (swifter_tpP%status == ACTIVE) THEN
-               rh2 = DOT_PRODUCT(swifter_tpP%xh(:), swifter_tpP%xh(:))
+          IF (swiftest_tpA%status(i) == ACTIVE) THEN
+               rh2 = DOT_PRODUCT(swiftest_tpA%xh(:,i), swiftest_tpA%xh(:,i))
                IF ((rmax >= 0.0_DP) .AND. (rh2 > rmax2)) THEN
-                    swifter_tpP%status = DISCARDED_RMAX
-                    WRITE(*, *) "Particle ", swifter_tpP%id, " too far from Sun at t = ", t
+                    swiftest_tpA%status(i) = DISCARDED_RMAX
+                    WRITE(*, *) "Particle ", swiftest_tpA%id(i), " too far from Sun at t = ", t
                ELSE IF ((rmin >= 0.0_DP) .AND. (rh2 < rmin2)) THEN
-                    swifter_tpP%status = DISCARDED_RMIN
-                    WRITE(*, *) "Particle ", swifter_tpP%id, " too close to Sun at t = ", t
+                    swiftest_tpA%status(i) = DISCARDED_RMIN
+                    WRITE(*, *) "Particle ", swiftest_tpA%id(i), " too close to Sun at t = ", t
                ELSE IF (rmaxu >= 0.0_DP) THEN
-                    rb2 = DOT_PRODUCT(swifter_tpP%xb(:), swifter_tpP%xb(:))
-                    vb2 = DOT_PRODUCT(swifter_tpP%vb(:), swifter_tpP%vb(:))
+                    rb2 = DOT_PRODUCT(swiftest_tpA%xb(:,i), swiftest_tpA%xb(:,i))
+                    vb2 = DOT_PRODUCT(swiftest_tpA%vb(:,i), swiftest_tpA%vb(:,i))
                     energy = 0.5_DP*vb2 - msys/SQRT(rb2)
                     IF ((energy > 0.0_DP) .AND. (rb2 > rmaxu2)) THEN
-                         swifter_tpP%status = DISCARDED_RMAXU
-                         WRITE(*, *) "Particle ", swifter_tpP%id, " is unbound and too far from barycenter at t = ", t
+                         swiftest_tpA%status(i) = DISCARDED_RMAXU
+                         WRITE(*, *) "Particle ", swiftest_tpA%id(i), " is unbound and too far from barycenter at t = ", t
                     END IF
                END IF
           END IF
-          swifter_tpP => swifter_tpP%nextP
      END DO
 
      RETURN
