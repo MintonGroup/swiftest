@@ -2,7 +2,7 @@
 !
 !  Unit Name   : coord_h2b_tp
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : coord
 !  Language    : Fortran 90/95
 !
@@ -25,32 +25,29 @@
 !  Notes       : Adapted from Hal Levison's Swift routine coord_h2b_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_h2b_tp(ntp, swifter_tp1P, swifter_pl1P)
+SUBROUTINE coord_h2b_tp(ntp, swiftest_tpA, swiftest_plA)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => coord_h2b_tp
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: ntp
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     INTEGER(I4B), INTENT(IN)         :: ntp
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP), DIMENSION(NDIM) :: xtmp, vtmp
-     TYPE(swifter_tp), POINTER :: swifter_tpP
 
 ! Executable code
-     xtmp(:) = swifter_pl1P%xb(:)
-     vtmp(:) = swifter_pl1P%vb(:)
-     swifter_tpP => swifter_tp1P
+     xtmp(:) = swiftest_plA%xb(:,1)
+     vtmp(:) = swiftest_plA%vb(:,1)
      DO i = 1, ntp
-          swifter_tpP%xb(:) = swifter_tpP%xh(:) + xtmp(:)
-          swifter_tpP%vb(:) = swifter_tpP%vh(:) + vtmp(:)
-          swifter_tpP => swifter_tpP%nextP
+          swiftest_tpA%xb(:,i) = swiftest_tpA%xh(:,i) + xtmp(:)
+          swiftest_tpA%vb(:,i) = swiftest_tpA%vh(:,i) + vtmp(:)
      END DO
 
      RETURN

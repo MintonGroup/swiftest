@@ -2,7 +2,7 @@
 !
 !  Unit Name   : coord_h2b
 !  Unit Type   : subroutine
-!  Project     : Swifter
+!  Project     : Swiftest
 !  Package     : coord
 !  Language    : Fortran 90/95
 !
