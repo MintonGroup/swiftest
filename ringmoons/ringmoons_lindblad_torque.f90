@@ -45,7 +45,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
 
 ! Internals
    integer(I4B)                           :: i,j, m, inner_outer_sign,w,w1,w2,js, mshep
-   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,da,a1
+   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,da3
    real(DP), parameter                    :: g = 2.24_DP
 
 
@@ -76,7 +76,8 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
             nw = real(w2 - w1 + 1,kind=DP)
             do w = w1,w2 
                dTorque = inner_outer_sign * 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) / nw * &
-                      ring%Gsigma(w) * (a**2 * beta * sqrt(swifter_pl1P%mass / a**3) * Gm / swifter_pl1P%mass * Amk)**2 
+                      ring%Gsigma(w) * (a**2 * beta * ring%w(i) * (Gm / swifter_pl1P%mass) * Amk)**2 
+               
                if ((abs(dTorque) > huge(dTorque)).or.(dTorque /= dTorque)) then
                   write(*,*) 'Bad Lindblad torque'
                   write(*,*) m,j,w,beta,a,as
@@ -93,17 +94,18 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    do inner_outer_sign = -1,1,2
       a = (1._DP + inner_outer_sign * 1._DP / real(mshep + 1, kind=DP))**(2._DP / 3._DP) * as   
       j = ringmoons_ring_bin_finder(ring, a) !disk location of resonance
-      da = inner_outer_sign * max(abs((a - as)**3),epsilon(a - as))
-      dTorque = g**2 / 6._DP * (a / da)**3 * (Gm / swifter_pl1P%mass)**2 * ring%Gsigma(j) * ring%w(j)**2 * a**4
-      if ((abs(dTorque) > huge(dTorque)).or.(dTorque /= dTorque)) then
-         write(*,*) 'Bad sheperding torque: m = ',mshep
-         write(*,*) 'mcalc = ',(0.5_DP * (sqrt(1._DP + 8._DP / 3._DP * sqrt(as) / ring%deltaX) - 1._DP))
-         write(*,*) a,as,da
-         write(*,*) ring%Gsigma(j),dTorque
-         call util_exit(FAILURE)
+      if ((j > 0).and.(j < ring%N + 1)) then 
+         da3 = inner_outer_sign * max(abs((a - as)**3),epsilon(a))
+         dTorque = g**2 / 6._DP * a**3 / da3 * (Gm / swifter_pl1P%mass)**2 * ring%Gsigma(j) * (ring%w(j))**2 * a**4
+         if ((abs(dTorque) > huge(dTorque)).or.(dTorque /= dTorque)) then
+            write(*,*) 'Bad sheperding torque: m = ',mshep
+            write(*,*) 'mcalc = ',(0.5_DP * (sqrt(1._DP + 8._DP / 3._DP * sqrt(as) / ring%deltaX) - 1._DP))
+            write(*,*) a,as,da3
+            write(*,*) ring%Gsigma(j),dTorque
+            call util_exit(FAILURE)
+         end if
+         Torque(j) = Torque(j) + dTorque
       end if
-      Torque(j) = Torque(j) + dTorque
-
    end do
 
    return
