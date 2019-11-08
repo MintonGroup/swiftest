@@ -46,7 +46,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
 ! Internals
       integer(I4B) :: i,loop,seedloop,subcount
-      integer(I4B), parameter :: submax = 2
+      integer(I4B), parameter :: submax = 4
       real(DP) :: dtstab,dtleft,dtring,seedmass,dtseed,dtseedleft
       real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now
       CHARACTER(*),parameter :: ring_outfile = "ring.dat"   ! Name of ringmoons output binary file
