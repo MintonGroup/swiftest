@@ -68,6 +68,7 @@ subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
          new_seeds%fz_bin_inner(1:seeds%N) = seeds%fz_bin_inner(:)
          new_seeds%fz_bin_outer(1:seeds%N) = seeds%fz_bin_outer(:)
          new_seeds%Torque(1:seeds%N) = seeds%Torque(:)
+         new_seeds%TTide(1:seeds%N) = seeds%Ttide(:)
          seeds%active = new_seeds%active
          seeds%a = new_seeds%a
          seeds%Gm = new_seeds%Gm
@@ -76,6 +77,7 @@ subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
          seeds%fz_bin_inner = new_seeds%fz_bin_inner
          seeds%fz_bin_outer = new_seeds%fz_bin_outer
          seeds%Torque = new_seeds%Torque
+         seeds%Ttide = new_seeds%Ttide
          seeds%N = new_seeds%N
          call ringmoons_deallocate(tmpring,new_seeds)
       end if
