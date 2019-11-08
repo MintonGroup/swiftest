@@ -139,7 +139,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                dtseedleft = dtseedleft - dtseed
                ! Scale the change in the ring torques by the step size reduction
                dTorque(:) = ring%Torque(:) - old_ring%Torque(:) 
-               ring%Torque(:) = dTorque(:) * (dtseed / dtring)
+               ring%Torque(:) = old_ring%Torque(:) + dTorque(:) * (dtseed / dtring)
                if (dtseedleft <= 0.0_DP) exit
                if (subcount == submax) then
                   dtseed = min(dtseedleft, submax * dtseed)
