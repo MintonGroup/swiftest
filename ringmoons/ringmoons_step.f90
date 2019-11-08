@@ -54,6 +54,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       type(ringmoons_seeds)                           :: old_seeds
       logical(LGT)                                    :: stepfail
       type(swifter_pl), pointer                       :: tmp_swifter_pl1P
+      real(DP),dimension(0:ring%N+1)                  :: dTorque
 
 ! Executable code
       !if (lfirst) then
@@ -136,6 +137,9 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
 
                dtseedleft = dtseedleft - dtseed
+               ! Scale the change in the ring torques by the step size reduction
+               dTorque(:) = ring%Torque(:) - old_ring%Torque(:) 
+               ring%Torque(:) = dTorque(:) * (dtseed / dtring)
                if (dtseedleft <= 0.0_DP) exit
                if (subcount == submax) then
                   dtseed = min(dtseedleft, submax * dtseed)
@@ -145,7 +149,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                old_seeds = seeds
             end if
          end do
-         ring%Torque(:) = old_ring%Torque(:)
          call ringmoons_deallocate(old_ring,old_seeds)
 
          dtleft = dtleft - dtring
