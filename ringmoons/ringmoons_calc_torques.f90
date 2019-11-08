@@ -50,6 +50,9 @@ subroutine ringmoons_calc_torques(swifter_pl1P,ring,seeds)
    e = 0.0_DP
    inc = 0.0_DP
    Tring = 0.0_DP
+   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
+   !$OMP SHARED(seeds,ring,swifter_pl1P) &
+   !$OMP REDUCTION(+:Tring)
    do i = 1, seeds%N
       if (seeds%active(i)) then 
          Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,ring,seeds%Gm(i),seeds%a(i),e,inc)
@@ -59,6 +62,7 @@ subroutine ringmoons_calc_torques(swifter_pl1P,ring,seeds)
          seeds%Torque(i) = seeds%Ttide(i) - sum(Tlind(:)) 
       end if
    end do
+   !$OMP END PARALLEL DO
    ring%Torque(:) = Tring(:) 
          
 

@@ -89,14 +89,17 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    ! First RK step
    !write(*,*) 'RK1'
-   do i = 1, seeds%N
-      if (seeds%active(i)) then
+   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
+   !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,Pa,Pm) 
+   do i = 1, iseeds%N
+      if (iseeds%active(i)) then
          Pa(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
          nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
          sigavg = sum(iring%Gsigma(iseeds%fz_bin_inner(i):iseeds%fz_bin_outer(i))) / real(nfz, kind = DP)
-         Pm(i)= dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
+         Pm(i) = dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
       end if
    end do
+   !$OMP END PARALLEL DO
 
    iseeds%a(:)  = ai(:)  + 0.5_DP * Pa(:)
    iseeds%Gm(:) = Gmi(:) + 0.5_DP * Pm(:)
@@ -109,8 +112,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    ! Second RK step.
    !write(*,*) 'RK2'
-   do i = 1, seeds%N
-      if (seeds%active(i)) then
+   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
+   !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,Qa,Qm) 
+   do i = 1, iseeds%N
+      if (iseeds%active(i)) then
          nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
          sigavg = sum(iring%Gsigma(iseeds%fz_bin_inner(i):iseeds%fz_bin_outer(i))) / real(nfz, kind = DP)
 
@@ -118,6 +123,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          Qm(i) = dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
       end if
    end do
+   !$OMP END PARALLEL DO
 
    iseeds%a(:)  = ai(:)  + 0.5_DP * Qa(:)
    iseeds%Gm(:) = Gmi(:) + 0.5_DP * Qm(:)
@@ -130,8 +136,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    ! Third RK step.
    !write(*,*) 'RK3'
-   do i = 1, seeds%N
-      if (seeds%active(i)) then
+   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
+   !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,Ra,Rm) 
+   do i = 1, iseeds%N
+      if (iseeds%active(i)) then
          nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
          sigavg = sum(iring%Gsigma(iseeds%fz_bin_inner(i):iseeds%fz_bin_outer(i))) / real(nfz, kind = DP)
 
@@ -139,6 +147,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          Rm(i) = dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
       end if
    end do
+   !$OMP END PARALLEL DO
 
    iseeds%a(:)  = ai(:)  + Ra(:)
    iseeds%Gm(:) = Gmi(:) + Rm(:)
@@ -151,8 +160,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    ! Fourth RK step.
    !write(*,*) 'RK3'
-   do i = 1, seeds%N
-      if (seeds%active(i)) then
+   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
+   !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,Sa,Sm) 
+   do i = 1, iseeds%N
+      if (iseeds%active(i)) then
          nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
          sigavg = sum(iring%Gsigma(iseeds%fz_bin_inner(i):iseeds%fz_bin_outer(i))) / real(nfz, kind = DP)
 
@@ -160,6 +171,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          Sm(i) = dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
       end if
    end do
+   !$OMP END PARALLEL DO
 
    daseeds(:)  = (Pa(:) + 2 * Qa(:) + 2 * Ra(:) + Sa(:)) / 6._DP
    dGmseeds(:) = (Pm(:) + 2 * Qm(:) + 2 * Rm(:) + Sm(:)) / 6._DP
