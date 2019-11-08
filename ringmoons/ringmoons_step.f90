@@ -46,7 +46,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
 ! Internals
       integer(I4B) :: i,loop,seedloop,subcount
-      integer(I4B), parameter :: submax = 4
+      integer(I4B), parameter :: submax = 8
       real(DP) :: dtstab,dtleft,dtring,seedmass,dtseed,dtseedleft
       real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now
       CHARACTER(*),parameter :: ring_outfile = "ring.dat"   ! Name of ringmoons output binary file
@@ -103,15 +103,15 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          old_ring = ring
          old_seeds = seeds
 
-         dtseed = dtring
          dtseedleft = dtring
+         dtseed = dtring 
          subcount = 0
          do seedloop = 1, LOOPMAX 
             if (seedloop == LOOPMAX) then
                write(*,*) 'LOOPMAX reached in seed evolution. Ringmoons_step failed'
                call util_exit(FAILURE)
             end if
-          
+            dtseed = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtseed) 
             !ring%Torque(:) = 0.0_DP  
             !write(*,*) 'evolve'
             !write(*,*) seedloop,'evolve',dtring/dtseed
@@ -121,7 +121,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                subcount = 0
                ring = old_ring
                seeds = old_seeds
-               !write(*,*) 'Failed the step'
+               write(*,*) 'Failed the step',dtring/dtseed
             else
                subcount = subcount + 1
                if (DESTRUCTION_EVENT) then
@@ -137,11 +137,11 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
 
                dtseedleft = dtseedleft - dtseed
-               ! Scale the change in the ring torques by the step size reduction
+               ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque
                dTorque(:) = ring%Torque(:) - old_ring%Torque(:) 
                ring%Torque(:) = old_ring%Torque(:) + dTorque(:) * (dtseed / dtring)
                if (dtseedleft <= 0.0_DP) exit
-               if (subcount == submax) then
+               if (subcount == 2* submax) then
                   dtseed = min(dtseedleft, submax * dtseed)
                   subcount = 0
                end if

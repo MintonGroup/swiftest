@@ -52,6 +52,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk,Lfromring,Lseed_original,Ldiff
    real(DP),dimension(0:ring%N+1)            :: dTorque_ring
+
    
 
 ! Executable code
@@ -151,21 +152,22 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    daseeds(:)  = (Pa(:) + 2 * Qa(:) + 2 * Ra(:) + Sa(:)) / 6._DP
    dGmseeds(:) = (Pm(:) + 2 * Qm(:) + 2 * Rm(:) + Sm(:)) / 6._DP
    
-   seeds%Ttide(:) = seeds%Ttide(:) / 6._DP
-   ring%Torque(:) = ring%Torque(:) + dTorque_ring(:) / 6._DP
 
    call ringmoons_deallocate(iring,iseeds)
 
    stepfail = .false.
    do i = 1,seeds%N
-      if (seeds%active(i).and.(abs(daseeds(i)) > (0.5_DP * ring%deltaX)**2)) then
+      if (seeds%active(i).and.((abs(daseeds(i)) / ai(i) > RK_FACTOR))) then
          stepfail = .true.
          return
       end if
    end do
 
+   seeds%Ttide(:) = seeds%Ttide(:) / 6._DP
+   ring%Torque(:) = ring%Torque(:) + dTorque_ring(:) / 6._DP
+
    !write(*,*) maxval(daseeds(:),seeds%active(:))
-   swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - sum(seeds%Ttide(:),seeds%active(:)) / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
+   swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - dt * sum(seeds%Ttide(:),seeds%active(:)) / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
    seeds%Torque(:) = 0.0_DP
 
    ! Now move and grow the seeds
