@@ -1170,6 +1170,24 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
+          SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, discard_tpA)
+               USE module_parameters
+               USE module_swiftestalloc 
+               USE module_swiftest
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               INTEGER(I4B), INTENT(INOUT)                  :: npl, ntp, nsppl, nsptp, nmergeadd
+               REAL(DP), INTENT(IN)                         :: t
+               TYPE(symba_pl), INTENT(INOUT)                :: symba_plA
+               TYPE(symba_tp), INTENT(INOUT)                :: symba_tpA
+               TYPE(symba_merger), DIMENSION(:), INTENT(IN) :: mergeadd_list
+               REAL(DP), DIMENSION(10,NPLMAX), INTENT(OUT)  :: discard_plA
+               REAL(DP), DIMENSION(10,ntp), INTENT(OUT)     :: discard_tpA
+          END SUBROUTINE symba_rearray
+     END INTERFACE 
+
+     INTERFACE
           SUBROUTINE symba_reorder_pl(npl, symba_pl1P)
                USE module_parameters
                USE module_swifter
