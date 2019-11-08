@@ -73,6 +73,7 @@ module module_ringmoons
       integer(I4B), dimension(:), allocatable   :: fz_bin_inner ! Ring bin location of inner edge of seed feeding zone
       integer(I4B), dimension(:), allocatable   :: fz_bin_outer ! Ring bin location of inner edge of seed feeding zone
       real(DP), dimension(:), allocatable       :: Torque       ! Total torque acting on the seed
+      real(DP), dimension(:), allocatable       :: Ttide        ! Tidal torque acting on the seed
    end type ringmoons_seeds
 
 

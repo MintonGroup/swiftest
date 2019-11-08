@@ -63,6 +63,7 @@ sUBROUTINE ringmoons_deallocate(ring,seeds)
       deallocate(seeds%fz_bin_inner)
       deallocate(seeds%fz_bin_outer)
       deallocate(seeds%Torque)
+      deallocate(seeds%Ttide)
       
 
       return

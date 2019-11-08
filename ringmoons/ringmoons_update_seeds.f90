@@ -1,12 +1,12 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : ringmoons_calc_torques
+!  Unit Name   : ringmoons_update_seeds
 !  Unit Type   : subroutine
 !  Project     : Swifter
 !  Package     : io
 !  Language    : Fortran 90/95
 !
-!  Description : Calculates all the torques on the seeds and the ring
+!  Description : Updates seed and ring values (Torques, feeding zones, etc) between RK steps
 !
 !  Input
 !    Arguments : 
@@ -19,48 +19,44 @@
 !    Teringinal  : 
 !    File      : 
 !
-!  Invocation  : CALL ringmoons_calc_torques(swifter_pl1P,ring,seeds)
+!  Invocation  : CALL ringmoons_update_seeds(dt,ring,ring)
 !
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-subroutine ringmoons_calc_torques(swifter_pl1P,ring,seeds)
+subroutine ringmoons_update_seeds(swifter_pl1P,ring,seeds)
 
 ! Modules
    use module_parameters
    use module_swifter
    use module_ringmoons
-   use module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_calc_torques
+   use module_ringmoons_interfaces, EXCEPT_THIS_ONE => ringmoons_update_seeds
    implicit none
 
 ! Arguments
    type(swifter_pl),pointer               :: swifter_pl1P
-   type(ringmoons_ring), intent(inout)    :: ring
+   type(ringmoons_ring), intent(in)       :: ring
    type(ringmoons_seeds), intent(inout)   :: seeds
 
 ! Internals
+   real(DP),dimension(seeds%N)            :: fz_width
    integer(I4B)                           :: i
-   real(DP)                               :: e, inc, n, Ttide
-   real(DP),dimension(0:ring%N+1)         :: Tlind,Tring
+   
 
 ! Executable code
 
-   e = 0.0_DP
-   inc = 0.0_DP
-   Tring = 0.0_DP
-   do i = 1, seeds%N
-      if (seeds%active(i)) then 
-         Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,ring,seeds%Gm(i),seeds%a(i),e,inc)
-         Tring(:) = Tring(:) + Tlind(:)
-         n = sqrt((swifter_pl1P%mass + seeds%Gm(i)) / seeds%a(i)**3)
-         seeds%Ttide(i) = ringmoons_tidal_torque(swifter_pl1P,seeds%Gm(i),n,seeds%a(i),e,inc) 
-         seeds%Torque(i) = seeds%Ttide(i) - sum(Tlind(:)) 
+   ! Compute feeding zone info
+   do i = 1,seeds%N
+      if (seeds%active(i)) then
+         seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
+         fz_width(i) = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
+         seeds%rbin(i) = ringmoons_ring_bin_finder(ring,seeds%a(i))
+         seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width(i))
+         seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width(i))
       end if
    end do
-   ring%Torque(:) = Tring(:) 
-         
 
    return
-end subroutine ringmoons_calc_torques
+end subroutine ringmoons_update_seeds

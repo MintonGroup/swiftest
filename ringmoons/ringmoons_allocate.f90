@@ -84,6 +84,8 @@ subroutine ringmoons_allocate(ring,seeds)
       seeds%fz_bin_outer = 0
       allocate(seeds%Torque(seeds%N))
       seeds%Torque = 0.0_DP
+      allocate(seeds%Ttide(seeds%N))
+      seeds%Ttide = 0.0_DP
       
 
       return
