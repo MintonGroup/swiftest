@@ -31,9 +31,9 @@
 !
 !                All angular measures are returned in radians
 !
-!                If inclination < TINY, longitude of the ascending node is arbitrarily set to 0
+!                If inclination < VSMALL, longitude of the ascending node is arbitrarily set to 0
 !
-!                If eccentricity < sqrt(TINY), argument of pericenter is arbitrarily set to 0
+!                If eccentricity < sqrt(VSMALL), argument of pericenter is arbitrarily set to 0
 !
 !                References: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 201 - 206.
 !                            Fitzpatrick, P. M. 1970. Principles of Celestial Mechanics, (Academic Press), 69 - 73.
@@ -80,7 +80,7 @@ SUBROUTINE orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
           inc = ACOS(fac)
      END IF
      fac = SQRT(hx*hx + hy*hy)/h
-     IF (fac < TINY) THEN
+     IF (fac < VSMALL) THEN
           u = ATAN2(x(2), x(1))
           IF (hz < 0.0_DP) u = -u
      ELSE
@@ -89,13 +89,13 @@ SUBROUTINE orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
      END IF
      IF (capom < 0.0_DP) capom = capom + TWOPI
      IF (u < 0.0_DP) u = u + TWOPI
-     IF (ABS(energy*r/mu) < SQRT(TINY)) THEN
+     IF (ABS(energy*r/mu) < SQRT(VSMALL)) THEN
           iorbit_type = PARABOLA
      ELSE
           a = -0.5_DP*mu/energy
           IF (a < 0.0_DP) THEN
                fac = -h2/(mu*a)
-               IF (fac > TINY) THEN
+               IF (fac > VSMALL) THEN
                     iorbit_type = HYPERBOLA
                ELSE
                     iorbit_type = PARABOLA
@@ -107,7 +107,7 @@ SUBROUTINE orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
      SELECT CASE (iorbit_type)
           CASE (ELLIPSE)
                fac = 1.0_DP - h2/(mu*a)
-               IF (fac > TINY) THEN
+               IF (fac > VSMALL) THEN
                     e = SQRT(fac)
                     cape = 0.0_DP
                     face = (a - r)/(a*e)

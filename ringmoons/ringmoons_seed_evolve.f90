@@ -70,7 +70,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    iseeds = seeds
    ai(:) = seeds%a(:)
    Gmi(:) = seeds%Gm(:)
+   !write(*,*) 'update_seeds'
    call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
+   !write(*,*) 'calc_torques'
    call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
 
    seeds%Ttide(:) = iseeds%Ttide(:)
@@ -86,6 +88,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    Sm(:) = 0.0_DP
 
    ! First RK step
+   !write(*,*) 'RK1'
    do i = 1, seeds%N
       if (seeds%active(i)) then
          Pa(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
@@ -97,12 +100,15 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    iseeds%a(:)  = ai(:)  + 0.5_DP * Pa(:)
    iseeds%Gm(:) = Gmi(:) + 0.5_DP * Pm(:)
+   !write(*,*) 'update_seeds'
    call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
+   !write(*,*) 'calc_torques'
    call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
    seeds%Ttide(:) = seeds%Ttide(:) + 2 * iseeds%Ttide(:)
    dTorque_ring(:) = dTorque_ring(:) + 2 * iring%Torque(:)
 
    ! Second RK step.
+   !write(*,*) 'RK2'
    do i = 1, seeds%N
       if (seeds%active(i)) then
          nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
@@ -115,12 +121,15 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    iseeds%a(:)  = ai(:)  + 0.5_DP * Qa(:)
    iseeds%Gm(:) = Gmi(:) + 0.5_DP * Qm(:)
+   !write(*,*) 'update_seeds'
    call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
+   !write(*,*) 'calc_torques'
    call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
    seeds%Ttide(:) = seeds%Ttide(:) + 2 * iseeds%Ttide(:)
    dTorque_ring(:) = dTorque_ring(:) + 2 * iring%Torque(:)
 
    ! Third RK step.
+   !write(*,*) 'RK3'
    do i = 1, seeds%N
       if (seeds%active(i)) then
          nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
@@ -133,12 +142,15 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    iseeds%a(:)  = ai(:)  + Ra(:)
    iseeds%Gm(:) = Gmi(:) + Rm(:)
+   !write(*,*) 'update_seeds'
    call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
+   !write(*,*) 'calc_torques'
    call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
    seeds%Ttide(:) = seeds%Ttide(:) + iseeds%Ttide(:)
    dTorque_ring(:) = dTorque_ring(:) + iring%Torque(:)
 
    ! Fourth RK step.
+   !write(*,*) 'RK3'
    do i = 1, seeds%N
       if (seeds%active(i)) then
          nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
@@ -163,15 +175,17 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       end if
    end do
 
+   !write(*,*) 'calculate total torques'
    seeds%Ttide(:) = seeds%Ttide(:) / 6._DP
    ring%Torque(:) = ring%Torque(:) + dTorque_ring(:) / 6._DP
 
-   !write(*,*) maxval(daseeds(:),seeds%active(:))
+   !!write(*,*) maxval(daseeds(:),seeds%active(:))
    swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - dt * sum(seeds%Ttide(:),seeds%active(:)) / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
    seeds%Torque(:) = 0.0_DP
 
    ! Now move and grow the seeds
    ! Get the mass out of the feeding zone (if it's there), starting from the bin the seed is in and working its way outward
+   !write(*,*) 'grow seeds'
    do i = 1, seeds%N
       if (seeds%active(i)) then
          Lseed_original = seeds%Gm(i) * sqrt((swifter_pl1P%mass + seeds%Gm(i)) * seeds%a(i))
@@ -202,9 +216,11 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       end if
    end do
 
+   !write(*,*) 'destruction'
    do i = 1, seeds%N
       if (seeds%active(i)) then
          seeds%a(i) = seeds%a(i) + daseeds(i)
+         fz_width(i) = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
          if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
             write(*,*) 'We are on our way to destruction!'
             DESTRUCTION_EVENT = .true.
@@ -216,9 +232,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    !call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
 
-   fz_width(:) = FEEDING_ZONE_FACTOR * seeds%Rhill(:)
 
    !I'm hungry! What's there to eat?! Look for neighboring seeds
+   !write(*,*) 'chomp'
    do i = 1, seeds%N
       if (seeds%active(i)) then
          do j = 1,seeds%N
@@ -238,6 +254,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          end do
       end if
    end do        
+   !write(*,*) 'update_seeds'
    call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
 
    return

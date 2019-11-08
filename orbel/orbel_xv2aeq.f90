@@ -55,13 +55,13 @@ SUBROUTINE orbel_xv2aeq(x, v, mu, a, e, q)
      h2 = hx*hx + hy*hy + hz*hz
      IF (h2 == 0.0_DP) RETURN
      energy = 0.5_DP*v2 - mu/r
-     IF (ABS(energy*r/mu) < SQRT(TINY)) THEN
+     IF (ABS(energy*r/mu) < SQRT(VSMALL)) THEN
           iorbit_type = PARABOLA
      ELSE
           a = -0.5_DP*mu/energy
           IF (a < 0.0_DP) THEN
                fac = -h2/(mu*a)
-               IF (fac > TINY) THEN
+               IF (fac > VSMALL) THEN
                     iorbit_type = HYPERBOLA
                ELSE
                     iorbit_type = PARABOLA
@@ -73,7 +73,7 @@ SUBROUTINE orbel_xv2aeq(x, v, mu, a, e, q)
      SELECT CASE (iorbit_type)
           CASE (ELLIPSE)
                fac = 1.0_DP - h2/(mu*a)
-               IF (fac > TINY) e = SQRT(fac)
+               IF (fac > VSMALL) e = SQRT(fac)
                q = a*(1.0_DP - e)
           CASE (PARABOLA)
                a = 0.5_DP*h2/mu

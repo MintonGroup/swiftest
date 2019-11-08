@@ -90,7 +90,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
 ! Executable code
      dtl = dt0/(NTENC**ireci)
      dth = 0.5_DP*dtl
-     IF (dtl/dt0 < TINY) THEN
+     IF (dtl/dt0 < VSMALL) THEN
           WRITE(*, *) "SWIFTER Warning:"
           WRITE(*, *) "   In symba_step_recur, local time step is too small"
           WRITE(*, *) "   Roundoff error will be important!"

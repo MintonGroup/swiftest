@@ -135,7 +135,8 @@ MODULE module_parameters
      INTEGER(I4B), PARAMETER :: NDIM    = 3
      INTEGER(I4B), PARAMETER :: NDIM2   = 2*NDIM
      INTEGER(I4B), PARAMETER :: LOOPMAX = 2147483646     ! 2**31 - 1
-     REAL(DP),     PARAMETER :: TINY    = 4.0E-15_DP
+     REAL(DP),     PARAMETER :: VSMALL  = 1.e-30_DP
+     REAL(DP),     PARAMETER :: VSMALL_SQRT = sqrt(VSMALL)
 
 ! Added by D. Minton
 ! Unit conversion definitions. The user supplies these definitions in param.in.

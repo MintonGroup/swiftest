@@ -68,9 +68,9 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          Ltot_orig = Ltot_orig + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
          Ltot_orig = Ltot_orig + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
          lfirst = .false.
+         !write(*,*) 'calc_torques'
          call ringmoons_calc_torques(swifter_pl1P,ring,seeds)
       end if
-         !call ringmoons_viscosity(ring)
 
       !^^^^^^^^  
 
@@ -81,7 +81,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          end if
          !write(*,*)
          !write(*,*) (t + (dtin - dtleft)) * 1e-6_DP
-         !!write(*,*) 'calc_torques'
 
          !write(*,*) 'viscosity'
          call ringmoons_viscosity(ring)
@@ -90,7 +89,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          dtring = ringmoons_ring_timestep(swifter_pl1P,ring,dtleft)
          !write(*,*) 'dtring = ',dtring
 
-         !write(*,*) 'sigma_solver'
+!         write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dtring)
          ring%Torque(:) = 0.0_DP
 
