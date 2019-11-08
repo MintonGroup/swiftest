@@ -177,7 +177,7 @@ PROGRAM swiftest_symba_omp
 
           IF (ldiscard = .TRUE.) OR (ldiscard_tp = .TRUE.) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-                    discard_tpA)
+                    discard_tpA, discard_plA_id_status,discard_tpA_id_status)
                CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, discard_plA,   &    ! CHECK THIS 
                     discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard)
                nmergeadd = 0
