@@ -79,6 +79,7 @@ SUBROUTINE discard_peri(t, npl, ntp, swiftest_plA, swiftest_tpA, msys, qmin, qmi
                                   (swiftest_tpA%peri(i) <= qmin)) THEN
                                    swiftest_tpA%status(i) = DISCARDED_PERI
                                    WRITE(*, *) "Particle ", swiftest_tpA%id(i), " perihelion distance too small at t = ", t
+                                   ldiscard_tp = .TRUE.
                               END IF
                          END IF
                     END IF
