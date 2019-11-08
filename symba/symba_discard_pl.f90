@@ -77,16 +77,7 @@ SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, symba_pldA, rmin, rm
           CALL symba_discard_sun_pl(t, npl, msys, symba_plA%helio%swiftest, rmin, rmax, rmaxu, ldiscards)
      IF (qmin >= 0.0_DP) CALL symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
      IF (ldiscards) THEN
-          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tei, htot)
-          !symba_plP => symba_pl1P%nextP
-          !DO i = 2, npl
-               !symba_plspP => symba_plP
-               !symba_plP => symba_plP%nextP
-               !swifter_plspP => symba_plspP%helio%swifter
-               !IF (swifter_plspP%status /= ACTIVE) CALL symba_discard_spill_pl(npl, nsp, symba_pld1P, symba_plspP)
-          !END DO
-          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tef, htot)
-          eoffset = eoffset + tei - tef
+          ldiscard = .TRUE.
      END IF
 
      RETURN

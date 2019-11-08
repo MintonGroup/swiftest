@@ -68,8 +68,6 @@ SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, symba_tpdA, 
      INTEGER(I4B)              :: i
 
 ! Executable code
-     swifter_pl1P => symba_pl1P%helio%swifter
-     swifter_tp1P => symba_tp1P%helio%swifter
      CALL discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, qmin_coord, lclosel,  &
           lrhill_present)
      RETURN
