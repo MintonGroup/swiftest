@@ -37,12 +37,12 @@
 !  Notes       : Adapted from Hal Levison's Swift routine io_discard_mass.f and io_discard_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, symba_pldA, symba_tpdA,        &
+SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, discard_plA, discard_tpA,        &
      mergeadd_list, mergesub_list, fname, lbig_discard)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => io_discard_write_symba
      IMPLICIT NONE
@@ -52,8 +52,9 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmerge
      INTEGER(I4B), INTENT(IN)                     :: npl, nsppl, nsptp, nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                         :: t, mtiny
      CHARACTER(*), INTENT(IN)                     :: fname
-     TYPE(symba_pl), INTENT(INOUT)                :: symba_plA, symba_pldA
-     TYPE(symba_tp), INTENT(INOUT)                :: symba_tpdA
+     TYPE(symba_pl), INTENT(INOUT)                :: symba_plA
+     REAL(DP), DIMENSION(10,NPLMAX), INTENT(IN)   :: discard_plA
+     REAL(DP), DIMENSION(10,ntp), INTENT(IN)      :: discard_tpA
      TYPE(symba_merger), DIMENSION(:), INTENT(IN) :: mergeadd_list, mergesub_list
 
 ! Internals
@@ -70,7 +71,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmerge
                CALL util_exit(FAILURE)
           END IF
      END IF
-     WRITE(LUN, 100) t, nsppl + 2*nmergeadd + nsptp, lbig_discard !need to change to nmergesub later
+     WRITE(LUN, 100) t, nsppl + nsptp, lbig_discard 
  100 FORMAT(E23.16, 1X, I8, 1X, L1)
      index = 0
      DO i = 1, nmergeadd
@@ -89,18 +90,17 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmerge
           END DO
      END DO
      DO i = 1, nsppl
-          IF (symba_pldA%helio%swiftest%status /= MERGED) THEN
-               WRITE(LUN, 200) SUB, symba_pldA%helio%swiftest%id(i), symba_pldA%helio%swiftest%status(i)
-               WRITE(LUN, 300) symba_pldA%helio%swiftest%xh(:,i)
-               WRITE(LUN, 300) symba_pldA%helio%swiftest%vh(:,i)
-               WRITE(LUN, 500) symba_pldA%helio%swiftest%id(i), symba_pldA%helio%swiftest%mass(i), & 
-               symba_pldA%helio%swiftest%radius(i)
+          IF (discard_plA(2,i) /= MERGED) THEN
+               WRITE(LUN, 200) SUB, discard_plA(1,i), discard_plA(2,i)
+               WRITE(LUN, 300) discard_plA(5,i),discard_plA(6,i),discard_plA(7,i)
+               WRITE(LUN, 300) discard_plA(8,i),discard_plA(9,i),discard_plA(10,i)
+               WRITE(LUN, 500) discard_plA(1,i),discard_plA(3,i),discard_plA(4,i)
           END IF
      END DO
      DO i = 1, nsptp
-          WRITE(LUN, 200) SUB, symba_tpdA%helio%swiftest%id(i), symba_tpdA%helio%swiftest%status(i)
-          WRITE(LUN, 300) symba_tpdA%helio%swiftest%xh(:,i)
-          WRITE(LUN, 300) symba_tpdA%helio%swiftest%vh(:,i)
+          WRITE(LUN, 200) SUB, discard_tpA(1,i), discard_tpA(2,i)
+          WRITE(LUN, 300) discard_tpA(5,i),discard_tpA(6,i),discard_tpA(7,i)
+          WRITE(LUN, 300) discard_tpA(8,i),discard_tpA(9,i),discard_tpA(10,i)
      END DO
      IF (lbig_discard) THEN
           nplm = 0
