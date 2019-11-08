@@ -25,11 +25,11 @@ spread = 360e3  # width of the gaussian
 sigma_peak = 6.15e4  # scale factor to get a given mass
 
 t_0	= 0
-t_print = 1.e2 * year / TU2S #output interval to print results
+t_print = 1.e3 * year / TU2S #output interval to print results
 deltaT	= 1.e2 * year / TU2S  #timestep simulation
-end_sim = 1.e5 * year / TU2S + deltaT #end time
+end_sim = 1.e6 * year / TU2S + deltaT #end time
 
-N   = 240           #number of bins in disk
+N   = 1024          #number of bins in disk
 
 
 ###***Define initial conditions***###
@@ -142,7 +142,7 @@ print(0,file=tpfile)
 tpfile.close()
 
 
-iout = int(np.ceil(end_sim / (deltaT * t_print)))
+iout = int(np.ceil(t_print / deltaT))
 rmin = RP
 rmax = Rhill_Saturn / DU2CM
 
