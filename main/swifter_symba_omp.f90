@@ -167,27 +167,30 @@ PROGRAM swiftest_symba_omp
                !CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)                                          ! CHECK THIS 
           !END IF
 
-          !
+          ldiscard = .FALSE. 
+          ldiscard_tp = .FALSE. 
           CALL symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc, plplenc_list)                                  ! CHECK THIS 
-          CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_pl1P, symba_pld1P, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
+          CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_plA, symba_pldA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
                qmin_ahi, j2rp2, j4rp4, eoffset)
-          CALL symba_discard_tp(t, npl, ntp, nsptp, symba_pl1P, symba_tp1P, symba_tpd1P, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
+          CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, symba_tpdA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
-          CALL symba_discard_all(t, npl, ntp, symba_plA, symba_tpA, symba_pldA, symba_tpdA)
-          IF ((nsppl > 0) .OR. (nsptp > 0)) THEN
-               !swifter_tp1P => symba_tp1P%helio%swifter
-               CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, symba_pldA,            &    ! CHECK THIS 
-                    symba_tpdA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard)
+
+          IF (ldiscard = .TRUE.) OR (ldiscard_tp = .TRUE.) THEN
+               CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
+                    discard_tpA)
+               CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, discard_plA,   &    ! CHECK THIS 
+                    discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard)
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
                nsptp = 0
-               NULLIFY(symba_pldA, symba_tpdA)                                                                                       ! CHECK THIS 
+               NULLIFY(discard_plA, discard_tpA)                                   ! CHECK THIS 
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1
                IF (iout == 0) THEN
-                    CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
+                    CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, &
+                     out_form, out_stat)
                     iout = istep_out
                END IF
           END IF
