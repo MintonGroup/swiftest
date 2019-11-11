@@ -48,7 +48,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       logical(LGT)                        :: open_space
       real(DP), parameter                 :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
       integer(I4B)                        :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
-      real(DP)                            :: ndz,deltaL,c,b,dr
+      real(DP)                            :: ndz,deltaL,Lorig,c,b,dr,Lring_orig
       
 
 ! Executable code
@@ -57,8 +57,10 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       ! First convert any recently destroyed satellites into ring material
       do i = 1,seeds%N
          if ((.not.seeds%active(i)).and.(seeds%Gm(i) > 0.0_DP)) then
+            Lring_orig = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
             Gmleft = seeds%Gm(i)
-            deltaL = Gmleft * sqrt((swifter_pl1P%mass + Gmleft) * seeds%a(i)) 
+            Lorig = Gmleft * sqrt((swifter_pl1P%mass + Gmleft) * seeds%a(i)) 
+            deltaL = 0.0_DP
             c = dzone_width * ring%RRL ! Create an approximately Gaussian distribution of mass
             a = Gmleft / (sqrt(2 * PI) * c)
             do j = 0,(ring%N - ring%iRRL)
@@ -69,16 +71,18 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
                      dGm = min(Gmleft,a * dr *exp(-(ring%r(nbin) - ring%RRL)**2 / (2 * c**2)))
                      ring%Gm(nbin) = ring%Gm(nbin) + dGm
                      Gmleft = Gmleft - dGm
-                     deltaL = deltaL - (dGm * ring%Iz(nbin) * ring%w(nbin))
+                     deltaL = deltaL + (dGm * ring%Iz(nbin) * ring%w(nbin))
                   end if
+                  if (j == 0) exit
                end do
                if (Gmleft == 0.0_DP) exit
             end do 
             seeds%Gm(i) = 0.0_DP
             j = ring%iRRL
+            deltaL = Lorig - deltaL
             dGm = deltaL / (ring%Iz(j) * ring%w(j) - ring%Iz(j + 1) * ring%w(j + 1))
-            ring%Gm(j) = ring%Gm(j) - dGm
-            ring%Gm(j + 1) = ring%Gm(j + 1) + dGm
+            ring%Gm(j) = ring%Gm(j) + dGm
+            ring%Gm(j + 1) = ring%Gm(j + 1) - dGm
             ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
             call ringmoons_viscosity(ring)
          end if
