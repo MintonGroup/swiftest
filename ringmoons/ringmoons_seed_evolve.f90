@@ -206,7 +206,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
                   seeds%a(i) = ((Li + Lj) / seeds%Gm(i))**2 / (swifter_pl1P%mass + seeds%Gm(i))
 
                   ! deactivate particle for now and position it at the FRL to potentially activate later
-                  seeds%Gm(j) = 0.0_DP
+                  seeds%Gm(j) = -1.0_DP
                   seeds%active(j) = .false.
                   seeds%a(j) = 0.0_DP
                end if

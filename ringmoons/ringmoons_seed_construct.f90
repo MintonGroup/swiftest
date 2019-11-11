@@ -100,7 +100,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       seeds%fz_bin_outer(:) = pack(seeds%fz_bin_outer(:),seeds%active(:))
       seeds%Torque(:) = pack(seeds%Torque(:),seeds%active(:))
       seeds%Ttide(:) = pack(seeds%Ttide(:),seeds%active(:))
-      seeds%active(:) = pack(seeds%active(:),seeds%active(:))
+      seeds%active(1:seeds%N) = .true. 
       
 
 

@@ -50,12 +50,12 @@ subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
 ! Executable code
  
       seed_bin = seeds%N + 1  
-      do i = 1, seeds%N
-         if (.not.seeds%active(i)) then
-            seed_bin = i
-            exit
-         end if
-      end do
+      !do i = 1, seeds%N
+      !   if (.not.seeds%active(i)) then
+      !      seed_bin = i
+      !      exit
+      !   end if
+      !end do
       if (seed_bin > seeds%N) then ! If no previously generated inactive seeds, we'll take advantage of Fortran 2003 automatic allocation and tack it on to the end  
          tmpring%N = 0
          new_seeds%N = seed_bin
