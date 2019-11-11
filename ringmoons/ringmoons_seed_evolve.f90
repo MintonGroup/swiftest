@@ -122,7 +122,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
             sigavg = sum(iring%Gsigma(ilo:ihi)) / real(nfz, kind = DP)
             Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
-            if (Gmsdot > VSMALL) then
+            if (Gmsdot / iseeds%Gm(i) > VSMALL) then
                 
                km(i) = dt * Gmsdot ! Grow the seed
 
@@ -157,16 +157,23 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    call ringmoons_deallocate(iring,iseeds)
 
    af(:) = ai(:) + af(:) / 6._DP
-   Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
-   Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
 
    stepfail = .false.
-   if (any(seeds%active(:).and.abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR).or.(any(Gmringf(:) < 0._DP))) then
+   if (any(seeds%active(:).and.abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
+      !write(*,*) 'Failed the step: Migration too far'
       stepfail = .true.
       return
    end if 
-   
 
+   Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
+
+   if (any(seeds%active(:).and.(Gmf(:) < 0.0_DP))) then
+      !write(*,*) 'Failed the step: Negative disk mass'
+      stepfail = .true.
+      return
+   end if 
+
+   Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
    seeds%a(:) = af(:)
    seeds%Gm(:) = Gmf(:)
    ring%Gm(:) = Gmringf(:)

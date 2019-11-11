@@ -91,17 +91,8 @@
 
 
       ! Adjust bin locations of RLs as necessary
-      iin = ring%iRRL 
-      do i = iin,ring%N
-         if (ring%RRL < ring%router(i)) exit
-         ring%iRRL = i
-      end do
-
-      iin = ring%iFRL 
-      do i = iin,ring%N
-         if (ring%FRL < ring%router(i)) exit
-         ring%iFRL = i
-      end do
+      ring%iFRL = ringmoons_ring_bin_finder(ring,ring%FRL)
+      ring%iRRL = ringmoons_ring_bin_finder(ring,ring%RRL)
 
       do concurrent(i = 1:seeds%N,seeds%active(i))
          seeds%Rhill(i) = seeds%Rhill(i) *  MratioHill

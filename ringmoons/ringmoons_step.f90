@@ -46,7 +46,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
 ! Internals
       integer(I4B) :: i,loop,seedloop,subcount
-      integer(I4B), parameter :: submax = 8
+      integer(I4B), parameter :: submax = 2
       real(DP) :: dtstab,dtleft,dtring,seedmass,dtseed,dtseedleft
       real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now
       CHARACTER(*),parameter :: ring_outfile = "ring.dat"   ! Name of ringmoons output binary file
@@ -121,7 +121,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                subcount = 0
                ring = old_ring
                seeds = old_seeds
-               write(*,*) 'Failed the step',dtring/dtseed
+               !write(*,*) 'Failed the step',dtring/dtseed
             else
                subcount = subcount + 1
                if (DESTRUCTION_EVENT) then
