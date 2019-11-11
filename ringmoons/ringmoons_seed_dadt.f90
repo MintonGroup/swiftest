@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque) result(adot)
+elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque,mdot) result(adot)
 
 ! Modules
       use module_parameters
@@ -35,13 +35,15 @@ elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque) result(adot)
       implicit none
 
 ! Arguments
-      real(DP), intent(in)                   :: GMP,Gmseed,a,Torque
+      real(DP), intent(in)                   :: GMP,Gmseed,a,Torque,mdot
       real(DP)                               :: adot
 
 ! Internals
+      real(DP)                               :: Lseed
 
 ! Executable code
-      
-      adot = 2 * Torque * sqrt(a / GMP) / Gmseed 
+      Lseed = Gmseed * sqrt((GMP + Gmseed) * a)
+      adot = 2 * Torque / Lseed - mdot * (2._DP / Gmseed + 1._DP / (GMP + Gmseed))
+      adot = adot * a
       return
 end function ringmoons_seed_dadt

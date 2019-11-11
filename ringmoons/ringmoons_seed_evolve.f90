@@ -43,15 +43,18 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    logical(LGT),intent(out)               :: stepfail
 
 ! Internals
-   integer(I4B)                              :: i, j, iRRL, nfz, seed_bin
-   real(DP)                                  :: dadt, e, inc, sigavg
-   real(DP),dimension(seeds%N)               :: Pa, Qa, Ra, Sa
-   real(DP),dimension(seeds%N)               :: Pm, Qm, Rm, Sm
-   real(DP),dimension(seeds%N)               :: daseeds,dGmseeds,ai,Gmi,fz_width
+   integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn
+   real(DP)                                  :: dadt, e, inc, sigavg, sigrem, Tr_evol,Gmsdot, n, Li, Lj
+   real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, Ttide
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk,Lfromring,Lseed_original,Ldiff
-   real(DP),dimension(0:ring%N+1)            :: dTorque_ring
+   real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmrdot,Gmringi,Gmringf,dGmring
+   real(DP),dimension(0:ring%N+1)            :: Tlind,Tring
+   real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
+   integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
+   real(DP),dimension(0:ring%N+1)            :: kr
+   real(DP),dimension(seeds%N)               :: ka,km
 
    
 
@@ -60,6 +63,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    e = 0.0_DP
    inc = 0.0_DP
    stepfail = .false.
+
+   !write(*,*) 'evolve'
+   !write(*,*) maxval(seeds%a),minval(seeds%a)
    
    iring%N = ring%N
    iseeds%N = seeds%N
@@ -70,169 +76,125 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    iseeds = seeds
    ai(:) = seeds%a(:)
    Gmi(:) = seeds%Gm(:)
-   !write(*,*) 'update_seeds'
-   call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
-   !write(*,*) 'calc_torques'
-   call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
+   Gmringi(:) = ring%Gm(:)
+   dTorque_ring(:) = 0.0_DP
+   Ttide(:) = 0.0_DP
+   ka(:) = 0._DP
+   km(:) = 0._DP
+   kr(:) = 0._DP
+   af(:) = 0._DP 
+   Gmf(:) = 0._DP
+   Gmringf(:) = 0._DP
+   !write(*,*) 'start angular momentum of seeds,ring,total'
+   !write(*,*) sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active),sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)),&
+   !           sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active) + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
 
-   seeds%Ttide(:) = iseeds%Ttide(:)
-   dTorque_ring(:) = iring%Torque(:)
-
-   Pa(:) = 0.0_DP
-   Pm(:) = 0.0_DP
-   Qa(:) = 0.0_DP
-   Qm(:) = 0.0_DP
-   Ra(:) = 0.0_DP
-   Rm(:) = 0.0_DP
-   Sa(:) = 0.0_DP
-   Sm(:) = 0.0_DP
-
-   ! First RK step
-   !write(*,*) 'RK1'
-   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
-   !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,Pa,Pm) 
-   do i = 1, iseeds%N
-      if (iseeds%active(i)) then
-         Pa(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
-         nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
-         sigavg = sum(iring%Gsigma(iseeds%fz_bin_inner(i):iseeds%fz_bin_outer(i))) / real(nfz, kind = DP)
-         Pm(i) = dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
+   !Li = seeds%Gm(seeds%N) * sqrt((swifter_pl1P%mass + seeds%Gm(seeds%N)) * seeds%a(seeds%N))
+   do rkn = 1,4 ! Runge-Kutta steps 
+      !write(*,*) 'rk: ',rkn
+      if (rkn > 1) then
+         iseeds%a(:)  = ai(:)       + rkh(rkn) * ka(:)
+         iseeds%Gm(:) = Gmi(:)      + rkh(rkn) * km(:)
+         iring%Gm(:)  = Gmringi(:)  + rkh(rkn) * kr(:)
+         iring%Gsigma(:) = iring%Gm(:) / iring%deltaA(:)
+         kr(:) = 0._DP
       end if
+      
+      !write(*,*) 'update_seeds'
+      call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
+
+      !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
+      !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,ka,km,e,inc,rkn) &
+      !$OMP REDUCTION(+:dTorque_ring,Ttide,af,Gmf,kr)
+      do i = 1, iseeds%N
+         !write(*,*) i,iseeds%a(i),iseeds%Gm(i)
+         if (iseeds%active(i)) then
+            ihi = min(iseeds%fz_bin_outer(i),iring%N)
+            ilo = max(iseeds%fz_bin_inner(i),1)
+            nfz = ihi - ilo + 1
+
+            ! Calculate torques
+            Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,iring,iseeds%Gm(i),iseeds%a(i),e,inc)
+
+            n = sqrt((swifter_pl1P%mass + iseeds%Gm(i)) / iseeds%a(i)**3)
+            iseeds%Ttide(i) = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),n,iseeds%a(i),e,inc) 
+            iseeds%Torque(i) = iseeds%Ttide(i) - sum(Tlind(:)) 
+
+            sigavg = sum(iring%Gsigma(ilo:ihi)) / real(nfz, kind = DP)
+            Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
+            if (Gmsdot > VSMALL) then
+                
+               km(i) = dt * Gmsdot ! Grow the seed
+
+               Gmrdot(ilo:ihi) = -Gmsdot * iring%Gsigma(ilo:ihi) / sigavg ! pull out of the ring proportional to its surface mass density
+               kr(ilo:ihi) = kr(ilo:ihi) + dt * Gmrdot(ilo:ihi)  ! Remove mass from the ring
+
+               ! Make sure we conserve angular momentum
+               Tr_evol = sum(Gmrdot(ilo:ihi) * iring%Iz(ilo:ihi) * iring%w(ilo:ihi))
+               
+               iseeds%Torque(i) = iseeds%Torque(i) - Tr_evol
+               Gmf(i) = Gmf(i) + rkmult(rkn) * km(i)
+            else
+               Gmsdot = 0.0_DP
+            end if
+
+            ka(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i),Gmsdot)
+            
+            ! Accumulate RK solutions for seeds
+            af(i)  = af(i)  + rkmult(rkn) * ka(i)
+
+            ! Save weighted averages of torques for later
+            dTorque_ring(:) = dTorque_ring(:) + rkmult(rkn) * Tlind(:)
+            Ttide(i) = Ttide(i) + rkmult(rkn) * iseeds%Ttide(i)
+         end if
+      end do
+      !$OMP END PARALLEL DO
+      ! Accumulate RK solutions for ring
+
+      Gmringf(:) = Gmringf(:) + rkmult(rkn) * kr(:)
+
    end do
-   !$OMP END PARALLEL DO
-
-   iseeds%a(:)  = ai(:)  + 0.5_DP * Pa(:)
-   iseeds%Gm(:) = Gmi(:) + 0.5_DP * Pm(:)
-   !write(*,*) 'update_seeds'
-   call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
-   !write(*,*) 'calc_torques'
-   call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
-   seeds%Ttide(:) = seeds%Ttide(:) + 2 * iseeds%Ttide(:)
-   dTorque_ring(:) = dTorque_ring(:) + 2 * iring%Torque(:)
-
-   ! Second RK step.
-   !write(*,*) 'RK2'
-   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
-   !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,Qa,Qm) 
-   do i = 1, iseeds%N
-      if (iseeds%active(i)) then
-         nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
-         sigavg = sum(iring%Gsigma(iseeds%fz_bin_inner(i):iseeds%fz_bin_outer(i))) / real(nfz, kind = DP)
-
-         Qa(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
-         Qm(i) = dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
-      end if
-   end do
-   !$OMP END PARALLEL DO
-
-   iseeds%a(:)  = ai(:)  + 0.5_DP * Qa(:)
-   iseeds%Gm(:) = Gmi(:) + 0.5_DP * Qm(:)
-   !write(*,*) 'update_seeds'
-   call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
-   !write(*,*) 'calc_torques'
-   call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
-   seeds%Ttide(:) = seeds%Ttide(:) + 2 * iseeds%Ttide(:)
-   dTorque_ring(:) = dTorque_ring(:) + 2 * iring%Torque(:)
-
-   ! Third RK step.
-   !write(*,*) 'RK3'
-   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
-   !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,Ra,Rm) 
-   do i = 1, iseeds%N
-      if (iseeds%active(i)) then
-         nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
-         sigavg = sum(iring%Gsigma(iseeds%fz_bin_inner(i):iseeds%fz_bin_outer(i))) / real(nfz, kind = DP)
-
-         Ra(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
-         Rm(i) = dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
-      end if
-   end do
-   !$OMP END PARALLEL DO
-
-   iseeds%a(:)  = ai(:)  + Ra(:)
-   iseeds%Gm(:) = Gmi(:) + Rm(:)
-   !write(*,*) 'update_seeds'
-   call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
-   !write(*,*) 'calc_torques'
-   call ringmoons_calc_torques(swifter_pl1P,iring,iseeds)
-   seeds%Ttide(:) = seeds%Ttide(:) + iseeds%Ttide(:)
-   dTorque_ring(:) = dTorque_ring(:) + iring%Torque(:)
-
-   ! Fourth RK step.
-   !write(*,*) 'RK3'
-   !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
-   !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,Sa,Sm) 
-   do i = 1, iseeds%N
-      if (iseeds%active(i)) then
-         nfz = iseeds%fz_bin_outer(i) - iseeds%fz_bin_inner(i) + 1
-         sigavg = sum(iring%Gsigma(iseeds%fz_bin_inner(i):iseeds%fz_bin_outer(i))) / real(nfz, kind = DP)
-
-         Sa(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i))
-         Sm(i) = dt * ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
-      end if
-   end do
-   !$OMP END PARALLEL DO
-
-   daseeds(:)  = (Pa(:) + 2 * Qa(:) + 2 * Ra(:) + Sa(:)) / 6._DP
-   dGmseeds(:) = (Pm(:) + 2 * Qm(:) + 2 * Rm(:) + Sm(:)) / 6._DP
-   
-
    call ringmoons_deallocate(iring,iseeds)
 
+   af(:) = ai(:) + af(:) / 6._DP
+   Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
+   Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
+
    stepfail = .false.
-   do i = 1,seeds%N
-      if (seeds%active(i).and.((abs(daseeds(i)) / ai(i) > RK_FACTOR))) then
-         stepfail = .true.
-         return
-      end if
-   end do
+   if (any(seeds%active(:).and.abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR).or.(any(Gmringf(:) < 0._DP))) then
+      stepfail = .true.
+      return
+   end if 
+   
+
+   seeds%a(:) = af(:)
+   seeds%Gm(:) = Gmf(:)
+   ring%Gm(:) = Gmringf(:)
+   ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
+
+   call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
 
    !write(*,*) 'calculate total torques'
-   seeds%Ttide(:) = seeds%Ttide(:) / 6._DP
+   seeds%Ttide(:) = Ttide(:) / 6._DP
    ring%Torque(:) = ring%Torque(:) + dTorque_ring(:) / 6._DP
 
-   !!write(*,*) maxval(daseeds(:),seeds%active(:))
+   !Lj = seeds%Gm(seeds%N) * sqrt((swifter_pl1P%mass + seeds%Gm(seeds%N)) * seeds%a(seeds%N))
+   !write(*,*) seeds%N,'Ts_evol = ',(Lj - Li) / dt
+   !read(*,*)
+
    swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - dt * sum(seeds%Ttide(:),seeds%active(:)) / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
    seeds%Torque(:) = 0.0_DP
+   seeds%Ttide(:) = 0.0_DP
 
-   ! Now move and grow the seeds
-   ! Get the mass out of the feeding zone (if it's there), starting from the bin the seed is in and working its way outward
-   !write(*,*) 'grow seeds'
-   do i = 1, seeds%N
-      if (seeds%active(i)) then
-         Lseed_original = seeds%Gm(i) * sqrt((swifter_pl1P%mass + seeds%Gm(i)) * seeds%a(i))
-         seed_bin = seeds%rbin(i)
-         Gmleft = dGmseeds(i)
-         Lfromring = 0.0_DP
-         nfz = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
-         do j = seeds%fz_bin_inner(i),seeds%fz_bin_outer(i) ! loop over bins of the feeding zone and grab mass from them
-            dGm = min(Gmleft / nfz,ring%Gm(j))
-            ring%Gm(j) = ring%Gm(j) - dGm
-            ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
-            Gmleft = Gmleft - dGm
-            ! Because the angular momentum of the bin is computed from the bin center, but the seed can be anywhere, 
-            ! we have to make sure to keep track of it
-            Lfromring = Lfromring + dGm * ring%Iz(j) * ring%w(j)
-         end do
-         ! If there is still mass left, take it from the innermost feeding zone
-         dGm = min(Gmleft,ring%Gm(seed_bin)) 
-         ring%Gm(seed_bin) = ring%Gm(seed_bin) - dGm
-         Lfromring = Lfromring + dGm * ring%Iz(seed_bin) * ring%w(seed_bin)
-         ring%Gsigma(seed_bin) = ring%Gm(seed_bin) / ring%deltaA(seed_bin)
-         Gmleft = Gmleft - dGm
-         seeds%Gm(i) = seeds%Gm(i) + (dGmseeds(i) - Gmleft)
-         
-         ! Conserve angular momentum 
-         da =  ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / swifter_pl1P%mass - seeds%a(i)
-         seeds%a(i) = ((Lseed_original + Lfromring) / seeds%Gm(i))**2 / (swifter_pl1P%mass + seeds%Gm(i))
-      end if
-   end do
 
+   !write(*,*) 'end angular momentum of seeds,ring,total'
+   !write(*,*) sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active),sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)),&
+   !           sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active) + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+   !read(*,*)
    !write(*,*) 'destruction'
    do i = 1, seeds%N
       if (seeds%active(i)) then
-         seeds%a(i) = seeds%a(i) + daseeds(i)
-         fz_width(i) = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
+         fz_width(i) = 2 * FEEDING_ZONE_FACTOR * seeds%Rhill(i)
          if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
             write(*,*) 'We are on our way to destruction!'
             DESTRUCTION_EVENT = .true.
@@ -242,21 +204,20 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       end if
    end do
 
-   !call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
-
 
    !I'm hungry! What's there to eat?! Look for neighboring seeds
    !write(*,*) 'chomp'
    do i = 1, seeds%N
       if (seeds%active(i)) then
-         do j = 1,seeds%N
-            if (seeds%active(j).and.(j /= i)) then
+         do j = i+1,seeds%N
+            if (seeds%active(j)) then
                if ((seeds%a(j) > seeds%a(i) - fz_width(i)).and.(seeds%a(j) < seeds%a(i) + fz_width(i))) then ! This one is in the feeding zone
-                  ! conserve orbital angular momentum
-                  seeds%a(i) = ((seeds%Gm(i) * sqrt(seeds%a(i)) + seeds%Gm(j) * sqrt(seeds%a(j))) &
-                                 / (seeds%Gm(i) + seeds%Gm(j)))**2
-                  ! conserve mass
+                  ! conserve both mass and angular momentum
+                  Li = seeds%Gm(i) * sqrt((swifter_pl1P%mass + seeds%Gm(i)) * seeds%a(i))
+                  Lj = seeds%Gm(j) * sqrt((swifter_pl1P%mass + seeds%Gm(j)) * seeds%a(j))
                   seeds%Gm(i) = seeds%Gm(i) + seeds%Gm(j)
+                  seeds%a(i) = ((Li + Lj) / seeds%Gm(i))**2 / (swifter_pl1P%mass + seeds%Gm(i))
+
                   ! deactivate particle for now and position it at the FRL to potentially activate later
                   seeds%Gm(j) = 0.0_DP
                   seeds%active(j) = .false.

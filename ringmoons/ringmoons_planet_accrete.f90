@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-    subroutine ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
+    subroutine ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dt)
 
 ! Modules
       use module_parameters
@@ -39,10 +39,11 @@
       type(swifter_pl),pointer :: swifter_pl1P
       type(ringmoons_ring),intent(inout) :: ring
       type(ringmoons_seeds),intent(inout) :: seeds
+      real(DP),intent(in)                 :: dt
 
 ! Internals
       integer(I4B) :: i,j,iin
-      real(DP) :: rlo,rhi,GMP, RP,rhoP, Mratio, Rratio, Mratiosqrt,MratioHill
+      real(DP) :: rlo,rhi,GMP, RP,rhoP, Mratio, Rratio, Mratiosqrt,MratioHill,deltaMp
       real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew
       real(DP),dimension(1:ring%N) :: rhill
      
@@ -79,6 +80,9 @@
       MratioHill = Mratio**(-1._DP / 3._DP)
       ! update body-dependent parameters as needed
       do concurrent(i = 1:ring%N)
+         if ((Mratiosqrt - 1._DP > epsilon(1._DP)).and.(ring%Gm(i) > VSMALL)) then
+            ring%Torque(i) = ring%Torque(i) - ring%Gm(i) * ring%Iz(i) * ring%w(i) * (Mratiosqrt - 1._DP) / dt
+         end if
          ring%w(i) = ring%w(i) * Mratiosqrt
          ring%r_hstar(i) = ring%r_hstar(i) * MRatioHill
       end do
@@ -101,6 +105,7 @@
 
       do concurrent(i = 1:seeds%N,seeds%active(i))
          seeds%Rhill(i) = seeds%Rhill(i) *  MratioHill
+         seeds%a(i) = seeds%a(i) * (swifter_pl1P%mass / Mratio + seeds%Gm(i)) / (swifter_pl1P%mass + seeds%Gm(i))
       end do
 
       

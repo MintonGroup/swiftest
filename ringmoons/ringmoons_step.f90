@@ -89,13 +89,14 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          dtring = ringmoons_ring_timestep(swifter_pl1P,ring,dtleft)
          !write(*,*) 'dtring = ',dtring
 
+         !write(*,*) 'planet_accrete'
+         call ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dtring)
+
 !         write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dtring)
          ring%Torque(:) = 0.0_DP
 
-         !write(*,*) 'planet_accrete'
-         call ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
-         
+
          old_ring%N = ring%N
          old_seeds%N = seeds%N
          call ringmoons_allocate(old_ring,old_seeds)

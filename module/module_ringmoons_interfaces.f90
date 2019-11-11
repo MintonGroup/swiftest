@@ -121,7 +121,7 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_planet_accrete(swifter_pl1P,ring,seeds)
+         subroutine ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dt)
          use module_parameters
          use module_swifter
          use module_ringmoons
@@ -129,6 +129,7 @@ module module_ringmoons_interfaces
          type(swifter_pl),pointer :: swifter_pl1P
          type(ringmoons_ring),intent(inout) :: ring
          type(ringmoons_seeds),intent(inout) :: seeds
+         real(DP),intent(in) :: dt
          end subroutine ringmoons_planet_accrete
       end interface
 
@@ -211,12 +212,12 @@ module module_ringmoons_interfaces
 
 
       interface
-         elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque) result(adot)
+         elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque,mdot) result(adot)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
-         real(DP), intent(in)                   :: GMP,Gmseed,a,Torque
+         real(DP), intent(in)                   :: GMP,Gmseed,a,Torque,mdot
          real(DP)                               :: adot
          end function ringmoons_seed_dadt
       end interface

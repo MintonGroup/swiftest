@@ -92,17 +92,17 @@ subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
       Lfromring = seeds%Gm(i) * ring%Iz(j) * ring%w(j)
 
       ! Adjust the semimajor axis in order to conserve angular momentum 
-      seeds%a(i) = (Lfromring / seeds%Gm(i))**2 / swifter_pl1P%mass
-      j = ringmoons_ring_bin_finder(ring,seeds%a(i))
 
       seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
 
       ! Find the corresponding ring bins that the seeds are embedded (returns the final ring bin if it is outside, which always has 0 mass)
+      ring%Gm(j) = ring%Gm(j) - seeds%Gm(i)
+      ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
+      seeds%a(i) = (Lfromring / seeds%Gm(i))**2 / (swifter_pl1P%mass + seeds%Gm(i))
+      j = ringmoons_ring_bin_finder(ring,seeds%a(i))
       fz_width = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
       seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width)
       seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width)
-      ring%Gm(j) = ring%Gm(j) - seeds%Gm(i)
-      ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
 
       return
 
