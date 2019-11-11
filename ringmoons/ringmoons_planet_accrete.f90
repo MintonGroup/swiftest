@@ -44,32 +44,36 @@
 ! Internals
       integer(I4B) :: i,j,iin
       real(DP) :: rlo,rhi,GMP, RP,rhoP, Mratio, Rratio, Mratiosqrt,MratioHill,deltaMp
-      real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew
+      real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew, Lorig,Mring
       real(DP),dimension(1:ring%N) :: rhill
      
 ! Executable code
       ! Save original mass and radius to use later
       Mratio = swifter_pl1P%mass
       Rratio = swifter_pl1P%radius
+      Lplanet = swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * (swifter_pl1P%radius)**2
       do 
          iin = ring%inside
-         do i = 1,iin 
-
-           
+         do i = iin,1,-1
+            if (ring%Gm(i) / swifter_pl1P%mass < epsilon(1._DP)) exit
             !Conserve angular momentum 
-            Ltot = ring%Gm(i) * ring%Iz(i) * ring%w(i) + &
-                   swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%radius**2
+            Lring = ring%Gm(i) * ring%Iz(i) * ring%w(i)
+            Lorig = Lplanet + Lring 
             
             !Add ring mass to planet
             Mnew = swifter_pl1P%mass + ring%Gm(i)
             Rnew = swifter_pl1P%radius * (Mnew / swifter_pl1P%mass)**(1.0_DP / 3.0_DP)
             swifter_pl1P%mass = Mnew
             swifter_pl1P%radius = Rnew
+             
+            swifter_pl1P%rot(3) = Lorig / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2)
 
-            swifter_pl1P%rot(3) = Ltot / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
-            
+            Lplanet = swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * (swifter_pl1P%radius)**2
+
             ring%Gm(i) = 0.0_DP
             ring%Gsigma(i) = 0.0_DP
+            
+
          end do
          if (ring%rinner(iin) > swifter_pl1P%radius) exit !Find out if we need to update the inside bin
          ring%inside = ring%inside + 1
@@ -79,13 +83,12 @@
       Mratiosqrt = sqrt(Mratio)
       MratioHill = Mratio**(-1._DP / 3._DP)
       ! update body-dependent parameters as needed
-      do concurrent(i = 1:ring%N)
-         if ((Mratiosqrt - 1._DP > epsilon(1._DP)).and.(ring%Gm(i) > VSMALL)) then
-            ring%Torque(i) = ring%Torque(i) - ring%Gm(i) * ring%Iz(i) * ring%w(i) * (Mratiosqrt - 1._DP) / dt
-         end if
-         ring%w(i) = ring%w(i) * Mratiosqrt
-         ring%r_hstar(i) = ring%r_hstar(i) * MRatioHill
-      end do
+      Mring = sum(ring%Gm(:))
+      if ((Mratiosqrt - 1._DP) > tiny(1._DP)) then
+         ring%Torque(:) = ring%Torque(:) - ring%Gm(:) * ring%Iz(:) * ring%w(:) * (Mratiosqrt - 1._DP) / dt
+         ring%w(:) = ring%w(:) * Mratiosqrt
+         ring%r_hstar(:) = ring%r_hstar(:) * MRatioHill
+      end if
       ring%FRL = ring%FRL * Rratio
       ring%RRL = ring%RRL * Rratio 
 
@@ -94,10 +97,13 @@
       ring%iFRL = ringmoons_ring_bin_finder(ring,ring%FRL)
       ring%iRRL = ringmoons_ring_bin_finder(ring,ring%RRL)
 
-      do concurrent(i = 1:seeds%N,seeds%active(i))
-         seeds%Rhill(i) = seeds%Rhill(i) *  MratioHill
-         seeds%a(i) = seeds%a(i) * (swifter_pl1P%mass / Mratio + seeds%Gm(i)) / (swifter_pl1P%mass + seeds%Gm(i))
-      end do
+      
+      !do (i = 1,seeds%N)
+         !if (seeds%active(i)) then
+      seeds%Rhill(:) = seeds%Rhill(:) *  MratioHill
+      seeds%a(:) = seeds%a(:) * (swifter_pl1P%mass / Mratio + seeds%Gm(:)) / (swifter_pl1P%mass + seeds%Gm(:))
+         !end if
+      !end do
 
       
       return

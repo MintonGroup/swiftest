@@ -45,10 +45,10 @@ SUBROUTINE ringmoons_viscosity(ring)
 ! Executable code
 
    !do concurrent (i = 1:ring%N,ring%Gsigma(i) > VSMALL_SQRT) 
-   do i = 1, ring%N
-      if (ring%Gsigma(i) <= VSMALL_SQRT) then
-         ring%nu(i) = 0.0_DP
-      else
+   !do i = 1, ring%N
+   !   if (ring%Gsigma(i) <= VSMALL_SQRT) then
+   !      ring%nu(i) = 0.0_DP
+   !   else
       !   kappa = ringmoons_transition_function(ring%r_hstar(i))
       !   eta = 1._DP - kappa
       !   sigma_r = kappa * sqrt(ring%Gm_pdisk / ring%r_pdisk) + eta * (2 * ring%r_pdisk * ring%w(i))
@@ -69,9 +69,9 @@ SUBROUTINE ringmoons_viscosity(ring)
 !         nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
 !         ring%nu(i) = nu_trans + nu_grav + nu_coll
 !      end if
-      ring%nu(i) = (PI * ring%Gsigma(i))**2 / (ring%w(i))**3
-      end if
-   end do
+      ring%nu(:) = (PI * ring%Gsigma(:))**2 / (ring%w(:))**3
+      !end if
+   !end do
 
 
 END SUBROUTINE ringmoons_viscosity

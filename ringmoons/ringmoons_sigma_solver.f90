@@ -52,11 +52,16 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
 
       fac(:)  = 12 * dt / (ring%deltaX)**2  / ring%X2(:)
       fac2(:) = fac * 2._DP / (3 * PI * sqrt(GMP))
-      do concurrent (i = 1:N) 
-         Snew(i) = S(i)     + fac(i) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1))
-         Snew(i) = Snew(i) - fac2(i) * (ring%Torque(i + 1) - 2 * ring%Torque(i) + ring%Torque(i - 1))
-         Snew(i) = max(Snew(i),0.0_DP) 
+      !do concurrent (i = 1:N) 
+      !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(PRIVATE)&
+      !$OMP SHARED(N,ring,fac,fac2,Snew,S)
+      do i = 1,N
+         Snew(i) = S(i) + fac(i) * (ring%nu(i + 1) * S(i + 1) - 2 * ring%nu(i) * S(i) + ring%nu(i - 1) * S(i - 1)) &
+                        - fac2(i) * (ring%Torque(i + 1) - 2 * ring%Torque(i) + ring%Torque(i - 1))
       end do
+      !$OMP END PARALLEL DO
+     
+      where(Snew(:) < 0.0_DP) Snew = 0.0_DP 
 
       ring%Gsigma(1:N) = Snew(1:N) / ring%X(1:N)
       ring%Gm(1:N) = ring%Gsigma(1:N) * ring%deltaA(1:N)

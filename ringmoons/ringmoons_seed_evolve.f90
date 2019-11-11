@@ -48,7 +48,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, Ttide
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
-   real(DP)                                  :: da,Gmleft,dGm,Gmdisk,Lfromring,Lseed_original,Ldiff
+   real(DP)                                  :: da,Gmleft,dGm,Gmdisk
    real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmrdot,Gmringi,Gmringf,dGmring
    real(DP),dimension(0:ring%N+1)            :: Tlind,Tring
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
@@ -108,7 +108,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       !$OMP REDUCTION(+:dTorque_ring,Ttide,af,Gmf,kr)
       do i = 1, iseeds%N
          !write(*,*) i,iseeds%a(i),iseeds%Gm(i)
-         if (iseeds%active(i)) then
+         !if (iseeds%active(i)) then
             ihi = min(iseeds%fz_bin_outer(i),iring%N)
             ilo = max(iseeds%fz_bin_inner(i),1)
             nfz = ihi - ilo + 1
@@ -146,7 +146,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
             ! Save weighted averages of torques for later
             dTorque_ring(:) = dTorque_ring(:) + rkmult(rkn) * Tlind(:)
             Ttide(i) = Ttide(i) + rkmult(rkn) * iseeds%Ttide(i)
-         end if
+         !end if
       end do
       !$OMP END PARALLEL DO
       ! Accumulate RK solutions for ring
@@ -159,7 +159,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    af(:) = ai(:) + af(:) / 6._DP
 
    stepfail = .false.
-   if (any(seeds%active(:).and.abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
+   if (any(abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
       !write(*,*) 'Failed the step: Migration too far'
       stepfail = .true.
       return
@@ -167,7 +167,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
 
-   if (any(seeds%active(:).and.(Gmf(:) < 0.0_DP))) then
+   !if (any(seeds%active(:).and.(Gmf(:) < 0.0_DP))) then
+   if (any(Gmf(:) < 0.0_DP)) then
       !write(*,*) 'Failed the step: Negative disk mass'
       stepfail = .true.
       return
@@ -185,31 +186,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    seeds%Ttide(:) = Ttide(:) / 6._DP
    ring%Torque(:) = ring%Torque(:) + dTorque_ring(:) / 6._DP
 
-   !Lj = seeds%Gm(seeds%N) * sqrt((swifter_pl1P%mass + seeds%Gm(seeds%N)) * seeds%a(seeds%N))
-   !write(*,*) seeds%N,'Ts_evol = ',(Lj - Li) / dt
-   !read(*,*)
-
    swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - dt * sum(seeds%Ttide(:),seeds%active(:)) / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
    seeds%Torque(:) = 0.0_DP
    seeds%Ttide(:) = 0.0_DP
 
-
-   !write(*,*) 'end angular momentum of seeds,ring,total'
-   !write(*,*) sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active),sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)),&
-   !           sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active) + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
-   !read(*,*)
-   !write(*,*) 'destruction'
-   do i = 1, seeds%N
-      if (seeds%active(i)) then
-         fz_width(i) = 2 * FEEDING_ZONE_FACTOR * seeds%Rhill(i)
-         if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
-            write(*,*) 'We are on our way to destruction!'
-            DESTRUCTION_EVENT = .true.
-            DESTRUCTION_COUNTER = 0
-            seeds%active(i) = .false.
-         end if
-      end if
-   end do
 
 
    !I'm hungry! What's there to eat?! Look for neighboring seeds
@@ -230,12 +210,26 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
                   seeds%active(j) = .false.
                   seeds%a(j) = 0.0_DP
                end if
-            end if
+           end if
          end do
       end if
    end do        
    !write(*,*) 'update_seeds'
    call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
+   
+
+
+   do i = 1, seeds%N
+      if (seeds%active(i)) then
+         fz_width(i) = 2 * FEEDING_ZONE_FACTOR * seeds%Rhill(i)
+         if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
+            write(*,*) 'We are on our way to destruction!'
+            DESTRUCTION_EVENT = .true.
+            DESTRUCTION_COUNTER = 0
+            seeds%active(i) = .false.
+         end if
+      end if
+   end do
 
    return
 
