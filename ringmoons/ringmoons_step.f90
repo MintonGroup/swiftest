@@ -159,20 +159,20 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
          Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
          Lerror = (Ltot_now - Ltot_orig) / Ltot_orig
-         !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
-         if ((Mtot_now /= Mtot_now).or.(Ltot_now /= Ltot_now)) then
-            write(*,*) 'ERROR at time: ',t + (dtin - dtleft)
-            write(*,*) 'Seeds:'
-            do i = 1,seeds%N
-               if (.not.seeds%active(i)) cycle
-               write(*,*)  i,seeds%a(i),seeds%Gm(i)
-            end do
-            write(*,*) 'Ring:'
-            do i = 0,ring%N + 1
-               write(*,*) i,ring%r(i),ring%Gsigma(i),ring%Gm(i)
-            end do
-            call util_exit(FAILURE)
-         end if 
+         Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+         !if ((Mtot_now /= Mtot_now).or.(Ltot_now /= Ltot_now)) then
+         !   write(*,*) 'ERROR at time: ',t + (dtin - dtleft)
+         !   write(*,*) 'Seeds:'
+         !   do i = 1,seeds%N
+         !      if (.not.seeds%active(i)) cycle
+         !      write(*,*)  i,seeds%a(i),seeds%Gm(i)
+         !   end do
+         !   write(*,*) 'Ring:'
+         !   do i = 0,ring%N + 1
+         !      write(*,*) i,ring%r(i),ring%Gsigma(i),ring%Gm(i)
+         !   end do
+         !   call util_exit(FAILURE)
+         !end if 
          if (dtleft <= 0.0_DP) exit
       end do 
 
