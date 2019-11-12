@@ -44,8 +44,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
 ! Internals
    integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn
-   real(DP)                                  :: dadt, e, inc, sigavg, sigrem, Tr_evol,Gmsdot, n, Li, Lj
-   real(DP),dimension(count(seeds%active))               :: ai,af,Gmi,Gmf,fz_width, Ttide
+   real(DP)                                  :: dadt, e, inc, sigavg, sigsum, Tr_evol,Gmsdot, n, Li, Lj
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
@@ -54,7 +53,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
    real(DP),dimension(0:ring%N+1)            :: kr
-   real(DP),dimension(count(seeds%active))               :: ka,km
+   real(DP),dimension(count(seeds%active))   :: ka,km
+   real(DP),dimension(count(seeds%active))   :: ai,af,Gmi,Gmf,fz_width, Ttide
+   integer(I4B)                              :: Nactive 
 
    
 
@@ -63,9 +64,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    e = 0.0_DP
    inc = 0.0_DP
    stepfail = .false.
+   Nactive = count(seeds%active(:))
 
    iring%N = ring%N
-   iseeds%N = count(seeds%active(:)) 
+   iseeds%N = Nactive
    call ringmoons_allocate(iring,iseeds)
 
    ! Save initial state of the seeds
@@ -78,7 +80,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    iseeds%fz_bin_outer(:) = pack(seeds%fz_bin_outer(:),seeds%active(:))
    iseeds%Torque(:) = pack(seeds%Torque(:),seeds%active(:))
    iseeds%Ttide(:) = pack(seeds%Ttide(:),seeds%active(:))
-   iseeds%active(1:seeds%N) = .true. 
+   iseeds%active(1:Nactive) = .true. 
 
    ai(:) = iseeds%a(:)
    Gmi(:) = iseeds%Gm(:)
@@ -99,14 +101,16 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          iring%Gm(:)  = Gmringi(:)  + rkh(rkn) * kr(:)
          iring%Gsigma(:) = iring%Gm(:) / iring%deltaA(:)
          kr(:) = 0._DP
+         ka(:) = 0._DP
+         km(:) = 0._DP
       end if
       
       call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
 
       !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
-      !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,ka,km,e,inc,rkn) &
+      !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,ka,km,e,inc,rkn,Nactive) &
       !$OMP REDUCTION(+:dTorque_ring,Ttide,af,Gmf,kr)
-      do i = 1, iseeds%N
+      do i = 1, Nactive
          ihi = min(iseeds%fz_bin_outer(i),iring%N)
          ilo = max(iseeds%fz_bin_inner(i),1)
          nfz = ihi - ilo + 1
@@ -118,28 +122,28 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          iseeds%Ttide(i) = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),n,iseeds%a(i),e,inc) 
          iseeds%Torque(i) = iseeds%Ttide(i) - sum(Tlind(:)) 
 
-         sigavg = sum(iring%Gsigma(ilo:ihi)) / real(nfz, kind = DP)
-         Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
-         if (Gmsdot / iseeds%Gm(i) > tiny(1._DP)) then
-             
-            km(i) = dt * Gmsdot ! Grow the seed
+         sigsum = sum(iring%Gsigma(ilo:ihi))
+         sigavg = sigsum / real(nfz, kind = DP)
+         if (sigavg / maxval(iring%Gsigma) > epsilon(1._DP)) then
+            Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
+            Gmrdot(ilo:ihi) = -Gmsdot * iring%Gsigma(ilo:ihi) / sigsum ! pull out of the ring proportional to its surface mass density
 
-            Gmrdot(ilo:ihi) = -Gmsdot * iring%Gsigma(ilo:ihi) / sigavg ! pull out of the ring proportional to its surface mass density
-            kr(ilo:ihi) = kr(ilo:ihi) + dt * Gmrdot(ilo:ihi)  ! Remove mass from the ring
-
-            ! Make sure we conserve angular momentum
+            ! Make sure we conserve angular momentum during growth
             Tr_evol = sum(Gmrdot(ilo:ihi) * iring%Iz(ilo:ihi) * iring%w(ilo:ihi))
             
-            iseeds%Torque(i) = iseeds%Torque(i) - Tr_evol
-            Gmf(i) = Gmf(i) + rkmult(rkn) * km(i)
          else
+            Tr_evol = 0._DP
             Gmsdot = 0.0_DP
+            Gmrdot(ilo:ihi) = 0.0_DP
          end if
 
-         ka(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i),Gmsdot)
+         kr(ilo:ihi) = kr(ilo:ihi) + dt * Gmrdot(ilo:ihi)  ! Remove mass from the ring
+         km(i) = dt * Gmsdot ! Grow the seed
+         ka(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i) - Tr_evol,Gmsdot)
          
          ! Accumulate RK solutions for seeds
          af(i)  = af(i)  + rkmult(rkn) * ka(i)
+         Gmf(i) = Gmf(i) + rkmult(rkn) * km(i)
 
          ! Save weighted averages of torques for later
          dTorque_ring(:) = dTorque_ring(:) + rkmult(rkn) * Tlind(:)
@@ -157,24 +161,51 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    stepfail = .false.
    if (any(abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
-      !write(*,*) 'Failed the step: Migration too far'
+      write(*,*) 'Failed the step: Migration too far'
       stepfail = .true.
       return
    end if 
+
+
+
+   if (abs(1.0_DP + sum(Gmf(:)) / sum(Gmringf(:))) > 10 * epsilon(1._DP)) then
+      write(*,*) 'Mass conservation fail'
+      write(*,*) 1.0_DP + sum(Gmf(:)) / sum(Gmringf(:))
+      stepfail = .true.
+      return
+   end if
+
 
    Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
    Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
 
-   if (any(Gmringf(:) < 0.0_DP)) then
-      !write(*,*) 'Failed the step: Negative disk mass'
+
+   if (any(abs(Gmf(:) - Gmi(:)) / Gmi(:) > 2 * RK_FACTOR)) then
+      write(*,*) 'Failed the step: Growth too fast'
       stepfail = .true.
       return
    end if 
 
+
+
+   if (any(Gmringf(:) < 0.0_DP)) then
+      write(*,*) 'Failed the step: Negative disk mass'
+      stepfail = .true.
+      return
+   end if 
+
+
+   ! save final state of seeds and ring
    seeds%N = iseeds%N 
    seeds%a(1:seeds%N) = af(:)
    seeds%Gm(1:seeds%N) = Gmf(:)
    seeds%active(1:seeds%N) = .true.
+   
+   if (size(seeds%active) > seeds%N) then
+      seeds%active(seeds%N+1:size(seeds%active)) = .false.
+      seeds%Gm(seeds%N+1:size(seeds%active)) = 0.0_DP
+   end if
+      
    ring%Gm(:) = Gmringf(:)
    ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
 

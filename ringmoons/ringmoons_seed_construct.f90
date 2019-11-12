@@ -57,6 +57,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       ! First convert any recently destroyed satellites into ring material
       do i = 1,seeds%N
          if ((.not.seeds%active(i)).and.(seeds%Gm(i) > 0.0_DP)) then
+            write(*,*) 'Destruction activated!',i,seeds%a(i),seeds%Gm(i)
             Lring_orig = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
             Gmleft = seeds%Gm(i)
             Lorig = Gmleft * sqrt((swifter_pl1P%mass + Gmleft) * seeds%a(i)) 
@@ -101,6 +102,10 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       seeds%Torque(:) = pack(seeds%Torque(:),seeds%active(:))
       seeds%Ttide(:) = pack(seeds%Ttide(:),seeds%active(:))
       seeds%active(1:seeds%N) = .true. 
+      if (size(seeds%active) > seeds%N) then
+         seeds%active(seeds%N+1:size(seeds%active)) = .false.
+         seeds%Gm(seeds%N+1:size(seeds%active)) = 0.0_DP
+      end if
       
 
       ! Make seeds small enough to fit into each bin 

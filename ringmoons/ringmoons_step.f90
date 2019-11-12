@@ -55,6 +55,8 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       logical(LGT)                                    :: stepfail
       type(swifter_pl), pointer                       :: tmp_swifter_pl1P
       real(DP),dimension(0:ring%N+1)                  :: dTorque
+      real(DP)                                        :: dMerror,Merror_old
+      real(DP),save                                   :: dMerror_max = 0._DP
 
 ! Executable code
       !if (lfirst) then
@@ -90,10 +92,42 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          !write(*,*) 'dtring = ',dtring
 
          !write(*,*) 'planet_accrete'
+         !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+         !Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+         !Merror_old = Merror
+         !write(*,*) 'Merror = ',Merror
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dtring)
+         !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+         !Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+         !write(*,*) 'Merror = ',Merror
+         !dMerror = (Merror - Merror_old) 
+         !if (abs(dMerror) > dMerror_max) then
+         !   write(*,*) 'A max in the mass error occurred!'
+         !   write(*,*) 'after planet_accrete'
+         !   write(*,*) 'change = ',dMerror
+         !   dMerror_max = abs(dMerror)
+         !end if
+         !if (abs(dMerror) > 10 * epsilon(1._DP)) call util_exit(FAILURE)
+         !Merror_old = Merror
 
-!         write(*,*) 'sigma_solver'
+         !write(*,*) 'before sigma_solver'
+         !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+         !Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+         !write(*,*) 'Merror = ',Merror
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dtring)
+         !write(*,*) 'sigma_solver complete'
+         !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+         !Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+         !write(*,*) 'Merror = ',Merror
+         !dMerror = (Merror - Merror_old) 
+         !if (abs(dMerror) > dMerror_max) then
+         !   write(*,*) 'A max in the mass error occurred!'
+         !   write(*,*) 'after sigma_solver'
+         !   write(*,*) 'change = ',dMerror
+         !   dMerror_max = abs(dMerror)
+         !end if
+         !if (abs(dMerror) > 10 * epsilon(1._DP)) call util_exit(FAILURE)
+         !Merror_old = Merror
          ring%Torque(:) = 0.0_DP
 
 
@@ -111,13 +145,36 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                write(*,*) 'LOOPMAX reached in seed evolution. Ringmoons_step failed'
                call util_exit(FAILURE)
             end if
+            !write(*,*) 'before seed_construct'
+            !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+            !Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+            !Merror_old = Merror
+            !write(*,*) 'Merror = ',Merror
             call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
+            !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+            !Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+            !write(*,*) 'Merror = ',Merror
+            !dMerror = (Merror - Merror_old) 
+            !if (abs(dMerror) > dMerror_max) then
+            !   write(*,*) 'A max in the mass error occurred!'
+            !   write(*,*) 'after seed_construct'
+            !   write(*,*) 'change = ',dMerror
+            !   dMerror_max = abs(dMerror)
+               !read(*,*)
+            !end if
+            !if (abs(dMerror) > 10 * epsilon(1._DP)) call util_exit(FAILURE)
+            !Merror_old = Merror
             call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
             dtseed = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtseed) 
             !ring%Torque(:) = 0.0_DP  
             !write(*,*) 'evolve'
             !write(*,*) seedloop,'evolve',dtring/dtseed
+            !write(*,*) 'before seed_evolve'
+            !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+            !Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+            !write(*,*) 'Merror = ',Merror
             call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtseed,stepfail)
+
             if (stepfail) then
                dtseed = dtseed / submax
                subcount = 0
@@ -125,6 +182,18 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                seeds = old_seeds
                !write(*,*) 'Failed the step',dtring/dtseed
             else
+               !Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+               !Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
+               !write(*,*) 'Merror = ',Merror
+               !dMerror = (Merror - Merror_old) 
+               !if (abs(dMerror) > dMerror_max) then
+               !   write(*,*) 'A max in the mass error occurred!'
+               !   write(*,*) 'after seed_evolve'
+               !   write(*,*) 'change = ',dMerror
+               !   dMerror_max = abs(dMerror)
+               !end if
+               !if (abs(dMerror) > 10 * epsilon(1._DP)) call util_exit(FAILURE)
+               !Merror_old = Merror
                subcount = subcount + 1
                if (DESTRUCTION_EVENT) then
                   call ringmoons_io_write_frame(t + (dtin - dtleft - dtseedleft), ring, seeds, ring_outfile, out_stat = "APPEND")
@@ -153,13 +222,15 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
          dtleft = dtleft - dtring
 
+         if (dtleft <= 0.0_DP) exit
+      end do 
          Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
          Ltot_now = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
          Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
          Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+         Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
          Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
          Lerror = (Ltot_now - Ltot_orig) / Ltot_orig
-         Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
          !if ((Mtot_now /= Mtot_now).or.(Ltot_now /= Ltot_now)) then
          !   write(*,*) 'ERROR at time: ',t + (dtin - dtleft)
          !   write(*,*) 'Seeds:'
@@ -173,8 +244,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          !   end do
          !   call util_exit(FAILURE)
          !end if 
-         if (dtleft <= 0.0_DP) exit
-      end do 
 
 
       RETURN
