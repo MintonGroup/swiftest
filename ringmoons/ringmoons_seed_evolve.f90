@@ -45,7 +45,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 ! Internals
    integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn
    real(DP)                                  :: dadt, e, inc, sigavg, sigrem, Tr_evol,Gmsdot, n, Li, Lj
-   real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, Ttide
+   real(DP),dimension(count(seeds%active))               :: ai,af,Gmi,Gmf,fz_width, Ttide
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
@@ -54,7 +54,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
    real(DP),dimension(0:ring%N+1)            :: kr
-   real(DP),dimension(seeds%N)               :: ka,km
+   real(DP),dimension(count(seeds%active))               :: ka,km
 
    
 
@@ -65,14 +65,23 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    stepfail = .false.
 
    iring%N = ring%N
-   iseeds%N = seeds%N
+   iseeds%N = count(seeds%active(:)) 
    call ringmoons_allocate(iring,iseeds)
 
    ! Save initial state of the seeds
    iring = ring 
-   iseeds = seeds
-   ai(:) = seeds%a(:)
-   Gmi(:) = seeds%Gm(:)
+   iseeds%a(:) = pack(seeds%a(:),seeds%active(:))
+   iseeds%Gm(:) = pack(seeds%Gm(:),seeds%active(:))
+   iseeds%Rhill(:) = pack(seeds%Rhill(:),seeds%active(:))
+   iseeds%rbin(:) = pack(seeds%rbin(:),seeds%active(:))
+   iseeds%fz_bin_inner(:) = pack(seeds%fz_bin_inner(:),seeds%active(:))
+   iseeds%fz_bin_outer(:) = pack(seeds%fz_bin_outer(:),seeds%active(:))
+   iseeds%Torque(:) = pack(seeds%Torque(:),seeds%active(:))
+   iseeds%Ttide(:) = pack(seeds%Ttide(:),seeds%active(:))
+   iseeds%active(1:seeds%N) = .true. 
+
+   ai(:) = iseeds%a(:)
+   Gmi(:) = iseeds%Gm(:)
    Gmringi(:) = ring%Gm(:)
    dTorque_ring(:) = 0.0_DP
    Ttide(:) = 0.0_DP
