@@ -41,8 +41,15 @@ SUBROUTINE ringmoons_viscosity(ring)
       real(DP) :: Q,tau,sigma_r,kappa,eta,Gsigma
       integer(I4B) :: i
       real(DP) :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable,y,nu_trans,nu_grav,nu_coll
+      real(DP) :: sigsq
 
 ! Executable code
+
+   where(ring%Gsigma(:) > VSMALL_SQRT)
+      ring%nu(:)  = (PI * ring%Gsigma(:))**2 / (ring%w(:))**3
+   elsewhere
+      ring%nu(:) = 0.0_DP
+   end where
 
    !do concurrent (i = 1:ring%N,ring%Gsigma(i) > VSMALL_SQRT) 
    !do i = 1, ring%N
@@ -69,7 +76,6 @@ SUBROUTINE ringmoons_viscosity(ring)
 !         nu_coll = ring%r_pdisk**2 * ring%w(i) * tau
 !         ring%nu(i) = nu_trans + nu_grav + nu_coll
 !      end if
-      ring%nu(:) = (PI * ring%Gsigma(:))**2 / (ring%w(:))**3
       !end if
    !end do
 

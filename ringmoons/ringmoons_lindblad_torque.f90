@@ -59,9 +59,6 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    ! Just do the first order resonances for now. The full suite of resonances will come later
    Torque(:) = 0.0_DP
    mshep = min(M_MAX,ceiling(0.5_DP * (sqrt(1._DP + 8._DP / 3._DP * sqrt(as) / ring%deltaX) - 1._DP)))
-   !!$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
-   !!$OMP SHARED(as,lapm,dlapm,swifter_pl1P,ring,Gm,mshep) &
-   !!$OMP REDUCTION(+:Torque)
    do m  = 2, mshep
       ! Go through modes up until resonance overlap occurs
       do inner_outer_sign = -1,1,2
@@ -94,7 +91,6 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
          end if
       end do
    end do   
-   !!$OMP END PARALLEL DO
    ! Add in shepherding torque
    do inner_outer_sign = -1,1,2
       !write(*,*) inner_outer_sign,'shep'

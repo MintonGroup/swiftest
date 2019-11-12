@@ -49,13 +49,11 @@ subroutine ringmoons_update_seeds(swifter_pl1P,ring,seeds)
 
    ! Compute feeding zone info
    do i = 1,seeds%N
-      if (seeds%active(i)) then
-         seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
-         fz_width(i) = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
-         seeds%rbin(i) = ringmoons_ring_bin_finder(ring,seeds%a(i))
-         seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width(i))
-         seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width(i))
-      end if
+      seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
+      fz_width(i) = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
+      seeds%rbin(i) = ringmoons_ring_bin_finder(ring,seeds%a(i))
+      seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width(i))
+      seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width(i))
    end do
 
    return
