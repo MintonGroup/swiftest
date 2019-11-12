@@ -188,12 +188,12 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    seeds%Ttide(:) = 0.0_DP
 
 
+   fz_width(:) = 2 * FEEDING_ZONE_FACTOR * seeds%Rhill(:)
 
    !I'm hungry! What's there to eat?! Look for neighboring seeds
    !write(*,*) 'chomp'
    do i = 1, seeds%N
       if (seeds%active(i)) then
-         fz_width(i) = 2 * FEEDING_ZONE_FACTOR * seeds%Rhill(i)
          do j = i+1,seeds%N
             if (seeds%active(j)) then
                if ((seeds%a(j) > seeds%a(i) - fz_width(i)).and.(seeds%a(j) < seeds%a(i) + fz_width(i))) then ! This one is in the feeding zone
