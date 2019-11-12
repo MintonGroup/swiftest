@@ -51,10 +51,8 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
 
 ! Executable code
 
-
-
      
-   js = ringmoons_ring_bin_finder(ring,as) 
+   !js = ringmoons_ring_bin_finder(ring,as) 
   
    ! Just do the first order resonances for now. The full suite of resonances will come later
    Torque(:) = 0.0_DP

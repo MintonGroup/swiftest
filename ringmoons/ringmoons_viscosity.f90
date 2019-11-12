@@ -41,7 +41,6 @@ SUBROUTINE ringmoons_viscosity(ring)
       real(DP) :: Q,tau,sigma_r,kappa,eta,Gsigma
       integer(I4B) :: i
       real(DP) :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable,y,nu_trans,nu_grav,nu_coll
-      real(DP) :: sigsq
 
 ! Executable code
 

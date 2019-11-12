@@ -45,7 +45,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 ! Internals
    integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn
    real(DP)                                  :: dadt, e, inc, sigavg, sigrem, Tr_evol,Gmsdot, n, Li, Lj
-   real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, Ttide
+   real(DP),dimension(size(seeds%a))               :: ai,af,Gmi,Gmf,fz_width, Ttide
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
@@ -54,7 +54,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
    real(DP),dimension(0:ring%N+1)            :: kr
-   real(DP),dimension(seeds%N)               :: ka,km
+   real(DP),dimension(size(seeds%a))               :: ka,km
 
    
 
@@ -64,11 +64,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    inc = 0.0_DP
    stepfail = .false.
 
-   !write(*,*) 'evolve'
-   !write(*,*) maxval(seeds%a),minval(seeds%a)
-   
    iring%N = ring%N
-   iseeds%N = seeds%N
+   iseeds%N = size(seeds%a)
    call ringmoons_allocate(iring,iseeds)
 
    ! Save initial state of the seeds
@@ -85,13 +82,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    af(:) = 0._DP 
    Gmf(:) = 0._DP
    Gmringf(:) = 0._DP
-   !write(*,*) 'start angular momentum of seeds,ring,total'
-   !write(*,*) sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active),sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)),&
-   !           sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active) + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
 
-   !Li = seeds%Gm(seeds%N) * sqrt((swifter_pl1P%mass + seeds%Gm(seeds%N)) * seeds%a(seeds%N))
    do rkn = 1,4 ! Runge-Kutta steps 
-      !write(*,*) 'rk: ',rkn
       if (rkn > 1) then
          iseeds%a(:)  = ai(:)       + rkh(rkn) * ka(:)
          iseeds%Gm(:) = Gmi(:)      + rkh(rkn) * km(:)
@@ -100,7 +92,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          kr(:) = 0._DP
       end if
       
-      !write(*,*) 'update_seeds'
       call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
 
       !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
@@ -120,7 +111,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
          sigavg = sum(iring%Gsigma(ilo:ihi)) / real(nfz, kind = DP)
          Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,sigavg,iseeds%Gm(i),iseeds%a(i))
-         if (Gmsdot / iseeds%Gm(i) > VSMALL) then
+         if (Gmsdot / iseeds%Gm(i) > tiny(1._DP)) then
              
             km(i) = dt * Gmsdot ! Grow the seed
 
@@ -163,15 +154,14 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    end if 
 
    Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
+   Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
 
-   !if (any(seeds%active(:).and.(Gmf(:) < 0.0_DP))) then
-   if (any(Gmf(:) < 0.0_DP)) then
+   if (any(Gmringf(:) < 0.0_DP)) then
       !write(*,*) 'Failed the step: Negative disk mass'
       stepfail = .true.
       return
    end if 
 
-   Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
    seeds%a(:) = af(:)
    seeds%Gm(:) = Gmf(:)
    ring%Gm(:) = Gmringf(:)
@@ -213,7 +203,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    end do        
    !write(*,*) 'update_seeds'
    call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
-   
 
 
    do i = 1, seeds%N

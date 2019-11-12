@@ -54,15 +54,15 @@ subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
          tmpring%N = 0
          new_seeds%N = seed_bin
          call ringmoons_allocate(tmpring,new_seeds)
-         new_seeds%active(1:seeds%N) = seeds%active(:)
-         new_seeds%a(1:seeds%N) = seeds%a(:)
-         new_seeds%Gm(1:seeds%N) = seeds%Gm(:)
-         new_seeds%Rhill(1:seeds%N) = seeds%Rhill(:)
-         new_seeds%rbin(1:seeds%N) = seeds%rbin(:)
-         new_seeds%fz_bin_inner(1:seeds%N) = seeds%fz_bin_inner(:)
-         new_seeds%fz_bin_outer(1:seeds%N) = seeds%fz_bin_outer(:)
-         new_seeds%Torque(1:seeds%N) = seeds%Torque(:)
-         new_seeds%TTide(1:seeds%N) = seeds%Ttide(:)
+         new_seeds%active(1:seeds%N) = seeds%active(1:seeds%N)
+         new_seeds%a(1:seeds%N) = seeds%a(1:seeds%N)
+         new_seeds%Gm(1:seeds%N) = seeds%Gm(1:seeds%N)
+         new_seeds%Rhill(1:seeds%N) = seeds%Rhill(1:seeds%N)
+         new_seeds%rbin(1:seeds%N) = seeds%rbin(1:seeds%N)
+         new_seeds%fz_bin_inner(1:seeds%N) = seeds%fz_bin_inner(1:seeds%N)
+         new_seeds%fz_bin_outer(1:seeds%N) = seeds%fz_bin_outer(1:seeds%N)
+         new_seeds%Torque(1:seeds%N) = seeds%Torque(1:seeds%N)
+         new_seeds%TTide(1:seeds%N) = seeds%Ttide(1:seeds%N)
          seeds%active = new_seeds%active
          seeds%a = new_seeds%a
          seeds%Gm = new_seeds%Gm
@@ -83,13 +83,11 @@ subroutine ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,Gm)
       seeds%Gm(i) = min(Gm,ring%Gm(j))
       ! Adjust the semimajor axis in order to conserve angular momentum 
       seeds%a(i) = (ring%Iz(j) * ring%w(j))**2 / (swifter_pl1P%mass + seeds%Gm(i))
-
       seeds%Rhill(i) = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
 
       ! Take away the mass from the ring
       ring%Gm(j) = ring%Gm(j) - seeds%Gm(i)
       ring%Gsigma(j) = ring%Gm(j) / ring%deltaA(j)
-      j = ringmoons_ring_bin_finder(ring,seeds%a(i))
       fz_width = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
       seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width)
       seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width)

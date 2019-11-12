@@ -55,9 +55,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
   
       
       ! First convert any recently destroyed satellites into ring material
-      !write(*,*) 'before construct'
       do i = 1,seeds%N
-      !   write(*,*) i,seeds%active(i),seeds%a(i),seeds%Gm(i)
          if ((.not.seeds%active(i)).and.(seeds%Gm(i) > 0.0_DP)) then
             Lring_orig = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
             Gmleft = seeds%Gm(i)
@@ -122,11 +120,6 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             end if
          end if
       end do      
-      !write(*,*) 'after construct'
-      !do i = 1,seeds%N
-      !   write(*,*) i,seeds%active(i),seeds%a(i),seeds%Gm(i)
-      !end do
-      !read(*,*)
           
 
 end subroutine ringmoons_seed_construct

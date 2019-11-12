@@ -67,7 +67,8 @@ function ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
 
       ! Now aim for seed migration accuracy
          !write(*,*) 'migration'
-      da_max = maxval(abs(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(:),seeds%a(:),seeds%Torque(:),mdot(:))) / seeds%a(:),seeds%active) 
+      da_max = maxval(abs(ringmoons_seed_dadt(swifter_pl1P%mass,seeds%Gm(1:seeds%N),seeds%a(1:seeds%N),&
+                          seeds%Torque(1:seeds%N),mdot(1:seeds%N))) / seeds%a(1:seeds%N)) 
                      
       if (da_max > 0.0_DP) then
          dtout = min(dtout, RK_FACTOR / da_max) ! smallest step that keeps the body within a approximately single bin size 
