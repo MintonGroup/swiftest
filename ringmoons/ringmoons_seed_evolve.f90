@@ -171,23 +171,25 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       return
    end if 
 
-   seeds%a(:) = af(:)
-   seeds%Gm(:) = Gmf(:)
+   seeds%N = iseeds%N 
+   seeds%a(1:seeds%N) = af(:)
+   seeds%Gm(1:seeds%N) = Gmf(:)
+   seeds%active(1:seeds%N) = .true.
    ring%Gm(:) = Gmringf(:)
    ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
 
    call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
 
    !write(*,*) 'calculate total torques'
-   seeds%Ttide(:) = Ttide(:) / 6._DP
+   seeds%Ttide(1:seeds%N) = Ttide(:) / 6._DP
    ring%Torque(:) = ring%Torque(:) + dTorque_ring(:) / 6._DP
 
-   swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - dt * sum(seeds%Ttide(:),seeds%active(:)) / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
+   swifter_pl1P%rot(3) = swifter_pl1P%rot(3) - dt * sum(seeds%Ttide(1:seeds%N),seeds%active(1:seeds%N)) / (swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%radius**2)
    seeds%Torque(:) = 0.0_DP
    seeds%Ttide(:) = 0.0_DP
 
 
-   fz_width(:) = 2 * FEEDING_ZONE_FACTOR * seeds%Rhill(:)
+   fz_width(:) = 2 * FEEDING_ZONE_FACTOR * seeds%Rhill(1:seeds%N)
 
    !I'm hungry! What's there to eat?! Look for neighboring seeds
    !write(*,*) 'chomp'
