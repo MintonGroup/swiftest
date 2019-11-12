@@ -54,13 +54,12 @@ function ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
       dtout = dtin
 
       dGm_max = -1._DP
+      call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
       do i = 1,seeds%N
-         if (seeds%active(i)) then
-            nfz = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
-            sigavg = sum(ring%Gsigma(seeds%fz_bin_inner(i):seeds%fz_bin_outer(i))) / real(nfz, kind = DP)
-            mdot(i) = ringmoons_seed_dMdt(ring,swifter_pl1P%mass,sigavg,seeds%Gm(i),seeds%a(i))
-            dGm_max = max(dGm_max,mdot(i) / seeds%Gm(i))
-         end if
+         nfz = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
+         sigavg = sum(ring%Gsigma(seeds%fz_bin_inner(i):seeds%fz_bin_outer(i))) / real(nfz, kind = DP)
+         mdot(i) = ringmoons_seed_dMdt(ring,swifter_pl1P%mass,sigavg,seeds%Gm(i),seeds%a(i))
+         dGm_max = max(dGm_max,mdot(i) / seeds%Gm(i))
       end do
       if (dGm_max > 0.0_DP) then
          dtout = min(dtout,RK_FACTOR / dGm_max)  ! smallest seed_timestep for the seed growth equation 
