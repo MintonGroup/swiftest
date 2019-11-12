@@ -45,7 +45,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 ! Internals
    integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn
    real(DP)                                  :: dadt, e, inc, sigavg, sigrem, Tr_evol,Gmsdot, n, Li, Lj
-   real(DP),dimension(size(seeds%a))               :: ai,af,Gmi,Gmf,fz_width, Ttide
+   real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, Ttide
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
@@ -54,7 +54,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
    real(DP),dimension(0:ring%N+1)            :: kr
-   real(DP),dimension(size(seeds%a))               :: ka,km
+   real(DP),dimension(seeds%N)               :: ka,km
 
    
 
@@ -65,7 +65,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    stepfail = .false.
 
    iring%N = ring%N
-   iseeds%N = size(seeds%a)
+   iseeds%N = seeds%N
    call ringmoons_allocate(iring,iseeds)
 
    ! Save initial state of the seeds

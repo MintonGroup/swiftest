@@ -111,6 +111,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                write(*,*) 'LOOPMAX reached in seed evolution. Ringmoons_step failed'
                call util_exit(FAILURE)
             end if
+            call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
             call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
             dtseed = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtseed) 
             !ring%Torque(:) = 0.0_DP  
@@ -134,8 +135,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                   end if
                end if
 
-               !write(*,*) 'seed_construct'
-               call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
 
                dtseedleft = dtseedleft - dtseed
                ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque
