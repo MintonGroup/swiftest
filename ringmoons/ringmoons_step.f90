@@ -111,6 +111,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                write(*,*) 'LOOPMAX reached in seed evolution. Ringmoons_step failed'
                call util_exit(FAILURE)
             end if
+            call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
             dtseed = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtseed) 
             !ring%Torque(:) = 0.0_DP  
             !write(*,*) 'evolve'
