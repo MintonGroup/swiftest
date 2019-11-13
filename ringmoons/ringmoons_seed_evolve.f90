@@ -56,10 +56,14 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(count(seeds%active))   :: ka,km
    real(DP),dimension(count(seeds%active))   :: ai,af,Gmi,Gmf,fz_width, Ttide
    integer(I4B)                              :: Nactive 
+   real(DP)                                  :: Lorig,Lnew
 
-   
 
 ! Executable code
+
+        ! Lorig = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
+        ! Lorig = Lorig + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+        ! Lorig = Lorig + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
 
    e = 0.0_DP
    inc = 0.0_DP
@@ -129,7 +133,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
             Gmrdot(ilo:ihi) = -Gmsdot * iring%Gsigma(ilo:ihi) / sigsum ! pull out of the ring proportional to its surface mass density
 
             ! Make sure we conserve angular momentum during growth
-            Tr_evol = sum(Gmrdot(ilo:ihi) * iring%Iz(ilo:ihi) * iring%w(ilo:ihi))
+            Tr_evol = -sum(Gmrdot(ilo:ihi) * iring%Iz(ilo:ihi) * iring%w(ilo:ihi))
             
          else
             Tr_evol = 0._DP
@@ -237,6 +241,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
                   ! deactivate particle for now and position it at the FRL to potentially activate later
                   seeds%Gm(j) = 0.0_DP
+                  seeds%a(j) = 0.0_DP
                   seeds%active(j) = .false.
                end if
            end if
@@ -257,6 +262,16 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          end if
       end if
    end do
+
+
+
+         !Lnew = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
+         !Lnew = Lnew + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dt
+         !Lnew = Lnew + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+
+   !write(*,*) 'seed evolve ang mtm: ',Lnew-Lorig
+   !read(*,*)
+
 
    return
 
