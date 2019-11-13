@@ -63,7 +63,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
          !write(*,*) inner_outer_sign,m, ' of ',mshep
          a = (1._DP + inner_outer_sign * 1._DP / real(m, kind=DP))**(2._DP / 3._DP) * as   !resonance location for first order resonances
          j = ringmoons_ring_bin_finder(ring, a) !disk location of resonance
-         if ((j > 0).and.(j < ring%N + 1).and.(ring%Gsigma(j) > VSMALL_SQRT)) then !Resonance is in the bin, and don't consider overlapping
+         if ((j > ring%inside).and.(j < ring%N + 1).and.(ring%Gsigma(j) > VSMALL_SQRT)) then !Resonance is in the bin, and don't consider overlapping
             beta = (as / a)**(inner_outer_sign)
             lap  =  lapm(inner_outer_sign,m)
             dlap = dlapm(inner_outer_sign,m)

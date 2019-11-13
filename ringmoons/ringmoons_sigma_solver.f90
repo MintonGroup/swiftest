@@ -66,9 +66,18 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
 
       ring%Gsigma(1:N) = Snew(1:N) / ring%X(1:N)
       ring%Gm(1:N) = ring%Gsigma(1:N) * ring%deltaA(1:N)
+
+      !if (any(ring%Gm(1:N) < 0.0_DP)) then
+      !   stepfail = .true.
+      !   do i = 1,N
+      !      if (ring%Gm(i) < 0.0_DP) write(*,*) i,ring%Gm(i)
+      !   end do
+      !   read(*,*)
+      !   return
+      !end if
+
     
       ! Prevent any bins from having negative mass by shifting mass upward from interior bins  
-      i = 1
       do while (any(ring%Gm(1:N) < 0.0_DP))
          !write(*,*) i,'Negative mass!'
          i = i + 1
@@ -79,7 +88,7 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
          end where
          L(:) = ring%Iz(:) * ring%w(:)
          dM2(:) = dM1(:) * (L(:) - cshift(L(:),1)) / (cshift(L(:),1) - cshift(L(:),2)) 
-         ! Make sure we conserve both mass and angular momentum
+        ! Make sure we conserve both mass and angular momentum
          ring%Gm(1:N) = ring%Gm(1:N) - dM1(1:N) + cshift(dM1(1:N),1) + &
             cshift(dM2(1:N),1)  - cshift(dM2(1:N),2)
          ring%Gsigma(1:N) = ring%Gm(1:N) / ring%deltaA(1:N)
