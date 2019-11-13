@@ -100,14 +100,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          dt = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
          dt = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dt) 
 
-         !write(*,*) 'planet_accrete'
-         call ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dt)
-
-         !write(*,*) 'seed_construct'
-         call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
-
-         call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
-
          !write(*,*) 'seed_evolve'
          call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
@@ -119,9 +111,15 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             cycle
          end if
 
+         !write(*,*) 'planet_accrete'
+         call ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dt)
+
          !write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)
          ring%Torque(:) = 0.0_DP
+
+         !write(*,*) 'seed_construct'
+         call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
 
          subcount = subcount + 1
          if (DESTRUCTION_EVENT) then

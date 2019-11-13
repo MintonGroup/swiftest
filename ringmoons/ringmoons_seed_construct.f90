@@ -87,7 +87,6 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
                deltaL = Lring_orig + Lorig - sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) 
             end do
             ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
-            call ringmoons_viscosity(ring)
             seeds%Gm(i) = 0.0_DP
          end if
       end do
@@ -125,6 +124,8 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             end if
          end if
       end do      
+
+      call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
           
 
 end subroutine ringmoons_seed_construct
