@@ -35,7 +35,7 @@ class AnimatedScatter(object):
         ymin = 0.01
         ymax = 5e4
 
-        y2min = 1e16
+        y2min = 1e11
         y2max = 1e24
         self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
 

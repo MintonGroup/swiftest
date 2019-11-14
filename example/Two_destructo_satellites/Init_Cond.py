@@ -29,11 +29,11 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 
 t_0	= 0
-t_print = 1e6* year / TU2S #output interval to print results
-deltaT	= 1e2 * year / TU2S  #timestep simulation
+t_print = 1e3* year / TU2S #output interval to print results
+deltaT	= 1e0 * year / TU2S  #timestep simulation
 end_sim = 4.5e9 * year / TU2S + t_print #end time
 
-Nbins    = 1024     #number of bins in disk
+Nbins    = 1024  #number of bins in disk
 
 
 sigma_peak = 0.6e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
@@ -110,7 +110,7 @@ f() #Make a power law ring
 
 Nseeds   = 2
 Gmseed = [4 * uranian_satellites.M_Mira * GU / MU2GM, 1e21 * GU / MU2GM ]
-aseed= [1.75 * RP, 2.0 * RP]
+aseed= [1.55 * RP, 2.0 * RP]
 
 
 outfile = open('ring.in', 'w')

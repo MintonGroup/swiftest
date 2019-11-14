@@ -28,9 +28,9 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 
 t_0	= 0
-t_print = 1e6 * year / TU2S #output interval to print results
+t_print = 1e2 * year / TU2S #output interval to print results
 deltaT	= 1e2 * year / TU2S  #timestep simulation
-end_sim = 4.5e9 * year / TU2S + t_print #end time
+end_sim = 1.0e9 * year / TU2S + t_print #end time
 
 Nbins    = 1024     #number of bins in disk
 Nseeds   = 0
@@ -62,7 +62,7 @@ RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 Rsync = (GU * MP * TP**2 / (4 * np.pi**2))**(1./3.)
 
 r_I	= 0.999 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 1.2 * FRL  #outside radius of disk
+r_F	= 1.5 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia

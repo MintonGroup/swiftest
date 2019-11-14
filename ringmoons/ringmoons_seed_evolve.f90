@@ -123,7 +123,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          km(:) = 0._DP
       end if
       
-      !call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
+      call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
 
       !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
       !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,ka,km,e,inc,rkn,Nactive) &
