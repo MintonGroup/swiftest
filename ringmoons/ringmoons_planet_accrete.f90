@@ -99,7 +99,7 @@
       !do (i = 1,seeds%N)
          !if (seeds%active(i)) then
       seeds%Rhill(:) = seeds%Rhill(:) *  MratioHill
-      seeds%a(:) = seeds%a(:) * (ring%GMPi + ring%dGMP - ring%dGMP + seeds%Gm(:)) / (ring%GMPi + ring%dGMP + seeds%Gm(:))
+      seeds%a(:) = seeds%a(:) * (ring%GMPi + ring%dGMP - dMtot + seeds%Gm(:)) / (ring%GMPi + ring%dGMP + seeds%Gm(:))
          !end if
       !end do
 

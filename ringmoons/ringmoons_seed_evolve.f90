@@ -58,13 +58,13 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(count(seeds%active))   :: ai,af,Gmi,Gmf,fz_width, Ttide
    integer(I4B)                              :: Nactive 
    real(DP),dimension(0:ring%N+1)            :: Lring_orig,Lring_now
-   real(DP),dimension(count(seeds%active))   :: Lseeds_orig,Lseeds_now
+   real(DP),dimension(count(seeds%active))   :: Lseeds_orig,Lseeds_now,Lres
 
 
 ! Executable code
 
-   !Lring_orig(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:)
-   !Lseeds_orig(:) = pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)) 
+   Lring_orig(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:)
+   Lseeds_orig(:) = pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)) 
 
    e = 0.0_DP
    inc = 0.0_DP
@@ -178,8 +178,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       return
    end if 
 
-
-
    if (abs(1.0_DP + sum(Gmf(:)) / sum(Gmringf(:))) > 10 * epsilon(1._DP)) then
       !write(*,*) 'Mass conservation fail'
       !write(*,*) 1.0_DP + sum(Gmf(:)) / sum(Gmringf(:))
@@ -225,13 +223,13 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    
    ring%dLP = ring%dLP - dt * sum(seeds%Ttide(1:seeds%N),seeds%active(1:seeds%N))
    swifter_pl1P%rot(3) = (ring%LPi + ring%dLP) / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2) 
-   seeds%Torque(:) = 0.0_DP
-   seeds%Ttide(:) = 0.0_DP
+   !seeds%Torque(:) = 0.0_DP
+   !seeds%Ttide(:) = 0.0_DP
 
 
 
-  !Lring_now(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:)
-  !Lseeds_now(:) = pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)) 
+  Lring_now(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:)
+  Lseeds_now(:) = pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)) 
 
 
 
@@ -249,11 +247,19 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    !end do
 
    !write(*,*)   'Changes'
+
+  
+   Lres(:) =  Lring_now(seeds%rbin(:)) - Lring_orig(seeds%rbin(:)) + Lseeds_now(:) - Lseeds_orig(:) &
+                        - Ttide(:) * dt / 6._DP + dTorque_ring(seeds%rbin(:)) * dt / 6._DP
    !do i = 1,Nactive
+      !rbin = seeds%rbin(i)
+      !Lres = Lring_now(rbin) - Lring_orig(rbin) + Lseeds_now(i) - Lseeds_orig(i) - Ttide(i) * dt / 6._DP + dTorque_ring(rbin) * dt / 6._DP
+
+      seeds%a(:) = seeds%a(:) * ((Lseeds_now(:) - Lres(:)) / Lseeds_now(:))**2
       !write(*,*) i,'da =  : ',seeds%a(i) - ai(i)
       !write(*,*) i,'dGm = : ',seeds%Gm(i) - Gmi(i) 
-     ! ihi = min(seeds%fz_bin_outer(i),iring%N)
-     ! ilo = max(seeds%fz_bin_inner(i),1)
+      !ihi = min(seeds%fz_bin_outer(i),iring%N)
+      !ilo = max(seeds%fz_bin_inner(i),1)
       !ilo = seeds%rbin(i)
       !ihi = seeds%rbin(i)
       !write(*,*) i,'bins: ',ilo,seeds%rbin(i),ihi
@@ -267,6 +273,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    
    !write(*,*) 'dLseed tot: ',sum(Lseeds_now(:) - Lseeds_orig(:))
    !write(*,*) 'dLring tot: ',sum(Lring_now(:) - Lring_orig(:))
+   !write(*,*) 'dLtide    : ',sum(Ttide(:)) * dt / 6._DP
+   !write(*,*) 'dLlind    : ',sum(dTorque_ring(:)) * dt / 6._DP
    !write(*,*) 'dLtot     : ',sum(Lring_now(:) - Lring_orig(:)) + sum(Lseeds_now(:) - Lseeds_orig(:))
    !do i = 1,ring%N
    !   write(*,*) i,'dLri: ',Lring_now(i) - Lring_orig(i)
