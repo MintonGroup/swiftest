@@ -43,7 +43,7 @@ elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
 ! Internals
       integer(I4B)                           :: i
       real(DP)                               :: Gmeff,C
-      real(DP),parameter                     :: eff2   = 1e-8_DP ! This term gets the growth rate to match up closely to Andy's
+      real(DP),parameter                     :: eff2   = 1e-7_DP ! This term gets the growth rate to match up closely to Andy's
       real(DP),parameter                     :: growth_exponent = 4._DP / 3._DP
       real(DP), parameter                    :: SIGLIMIT = 1e-100_DP
 
@@ -53,11 +53,11 @@ elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
          Gmdot = 0.0_DP
       else
          C = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * ring%rho_pdisk))**(1._DP / 3._DP) / sqrt(GMP) 
-         Gmeff = GMseed * (1._DP - (ring%FRL / a)**3) ! Reduces the growth rate near the FRL
+         Gmeff = GMseed  !* (1._DP - (ring%FRL / a)**3) ! Reduces the growth rate near the FRL
          Gmdot = C * Gsigma / (eff2 * sqrt(a)) * Gmeff**(growth_exponent)
-         if ((Gmdot / Gmseed) < epsilon(1._DP)) then
-            Gmdot = 0.0_DP
-         end if
+         !!if ((Gmdot / Gmseed) < epsilon(1._DP)) then
+        !    Gmdot = 0.0_DP
+        ! end if
       end if
     
       return

@@ -83,6 +83,16 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
       end do
    end do
 
+   !Save the original mass of the planet. We will accumulate mass in a separate variable for floating point precision reasons
+   ring%GMPi = swifter_pl1P%mass
+   ring%dGMP = 0.0_DP
+   ring%LPi = swifter_pl1P%mass * swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * (swifter_pl1P%radius)**2
+   ring%dLP = 0.0_DP
+   ring%RPi = swifter_pl1P%radius
+   ring%dRP = 0.0_DP
+   ring%rotPi = swifter_pl1P%rot(3)
+   ring%drotP = 0.0_DP
+
 
    return
 

@@ -48,6 +48,10 @@ module module_ringmoons
       real(DP)     :: deltaX              ! variable changed bin width used for viscosity calculations
       real(DP)     :: RRL,FRL             ! Rigid and fluid Roche limits
       integer(I4B) :: iRRL,iFRL           ! Indexes of Roche limit bins
+      real(DP)     :: GMPi,dGMP           ! Original planet mass and an accumulator term
+      real(DP)     :: Lpi,dLp             ! Original planet angular momentum and an accumulator term
+      real(DP)     :: RPi,dRP
+      real(DP)     :: rotPi,drotP
       real(DP), dimension(:), allocatable :: r                 ! radial distance of center of bin
       real(DP), dimension(:), allocatable :: rinner            ! inner edge of the bin used to determine if the bin is inside the planet
       real(DP), dimension(:), allocatable :: router            ! outer edge of the bin used to determine if the bin is inside the planet
