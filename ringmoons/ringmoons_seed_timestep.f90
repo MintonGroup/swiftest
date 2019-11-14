@@ -56,8 +56,8 @@ function ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
       dGm_max = -1._DP
       
       do i = 1,seeds%N
-         nfz = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
-         sigavg = sum(ring%Gsigma(seeds%fz_bin_inner(i):seeds%fz_bin_outer(i))) / real(nfz, kind = DP)
+         !nfz = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
+         sigavg = ring%Gsigma(seeds%rbin(i)) !sum(ring%Gsigma(seeds%fz_bin_inner(i):seeds%fz_bin_outer(i))) / real(nfz, kind = DP)
          mdot(i) = ringmoons_seed_dMdt(ring,swifter_pl1P%mass,sigavg,seeds%Gm(i),seeds%a(i))
          dGm_max = max(dGm_max,mdot(i) / seeds%Gm(i))
       end do
