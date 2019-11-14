@@ -130,7 +130,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       !$OMP REDUCTION(+:dTorque_ring,Ttide,af,Gmf,kr)
       do i = 1, Nactive
          rbin = iseeds%rbin(i)
-         if (rbin > iring%N) cycle
 
          ! Calculate torques
          Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,iring,iseeds%Gm(i),iseeds%a(i),e,inc)
