@@ -42,8 +42,8 @@ elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque,mdot) result(adot)
 ! Internals
 
 ! Executable code
-      adot = 2 * Torque / (Gmseed * sqrt((GMP + Gmseed) * a))  &
-           - (mdot / Gmseed) * (2 * GMP + 3 * Gmseed) / (GMP + Gmseed)
-      adot = adot * a
+      adot = 2 * (Torque / (sqrt((GMP + Gmseed) * a))  &
+               - mdot * (1._DP  + Gmseed / (GMP + Gmseed)))
+      adot = adot * a / Gmseed
       return
 end function ringmoons_seed_dadt
