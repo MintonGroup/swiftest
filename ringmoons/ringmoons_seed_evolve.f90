@@ -49,7 +49,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
-   real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmrdot,Gmringi,Gmringf,dGmring
+   real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmringi,Gmringf
    real(DP),dimension(0:ring%N+1)            :: Tlind,Tring
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
@@ -59,12 +59,14 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    integer(I4B)                              :: Nactive 
    real(DP),dimension(0:ring%N+1)            :: Lring_orig,Lring_now
    real(DP),dimension(count(seeds%active))   :: Lseeds_orig,Lseeds_now,Lres
+   real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,Lnow,Llind,Ltide
 
 
 ! Executable code
-
-   !Lring_orig(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:)
-   !Lseeds_orig(:) = pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)) 
+!   Lr0 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+!   Ls0 = sum(pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)))
+!   Lp0 = swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+!   Lorig = Lr0 + Ls0 + Lp0
 
    e = 0.0_DP
    inc = 0.0_DP
@@ -138,18 +140,17 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          iseeds%Ttide(i) = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),n,iseeds%a(i),e,inc) 
          iseeds%Torque(i) = iseeds%Ttide(i) - sum(Tlind(:)) 
 
-         if (iring%Gm(rbin) / iseeds%Gm(i) > epsilon(1._DP)) then
+         if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
             Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iseeds%a(i))
             kr(rbin) = kr(rbin) - dt * Gmsdot  ! Remove mass from the ring
-
-            ! Make sure we conserve angular momentum during growth
             Tr_evol = Gmsdot * iring%Iz(rbin) * iring%w(rbin)
-
          else
-            Tr_evol = 0._DP
+            Tr_evol = 0.0_DP
             Gmsdot = 0.0_DP
-            Gmrdot(rbin) = 0.0_DP
          end if
+
+         ! Make sure we conserve angular momentum during growth
+
          km(i) = dt * Gmsdot ! Grow the seed
          ka(i) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i) + Tr_evol,Gmsdot)
          
@@ -223,63 +224,27 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    
    ring%dLP = ring%dLP - dt * sum(seeds%Ttide(1:seeds%N),seeds%active(1:seeds%N))
    swifter_pl1P%rot(3) = (ring%LPi + ring%dLP) / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2) 
-   !seeds%Torque(:) = 0.0_DP
-   !seeds%Ttide(:) = 0.0_DP
+   seeds%Torque(:) = 0.0_DP
+   seeds%Ttide(:) = 0.0_DP
 
 
 
-  !Lring_now(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:)
-  !Lseeds_now(:) = pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)) 
+!   Lr1 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+!   Ls1 = sum(pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)))
+!   Lp1 = swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+!   Llind = sum(dTorque_ring(:)) * dt / 6._DP
+!   Ltide = sum(Ttide(:))  * dt / 6._DP 
+!   Lnow = Lr1 + Ls1 + Lp1 + Llind
+!
 
-
-
-   !write(*,*)   'Final L of seeds and their bins'
-   !do i = 1,Nactive
-   !   write(*,*) i,'a =   : ',seeds%a(i)
-   !   write(*,*) i,'Gm =  : ',seeds%Gm(i)
-   !   write(*,*) i,'dLseed: ',Lseeds_now(i)
-   !   ihi = min(seeds%fz_bin_outer(i),iring%N)
-   !   ilo = max(seeds%fz_bin_inner(i),1)
-   !   write(*,*) i,'bins: ',ilo,seeds%rbin(i),ihi
-   !   write(*,*) i,'rring: ',ring%r(ilo:ihi)
-   !   write(*,*) i,'Gmring:',sum(ring%Gm(ilo:ihi))
-   !   write(*,*) i,'Lring: ',sum(Lring_now(ilo:ihi))
-   !end do
-
-   !write(*,*)   'Changes'
-
-  
-   !Lres(:) =  Lring_now(seeds%rbin(:)) - Lring_orig(seeds%rbin(:)) + Lseeds_now(:) - Lseeds_orig(:) &
-   !                     - Ttide(:) * dt / 6._DP + dTorque_ring(seeds%rbin(:)) * dt / 6._DP
-   !do i = 1,Nactive
-      !rbin = seeds%rbin(i)
-      !Lres = Lring_now(rbin) - Lring_orig(rbin) + Lseeds_now(i) - Lseeds_orig(i) - Ttide(i) * dt / 6._DP + dTorque_ring(rbin) * dt / 6._DP
-
-   !seeds%a(:) = seeds%a(:) * ((Lseeds_now(:) - Lres(:)) / Lseeds_now(:))**2
-      !write(*,*) i,'da =  : ',seeds%a(i) - ai(i)
-      !write(*,*) i,'dGm = : ',seeds%Gm(i) - Gmi(i) 
-      !ihi = min(seeds%fz_bin_outer(i),iring%N)
-      !ilo = max(seeds%fz_bin_inner(i),1)
-      !ilo = seeds%rbin(i)
-      !ihi = seeds%rbin(i)
-      !write(*,*) i,'bins: ',ilo,seeds%rbin(i),ihi
-      !write(*,*) i,'dGmring:',sum(ring%Gm(ilo:ihi)) - sum(Gmringi(ilo:ihi))
-      !write(*,*) i,'sum of Gm changes: ',sum(ring%Gm(ilo:ihi)) - sum(Gmringi(ilo:ihi)) + seeds%Gm(i) - Gmi(i)
-      !write(*,*) i,'dLseed: ',Lseeds_now(i) - Lseeds_orig(i)
-      !write(*,*) i,'dLring: ',sum(Lring_now(ilo:ihi)) - sum(Lring_orig(ilo:ihi))
-      !write(*,*) i,'sum of L changes: ',sum(Lring_now(ilo:ihi)) - sum(Lring_orig(ilo:ihi)) + Lseeds_now(i) - Lseeds_orig(i)
-   !end do
-
-   
-   !write(*,*) 'dLseed tot: ',sum(Lseeds_now(:) - Lseeds_orig(:))
-   !write(*,*) 'dLring tot: ',sum(Lring_now(:) - Lring_orig(:))
-   !write(*,*) 'dLtide    : ',sum(Ttide(:)) * dt / 6._DP
-   !write(*,*) 'dLlind    : ',sum(dTorque_ring(:)) * dt / 6._DP
-   !write(*,*) 'dLtot     : ',sum(Lring_now(:) - Lring_orig(:)) + sum(Lseeds_now(:) - Lseeds_orig(:))
-   !do i = 1,ring%N
-   !   write(*,*) i,'dLri: ',Lring_now(i) - Lring_orig(i)
-   !end do
-   !read(*,*)
+!   write(*,*)   'Changes'
+!
+!  
+!   write(*,*) 'dLseed/L0:     ',(Ls1 - Ls0) / Lorig
+!   write(*,*) 'dLring/L0:     ',(Lr1 - Lr0) / Lorig
+!   write(*,*) 'dLring+Lind/L0:',(Lr1 - Lr0 + Llind) / Lorig
+!   write(*,*) 'dLplanet/L0:   ',(Lp1 - Lp0 - Ltide) / Lorig
+!   write(*,*) 'dLtotal/L0:    ',(Lnow - Lorig) / Lorig
 
 
 
@@ -321,6 +286,27 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          end if
       end if
    end do
+
+
+!   Lr1 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+!   Ls1 = sum(pack(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:)))
+!   Lp1 = swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+!   Llind = sum(dTorque_ring(:)) * dt / 6._DP
+!   Ltide = sum(Ttide(:))  * dt / 6._DP 
+!   Lnow = Lr1 + Ls1 + Lp1 + Llind
+
+
+   !write(*,*)   'after chomping changes'
+
+  
+!   write(*,*) 'dLseed/L0:     ',(Ls1 - Ls0) / Lorig
+!   write(*,*) 'dLring/L0:     ',(Lr1 - Lr0) / Lorig
+!   write(*,*) 'dLring+Lind/L0:',(Lr1 - Lr0 + Llind) / Lorig
+!   write(*,*) 'dLplanet/L0:   ',(Lp1 - Lp0 - Ltide) / Lorig
+!   write(*,*) 'dLtotal/L0:    ',(Lnow - Lorig) / Lorig
+   !read(*,*)
+
+
 
 
    return
