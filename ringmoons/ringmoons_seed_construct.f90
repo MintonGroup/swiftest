@@ -43,9 +43,9 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       type(ringmoons_seeds), intent(inout) :: seeds
 
 ! Internals
-      integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin
+      integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin,Nactive
       real(DP)                            :: a, dGm, Gmleft
-      logical(LGT)                        :: open_space
+      logical(LGT)                        :: open_space,destructo
       real(DP), parameter                 :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
       integer(I4B)                        :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
       real(DP)                            :: ndz,deltaL,Lorig,c,b,dr,Lring_orig
@@ -55,9 +55,11 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
   
       
       ! First convert any recently destroyed satellites into ring material
+      destructo = .false.
       do i = 1,seeds%N
          if ((.not.seeds%active(i)).and.(seeds%Gm(i) > 0.0_DP)) then
             write(*,*) 'Destruction activated!',i,seeds%a(i),seeds%Gm(i)
+            destructo = .true.
             Lring_orig = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
             Gmleft = seeds%Gm(i)
             Lorig = Gmleft * sqrt((swifter_pl1P%mass + Gmleft) * seeds%a(i)) 
@@ -90,20 +92,14 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             seeds%Gm(i) = 0.0_DP
          end if
       end do
-
-      seeds%N = count(seeds%active(:))
-      seeds%a(:) = pack(seeds%a(:),seeds%active(:))
-      seeds%Gm(:) = pack(seeds%Gm(:),seeds%active(:))
-      seeds%Rhill(:) = pack(seeds%Rhill(:),seeds%active(:))
-      seeds%rbin(:) = pack(seeds%rbin(:),seeds%active(:))
-      seeds%fz_bin_inner(:) = pack(seeds%fz_bin_inner(:),seeds%active(:))
-      seeds%fz_bin_outer(:) = pack(seeds%fz_bin_outer(:),seeds%active(:))
-      seeds%Torque(:) = pack(seeds%Torque(:),seeds%active(:))
-      seeds%Ttide(:) = pack(seeds%Ttide(:),seeds%active(:))
-      seeds%active(1:seeds%N) = .true. 
-      if (size(seeds%active) > seeds%N) then
-         seeds%active(seeds%N+1:size(seeds%active)) = .false.
-         seeds%Gm(seeds%N+1:size(seeds%active)) = 0.0_DP
+      if (destructo) then 
+         Nactive = count(seeds%active(:))
+         seeds%a(1:Nactive) = pack(seeds%a(:),seeds%active(:))
+         seeds%Gm(1:Nactive) = pack(seeds%Gm(:),seeds%active(:))
+         seeds%active(1:Nactive) = .true.
+         if (size(seeds%active) > Nactive) seeds%active(Nactive+1:size(seeds%active)) = .false.
+         seeds%N = Nactive
+         call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
       end if
       
 

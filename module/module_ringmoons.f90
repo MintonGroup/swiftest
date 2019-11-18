@@ -35,7 +35,7 @@ module module_ringmoons
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
    integer(I4B),public,parameter :: M_MAX = 100
    real(DP),dimension(-1:1,2:m_max),public,save :: lapm,dlapm
-   real(DP),parameter         :: RK_FACTOR = 0.01_DP
+   real(DP),parameter         :: RK_FACTOR = 0.1_DP
 
    type ringmoons_ring
       real(DP)     :: r_pdisk             ! disk particle radius
@@ -49,7 +49,7 @@ module module_ringmoons
       real(DP)     :: RRL,FRL             ! Rigid and fluid Roche limits
       integer(I4B) :: iRRL,iFRL           ! Indexes of Roche limit bins
       real(DP)     :: GMPi,dGMP           ! Original planet mass and an accumulator term
-      real(DP)     :: Lpi,dLp             ! Original planet angular momentum and an accumulator term
+      real(DP)     :: LPi,dLP             ! Original planet angular momentum and an accumulator term
       real(DP)     :: RPi,dRP
       real(DP)     :: rotPi,drotP
       real(DP), dimension(:), allocatable :: r                 ! radial distance of center of bin

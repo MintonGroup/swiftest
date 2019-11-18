@@ -69,7 +69,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
             dlap = dlapm(inner_outer_sign,m)
 
             Amk = (lap + dlap)
-            width = sqrt(Gm / swifter_pl1P%mass) * a 
+            width = 0.5_DP * sqrt(Gm / swifter_pl1P%mass) * a 
             w1 = ringmoons_ring_bin_finder(ring,a - width)
             w2 = ringmoons_ring_bin_finder(ring,a + width)
             nw = real(w2 - w1 + 1,kind=DP)
