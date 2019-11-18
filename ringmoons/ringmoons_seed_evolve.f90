@@ -101,7 +101,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       
       call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
 
-      !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (static) &
+      !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) IF (iseeds%N > nthreads) &
       !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,ka,km,e,inc,rkn) &
       !$OMP REDUCTION(+:dTorque_ring,Ttide,af,Gmf,kr)
       do i = 1, iseeds%N
@@ -148,27 +148,28 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    af(:) = ai(:) + af(:) / 6._DP
 
    stepfail = .false.
-   if (any(abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
+   if (any(abs(af(:) - ai(:)) / ai(:) > RK_FACTOR)) then
       !write(*,*) 'Failed the step: Migration too far'
+      !do i = 1,seeds%N
+      !   write(*,*) i,(af(i) - ai(i)) / ai(i)
+      !end do
       stepfail = .true.
       return
    end if 
 
-   if (abs(1.0_DP + sum(Gmf(:)) / sum(Gmringf(:))) > 10 * epsilon(1._DP)) then
-      !write(*,*) 'Mass conservation fail'
-      !write(*,*) 1.0_DP + sum(Gmf(:)) / sum(Gmringf(:))
-      stepfail = .true.
-      return
-   end if
 
    Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
-   Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
 
-   if (any(abs(Gmf(:) - Gmi(:)) / Gmi(:) > 2 * RK_FACTOR)) then
+   if (any(abs(Gmf(:) - Gmi(:)) / Gmi(:) > RK_FACTOR)) then
       !write(*,*) 'Failed the step: Growth too fast'
+      !do i = 1,seeds%N
+      !   write(*,*) i,(Gmf(i) - Gmi(i)) / Gmi(i)
+      !end do
       stepfail = .true.
       return
    end if 
+
+   Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
 
    if (any(Gmringf(:) < 0.0_DP)) then
       !write(*,*) 'Failed the step: Negative disk mass'

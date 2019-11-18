@@ -35,7 +35,7 @@ module module_ringmoons
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
    integer(I4B),public,parameter :: M_MAX = 100
    real(DP),dimension(-1:1,2:m_max),public,save :: lapm,dlapm
-   real(DP),parameter         :: RK_FACTOR = 0.05_DP
+   real(DP),parameter         :: RK_FACTOR = 0.001_DP
 
    type ringmoons_ring
       real(DP)     :: r_pdisk             ! disk particle radius

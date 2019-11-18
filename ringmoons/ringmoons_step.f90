@@ -48,16 +48,12 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       integer(I4B) :: i,loop,seedloop,subcount,loopcount
       integer(I4B), parameter :: submax = 2
       real(DP) :: dt,dtleft,dtnewring
-      real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now,Lerr_now,dLerror
+      real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now
       CHARACTER(*),parameter :: ring_outfile = "ring.dat"   ! Name of ringmoons output binary file
       type(ringmoons_ring)                            :: old_ring
       type(ringmoons_seeds)                           :: old_seeds
       logical(LGT)                                    :: stepfail
       type(swifter_pl)                                :: old_swifter_pl1P
-      real(DP),dimension(0:ring%N+1)                  :: dTorque
-      real(DP),save                                   :: dLerror_max = 0._DP
-      real(DP),save                                   :: Lerr_old
-      real(DP),save :: dL_planet_accrete = 0.0_DP, dL_seed_evolve = 0.0_DP, dL_sigma_solver = 0.0_DP, dL_seed_construct = 0.0_DP
 
 ! Executable code
       !if (lfirst) then
@@ -71,7 +67,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          Ltot_orig = Ltot_orig + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
          Ltot_orig = Ltot_orig + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
          lfirst = .false.
-         Lerr_old = 0.0_DP
          !write(*,*) 'calc_torques'
          !call ringmoons_calc_torques(swifter_pl1P,ring,seeds)
       end if
@@ -107,16 +102,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
 !write(*,*) 'planet_accrete'
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dt)
-!Ltot_now = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
-!Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
-!Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
-!Lerr_now = (Ltot_now - Ltot_orig) / Ltot_orig
-!dLerror = Lerr_now - Lerr_old
-!dL_planet_accrete = dL_planet_accrete + dLerror
-!!write(*,*) 'dL/L0 = ',Lerr_now
-!!write(*,*) 'change= ',dLerror
-!Lerr_old = Lerr_now
-
 
 !write(*,*) 'seed_evolve'
          call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
@@ -132,20 +117,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             cycle
          end if
 
-!Ltot_now = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
-!Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
-!Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
-!Ltot_now = Ltot_now + sum(ring%Torque(:)) * dt
-!Lerr_now = (Ltot_now - Ltot_orig) / Ltot_orig
-!dLerror = Lerr_now - Lerr_old
-!dL_seed_evolve = dL_seed_evolve + dLerror
-!write(*,*) 'dL/L0 = ',Lerr_now
-!!write(*,*) 'change= ',dLerror
-!write(*,*) 'dtT/L0= ',sum(ring%Torque(:)) * dt / Ltot_orig
-!Lerr_old = Lerr_now
-
-
-!write(*,*) 'sigma_solver'
+!write(*,*) 'viscosity'   
          call ringmoons_viscosity(ring)
          dtnewring = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
          if (dtnewring < dt) then
@@ -158,29 +130,13 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             swifter_pl1P%rot = old_swifter_pl1P%rot
             cycle
          end if
+
+!write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)
-!Ltot_now = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
-!Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
-!Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
-!Lerr_now = (Ltot_now - Ltot_orig) / Ltot_orig
-!dLerror = Lerr_now - Lerr_old
-!dL_sigma_solver = dL_sigma_solver + dLerror
-!!write(*,*) 'dL/L0 = ',Lerr_now
-!!write(*,*) 'change= ',dLerror
-!Lerr_old = Lerr_now
 
 
 !write(*,*) 'seed_construct'
          call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
-!Ltot_now = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
-!Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
-!Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
-!Lerr_now = (Ltot_now - Ltot_orig) / Ltot_orig
-!dLerror = Lerr_now - Lerr_old
-!dL_seed_construct = dL_seed_construct + dLerror
-!!   write(*,*) 'dL/L0 = ',Lerr_now
-!!   write(*,*) 'change= ',dLerror
-!Lerr_old = Lerr_now
 
          subcount = subcount + 1
          if (DESTRUCTION_EVENT) then
@@ -196,7 +152,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque
          if (dtleft <= 0.0_DP) exit
          loopcount = loop
-         if (subcount == 2 * submax) then
+         if (subcount == 16 * submax) then
             dt = max(min(dtleft, submax * dt),dtin)
             subcount = 0
          end if
@@ -228,13 +184,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       !   end do
       !   call util_exit(FAILURE)
       !end if 
-!!      write(*,*) 'Loop count: ',loopcount
-!      write(*,*) 'Lerror: ',Lerror
-!      write(*,*) 'dL_planet_accrete = ',dL_planet_accrete
-!      write(*,*) 'dL_seed_evolve = ',dL_seed_evolve
-!      write(*,*) 'dL_sigma_solver = ',dL_sigma_solver
-!      write(*,*) 'dL_seed_construct = ',dL_seed_construct
-
 
 
       RETURN
