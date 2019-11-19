@@ -60,7 +60,7 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
 
       Sn1(1:N) = ring%nu(2:N+1) * S(2:N+1) - 2 * ring%nu(1:N) * S(1:N) + ring%nu(0:N-1) * S(0:N-1)
 
-      Sn2(1:N) = ring%Torque(2:N+1) - ring%Torque(0:N+1)
+      Sn2(1:N) = ring%Torque(2:N+1) - ring%Torque(0:N-1)
 
       Sn2(1:N) = Sn2(1:N) * (1._DP / (3 * PI * sqrt(GMP)))
 

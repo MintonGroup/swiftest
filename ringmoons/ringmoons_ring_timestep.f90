@@ -57,7 +57,7 @@ function ringmoons_ring_timestep(swifter_pl1P,ring,dtin) result(dtout)
       do i = 1,ring%N
          if (ring%Gsigma(i) * ring%nu(i) > 0.0_DP) then 
             torque_term = (ring%Torque(i) / (ring%Gsigma(i) * ring%X(i))) * 2 / (3 * PI * sqrt(swifter_pl1P%mass))
-            sig_max = max(sig_max,abs(8 * (12 / ring%X2(i) / ring%deltaX**2) * (ring%nu(i) + torque_term)))
+            sig_max = max(sig_max,abs(8 * (12 / ring%X2(i) / ring%deltaX**2) * (ring%nu(i) - torque_term)))
          end if
       end do
       

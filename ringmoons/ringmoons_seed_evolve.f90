@@ -115,7 +115,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          iseeds%Torque(i) = iseeds%Ttide(i) - sum(Tlind(:)) 
 
          if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
-            Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iseeds%a(i))
+            Gmsdot = min(ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iseeds%a(i)),rkmult(rkn) * iring%Gm(rbin) / dt)
             kr(rbin) = kr(rbin) - dt * Gmsdot  ! Remove mass from the ring
             Tr_evol = Gmsdot * iring%Iz(rbin) * iring%w(rbin)
          else
