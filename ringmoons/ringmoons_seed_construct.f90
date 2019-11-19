@@ -49,6 +49,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       real(DP), parameter                 :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
       integer(I4B)                        :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
       real(DP)                            :: ndz,deltaL,Lorig,c,b,dr,Lring_orig
+      real(DP)                            :: Gm_min
       
 
 ! Executable code
@@ -102,10 +103,11 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
          call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
       end if
       
-
       ! Make seeds small enough to fit into each bin 
       do i = ring%iFrl,ring%N
-         if (ring%Gm(i) > 100 * INITIAL_MASS_FACTOR * ring%Gm_pdisk) then 
+         ! See Tajeddine et al. (2017) section 2.3 
+         Gm_min = max((1.505e17_DP / DU2CM**3)  * (ring%nu(i) / (100 * TU2S / DU2CM**2)) * ring%rho_pdisk,ring%Gm_pdisk)
+         if (ring%Gm(i) > 10 * Gm_min) then 
             open_space = .true.
             do j = 1, seeds%N
                if ((i >= seeds%fz_bin_inner(j)) .and. (i <= seeds%fz_bin_outer(j))) then
@@ -115,11 +117,11 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             end do
             if (open_space) then
                a = ring%r(i)
-               dGm = INITIAL_MASS_FACTOR * ring%Gm_pdisk !3 * swifter_pl1P%mass * ((ring%router(i) - ring%rinner(i)) / (1.25_DP * FEEDING_ZONE_FACTOR * a))**3
+               dGm = Gm_min
                call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,dGm)
             end if
          end if
-      end do      
+      end do     
 
       call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
           
