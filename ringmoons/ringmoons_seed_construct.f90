@@ -105,7 +105,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
 
       ! Make seeds small enough to fit into each bin 
       do i = ring%iFrl,ring%N
-         if (ring%Gm(i) > INITIAL_MASS_FACTOR * ring%Gm_pdisk) then 
+         if (ring%Gm(i) > 100 * INITIAL_MASS_FACTOR * ring%Gm_pdisk) then 
             open_space = .true.
             do j = 1, seeds%N
                if ((i >= seeds%fz_bin_inner(j)) .and. (i <= seeds%fz_bin_outer(j))) then
