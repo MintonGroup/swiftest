@@ -30,12 +30,12 @@ module module_ringmoons
    implicit none
 
    real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 8.0_DP  ! Size of the feeding zone relative to Hill's sphere
-   real(DP),public,parameter  :: INITIAL_MASS_FACTOR = 1000.0_DP ! Initial mass of seeds relative to ring particles
+   real(DP),public,parameter  :: INITIAL_MASS_FACTOR = 10000.0_DP ! Initial mass of seeds relative to ring particles
    logical(LGT),public        :: DESTRUCTION_EVENT
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
    integer(I4B),public,parameter :: M_MAX = 100
    real(DP),dimension(-1:1,2:m_max),public,save :: lapm,dlapm
-   real(DP),parameter         :: RK_FACTOR = 0.001_DP
+   real(DP),parameter         :: RK_FACTOR = 0.01_DP
 
    type ringmoons_ring
       real(DP)     :: r_pdisk             ! disk particle radius
