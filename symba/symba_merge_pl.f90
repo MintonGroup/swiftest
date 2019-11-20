@@ -107,7 +107,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
                     IF (encounter_file /= "") THEN
                          id1 = symba_plA%helio%swiftest%id(index1)
                          m1 = symba_plA%helio%swiftest%mass(index1)
-                         rad1 = ssymba_plA%helio%swiftest%radius(index1)
+                         rad1 = symba_plA%helio%swiftest%radius(index1)
                          x1(:) = symba_plA%helio%swiftest%xh(;,index1)
                          v1(:) = symba_plA%helio%swiftest%vb(;,index1) - vbs(:)
                          id2 = symba_plA%helio%swiftest%id(index2)
@@ -151,7 +151,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           x1(:) = x1(:)/m1
           v1(:) = v1(:)/m1
           !symba_pljP => symba_pljP%parentP
-          m2 = ssymba_plA%helio%swiftest%mass(index2)
+          m2 = symba_plA%helio%swiftest%mass(index2)
           mass2 = m2
           x2(:) = m2*symba_plA%helio%swiftest%xh(:,index2)
           v2(:) = m2*symba_plA%helio%swiftest%vb(:,index2)

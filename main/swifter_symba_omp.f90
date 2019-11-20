@@ -179,12 +179,12 @@ PROGRAM swiftest_symba_omp
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
                     discard_tpA, discard_plA_id_status,discard_tpA_id_status)
                CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, discard_plA,   &    ! CHECK THIS 
-                    discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard)
+                    discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, discard_tpA_id_status) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
                nsptp = 0
-               NULLIFY(discard_plA, discard_tpA)                                   ! CHECK THIS 
+               NULLIFY(discard_plA, discard_tpA, discard_plA_id_status, discard_tpA_id_status)                                   ! CHECK THIS 
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1

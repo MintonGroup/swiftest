@@ -90,7 +90,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 
     	IF (nmergeadd = 0) THEN 
     		CALL symba_pl_deallocate(symba_plA,npl)
-    		CALL symba_pl_allocate(symba_plA, nkpl + nmergeadd)
+    		CALL symba_pl_allocate(symba_plA, nkpl)! + nmergeadd)
     		symba_plA%helio%swiftest%id(1:nkpl) = keep_plA_id_status(1,:)
     		symba_plA%helio%swiftest%mass(1:nkpl) = keep_plA(1,:)
     		symba_plA%helio%swiftest%radius(1:nkpl) = keep_plA(2,:)
@@ -103,33 +103,33 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 
     	ELSE 
     		CALL symba_pl_deallocate(symba_plA,npl)
-    		CALL symba_pl_allocate(symba_plA, nkpl + nmergeadd)
+    		CALL symba_pl_allocate(symba_plA, nkpl)! + nmergeadd)
     		symba_plA%helio%swiftest%id(1:nkpl) = keep_plA_id_status(1,:)
-    		symba_plA%helio%swiftest%id(nkpl+1:nkpl+nmergeadd) = mergeadd_list%id(:)
+    		!symba_plA%helio%swiftest%id(nkpl+1:nkpl+nmergeadd) = mergeadd_list%id(:)
 
     		symba_plA%helio%swiftest%mass(1:nkpl) = keep_plA(1,:)
-    		symba_plA%helio%swiftest%mass(nkpl+1:nkpl+nmergeadd) = mergeadd_list%mass(:)
+    		!symba_plA%helio%swiftest%mass(nkpl+1:nkpl+nmergeadd) = mergeadd_list%mass(:)
 
     		symba_plA%helio%swiftest%radius(1:nkpl) = keep_plA(2,:)
-    		symba_plA%helio%swiftest%radius(nkpl+1:nkpl+nmergeadd) = mergeadd_list%radius(:)
+    		!symba_plA%helio%swiftest%radius(nkpl+1:nkpl+nmergeadd) = mergeadd_list%radius(:)
 
     		symba_plA%helio%swiftest%xh(1,1:nkpl) = keep_plA(3,:)
-    		symba_plA%helio%swiftest%xh(1,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(1,:)
+    		!symba_plA%helio%swiftest%xh(1,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(1,:)
 
     		symba_plA%helio%swiftest%xh(2,1:nkpl) = keep_plA(4,:)
-    		symba_plA%helio%swiftest%xh(2,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(2,:)
+    		!symba_plA%helio%swiftest%xh(2,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(2,:)
 
     		symba_plA%helio%swiftest%xh(3,1:nkpl) = keep_plA(5,:)
-    		symba_plA%helio%swiftest%xh(3,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(3,:)
+    		!symba_plA%helio%swiftest%xh(3,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(3,:)
 
     		symba_plA%helio%swiftest%vh(1,1:nkpl) = keep_plA(6,:)
-    		symba_plA%helio%swiftest%vh(1,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(1,:)
+    		!symba_plA%helio%swiftest%vh(1,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(1,:)
 
     		symba_plA%helio%swiftest%vh(2,1:nkpl) = keep_plA(7,:)
-    		symba_plA%helio%swiftest%vh(2,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(2,:)
+    		!symba_plA%helio%swiftest%vh(2,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(2,:)
 
     		symba_plA%helio%swiftest%vh(3,1:nkpl) = keep_plA(8,:)
-    		symba_plA%helio%swiftest%vh(3,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(3,:)
+    		!symba_plA%helio%swiftest%vh(3,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(3,:)
     		CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tei, htot
 		END IF
 	END IF 
