@@ -54,8 +54,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
    real(DP),dimension(0:ring%N+1)            :: kr
-   real(DP),dimension(seeds%N)   :: ka,km,Lseeds
-   real(DP),dimension(seeds%N)   :: ai,af,Gmi,Gmf,fz_width, Ttide
+   real(DP),dimension(size(seeds%active))   :: ka,km,Lseeds
+   real(DP),dimension(size(seeds%active))   :: ai,af,Gmi,Gmf,fz_width, Ttide
    integer(I4B)                              :: Nactive 
    real(DP),dimension(0:ring%N+1)            :: Lring_orig,Lring_now
    real(DP),dimension(seeds%N)   :: Lseeds_orig,Lseeds_now,Lres
@@ -148,7 +148,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    af(:) = ai(:) + af(:) / 6._DP
 
    stepfail = .false.
-   if (any(abs(af(:) - ai(:)) / ai(:) > 2*RK_FACTOR)) then
+   if (any(abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
       !write(*,*) 'Failed the step: Migration too far'
       !do i = 1,seeds%N
       !   write(*,*) i,(af(i) - ai(i)) / ai(i)
@@ -160,7 +160,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
 
-   if (any(abs(Gmf(:) - Gmi(:)) / Gmi(:) > 2*RK_FACTOR)) then
+   if (any(abs(Gmf(:) - Gmi(:)) / Gmi(:) > 2 * RK_FACTOR)) then
       !write(*,*) 'Failed the step: Growth too fast'
       !do i = 1,seeds%N
       !   write(*,*) i,(Gmf(i) - Gmi(i)) / Gmi(i)
