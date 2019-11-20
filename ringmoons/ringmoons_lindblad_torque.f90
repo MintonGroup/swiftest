@@ -40,35 +40,38 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    type(swifter_pl),pointer               :: swifter_pl1P
    type(ringmoons_ring), intent(in)       :: ring
    real(DP),intent(in)                    :: Gm, as, e, inc
-   real(DP),dimension(0:ring%N+1)         :: Torque,ring_Gsigma
+   real(DP),dimension(0:ring%N+1)         :: Torque
    
 
 ! Internals
    integer(I4B)                           :: i,j, m, inner_outer_sign,w,w1,w2,js, mshep
    real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,da3
    real(DP), parameter                    :: g = 2.24_DP
-   real(DP)                               :: const_fac
+   logical(lgt),save                      :: firstrun = .true.
+   real(DP),dimension(-1:1,M_MAX),save    :: marr
+   real(DP),dimension(M_MAX),save         :: mfac
 
 
 ! Executable code
+   if (firstrun) then
+      do m = 2,M_MAX
+         marr(-1,m) = (1._DP - 1._DP / real(m, kind=DP))**(2._DP / 3._DP)
+         marr( 1,m) = (1._DP + 1._DP / real(m, kind=DP))**(2._DP / 3._DP)
+         mfac(m) = 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) 
+      end do
+      firstrun = .false.
+   end if 
 
-     
    ! Just do the first order resonances for now. The full suite of resonances will come later
    Torque(:) = 0.0_DP
    mshep = min(M_MAX,ceiling(0.5_DP * (sqrt(1._DP + 8._DP / 3._DP * sqrt(as) / ring%deltaX) - 1._DP)))
-   where (ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk)
-      ring_Gsigma(:) = ring%Gsigma(:)
-   elsewhere
-      ring_Gsigma(:) = 0.0_DP
-   end where 
-   const_fac = 4 * PI**2 / 3._DP * (Gm / swifter_pl1P%mass)**2
    do m  = 2, mshep
       ! Go through modes up until resonance overlap occurs
       do inner_outer_sign = -1,1,2
          !write(*,*) inner_outer_sign,m, ' of ',mshep
-         a = (1._DP + inner_outer_sign * 1._DP / real(m, kind=DP))**(2._DP / 3._DP) * as   !resonance location for first order resonances
+         a = as * marr(inner_outer_sign,m)
          j = ringmoons_ring_bin_finder(ring, a) !disk location of resonance
-         if ((j > ring%inside).and.(j < ring%N + 1)) then !Resonance is in the bin, and don't consider overlapping
+         if ((j > ring%inside).and.(j < ring%N + 1).and.(ring%Gsigma(j) > VSMALL_SQRT)) then !Resonance is in the bin, and don't consider overlapping
             beta = (as / a)**(inner_outer_sign)
             lap  =  lapm(inner_outer_sign,m)
             dlap = dlapm(inner_outer_sign,m)
@@ -78,8 +81,11 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
             w1 = ringmoons_ring_bin_finder(ring,a - width)
             w2 = ringmoons_ring_bin_finder(ring,a + width)
             nw = real(w2 - w1 + 1,kind=DP)
-            Torque(w1:w2) = Torque(w1:w2) + inner_outer_sign * const_fac * (m / real(m - 1, kind=DP)) / nw &
-                                            * ring_Gsigma(w1:w2) * (a**2 * beta * ring%w(w1:w2) * Amk)**2 
+            do w = w1,w2 
+               dTorque = inner_outer_sign * mfac(m) / nw * ring%Gsigma(w) * (a**2 * beta * ring%w(w) * (Gm / swifter_pl1P%mass) * Amk)**2 
+               Torque(w) = Torque(w) + dTorque
+            end do
+
          end if
       end do
    end do   
@@ -88,9 +94,9 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
       !write(*,*) inner_outer_sign,'shep'
       a = (1._DP + inner_outer_sign * 1._DP / real(mshep + 1, kind=DP))**(2._DP / 3._DP) * as   
       j = ringmoons_ring_bin_finder(ring, a) !disk location of resonance
-      if ((j > ring%inside).and.(j < ring%N + 1)) then 
+      if ((j > ring%inside).and.(j < ring%N + 1).and.(ring%Gsigma(j) > VSMALL_SQRT)) then 
          da3 = inner_outer_sign * max(abs((a - as)**3),epsilon(a))
-         dTorque = g**2 / 6._DP * a**3 / da3 * (Gm / swifter_pl1P%mass)**2 * ring_Gsigma(j) * (ring%w(j))**2 * a**4
+         dTorque = g**2 / 6._DP * a**3 / da3 * (Gm / swifter_pl1P%mass)**2 * ring%Gsigma(j) * (ring%w(j))**2 * a**4
          Torque(j) = Torque(j) + dTorque
       end if
    end do

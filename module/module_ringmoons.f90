@@ -44,7 +44,9 @@ module module_ringmoons
       integer(I4B) :: N                   ! number of bins in disk
       integer(I4B) :: inside = 1          ! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
       real(DP)     :: r_F                 ! outside radius of disk
+      real(DP)     :: X_F                 ! outside radius of disk
       real(DP)     :: r_I                 ! inside radius of disk
+      real(DP)     :: X_I                 ! inside radius of disk
       real(DP)     :: deltaX              ! variable changed bin width used for viscosity calculations
       real(DP)     :: RRL,FRL             ! Rigid and fluid Roche limits
       integer(I4B) :: iRRL,iFRL           ! Indexes of Roche limit bins
