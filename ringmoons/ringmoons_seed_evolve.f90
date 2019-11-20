@@ -54,8 +54,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
    real(DP),dimension(0:ring%N+1)            :: kr
-   real(DP),dimension(size(seeds%active))   :: ka,km,Lseeds
-   real(DP),dimension(size(seeds%active))   :: ai,af,Gmi,Gmf,fz_width, Ttide
+   real(DP),dimension(seeds%N)   :: ka,km,Lseeds
+   real(DP),dimension(seeds%N)   :: ai,af,Gmi,Gmf,fz_width, Ttide
    integer(I4B)                              :: Nactive 
    real(DP),dimension(0:ring%N+1)            :: Lring_orig,Lring_now
    real(DP),dimension(seeds%N)   :: Lseeds_orig,Lseeds_now,Lres
@@ -76,8 +76,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    iring = ring 
    iseeds = seeds
 
-   ai(:) = iseeds%a(:)
-   Gmi(:) = iseeds%Gm(:)
+   ai(:) = iseeds%a(1:seeds%N)
+   Gmi(:) = iseeds%Gm(1:seeds%N)
    Gmringi(:) = iring%Gm(:)
    dTorque_ring(:) = 0.0_DP
    Ttide(:) = 0.0_DP
