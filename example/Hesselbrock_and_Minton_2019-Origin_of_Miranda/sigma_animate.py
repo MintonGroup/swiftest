@@ -17,7 +17,7 @@ class AnimatedScatter(object):
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=41000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=100, frames=41000,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")

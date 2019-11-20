@@ -22,14 +22,14 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 10.0e2 / DU2CM #disk particle size
+r_pdisk = 100.0e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 
 t_0	= 0
-t_print = 1e2 * year / TU2S #output interval to print results
-deltaT	= 1e2 * year / TU2S  #timestep simulation
+t_print = 1e3 * year / TU2S #output interval to print results
+deltaT	= 1e3 * year / TU2S  #timestep simulation
 end_sim = 1.0e9 * year / TU2S + t_print #end time
 
 Nbins    = 1024     #number of bins in disk
