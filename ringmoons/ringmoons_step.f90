@@ -95,7 +95,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
          ring%Torque(:) = 0.0_DP
          seeds%Torque(:) = 0.0_DP
-!write(*,*) 'timestep'
          call ringmoons_viscosity(ring)
          dt = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
          dt = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dt) 
@@ -119,17 +118,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
 !write(*,*) 'viscosity'   
          call ringmoons_viscosity(ring)
-         dtnewring = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
-         if (dtnewring < dt) then
-            !Step size is now too small
-            dt = dtnewring
-            ring = old_ring
-            seeds = old_seeds
-            swifter_pl1P%mass = old_swifter_pl1P%mass
-            swifter_pl1P%radius = old_swifter_pl1P%radius
-            swifter_pl1P%rot = old_swifter_pl1P%rot
-            cycle
-         end if
 
 !write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)

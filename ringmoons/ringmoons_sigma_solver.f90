@@ -39,19 +39,15 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
 
 ! Internals
 
-      real(DP),dimension(0:ring%N+1)      :: S,Snew,Sn1,Sn2,fac,fac2,L,dM1,dM2
+      real(DP),dimension(0:ring%N+1)      :: S,Snew,Sn1,Sn2,fac,L,dM1,dM2
       integer(I4B)                        :: i,N,j
 
 ! Executable code
 
       N = ring%N
-      where(ring%Gsigma(:) * ring%X(:) > TINY(1._DP) )
-         S(:) = ring%Gsigma(:) * ring%X(:)
-      elsewhere
-         S(:) = 0._DP
-      end where
 
       S(0) = 0.0_DP
+      S(1:N) = ring%Gsigma(1:N) * ring%X(1:N)
       S(N+1) = 0.0_DP
       ring%Torque(0) = 0.0_DP
       ring%Torque(N+1) = 0.0_DP

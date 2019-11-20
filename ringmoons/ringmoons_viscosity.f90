@@ -45,10 +45,11 @@ SUBROUTINE ringmoons_viscosity(ring)
 ! Executable code
 
    !where(ring%Gsigma(:) > VSMALL_SQRT)
+   where(ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk)
       ring%nu(:)  = (PI * ring%Gsigma(:))**2 / (ring%w(:))**3
-   !elsewhere
-   !   ring%nu(:) = 0.0_DP
-   !end where
+   elsewhere
+      ring%nu(:) = 0.0_DP
+   end where
 
 
 END SUBROUTINE ringmoons_viscosity

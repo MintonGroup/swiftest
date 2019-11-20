@@ -52,14 +52,15 @@ function ringmoons_ring_timestep(swifter_pl1P,ring,dtin) result(dtout)
       ! Start with viscous stability
       dtout = dtin
 
-      torque_term = 0.0_DP 
-      sig_max = 1.0_DP / dtout
-      do i = 1,ring%N
-         if (ring%Gsigma(i) * ring%nu(i) > 0.0_DP) then 
-            torque_term = (ring%Torque(i) / (ring%Gsigma(i) * ring%X(i))) * 2 / (3 * PI * sqrt(swifter_pl1P%mass))
-            sig_max = max(sig_max,abs(8 * (12 / ring%X2(i) / ring%deltaX**2) * (ring%nu(i) - torque_term)))
-         end if
-      end do
+      !torque_term = 0.0_DP 
+      !sig_max = 1.0_DP / dtout
+      sig_max = (96 / (ring%deltaX)**2) * maxval(ring%nu(:) / ring%X2(:))
+      !do i = 1,ring%N
+      !   if (ring%Gsigma(i) * ring%nu(i) > 0.0_DP) then 
+      !      !torque_term = (ring%Torque(i) / (ring%Gsigma(i) * ring%X(i))) * 2 / (3 * PI * sqrt(swifter_pl1P%mass))
+      !      sig_max = max(sig_max,abs(8 * (12 / ring%X2(i) / ring%deltaX**2) * ring%nu(i))
+      !   end if
+      !end do
       
       if (sig_max > 0.0_DP) then
          dtout = min(dtin,(sig_max)**(-1))
