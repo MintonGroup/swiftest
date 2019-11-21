@@ -51,7 +51,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    real(DP),dimension(M_MAX,-1:1),save    :: marr
    real(DP),dimension(M_MAX),save         :: mfac
    real(DP),dimension(M_MAX,2,-1:1)       :: Xrw
-   integer(I4B),dimension(M_MAX,2,-1:1)   :: w12
+   !integer(I4B),dimension(M_MAX,2,-1:1)   :: w12
    real(DP),dimension(0:ring%N+1)         :: ring_Gsigma
 
 
@@ -81,8 +81,8 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    do il = -1,1,2
       Xrw(2:mshep,1,il) = Xs * marr(2:mshep,il)
       Xrw(2:mshep,2,il) = Xrw(2:mshep,2,il) * (Gfac)**(0.25_DP)
-      w12(2:mshep,1,il) = min(max(ceiling((Xrw(2:mshep,1,il) - Xrw(2:mshep,2,il) - ring%X_I) / ring%deltaX),0),ring%N)
-      w12(2:mshep,2,il) = min(max(ceiling((Xrw(2:mshep,1,il) + Xrw(2:mshep,2,il) - ring%X_I) / ring%deltaX),0),ring%N)
+      !w12(2:mshep,1,il) = min(max(ceiling((Xrw(2:mshep,1,il) - Xrw(2:mshep,2,il) - ring%X_I) / ring%deltaX),0),ring%N)
+      !w12(2:mshep,2,il) = min(max(ceiling((Xrw(2:mshep,1,il) + Xrw(2:mshep,2,il) - ring%X_I) / ring%deltaX),0),ring%N)
    
       do m  = 2, mshep
          if ((Xrw(m,1,il) > Xlo).and.(Xrw(m,1,il) < Xhi)) then
@@ -91,8 +91,8 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
             lap  =  lapm(m,il)
             dlap = dlapm(m,il)
             Amk = (lap + dlap)
-            w1 = w12(m,1,il)
-            w2 = w12(m,2,il)
+            w1 = min(max(ceiling((Xrw(m,1,il) - Xrw(m,2,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
+            w2 = min(max(ceiling((Xrw(m,1,il) + Xrw(m,2,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
             nw = real(w2 - w1 + 1,kind=DP)
             Torque(w1:w2) = Torque(w1:w2) + il * mfac(m) / nw * ring_Gsigma(w1:w2) * (a**2 * beta * ring%w(w1:w2) * Gfac  * Amk)**2 
          end if
