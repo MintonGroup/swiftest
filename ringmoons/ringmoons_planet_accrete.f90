@@ -82,7 +82,7 @@
       
       ! Any difference in angular momentum in each ring bin will result in a torque in that bin
       Lring_now(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:) 
-      ring%Torque(ring%inside+1:ring%N) = ring%Torque(ring%inside+1:ring%N)-(Lring_now(ring%inside+1:ring%N) - Lring_orig(ring%inside+1:ring%N)) / dt 
+      ring%Torque(ring%inside+1:ring%N) = ring%Torque(ring%inside+1:ring%N) + (Lring_now(ring%inside+1:ring%N) - Lring_orig(ring%inside+1:ring%N)) / dt 
 
       return
 

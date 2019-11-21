@@ -138,7 +138,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque
          if (dtleft <= 0.0_DP) exit
          loopcount = loop
-         if (subcount == 2 * submax) then
+         if (subcount == 4 * submax) then
             dt = max(min(dtleft, submax * dt),dtin)
             subcount = 0
          end if
