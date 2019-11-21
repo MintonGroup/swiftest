@@ -42,8 +42,8 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
 
 ! Internals
       integer(I4B)                        :: i
-      real(DP)                            :: Xlo,Xhi,rlo,rhi,rhill,deltar
-      real(DP)                            :: GMP, RP, rhoP,fz_width
+      real(DP)                            :: Xlo
+      real(DP)                            :: GMP, RP, rhoP
 
 ! Executable code
       GMP = swifter_pl1P%mass
@@ -62,7 +62,6 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
       do i = 0,ring%N + 1
          ! Set up X coordinate system (see Bath & Pringle 1981)
          Xlo = ring%X_I + ring%deltaX * (i - 1)
-         Xhi = Xlo + ring%deltaX
    
          ring%X(i) = Xlo + 0.5_DP * ring%deltaX
       end do
