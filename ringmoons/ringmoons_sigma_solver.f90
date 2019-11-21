@@ -51,6 +51,10 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
       S(N+1) = 0.0_DP
       ring%Torque(0) = 0.0_DP
       ring%Torque(N+1) = 0.0_DP
+      ring%Gm(0) = 0.0_DP
+      ring%Gm(N+1) = 0.0_DP
+      ring%Gsigma(0) = 0.0_DP
+      ring%Gsigma(N+1) = 0.0_DP
 
       fac(:)  = 12 * dt / (ring%deltaX)**2  / ring%X2(:)
 
