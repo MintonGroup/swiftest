@@ -71,7 +71,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
                do inner_outer_sign = -1,1,2
                   nbin = ring%iRRL + inner_outer_sign * j
                   if ((nbin > 0).and.(nbin < ring%N).and.(Gmleft > 0.0_DP)) then
-                     dr = ring%router(nbin) - ring%rinner(nbin)
+                     dr = 0.5_DP * ring%X(nbin) * ring%deltaX
                      dGm = min(Gmleft,a * dr *exp(-(ring%r(nbin) - ring%RRL)**2 / (2 * c**2)))
                      ring%Gm(nbin) = ring%Gm(nbin) + dGm
                      Gmleft = Gmleft - dGm

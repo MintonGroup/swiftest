@@ -42,8 +42,6 @@ sUBROUTINE ringmoons_deallocate(ring,seeds)
 
 ! Executable code
       deallocate(ring%r)
-      deallocate(ring%rinner)
-      deallocate(ring%router)
       deallocate(ring%X)
       deallocate(ring%X2)
       deallocate(ring%deltaA)

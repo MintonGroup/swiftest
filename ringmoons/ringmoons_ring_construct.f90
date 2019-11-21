@@ -65,40 +65,28 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
          Xhi = Xlo + ring%deltaX
    
          ring%X(i) = Xlo + 0.5_DP * ring%deltaX
-         ring%X2(i) = ring%X(i)**2
+      end do
+      ring%X2(:) = ring%X(:)**2
 
-         ! Convert X to r
-         rlo = (0.5_DP * Xlo)**2
-         rhi = (0.5_DP * Xhi)**2
-         deltar = rhi - rlo
-         ring%r(i) = (0.5_DP * ring%X(i))**2
-         ring%rinner(i) = rlo
-         ring%router(i) = rhi
+      ! Convert X to r
+      ring%r(:) = 0.25_DP * (ring%X(:))**2
         
-         ! Factors to convert surface mass density into mass 
-         ring%deltaA(i) = 2 * PI * deltar * ring%r(i)
-         ring%Gm(i) = ring%Gsigma(i) * ring%deltaA(i)
+      ! Factors to convert surface mass density into mass 
+      ring%deltaA(:) = 0.25_DP * PI * ring%X(:)**3 * ring%deltaX !2 * PI * deltar * ring%r(i)
+      ring%Gm(:) = ring%Gsigma(:) * ring%deltaA(:)
       
-         ! Specific moment of inertia of the ring bin
-         ring%Iz(i) = (ring%r(i))**2
-         ring%w(i) = sqrt(GMP / ring%r(i)**3)
+      ! Specific moment of inertia of the ring bin
+      ring%Iz(:) = (ring%r(:))**2
+      ring%w(:) = sqrt(GMP / ring%r(:)**3)
 
-         ring%Torque(i) = 0.0_DP
-         rhill = ring%r(i) * (2 * ring%Gm_pdisk /(3._DP * GMP))**(1._DP/3._DP) ! See Salmon et al. 2010 for this
-         ring%r_hstar(i) = rhill / (2 * ring%r_pdisk)  
-      end do
+      ring%Torque(:) = 0.0_DP
+      ! See Salmon et al. 2010 for this
+      ring%r_hstar(:) = ring%r(:) * (2 * ring%Gm_pdisk /(3._DP * GMP))**(1._DP/3._DP) / (2 * ring%r_pdisk)  
 
-      do i = 1,seeds%N
-         seeds%Rhill(i)  = seeds%a(i) * (seeds%Gm(i) / (3 * swifter_pl1P%mass))**(1.0_DP / 3.0_DP)
-         seeds%rbin(i)   = ringmoons_ring_bin_finder(ring,seeds%a(i))
-         fz_width = FEEDING_ZONE_FACTOR * seeds%Rhill(i)
-         seeds%fz_bin_inner(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width)
-         seeds%fz_bin_outer(i) = ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width)
-      end do
-
-      
-      
-      
+      seeds%Rhill(1:seeds%N)  = seeds%a(1:seeds%N) * (seeds%Gm(1:seeds%N) / (3 * GMP))**(1.0_DP / 3.0_DP)
+      seeds%rbin(1:seeds%N)   = ringmoons_ring_bin_finder(ring,seeds%a(1:seeds%N))
+      seeds%fz_bin_inner(1:seeds%N) = seeds%rbin(1:seeds%N) !ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width)
+      seeds%fz_bin_outer(1:seeds%N) = seeds%rbin(1:seeds%N) !ringmoons_ring_bin_finder(ring,seeds%a(i) + fz_width)
 
       return
 

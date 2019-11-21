@@ -43,10 +43,6 @@ subroutine ringmoons_allocate(ring,seeds)
 ! Executable code
       allocate(ring%r(0:ring%N+1))
       ring%r = 0.0_DP
-      allocate(ring%rinner(0:ring%N+1))
-      ring%rinner = 0.0_DP
-      allocate(ring%router(0:ring%N+1))
-      ring%router = 0.0_DP
       allocate(ring%X(0:ring%N + 1))
       ring%X = 0.0_DP
       allocate(ring%X2(0:ring%N + 1))

@@ -55,8 +55,6 @@ module module_ringmoons
       real(DP)     :: RPi,dRP
       real(DP)     :: rotPi,drotP
       real(DP), dimension(:), allocatable :: r                 ! radial distance of center of bin
-      real(DP), dimension(:), allocatable :: rinner            ! inner edge of the bin used to determine if the bin is inside the planet
-      real(DP), dimension(:), allocatable :: router            ! outer edge of the bin used to determine if the bin is inside the planet
       real(DP), dimension(:), allocatable :: r_hstar           ! normalized ring Hill's radius
       real(DP), dimension(:), allocatable :: X                 ! distance variable X bin center used for viscosity calculations
       real(DP), dimension(:), allocatable :: X2                ! distance variable X**2 bin center  used for viscosity calculations
