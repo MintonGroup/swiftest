@@ -45,24 +45,14 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
 
 ! Internals
    integer(I4B)                           :: i,j, m, il,w,w1,w2,js, mshep
-   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,da3,Xs, Xlo,Xhi,Gfac
+   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,da3,Xs, Xlo,Xhi,Gfac,lind_factor
    real(DP), parameter                    :: g = 2.24_DP
-   logical(lgt),save                      :: firstrun = .true.
-   real(DP),dimension(M_MAX,-1:1),save    :: marr
-   real(DP),dimension(M_MAX),save         :: mfac
-   real(DP),dimension(M_MAX,-1:1)         :: Xr,Xw
-   logical(lgt),dimension(0:ring%N+1)      :: T_mask
+   real(DP),dimension(2:M_MAX)            :: Xr,Xw
+   logical(lgt),dimension(0:ring%N+1)     :: T_mask
+   integer(I4B),dimension(2:M_MAX)        :: w1_arr,w2_arr
 
 
 ! Executable code
-   if (firstrun) then
-      do m = 2,M_MAX
-         marr(m,-1) = (1._DP - 1._DP / real(m, kind=DP))**(1._DP / 3._DP)
-         marr(m, 1) = (1._DP + 1._DP / real(m, kind=DP))**(1._DP / 3._DP)
-         mfac(m) = 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) 
-      end do
-      firstrun = .false.
-   end if 
    Gfac = (Gm / swifter_pl1P%mass)
 
    ! Mask out any ring bins that don't have enough mass in them
@@ -76,24 +66,29 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    Xhi = ring%X_F
    ! Just do the first order resonances for now. The full suite of resonances will come later
    Torque(:) = 0.0_DP
-   mshep = min(M_MAX,ceiling(0.5_DP * (sqrt(1._DP + 4._DP / 3._DP * Xs / ring%deltaX) - 1._DP)))
+   mshep = min(M_MAX - 1,ceiling(0.5_DP * (sqrt(1._DP + 4._DP / 3._DP * Xs / ring%deltaX) - 1._DP)))
    
    ! Inner then outer lindblads
    do il = -1,1,2
-      Xr(2:mshep,il) = Xs * marr(2:mshep,il)
-      Xw(2:mshep,il) = Xr(2:mshep,il) * (Gfac)**(0.25_DP)
+      Xr(2:mshep) = Xs * marr(2:mshep,il)
+      Xw(2:mshep) = Xr(2:mshep) * (Gfac)**(0.25_DP)
+      w1_arr(2:mshep) = min(max(ceiling((Xr(2:mshep) - Xw(2:mshep) - ring%X_I) / ring%deltaX),0),ring%N+1)
+      w2_arr(2:mshep) = min(max(ceiling((Xr(2:mshep) + Xw(2:mshep) - ring%X_I) / ring%deltaX),0),ring%N+1)
    
       do m  = 2, mshep
-         if ((Xr(m,il) > Xlo).and.(Xr(m,il) < Xhi)) then
-            beta = (Xs / Xr(m,il))**(il * 2)
-            a = 0.25_DP * (Xr(m,il))**2
+         if ((Xr(m) > Xlo).and.(Xr(m) < Xhi)) then
+            beta = (Xs / Xr(m))**(il * 2)
+            a = 0.25_DP * (Xr(m))**2
             lap  =  lapm(m,il)
             dlap = dlapm(m,il)
             Amk = (lap + dlap)
-            w1 = min(max(ceiling((Xr(m,il) - Xw(m,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
-            w2 = min(max(ceiling((Xr(m,il) + Xw(m,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
+            !w1 = min(max(ceiling((Xr(m) - Xw(m) - ring%X_I) / ring%deltaX),0),ring%N+1)
+            !w2 = min(max(ceiling((Xr(m) + Xw(m) - ring%X_I) / ring%deltaX),0),ring%N+1)
+            w1 = w1_arr(m)
+            w2 = w2_arr(m)
             nw = real(w2 - w1 + 1,kind=DP)
-            where(T_mask(w1:w2)) Torque(w1:w2) = Torque(w1:w2) + il * mfac(m) / nw * ring%Gsigma(w1:w2) * (a**2 * beta * ring%w(w1:w2) * Gfac  * Amk)**2 
+            lind_factor = il * mfac(m) / nw * a**4 * (beta * Gfac  * Amk)**2 
+            where(T_mask(w1:w2)) Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%Gsigma(w1:w2) * (ring%w(w1:w2))**2
          end if
       end do
 

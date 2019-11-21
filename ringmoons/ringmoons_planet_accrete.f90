@@ -45,20 +45,15 @@
       integer(I4B) :: i,j,iin
       real(DP) :: rlo,rhi,GMP, RP,rhoP, Mratio, Rratio, Mratiosqrt,MratioHill,rfac
       real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew, Lorig,Mring,dMtot,Lnow
-      real(DP),dimension(size(seeds%a)) :: afac
+      real(DP),dimension(seeds%N) :: afac
       real(DP),dimension(0:ring%N+1)        :: Gmtmp,Lring_orig,Lring_now
       real(DP) :: Lp0,Ls0,Lp1,Ls1,Lr0,Lr1
       
 ! Executable code
-      ! Save original mass and radius to use later
-      !Lr0 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
-      !Ls0 = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:))
-
-      
       ring%inside = ringmoons_ring_bin_finder(ring,swifter_pl1P%radius)
       GMP = ring%GMPi + ring%dGMp
       dMtot = sum(ring%Gm(0:ring%inside))
-      if (dMtot / GMP < epsilon(1._DP)) return
+      if (dMtot < 2 * epsilon(1._DP) * GMP) return
             
       !Add ring mass and angular momentum to planet
       Lring_orig(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:) 
@@ -74,8 +69,8 @@
 
       ! update body-dependent parameters as needed
       rfac = 1._DP - dMtot / GMP
-      afac(:) = 1._DP - dMtot / (GMP + seeds%Gm(:))
-      seeds%a(:) = seeds%a(:) * afac(:)
+      afac(1:seeds%N) = 1._DP - dMtot / (GMP + seeds%Gm(1:seeds%N))
+      seeds%a(1:seeds%N) = seeds%a(1:seeds%N) * afac(1:seeds%N)
       ring%r_F = ring%r_F * rfac
       ring%r_I = ring%r_I * rfac
 
@@ -87,26 +82,8 @@
       
       ! Any difference in angular momentum in each ring bin will result in a torque in that bin
       Lring_now(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:) 
-      ring%Torque(ring%inside+1:ring%N+1) = (Lring_now(ring%inside+1:ring%N+1) - Lring_orig(ring%inside+1:ring%N+1)) / dt 
-      !write(*,*) 'inside bin: ',ring%inside
-      !do i = 0,ring%N+1
-      !   write(*,*) i,Lring_orig(i),Lring_now(i),ring%Torque(i)
-      !end do
-      !read(*,*)
-      
-
-      !write(*,*) 'after planet_accrete'
-      !Lr1 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
-      !Ls1 = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:))
-      !Lp1 = swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
-      !Lnow = Lr1 + Ls1 + Lp1 
-
-
+      ring%Torque(ring%inside+1:ring%N) = ring%Torque(ring%inside+1:ring%N)-(Lring_now(ring%inside+1:ring%N) - Lring_orig(ring%inside+1:ring%N)) / dt 
 
       return
-         
-
-
-      
 
 end subroutine ringmoons_planet_accrete

@@ -97,7 +97,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          seeds%Torque(:) = 0.0_DP
          call ringmoons_viscosity(ring)
          dt = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
-         !dt = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dt) 
 
 !write(*,*) 'planet_accrete'
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dt)
@@ -122,7 +121,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 !write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)
 
-
 !write(*,*) 'seed_construct'
          call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
 
@@ -140,7 +138,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque
          if (dtleft <= 0.0_DP) exit
          loopcount = loop
-         if (subcount == 16 * submax) then
+         if (subcount == 2 * submax) then
             dt = max(min(dtleft, submax * dt),dtin)
             subcount = 0
          end if

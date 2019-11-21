@@ -80,7 +80,9 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
          beta =  (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(-inner_outer_sign * 2._DP / 3._DP)
          lapm(m,inner_outer_sign)  = m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
          dlapm(m,inner_outer_sign) = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1) 
+         marr(m,inner_outer_sign) = (1._DP + inner_outer_sign / real(m, kind=DP))**(1._DP / 3._DP)
       end do
+      mfac(m) = 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) 
    end do
 
    !Save the original mass of the planet. We will accumulate mass in a separate variable for floating point precision reasons

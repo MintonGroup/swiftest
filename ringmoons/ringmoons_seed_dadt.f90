@@ -37,7 +37,6 @@ elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque,mdot) result(adot)
 ! Arguments
       real(DP), intent(in)                   :: GMP,Gmseed,a,Torque,mdot
       real(DP)                               :: adot
-      real(DP)                               :: mfac
 
 ! Internals
 

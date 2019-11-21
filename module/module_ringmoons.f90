@@ -33,8 +33,9 @@ module module_ringmoons
    integer(I4B),public,parameter  :: N_DISK_FACTOR = 10000 ! Minimum number of particles in a bin to consider it a fluid disk
    logical(LGT),public        :: DESTRUCTION_EVENT
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
-   integer(I4B),public,parameter :: M_MAX = 100
-   real(DP),dimension(2:M_MAX,-1:1),public,save :: lapm,dlapm
+   integer(I4B),public,parameter :: M_MAX = 200
+   real(DP),dimension(2:M_MAX,-1:1),public,save :: lapm,dlapm,marr
+   real(DP),dimension(2:M_MAX),public,save :: mfac
    real(DP),parameter         :: RK_FACTOR = 0.01_DP
 
    type ringmoons_ring
