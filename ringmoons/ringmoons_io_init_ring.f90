@@ -78,8 +78,8 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    do m = 2, m_max
       do inner_outer_sign = -1,1,2
          beta =  (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(-inner_outer_sign * 2._DP / 3._DP)
-         lapm(inner_outer_sign,m)  = m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
-         dlapm(inner_outer_sign,m) = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1) 
+         lapm(m,inner_outer_sign)  = m * ringmoons_laplace_coefficient(beta,m,0.5_DP,0) 
+         dlapm(m,inner_outer_sign) = 0.5_DP * beta * ringmoons_laplace_coefficient(beta,m,0.5_DP,1) 
       end do
    end do
 

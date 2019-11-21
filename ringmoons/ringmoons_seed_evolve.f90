@@ -90,8 +90,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    do rkn = 1,4 ! Runge-Kutta steps 
       if (rkn > 1) then
-         iseeds%a(:)  = ai(:)       + rkh(rkn) * ka(:)
-         iseeds%Gm(:) = Gmi(:)      + rkh(rkn) * km(:)
+         iseeds%a(1:seeds%N)  = ai(:)       + rkh(rkn) * ka(:)
+         iseeds%Gm(1:seeds%N) = Gmi(:)      + rkh(rkn) * km(:)
          iring%Gm(:)  = Gmringi(:)  + rkh(rkn) * kr(:)
          iring%Gsigma(:) = iring%Gm(:) / iring%deltaA(:)
          kr(:) = 0._DP

@@ -34,7 +34,7 @@ module module_ringmoons
    logical(LGT),public        :: DESTRUCTION_EVENT
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
    integer(I4B),public,parameter :: M_MAX = 100
-   real(DP),dimension(-1:1,2:m_max),public,save :: lapm,dlapm
+   real(DP),dimension(2:M_MAX,-1:1),public,save :: lapm,dlapm
    real(DP),parameter         :: RK_FACTOR = 0.01_DP
 
    type ringmoons_ring
