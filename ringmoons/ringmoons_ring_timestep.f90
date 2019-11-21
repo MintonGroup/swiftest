@@ -52,7 +52,7 @@ function ringmoons_ring_timestep(swifter_pl1P,ring,dtin) result(dtout)
       ! Start with viscous stability
       dtout = dtin
 
-      sig_max = (96 / (ring%deltaX)**2) * maxval(ring%nu(:) / ring%X2(:))
+      sig_max = 8 * (12._DP / (ring%deltaX)**2) * maxval(ring%nu(:) / ring%X2(:))
       
       if (sig_max > 0.0_DP) then
          dtout = min(dtin,(sig_max)**(-1))

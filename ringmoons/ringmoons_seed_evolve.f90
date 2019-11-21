@@ -49,7 +49,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
-   real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmringi,Gmringf
+   real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmringi,Gmringf,Torquei
    real(DP),dimension(0:ring%N+1)            :: Tlind,Tring
    real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
@@ -74,6 +74,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    iring%N = ring%N
    iseeds%N = seeds%N
+   Torquei(:) = ring%Torque(:)
    call ringmoons_allocate(iring,iseeds)
 
    ! Save initial state of the seeds
@@ -191,7 +192,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
    !write(*,*) 'calculate total torques'
    seeds%Ttide(1:seeds%N) = Ttide(:) / 6._DP
-   ring%Torque(:) = ring%Torque(:) + dTorque_ring(:) / 6._DP
+   ring%Torque(:) = Torquei(:) + dTorque_ring(:) / 6._DP
 
    ring%dLP = ring%dLP - dt * sum(seeds%Ttide(1:seeds%N))
    swifter_pl1P%rot(3) = (ring%LPi + ring%dLP) / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2) 
