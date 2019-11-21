@@ -67,6 +67,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    e = 0.0_DP
    inc = 0.0_DP
    stepfail = .false.
+   Lr0 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dt
+   Ls0 = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)))
+   Lp0 = swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+   Lorig = Lr0 + Ls0 + Lp0
 
    iring%N = ring%N
    iseeds%N = seeds%N
@@ -148,26 +152,26 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    af(:) = ai(:) + af(:) / 6._DP
 
    stepfail = .false.
-   if (any(abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
-      !write(*,*) 'Failed the step: Migration too far'
-      !do i = 1,seeds%N
-      !   write(*,*) i,(af(i) - ai(i)) / ai(i)
-      !end do
-      stepfail = .true.
-      return
-   end if 
+   !if (any(abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
+   !   write(*,*) 'Failed the step: Migration too far'
+   !   !do i = 1,seeds%N
+   !   !   write(*,*) i,(af(i) - ai(i)) / ai(i)
+   !   !end do
+   !   stepfail = .true.
+   !   return
+   !end if 
 
 
    Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
 
-   if (any(abs(Gmf(:) - Gmi(:)) / Gmi(:) > 2 * RK_FACTOR)) then
-      !write(*,*) 'Failed the step: Growth too fast'
-      !do i = 1,seeds%N
-      !   write(*,*) i,(Gmf(i) - Gmi(i)) / Gmi(i)
-      !end do
-      stepfail = .true.
-      return
-   end if 
+   !if (any(abs(Gmf(:) - Gmi(:)) / Gmi(:) > 2 * RK_FACTOR)) then
+   !  write(*,*) 'Failed the step: Growth too fast'
+   !  !do i = 1,seeds%N
+   !  !   write(*,*) i,(Gmf(i) - Gmi(i)) / Gmi(i)
+   !  !end do
+   !  stepfail = .true.
+   !  return
+   !nd if 
 
    Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
 
@@ -193,6 +197,27 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    swifter_pl1P%rot(3) = (ring%LPi + ring%dLP) / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2) 
    seeds%Torque(:) = 0.0_DP
    seeds%Ttide(:) = 0.0_DP
+
+
+   Lr1 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dt
+   Ls1 = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)))
+   Lp1 = swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+   Lnow = Lr1 + Ls1 + Lp1
+
+   if (abs((Lnow - Lorig) / Lorig) > epsilon(1._DP)) then
+      !write(*,*) 'Failed the step: did not conserve angular momentum'
+      !write(*,*) (Lnow - Lorig) / Lorig
+      stepfail = .true.
+      return
+   end if 
+
+   !write(*,*) 'seed_evolve: dL/L0: ',(Lnow - Lorig) / Lorig
+   !read(*,*)
+
+
+
+
+
 
    fz_width(:) = FEEDING_ZONE_FACTOR * seeds%Rhill(1:seeds%N)
 

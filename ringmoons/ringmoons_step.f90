@@ -97,7 +97,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          seeds%Torque(:) = 0.0_DP
          call ringmoons_viscosity(ring)
          dt = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
-         dt = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dt) 
+         !dt = ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dt) 
 
 !write(*,*) 'planet_accrete'
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dt)

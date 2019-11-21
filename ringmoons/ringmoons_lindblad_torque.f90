@@ -66,17 +66,17 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    Gfac = (Gm / swifter_pl1P%mass)
 
    ! Mask out any ring bins that don't have enough mass in them
-   where (ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk)
-      T_mask(:) = .true.
+   where (ring%Gm(0:ring%N+1) > N_DISK_FACTOR * ring%Gm_pdisk)
+      T_mask(0:ring%N+1) = .true.
    elsewhere
-      T_mask(:) = .false. 
+      T_mask(0:ring%N+1) = .false. 
    end where
    Xs = 2 * sqrt(as)
    Xlo = ring%X_I + ring%deltaX * ring%inside
    Xhi = ring%X_F
    ! Just do the first order resonances for now. The full suite of resonances will come later
    Torque(:) = 0.0_DP
-   mshep = min(M_MAX,ceiling(0.5_DP * (sqrt(1._DP + 8._DP / 3._DP * sqrt(as) / ring%deltaX) - 1._DP)))
+   mshep = min(M_MAX,ceiling(0.5_DP * (sqrt(1._DP + 4._DP / 3._DP * Xs / ring%deltaX) - 1._DP)))
    
    ! Inner then outer lindblads
    do il = -1,1,2
