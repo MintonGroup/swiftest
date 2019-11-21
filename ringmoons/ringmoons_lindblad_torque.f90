@@ -51,7 +51,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    real(DP),dimension(M_MAX,-1:1),save    :: marr
    real(DP),dimension(M_MAX),save         :: mfac
    real(DP),dimension(M_MAX,-1:1)         :: Xr,Xw
-   real(DP),dimension(0:ring%N+1)         :: ring_Gsigma
+   logical(lgt),dimension(0:ring%N+1)      :: T_mask
 
 
 ! Executable code
@@ -64,10 +64,12 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
       firstrun = .false.
    end if 
    Gfac = (Gm / swifter_pl1P%mass)
+
+   ! Mask out any ring bins that don't have enough mass in them
    where (ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk)
-      ring_Gsigma(:) = ring%Gsigma
+      T_mask(:) = .true.
    elsewhere
-      ring_Gsigma(:) = 0.0_DP
+      T_mask(:) = .false. 
    end where
    Xs = 2 * sqrt(as)
    Xlo = ring%X_I + ring%deltaX * ring%inside
@@ -91,7 +93,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
             w1 = min(max(ceiling((Xr(m,il) - Xw(m,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
             w2 = min(max(ceiling((Xr(m,il) + Xw(m,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
             nw = real(w2 - w1 + 1,kind=DP)
-            Torque(w1:w2) = Torque(w1:w2) + il * mfac(m) / nw * ring_Gsigma(w1:w2) * (a**2 * beta * ring%w(w1:w2) * Gfac  * Amk)**2 
+            where(T_mask(w1:w2)) Torque(w1:w2) = Torque(w1:w2) + il * mfac(m) / nw * ring%Gsigma(w1:w2) * (a**2 * beta * ring%w(w1:w2) * Gfac  * Amk)**2 
          end if
       end do
 
@@ -100,7 +102,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
       j = ringmoons_ring_bin_finder(ring, a) !disk location of resonance
       if ((j > ring%inside).and.(j < ring%N + 1)) then
          da3 = il * max(abs((a - as)**3),epsilon(a))
-         Torque(j) = Torque(j) + g**2 / 6._DP * a**3 / da3 * (Gfac)**2 * ring_Gsigma(j) * (ring%w(j))**2 * a**4
+         if (T_mask(j)) Torque(j) = Torque(j) + g**2 / 6._DP * a**3 / da3 * (Gfac)**2 * ring%Gsigma(j) * (ring%w(j))**2 * a**4
       end if
    end do
 
