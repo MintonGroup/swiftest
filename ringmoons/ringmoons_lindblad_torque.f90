@@ -45,13 +45,12 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
 
 ! Internals
    integer(I4B)                           :: i,j, m, il,w,w1,w2,js, mshep
-   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,da3,Xs, Xr,Xlo,Xhi,Gfac
+   real(DP)                               :: a, dTorque, beta, Amk, width, nw,lap,dlap,da3,Xs, Xlo,Xhi,Gfac
    real(DP), parameter                    :: g = 2.24_DP
    logical(lgt),save                      :: firstrun = .true.
    real(DP),dimension(M_MAX,-1:1),save    :: marr
    real(DP),dimension(M_MAX),save         :: mfac
-   real(DP),dimension(M_MAX,2,-1:1)       :: Xrw
-   !integer(I4B),dimension(M_MAX,2,-1:1)   :: w12
+   real(DP),dimension(M_MAX,-1:1)         :: Xr,Xw
    real(DP),dimension(0:ring%N+1)         :: ring_Gsigma
 
 
@@ -79,20 +78,18 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    
    ! Inner then outer lindblads
    do il = -1,1,2
-      Xrw(2:mshep,1,il) = Xs * marr(2:mshep,il)
-      Xrw(2:mshep,2,il) = Xrw(2:mshep,2,il) * (Gfac)**(0.25_DP)
-      !w12(2:mshep,1,il) = min(max(ceiling((Xrw(2:mshep,1,il) - Xrw(2:mshep,2,il) - ring%X_I) / ring%deltaX),0),ring%N)
-      !w12(2:mshep,2,il) = min(max(ceiling((Xrw(2:mshep,1,il) + Xrw(2:mshep,2,il) - ring%X_I) / ring%deltaX),0),ring%N)
+      Xr(2:mshep,il) = Xs * marr(2:mshep,il)
+      Xw(2:mshep,il) = Xr(2:mshep,il) * (Gfac)**(0.25_DP)
    
       do m  = 2, mshep
-         if ((Xrw(m,1,il) > Xlo).and.(Xrw(m,1,il) < Xhi)) then
-            beta = (Xs / Xrw(m,1,il))**(il * 2)
-            a = 0.25_DP * (Xrw(m,1,il))**2
+         if ((Xr(m,il) > Xlo).and.(Xr(m,il) < Xhi)) then
+            beta = (Xs / Xr(m,il))**(il * 2)
+            a = 0.25_DP * (Xr(m,il))**2
             lap  =  lapm(m,il)
             dlap = dlapm(m,il)
             Amk = (lap + dlap)
-            w1 = min(max(ceiling((Xrw(m,1,il) - Xrw(m,2,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
-            w2 = min(max(ceiling((Xrw(m,1,il) + Xrw(m,2,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
+            w1 = min(max(ceiling((Xr(m,il) - Xw(m,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
+            w2 = min(max(ceiling((Xr(m,il) + Xw(m,il) - ring%X_I) / ring%deltaX),0),ring%N+1)
             nw = real(w2 - w1 + 1,kind=DP)
             Torque(w1:w2) = Torque(w1:w2) + il * mfac(m) / nw * ring_Gsigma(w1:w2) * (a**2 * beta * ring%w(w1:w2) * Gfac  * Amk)**2 
          end if
