@@ -199,17 +199,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    seeds%Ttide(:) = 0.0_DP
 
 
-   Lr1 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dt
-   Ls1 = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:))
-   Lp1 = swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
-   Lnow = Lr1 + Ls1 + Lp1
 
-   if (abs((Lnow - Lorig) / Lorig) > epsilon(1._DP)) then
-      !write(*,*) 'Failed the step: did not conserve angular momentum'
-      !write(*,*) (Lnow - Lorig) / Lorig
-      stepfail = .true.
-      return
-   end if 
 
    fz_width(:) = FEEDING_ZONE_FACTOR * seeds%Rhill(1:seeds%N)
 
@@ -248,6 +238,22 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       seeds%N = Nactive
       call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
    end if
+
+
+   Lr1 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dt
+   Ls1 = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:))
+   Lp1 = swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+   Lnow = Lr1 + Ls1 + Lp1
+
+
+
+   if (abs((Lnow - Lorig) / Lorig) > epsilon(1._DP)) then
+      !write(*,*) 'Failed the step: did not conserve angular momentum'
+      !write(*,*) (Lnow - Lorig) / Lorig
+      stepfail = .true.
+      return
+   end if 
+
        
    do i = 1, seeds%N
       if (seeds%active(i)) then
