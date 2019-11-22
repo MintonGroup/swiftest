@@ -62,8 +62,6 @@ MODULE module_symba
           integer(I4B), dimension(:),     allocatable :: nplenc  ! number of encounters with planets this time step
           integer(I4B), dimension(:),     allocatable :: levelg  ! level at which this particle should be moved
           integer(I4B), dimension(:),     allocatable :: levelm  ! deepest encounter level achieved this time step
-          integer(I4B), dimension(:),     allocatable :: index_parent   ! position of the parent of id
-          integer(I4B), dimension(:,:),     allocatable :: index_child   ! position of the children of id
           type(helio_tp)                              :: helio   ! HELIO test particle structure
      end type symba_tp
 
