@@ -669,12 +669,12 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          FUNCTION io_read_encounter(t, id1, id2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
+          FUNCTION io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
                USE module_parameters
                USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B)                           :: io_read_encounter
-               INTEGER(I4B), INTENT(OUT)              :: id1, id2
+               INTEGER(I4B), INTENT(OUT)              :: name1, name2
                REAL(DP), INTENT(OUT)                  :: t, mass1, mass2
                REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: xh1, xh2, vh1, vh2
                CHARACTER(*), INTENT(IN)               :: encounter_file,out_type
@@ -695,13 +695,13 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
+          FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                USE module_parameters
                USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B)                    :: io_read_line
                INTEGER(I4B), INTENT(IN)        :: iu
-               INTEGER(I4B), INTENT(OUT)       :: id
+               INTEGER(I4B), INTENT(OUT)       :: name
                REAL(DP), INTENT(OUT)           :: d1, d2, d3, d4, d5, d6
                REAL(DP), OPTIONAL, INTENT(OUT) :: MASS, RADIUS
                CHARACTER(*), INTENT(IN)        :: out_type
@@ -709,11 +709,11 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_write_encounter(t, id1, id2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, encounter_file, out_type)
+          SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, encounter_file, out_type)
                USE module_parameters
                USE module_fxdr
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)              :: id1, id2
+               INTEGER(I4B), INTENT(IN)              :: name1, name2
                REAL(DP), INTENT(IN)                  :: t, mass1, mass2, radius1, radius2
                REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xh1, xh2, vh1, vh2
                CHARACTER(*), INTENT(IN)              :: encounter_file, out_type
@@ -746,11 +746,11 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
+          SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                USE module_parameters
                USE module_fxdr
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)       :: iu, id
+               INTEGER(I4B), INTENT(IN)       :: iu, name
                REAL(DP), INTENT(IN)           :: d1, d2, d3, d4, d5, d6
                REAL(DP), OPTIONAL, INTENT(IN) :: MASS, RADIUS
                CHARACTER(*), INTENT(IN)       :: out_type
@@ -1124,14 +1124,14 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
+          SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
            mergesub_list, eoffset, vbs, encounter_file, out_type)
                USE module_parameters
                USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                         :: index, nplplenc
+               INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
                INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
                REAL(DP), INTENT(IN)                             :: t, dt
                REAL(DP), INTENT(INOUT)                          :: eoffset
@@ -1143,13 +1143,13 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_file, out_type)
+          SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type)
                USE module_parameters
                USE module_swifter
                USE module_helio
                USE module_symba
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)               :: index, npltpenc
+               INTEGER(I4B), INTENT(IN)               :: index_enc, npltpenc
                REAL(DP), INTENT(IN)                   :: t, dt
                REAL(DP), DIMENSION(NDIM), INTENT(IN)  :: vbs
                CHARACTER(*), INTENT(IN)               :: encounter_file, out_type
