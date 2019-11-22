@@ -76,7 +76,8 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
           symba_plA%helio%swiftest%status(1) = ACTIVE
           DO i = 2, npl
                IF (lrhill_present) THEN
-                    READ(LUN, *) symba_plA%helio%swiftest%name(i), symba_plA%helio%swiftest%mass(i), symba_plA%helio%swiftest%rhill(i)
+                    READ(LUN, *) symba_plA%helio%swiftest%name(i), symba_plA%helio%swiftest%mass(i), &
+                    symba_plA%helio%swiftest%rhill(i)
                ELSE
                     READ(LUN, *) symba_plA%helio%swiftest%name(i), symba_plA%helio%swiftest%mass(i)
                     symba_plA%helio%swiftest%rhill(i) = 0.0_DP
@@ -101,7 +102,8 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
           ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%xh(:,1))
           ierr = ixdrdmat(iu, NDIM, symba_plA%helio%swiftest%vh(:,1))
           DO i = 1, NDIM
-               IF ((symba_plA%helio%swiftest%xh(i,1) /= 0.0_DP) .OR. (symba_plA%helio%swiftest%vh(i,1) /= 0.0_DP)) THEN
+               IF ((symba_plA%helio%swiftest%xh(i,1) /= 0.0_DP) .OR. &
+                    (symba_plA%helio%swiftest%vh(i,1) /= 0.0_DP)) THEN
                     WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) " Input MUST be in heliocentric coordinates."
                     WRITE(*, *) " Position/velocity components of Body 1 are"
