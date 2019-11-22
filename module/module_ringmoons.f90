@@ -31,8 +31,9 @@ module module_ringmoons
 
    real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 8.0_DP  ! Size of the feeding zone relative to Hill's sphere
    integer(I4B),public,parameter  :: N_DISK_FACTOR = 10000 ! Minimum number of particles in a bin to consider it a fluid disk
-   logical(LGT),public        :: DESTRUCTION_EVENT
+   logical(LGT),public        :: DESTRUCTION_EVENT ! A destruction event has occurred when satellite/seed crosses the RRL
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
+   integer(I4B),public,parameter  :: DESTRUCTION_SAVE_FRAMES = 10 ! Number steps to save as output frames after a destruction event
    integer(I4B),public,parameter :: M_MAX = 200
    real(DP),dimension(2:M_MAX,-1:1),public,save :: lapm,dlapm,marr
    real(DP),dimension(2:M_MAX),public,save :: mfac

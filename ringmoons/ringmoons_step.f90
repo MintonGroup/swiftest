@@ -128,7 +128,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          if (DESTRUCTION_EVENT) then
             call ringmoons_io_write_frame(t + (dtin - dtleft - dtleft), ring, seeds, ring_outfile, out_stat = "APPEND")
             DESTRUCTION_COUNTER = DESTRUCTION_COUNTER + 1
-            if (DESTRUCTION_COUNTER > 1000) then
+            if (DESTRUCTION_COUNTER > DESTRUCTION_SAVE_FRAMES) then
                DESTRUCTION_EVENT = .false.
                DESTRUCTION_COUNTER = 0
             end if
