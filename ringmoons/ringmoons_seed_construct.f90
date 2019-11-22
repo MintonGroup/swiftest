@@ -104,17 +104,12 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       end if
       
       ! Make seeds small enough to fit into each bin 
-      do i = ring%iFrl,ring%N
+      !do i = ring%iFrl,ring%N
+      do i = ring%iRRL+1,ring%N
          ! See Tajeddine et al. (2017) section 2.3 
          Gm_min = max((1.505e17_DP / DU2CM**3)  * (ring%nu(i) / (100 * TU2S / DU2CM**2)) * ring%rho_pdisk,ring%Gm_pdisk)
          if (ring%Gm(i) > 100 * Gm_min) then 
-            open_space = .true.
-            do j = 1, seeds%N
-               if ((i >= seeds%fz_bin_inner(j)) .and. (i <= seeds%fz_bin_outer(j))) then
-                  open_space = .false. ! There is already a seed with a feeding zone here
-                  exit
-               end if
-            end do
+            open_space = .not.any(seeds%rbin(:) == i .and. seeds%active(:))
             if (open_space) then
                a = ring%r(i)
                dGm = Gm_min

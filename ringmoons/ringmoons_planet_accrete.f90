@@ -61,7 +61,7 @@
       ring%dGMP = ring%dGMP + dMtot
       ring%dLP = ring%dLP + Lring
       swifter_pl1P%mass = ring%GMPi + ring%dGMP 
-      swifter_pl1P%radius = ring%RPi * (swifter_pl1P%mass / ring%GMPi)**(1.0_DP / 3.0_DP)
+      swifter_pl1P%radius = ring%RPi * (1._DP + ring%dGMP / ring%GMPi)**(1.0_DP / 3.0_DP)
       swifter_pl1P%rot(3) = (ring%LPI + ring%dLP) / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2)
 
       ring%Gm(0:ring%inside) = 0.0_DP
