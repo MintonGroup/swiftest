@@ -38,13 +38,13 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE coord_b2h_tp(ntp, swifter_tp1P, swifter_pl1P)
+          SUBROUTINE coord_b2h_tp(ntp, swiftest_tpA, swiftest_plA)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: ntp
-               TYPE(swifter_tp), POINTER :: swifter_tp1P
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
+               INTEGER(I4B), INTENT(IN)         :: ntp
+               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
+               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
           END SUBROUTINE coord_b2h_tp
      END INTERFACE
 
@@ -53,20 +53,20 @@ MODULE module_interfaces
                USE module_parameters
                USE module_swiftest
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: npl
-               REAL(DP), INTENT(OUT)     :: msys
+               INTEGER(I4B), INTENT(IN)         :: npl
+               REAL(DP), INTENT(OUT)            :: msys
                TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
           END SUBROUTINE coord_h2b
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE coord_h2b_tp(ntp, swifter_tp1P, swifter_pl1P)
+          SUBROUTINE coord_h2b_tp(ntp, swiftest_tpA, swiftest_plA)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: ntp
-               TYPE(swifter_tp), POINTER :: swifter_tp1P
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
+               INTEGER(I4B), INTENT(IN)         :: ntp
+               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
+               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
           END SUBROUTINE coord_h2b_tp
      END INTERFACE
 
@@ -114,32 +114,32 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE discard(t, dt, npl, ntp, swifter_pl1P, swifter_tp1P, rmin, rmax, rmaxu, qmin, qmin_alo,   & 
-               qmin_ahi, qmin_coord, lclose, lrhill_present)
+          SUBROUTINE discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin,  &
+               qmin_alo, qmin_ahi, qmin_coord, lclose, lrhill_present)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
                INTEGER(I4B), INTENT(IN)  :: npl, ntp
                REAL(DP), INTENT(IN)      :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
                CHARACTER(*), INTENT(IN)  :: qmin_coord
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
-               TYPE(swifter_tp), POINTER :: swifter_tp1P
+               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
           END SUBROUTINE discard
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE discard_peri(t, npl, ntp, swifter_pl1P, swifter_tp1P, msys, qmin, qmin_alo, qmin_ahi,  &       
-               qmin_coord, lrhill_present)
+          SUBROUTINE discard_peri(t, npl, ntp, swiftest_plA, swiftest_tpA, msys, qmin, qmin_alo, & 
+               qmin_ahi, qmin_coord, lrhill_present)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)  :: lrhill_present
                INTEGER(I4B), INTENT(IN)  :: npl, ntp
                REAL(DP), INTENT(IN)      :: t, msys, qmin, qmin_alo, qmin_ahi
                CHARACTER(*), INTENT(IN)  :: qmin_coord
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
-               TYPE(swifter_tp), POINTER :: swifter_tp1P
+               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
           END SUBROUTINE discard_peri
      END INTERFACE
 
@@ -155,25 +155,25 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE discard_pl(t, dt, npl, ntp, swifter_pl1P, swifter_tp1P)
+          SUBROUTINE discard_pl(t, dt, npl, ntp, swiftest_plA, swiftest_tpA)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl, ntp
                REAL(DP), INTENT(IN)      :: t, dt
-               TYPE(swifter_pl), POINTER :: swifter_pl1P
-               TYPE(swifter_tp), POINTER :: swifter_tp1P
+               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
+               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
           END SUBROUTINE discard_pl
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE discard_sun(t, ntp, msys, swifter_tp1P, rmin, rmax, rmaxu)
+          SUBROUTINE discard_sun(t, ntp, msys, swifter_tpA, rmin, rmax, rmaxu)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: ntp
                REAL(DP), INTENT(IN)      :: t, msys, rmin, rmax, rmaxu
-               TYPE(swifter_tp), POINTER :: swifter_tp1P
+               TYPE(swiftest_tp), INTENT(INOUT) :: swifter_tpA
           END SUBROUTINE discard_sun
      END INTERFACE
 
