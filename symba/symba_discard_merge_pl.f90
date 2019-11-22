@@ -75,15 +75,10 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
                     mtot = m
                     x(:) = m*symba_plA%helio%swiftest%xh(:,enc_big)
                     v(:) = m*symba_plA%helio%swiftest%vb(:,enc_big)
-
-                    !symba_plP => symba_plkP
-                    indexk = index1
+                    indexk = enc_big
                     nchild = symba_plA%nchild(i)
                     DO j = 1, nchild
-                         !symba_plP => symba_plP%childP
-                         !swifter_plP => symba_plP%helio%swifter
-                         indexchild = ????
-
+                         indexchild = symba_plA%indexchild(i)(j)
                          m = symba_plA%helio%swiftest%mass(indexchild)
                          r = symba_plA%helio%swiftest%radius(indexchild)
                          r3 = r3 + r**3
@@ -92,18 +87,12 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
                          v(:) = v(:) + m*symba_plA%helio%swiftest%vb(:,indexchild)
                          IF (m > mmax) THEN
                               mmax = m
-                              !symba_plkP => symba_plP
                               indexk = indexchild
                          END IF
                     END DO
                     x(:) = x(:)/mtot
                     v(:) = v(:)/mtot
                     r = r3**(1.0_DP/3.0_DP)
-                    !symba_plP => plplenc_list(i)%pl1P%parentP
-                    !DO j = 0, nchild
-                         !indexchild = index1
-                         !swifter_plP => symba_plP%helio%swifter
-                         !IF (indexchiindexk) THEN
                     symba_plA%helio%swiftest%mass(indexk) = mtot
                     symba_plA%helio%swiftest%radius(indexk) = r
                     symba_plA%helio%swiftest%xh(:,indexk) = x(:)
@@ -116,15 +105,16 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
                     energy = -1.0_DP*msun*mtot/r + 0.5_DP*mu*v2
                     ap = -1.0_DP*msun*mtot/(2.0_DP*energy)
                     symba_plA%helio%swiftest%rhill(indexk) = ap*(((mu/msun)/3.0_DP)**(1.0_DP/3.0_DP))
-                         !ELSE
                     DO j = 0, nchild
-                         indexchild = index1
+                         indexchild = enc_big
                          IF (indexchild /= indexk) THEN
                               symba_plA%helio%swiftest%status(indexchild) = MERGED
                          END IF
-                         indexchild = ????
-                         !symba_plP => symba_plP%childP
+                         indexchild = symba_plA%indexchild(enc_big)(j+1)
                     END DO
+
+               ELSE
+                    CALL symba_discard_frag_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc, plplenc_list)
                END IF
           END IF
      END DO
