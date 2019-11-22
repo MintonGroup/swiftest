@@ -50,11 +50,10 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
      TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
 
 ! Internals
-     INTEGER(I4B)              :: i, j, nchild
-     REAL(DP)                  :: m, mmax, mtot, r, r3, mu, energy, ap, v2, msun
-     REAL(DP), DIMENSION(NDIM) :: x, v, vbs
-     TYPE(swiftest_pl)         :: swiftest_plA, swiftest_plsplA
-     TYPE(symba_pl)            :: symba_plA, symba_plsplA
+     INTEGER(I4B)                  :: i, j, nchild, indexchild, enc_big, index1, index2, indexk 
+     REAL(DP)                      :: m, mmax, mtot, r, r3, mu, energy, ap, v2, msun
+     REAL(DP), DIMENSION(NDIM)     :: x, v, vbs
+     INTEGER(I4B), DIMENSION(npl)  :: array_child
 
 ! Executable code
      msun = symba_plA%helio%swiftest%mass(1)
@@ -76,9 +75,12 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
                     x(:) = m*symba_plA%helio%swiftest%xh(:,enc_big)
                     v(:) = m*symba_plA%helio%swiftest%vb(:,enc_big)
                     indexk = enc_big
-                    nchild = symba_plA%nchild(i)
+
+                    nchild = symba_plA%nchild(enc_big)
+                    array_child(:) = symba_plA%index_child(:,enc_big)
+
                     DO j = 1, nchild
-                         indexchild = symba_plA%indexchild(i)(j)
+                         indexchild = array_child(j)
                          m = symba_plA%helio%swiftest%mass(indexchild)
                          r = symba_plA%helio%swiftest%radius(indexchild)
                          r3 = r3 + r**3
@@ -105,12 +107,13 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
                     energy = -1.0_DP*msun*mtot/r + 0.5_DP*mu*v2
                     ap = -1.0_DP*msun*mtot/(2.0_DP*energy)
                     symba_plA%helio%swiftest%rhill(indexk) = ap*(((mu/msun)/3.0_DP)**(1.0_DP/3.0_DP))
+                    array_child(:) = symba_plA%index_child(:,enc_big)
+                    indexchild = enc_big
                     DO j = 0, nchild
-                         indexchild = enc_big
                          IF (indexchild /= indexk) THEN
                               symba_plA%helio%swiftest%status(indexchild) = MERGED
                          END IF
-                         indexchild = symba_plA%indexchild(enc_big)(j+1)
+                         indexchild = array_child(j+1)
                     END DO
 
                ELSE

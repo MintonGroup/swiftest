@@ -32,11 +32,11 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_mass_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_fragmentation (t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)
+SUBROUTINE symba_fragmentation (t, npl, nplmax, ntp, ntpmax, symba_plA, nplplenc, plplenc_list)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_fragmentation
