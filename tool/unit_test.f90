@@ -176,7 +176,7 @@ PROGRAM unit_test
                 DO i = 2, npl
                     symba_pliP => symba_pliP%nextP
                     swifter_pliP => symba_pliP%helio%swifter
-                    id1 = swifter_pliP%id
+                    id1 = swifter_pliP%name
                     m1 = swifter_pliP%mass
                     rad1 = swifter_pliP%radius
                     xh1(:) = swifter_pliP%xh(:)
