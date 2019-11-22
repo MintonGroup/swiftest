@@ -58,7 +58,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
      IF (in_type == "ASCII") THEN
           CALL io_open(LUN, inplfile, "OLD", "FORMATTED", ierr)
           READ(LUN, *) inpl
-          READ(LUN, *) symba_plA%helio%swiftest%id(1), symba_plA%helio%swiftest%mass(1)
+          READ(LUN, *) symba_plA%helio%swiftest%name(1), symba_plA%helio%swiftest%mass(1)
           symba_plA%helio%swiftest%rhill(1) = 0.0_DP
           symba_plA%helio%swiftest%radius(1) = 0.0_DP
           READ(LUN, *) symba_plA%helio%swiftest%xh(:,1)
@@ -76,9 +76,9 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
           symba_plA%helio%swiftest%status(1) = ACTIVE
           DO i = 2, npl
                IF (lrhill_present) THEN
-                    READ(LUN, *) symba_plA%helio%swiftest%id(i), symba_plA%helio%swiftest%mass(i), symba_plA%helio%swiftest%rhill(i)
+                    READ(LUN, *) symba_plA%helio%swiftest%name(i), symba_plA%helio%swiftest%mass(i), symba_plA%helio%swiftest%rhill(i)
                ELSE
-                    READ(LUN, *) symba_plA%helio%swiftest%id(i), symba_plA%helio%swiftest%mass(i)
+                    READ(LUN, *) symba_plA%helio%swiftest%name(i), symba_plA%helio%swiftest%mass(i)
                     symba_plA%helio%swiftest%rhill(i) = 0.0_DP
                END IF
                IF (lclose) THEN
@@ -94,7 +94,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
      ELSE
           CALL io_open_fxdr(inplfile, "R", .TRUE., iu, ierr)
           ierr = ixdrint(iu, inpl)
-          ierr = ixdrint(iu, symba_plA%helio%swiftest%id(1))
+          ierr = ixdrint(iu, symba_plA%helio%swiftest%name(1))
           ierr = ixdrdouble(iu, symba_plA%helio%swiftest%mass(1))
           symba_plA%helio%swiftest%rhill(1) = 0.0_DP
           symba_plA%helio%swiftest%radius(1) = 0.0_DP
@@ -112,7 +112,7 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
           END DO
           symba_plA%helio%swiftest%status(1) = ACTIVE
           DO i = 2, npl
-               ierr = ixdrint(iu, symba_plA%helio%swiftest%id(i))
+               ierr = ixdrint(iu, symba_plA%helio%swiftest%name(i))
                ierr = ixdrdouble(iu, symba_plA%helio%swiftest%mass(i))
                IF (lrhill_present) THEN
                     ierr = ixdrdouble(iu, symba_plA%helio%swiftest%rhill(i))

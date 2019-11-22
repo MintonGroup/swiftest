@@ -55,7 +55,7 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
           CALL io_open(LUN, intpfile, "OLD", "FORMATTED", ierr)
           READ(LUN, *) intp
           DO i = 1, ntp
-               READ(LUN, *) symba_tpA%helio%swiftest%id(i)
+               READ(LUN, *) symba_tpA%helio%swiftest%name(i)
                READ(LUN, *) symba_tpA%helio%swiftest%xh(:,i)
                READ(LUN, *) symba_tpA%helio%swiftest%vh(:,i)
                symba_tpA%helio%swiftest%status(i) = ACTIVE
@@ -65,7 +65,7 @@ SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
           CALL io_open_fxdr(intpfile, "R", .TRUE., iu, ierr)
           ierr = ixdrint(iu, intp)
           DO i = 1, ntp
-               ierr = ixdrint(iu, symba_tpA%helio%swiftest%id(i))
+               ierr = ixdrint(iu, symba_tpA%helio%swiftest%name(i))
                ierr = ixdrdmat(iu, NDIM, symba_tpA%helio%swiftest%xh(:,i))
                ierr = ixdrdmat(iu, NDIM, symba_tpA%helio%swiftest%vh(:,i))
                symba_tpA%helio%swiftest%status(i) = ACTIVE
