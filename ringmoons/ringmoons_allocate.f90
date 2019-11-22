@@ -55,6 +55,8 @@ subroutine ringmoons_allocate(ring,seeds)
       ring%Gsigma = 0.0_DP
       allocate(ring%nu(0:ring%N + 1))
       ring%nu = 0.0_DP
+      allocate(ring%Q(0:ring%N + 1))
+      ring%Q  = 0.0_DP
       allocate(ring%Iz(0:ring%N + 1))
       ring%Iz = 0.0_DP
       allocate(ring%w(0:ring%N + 1))

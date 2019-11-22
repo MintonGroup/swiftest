@@ -83,9 +83,7 @@ subroutine ringmoons_io_write_frame(t, ring, seeds, ring_outfile, out_stat)
    write(iu, iostat = ierr) ring%r
    write(iu, iostat = ierr) ring%Gsigma
    write(iu, iostat = ierr) ring%nu
-   !write(iu, iostat = ierr) seeds%N
-   !write(iu, iostat = ierr) seeds%a
-   !write(iu, iostat = ierr) seeds%Gm
+   write(iu, iostat = ierr) ring%Q
    write(iu, iostat = ierr) count(seeds%active)
    aseeds = pack(seeds%a,seeds%active) 
    Gmseeds = pack(seeds%Gm,seeds%active) 

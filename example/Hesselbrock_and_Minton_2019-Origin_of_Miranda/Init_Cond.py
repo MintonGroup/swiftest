@@ -14,7 +14,10 @@ R_Uranus_eq = 25559e5
 a_Uranus    = 19.2184 * AU
 T_Uranus    = 0.71833 * 24 * 3600
 W_Uranus    = 2.0 * np.pi / T_Uranus
-
+Rhill_Uranus = a_Uranus * (M_Uranus / (3 * M_Sun))**(1.0 / 3.0)
+Ipolar_Uranus = 0.230
+J2_Uranus = 3341.29e-6
+J4_Uranus = 33.61e-6
 
 #The following are Unit conversion factors
 MU2GM    =     M_Uranus          #Conversion from mass unit to grams
@@ -22,25 +25,9 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 100.0e2 / DU2CM #disk particle size
+r_pdisk = 1.0e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
-
-
-t_0	= 0
-t_print = 1e3 * year / TU2S #output interval to print results
-deltaT	= 1e3 * year / TU2S  #timestep simulation
-end_sim = 1.0e9 * year / TU2S + t_print #end time
-
-Nbins    = 1024     #number of bins in disk
-Nseeds   = 0
-
-sigma_peak = 0.6e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
-
-Rhill_Uranus = a_Uranus * (M_Uranus / (3 * M_Sun))**(1.0 / 3.0)
-Ipolar_Uranus = 0.230
-J2_Uranus = 3341.29e-6
-J4_Uranus = 33.61e-6
 
 k_2         = 0.104 #tidal love number for primary
 Q           = 3000. #tidal dissipation factor for primary
@@ -49,7 +36,6 @@ Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 J2 = J2_Uranus
 J4 = J4_Uranus
 
-#Primary body definitions
 RP    = R_Uranus / DU2CM  # Radius of primary
 RP_eq = R_Uranus_eq / DU2CM
 MP    = M_Uranus / MU2GM  # Mass of primary
@@ -61,8 +47,24 @@ FRL = 2.456 * RP * (rhoP / rho_pdisk)**(1./3.)
 RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 Rsync = (GU * MP * TP**2 / (4 * np.pi**2))**(1./3.)
 
-r_I	= 0.999 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 1.5 * FRL  #outside radius of disk
+t_0	= 0
+t_print = 1e4 * year / TU2S #output interval to print results
+deltaT	= 1e4 * year / TU2S  #timestep simulation
+end_sim = 5.0e9 * year / TU2S + t_print #end time
+
+Nbins    = 1024     #number of bins in disk
+Nseeds   = 0
+
+sigma_FRL = 0.08e4 * DU2CM**2 / MU2GM
+sigma_slope = -3.0
+#sigma_peak = 1.2e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
+sigma_peak = sigma_FRL * (FRL)**(-sigma_slope)
+
+
+
+
+r_I	= 0.99 * RP      #inside radius of disk is at the embryo's surface
+r_F	= 1.2 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -76,14 +78,12 @@ inside = 0  #bin id of innermost ring bin (can increase if primary accretes a lo
 deltar = (r_F - r_I) / Nbins	#width of a bin
 deltaX = (2 * np.sqrt(r_F) - 2 * np.sqrt(r_I)) / Nbins  #variable changed bin width used for viscosity calculations
 r = []
-deltaA = []
-m = []
+
+
 sigma = []
 X = []
-w = []
-I = []
-R = []
-Torque_to_disk = []
+
+
 
 def f():
 
@@ -91,19 +91,15 @@ def f():
     for a in range(int(Nbins)):
         X.append(2 * np.sqrt(r_I) + deltaX * (a + 0.5))
         r.append((0.5 * X[a])**2)
-        deltar = (0.5 * (X[a] + deltaX))**2 - (0.5 * X[a])**2
-        deltaA.append(2*np.pi*r[a]*deltar)
+
 
         #if a >= Nbins - 45:
         if r[a] > FRL:
             sigma.append(0.0)
         else:
             sigma.append(sigma_peak * (r[a] / RP) ** (-3))
-        m.append(sigma[a] * deltaA[a])
-        R.append(r[a]**2 + deltar**2/4)
-        I.append(m[a]*R[a])
-        w.append((GU*MP/r[a]**3)**0.5)
-        Torque_to_disk.append(0.0)
+
+
 
 f() #Make a power law ring
 

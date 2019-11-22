@@ -62,8 +62,9 @@ module module_ringmoons
       real(DP), dimension(:), allocatable :: X2                ! distance variable X**2 bin center  used for viscosity calculations
       real(DP), dimension(:), allocatable :: deltaA            ! differential surface area of ring
       real(DP), dimension(:), allocatable :: Gm                ! mass of ring particles in bin
-      real(DP), dimension(:), allocatable :: Gsigma            ! surface mass density of ring
-      real(DP), dimension(:), allocatable :: nu                ! viscocity of the ring
+      real(DP), dimension(:), allocatable :: Gsigma            ! surface mass density of ring bin
+      real(DP), dimension(:), allocatable :: nu                ! viscocity of the ring bin
+      real(DP), dimension(:), allocatable :: Q                 ! Toomre parameter of the ring bin
       real(DP), dimension(:), allocatable :: Iz                ! polar moment of inertia of ring bin
       real(DP), dimension(:), allocatable :: w                 ! Keplerian angular velocity of ring bin
       real(DP), dimension(:), allocatable :: Torque            ! total satellite torque density acting on the ring bin

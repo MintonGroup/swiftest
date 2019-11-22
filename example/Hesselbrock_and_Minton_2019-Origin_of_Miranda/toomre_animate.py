@@ -30,13 +30,15 @@ class AnimatedScatter(object):
         y = seeds[:,1]
         r = ring[:,0]
         s = ring[:,1]
+        nu = ring[:,2]
+        Q = ring[:,3]
         xmin = 1.0
-        xmax = 6
+        xmax = 3
         ymin = 0.1
         ymax = 1e5
 
-        y2min = 1e15
-        y2max = 1e25
+        y2min = 1e-3
+        y2max = 1e3
         self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
 
         #self.ax.set_xlim(xmin, xmax)
@@ -46,11 +48,11 @@ class AnimatedScatter(object):
         self.ax.set_yscale('log')
 
         self.secax = self.ax.twinx()
+        self.secax.set_ylabel('Toomre parameter Q')
         self.secax.set_yscale('log')
-        self.secax.set_ylabel('Mass of satellite (g)')
         self.secax.set_ylim(y2min, y2max)
 
-        self.line, = self.ax.plot(r, s, '-', color="black", linewidth=1.0, zorder=50)
+        self.sigline, = self.ax.plot(r, s, '-', color="black", linewidth=1.0, zorder=50)
         self.RRL = self.ax.plot([ic.RRL / ic.RP, ic.RRL / ic.RP], [ymin, ymax], '--', color="black", linewidth=0.5, zorder=50)
         self.RRLlab = self.ax.text(ic.RRL / ic.RP - 0.20, 0.4 * ymax, "RRL", rotation=90, fontsize="10")
         self.FRL = self.ax.plot([ic.FRL / ic.RP, ic.FRL / ic.RP], [ymin, ymax], ':', color="black", linewidth=0.5, zorder=50)
@@ -58,19 +60,20 @@ class AnimatedScatter(object):
         self.Rsync = self.ax.plot([ic.Rsync / ic.RP, ic.Rsync / ic.RP], [ymin, ymax], '-.', color="black", linewidth=0.5, zorder=50)
         self.Rsynclab = self.ax.text(ic.Rsync / ic.RP - 0.20, 0.4 * ymax, "$a_{sync}$", rotation=90, fontsize="10")
         #plt.axvline(x=xc, color='k', linestyle='--')
+        self.Qstab = self.secax.plot(r,np.full_like(r,1.0), ':', color="blue", linewidth=0.5, zorder = 50)
+        self.Qstab = self.secax.plot(r,np.full_like(r,2.0), '-.', color="blue", linewidth=0.5, zorder = 50)
 
+        self.Qline, = self.secax.plot(r, Q, '-', color="blue", linewidth=1.0, zorder=50)
         self.title = self.ax.text(0.80, 0.1, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5},
                         transform=self.ax.transAxes, ha="center")
         #self.line.set_label(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:5.1f}$ My')
         #self.legend = plt.legend()
         #self.legend.remove()
         self.title.set_text(f'Time = ${t[0] * ic.TU2S / ic.year * 1e-6:7.2f}$ My')
-        self.usats = self.secax.scatter(Sat_r_RM, Sat_M_Mass, marker='o', color="silver", s=5, zorder=50)
-        self.scat = self.secax.scatter(seeds[:,0], seeds[:,1], marker='o', color="black", s=5, zorder=50)
 
         # For FuncAnimation's sake, we need to return the artist we'll be using
         # Note that it expects a sequence of artists, thus the trailing comma.
-        return self.scat, self.line, self.title,
+        return self.Qline, self.sigline, self.title,
 
     def data_stream(self):
         with FortranFile(self.ringfilename, 'r') as f:
@@ -90,7 +93,11 @@ class AnimatedScatter(object):
                 a = f.read_reals(np.float64)
                 Gm = f.read_reals(np.float64)
 
-                yield t,np.c_[a / ic.RP, Gm * ic.MU2GM / ic.GU], np.c_[r / ic.RP, Gsigma * ic.MU2GM / ic.DU2CM**2 / ic.GU]
+                yield t,np.c_[a / ic.RP,
+                              Gm * ic.MU2GM / ic.GU],\
+                        np.c_[r / ic.RP, Gsigma * ic.MU2GM / ic.DU2CM**2 / ic.GU,
+                              nu * ic.TU2S / ic.DU2CM**2,
+                              Q]
 
 
     def update(self, i):
@@ -101,8 +108,12 @@ class AnimatedScatter(object):
         # Set x and y data...
         r = ring[:,0]
         s = ring[:,1]
-        self.scat.set_offsets(seeds[:, :2]) #data[:, :2])
-        self.line.set_data(r, s) # :, :3])
+        nu = ring[:,2]
+        Q = ring[:,3]
+
+        self.sigline.set_data(r, s) #
+
+        self.Qline.set_data(r,Q)
 
         # Set sizes...
         #self.scat.set_sizes(300 * abs(data[:, 2])**1.5 + 100)
@@ -112,7 +123,7 @@ class AnimatedScatter(object):
         self.title.set_text(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:7.2f}$ My')
         # We need to return the updated artist for FuncAnimation to draw..
         # Note that it expects a sequence of artists, thus the trailing comma.
-        return self.scat, self.line, self.title,
+        return self.Qline, self.sigline, self.title,
 
 
 if __name__ == '__main__':
