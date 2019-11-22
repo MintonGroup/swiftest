@@ -148,8 +148,7 @@ MODULE module_parameters
      REAL(DP), PARAMETER  :: GC    = 6.6743E-8_DP      ! Universal gravitational constant in cgs units (from NIST in 2019)
 
 ! Added by Carlisle Wishard and Jennifer Pouplin 
-     LOGICAL,  SAVE       :: ldiscard = .FALSE. ! If true, then proceed to discard spilled
- pl and complete discard.out file.
+     LOGICAL,  SAVE       :: ldiscard = .FALSE. ! If true, then proceed to discard spilled pl and complete discard.out file.
      LOGICAL,  SAVE       :: ldiscard_tp = .FALSE. ! If true, then proceed to discard spilled tp 
 
 END MODULE module_parameters

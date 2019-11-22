@@ -709,7 +709,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, encounter_file, out_type)
+          SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+               xh1, xh2, vh1, vh2, encounter_file, out_type)
                USE module_parameters
                USE module_fxdr
                IMPLICIT NONE
@@ -721,7 +722,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_type, out_form, out_stat)
+          SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, &
+               out_type, out_form, out_stat)
                USE module_parameters
                USE module_swiftest
                USE module_fxdr
@@ -891,9 +893,9 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_discard_peri_pl(t, npl, symba_pl1P, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
+          SUBROUTINE symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
@@ -901,15 +903,15 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)    :: npl
                REAL(DP), INTENT(IN)        :: t, msys, qmin, qmin_alo, qmin_ahi
                CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(symba_pl), POINTER     :: symba_pl1P
+               TYPE(symba_pl), INTENT(INOUT)     :: symba_plA
           END SUBROUTINE symba_discard_peri_pl
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_pl1P, symba_pld1P, rmin, rmax, rmaxu, qmin, qmin_coord,          &
+          SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, symba_pldA, rmin, rmax, rmaxu, qmin, qmin_coord,          &
                qmin_alo, qmin_ahi, j2rp2, j4rp4, eoffset)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
@@ -918,7 +920,7 @@ MODULE module_interfaces
                REAL(DP), INTENT(IN)        :: t, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, j2rp2, j4rp4
                REAL(DP), INTENT(INOUT)     :: eoffset
                CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(symba_pl), POINTER     :: symba_pl1P, symba_pld1P
+               TYPE(symba_pl), INTENT(INOUT)     :: symba_plA, symba_pldA
           END SUBROUTINE symba_discard_pl
      END INTERFACE
 
@@ -947,22 +949,22 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_discard_sun_pl(t, npl, msys, swifter_pl1P, rmin, rmax, rmaxu, ldiscards)
+          SUBROUTINE symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, ldiscards)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(INOUT) :: ldiscards
                INTEGER(I4B), INTENT(IN)    :: npl
                REAL(DP), INTENT(IN)        :: t, msys, rmin, rmax, rmaxu
-               TYPE(swifter_pl), POINTER   :: swifter_pl1P
+               TYPE(swiftest_pl), INTENT(INOUT)   :: swiftest_plA
           END SUBROUTINE symba_discard_sun_pl
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_pl1P, symba_tp1P, symba_tpd1P, dt, rmin, rmax, rmaxu, qmin,         &
-               qmin_coord, qmin_alo, qmin_ahi, lclose, lrhill_present)
+          SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, symba_tpdA, dt, &
+               rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, lclose, lrhill_present)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
@@ -971,21 +973,21 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
                REAL(DP), INTENT(IN)        :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
                CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(symba_pl), POINTER     :: symba_pl1P
-               TYPE(symba_tp), POINTER     :: symba_tp1P,symba_tpd1P
+               TYPE(symba_pl), INTENT(INOUT)     :: symba_plA
+               TYPE(symba_tp), INTENT(INOUT)     :: symba_tpA,symba_tpdA
           END SUBROUTINE symba_discard_tp
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_energy(npl, nplmax, swifter_pl1P, j2rp2, j4rp4, ke, pe, te, htot)
+          SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)               :: npl, nplmax
                REAL(DP), INTENT(IN)                   :: j2rp2, j4rp4
                REAL(DP), INTENT(OUT)                  :: ke, pe, te
                REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: htot
-               TYPE(swifter_pl), POINTER              :: swifter_pl1P
+               TYPE(swiftest_pl), INTENT(INOUT)             :: swiftest_plA
           END SUBROUTINE symba_energy
      END INTERFACE
 
@@ -1024,7 +1026,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
+          SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+               plplenc_list)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1039,7 +1042,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xh, j2rp2, j4rp4,  &
+          SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+               xh, j2rp2, j4rp4,  &
                npltpenc, pltpenc_list)
                USE module_parameters
                USE module_swiftest
@@ -1108,7 +1112,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn, symba_plA, symba_tpA)
+          SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn, symba_plA, &
+               symba_tpA)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1124,15 +1129,15 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
-           mergesub_list, eoffset, vbs, encounter_file, out_type)
+          SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, &
+               mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type, npl)
                USE module_parameters
                USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
-               INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
+               INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, npl
                REAL(DP), INTENT(IN)                             :: t, dt
                REAL(DP), INTENT(INOUT)                          :: eoffset
                REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -1173,7 +1178,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
+          SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, &
+               mergeadd_list, discard_plA, &
                discard_tpA, discard_plA_id_status,discard_tpA_id_status)
                USE module_parameters
                USE module_swiftestalloc 
@@ -1206,7 +1212,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swiftest_pl1P, swiftest_tp1P)
+          SUBROUTINE symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swiftest_pl1P, &
+               swiftest_tp1P)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1223,9 +1230,9 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,  &
-               dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,   &
-               mtiny, encounter_file, out_type)
+          SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
+               symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
+               nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type)
                USE module_parameters
                USE module_swiftest
                USE module_helio
