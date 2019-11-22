@@ -36,7 +36,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine io_write_line.F
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
+SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
 
 ! Modules
      USE module_parameters
@@ -45,7 +45,7 @@ SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)       :: iu, id
+     INTEGER(I4B), INTENT(IN)       :: iu, name
      REAL(DP), INTENT(IN)           :: d1, d2, d3, d4, d5, d6
      REAL(DP), OPTIONAL, INTENT(IN) :: MASS, RADIUS
      CHARACTER(*), INTENT(IN)       :: out_type
@@ -74,9 +74,9 @@ SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
      SELECT CASE (out_type)
           CASE (REAL4_TYPE)
                IF (lmass) THEN
-                    WRITE(iu, IOSTAT = ierr) id, smass, sradius, svec
+                    WRITE(iu, IOSTAT = ierr) name, smass, sradius, svec
                ELSE
-                    WRITE(iu, IOSTAT = ierr) id, svec
+                    WRITE(iu, IOSTAT = ierr) name, svec
                END IF
                IF (ierr < 0) THEN
                     WRITE(*, *) "SWIFTEST Error:"
@@ -85,9 +85,9 @@ SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                END IF
           CASE (REAL8_TYPE)
                IF (lmass) THEN
-                    WRITE(iu, IOSTAT = ierr) id, MASS, RADIUS, dvec
+                    WRITE(iu, IOSTAT = ierr) name, MASS, RADIUS, dvec
                ELSE
-                    WRITE(iu, IOSTAT = ierr) id, dvec
+                    WRITE(iu, IOSTAT = ierr) name, dvec
                END IF
                IF (ierr < 0) THEN
                     WRITE(*, *) "SWIFTEST Error:"
@@ -95,7 +95,7 @@ SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                     CALL util_exit(FAILURE)
                END IF
           CASE (XDR4_TYPE)
-               ierr = ixdrint(iu, id)
+               ierr = ixdrint(iu, name)
                IF (ierr < 0) THEN
                     WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) "   Unable to write binary file record"
@@ -122,7 +122,7 @@ SUBROUTINE io_write_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                     CALL util_exit(FAILURE)
                END IF
           CASE (XDR8_TYPE)
-               ierr = ixdrint(iu, id)
+               ierr = ixdrint(iu, name)
                IF (ierr < 0) THEN
                     WRITE(*, *) "SWIFTEST Error:"
                     WRITE(*, *) "   Unable to write binary file record"

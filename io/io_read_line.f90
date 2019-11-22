@@ -37,7 +37,7 @@
 !                Function returns read error status (0 = OK, nonzero = ERROR)
 !
 !**********************************************************************************************************************************
-FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
+FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
 
 ! Modules
      USE module_parameters
@@ -48,7 +48,7 @@ FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
 ! Arguments
      INTEGER(I4B)                    :: io_read_line
      INTEGER(I4B), INTENT(IN)        :: iu
-     INTEGER(I4B), INTENT(OUT)       :: id
+     INTEGER(I4B), INTENT(OUT)       :: name
      REAL(DP), INTENT(OUT)           :: d1, d2, d3, d4, d5, d6
      REAL(DP), OPTIONAL, INTENT(OUT) :: MASS, RADIUS
      CHARACTER(*), INTENT(IN)        :: out_type
@@ -73,9 +73,9 @@ FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
      SELECT CASE (out_type)
           CASE (REAL4_TYPE)
                IF (lmass) THEN
-                    READ(iu, IOSTAT = ierr) id, smass, sradius, svec
+                    READ(iu, IOSTAT = ierr) name, smass, sradius, svec
                ELSE
-                    READ(iu, IOSTAT = ierr) id, svec
+                    READ(iu, IOSTAT = ierr) name, svec
                END IF
                io_read_line = ierr
                IF (ierr /= 0) RETURN
@@ -83,15 +83,15 @@ FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                d1 = svec(1); d2 = svec(2); d3 = svec(3); d4 = svec(4); d5 = svec(5); d6 = svec(6)
           CASE (REAL8_TYPE)
                IF (lmass) THEN
-                    READ(iu, IOSTAT = ierr) id, MASS, RADIUS, dvec
+                    READ(iu, IOSTAT = ierr) name, MASS, RADIUS, dvec
                ELSE
-                    READ(iu, IOSTAT = ierr) id, dvec
+                    READ(iu, IOSTAT = ierr) name, dvec
                END IF
                io_read_line = ierr
                IF (ierr /= 0) RETURN
                d1 = dvec(1); d2 = dvec(2); d3 = dvec(3); d4 = dvec(4); d5 = dvec(5); d6 = dvec(6)
           CASE (XDR4_TYPE)
-               ierr = ixdrint(iu, id)
+               ierr = ixdrint(iu, name)
                io_read_line = ierr
                IF (ierr /= 0) RETURN
                IF (lmass) THEN
@@ -109,7 +109,7 @@ FUNCTION io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                IF (ierr /= 0) RETURN
                d1 = svec(1); d2 = svec(2); d3 = svec(3); d4 = svec(4); d5 = svec(5); d6 = svec(6)
           CASE (XDR8_TYPE)
-               ierr = ixdrint(iu, id)
+               ierr = ixdrint(iu, name)
                io_read_line = ierr
                IF (ierr /= 0) RETURN
                IF (lmass) THEN
