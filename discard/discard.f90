@@ -64,11 +64,11 @@ SUBROUTINE discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmax
           CALL coord_h2b(npl, swiftest_plA, msys)
           CALL coord_h2b_tp(ntp, swiftest_tpA, swiftest_plA)
      END IF
-     IF ((rmin >= 0.0_DP) .OR. (rmax >= 0.0_DP) .OR. (rmaxu >= 0.0_DP)) CALL discard_sun(t, ntp, msys, swifter_tpA, rmin, rmax,  &
+     IF ((rmin >= 0.0_DP) .OR. (rmax >= 0.0_DP) .OR. (rmaxu >= 0.0_DP)) CALL discard_sun(t, ntp, msys, swiftest_tpA, rmin, rmax,  &
           rmaxu)
-     IF (qmin >= 0.0_DP) CALL discard_peri(t, npl, ntp, swifter_plA, swifter_tpA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord,   &
+     IF (qmin >= 0.0_DP) CALL discard_peri(t, npl, ntp, swiftest_plA, swiftest_tpA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord,   &
           lrhill_present)
-     IF (lclose) CALL discard_pl(t, dt, npl, ntp, swifter_plA, swifter_tpA)
+     IF (lclose) CALL discard_pl(t, dt, npl, ntp, swiftest_plA, swiftest_tpA)
 
      RETURN
 

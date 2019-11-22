@@ -28,7 +28,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_pl.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE discard_pl(t, dt, npl, ntp, swifter_plA, swifter_tpA)
+SUBROUTINE discard_pl(t, dt, npl, ntp, swiftest_plA, swiftest_tpA)
 
 ! Modules
      USE module_parameters
@@ -49,7 +49,7 @@ SUBROUTINE discard_pl(t, dt, npl, ntp, swifter_plA, swifter_tpA)
 
 ! Executable code
      DO i = 1, ntp
-          IF (swifter_tpA%status(i) == ACTIVE) THEN
+          IF (swiftest_tpA%status(i) == ACTIVE) THEN
                DO j = 2, npl
                     dx(:) = swiftest_tpA%xh(:,i) - swiftest_plA%xh(:,i)
                     dv(:) = swiftest_tpA%vh(:,i) - swiftest_plA%vh(:,i)

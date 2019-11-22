@@ -30,7 +30,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_sun.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE discard_sun(t, ntp, msys, swifter_tpA, rmin, rmax, rmaxu)
+SUBROUTINE discard_sun(t, ntp, msys, swiftest_tpA, rmin, rmax, rmaxu)
 
 ! Modules
      USE module_parameters
@@ -41,7 +41,7 @@ SUBROUTINE discard_sun(t, ntp, msys, swifter_tpA, rmin, rmax, rmaxu)
 ! Arguments
      INTEGER(I4B), INTENT(IN)         :: ntp
      REAL(DP), INTENT(IN)             :: t, msys, rmin, rmax, rmaxu
-     TYPE(swiftest_tp), INTENT(INOUT) :: swifter_tpA
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
      INTEGER(I4B)              :: i
