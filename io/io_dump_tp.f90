@@ -54,7 +54,7 @@ SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
      END IF
      ierr = ixdrint(iu, ntp)
      DO i = 1, ntp
-          ierr = ixdrint(iu, swiftest_tpA%id(i))
+          ierr = ixdrint(iu, swiftest_tpA%name(i))
           ierr = ixdrdmat(iu, NDIM, swiftest_tpA%xh(:,i))
           ierr = ixdrdmat(iu, NDIM, swiftest_tpA%vh(:,i))
      END DO

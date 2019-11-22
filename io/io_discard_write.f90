@@ -65,7 +65,7 @@ SUBROUTINE io_discard_write(t, npl, nsp, swifter_pl1P, swifter_tpd1P, fname, lbi
  100 FORMAT(E23.16, 1X, I8, 1X, L1)
      swifter_tpP => swifter_tpd1P
      DO i = 1, nsp
-          WRITE(LUN, 200) SUB, swifter_tpP%id, swifter_tpP%status
+          WRITE(LUN, 200) SUB, swifter_tpP%name, swifter_tpP%status
  200      FORMAT(A, 2(1X, I8))
           WRITE(LUN, 300) swifter_tpP%xh(:)
  300      FORMAT(3(E23.16, 1X))
@@ -78,7 +78,7 @@ SUBROUTINE io_discard_write(t, npl, nsp, swifter_pl1P, swifter_tpd1P, fname, lbi
           swifter_plP => swifter_pl1P
           DO i = 2, npl
                swifter_plP => swifter_plP%nextP
-               WRITE(LUN, 500) swifter_plP%id, swifter_plP%mass, swifter_plP%radius
+               WRITE(LUN, 500) swifter_plP%name, swifter_plP%mass, swifter_plP%radius
  500           FORMAT(I8, 2(1X, E23.16))
                WRITE(LUN, 300) swifter_plP%xh(:)
                WRITE(LUN, 300) swifter_plP%vh(:)

@@ -47,7 +47,7 @@ SUBROUTINE helio_drift(npl, swiftest_plA, dt)
      DO i = 2, npl
           CALL drift_one(mu, swiftest_plA%xh(:,i), swiftest_plA%vb(:,i), dt, iflag)
           IF (iflag /= 0) THEN
-               WRITE(*, *) " Planet ", swiftest_plA%id(i), " is lost!!!!!!!!!!"
+               WRITE(*, *) " Planet ", swiftest_plA%name(i), " is lost!!!!!!!!!!"
                WRITE(*, *) mu, dt
                WRITE(*, *) swiftest_plA%xh(:,i)
                WRITE(*, *) swiftest_plA%vb(:,i)

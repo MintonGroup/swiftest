@@ -46,10 +46,10 @@ SUBROUTINE util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
 ! Executable code
      ALLOCATE(idarr(npl+ntp))
      DO i = 1, npl
-          idarr(i) = swiftest_plA%id(i)
+          idarr(i) = swiftest_plA%name(i)
      END DO
      DO i = 1, ntp
-          idarr(npl+i) = swiftest_tpA%id(i)
+          idarr(npl+i) = swiftest_tpA%name(i)
      END DO
      CALL util_sort(idarr)
      DO i = 1, npl + ntp - 1

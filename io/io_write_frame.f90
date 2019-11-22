@@ -122,14 +122,14 @@ SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_
           CASE (EL)
                DO i = 2, npl
                     mu = swiftest_plA%mass(1) + swiftest_plA%mass(i)
-                    j = swiftest_plA%id(i)
+                    j = swiftest_plA%name(i)
                     CALL orbel_xv2el(swiftest_plA%xh(:,i), swiftest_plA%vh(:,i), mu, a, e, inc, capom, omega, capm)
                     CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type, &
                      MASS = swiftest_plA%mass(i),RADIUS = swiftest_plA%radius(i))
                END DO
                mu = swiftest_plA%mass(1)
                DO i = 1, ntp
-                    j = swiftest_tpA%id(i)
+                    j = swiftest_tpA%name(i)
                     CALL orbel_xv2el(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i), mu, a, e, inc, capom, omega, capm)
                     CALL io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type)
                END DO
@@ -137,14 +137,14 @@ SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_
                DO i = 2, npl
                     xtmp(:) = swiftest_plA%xh(:,i)
                     vtmp(:) = swiftest_plA%vh(:,i)
-                    j = swiftest_plA%id(i)
+                    j = swiftest_plA%name(i)
                     CALL io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type,                     &
                          MASS = swiftest_plA%mass(i), RADIUS = swiftest_plA%radius(i))
                END DO
                DO i = 1, ntp
                     xtmp(:) = swiftest_tpA%xh(:,i)
                     vtmp(:) = swiftest_tpA%vh(:,i)
-                    j = swiftest_tpA%id(i)
+                    j = swiftest_tpA%name(i)
                     CALL io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type)
                END DO
           CASE (FILT)

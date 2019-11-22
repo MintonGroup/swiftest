@@ -46,7 +46,7 @@ SUBROUTINE helio_drift_tp(ntp, swiftest_tpA, mu, dt)
                CALL drift_one(mu, swiftest_tpA%xh(:,i), swiftest_tpA%vb(:,i), dt, iflag)
                IF (iflag /= 0) THEN
                     swiftest_tpA%status(i) = DISCARDED_DRIFTERR
-                    WRITE(*, *) "Particle ", swiftest_tpA%id(i), " lost due to error in Danby drift"
+                    WRITE(*, *) "Particle ", swiftest_tpA%name(i), " lost due to error in Danby drift"
                END IF
           END IF
      END DO

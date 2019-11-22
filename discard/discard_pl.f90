@@ -58,7 +58,7 @@ SUBROUTINE discard_pl(t, dt, npl, ntp, swiftest_plA, swiftest_tpA)
                     IF (isp /= 0) THEN
                          swiftest_tpA%status(i) = DISCARDED_PLR
                          ldiscard = .TRUE.
-                         WRITE(*, *) "Particle ", swiftest_tpA%id(i), " too close to Planet ", swiftest_plA%id(i), " at t = ", t
+                         WRITE(*, *) "Particle ", swiftest_tpA%name(i), " too close to Planet ", swiftest_plA%name(i), " at t = ", t
                          ldiscard_tp = .TRUE.
                          EXIT
                     END IF
