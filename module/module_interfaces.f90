@@ -525,19 +525,22 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_pl1P, symba_pld1P,           &
-               symba_tpd1P, mergeadd_list, mergesub_list, fname, lbig_discard)
+          SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, discard_plA, & 
+               discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard, discard_plA_id_status, discard_tpA_id_status)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                USE module_symba
                IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                     :: lbig_discard
-               INTEGER(I4B), INTENT(IN)                     :: npl, nsppl, nsptp, nmergeadd, nmergesub
-               REAL(DP), INTENT(IN)                         :: t, mtiny
-               CHARACTER(*), INTENT(IN)                     :: fname
-               TYPE(symba_pl), POINTER                      :: symba_pl1P, symba_pld1P
-               TYPE(symba_tp), POINTER                      :: symba_tpd1P
-               TYPE(symba_merger), INTENT(IN)               :: mergeadd_list, mergesub_list
+               LOGICAL(LGT), INTENT(IN)                       :: lbig_discard
+               INTEGER(I4B), INTENT(IN)                       :: npl, ntp, nsppl, nsptp, nmergeadd, nmergesub
+               REAL(DP), INTENT(IN)                           :: t, mtiny
+               CHARACTER(*), INTENT(IN)                       :: fname
+               TYPE(symba_pl), INTENT(INOUT)                  :: symba_plA
+               REAL(DP), DIMENSION(8,npl), INTENT(IN)         :: discard_plA
+               REAL(DP), DIMENSION(8,ntp), INTENT(IN)         :: discard_tpA
+               TYPE(symba_merger), DIMENSION(:), INTENT(IN)   :: mergeadd_list, mergesub_list
+               INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)    :: discard_plA_id_status
+               INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)    :: discard_tpA_id_status
           END SUBROUTINE io_discard_write_symba
      END INTERFACE
 
@@ -873,17 +876,17 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_pl1P, symba_pld1P, nplplenc, plplenc_list)
+          SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc, plplenc_list)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                      :: nplplenc
                INTEGER(I4B), INTENT(INOUT)                   :: npl, nsppl
                REAL(DP), INTENT(IN)                          :: t
-               TYPE(symba_pl), POINTER                       :: symba_pl1P, symba_pld1P
-               TYPE(symba_plplenc), DIMENSION(:), INTENT(IN) :: plplenc_list
+               TYPE(symba_pl)                                :: symba_plA, symba_pldA
+               TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
           END SUBROUTINE symba_discard_merge_pl
      END INTERFACE
 
@@ -1121,10 +1124,10 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,     &
-               eoffset, vbs, encounter_file, out_type)
+          SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
+           mergesub_list, eoffset, vbs, encounter_file, out_type)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
@@ -1183,12 +1186,12 @@ MODULE module_interfaces
                TYPE(symba_pl), INTENT(INOUT)                     :: symba_plA
                TYPE(symba_tp), INTENT(INOUT)                     :: symba_tpA
                TYPE(symba_merger), DIMENSION(:), INTENT(IN)      :: mergeadd_list
-               REAL(DP), DIMENSION(8,NPLMAX), INTENT(OUT)        :: discard_plA
+               REAL(DP), DIMENSION(8,npl), INTENT(OUT)           :: discard_plA
                REAL(DP), DIMENSION(8,ntp), INTENT(OUT)           :: discard_tpA
-               INTEGER(I4B), DIMENSION(2,NPLMAX), INTENT(OUT)    :: discard_plA_id_status
+               INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)       :: discard_plA_id_status
                INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)       :: discard_tpA_id_status
           END SUBROUTINE symba_rearray
-     END INTERFACE 
+     END INTERFACE  
 
      INTERFACE
           SUBROUTINE symba_reorder_pl(npl, symba_pl1P)
