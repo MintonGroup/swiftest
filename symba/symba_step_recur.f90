@@ -100,8 +100,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           !$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
           DO i = 1, nplplenc
                IF ((plplenc_list%status(i) == ACTIVE) .AND. (plplenc_list%level(i) == ireci)) THEN
-                    index_i  = plplenc_list%id1(i)
-                    index_j  = plplenc_list%id2(i)
+                    index_i  = plplenc_list%index1(i)
+                    index_j  = plplenc_list%index2(i)
                     xr(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
                     vr(:) = symba_plA%helio%swiftest%vb(:,index_j) - symba_plA%helio%swiftest%vb(:,index_i)
                     CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(index_i),     &  
@@ -123,8 +123,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           !$OMP END PARALLEL DO
           DO i = 1, npltpenc
                IF ((pltpenc_list%status(i) == ACTIVE) .AND. (pltpenc_list%level(i) == ireci)) THEN
-                    index_pl  = pltpenc_list%idpl(i)
-                    index_tp  = pltpenc_list%idtp(i)
+                    index_pl  = pltpenc_list%indexpl(i)
+                    index_tp  = pltpenc_list%indextp(i)
                     
                     xr(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
                     vr(:) = symba_tpA%helio%swiftest%vb(:,index_tp) - symba_plA%helio%swiftest%vb(:,index_pl)
@@ -152,8 +152,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           IF (lclose) THEN
                vbs(:) = symba_plA%helio%swiftest%vb(:,1)
                DO i = 1, nplplenc
-                    index_i  = plplenc_list%id1(i) 
-                    index_j  = plplenc_list%id2(i)
+                    index_i  = plplenc_list%index1(i) 
+                    index_j  = plplenc_list%index2(i)
                     IF (((plplenc_list%status(i) == ACTIVE) .AND.                                                                 &
                         (symba_plA%levelg(index_i) >= ireci) .AND.                                                              &
                         (symba_plA%levelg(index_j) >= ireci))) THEN
@@ -173,8 +173,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                      END IF
                END DO
                DO i = 1, npltpenc
-                    index_pl  = pltpenc_list%idpl(i) 
-                    index_tp  = pltpenc_list%idtp(i) 
+                    index_pl  = pltpenc_list%indexpl(i) 
+                    index_tp  = pltpenc_list%indextp(i) 
                     IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                          &
                         (symba_plA%levelg(index_pl) >= ireci) .AND.                                       &
                         (symba_tpA%levelg(index_tp) >= ireci)) THEN
@@ -184,15 +184,15 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                END DO
           END IF
           DO i = 1, nplplenc
-               index_i  = plplenc_list%id1(i) 
-               index_j  = plplenc_list%id2(i) 
+               index_i  = plplenc_list%index1(i) 
+               index_j  = plplenc_list%index2(i) 
                IF (symba_plA%levelg(index_i) == irecp) symba_plA%levelg(index_i) = ireci
                IF (symba_plA%levelg(index_j) == irecp) symba_plA%levelg(index_j) = ireci
                IF (plplenc_list%level(i) == irecp) plplenc_list%level(i) = ireci
           END DO
           DO i = 1, npltpenc
-               index_pl  = pltpenc_list%idpl(i) 
-               index_tp  = pltpenc_list%idtp(i) 
+               index_pl  = pltpenc_list%indexpl(i) 
+               index_tp  = pltpenc_list%indextp(i) 
                IF (symba_plA%levelg(index_pl) == irecp) symba_plA%levelg(index_pl) = ireci
                IF (symba_tpA%levelg(index_tp) == irecp) symba_tpA%levelg(index_tp) = ireci
                IF (pltpenc_list%level(i) == irecp) pltpenc_list%level(i) = ireci
@@ -206,8 +206,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                !$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
                DO i = 1, nplplenc
                     IF ((plplenc_list%status(i) == ACTIVE) .AND. (plplenc_list%level(i) == ireci)) THEN
-                         index_i  = plplenc_list%id1(i) 
-                         index_j  = plplenc_list%id2(i) 
+                         index_i  = plplenc_list%index1(i) 
+                         index_j  = plplenc_list%index2(i) 
                          xr(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
                          vr(:) = symba_plA%helio%swiftest%vb(:,index_j) - symba_plA%helio%swiftest%vb(:,index_i)
                          CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(index_i),    &
@@ -227,8 +227,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                END DO
                DO i = 1, npltpenc
                     IF ((pltpenc_list%status(i) == ACTIVE) .AND. (pltpenc_list%level(i) == ireci)) THEN
-                         index_pl  = pltpenc_list%idpl(i) 
-                         index_tp  = pltpenc_list%idtp(i) 
+                         index_pl  = pltpenc_list%indexpl(i) 
+                         index_tp  = pltpenc_list%indextp(i) 
                          xr(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
                          vr(:) = symba_tpA%helio%swiftest%vb(:,index_tp)  - symba_plA%helio%swiftest%xh(:,index_pl) 
                          CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(index_pl), 0.0_DP, &     
@@ -260,8 +260,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                IF (lclose) THEN
                     vbs(:) = symba_plA%helio%swiftest%vb(:,1)
                     DO i = 1, nplplenc
-                         index_i  = plplenc_list%id1(i) 
-                         index_j  = plplenc_list%id2(i) 
+                         index_i  = plplenc_list%index1(i) 
+                         index_j  = plplenc_list%index2(i) 
                          IF ((plplenc_list%status(i) == ACTIVE) .AND.                                                             &
                              (symba_plA%levelg(index_i) >= ireci) .AND.                                                         &
                              (symba_plA%levelg(index_j) >= ireci))                                                              &
@@ -269,8 +269,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                                    mergesub_list, eoffset, vbs, encounter_file, out_type)
                     END DO
                     DO i = 1, npltpenc
-                         index_pl  = pltpenc_list%idpl(i) 
-                         index_tp  = pltpenc_list%idtp(i) 
+                         index_pl  = pltpenc_list%indexpl(i) 
+                         index_tp  = pltpenc_list%indextp(i) 
                          IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                                             &
                              (symba_plA%levelg(index_pl) >= ireci) .AND.                                                          &
                              (symba_tpA%levelg(index_tp) >= ireci))                                                               &
@@ -278,15 +278,15 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                     END DO
                END IF
                DO i = 1, nplplenc
-                    index_i  = plplenc_list%id1(i) 
-                    index_j  = plplenc_list%id2(i) 
+                    index_i  = plplenc_list%index1(i) 
+                    index_j  = plplenc_list%index2(i) 
                     IF (symba_plA%levelg(index_i) == irecp) symba_plA%levelg(index_i) = ireci
                     IF (symba_plA%levelg(index_j) == irecp) symba_plA%levelg(index_j) = ireci
                     IF (plplenc_list%level(i) == irecp) plplenc_list%level(i) = ireci
                END DO
                DO i = 1, npltpenc
-                    index_pl  = pltpenc_list%idpl(i) 
-                    index_tp  = pltpenc_list%idtp(i) 
+                    index_pl  = pltpenc_list%indexpl(i) 
+                    index_tp  = pltpenc_list%indextp(i) 
                     IF (symba_plA%levelg(index_pl) == irecp) symba_plA%levelg(index_pl) = ireci
                     IF (symba_tpA%levelg(index_tp) == irecp) symba_tpA%levelg(index_tp) = ireci
                     IF (pltpenc_list%level(i) == irecp) pltpenc_list%level(i) = ireci

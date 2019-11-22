@@ -57,24 +57,25 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
      TYPE(symba_pl)            :: symba_plA, symba_plsplA
 
 ! Executable code
-     !swifter_plP => symba_pl1P%helio%swifter
      msun = symba_plA%helio%swiftest%mass(1)
      vbs(:) = symba_plA%helio%swiftest%vb(:,1)
      DO i = 1, nplplenc
           IF (plplenc_list%status(i) == MERGED) THEN
-               index1 = plplenc_list%id1(i)
-               index2 = plplenc_list%id2(i)
+               index1 = plplenc_list%index1(i)
+               index2 = plplenc_list%index2(i)
                IF ((symba_plA%helio%swiftest%status(index1) == ACTIVE) .AND.                                                    &
                    (symba_plA%helio%swiftest%status(index2) == ACTIVE)) THEN
-                    !symba_plkP => plplenc_list(i)%pl1P%parentP
-                    !swifter_plP => symba_plkP%helio%swifter
-                    m = symba_plA%helio%swiftest%mass(i)
-                    r = symba_plA%helio%swiftest%radius(i)
+
+                    enc_big = plplenc_list%enc_parent(i)
+
+                    m = symba_plA%helio%swiftest%mass(enc_big)
+                    r = symba_plA%helio%swiftest%radius(enc_big)
                     r3 = r**3
                     mmax = m
                     mtot = m
-                    x(:) = m*symba_plA%helio%swiftest%xh(:,i)
-                    v(:) = m*symba_plA%helio%swiftest%vb(:,i)
+                    x(:) = m*symba_plA%helio%swiftest%xh(:,enc_big)
+                    v(:) = m*symba_plA%helio%swiftest%vb(:,enc_big)
+
                     !symba_plP => symba_plkP
                     indexk = index1
                     nchild = symba_plA%nchild(i)

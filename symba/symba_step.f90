@@ -205,8 +205,8 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     plplenc_list%level(nplplenc) = irec
                     !plplenc_list(nplplenc)%pl1P => symba_pliP
                     !plplenc_list(nplplenc)%pl2P => symba_pljP
-                    plplenc_list%id1(nplplenc) = i
-                    plplenc_list%id2(nplplenc) = j
+                    plplenc_list%index1(nplplenc) = i
+                    plplenc_list%index2(nplplenc) = j
 
                     symba_plA%lmerged(i) = .FALSE.
                     symba_plA%nplenc(i) = symba_plA%nplenc(i) + 1
@@ -260,8 +260,8 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     pltpenc_list%status(npltpenc) = ACTIVE
                     pltpenc_list%lvdotr(npltpenc) = lvdotr
                     pltpenc_list%level(npltpenc) = irec
-                    pltpenc_list%idpl(npltpenc) = i
-                    pltpenc_list%idtp(npltpenc) = j
+                    pltpenc_list%indexpl(npltpenc) = i
+                    pltpenc_list%indextp(npltpenc) = j
                     !$OMP END CRITICAL 
                END IF
                !Removed by D. Minton

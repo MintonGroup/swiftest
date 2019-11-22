@@ -69,7 +69,7 @@ SUBROUTINE symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_a
                           .AND. (symba_plA%peri(i) <= qmin)) THEN
                               ldiscards = .TRUE.
                               symba_plA%helio%swiftest%status(i) = DISCARDED_PERI
-                              WRITE(*, *) "Particle ", symba_plA%helio%swiftest%id(i), &
+                              WRITE(*, *) "Particle ", symba_plA%helio%swiftest%name(i), &
                                " perihelion distance too small at t = ", t
                          END IF
                     END IF

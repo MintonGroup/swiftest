@@ -43,7 +43,7 @@ MODULE module_swiftestalloc
 			INTEGER(I4B), INTENT(IN)			:: npl
 			TYPE(swiftest_pl), INTENT(INOUT)	:: swiftest_plA
 
-			ALLOCATE(swiftest_plA%id(npl))
+			ALLOCATE(swiftest_plA%name(npl))
          	ALLOCATE(swiftest_plA%status(npl))
          	ALLOCATE(swiftest_plA%mass(npl))
          	ALLOCATE(swiftest_plA%radius(npl))
@@ -90,6 +90,8 @@ MODULE module_swiftestalloc
 			ALLOCATE(symba_plA%isperi(npl))
 			ALLOCATE(symba_plA%peri(npl))
 			ALLOCATE(symba_plA%atp(npl))
+			ALLOCATE(symba_plA%index_parent(npl))
+			ALLOCATE(symba_plA%index_child(npl+ntp,npl))
 			CALL helio_pl_allocate(symba_plA%helio,npl)
 			return
 		END SUBROUTINE symba_pl_allocate
@@ -106,8 +108,10 @@ MODULE module_swiftestalloc
 			ALLOCATE(plplenc_list%lvdotr(nplplenc))
 			ALLOCATE(plplenc_list%status(nplplenc))
 			ALLOCATE(plplenc_list%level(nplplenc))
-			ALLOCATE(plplenc_list%id1(nplplenc))
-			ALLOCATE(plplenc_list%id2(nplplenc))
+			ALLOCATE(plplenc_list%index1(nplplenc))
+			ALLOCATE(plplenc_list%index2(nplplenc))
+			ALLOCATE(plplenc_list%enc_child(nplplenc))
+			ALLOCATE(plplenc_list%enc_parent(nplplenc))
 			return
 		END SUBROUTINE symba_plplenc_allocate
 
@@ -120,7 +124,8 @@ MODULE module_swiftestalloc
 			INTEGER(I4B), INTENT(IN)				:: nmergeadd
 			TYPE(symba_merger), INTENT(INOUT)		:: mergeadd_list
 
-			ALLOCATE(mergeadd_list%id(nmergeadd))
+			ALLOCATE(mergeadd_list%name(nmergeadd))
+			ALLOCATE(mergeadd_list%index_ps(nmergeadd))
 			ALLOCATE(mergeadd_list%status(nmergeadd))
 			ALLOCATE(mergeadd_list%ncomp(nmergeadd))
 			ALLOCATE(mergeadd_list%xh(NDIM,nmergeadd))
@@ -139,7 +144,7 @@ MODULE module_swiftestalloc
 			INTEGER(I4B), INTENT(IN)			:: ntp
 			TYPE(swiftest_tp), INTENT(INOUT)	:: swiftest_tpA
 
-			ALLOCATE(swiftest_tpA%id(ntp))
+			ALLOCATE(swiftest_tpA%name(ntp))
          	ALLOCATE(swiftest_tpA%status(ntp))
          	ALLOCATE(swiftest_tpA%peri(ntp))
          	ALLOCATE(swiftest_tpA%atp(ntp))
@@ -181,6 +186,9 @@ MODULE module_swiftestalloc
 			ALLOCATE(symba_tpA%nplenc(ntp))
 			ALLOCATE(symba_tpA%levelg(ntp))
 			ALLOCATE(symba_tpA%levelm(ntp))
+			ALLOCATE(symba_tpA%index_parent(ntp))
+			ALLOCATE(symba_tpA%index_child(ntp))
+			CALL helio_tp_allocate(symba_tpA%helio,ntp)
 			return
 		END SUBROUTINE symba_tp_allocate
 
@@ -196,8 +204,8 @@ MODULE module_swiftestalloc
 			ALLOCATE(pltpenc_list%lvdotr(npltpenc))
 			ALLOCATE(pltpenc_list%status(npltpenc))
 			ALLOCATE(pltpenc_list%level(npltpenc))
-			ALLOCATE(pltpenc_list%idpl(npltpenc))
-			ALLOCATE(pltpenc_list%idtp(npltpenc))
+			ALLOCATE(pltpenc_list%indexpl(npltpenc))
+			ALLOCATE(pltpenc_list%indextp(npltpenc))
 			return
 		END SUBROUTINE symba_pltpenc_allocate
 
@@ -212,7 +220,7 @@ MODULE module_swiftestalloc
 			! Arguments
 			TYPE(swiftest_pl), INTENT(INOUT)	:: swiftest_plA
 
-			DEALLOCATE(swiftest_plA%id)
+			DEALLOCATE(swiftest_plA%name)
          	DEALLOCATE(swiftest_plA%status)
          	DEALLOCATE(swiftest_plA%mass)
          	DEALLOCATE(swiftest_plA%radius)
@@ -248,15 +256,17 @@ MODULE module_swiftestalloc
 			! Arguments
 			TYPE(symba_pl), INTENT(INOUT)		:: symba_plA
 
-			DEALLOCATE(symba_plA%lmerged)
-			DEALLOCATE(symba_plA%nplenc)
-			DEALLOCATE(symba_plA%ntpenc)
-			DEALLOCATE(symba_plA%levelg)
-			DEALLOCATE(symba_plA%levelm)
-			DEALLOCATE(symba_plA%nchild)
-			DEALLOCATE(symba_plA%isperi)
-			DEALLOCATE(symba_plA%peri)
-			DEALLOCATE(symba_plA%atp)
+			DEALLOCATE(symba_plA%lmerged(npl))
+			DEALLOCATE(symba_plA%nplenc(npl))
+			DEALLOCATE(symba_plA%ntpenc(npl))
+			DEALLOCATE(symba_plA%levelg(npl))
+			DEALLOCATE(symba_plA%levelm(npl))
+			DEALLOCATE(symba_plA%nchild(npl))
+			DEALLOCATE(symba_plA%isperi(npl))
+			DEALLOCATE(symba_plA%peri(npl))
+			DEALLOCATE(symba_plA%atp(npl))
+			DEALLOCATE(symba_plA%index_parent(npl))
+			DEALLOCATE(symba_plA%index_child(npl+ntp,npl))
 			CALL helio_pl_deallocate(symba_plA%helio)
 			return
 		END SUBROUTINE symba_pl_deallocate
@@ -269,11 +279,13 @@ MODULE module_swiftestalloc
 			! Arguments
 			TYPE(symba_plplenc), INTENT(INOUT)		:: plplenc_list
 
-			DEALLOCATE(plplenc_list%lvdotr)
-			DEALLOCATE(plplenc_list%status)
-			DEALLOCATE(plplenc_list%level)
-			DEALLOCATE(plplenc_list%id1)
-			DEALLOCATE(plplenc_list%id2)
+			DEALLOCATE(plplenc_list%lvdotr(nplplenc))
+			DEALLOCATE(plplenc_list%status(nplplenc))
+			DEALLOCATE(plplenc_list%level(nplplenc))
+			DEALLOCATE(plplenc_list%index1(nplplenc))
+			DEALLOCATE(plplenc_list%index2(nplplenc))
+			DEALLOCATE(plplenc_list%enc_child(nplplenc))
+			DEALLOCATE(plplenc_list%enc_parent(nplplenc))
 			return
 		END SUBROUTINE symba_plplenc_deallocate
 
@@ -285,13 +297,14 @@ MODULE module_swiftestalloc
 			! Arguments
 			TYPE(symba_merger), INTENT(INOUT)		:: mergeadd_list
 
-			DEALLOCATE(mergeadd_list%id)
-			DEALLOCATE(mergeadd_list%status)
-			DEALLOCATE(mergeadd_list%ncomp)
-			DEALLOCATE(mergeadd_list%xh)
-			DEALLOCATE(mergeadd_list%vh)
-			DEALLOCATE(mergeadd_list%mass)
-			DEALLOCATE(mergeadd_list%radius)
+			DEALLOCATE(mergeadd_list%name(nmergeadd))
+			DEALLOCATE(mergeadd_list%index_ps(nmergeadd))
+			DEALLOCATE(mergeadd_list%status(nmergeadd))
+			DEALLOCATE(mergeadd_list%ncomp(nmergeadd))
+			DEALLOCATE(mergeadd_list%xh(NDIM,nmergeadd))
+			DEALLOCATE(mergeadd_list%vh(NDIM,nmergeadd))
+			DEALLOCATE(mergeadd_list%mass(nmergeadd))
+			DEALLOCATE(mergeadd_list%radius(nmergeadd))
 			return
 		END SUBROUTINE symba_merger_deallocate
 
@@ -303,7 +316,7 @@ MODULE module_swiftestalloc
 			! Arguments
 			TYPE(swiftest_tp), INTENT(INOUT)	:: swiftest_tpA
 
-			DEALLOCATE(swiftest_tpA%id)
+			DEALLOCATE(swiftest_tpA%name)
          	DEALLOCATE(swiftest_tpA%status)
          	DEALLOCATE(swiftest_tpA%peri)
          	DEALLOCATE(swiftest_tpA%atp)
@@ -339,9 +352,11 @@ MODULE module_swiftestalloc
 			! Arguments
 			TYPE(symba_tp), INTENT(INOUT)		:: symba_tpA
 
-			DEALLOCATE(symba_tpA%nplenc)
-			DEALLOCATE(symba_tpA%levelg)
-			DEALLOCATE(symba_tpA%levelm)
+			DEALLOCATE(symba_tpA%nplenc(ntp))
+			DEALLOCATE(symba_tpA%levelg(ntp))
+			DEALLOCATE(symba_tpA%levelm(ntp))
+			DEALLOCATE(symba_tpA%index_parent(ntp))
+			DEALLOCATE(symba_tpA%index_child(ntp))
 			return
 		END SUBROUTINE symba_tp_deallocate
 
@@ -353,11 +368,11 @@ MODULE module_swiftestalloc
 			! Arguments
 			TYPE(symba_pltpenc), INTENT(INOUT)		:: pltpenc_list
 
-			DEALLOCATE(pltpenc_list%lvdotr)
-			DEALLOCATE(pltpenc_list%status)
-			DEALLOCATE(pltpenc_list%level)
-			DEALLOCATE(pltpenc_list%idpl)
-			DEALLOCATE(pltpenc_list%idtp)
+			DEALLOCATE(pltpenc_list%lvdotr(npltpenc))
+			DEALLOCATE(pltpenc_list%status(npltpenc))
+			DEALLOCATE(pltpenc_list%level(npltpenc))
+			DEALLOCATE(pltpenc_list%indexpl(npltpenc))
+			DEALLOCATE(pltpenc_list%indextp(npltpenc))
 			return
 		END SUBROUTINE symba_pltpenc_deallocate
 		

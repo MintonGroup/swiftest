@@ -61,19 +61,19 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
           irecl = irec
      END IF
      DO i = 1, nplplenc
-          index_i  = plplenc_list%id1(i)
-          index_j  = plplenc_list%id2(i)
+          index_i  = plplenc_list%index1(i)
+          index_j  = plplenc_list%index2(i)
           symba_plA%helio%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
           symba_plA%helio%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
      DO i = 1, npltpenc
-          index_tp  = pltpenc_list%idtp(i)
+          index_tp  = pltpenc_list%indextp(i)
           symba_tpA%helio%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
      DO i = 1, nplplenc
           IF (plplenc_list%status(i) == ACTIVE) THEN
-               index_i  = plplenc_list%id1(i) 
-               index_j  = plplenc_list%id2(i) 
+               index_i  = plplenc_list%index1(i) 
+               index_j  = plplenc_list%index2(i) 
                IF ((symba_plA%levelg(index_i) >= irm1) .AND. (symba_plA%levelg(index_j) >= irm1)) THEN
                     ri = ((symba_plA%helio%swiftest%rhill(index_i) &
                          + symba_plA%helio%swiftest%rhill(index_j))**2)*(RHSCALE**2)*(RSHELL**(2*irecl))
@@ -100,8 +100,8 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
      END DO
      DO i = 1, npltpenc
           IF (pltpenc_list%status(i) == ACTIVE) THEN
-               index_pl  = pltpenc_list%idpl(i) 
-               index_tp  = pltpenc_list%idtp(i) 
+               index_pl  = pltpenc_list%indexpl(i) 
+               index_tp  = pltpenc_list%indextp(i) 
                IF ((symba_plA%levelg(index_pl) >= irm1) .AND. (symba_tpA%levelg(index_tp) >= irm1)) THEN
                     ri = ((symba_plA%helio%swiftest%rhill(index_pl))**2)*(RHSCALE**2)*(RSHELL**(2*irecl))
                     rim1 = ri*(RSHELL**2)
@@ -124,15 +124,15 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
           END IF
      END DO
      DO i = 1, nplplenc
-          index_i  = plplenc_list%id1(i) 
-          index_j  = plplenc_list%id2(i) 
+          index_i  = plplenc_list%index1(i) 
+          index_j  = plplenc_list%index2(i) 
           symba_plA%helio%swiftest%vb(:,index_i) = symba_plA%helio%swiftest%vb(:,index_i) + sgn*dt*symba_plA%helio%ah(:,index_i)
           symba_plA%helio%swiftest%vb(:,index_j) = symba_plA%helio%swiftest%vb(:,index_j) + sgn*dt*symba_plA%helio%ah(:,index_j)
           symba_plA%helio%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
           symba_plA%helio%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
      DO i = 1, npltpenc
-          index_tp  = pltpenc_list%idtp(i)
+          index_tp  = pltpenc_list%indextp(i)
           IF (symba_tpA%helio%swiftest%status(index_tp) == ACTIVE)     &
           symba_tpA%helio%swiftest%vb(:,index_tp) = symba_tpA%helio%swiftest%vb(:,index_tp) + sgn*dt*symba_tpA%helio%ah(:,index_tp)
           symba_tpA%helio%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)

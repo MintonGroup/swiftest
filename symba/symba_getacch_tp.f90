@@ -103,8 +103,8 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      DO i = 1, npltpenc
           !swifter_plP => pltpenc_list(i)%plP%helio%swifter
           !helio_tpP => pltpenc_list(i)%tpP%helio
-          index_pl = pltpenc_list%idpl(i)
-          index_tp = pltpenc_list%idtp(i)
+          index_pl = pltpenc_list%indexpl(i)
+          index_tp = pltpenc_list%indextp(i)
           IF (symba_tpA%helio%swiftest%status(index_tp) == ACTIVE) THEN
                dx(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
                r2 = DOT_PRODUCT(dx(:), dx(:))

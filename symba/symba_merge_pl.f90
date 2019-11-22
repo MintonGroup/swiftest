@@ -66,7 +66,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
 
 ! Internals
      LOGICAL(LGT)              :: lmerge
-     INTEGER(I4B)              :: i, j, k, id1, id2, stat1, stat2, index1, index2, index_keep, index_rm, indexchild
+     INTEGER(I4B)              :: i, j, k, index1, index2, stat1, stat2, index1, index2, index_keep, index_rm, indexchild
      REAL(DP)                  :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax, eold, enew, rad1, rad2, & 
      mass1, mass2
      REAL(DP), DIMENSION(NDIM) :: xr, vr, x1, v1, x2, v2, xnew, vnew
@@ -80,8 +80,8 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
 ! Executable code
      lmerge = .FALSE.
 
-     index1 = plplenc_list%id1(index)
-     index2 = plplenc_list%id2(index)
+     index1 = plplenc_list%index1(index)
+     index2 = plplenc_list%index2(index)
      rlim = symba_plA%helio%swiftest%radius(index1) + symba_plA%helio%swiftest%radius(index2)
      xr(:) = symba_plA%helio%swiftest%xh(:,index2) - symba_plA%helio%swiftest%xh(:,index1)
      r2 = DOT_PRODUCT(xr(:), xr(:))
@@ -105,18 +105,18 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
                ! if no collision is going to happen, write as close encounter, not  merger
                IF (.NOT. lmerge) THEN
                     IF (encounter_file /= "") THEN
-                         id1 = symba_plA%helio%swiftest%id(index1)
+                         name1 = symba_plA%helio%swiftest%name(index1)
                          m1 = symba_plA%helio%swiftest%mass(index1)
                          rad1 = symba_plA%helio%swiftest%radius(index1)
                          x1(:) = symba_plA%helio%swiftest%xh(;,index1)
                          v1(:) = symba_plA%helio%swiftest%vb(;,index1) - vbs(:)
-                         id2 = symba_plA%helio%swiftest%id(index2)
+                         name2 = symba_plA%helio%swiftest%name(index2)
                          m2 = symba_plA%helio%swiftest%mass(index2)
                          rad2 = symba_plA%helio%swiftest%radius(index2)
                          x2(:) = symba_plA%helio%swiftest%xh(:,index2)
                          v2(:) = symba_plA%helio%swiftest%vb(:,index2) - vbs(:)
 
-                         CALL io_write_encounter(t, id1, id2, m1, m2, rad1, rad2, x1(:), x2(:), v1(:), v2(:), encounter_file,     &
+                         CALL io_write_encounter(t, name1, name2, m1, m2, rad1, rad2, x1(:), x2(:), v1(:), v2(:), encounter_file,     &
                               out_type)
                     END IF
                END IF
@@ -126,22 +126,22 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
      IF (lmerge) THEN
           symba_plA%lmerged(index1) = .TRUE.
           symba_plA%lmerged(index2) = .TRUE.
-          index1_parent = symba_plA%id_parent(index1)
+          index1_parent = symba_plA%index_parent(index1)
           m1 = symba_plA%helio%swiftest%mass(index1_parent)
           mass1 = m1 
           rad1 = symba_plA%helio%swiftest%radius(index1_parent)
           x1(:) = m1*symba_plA%helio%swiftest%xh(:,index1_parent)
           v1(:) = m1*symba_plA%helio%swiftest%vb(:,index1_parent)
           mmax = m1
-          id1 = symba_plA%helio%swiftest%id(index1_parent)
+          name1 = symba_plA%helio%swiftest%name(index1_parent)
           index_big1 = index1_parent
           stat1 = symba_plA%helio%swiftest%status(index1_parent)
           DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children
-               index1_child = symba_plA%id_child(index1_parent)(i)
+               index1_child = symba_plA%index_child(index1_parent)(i)
                mtmp = symba_plA%helio%swiftest%mass(index1_child)
                IF (mtmp > mmax) THEN
                     mmax = mtmp
-                    id1 = symba_plA%helio%swiftest%id(index1_child)
+                    name1 = symba_plA%helio%swiftest%name(index1_child)
                     index_big1 = index1_child
                     stat1 = symba_plA%helio%swiftest%status(index1_child)
                END IF
@@ -151,21 +151,21 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           END DO
           x1(:) = x1(:)/m1
           v1(:) = v1(:)/m1
-          index2_parent = symba_plA%id_parent(index2)
+          index2_parent = symba_plA%index_parent(index2)
           m2 = symba_plA%helio%swiftest%mass(index2_parent)
           mass2 = m2
           x2(:) = m2*symba_plA%helio%swiftest%xh(:,index2_parent)
           v2(:) = m2*symba_plA%helio%swiftest%vb(:,index2_parent)
           mmax = m2
-          id2 = symba_plA%helio%swiftest%id(index2_parent)
+          name2 = symba_plA%helio%swiftest%name(index2_parent)
           index_big2 = index2_parent
           stat2 = symba_plA%helio%swiftest%status(index2_parent)
           DO i = 1, symba_plA%nchild(index2_parent)
-               index2_child = symba_plA%id_child(index2_parent)(i)
+               index2_child = symba_plA%index_child(index2_parent)(i)
                mtmp = symba_plA%helio%swiftest%mass(index2_child)
                IF (mtmp > mmax) THEN
                     mmax = mtmp
-                    id2 = symba_plA%helio%swiftest%id(index2_child)
+                    name2 = symba_plA%helio%swiftest%name(index2_child)
                     index_big2 = index2_child
                     stat2 = symba_plA%helio%swiftest%status(index2_child)
                END IF
@@ -178,16 +178,16 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           mtot = m1 + m2
           xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
           vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
-          WRITE(*, *) "Merging particles ", id1, " and ", id2, " at time t = ",t
+          WRITE(*, *) "Merging particles ", name1, " and ", name2, " at time t = ",t
           nmergesub = nmergesub + 1
-          mergesub_list%id(nmergesub) = id1
+          mergesub_list%name(nmergesub) = name1
           mergesub_list%status(nmergesub) = MERGED
           mergesub_list%xh(:,nmergesub) = x1(:)
           mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
           mergesub_list%mass(nmergesub) = mass1
           mergesub_list%radius(nmergesub) = rad1
           nmergesub = nmergesub + 1
-          mergesub_list%id(nmergesub) = id2
+          mergesub_list%name(nmergesub) = name2
           mergesub_list%status(nmergesub) = MERGED
           mergesub_list%xh(:,nmergesub) = x2(:)
           mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
@@ -198,13 +198,13 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           IF (m2 > m1) THEN
                index_keep = index_big2
                index_rm = index_big1
-               mergeadd_list%id(nmergeadd) = id2
+               mergeadd_list%name(nmergeadd) = name2
                mergeadd_list%status(nmergeadd) = stat2
 
           ELSE
                index_keep = index_big1
                index_rm = index_big2
-               mergeadd_list%id(nmergeadd) = id1
+               mergeadd_list%name(nmergeadd) = name1
                mergeadd_list%status(nmergeadd) = stat1
 
           END IF
@@ -222,15 +222,15 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
                          IF (i = 0) THEN 
                               index1_child = index1_parent
                          ELSE
-                              index1_child = symba_plA%id_child(index1_parent)(i)
+                              index1_child = symba_plA%index_child(index1_parent)(i)
                          DO j = 0, symba_plA%nchild(index2_parnet)
                               IF (j = 0) THEN
                                    index2_child = index2_parent
                               ELSE
-                                   index2_child = symba_plA%id_child(index2_parent)(j)
-                              IF (index1_child = plplenc_list%id1(k)) .AND. (index2_child = plplenc_list%id2(k)) THEN
+                                   index2_child = symba_plA%index_child(index2_parent)(j)
+                              IF (index1_child = plplenc_list%index1(k)) .AND. (index2_child = plplenc_list%index2(k)) THEN
                                    plplenc_list%status(k) = MERGED
-                              ELSE IF (index1_child = plplenc_list%id2(k)) .AND. (index2_child = plplenc_list%id1(k)) THEN
+                              ELSE IF (index1_child = plplenc_list%index2(k)) .AND. (index2_child = plplenc_list%index1(k)) THEN
                                    plplenc_list%status(k) = MERGED
                               END IF
                          END DO
@@ -241,12 +241,12 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
           symba_plA%helio%swiftest%vb(:,index_keep) = vnew(:)
 
           DO i = 1, symba_plA%nchild(index_keep)
-               index_child = symba_plA%id_child(index_keep)(i)
+               index_child = symba_plA%index_child(index_keep)(i)
                symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
                symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
           END DO
           DO i = 0, symba_plA%nchild(index_rm)
-               index_child = symba_plA%id_child(index_rm)(i)
+               index_child = symba_plA%index_child(index_rm)(i)
                symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
                symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
           END DO

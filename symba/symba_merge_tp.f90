@@ -49,7 +49,7 @@ SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_f
 
 ! Internals
      LOGICAL(LGT)              :: lmerge
-     INTEGER(I4B)              :: id1, id2
+     INTEGER(I4B)              :: name1, name2
      REAL(DP)                  :: r2, rlim, rlim2, vdotr, tcr2, dt2, mu, a, e, q, rad1
      REAL(DP), DIMENSION(NDIM) :: xr, vr, xh1, vh1, xh2, vh2
      TYPE(swifter_pl), POINTER :: swifter_plP
@@ -82,14 +82,14 @@ SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_f
                END IF
                IF (.NOT. lmerge) THEN
                     IF (encounter_file /= "") THEN
-                         id1 = swifter_plP%id
+                         name1 = swifter_plP%name
                          rad1 = swifter_plP%radius
                          xh1(:) = swifter_plP%xh(:)
                          vh1(:) = swifter_plP%vb(:) - vbs(:)
-                         id2 = swifter_tpP%id
+                         name2 = swifter_tpP%name
                          xh2(:) = swifter_tpP%xh(:)
                          vh2(:) = swifter_tpP%vb(:) - vbs(:)
-                         CALL io_write_encounter(t, id1, id2, mu, 0.0_DP, rad1, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),           &
+                         CALL io_write_encounter(t, name1, name2, mu, 0.0_DP, rad1, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),           &
                               encounter_file, out_type)
                     END IF
                END IF
@@ -98,7 +98,7 @@ SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_f
      IF (lmerge) THEN
           pltpenc_list(index)%status = MERGED
           swifter_tpP%status = DISCARDED_PLR
-          WRITE(*, *) "Particle ", swifter_tpP%id, " too close to Planet ", swifter_plP%id, " at t = ", t
+          WRITE(*, *) "Particle ", swifter_tpP%name, " too close to Planet ", swifter_plP%name, " at t = ", t
      END IF
 
      RETURN

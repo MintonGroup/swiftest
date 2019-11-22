@@ -91,7 +91,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
     	IF (nmergeadd = 0) THEN 
     		CALL symba_pl_deallocate(symba_plA,npl)
     		CALL symba_pl_allocate(symba_plA, nkpl)! + nmergeadd)
-    		symba_plA%helio%swiftest%id(1:nkpl) = keep_plA_id_status(1,:)
+    		symba_plA%helio%swiftest%name(1:nkpl) = keep_plA_id_status(1,:)
     		symba_plA%helio%swiftest%mass(1:nkpl) = keep_plA(1,:)
     		symba_plA%helio%swiftest%radius(1:nkpl) = keep_plA(2,:)
     		symba_plA%helio%swiftest%xh(1,1:nkpl) = keep_plA(3,:)
@@ -104,7 +104,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
     	ELSE 
     		CALL symba_pl_deallocate(symba_plA,npl)
     		CALL symba_pl_allocate(symba_plA, nkpl)! + nmergeadd)
-    		symba_plA%helio%swiftest%id(1:nkpl) = keep_plA_id_status(1,:)
+    		symba_plA%helio%swiftest%name(1:nkpl) = keep_plA_id_status(1,:)
     		!symba_plA%helio%swiftest%id(nkpl+1:nkpl+nmergeadd) = mergeadd_list%id(:)
 
     		symba_plA%helio%swiftest%mass(1:nkpl) = keep_plA(1,:)
@@ -140,7 +140,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
     	nsptp = 1  
     	DO i = 1, ntp
         	IF (symba_tpA%helio%swiftest%status(i) /= ACTIVE) THEN 
-            	discard_tpA_id_status(1,nsptp) = symba_tpA%helio%swiftest%id(i)
+            	discard_tpA_id_status(1,nsptp) = symba_tpA%helio%swiftest%name(i)
             	discard_tpA_id_status(2,nsptp) = symba_tpA%helio%swiftest%status(i)
             	discard_tpA(1,nsptp) = symba_tpA%helio%swiftest%mass(i)
             	discard_tpA(2,nsptp) = symba_tpA%helio%swiftest%radius(i)
@@ -152,7 +152,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
             	discard_tpA(8,nsptp) = symba_tpA%helio%swiftest%vh(3,i)
             	nsptp = nsptp+1
         	ELSE 
-            	keep_tpA_id_status(1,nktp) = symba_tpA%helio%swiftest%id(i)
+            	keep_tpA_id_status(1,nktp) = symba_tpA%helio%swiftest%name(i)
             	keep_tpA_id_status(2,nktp) = symba_tpA%helio%swiftest%status(i)
             	keep_tpA(1,nktp) = symba_tpA%helio%swiftest%mass(i)
             	keep_tpA(2,nktp) = symba_tpA%helio%swiftest%radius(i)
@@ -170,7 +170,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
     	CALL symba_tp_allocate(symba_tpA, nktp)
 
 
-    	symba_tpA%helio%swiftest%id(1:nktp) = keep_tpA_id_status(1,:)
+    	symba_tpA%helio%swiftest%name(1:nktp) = keep_tpA_id_status(1,:)
     	symba_tpA%helio%swiftest%mass(1:nktp) = keep_tpA(1,:)
     	symba_tpA%helio%swiftest%radius(1:nktp) = keep_tpA(2,:)
     	symba_tpA%helio%swiftest%xh(1,1:nktp) = keep_tpA(3,:)

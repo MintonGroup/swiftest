@@ -1,4 +1,4 @@
-!**********************************************************************************************************************************
+ f!**********************************************************************************************************************************
 !
 !  Unit Name   : symba_helio_drift_tp
 !  Unit Type   : subroutine
@@ -58,7 +58,7 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
                CALL drift_one(mu, symba_tpA%helio%swiftest%xh(:,i), symba_tpA%helio%swiftest%vb(:,i), dt, iflag)
                IF (iflag /= 0) THEN
                     symba_tpA%helio%swiftest%status(i) = DISCARDED_DRIFTERR
-                    WRITE(*, *) "Particle ", symba_tpA%helio%swiftest%id(i), " lost due to error in Danby drift"
+                    WRITE(*, *) "Particle ", symba_tpA%helio%swiftest%name(i), " lost due to error in Danby drift"
                END IF
           END IF
           !Removed by D. Minton

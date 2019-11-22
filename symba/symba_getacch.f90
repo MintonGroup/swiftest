@@ -129,8 +129,8 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      !$OMP PRIVATE(i,symba_pliP,symba_pljP,helio_pliP,helio_pljP,dx,rji2,irij3,faci,facj) &
      !$OMP SHARED(plplenc_list,nplplenc)
      DO i = 1, nplplenc
-          index_i = plplenc_list%id1(i)
-          index_j = plplenc_list%id2(i)
+          index_i = plplenc_list%index1(i)
+          index_j = plplenc_list%index2(i)
           IF ((.NOT. symba_plA%lmerged(index_i)) .OR. &
                (.NOT. symba_plA%lmerged(index_j)))  &
                ! .OR. &

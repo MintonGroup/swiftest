@@ -64,7 +64,7 @@ SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
           IF ((symba_plA%levelg(i) == irec) .AND. (symba_plA%helio%swiftest%status(i) == ACTIVE)) THEN
                CALL drift_one(mu, symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%vb(:,i), dt, iflag)
                IF (iflag /= 0) THEN
-                    WRITE(*, *) " Planet ", symba_plA%helio%swiftest%id(i), " is lost!!!!!!!!!!"
+                    WRITE(*, *) " Planet ", symba_plA%helio%swiftest%name(i), " is lost!!!!!!!!!!"
                     WRITE(*, *) mu, dt
                     WRITE(*, *) symba_plA%helio%swiftest%xh(:,i)
                     WRITE(*, *) symba_plA%helio%swiftest%vb(:,i)

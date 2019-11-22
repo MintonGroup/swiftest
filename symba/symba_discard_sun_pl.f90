@@ -60,11 +60,11 @@ SUBROUTINE symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, l
                IF ((rmax >= 0.0_DP) .AND. (rh2 > rmax2)) THEN
                     ldiscards = .TRUE.
                     swiftest_plA%status(i) = DISCARDED_RMAX
-                    WRITE(*, *) "Particle ",  swiftest_plA%id(i), " too far from Sun at t = ", t
+                    WRITE(*, *) "Particle ",  swiftest_plA%name(i), " too far from Sun at t = ", t
                ELSE IF ((rmin >= 0.0_DP) .AND. (rh2 < rmin2)) THEN
                     ldiscards = .TRUE.
                     swiftest_plA%status(i) = DISCARDED_RMIN
-                    WRITE(*, *) "Particle ", swiftest_plA%id(i), " too close to Sun at t = ", t
+                    WRITE(*, *) "Particle ", swiftest_plA%name(i), " too close to Sun at t = ", t
                ELSE IF (rmaxu >= 0.0_DP) THEN
                     rb2 = DOT_PRODUCT(swiftest_plA%xb(:,i), swiftest_plA%xb(:,i))
                     vb2 = DOT_PRODUCT(swiftest_plA%vb(:,i), swiftest_plA%vb(:,i))
@@ -72,7 +72,7 @@ SUBROUTINE symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, l
                     IF ((energy > 0.0_DP) .AND. (rb2 > rmaxu2)) THEN
                          ldiscards = .TRUE.
                          swiftest_plA%status(i) = DISCARDED_RMAXU
-                         WRITE(*, *) "Particle ", swiftest_plA%id(i), " is unbound and too far from barycenter at t = ", t
+                         WRITE(*, *) "Particle ", swiftest_plA%name(i), " is unbound and too far from barycenter at t = ", t
                     END IF
                END IF
           END IF
