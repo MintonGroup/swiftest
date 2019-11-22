@@ -43,7 +43,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, &
+SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, &
      encounter_file, out_type)
 
 ! Modules
@@ -55,7 +55,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index, nplplenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
      INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
@@ -80,8 +80,8 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
 ! Executable code
      lmerge = .FALSE.
 
-     index1 = plplenc_list%index1(index)
-     index2 = plplenc_list%index2(index)
+     index1 = plplenc_list%index1(index_enc)
+     index2 = plplenc_list%index2(index_enc)
      rlim = symba_plA%helio%swiftest%radius(index1) + symba_plA%helio%swiftest%radius(index2)
      xr(:) = symba_plA%helio%swiftest%xh(:,index2) - symba_plA%helio%swiftest%xh(:,index1)
      r2 = DOT_PRODUCT(xr(:), xr(:))
@@ -94,7 +94,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
      ELSE 
           vr(:) = symba_plA%helio%swiftest%vb(:,index2) - symba_plA%helio%swiftest%vb(:,index1)
           vdotr = DOT_PRODUCT(xr(:), vr(:))
-          IF (plplenc_list%lvdotr(index) .AND. (vdotr > 0.0_DP)) THEN
+          IF (plplenc_list%lvdotr(index_enc) .AND. (vdotr > 0.0_DP)) THEN
                tcr2 = r2/DOT_PRODUCT(vr(:), vr(:))
                dt2 = dt*dt
                IF (tcr2 <= dt2) THEN
