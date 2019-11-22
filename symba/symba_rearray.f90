@@ -37,11 +37,11 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(INOUT)                  	:: npl, ntp, nsppl, nsptp, nmergeadd
+     INTEGER(I4B), INTENT(INOUT)                  	:: npl, ntp, nsppl, nsptp, nmergeadd !change to fragadd
      REAL(DP), INTENT(IN)                         	:: t
      TYPE(symba_pl), INTENT(INOUT)                	:: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                	:: symba_tpA
-     TYPE(symba_merger), DIMENSION(:), INTENT(IN) 	:: mergeadd_list
+     TYPE(symba_merger), DIMENSION(:), INTENT(IN) 	:: mergeadd_list !change to fragadd_list
      REAL(DP), DIMENSION(8,NPLMAX), INTENT(OUT)  	:: discard_plA
      REAL(DP), DIMENSION(8,ntp), INTENT(OUT)     	:: discard_tpA
      INTEGER(I4B), DIMENSION(2,NPLMAX), INTENT(OUT) :: discard_plA_id_status
@@ -88,9 +88,10 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
         	END IF 
     	END DO
 
-    	IF (nmergeadd = 0) THEN 
+        ! remove all mentions of mergeadd and mergeadd_list from this loop after fragmentation 
+    	IF (nmergeadd = 0) THEN !this will change to nfragadd when fragmentation is implemented 
     		CALL symba_pl_deallocate(symba_plA,npl)
-    		CALL symba_pl_allocate(symba_plA, nkpl)! + nmergeadd)
+    		CALL symba_pl_allocate(symba_plA, nkpl)
     		symba_plA%helio%swiftest%name(1:nkpl) = keep_plA_id_status(1,:)
     		symba_plA%helio%swiftest%mass(1:nkpl) = keep_plA(1,:)
     		symba_plA%helio%swiftest%radius(1:nkpl) = keep_plA(2,:)
@@ -103,33 +104,24 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 
     	ELSE 
     		CALL symba_pl_deallocate(symba_plA,npl)
-    		CALL symba_pl_allocate(symba_plA, nkpl)! + nmergeadd)
+    		CALL symba_pl_allocate(symba_plA, nkpl)
     		symba_plA%helio%swiftest%name(1:nkpl) = keep_plA_id_status(1,:)
-    		!symba_plA%helio%swiftest%name(nkpl+1:nkpl+nmergeadd) = mergeadd_list%name(:)
 
     		symba_plA%helio%swiftest%mass(1:nkpl) = keep_plA(1,:)
-    		!symba_plA%helio%swiftest%mass(nkpl+1:nkpl+nmergeadd) = mergeadd_list%mass(:)
 
     		symba_plA%helio%swiftest%radius(1:nkpl) = keep_plA(2,:)
-    		!symba_plA%helio%swiftest%radius(nkpl+1:nkpl+nmergeadd) = mergeadd_list%radius(:)
 
     		symba_plA%helio%swiftest%xh(1,1:nkpl) = keep_plA(3,:)
-    		!symba_plA%helio%swiftest%xh(1,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(1,:)
 
     		symba_plA%helio%swiftest%xh(2,1:nkpl) = keep_plA(4,:)
-    		!symba_plA%helio%swiftest%xh(2,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(2,:)
 
     		symba_plA%helio%swiftest%xh(3,1:nkpl) = keep_plA(5,:)
-    		!symba_plA%helio%swiftest%xh(3,nkpl+1:nkpl+nmergeadd) = mergeadd_list%xh(3,:)
 
     		symba_plA%helio%swiftest%vh(1,1:nkpl) = keep_plA(6,:)
-    		!symba_plA%helio%swiftest%vh(1,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(1,:)
 
     		symba_plA%helio%swiftest%vh(2,1:nkpl) = keep_plA(7,:)
-    		!symba_plA%helio%swiftest%vh(2,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(2,:)
 
     		symba_plA%helio%swiftest%vh(3,1:nkpl) = keep_plA(8,:)
-    		!symba_plA%helio%swiftest%vh(3,nkpl+1:nkpl+nmergeadd) = mergeadd_list%vh(3,:)
     		CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tei, htot
 		END IF
 	END IF 
