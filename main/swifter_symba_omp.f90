@@ -88,6 +88,10 @@ PROGRAM swiftest_symba_omp
      TYPE(symba_plplenc)             :: plplenc_list
      TYPE(symba_pltpenc)             :: pltpenc_list
      TYPE(symba_merger)              :: mergeadd_list, mergesub_list
+     REAL(DP), DIMENSION(8,npl), INTENT(OUT)      :: discard_plA
+     REAL(DP), DIMENSION(8,ntp), INTENT(OUT)      :: discard_tpA
+     INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)  :: discard_plA_id_status
+     INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)  :: discard_tpA_id_status
 
 ! Executable code
      CALL util_version
