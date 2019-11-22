@@ -30,7 +30,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_file, out_type)
+SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type)
 
 ! Modules
      USE module_parameters
@@ -41,7 +41,7 @@ SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_f
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index, npltpenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc, npltpenc
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
@@ -59,21 +59,27 @@ SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_f
 
 ! Executable code
      lmerge = .FALSE.
-     symba_plP => pltpenc_list(index)%plP
-     symba_tpP => pltpenc_list(index)%tpP
-     swifter_plP => symba_plP%helio%swifter
-     swifter_tpP => symba_tpP%helio%swifter
-     rlim = swifter_plP%radius
-     xr(:) = swifter_tpP%xh(:) - swifter_plP%xh(:)
+     
+     indexpl = pltpenc_list%indexpl(index_enc)
+     indextp = pltpenc_list%indextp(index_enc)
+
+
+
+     !symba_plP => pltpenc_list(index_enc)%plP
+     !symba_tpP => pltpenc_list(index_enc)%tpP
+     !swifter_plP => symba_plP%helio%swifter
+     !swifter_tpP => symba_tpP%helio%swifter
+     rlim = symba_plA%helio%swiftest%radius(indexpl)
+     xr(:) = symba_tpA%helio%swiftest%xh(:,indextp) - symba_plA%helio%swiftest%xh(:,indexpl)
      r2 = DOT_PRODUCT(xr(:), xr(:))
      rlim2 = rlim*rlim
      IF (rlim2 >= r2) THEN
           lmerge = .TRUE.
      ELSE
-          vr(:) = swifter_tpP%vb(:) - swifter_plP%vb(:)
+          vr(:) = symba_tpA%helio%swiftest%vb(:,indextp) - symba_plA%helio%swiftest%vb(:,indexpl)
           vdotr = DOT_PRODUCT(xr(:), vr(:))
-          IF (pltpenc_list(index)%lvdotr .AND. (vdotr > 0.0_DP)) THEN
-               mu = swifter_plP%mass
+          IF (pltpenc_list(index_enc)%lvdotr .AND. (vdotr > 0.0_DP)) THEN
+               mu = symba_plA%helio%swiftest%mass(indexpl)
                tcr2 = r2/DOT_PRODUCT(vr(:), vr(:))
                dt2 = dt*dt
                IF (tcr2 <= dt2) THEN
@@ -82,13 +88,13 @@ SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_f
                END IF
                IF (.NOT. lmerge) THEN
                     IF (encounter_file /= "") THEN
-                         name1 = swifter_plP%name
-                         rad1 = swifter_plP%radius
-                         xh1(:) = swifter_plP%xh(:)
-                         vh1(:) = swifter_plP%vb(:) - vbs(:)
-                         name2 = swifter_tpP%name
-                         xh2(:) = swifter_tpP%xh(:)
-                         vh2(:) = swifter_tpP%vb(:) - vbs(:)
+                         name1 = symba_plA%helio%swiftest%name(indexpl)
+                         rad1 = symba_plA%helio%swiftest%radius(indexpl)
+                         xh1(:) = symba_plA%helio%swiftest%xh(;,indexpl)
+                         vh1(:) = symba_plA%helio%swiftest%vb(;,indexpl) - vbs(:)
+                         name2 = symba_tpA%helio%swiftest%name(indextp)
+                         xh2(:) = symba_tpA%helio%swiftest%xh(:,indextp)
+                         vh2(:) = symba_tpA%helio%swiftest%vb(:,indextp) - vbs(:)
                          CALL io_write_encounter(t, name1, name2, mu, 0.0_DP, rad1, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),           &
                               encounter_file, out_type)
                     END IF
@@ -96,9 +102,9 @@ SUBROUTINE symba_merge_tp(t, dt, index, npltpenc, pltpenc_list, vbs, encounter_f
           END IF
      END IF
      IF (lmerge) THEN
-          pltpenc_list(index)%status = MERGED
-          swifter_tpP%status = DISCARDED_PLR
-          WRITE(*, *) "Particle ", swifter_tpP%name, " too close to Planet ", swifter_plP%name, " at t = ", t
+          pltpenc_list(index_enc)%status = MERGED
+          symba_tpA%helio%swiftest%status = DISCARDED_PLR
+          WRITE(*, *) "Particle ", symba_tpA%helio%swiftest%name, " too close to Planet ", symba_plA%helio%swiftest%name, " at t = ", t
      END IF
 
      RETURN
