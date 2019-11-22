@@ -48,7 +48,7 @@ SUBROUTINE symba_merge_pl(t, dt, index, nplplenc, plplenc_list, nmergeadd, nmerg
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_merge_pl
