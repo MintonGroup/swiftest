@@ -37,8 +37,9 @@
 !  Notes       : Adapted from Hal Levison's Swift routine io_discard_mass.f and io_discard_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, discard_plA, discard_tpA,        &
-     mergeadd_list, mergesub_list, fname, lbig_discard, discard_plA_id_status, discard_tpA_id_status)
+SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, & 
+     discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard,&
+     discard_plA_id_status, discard_tpA_id_status)
 
 ! Modules
      USE module_parameters
@@ -49,14 +50,14 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmerge
 
 ! Arguments
      LOGICAL(LGT), INTENT(IN)                       :: lbig_discard
-     INTEGER(I4B), INTENT(IN)                       :: npl, nsppl, nsptp, nmergeadd, nmergesub
+     INTEGER(I4B), INTENT(IN)                       :: npl, ntp, nsppl, nsptp, nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                           :: t, mtiny
      CHARACTER(*), INTENT(IN)                       :: fname
      TYPE(symba_pl), INTENT(INOUT)                  :: symba_plA
-     REAL(DP), DIMENSION(8,NPLMAX), INTENT(IN)      :: discard_plA
+     REAL(DP), DIMENSION(8,npl), INTENT(IN)         :: discard_plA
      REAL(DP), DIMENSION(8,ntp), INTENT(IN)         :: discard_tpA
-     TYPE(symba_merger), DIMENSION(:), INTENT(IN)   :: mergeadd_list, mergesub_list
-     INTEGER(I4B), DIMENSION(2,NPLMAX), INTENT(OUT) :: discard_plA_id_status
+     TYPE(symba_merger), INTENT(IN)                 :: mergeadd_list, mergesub_list
+     INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)    :: discard_plA_id_status
      INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)    :: discard_tpA_id_status
 
 ! Internals
@@ -114,7 +115,8 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmerge
                WRITE(LUN, 400) nplm
  400           FORMAT(I8)
                DO i = 2, nplm
-                    WRITE(LUN, 500) symba_plA%helio%swiftest%id(i), symba_plA%helio%swiftest%mass(i), symba_plA%helio%swiftest%radius(i)
+                    WRITE(LUN, 500) symba_plA%helio%swiftest%id(i), symba_plA%helio%swiftest%mass(i),& 
+                     symba_plA%helio%swiftest%radius(i)
  500                FORMAT(I8, 2(1X, E23.16))
                     WRITE(LUN, 300) symba_plA%helio%swiftest%xh(:,i)
                     WRITE(LUN, 300) symba_plA%helio%swiftest%vh(:,i)
