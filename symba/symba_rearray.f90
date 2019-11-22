@@ -62,7 +62,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 
     	DO i = 1, npl 
         	IF (symba_plA%helio%swiftest%status(i) /= ACTIVE) THEN 
-            	discard_plA_id_status(1,nsppl) = symba_plA%helio%swiftest%id(i)
+            	discard_plA_id_status(1,nsppl) = symba_plA%helio%swiftest%name(i)
             	discard_plA_id_status(2,nsppl) = symba_plA%helio%swiftest%status(i)
             	discard_plA(1,nsppl) = symba_plA%helio%swiftest%mass(i)
             	discard_plA(2,nsppl) = symba_plA%helio%swiftest%radius(i)
@@ -74,7 +74,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
             	discard_plA(8,nsppl) = symba_plA%helio%swiftest%vh(3,i)
             	nsppl = nsppl+1
         	ELSE
-            	keep_plA_id_status(1,nkpl) = symba_plA%helio%swiftest%id(i)
+            	keep_plA_id_status(1,nkpl) = symba_plA%helio%swiftest%name(i)
             	keep_plA_id_status(2,nkpl) = symba_plA%helio%swiftest%status(i)
             	keep_plA(1,nkpl) = symba_plA%helio%swiftest%mass(i)
             	keep_plA(2,nkpl) = symba_plA%helio%swiftest%radius(i)
@@ -105,7 +105,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
     		CALL symba_pl_deallocate(symba_plA,npl)
     		CALL symba_pl_allocate(symba_plA, nkpl)! + nmergeadd)
     		symba_plA%helio%swiftest%name(1:nkpl) = keep_plA_id_status(1,:)
-    		!symba_plA%helio%swiftest%id(nkpl+1:nkpl+nmergeadd) = mergeadd_list%id(:)
+    		!symba_plA%helio%swiftest%name(nkpl+1:nkpl+nmergeadd) = mergeadd_list%name(:)
 
     		symba_plA%helio%swiftest%mass(1:nkpl) = keep_plA(1,:)
     		!symba_plA%helio%swiftest%mass(nkpl+1:nkpl+nmergeadd) = mergeadd_list%mass(:)
