@@ -104,8 +104,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       end if
       
       ! Make seeds small enough to fit into each bin 
-      !do i = ring%iFrl,ring%N
-      do i = ring%iRRL+1,ring%N
+      do i = ring%iFRL,ring%N
          ! See Tajeddine et al. (2017) section 2.3 
          Gm_min = max((1.505e17_DP / DU2CM**3)  * (ring%nu(i) / (100 * TU2S / DU2CM**2)) * ring%rho_pdisk,ring%Gm_pdisk)
          if (ring%Gm(i) > 100 * Gm_min) then 
