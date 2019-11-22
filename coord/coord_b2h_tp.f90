@@ -25,32 +25,29 @@
 !  Notes       : Adapted from Hal Levison's Swift routine coord_b2h_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE coord_b2h_tp(ntp, swifter_tp1P, swifter_pl1P)
+SUBROUTINE coord_b2h_tp(ntp, swiftest_tpA, swiftest_plA)
 
 ! Modules
      USE module_parameters
-     USE module_swifter
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => coord_b2h_tp
      IMPLICIT NONE
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: ntp
-     TYPE(swifter_tp), POINTER :: swifter_tp1P
-     TYPE(swifter_pl), POINTER :: swifter_pl1P
+     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
+     TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
 
 ! Internals
      INTEGER(I4B)              :: i
      REAL(DP), DIMENSION(NDIM) :: xtmp, vtmp
-     TYPE(swifter_tp), POINTER :: swifter_tpP
 
 ! Executable code
-     xtmp(:) = swifter_pl1P%xb(:)
-     vtmp(:) = swifter_pl1P%vb(:)
-     swifter_tpP => swifter_tp1P
+     xtmp(:) = swiftest_plA%xb(:,1)
+     vtmp(:) = swiftest_plA%vb(:,1)
      DO i = 1, ntp
-          swifter_tpP%xh(:) = swifter_tpP%xb(:) - xtmp(:)
-          swifter_tpP%vh(:) = swifter_tpP%vb(:) - vtmp(:)
-          swifter_tpP => swifter_tpP%nextP
+          swiftest_tpA%xh(:,1) = swiftest_tpA%xb(:,1) - xtmp(:)
+          swiftest_tpA%vh(:,1) = swiftest_tpA%vb(:,1) - vtmp(:)
      END DO
 
      RETURN
