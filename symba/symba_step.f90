@@ -63,7 +63,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,        &
      nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,          &
-     encounter_file, out_type)
+     encounter_file, out_type, helio_plA, helio_tpA, index_child)
 
 ! Modules
      USE module_parameters
@@ -76,13 +76,15 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 ! Arguments
      LOGICAL(LGT), INTENT(IN)                         :: lextra_force, lclose
      LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
-     INTEGER(I4B), INTENT(IN)                         :: npl, nplmax, ntp, ntpmax
+     INTEGER(I4B), INTENT(IN)                         :: npl, nplmax, ntp, ntpmax, index_child
      INTEGER(I4B), INTENT(INOUT)                      :: nplplenc, npltpenc, nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+     TYPE(helio_pl), INTENT(INOUT)                    :: helio_plA
+     TYPE(helio_tp), INTENT(INOUT)                    :: helio_tpA
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
@@ -137,7 +139,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      symba_plA%levelg(:) = -1
      symba_plA%levelm(:) = -1
      END DO
-     DO i =1,nptmax
+     DO i =1,ntpmax
      symba_tpA%nplenc(:) = 0 
      symba_tpA%levelg(:) = -1
      symba_tpA%levelm(:) = -1
@@ -189,9 +191,9 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
                xr(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
                vr(:) = symba_plA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
-               CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), symba_plA%helio%swiftest%rhill(j), dt, irec, lencounter, lvdotr)
+               CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), &
+                    symba_plA%helio%swiftest%rhill(j), dt, irec, lencounter, lvdotr)
                IF (lencounter) THEN
-                    ! Added by D. Minton
                     !$OMP CRITICAL 
                     nplplenc = nplplenc + 1
                     IF (nplplenc > NENMAX) THEN
@@ -203,25 +205,20 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     plplenc_list%status(nplplenc) = ACTIVE
                     plplenc_list%lvdotr(nplplenc) = lvdotr
                     plplenc_list%level(nplplenc) = irec
-                    !plplenc_list(nplplenc)%pl1P => symba_pliP
-                    !plplenc_list(nplplenc)%pl2P => symba_pljP
                     plplenc_list%index1(nplplenc) = i
                     plplenc_list%index2(nplplenc) = j
-
                     symba_plA%lmerged(i) = .FALSE.
                     symba_plA%nplenc(i) = symba_plA%nplenc(i) + 1
                     symba_plA%levelg(i) = irec
                     symba_plA%levelm(i) = irec
-                    !symba_pliP%parentP => symba_pliP
                     !$OMP END CRITICAL 
-                    NULLIFY(symba_plA%childP) ????
+                    !NULLIFY(symba_plA%index_child) 
                     symba_plA%nchild(i) = 0 
                     symba_plA%lmerged(j) = .FALSE.
                     symba_plA%nplenc(j) = symba_plA%nplenc(j) + 1
                     symba_plA%levelg(j) = irec
                     symba_plA%levelm(j) = irec
-                    !symba_pl%parentP => symba_pljP
-                    NULLIFY(symba_plA%childP) ????
+                    !NULLIFY(symba_plA%index_child) 
                     symba_plA%nchild(j) = 0
                END IF
           END DO
