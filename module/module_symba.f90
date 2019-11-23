@@ -55,7 +55,7 @@ MODULE module_symba
           real(DP),     dimension(:),     allocatable :: atp     ! semimajor axis following perihelion passage
           type(helio_pl)                              :: helio   ! HELIO planet structure
           integer(I4B), dimension(:),     allocatable :: index_parent   ! position of the parent of id
-          integer(I4B), dimension(:,:),     allocatable :: index_child   ! position of the children of id
+          integer(I4B), dimension(:,:),   allocatable :: index_child   ! position of the children of id
      end type symba_pl
 
      type symba_tp

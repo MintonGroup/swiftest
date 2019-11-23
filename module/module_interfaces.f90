@@ -1179,8 +1179,8 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, &
-               mergeadd_list, discard_plA, &
-               discard_tpA, discard_plA_id_status,discard_tpA_id_status)
+               mergeadd_list, discard_plA, discard_tpA, discard_plA_id_status, & 
+               discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
                USE module_parameters
                USE module_swiftestalloc 
                USE module_swiftest
@@ -1188,7 +1188,8 @@ MODULE module_interfaces
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(INOUT)                       :: npl, ntp, nsppl, nsptp, nmergeadd
-               REAL(DP), INTENT(IN)                              :: t
+               INTEGER(I4B), INTENT(INOUT)                       :: NPLMAX
+               REAL(DP), INTENT(IN)                              :: t, j2rp2, j4rp4
                TYPE(symba_pl), INTENT(INOUT)                     :: symba_plA
                TYPE(symba_tp), INTENT(INOUT)                     :: symba_tpA
                TYPE(symba_merger), DIMENSION(:), INTENT(IN)      :: mergeadd_list
@@ -1232,7 +1233,8 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
                symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
-               nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type)
+               nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
+               helio_plA, helio_tpA, index_child)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1240,7 +1242,7 @@ MODULE module_interfaces
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
                LOGICAL(LGT), INTENT(INOUT)        :: lfirst
-               INTEGER(I4B), INTENT(IN)           :: npl, nplmax, ntp, ntpmax
+               INTEGER(I4B), INTENT(IN)           :: npl, nplmax, ntp, ntpmax, index_child
                INTEGER(I4B), INTENT(INOUT)        :: nplplenc, npltpenc, nmergeadd, nmergesub
                REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
                REAL(DP), INTENT(INOUT)            :: eoffset
@@ -1250,6 +1252,8 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+               TYPE(helio_pl), INTENT(INOUT)      :: helio_plA
+               TYPE(helio_tp), INTENT(INOUT)      :: helio_tpA
           END SUBROUTINE symba_step
      END INTERFACE
 
