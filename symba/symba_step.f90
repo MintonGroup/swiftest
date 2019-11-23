@@ -237,7 +237,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                !swifter_tpP => symba_tpP%helio%swifter
                xr(:) = symba_tpA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
                vr(:) = symba_tpA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
-               CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill, 0.0_DP, dt, irec, lencounter, lvdotr)
+               CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), 0.0_DP, dt, irec, lencounter, lvdotr)
                IF (lencounter) THEN
                     symba_plA%ntpenc(i) = symba_plA%ntpenc(i) + 1
                     symba_plA%levelg(i) = irec
