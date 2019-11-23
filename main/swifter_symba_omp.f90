@@ -37,7 +37,7 @@ PROGRAM swiftest_symba_omp
      USE module_symba
      !USE module_random_access
      USE module_interfaces
-     USE module_swiftest_allocation
+     USE module_swiftestalloc
      !Added by D. Minton
      !$ USE omp_lib
      IMPLICIT NONE
@@ -135,7 +135,7 @@ PROGRAM swiftest_symba_omp
 
      ! Reorder linked list by mass 
      CALL io_init_tp(intpfile, in_type, ntp, swiftest_tpA)
-     CALL util_valid(n pl, ntp, swiftest_plA, swiftest_tpA)
+     CALL util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
      lfirst = .TRUE.
      ntp0 = ntp
      t = t0
@@ -148,7 +148,10 @@ PROGRAM swiftest_symba_omp
      nsppl = 0
      nsptp = 0
      eoffset = 0.0_DP
-     IF (istep_out > 0) CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
+     IF (istep_out > 0) THEN
+          CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, &
+          out_type, out_form, out_stat)
+     END IF
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,    &
@@ -179,11 +182,12 @@ PROGRAM swiftest_symba_omp
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, symba_tpdA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
 
-          IF (ldiscard = .TRUE.) OR (ldiscard_tp = .TRUE.) THEN
+          IF (ldiscard == .TRUE.) OR (ldiscard_tp == .TRUE.) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
                     discard_tpA, discard_plA_id_status,discard_tpA_id_status)
                CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, discard_plA,   &    ! CHECK THIS 
-                    discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, discard_tpA_id_status) 
+                    discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
+                    discard_tpA_id_status) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
