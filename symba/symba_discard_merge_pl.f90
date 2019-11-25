@@ -65,7 +65,7 @@ SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
                IF ((symba_plA%helio%swiftest%status(index1) == ACTIVE) .AND.                                                    &
                    (symba_plA%helio%swiftest%status(index2) == ACTIVE)) THEN
 
-                    enc_big = plplenc_list%enc_parent(i)
+                    enc_big = plplenc_list%index1(i)
 
                     m = symba_plA%helio%swiftest%mass(enc_big)
                     r = symba_plA%helio%swiftest%radius(enc_big)
@@ -109,6 +109,7 @@ SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
                     symba_plA%helio%swiftest%rhill(indexk) = ap*(((mu/msun)/3.0_DP)**(1.0_DP/3.0_DP))
                     array_child(:) = symba_plA%index_child(:,enc_big)
                     indexchild = enc_big
+                    ldiscard = .TRUE.
                     DO j = 0, nchild
                          IF (indexchild /= indexk) THEN
                               symba_plA%helio%swiftest%status(indexchild) = MERGED

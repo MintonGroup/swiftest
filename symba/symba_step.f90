@@ -131,16 +131,18 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
     !      symba_pliP => symba_pliP%nextP
     ! END DO
      !symba_tpP => symba_tp1P
-     DO i = 1,nplmax
-     symba_plA%nplenc(:) = 0
-     symba_plA%ntpenc(:) = 0
-     symba_plA%levelg(:) = -1
-     symba_plA%levelm(:) = -1
+     DO i = 1,npl
+          symba_plA%nplenc(i) = 0
+          symba_plA%ntpenc(i) = 0
+          symba_plA%levelg(i) = -1
+          symba_plA%levelm(i) = -1
+          symba_plA%index_parent(i) = i
+          symba_plA%index_child(:,i) = 0
      END DO
-     DO i =1,ntpmax
-     symba_tpA%nplenc(:) = 0 
-     symba_tpA%levelg(:) = -1
-     symba_tpA%levelm(:) = -1
+     DO i =1,ntp
+          symba_tpA%nplenc(i) = 0 
+          symba_tpA%levelg(i) = -1
+          symba_tpA%levelm(i) = -1
      END DO 
 
 

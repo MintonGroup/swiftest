@@ -80,7 +80,6 @@ MODULE module_swiftestalloc
 			! Arguments
 			INTEGER(I4B), INTENT(IN)			:: npl
 			TYPE(symba_pl), INTENT(INOUT)		:: symba_plA
-
 			ALLOCATE(symba_plA%lmerged(npl))
 			ALLOCATE(symba_plA%nplenc(npl))
 			ALLOCATE(symba_plA%ntpenc(npl))

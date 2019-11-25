@@ -74,7 +74,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
                CALL util_exit(FAILURE)
           END IF
      END IF
-     WRITE(LUN, 100) t, nsppl + nsptp, lbig_discard 
+     WRITE(LUN, 100) t, nsppl + nsptp + 2*nmergeadd, lbig_discard 
  100 FORMAT(E23.16, 1X, I8, 1X, L1)
      index = 0
      DO i = 1, nmergeadd
@@ -93,7 +93,8 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
           END DO
      END DO
      DO i = 1, nsppl
-          IF (discard_plA(2,i) /= MERGED) THEN
+          IF (discard_plA_id_status(2,i) /= MERGED) THEN
+               write(*,*) "entered if io_discard_write_symba"
                WRITE(LUN, 200) SUB, discard_plA_id_status(1,i), discard_plA_id_status(2,i)
                WRITE(LUN, 300) discard_plA(3,i),discard_plA(4,i),discard_plA(5,i)
                WRITE(LUN, 300) discard_plA(6,i),discard_plA(7,i),discard_plA(8,i)

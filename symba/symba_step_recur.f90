@@ -266,7 +266,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                              (symba_plA%levelg(index_i) >= ireci) .AND.                                                         &
                              (symba_plA%levelg(index_j) >= ireci))                                                              &
                               CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list,         & !check that later
-                                   mergesub_list, eoffset, vbs, encounter_file, out_type, npl)
+                                   mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
                     END DO
                     DO i = 1, npltpenc
                          index_pl  = pltpenc_list%indexpl(i) 

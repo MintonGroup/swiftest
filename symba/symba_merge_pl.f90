@@ -44,7 +44,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, &
-     vbs, encounter_file, out_type, npl)
+     vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
 
 ! Modules
      USE module_parameters
@@ -63,19 +63,17 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+     TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
 
 ! Internals
-     LOGICAL(LGT)              :: lmerge
-     INTEGER(I4B)              :: i, j, k, stat1, stat2, index1, index2, index_keep, index_rm, indexchild, index_child
-     INTEGER(I4B)              :: index1_child, index2_child, index1_parent, index2_parent, index_big1, index_big2
-     INTEGER(I4B)              :: name1, name2
-     REAL(DP)                  :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax 
-     REAL(DP)                  :: eold, enew, rad1, rad2, mass1, mass2
-     REAL(DP), DIMENSION(NDIM) :: xr, vr, x1, v1, x2, v2, xnew, vnew
-     TYPE(swiftest_pl)         :: swiftest_plA
-     TYPE(swiftest_tp)         :: swiftest_tpA
-     TYPE(symba_pl)            :: symba_plA
-     TYPE(symba_tp)            :: symba_tpA
+     LOGICAL(LGT)                 :: lmerge
+     INTEGER(I4B)                 :: i, j, k, stat1, stat2, index1, index2, index_keep, index_rm, indexchild
+     INTEGER(I4B)                 :: index1_child, index2_child, index1_parent, index2_parent, index_big1, index_big2
+     INTEGER(I4B)                 :: name1, name2
+     REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax 
+     REAL(DP)                     :: eold, enew, rad1, rad2, mass1, mass2
+     REAL(DP), DIMENSION(NDIM)    :: xr, vr, x1, v1, x2, v2, xnew, vnew
      INTEGER(I4B), DIMENSION(npl) :: array_index1_child, array_index2_child, array_keep_child, array_rm_child
      !TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP, swifter_plP
      !TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP, symba_plP
@@ -85,6 +83,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
 
      index1 = plplenc_list%index1(index_enc)
      index2 = plplenc_list%index2(index_enc)
+
      rlim = symba_plA%helio%swiftest%radius(index1) + symba_plA%helio%swiftest%radius(index2)
      xr(:) = symba_plA%helio%swiftest%xh(:,index2) - symba_plA%helio%swiftest%xh(:,index1)
      r2 = DOT_PRODUCT(xr(:), xr(:))
@@ -244,21 +243,27 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
                     END DO
                END IF
           END DO
-          symba_plA%helio%swiftest%xh(:,index_keep) = xnew(:)
-          symba_plA%helio%swiftest%vb(:,index_keep) = vnew(:)
-          array_keep_child(:) = symba_plA%index_child(:,index_keep)
-          array_rm_child(:) = symba_plA%index_child(:,index_rm)
-          DO i = 1, symba_plA%nchild(index_keep)
-               index_child = array_keep_child(i)
-               symba_plA%helio%swiftest%xh(:,index_child) = xnew(:)
-               symba_plA%helio%swiftest%vb(:,index_child) = vnew(:)
+          symba_plA%helio%swiftest%xh(:,index1_parent) = xnew(:)
+          symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
+          array_keep_child(:) = symba_plA%index_child(:,index1_parent)
+          
+          DO i = 1, symba_plA%nchild(index1_parent)
+               indexchild = array_keep_child(i)
+               symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
+               symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
           END DO
-          DO i = 0, symba_plA%nchild(index_rm)
-               index_child = array_rm_child(i)
-               symba_plA%helio%swiftest%xh(:,index_child) = xnew(:)
-               symba_plA%helio%swiftest%vb(:,index_child) = vnew(:)
+
+          symba_plA%index_child((symba_plA%nchild(index1_parent)+1),index1_parent) = index2_parent
+          array_rm_child(:) = symba_plA%index_child(:,index2_parent)
+          symba_plA%index_parent(index2) = index1_parent
+
+          DO i = 1, symba_plA%nchild(index2_parent)
+               symba_plA%index_parent(array_rm_child(i)) = index1_parent
+               indexchild = array_rm_child(i)
+               symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
+               symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
           END DO
-          symba_plA%nchild(index_keep) = symba_plA%nchild(index_keep) + symba_plA%nchild(index_rm) + 1
+          symba_plA%nchild(index1_parent) = symba_plA%nchild(index1_parent) + symba_plA%nchild(index2_parent) + 1
      END IF
 
      RETURN

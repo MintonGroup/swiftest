@@ -1131,7 +1131,8 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, &
-               mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type, npl)
+               mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, &
+               symba_tpA)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1145,6 +1146,8 @@ MODULE module_interfaces
                CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
                TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
                TYPE(symba_merger),  INTENT(INOUT)               :: mergeadd_list, mergesub_list
+               TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+               TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
           END SUBROUTINE symba_merge_pl
      END INTERFACE
 
