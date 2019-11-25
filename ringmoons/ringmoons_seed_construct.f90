@@ -49,7 +49,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       real(DP), parameter                 :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
       integer(I4B)                        :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
       real(DP)                            :: ndz,deltaL,Lorig,c,b,dr,Lring_orig
-      real(DP)                            :: Gm_min
+      real(DP)                            :: Gm_min,R_min
       
 
 ! Executable code
@@ -93,7 +93,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             seeds%Gm(i) = 0.0_DP
          end if
       end do
-      if (destructo) then 
+      !if (destructo) then 
          Nactive = count(seeds%active(:))
          seeds%a(1:Nactive) = pack(seeds%a(:),seeds%active(:))
          seeds%Gm(1:Nactive) = pack(seeds%Gm(:),seeds%active(:))
@@ -101,18 +101,22 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
          if (size(seeds%active) > Nactive) seeds%active(Nactive+1:size(seeds%active)) = .false.
          seeds%N = Nactive
          call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
-      end if
+         call ringmoons_update_ring(swifter_pl1P,ring)
+      !end if
       
       ! Make seeds small enough to fit into each bin 
-      do i = ring%iRRL,ring%N
-         if ((i > ring%iFRL).or.(ring%Q(i) < 1.0_DP)) then
+      do i = ring%iFRL,ring%N
+         if ((i > ring%iRRL).and.(ring%Q(i) < 1.0_DP)) then
          ! See Tajeddine et al. (2017) section 2.3 
-            Gm_min = max((1.505e17_DP / DU2CM**3)  * (ring%nu(i) / (100 * TU2S / DU2CM**2)) * ring%rho_pdisk,ring%Gm_pdisk)
-            if (ring%Gm(i) > 100 * Gm_min) then 
+            R_min = (3.3e5 / DU2CM) *  (ring%nu(i) / (100 * TU2S / DU2CM**2))
+         ! Gm_min = (1.505e17_DP / DU2CM**3)  * (ring%nu(i) / (100 * TU2S / DU2CM**2)) * ring%rho_pdisk(i)
+            !if ((ring%Gm_pdisk(i) > Gm_min).or.(i > ring%iFRL)) then 
+
+            if (((ring%r_pdisk(i) > R_min).or.(i > ring%iFRL)).and.(ring%Gm(i) > ring%Gm_pdisk(i))) then 
                open_space = .not.any(seeds%rbin(:) == i .and. seeds%active(:))
                if (open_space) then
                   a = ring%r(i)
-                  dGm = Gm_min
+                  dGm = ring%Gm_pdisk(i)
                   call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,dGm)
                end if
             end if

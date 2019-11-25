@@ -66,7 +66,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    Xhi = ring%X_F
    ! Just do the first order resonances for now. The full suite of resonances will come later
    Torque(:) = 0.0_DP
-   mshep = min(M_MAX - 1,ceiling(0.5_DP * (sqrt(1._DP + 4._DP / 3._DP * Xs / ring%deltaX) - 1._DP)))
+   mshep = max(2,min(M_MAX - 1,ceiling(0.5_DP * (sqrt(1._DP + 4._DP / 3._DP * Xs / ring%deltaX) - 1._DP))))
    
    ! Inner then outer lindblads
    do il = -1,1,2

@@ -105,12 +105,15 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
       end if
       
       call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
+      !write(*,*) 'rkn = ',rkn
 
-      !$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) IF (iseeds%N > nthreads) &
-      !$OMP SHARED(iseeds,iring,swifter_pl1P,dt,ka,km,e,inc,rkn) &
-      !$OMP REDUCTION(+:dTorque_ring,Ttide,af,Gmf,kr)
+      !!$OMP PARALLEL DO DEFAULT(PRIVATE) SCHEDULE (AUTO) IF (iseeds%N > nthreads) &
+      !!$OMP SHARED(iseeds,iring,swifter_pl1P,dt,ka,km,e,inc,rkn) &
+      !!$OMP REDUCTION(+:dTorque_ring,Ttide,af,Gmf,kr)
       do i = 1, iseeds%N
          rbin = iseeds%rbin(i)
+        ! write(*,*) 'i = ',i
+        ! write(*,*) 'rbin = ',rbin
 
          ! Calculate torques
          Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,iring,iseeds%Gm(i),iseeds%a(i),e,inc)
@@ -119,8 +122,12 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          iseeds%Ttide(i) = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),n,iseeds%a(i),e,inc) 
          iseeds%Torque(i) = iseeds%Ttide(i) - sum(Tlind(:)) 
 
+
          if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
-            Gmsdot = min(ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iseeds%a(i)),rkmult(rkn) * iring%Gm(rbin) / dt)
+            Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iring%rho_pdisk(rbin),iseeds%a(i))
+            !write(*,*) 'Gmsdot1 ',Gmsdot
+            Gmsdot = min(Gmsdot,rkmult(rkn) * iring%Gm(rbin) / dt)
+            !write(*,*) 'Gmsdot2 ',Gmsdot
             kr(rbin) = kr(rbin) - dt * Gmsdot  ! Remove mass from the ring
             Tr_evol = Gmsdot * iring%Iz(rbin) * iring%w(rbin)
          else
@@ -140,8 +147,12 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
          ! Save weighted averages of torques for later
          dTorque_ring(:) = dTorque_ring(:) + rkmult(rkn) * Tlind(:)
          Ttide(i) = Ttide(i) + rkmult(rkn) * iseeds%Ttide(i)
+        ! write(*,*) 'Gmseed = ',iseeds%Gm(i)
+        ! write(*,*) 'Gmring = ',iring%Gm(rbin)
+        ! write(*,*) 'Gmsdot = ',Gmsdot
       end do
-      !$OMP END PARALLEL DO
+      !read(*,*) 
+      !!$OMP END PARALLEL DO
       ! Accumulate RK solutions for ring
 
       Gmringf(:) = Gmringf(:) + rkmult(rkn) * kr(:)
@@ -200,8 +211,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    seeds%Ttide(:) = 0.0_DP
 
 
-
-
    fz_width(:) = FEEDING_ZONE_FACTOR * seeds%Rhill(1:seeds%N)
 
    !I'm hungry! What's there to eat?! Look for neighboring seeds
@@ -219,7 +228,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
                   seeds%Gm(i) = seeds%Gm(i) + seeds%Gm(j)
                   seeds%a(i) = ((Li + Lj) / seeds%Gm(i))**2 / (swifter_pl1P%mass + seeds%Gm(i))
 
-                  ! deactivate particle for now and position it at the FRL to potentially activate later
+                  ! deactivate particle 
                   seeds%Gm(j) = 0.0_DP
                   seeds%a(j) = 0.0_DP
                   seeds%active(j) = .false.

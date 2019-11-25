@@ -17,7 +17,7 @@ class AnimatedScatter(object):
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=100, frames=41000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=41000,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")
@@ -32,10 +32,11 @@ class AnimatedScatter(object):
         s = ring[:,1]
         nu = ring[:,2]
         Q = ring[:,3]
+        r_pdisk = ring[:,4]
         xmin = 1.0
         xmax = 3
-        ymin = 0.1
-        ymax = 1e5
+        ymin = 1.0
+        ymax = 10000e2
 
         y2min = 1e-3
         y2max = 1e3
@@ -44,7 +45,7 @@ class AnimatedScatter(object):
         #self.ax.set_xlim(xmin, xmax)
         #self.ax.set_ylim(ymin, ymax)
         self.ax.set_xlabel('Distance to Uranus (RU)')
-        self.ax.set_ylabel('$\Sigma$ (g$\cdot$cm$^{-2}$)')
+        self.ax.set_ylabel('$r_{pdisk}$ (cm)')
         self.ax.set_yscale('log')
 
         self.secax = self.ax.twinx()
@@ -52,7 +53,7 @@ class AnimatedScatter(object):
         self.secax.set_yscale('log')
         self.secax.set_ylim(y2min, y2max)
 
-        self.sigline, = self.ax.plot(r, s, '-', color="black", linewidth=1.0, zorder=50)
+        self.rpline, = self.ax.plot(r, r_pdisk, '-', color="black", linewidth=1.0, zorder=50)
         self.RRL = self.ax.plot([ic.RRL / ic.RP, ic.RRL / ic.RP], [ymin, ymax], '--', color="black", linewidth=0.5, zorder=50)
         self.RRLlab = self.ax.text(ic.RRL / ic.RP - 0.20, 0.4 * ymax, "RRL", rotation=90, fontsize="10")
         self.FRL = self.ax.plot([ic.FRL / ic.RP, ic.FRL / ic.RP], [ymin, ymax], ':', color="black", linewidth=0.5, zorder=50)
@@ -73,7 +74,7 @@ class AnimatedScatter(object):
 
         # For FuncAnimation's sake, we need to return the artist we'll be using
         # Note that it expects a sequence of artists, thus the trailing comma.
-        return self.Qline, self.sigline, self.title,
+        return self.Qline, self.rpline, self.title,
 
     def data_stream(self):
         with FortranFile(self.ringfilename, 'r') as f:
@@ -88,6 +89,8 @@ class AnimatedScatter(object):
                 Gsigma = f.read_reals(np.float64)
                 nu = f.read_reals(np.float64)
                 Q = f.read_reals(np.float64)
+                r_pdisk = f.read_reals(np.float64)
+                vrel_pdisk = f.read_reals(np.float64)
                 kval = int(t / ic.t_print)
                 Nseeds = f.read_ints(np.int32)
                 a = f.read_reals(np.float64)
@@ -95,9 +98,12 @@ class AnimatedScatter(object):
 
                 yield t,np.c_[a / ic.RP,
                               Gm * ic.MU2GM / ic.GU],\
-                        np.c_[r / ic.RP, Gsigma * ic.MU2GM / ic.DU2CM**2 / ic.GU,
+                        np.c_[r / ic.RP,
+                              Gsigma * ic.MU2GM / ic.DU2CM**2 / ic.GU,
                               nu * ic.TU2S / ic.DU2CM**2,
-                              Q]
+                              Q,
+                              r_pdisk * ic.DU2CM,
+                              vrel_pdisk * ic.DU2CM / ic.TU2S]
 
 
     def update(self, i):
@@ -110,8 +116,9 @@ class AnimatedScatter(object):
         s = ring[:,1]
         nu = ring[:,2]
         Q = ring[:,3]
+        r_pdisk = ring[:,4]
 
-        self.sigline.set_data(r, s) #
+        self.rpline.set_data(r, r_pdisk)
 
         self.Qline.set_data(r,Q)
 
@@ -123,7 +130,7 @@ class AnimatedScatter(object):
         self.title.set_text(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:7.2f}$ My')
         # We need to return the updated artist for FuncAnimation to draw..
         # Note that it expects a sequence of artists, thus the trailing comma.
-        return self.Qline, self.sigline, self.title,
+        return self.Qline, self.rpline, self.title,
 
 
 if __name__ == '__main__':

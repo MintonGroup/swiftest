@@ -65,6 +65,16 @@ subroutine ringmoons_allocate(ring,seeds)
       ring%Torque = 0.0_DP
       allocate(ring%r_hstar(0:ring%N + 1))
       ring%r_hstar = 0.0_DP
+      allocate(ring%r_pdisk(0:ring%N+1))
+      ring%r_pdisk = 0.0_DP
+      allocate(ring%Gm_pdisk(0:ring%N+1))
+      ring%Gm_pdisk = 0.0_DP
+      allocate(ring%rho_pdisk(0:ring%N+1))
+      ring%rho_pdisk = 0.0_DP
+      allocate(ring%vrel_pdisk(0:ring%N+1))
+      ring%vrel_pdisk = 0.0_DP
+      allocate(ring%tau(0:ring%N+1))
+      ring%tau = 0.0_DP
 
       allocate(seeds%active(seeds%N))
       seeds%active = .false.

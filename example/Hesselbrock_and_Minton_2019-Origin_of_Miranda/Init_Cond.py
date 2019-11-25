@@ -25,9 +25,16 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 1.0e2 / DU2CM #disk particle size
+r_pdisk = 1e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
+
+t_print = 1e3 * year / TU2S #output interval to print results
+deltaT	= 1e0 * year / TU2S  #timestep simulation
+end_sim = 1.0e6 * year / TU2S + t_print #end time
+
+Nbins    = 1024    #number of bins in disk
+Nseeds   = 0
 
 k_2         = 0.104 #tidal love number for primary
 Q           = 3000. #tidal dissipation factor for primary
@@ -47,16 +54,9 @@ FRL = 2.456 * RP * (rhoP / rho_pdisk)**(1./3.)
 RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 Rsync = (GU * MP * TP**2 / (4 * np.pi**2))**(1./3.)
 
-t_0	= 0
-t_print = 1e4 * year / TU2S #output interval to print results
-deltaT	= 1e4 * year / TU2S  #timestep simulation
-end_sim = 5.0e9 * year / TU2S + t_print #end time
-
-Nbins    = 1024     #number of bins in disk
-Nseeds   = 0
 
 sigma_FRL = 0.08e4 * DU2CM**2 / MU2GM
-sigma_slope = -3.0
+sigma_slope = -2.0
 #sigma_peak = 1.2e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
 sigma_peak = sigma_FRL * (FRL)**(-sigma_slope)
 
@@ -64,7 +64,7 @@ sigma_peak = sigma_FRL * (FRL)**(-sigma_slope)
 
 
 r_I	= 0.99 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 1.2 * FRL  #outside radius of disk
+r_F	= 1.5 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -100,77 +100,78 @@ def f():
             sigma.append(sigma_peak * (r[a] / RP) ** (-3))
 
 
-
-f() #Make a power law ring
-
-
-outfile = open('ring.in', 'w')
-print(Nbins, Nseeds, file=outfile)
-print(r_I, r_F, file=outfile)
-print(r_pdisk, GU * m_pdisk, file=outfile)
-
-for a in range(int(Nbins)):
-    print(GU * sigma[a],file=outfile)
-
-plfile = open('pl.in', 'w')
-print(1,file=plfile)
-print(f'1 {GU*MP}',file=plfile)
-print(f'{RP} {k_2} {Q}', file=plfile)
-np.savetxt(plfile, IP, newline=' ')
-print('',file=plfile)
-np.savetxt(plfile, wP, newline=' ')
-print('',file=plfile)
-print(f'0.0 0.0 0.0',file=plfile)
-print(f'0.0 0.0 0.0',file=plfile)
-plfile.close()
-tpfile = open('tp.in', 'w')
-print(0,file=tpfile)
-tpfile.close()
+if __name__ == '__main__':
+    f() #Make a power law ring
 
 
-iout = int(np.ceil(t_print / deltaT))
-rmin = RP
-rmax = Rhill_Uranus / DU2CM
+    outfile = open('ring.in', 'w')
+    print(Nbins, Nseeds, file=outfile)
+    print(r_I, r_F, file=outfile)
+    print(r_pdisk, GU * m_pdisk, file=outfile)
 
-mtiny = 1e-8 #roughly 1/3 the mass of Puck
+    for a in range(int(Nbins)):
+        print(GU * sigma[a],file=outfile)
 
-
-
-sys.stdout = open("param.in", "w")
-print(f'!Parameter file for the SyMBA-RINGMOONS test')
-print(f'!NPLMAX         -1 ')
-print(f'!NTPMAX         -1')
-print(f'T0             {t_0} ')
-print(f'TSTOP          {end_sim}')
-print(f'DT             {deltaT}')
-print(f'PL_IN          pl.in')
-print(f'TP_IN          tp.in')
-print(f'IN_TYPE        ASCII')
-print(f'ISTEP_OUT      {iout:d}')
-print(f'BIN_OUT        bin.dat')
-print(f'OUT_TYPE       REAL8')
-print(f'OUT_FORM       EL')
-print(f'OUT_STAT       NEW')
-print(f'J2             {J2}')
-print(f'J4             {J4}')
-print(f'CHK_CLOSE      yes')
-print(f'CHK_RMIN       {rmin}')
-print(f'CHK_RMAX       {rmax}')
-print(f'CHK_EJECT      {rmax}')
-print(f'CHK_QMIN       {rmin}')
-print(f'CHK_QMIN_COORD HELIO')
-print(f'CHK_QMIN_RANGE {rmin} {rmax}')
-print(f'ENC_OUT        enc.dat')
-print(f'EXTRA_FORCE    no')
-print(f'BIG_DISCARD    no')
-print(f'RHILL_PRESENT  yes')
-print(f'MU2GM          {MU2GM}')
-print(f'DU2CM          {DU2CM}')
-print(f'TU2S           {TU2S}')
-print(f'MTINY          {mtiny}')
-print(f'RING_OUTFILE   ring.dat')
-print(f'ROTATION       yes')
+    plfile = open('pl.in', 'w')
+    print(1,file=plfile)
+    print(f'1 {GU*MP}',file=plfile)
+    print(f'{RP} {k_2} {Q}', file=plfile)
+    np.savetxt(plfile, IP, newline=' ')
+    print('',file=plfile)
+    np.savetxt(plfile, wP, newline=' ')
+    print('',file=plfile)
+    print(f'0.0 0.0 0.0',file=plfile)
+    print(f'0.0 0.0 0.0',file=plfile)
+    plfile.close()
+    tpfile = open('tp.in', 'w')
+    print(0,file=tpfile)
+    tpfile.close()
 
 
-sys.stdout = sys.__stdout__
+    iout = int(np.ceil(t_print / deltaT))
+    rmin = RP
+    rmax = Rhill_Uranus / DU2CM
+
+    mtiny = 1e-8 #roughly 1/3 the mass of Puck
+
+
+    t_0	= 0
+
+    sys.stdout = open("param.in", "w")
+    print(f'!Parameter file for the SyMBA-RINGMOONS test')
+    print(f'!NPLMAX         -1 ')
+    print(f'!NTPMAX         -1')
+    print(f'T0             {t_0} ')
+    print(f'TSTOP          {end_sim}')
+    print(f'DT             {deltaT}')
+    print(f'PL_IN          pl.in')
+    print(f'TP_IN          tp.in')
+    print(f'IN_TYPE        ASCII')
+    print(f'ISTEP_OUT      {iout:d}')
+    print(f'BIN_OUT        bin.dat')
+    print(f'OUT_TYPE       REAL8')
+    print(f'OUT_FORM       EL')
+    print(f'OUT_STAT       NEW')
+    print(f'J2             {J2}')
+    print(f'J4             {J4}')
+    print(f'CHK_CLOSE      yes')
+    print(f'CHK_RMIN       {rmin}')
+    print(f'CHK_RMAX       {rmax}')
+    print(f'CHK_EJECT      {rmax}')
+    print(f'CHK_QMIN       {rmin}')
+    print(f'CHK_QMIN_COORD HELIO')
+    print(f'CHK_QMIN_RANGE {rmin} {rmax}')
+    print(f'ENC_OUT        enc.dat')
+    print(f'EXTRA_FORCE    no')
+    print(f'BIG_DISCARD    no')
+    print(f'RHILL_PRESENT  yes')
+    print(f'MU2GM          {MU2GM}')
+    print(f'DU2CM          {DU2CM}')
+    print(f'TU2S           {TU2S}')
+    print(f'MTINY          {mtiny}')
+    print(f'RING_OUTFILE   ring.dat')
+    print(f'ROTATION       yes')
+
+
+    sys.stdout = sys.__stdout__
 

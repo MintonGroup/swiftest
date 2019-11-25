@@ -102,13 +102,26 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_viscosity(ring)
+         elemental function ringmoons_viscosity(Gsigma, Gm_pdisk, v2_pdisk, r_pdisk, r_hstar, Q, tau, w) result(nu)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
-         type(ringmoons_ring),intent(inout) :: ring
-         end subroutine ringmoons_viscosity
+         real(DP),intent(in) :: Gsigma, Gm_pdisk, v2_pdisk, r_pdisk, r_hstar, Q, tau, w
+         real(DP) :: nu
+         end function ringmoons_viscosity
+      end interface
+
+
+      interface
+         subroutine ringmoons_update_ring(swifter_pl1P,ring)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer                  :: swifter_pl1P
+         type(ringmoons_ring),intent(inout)        :: ring
+         end subroutine ringmoons_update_ring
       end interface
 
       interface
@@ -185,17 +198,16 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,a) result(Gmdot)
+         elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,rhoseed,a) result(Gmdot)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
          type(ringmoons_ring), intent(in)       :: ring
-         real(DP), intent(in)                   :: GMP,Gsigma,Gmseed,a
+         real(DP), intent(in)                   :: GMP,Gsigma,Gmseed,rhoseed,a
          real(DP)                               :: Gmdot
          end function ringmoons_seed_dMdt
       end interface
-
 
       interface
          elemental function ringmoons_seed_dadt(GMP,Gmseed,a,Torque,mdot) result(adot)
@@ -206,6 +218,28 @@ module module_ringmoons_interfaces
          real(DP), intent(in)                   :: GMP,Gmseed,a,Torque,mdot
          real(DP)                               :: adot
          end function ringmoons_seed_dadt
+      end interface
+
+      interface
+         elemental function ringmoons_ring_dMdt(Gm_pdisk,v2_pdisk,tau,w) result(Gmdot)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         real(DP), intent(in)                   :: Gm_pdisk,v2_pdisk,tau,w
+         real(DP)                               :: Gmdot
+         end function ringmoons_ring_dMdt
+      end interface
+
+      interface
+         elemental function ringmoons_ring_dvdt(Gm_pdisk,v2_pdisk,tau,nu,w) result(v2dot)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         real(DP), intent(in)                   :: Gm_pdisk,v2_pdisk,tau,nu,w
+         real(DP)                               :: v2dot
+         end function ringmoons_ring_dvdt
       end interface
 
       interface
@@ -306,6 +340,21 @@ module module_ringmoons_interfaces
          type(ringmoons_seeds), intent(inout)   :: seeds
          real(DP), intent(in)                   :: a, Gm
          end subroutine
+      end interface
+
+
+      interface
+         subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer :: swifter_pl1P
+         type(ringmoons_ring),intent(inout) :: ring
+         type(ringmoons_seeds),intent(in) :: seeds
+         real(DP),intent(in)              :: dt
+         logical(lgt), intent(out)                 :: stepfail
+         end subroutine ringmoons_ring_predprey 
       end interface
 
 end module module_ringmoons_interfaces

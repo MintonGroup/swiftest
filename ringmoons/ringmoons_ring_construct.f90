@@ -44,6 +44,7 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
       integer(I4B)                        :: i
       real(DP)                            :: Xlo
       real(DP)                            :: GMP, RP, rhoP
+      real(DP),dimension(0:ring%N+1)      :: kappa_rhstar,eta_rhstar
 
 ! Executable code
       GMP = swifter_pl1P%mass
@@ -53,9 +54,9 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
       ring%X_I = 2 * sqrt(ring%r_I)
       ring%X_F = 2 * sqrt(ring%r_F)
       ring%deltaX = (ring%X_F - ring%X_I) / ring%N
-      ring%rho_pdisk = ring%Gm_pdisk / ((4.0_DP / 3.0_DP) * PI * ring%r_pdisk**3)
-      ring%FRL = 2.456_DP * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
-      ring%RRL = 1.44_DP  * RP * (rhoP / ring%rho_pdisk)**(1._DP / 3._DP)
+      ring%rho_pdisk(:) = ring%Gm_pdisk(:) / ((4.0_DP / 3.0_DP) * PI * ring%r_pdisk(:)**3)
+      ring%FRL = 2.456_DP * RP * (rhoP / ring%rho_pdisk(ring%N))**(1._DP / 3._DP)
+      ring%RRL = 1.44_DP  * RP * (rhoP / ring%rho_pdisk(ring%N))**(1._DP / 3._DP)
       ring%iFRL = ringmoons_ring_bin_finder(ring,ring%FRL)
       ring%iRRL = ringmoons_ring_bin_finder(ring,ring%RRL)
 
@@ -80,7 +81,11 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
 
       ring%Torque(:) = 0.0_DP
       ! See Salmon et al. 2010 for this
-      ring%r_hstar(:) = ring%r(:) * (2 * ring%Gm_pdisk /(3._DP * GMP))**(1._DP/3._DP) / (2 * ring%r_pdisk)  
+      ring%r_hstar(:) = ring%r(:) * (2 * ring%Gm_pdisk(:) /(3._DP * GMP))**(1._DP/3._DP) / (2 * ring%r_pdisk(:))  
+      kappa_rhstar(:) = ringmoons_transition_function(ring%r_hstar(:))
+      eta_rhstar(:) = 1._DP - kappa_rhstar(:)
+      ring%vrel_pdisk(:) = kappa_rhstar(:) * sqrt(ring%Gm_pdisk / ring%r_pdisk) + eta_rhstar(:) * (2 * ring%r_pdisk * ring%w(:))
+      call ringmoons_update_ring(swifter_pl1P,ring)
 
       seeds%Rhill(1:seeds%N)  = seeds%a(1:seeds%N) * (seeds%Gm(1:seeds%N) / (3 * GMP))**(1.0_DP / 3.0_DP)
       seeds%rbin(1:seeds%N)   = ringmoons_ring_bin_finder(ring,seeds%a(1:seeds%N))

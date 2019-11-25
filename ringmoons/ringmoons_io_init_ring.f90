@@ -44,15 +44,14 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    character(STRMAX)                   :: ringfile
    integer(I4B),parameter              :: LUN = 22
    integer(I4B)                        :: i,m,inner_outer_sign,ioerr
-   real(DP)                            :: beta
-
+   real(DP)                            :: beta, r_pdisk, Gm_pdisk
 
 ! Executable code
    ringfile='ring.in'
    open(unit=LUN,file=ringfile,status='old',iostat=ioerr)
    read(LUN,*) ring%N, seeds%N
    read(LUN,*) ring%r_I, ring%r_F
-   read(LUN,*) ring%r_pdisk,ring%Gm_pdisk
+   read(LUN,*) r_pdisk,Gm_pdisk
    call ringmoons_allocate(ring,seeds)
    do i = 1,ring%N
       read(LUN,*,iostat=ioerr) ring%Gsigma(i)
@@ -62,6 +61,9 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
          call util_exit(FAILURE)
       end if
    end do
+   ring%r_pdisk(:) = r_pdisk
+   ring%Gm_pdisk(:) = Gm_pdisk
+   
 
    do i = 1,seeds%N
       read(LUN,*,iostat=ioerr) seeds%a(i), seeds%Gm(i)

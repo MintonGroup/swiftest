@@ -69,7 +69,7 @@ function ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
       do i = 1,iseeds%N
          !nfz = seeds%fz_bin_outer(i) - seeds%fz_bin_inner(i) + 1
          rbin = iseeds%rbin(i)
-         mdot(i) = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iseeds%a(i))
+         mdot(i) = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iring%rho_pdisk(rbin),iseeds%a(i))
          Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,iring,iseeds%Gm(i),iseeds%a(i),e,inc)
          n = sqrt((swifter_pl1P%mass + iseeds%Gm(i)) / iseeds%a(i)**3)
          iseeds%Ttide(i) = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),n,iseeds%a(i),e,inc) 

@@ -30,19 +30,16 @@ module module_ringmoons
    implicit none
 
    real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 10.0_DP  ! Size of the feeding zone relative to Hill's sphere
-   integer(I4B),public,parameter  :: N_DISK_FACTOR = 10000 ! Minimum number of particles in a bin to consider it a fluid disk
+   integer(I4B),public,parameter  :: N_DISK_FACTOR = 1000 ! Minimum number of particles in a bin to consider it a fluid disk
    logical(LGT),public        :: DESTRUCTION_EVENT ! A destruction event has occurred when satellite/seed crosses the RRL
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
-   integer(I4B),public,parameter  :: DESTRUCTION_SAVE_FRAMES = 10 ! Number steps to save as output frames after a destruction event
+   integer(I4B),public,parameter  :: DESTRUCTION_SAVE_FRAMES = 1 ! Number steps to save as output frames after a destruction event
    integer(I4B),public,parameter :: M_MAX = 200
    real(DP),dimension(2:M_MAX,-1:1),public,save :: lapm,dlapm,marr
    real(DP),dimension(2:M_MAX),public,save :: mfac
    real(DP),parameter         :: RK_FACTOR = 0.01_DP
 
    type ringmoons_ring
-      real(DP)     :: r_pdisk             ! disk particle radius
-      real(DP)     :: Gm_pdisk            ! disk particle mass
-      real(DP)     :: rho_pdisk           ! disk particle density
       integer(I4B) :: N                   ! number of bins in disk
       integer(I4B) :: inside = 1          ! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
       real(DP)     :: r_F                 ! outside radius of disk
@@ -68,6 +65,11 @@ module module_ringmoons
       real(DP), dimension(:), allocatable :: Iz                ! polar moment of inertia of ring bin
       real(DP), dimension(:), allocatable :: w                 ! Keplerian angular velocity of ring bin
       real(DP), dimension(:), allocatable :: Torque            ! total satellite torque density acting on the ring bin
+      real(DP), dimension(:), allocatable :: r_pdisk           ! ring particle radius
+      real(DP), dimension(:), allocatable :: Gm_pdisk          ! ring particle mass
+      real(DP), dimension(:), allocatable :: rho_pdisk         ! ring particle mass density
+      real(DP), dimension(:), allocatable :: vrel_pdisk        ! ring particle relative velocity
+      real(DP), dimension(:), allocatable :: tau               ! ring optical depth
    end type ringmoons_ring
 
    type ringmoons_seeds ! Satellite "seeds" that eventually turn into SyMBA massive bodies

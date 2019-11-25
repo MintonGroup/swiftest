@@ -95,7 +95,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
          ring%Torque(:) = 0.0_DP
          seeds%Torque(:) = 0.0_DP
-         call ringmoons_viscosity(ring)
+         call ringmoons_update_ring(swifter_pl1P,ring)
          dt = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
 
 !write(*,*) 'planet_accrete'
@@ -115,8 +115,23 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             cycle
          end if
 
+!write(*,*) 'ring_predprey'
+         call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail) ! Evolve the size and velocity dispersion distribution of the ring 
+                                                               ! following the predator/prey model of Esposito et al. (2012)
+
+         if (stepfail) then
+            dt = dt / submax
+            subcount = 0
+            ring = old_ring
+            seeds = old_seeds
+            swifter_pl1P%mass = old_swifter_pl1P%mass
+            swifter_pl1P%radius = old_swifter_pl1P%radius
+            swifter_pl1P%rot = old_swifter_pl1P%rot
+            cycle
+         end if
+
 !write(*,*) 'viscosity'   
-         call ringmoons_viscosity(ring)
+         call ringmoons_update_ring(swifter_pl1P,ring)
 
 !write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)

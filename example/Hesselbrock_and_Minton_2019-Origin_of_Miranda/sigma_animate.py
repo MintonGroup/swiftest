@@ -17,7 +17,7 @@ class AnimatedScatter(object):
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=100, frames=41000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=41000,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")
@@ -85,6 +85,8 @@ class AnimatedScatter(object):
                 Gsigma = f.read_reals(np.float64)
                 nu = f.read_reals(np.float64)
                 Q = f.read_reals(np.float64)
+                r_pdisk = f.read_reals(np.float64)
+                vrel_pdisk = f.read_reals(np.float64)
                 kval = int(t / ic.t_print)
                 Nseeds = f.read_ints(np.int32)
                 a = f.read_reals(np.float64)
