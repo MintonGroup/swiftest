@@ -26,8 +26,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-    discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4, keep_plA_id_status, &
-    keep_tpA_id_status)
+    discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
 
 ! Modules
      USE module_parameters
@@ -43,10 +42,10 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      REAL(DP), INTENT(IN)                         	:: t, j2rp2, j4rp4
      TYPE(symba_pl), INTENT(INOUT)                	:: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                	:: symba_tpA
-     TYPE(symba_merger), DIMENSION(:), INTENT(IN) 	:: mergeadd_list !change to fragadd_list
-     REAL(DP), DIMENSION(8,NPLMAX), INTENT(OUT)  	:: discard_plA
+     TYPE(symba_merger), INTENT(INOUT) 	            :: mergeadd_list !change to fragadd_list
+     REAL(DP), DIMENSION(8,npl), INTENT(OUT)  	:: discard_plA
      REAL(DP), DIMENSION(8,ntp), INTENT(OUT)     	:: discard_tpA
-     INTEGER(I4B), DIMENSION(2,NPLMAX), INTENT(OUT) :: discard_plA_id_status
+     INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT) :: discard_plA_id_status
      INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT) 	:: discard_tpA_id_status
 
 ! Internals
@@ -55,8 +54,8 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      REAL(DP), DIMENSION(NDIM)                      :: htot
      REAL(DP), DIMENSION(8,NPLMAX) 				    :: keep_plA
      REAL(DP), DIMENSION(8,ntp)    				    :: keep_tpA
-     INTEGER(I4B), DIMENSION(2,NPLMAX), INTENT(OUT) :: keep_plA_id_status
-     INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT) 	:: keep_tpA_id_status					
+     INTEGER(I4B), DIMENSION(2,NPLMAX)              :: keep_plA_id_status
+     INTEGER(I4B), DIMENSION(2,ntp)             	:: keep_tpA_id_status					
 
 
     IF (ldiscard .eqv. .TRUE.) THEN 

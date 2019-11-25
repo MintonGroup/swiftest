@@ -43,7 +43,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_massive5.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, symba_pldA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,          &
+SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,          &
      qmin_ahi, j2rp2, j4rp4, eoffset)
 
 ! Modules
@@ -60,7 +60,7 @@ SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, symba_pldA, rmin, rm
      REAL(DP), INTENT(IN)        :: t, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, j2rp2, j4rp4
      REAL(DP), INTENT(INOUT)     :: eoffset
      CHARACTER(*), INTENT(IN)    :: qmin_coord
-     TYPE(symba_pl)              :: symba_plA, symba_pldA
+     TYPE(symba_pl)              :: symba_plA
 
 ! Internals
      LOGICAL(LGT)              :: ldiscards

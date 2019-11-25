@@ -79,19 +79,19 @@ PROGRAM swiftest_symba_omp
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                                  :: htot
      CHARACTER(STRMAX)                                          :: inparfile
-     TYPE(symba_pl)                  :: symba_plA
-     TYPE(symba_tp)                  :: symba_tpA
-     TYPE(swiftest_pl)               :: swiftest_plA
-     TYPE(swiftest_tp)               :: swiftest_tpA
-     TYPE(helio_pl)                  :: helio_plA
-     TYPE(helio_tp)                  :: helio_tpA
-     TYPE(symba_plplenc)             :: plplenc_list
-     TYPE(symba_pltpenc)             :: pltpenc_list
-     TYPE(symba_merger)              :: mergeadd_list, mergesub_list
-     REAL(DP), DIMENSION(8,npl), INTENT(OUT)      :: discard_plA
-     REAL(DP), DIMENSION(8,ntp), INTENT(OUT)      :: discard_tpA
-     INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)  :: discard_plA_id_status
-     INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)  :: discard_tpA_id_status
+     TYPE(symba_pl)                  							:: symba_plA
+     TYPE(symba_tp)                  							:: symba_tpA
+     TYPE(swiftest_pl)               							:: swiftest_plA
+     TYPE(swiftest_tp)               							:: swiftest_tpA
+     TYPE(helio_pl)                  							:: helio_plA
+     TYPE(helio_tp)                  							:: helio_tpA
+     TYPE(symba_plplenc)             							:: plplenc_list
+     TYPE(symba_pltpenc)            							:: pltpenc_list
+     TYPE(symba_merger)              							:: mergeadd_list, mergesub_list
+     REAL(DP), DIMENSION(:,:), allocatable     					:: discard_plA
+     REAL(DP), DIMENSION(:,:), allocatable      				:: discard_tpA
+     INTEGER(I4B), DIMENSION(:,:), allocatable  				:: discard_plA_id_status
+     INTEGER(I4B), DIMENSION(:,:), allocatable  				:: discard_tpA_id_status
 
 ! Executable code
      CALL util_version
@@ -122,7 +122,11 @@ PROGRAM swiftest_symba_omp
      ! Create arrays of data structures big enough to store the number of bodies we are adding
      CALL symba_pl_allocate(symba_plA,nplmax)
      CALL symba_merger_allocate(mergeadd_list,nplmax)
-     CALL symba_merger_allocate(mergesub_list,npltmax)
+     CALL symba_merger_allocate(mergesub_list,nplmax)
+     ALLOCATE(discard_plA(8,npl))
+     ALLOCATE(discard_tpA(8,ntp))
+     ALLOCATE(discard_plA_id_status(2,npl))
+     ALLOCATE(discard_tpA_id_status(2,ntp))
 
      IF (ntp > 0) THEN
           CALL symba_tp_allocate(symba_tpA, ntpmax)
@@ -134,8 +138,8 @@ PROGRAM swiftest_symba_omp
      READ(*, *) mtiny
 
      ! Reorder linked list by mass 
-     CALL io_init_tp(intpfile, in_type, ntp, swiftest_tpA)
-     CALL util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
+     CALL io_init_tp(intpfile, in_type, ntp, symba_tpA)
+     CALL util_valid(npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest)
      lfirst = .TRUE.
      ntp0 = ntp
      t = t0
@@ -154,9 +158,9 @@ PROGRAM swiftest_symba_omp
      END IF
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
-          CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,    &
-               nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
-               mtiny, encounter_file, out_type) 
+          CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
+          	j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+          	eoffset, mtiny, encounter_file, out_type) 
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
@@ -176,23 +180,22 @@ PROGRAM swiftest_symba_omp
 
           ldiscard = .FALSE. 
           ldiscard_tp = .FALSE. 
-          CALL symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc, plplenc_list)                                  ! CHECK THIS 
-          CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_plA, symba_pldA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
+          CALL symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)                                  ! CHECK THIS 
+          CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
                qmin_ahi, j2rp2, j4rp4, eoffset)
-          CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, symba_tpdA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
+          CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
 
-          IF (ldiscard == .TRUE.) OR (ldiscard_tp == .TRUE.) THEN
+          IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-                    discard_tpA, discard_plA_id_status,discard_tpA_id_status)
-               CALL io_discard_write_symba(t, mtiny, npl, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, discard_plA,   &    ! CHECK THIS 
-                    discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
-                    discard_tpA_id_status) 
+                    discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
+               CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA,discard_plA, &
+               	discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
+               	discard_tpA_id_status) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
                nsptp = 0
-               NULLIFY(discard_plA, discard_tpA, discard_plA_id_status, discard_tpA_id_status)                                   ! CHECK THIS 
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1

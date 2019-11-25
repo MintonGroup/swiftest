@@ -43,7 +43,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, symba_tpdA, dt, rmin, rmax, rmaxu, qmin, qmin_coord,       &
+SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord,       &
      qmin_alo, qmin_ahi, lclose, lrhill_present)
 
 ! Modules
@@ -61,7 +61,7 @@ SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, symba_tpdA, 
      REAL(DP), INTENT(IN)         :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
      CHARACTER(*), INTENT(IN)     :: qmin_coord
      TYPE(symba_pl), INTENT(INOUT):: symba_plA
-     TYPE(symba_tp), INTENT(INOUT):: symba_tpA, symba_tpdA
+     TYPE(symba_tp), INTENT(INOUT):: symba_tpA
 
 ! Internals
      LOGICAL(LGT)              :: lclosel = .FALSE.

@@ -32,7 +32,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_mass_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc, plplenc_list)
+SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
 
 ! Modules
      USE module_parameters
@@ -44,9 +44,9 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                      :: nplplenc
-     INTEGER(I4B), INTENT(INOUT)                   :: npl, nsppl
+     INTEGER(I4B), INTENT(INOUT)                   :: npl
      REAL(DP), INTENT(IN)                          :: t
-     TYPE(symba_pl)                                :: symba_plA, symba_pldA
+     TYPE(symba_pl)                                :: symba_plA
      TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
 
 ! Internals
@@ -117,7 +117,7 @@ SUBROUTINE symba_discard_merge_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc
                     END DO
 
                ELSE
-                    CALL symba_discard_frag_pl(t, npl, nsppl, symba_plA, symba_pldA, nplplenc, plplenc_list)
+                    !CALL symba_discard_frag_pl(t, npl, symba_plA, nplplenc, plplenc_list)
                END IF
           END IF
      END DO
