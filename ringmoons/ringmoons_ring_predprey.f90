@@ -76,7 +76,7 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail)
       end if
       Q(:) = ring%w(:) * sqrt(v2_pdisk(:)) / (3.36_DP * ring%Gsigma(:))
 
-      where ((ring%Gm(:) > N_DISK_FACTOR * Gm_pdisk(:)) .and. (Q(:) < 1._DP))
+      where ((ring%Gm(:) > N_DISK_FACTOR * Gm_pdisk(:))) ! .and. (Q(:) < 2._DP))
          r_pdisk(:) = (3 * Gm_pdisk(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP) 
          r_hstar(:) = ring%r(:) * (2 * Gm_pdisk(:) /(3._DP * swifter_pl1P%mass))**(1._DP/3._DP) / (2 * r_pdisk(:)) 
          tau(:) = PI * r_pdisk(:)**2 * ring%Gsigma(:) / Gm_pdisk(:)
