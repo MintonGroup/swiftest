@@ -74,12 +74,12 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail)
             exit
          end if
       end if
-      r_pdisk(:) = (3 * Gm_pdisk(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP) 
-      tau(:) = PI * r_pdisk(:)**2 * ring%Gsigma(:) / ring%Gm_pdisk(:)
-      r_hstar(:) = ring%r(:) * (2 * Gm_pdisk(:) /(3._DP * swifter_pl1P%mass))**(1._DP/3._DP) / (2 * r_pdisk(:)) 
       Q(:) = ring%w(:) * sqrt(v2_pdisk(:)) / (3.36_DP * ring%Gsigma(:))
 
       where ((ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk(:)) .and. (Q(:) < 1._DP))
+         r_pdisk(:) = (3 * Gm_pdisk(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP) 
+         r_hstar(:) = ring%r(:) * (2 * Gm_pdisk(:) /(3._DP * swifter_pl1P%mass))**(1._DP/3._DP) / (2 * r_pdisk(:)) 
+         tau(:) = PI * r_pdisk(:)**2 * ring%Gsigma(:) / ring%Gm_pdisk(:)
          nu(:) = ringmoons_viscosity(ring%Gsigma(:), Gm_pdisk(:), v2_pdisk(:), r_pdisk(:), r_hstar(:), Q(:), tau(:), ring%w(:))
          kv2(:) = dt * ringmoons_ring_dvdt(Gm_pdisk(:),v2_pdisk(:),tau(:),nu(:),ring%w(:)) 
          kGm(:) = dt * ringmoons_ring_dMdt(Gm_pdisk(:),v2_pdisk(:),tau(:),ring%w(:))

@@ -51,7 +51,7 @@ subroutine ringmoons_update_ring(swifter_pl1P,ring)
       ring%nu(:) = ringmoons_viscosity(ring%Gsigma(:), ring%Gm_pdisk(:), (ring%vrel_pdisk(:))**2, &
                                        ring%r_pdisk(:), ring%r_hstar(:), ring%Q(:), ring%tau(:), ring%w(:))
    elsewhere
-      ring%Q(:) = 0.0_DP
+      ring%Q(:) = huge(1._DP)
       ring%tau(:) = 0.0_DP
       ring%nu(:) = 0.0_DP
    end where

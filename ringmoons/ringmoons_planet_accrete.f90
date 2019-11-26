@@ -46,7 +46,7 @@
       real(DP) :: rlo,rhi,GMP, RP,rhoP, Mratio, Rratio, Mratiosqrt,MratioHill,rfac
       real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew, Lorig,Mring,dMtot,Lnow
       real(DP),dimension(seeds%N) :: afac
-      real(DP),dimension(0:ring%N+1)        :: Gmtmp,Lring_orig,Lring_now
+      real(DP),dimension(0:ring%N+1)        :: Gmtmp,Lring_orig,Lring_now,dL
       real(DP) :: Lp0,Ls0,Lp1,Ls1,Lr0,Lr1
       
 ! Executable code
@@ -82,7 +82,12 @@
       
       ! Any difference in angular momentum in each ring bin will result in a torque in that bin
       Lring_now(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:) 
-      ring%Torque(ring%inside+1:ring%N) = ring%Torque(ring%inside+1:ring%N) - (Lring_now(ring%inside+1:ring%N) - Lring_orig(ring%inside+1:ring%N)) / dt 
+      dL(0:ring%inside) = 0.0_DP
+      dL(ring%N+1) = 0.0_DP
+      dL(ring%inside+1:ring%N) = (Lring_now(ring%inside+1:ring%N) - Lring_orig(ring%inside+1:ring%N)) / dt 
+      where(abs(dL(:)) > epsilon(1._DP))
+         ring%Torque(:) = ring%Torque(:) - dL(:)
+      end where
 
       return
 
