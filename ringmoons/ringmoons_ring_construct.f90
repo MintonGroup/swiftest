@@ -44,7 +44,7 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
       integer(I4B)                        :: i
       real(DP)                            :: Xlo
       real(DP)                            :: GMP, RP, rhoP
-      real(DP),dimension(0:ring%N+1)      :: kappa_rhstar,eta_rhstar
+
 
 ! Executable code
       GMP = swifter_pl1P%mass
@@ -80,11 +80,7 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
       ring%w(:) = sqrt(GMP / ring%r(:)**3)
 
       ring%Torque(:) = 0.0_DP
-      ! See Salmon et al. 2010 for this
-      ring%r_hstar(:) = ring%r(:) * (2 * ring%Gm_pdisk(:) /(3._DP * GMP))**(1._DP/3._DP) / (2 * ring%r_pdisk(:))  
-      kappa_rhstar(:) = ringmoons_transition_function(ring%r_hstar(:))
-      eta_rhstar(:) = 1._DP - kappa_rhstar(:)
-      ring%vrel_pdisk(:) = kappa_rhstar(:) * sqrt(ring%Gm_pdisk / ring%r_pdisk) + eta_rhstar(:) * (2 * ring%r_pdisk * ring%w(:))
+
       call ringmoons_update_ring(swifter_pl1P,ring)
 
       seeds%Rhill(1:seeds%N)  = seeds%a(1:seeds%N) * (seeds%Gm(1:seeds%N) / (3 * GMP))**(1.0_DP / 3.0_DP)

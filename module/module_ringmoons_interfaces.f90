@@ -221,12 +221,12 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         elemental function ringmoons_ring_dMdt(Gm_pdisk,v2_pdisk,tau,w) result(Gmdot)
+         elemental function ringmoons_ring_dMdt(Gm_pdisk,v2_pdisk,r_pdisk,tau,w) result(Gmdot)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
-         real(DP), intent(in)                   :: Gm_pdisk,v2_pdisk,tau,w
+         real(DP), intent(in)                   :: Gm_pdisk,v2_pdisk,r_pdisk,tau,w
          real(DP)                               :: Gmdot
          end function ringmoons_ring_dMdt
       end interface
@@ -344,7 +344,7 @@ module module_ringmoons_interfaces
 
 
       interface
-         subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail)
+         subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail,dtnew)
          use module_parameters
          use module_swifter
          use module_ringmoons
@@ -354,6 +354,7 @@ module module_ringmoons_interfaces
          type(ringmoons_seeds),intent(in) :: seeds
          real(DP),intent(in)              :: dt
          logical(lgt), intent(out)                 :: stepfail
+         real(DP),intent(out)             :: dtnew
          end subroutine ringmoons_ring_predprey 
       end interface
 

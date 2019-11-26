@@ -45,6 +45,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    integer(I4B),parameter              :: LUN = 22
    integer(I4B)                        :: i,m,inner_outer_sign,ioerr
    real(DP)                            :: beta, r_pdisk, Gm_pdisk
+   real(DP),dimension(:),allocatable   :: kappa_rhstar,eta_rhstar
 
 ! Executable code
    ringfile='ring.in'
@@ -63,7 +64,6 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    end do
    ring%r_pdisk(:) = r_pdisk
    ring%Gm_pdisk(:) = Gm_pdisk
-   
 
    do i = 1,seeds%N
       read(LUN,*,iostat=ioerr) seeds%a(i), seeds%Gm(i)
@@ -73,8 +73,20 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
          call util_exit(FAILURE)
       end if
       seeds%active(i) = .true.
-
    end do
+
+   call ringmoons_ring_construct(swifter_pl1P,ring,seeds)
+
+   allocate(kappa_rhstar(0:ring%N+1))
+   allocate(eta_rhstar(0:ring%N+1))
+   ! Initialize the velocity distribution of the ring
+   ! See Salmon et al. 2010 for this
+   kappa_rhstar(:) = ringmoons_transition_function(ring%r_hstar(:))
+   eta_rhstar(:) = 1._DP - kappa_rhstar(:)
+   ring%vrel_pdisk(:) = kappa_rhstar(:) * sqrt(ring%Gm_pdisk / ring%r_pdisk) + eta_rhstar(:) * (2 * ring%r_pdisk * ring%w(:))
+   call ringmoons_update_ring(swifter_pl1P,ring)
+   deallocate(kappa_rhstar)
+   deallocate(eta_rhstar)
 
 ! For performance reasons, we compute a table of Laplace coefficient terms the first time through and then interpolate 
    do m = 2, m_max
@@ -96,6 +108,8 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    ring%dRP = 0.0_DP
    ring%rotPi = swifter_pl1P%rot(3)
    ring%drotP = 0.0_DP
+
+   call ringmoons_seed_construct(swifter_pl1P,ring,seeds) 
 
 
    return

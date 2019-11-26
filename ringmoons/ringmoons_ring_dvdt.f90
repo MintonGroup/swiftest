@@ -44,15 +44,18 @@ elemental function ringmoons_ring_dvdt(Gm_pdisk,v2_pdisk,tau,nu,w) result(v2dot)
       real(DP)                               :: eps2 ! coefficient of restitution
       real(DP), parameter                    :: Vc = 0.0077 ! See Schmidt et al. (2006) eqn. 14.14
       real(DP), parameter                    :: eps_exponent = -0.234_DP
+      real(DP), parameter                    :: eps_constant = 0.89_DP ! See Brisset et al. (2019)
 
 ! Executable code
   
       Torb = 2 * PI / w
       Tcoll = Torb / (4 * tau) 
-      eps2 = (v2_pdisk / (Vc * TU2S / DU2CM)**2)**(2 * eps_exponent)
-      S2 = (1.5_DP * w)**2 ! Shear rate squared
+      !eps2 = (v2_pdisk * (DU2CM / TU2S)**2 / Vc**2)**(eps_exponent)
+      !eps2 = 0.9_DP * exp(-0.22_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)) + 0.01_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)**(-0.6_DP)
+      eps2 = eps_constant**2
+      S2 = 9 * w**2 / 4._DP ! Shear rate squared
       
-      v2dot = - v2_pdisk * (1._DP - eps2) / Tcoll + nu * S2
+      v2dot = nu * S2 - v2_pdisk * (1._DP - eps2) / Tcoll
 
     
       return

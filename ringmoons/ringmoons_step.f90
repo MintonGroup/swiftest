@@ -47,7 +47,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 ! Internals
       integer(I4B) :: i,loop,seedloop,subcount,loopcount
       integer(I4B), parameter :: submax = 2
-      real(DP) :: dt,dtleft,dtnewring
+      real(DP) :: dt,dtleft,dtpp
       real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now
       CHARACTER(*),parameter :: ring_outfile = "ring.dat"   ! Name of ringmoons output binary file
       type(ringmoons_ring)                            :: old_ring
@@ -56,21 +56,15 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       type(swifter_pl)                                :: old_swifter_pl1P
 
 ! Executable code
-      !if (lfirst) then
       dtleft = dtin
 
-      !TESTING
-      !write(*,*) 'Ring mass: ',sum(ring%Gm)
       if (lfirst) then
          Mtot_orig = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
          Ltot_orig = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
          Ltot_orig = Ltot_orig + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
          Ltot_orig = Ltot_orig + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
          lfirst = .false.
-         !write(*,*) 'calc_torques'
-         !call ringmoons_calc_torques(swifter_pl1P,ring,seeds)
       end if
-      !^^^^^^^^  
 !write(*,*)
 !write(*,*) (t + (dtin - dtleft)) * 1e-6_DP
       seeds%Torque(:) = 0.0_DP
@@ -87,6 +81,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       subcount = 0
       dt = dtleft
       do loop = 1, LOOPMAX
+!write(*,*) 'dt: ',dt, 'dtleft: ',dtleft
          if (loop == LOOPMAX) then
             write(*,*) 'LOOPMAX reached in seed evolution. Ringmoons_step failed'
             call util_exit(FAILURE)
@@ -105,6 +100,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          call ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
 
          if (stepfail) then
+!write(*,*) 'seed_evolve called a step failure'
             dt = dt / submax
             subcount = 0
             ring = old_ring
@@ -116,11 +112,12 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          end if
 
 !write(*,*) 'ring_predprey'
-         call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail) ! Evolve the size and velocity dispersion distribution of the ring 
+         call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail,dtpp) ! Evolve the size and velocity dispersion distribution of the ring 
                                                                ! following the predator/prey model of Esposito et al. (2012)
 
          if (stepfail) then
-            dt = dt / submax
+!write(*,*) 'predprey called a step failure',dt,dtleft
+            dt = dtpp
             subcount = 0
             ring = old_ring
             seeds = old_seeds
@@ -150,15 +147,17 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque
          if (dtleft <= 0.0_DP) exit
          loopcount = loop
-         if (subcount == 4 * submax) then
-            dt = max(min(dtleft, submax * dt),dtin)
+         if (subcount == 2 * submax) then
+            dt = min(dtleft,submax * dt)
             subcount = 0
          end if
+         dt = min(dtleft,dtpp,dt)
          old_ring = ring
          old_seeds = seeds
          old_swifter_pl1P%mass = swifter_pl1P%mass
          old_swifter_pl1P%radius = swifter_pl1P%radius
          old_swifter_pl1P%rot = swifter_pl1P%rot
+!read(*,*)
       end do
       call ringmoons_deallocate(old_ring,old_seeds)
 

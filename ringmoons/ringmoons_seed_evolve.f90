@@ -164,27 +164,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dt,stepfail)
    af(:) = ai(:) + af(:) / 6._DP
 
    stepfail = .false.
-   !if (any(abs(af(:) - ai(:)) / ai(:) > 2 * RK_FACTOR)) then
-   !   write(*,*) 'Failed the step: Migration too far'
-   !   !do i = 1,seeds%N
-   !   !   write(*,*) i,(af(i) - ai(i)) / ai(i)
-   !   !end do
-   !   stepfail = .true.
-   !   return
-   !end if 
-
-
    Gmf(:) = Gmi(:) + Gmf(:) / 6._DP
-
-   !if (any(abs(Gmf(:) - Gmi(:)) / Gmi(:) > 2 * RK_FACTOR)) then
-   !  write(*,*) 'Failed the step: Growth too fast'
-   !  !do i = 1,seeds%N
-   !  !   write(*,*) i,(Gmf(i) - Gmi(i)) / Gmi(i)
-   !  !end do
-   !  stepfail = .true.
-   !  return
-   !nd if 
-
    Gmringf(:) = Gmringi(:) + Gmringf(:) / 6._DP
 
    if (any(Gmringf(:) < 0.0_DP)) then
