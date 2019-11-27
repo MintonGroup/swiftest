@@ -61,22 +61,43 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    real(DP),dimension(0:ring%N+1,6)     :: kGm,kv2
    real(DP),dimension(0:ring%N+1)     :: v2f,Gmf
    real(DP),parameter :: TOL = 1e-8_DP
-   real(DP),dimension(0:ring%N+1)       :: Ev2,EGm
-   real(DP)                             :: diffmax,sval,dt,dtleft
+   real(DP),dimension(0:ring%N+1)       :: Ev2,EGm,sarr,dt,dtleft
    real(DP),parameter                   :: DTMIN = 1.0_DP
+   logical(lgt),dimension(0:ring%N+1)   :: ringmask,goodbin
 
 ! Executable code
-   dt = dtin
-   dtleft = dtin
+   dt(:) = dtin
+   dtnew = dtin
+   v2i(:) = (ring%vrel_pdisk(:))**2
+   Gmi(:) = ring%Gm_pdisk(:)
+
+   v2f(:) = v2i(:)
+   Gmf(:) = Gmi(:)
+
+
+   where ((ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk(:))) 
+      ringmask(:) = .true.
+      dtleft(:) = dtin
+   elsewhere
+      ringmask(:) = .false.
+      dtleft(:) = 0.0_DP
+   end where 
   
    do loop = 1, LOOPMAX 
       stepfail = .false.
-      if (loop == LOOPMAX) stepfail = .true.
+      where(ringmask(:)) 
+         goodbin(:) = .true.
+      elsewhere
+         goodbin(:) = .false.
+      end where
+      if (loop == LOOPMAX) then
+         stepfail = .true.
+         dtnew = 0.5_DP * dtin
+         return
+      end if
 
       kGm(:,:) = 0._DP
       kv2(:,:) = 0._DP
-      v2i(:) = (ring%vrel_pdisk(:))**2
-      Gmi(:) = ring%Gm_pdisk(:)
 
       !write(*,*) 'pred prey input'
       !write(*,*) 'dt: ',dt, 'dtleft: ',dtleft
@@ -84,84 +105,69 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
       !write(*,*) maxval(ring%vrel_pdisk(:)) * DU2CM / TU2S,minval(ring%vrel_pdisk(:)) * DU2CM / TU2S
 
       do rkn = 1,6 ! Runge-Kutta-Fehlberg steps 
-         v2(:) = v2i(:)
-         Gm(:) = Gmi(:)
+         where (ringmask(:).and.goodbin(:))
+            v2(:) = v2i(:)
+            Gm(:) = Gmi(:)
+         end where
          if (rkn > 1) then
             do rki = 2,rkn
-               v2(:) = v2(:) + rkf45_btab(rki,rkn-1) * kv2(:,rki-1)
-               Gm(:) = Gm(:) + rkf45_btab(rki,rkn-1) * kGm(:,rki-1)
+               where(ringmask(:).and.goodbin(:))
+                  v2(:) = v2(:) + rkf45_btab(rki,rkn-1) * kv2(:,rki-1)
+                  Gm(:) = Gm(:) + rkf45_btab(rki,rkn-1) * kGm(:,rki-1)
+               end where 
             end do
          end if
 
-         if (any(v2 < 0.0_DP) .or. (any(Gm < 0.0_DP))) then
-            !write(*,*) 'predprey failed in rkstep!'
-            !write(*,*) minval(v2),minval(Gm)
-            !write(*,*) dt
-            stepfail = .true.
-            dt = 0.5_DP * dt
-            exit
-         end if
-
-         where ((ring%Gm(:) > N_DISK_FACTOR * Gm(:))) 
-            Q(:) = ring%w(:) * sqrt(v2(:)) / (3.36_DP * ring%Gsigma(:))
-            r(:) = (3 * Gm(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP) 
-            r_hstar(:) = ring%r(:) * (2 * Gm(:) /(3._DP * swifter_pl1P%mass))**(1._DP/3._DP) / (2 * r(:)) 
-            tau(:) = PI * r(:)**2 * ring%Gsigma(:) / Gm(:)
-            nu(:) = ringmoons_viscosity(ring%Gsigma(:), Gm(:), v2(:), r(:), r_hstar(:), Q(:), tau(:), ring%w(:))
-            kv2(:,rkn) = dt * ringmoons_ring_dvdt(Gm(:),v2(:),tau(:),nu(:),ring%w(:)) 
-            kGm(:,rkn) = dt * ringmoons_ring_dMdt(Gm(:),v2(:),r(:),tau(:),ring%w(:))
-         elsewhere
-            kv2(:,rkn) = 0.0_DP
-            kGm(:,rkn) = 0.0_DP
+         where(ringmask(:))
+            where((v2(:) < 0.0_DP).or.(GM(:) < 0.0_DP))
+               goodbin(:) = .false.
+            elsewhere 
+               Q(:) = ring%w(:) * sqrt(v2(:)) / (3.36_DP * ring%Gsigma(:))
+               r(:) = (3 * Gm(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP) 
+               r_hstar(:) = ring%r(:) * (2 * Gm(:) /(3._DP * swifter_pl1P%mass))**(1._DP/3._DP) / (2 * r(:)) 
+               tau(:) = PI * r(:)**2 * ring%Gsigma(:) / Gm(:)
+               nu(:) = ringmoons_viscosity(ring%Gsigma(:), Gm(:), v2(:), r(:), r_hstar(:), Q(:), tau(:), ring%w(:))
+               kv2(:,rkn) = dt * ringmoons_ring_dvdt(Gm(:),v2(:),tau(:),nu(:),ring%w(:)) 
+               kGm(:,rkn) = dt * ringmoons_ring_dMdt(Gm(:),v2(:),r(:),tau(:),ring%w(:))
+            end where
          end where
       end do
-      if (stepfail) cycle !return
 
-      v2f(:) = v2i(:) + matmul(kv2(:,:), rkf4_coeff(:))
-      Gmf(:) = Gmi(:) + matmul(kGm(:,:), rkf4_coeff(:))
+      where (ringmask(:).and.goodbin(:))
+         v2f(:) = v2i(:) + matmul(kv2(:,1:5), rkf4_coeff(1:5))
+         Gmf(:) = Gmi(:) + matmul(kGm(:,1:5), rkf4_coeff(1:5))
+         Ev2(:) = abs(matmul(kv2(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
+         EGm(:) = abs(matmul(kGm(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
+         sarr(:) = (TOL * dt / (2 * max(Ev2(:),EGm(:))))**(0.25_DP)
+      elsewhere
+         sarr(:) = 0.5_DP / 0.9_DP
+      end where
 
-      if (any(v2f < 0.0_DP)) then
-         !write(*,*) 'predprey failed: negative v**2!'
-         !write(*,*) dt
-         stepfail = .true.
-         dt = 0.5_DP * dt
-         !return
-         cycle
-      end if
-      if (any(Gmf < 0.0_DP)) then
-         !write(*,*) 'predprey failed: negative mass!'
-         !write(*,*) dt
-         stepfail = .true.
-         dt = 0.5_DP * dt
-         cycle
-         !return
-      end if
+      where(ringmask(:).and.goodbin(:).and.((sarr(:) >= 1._DP).or.(dt * TU2S <= DTMIN)))
+         goodbin(:) = .true.
+      elsewhere
+         goodbin(:) = .false.
+      end where
+      
+      where (ringmask(:).and.goodbin(:))
+         v2i(:) = v2f(:)
+         Gmi(:) = Gmf(:)
+         dtleft(:) = dtleft(:) - dt(:)
+      end where
 
-      Ev2(:) = abs(matmul(kv2(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      EGm(:) = abs(matmul(kGm(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
+      where(ringmask(:).and.goodbin(:).and.(dtleft(:) <= 0.0_DP))
+         ringmask(:) = .false.
+      end where
 
-      diffmax = 2 * max(maxval(Ev2(:)),maxval(EGm)) 
-      sval = (TOL * dt / diffmax)**(0.25_DP)
-
-      if ((sval < 1._DP).and.(dt * TU2S > DTMIN)) then
-         !write(*,*) 'predprey failed the step! error too high'
-         !write(*,*) dt
-         stepfail = .true.
-         dt = 0.9_DP * sval * dt  
-         !return
-         cycle
-      end if
-
-      ring%vrel_pdisk(:) = sqrt(v2f(:))
-      ring%Gm_pdisk(:) = Gmf(:)
-      ring%r_pdisk(:) = (3 * ring%Gm_pdisk(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP)
-
-      call ringmoons_update_ring(swifter_pl1P,ring)
-
-      dtleft = dtleft - dt
-      if (dtleft <= 0.0_DP) exit
-      dt = min(max(DTMIN / TU2S,0.9_DP * sval * dt),dtleft)
+      if (all(.not.ringmask(:))) exit
+      where(ringmask(:)) dt(:) = min(max(DTMIN / TU2S,0.9_DP * sarr(:) * dt(:)),dtleft(:))
    end do
+
+   ring%vrel_pdisk(:) = sqrt(v2f(:))
+   ring%Gm_pdisk(:) = Gmf(:)
+   ring%r_pdisk(:) = (3 * ring%Gm_pdisk(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP)
+   call ringmoons_update_ring(swifter_pl1P,ring)
+
   
    dtnew = dtin 
    return
