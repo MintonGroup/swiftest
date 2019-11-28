@@ -53,7 +53,7 @@ elemental function ringmoons_ring_dvdt(Gm_pdisk,v2_pdisk,tau,nu,w) result(v2dot)
       !eps2 = (v2_pdisk * (DU2CM / TU2S)**2 / Vc**2)**(eps_exponent)
       !eps2 = 0.9_DP * exp(-0.22_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)) + 0.01_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)**(-0.6_DP)
       eps2 = eps_constant**2
-      S2 = 9 * w**2 / 4._DP ! Shear rate squared
+      S2 = 2.25_DP * w**2  ! Shear rate squared
       
       v2dot = nu * S2 - v2_pdisk * (1._DP - eps2) / Tcoll
 

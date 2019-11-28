@@ -47,9 +47,6 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
 ! Internals
    integer(I4B)                         :: rkn,i,rki,loop
    real(DP),dimension(0:ring%N+1)       :: Gmi, v2i, Gm,v2,tau,r,r_hstar,Q,nu
-   integer(I4B), parameter              :: rk_order = 6
-   real(DP),dimension(2:4),parameter    :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
-   integer(I4B),dimension(4),parameter  :: rkmult = (/1, 2, 2, 1/)
    real(DP),dimension(6,5),parameter    :: rkf45_btab = reshape( & ! Butcher tableau for Runge-Kutta-Fehlberg method
       (/        1./4.,       1./4.,          0.,            0.,           0.,           0.,&
                 3./8.,      3./32.,      9./32.,            0.,           0.,           0.,&
@@ -62,7 +59,7 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    real(DP),dimension(0:ring%N+1)     :: v2f,Gmf
    real(DP),parameter :: TOL = 1e-8_DP
    real(DP),dimension(0:ring%N+1)       :: Ev2,EGm,sarr,dt,dtleft
-   real(DP),parameter                   :: DTMIN = 1.0_DP
+   real(DP),parameter                   :: DTMIN = 1.0e-12_DP
    logical(lgt),dimension(0:ring%N+1)   :: ringmask,goodbin
 
 ! Executable code
@@ -84,20 +81,15 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    end where 
   
    do loop = 1, LOOPMAX 
-      stepfail = .false.
-      where(ringmask(:)) 
-         goodbin(:) = .true.
-      elsewhere
-         goodbin(:) = .false.
-      end where
       if (loop == LOOPMAX) then
          stepfail = .true.
          dtnew = 0.5_DP * dtin
          return
       end if
-
+      stepfail = .false.
       kGm(:,:) = 0._DP
       kv2(:,:) = 0._DP
+      goodbin(:) = ringmask(:)
 
       !write(*,*) 'pred prey input'
       !write(*,*) 'dt: ',dt, 'dtleft: ',dtleft
@@ -105,20 +97,10 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
       !write(*,*) maxval(ring%vrel_pdisk(:)) * DU2CM / TU2S,minval(ring%vrel_pdisk(:)) * DU2CM / TU2S
 
       do rkn = 1,6 ! Runge-Kutta-Fehlberg steps 
-         where (ringmask(:).and.goodbin(:))
-            v2(:) = v2i(:)
-            Gm(:) = Gmi(:)
-         end where
-         if (rkn > 1) then
-            do rki = 2,rkn
-               where(ringmask(:).and.goodbin(:))
-                  v2(:) = v2(:) + rkf45_btab(rki,rkn-1) * kv2(:,rki-1)
-                  Gm(:) = Gm(:) + rkf45_btab(rki,rkn-1) * kGm(:,rki-1)
-               end where 
-            end do
-         end if
+         where (goodbin(:))
+            v2(:) = v2i(:) + matmul(kv2(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
+            Gm(:) = Gmi(:) + matmul(kGm(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
 
-         where(ringmask(:))
             where((v2(:) < 0.0_DP).or.(GM(:) < 0.0_DP))
                goodbin(:) = .false.
             elsewhere 
@@ -127,40 +109,46 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
                r_hstar(:) = ring%r(:) * (2 * Gm(:) /(3._DP * swifter_pl1P%mass))**(1._DP/3._DP) / (2 * r(:)) 
                tau(:) = PI * r(:)**2 * ring%Gsigma(:) / Gm(:)
                nu(:) = ringmoons_viscosity(ring%Gsigma(:), Gm(:), v2(:), r(:), r_hstar(:), Q(:), tau(:), ring%w(:))
-               kv2(:,rkn) = dt * ringmoons_ring_dvdt(Gm(:),v2(:),tau(:),nu(:),ring%w(:)) 
-               kGm(:,rkn) = dt * ringmoons_ring_dMdt(Gm(:),v2(:),r(:),tau(:),ring%w(:))
+               kv2(:,rkn) = dt(:) * ringmoons_ring_dvdt(Gm(:),v2(:),tau(:),nu(:),ring%w(:)) 
+               kGm(:,rkn) = dt(:) * ringmoons_ring_dMdt(Gm(:),v2(:),r(:),tau(:),ring%w(:))
             end where
          end where
       end do
-
-      where (ringmask(:).and.goodbin(:))
+      where (goodbin(:))
          v2f(:) = v2i(:) + matmul(kv2(:,1:5), rkf4_coeff(1:5))
          Gmf(:) = Gmi(:) + matmul(kGm(:,1:5), rkf4_coeff(1:5))
+         where((v2f(:) < 0.0_DP).or.(GMf(:) < 0.0_DP))
+            goodbin(:) = .false.
+         end where
+      end where
+      where (goodbin(:))
          Ev2(:) = abs(matmul(kv2(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
          EGm(:) = abs(matmul(kGm(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-         sarr(:) = (TOL * dt / (2 * max(Ev2(:),EGm(:))))**(0.25_DP)
-      elsewhere
-         sarr(:) = 0.5_DP / 0.9_DP
+         sarr(:) = (TOL / (2 * max(Ev2(:),EGm(:))))**(0.25_DP)
+         where((sarr(:) < 1._DP).and.(dt(:) > DTMIN * dtin))
+            goodbin(:) = .false.
+            dt(:) = 0.5_DP * sarr(:) * dt(:)
+         elsewhere 
+            v2i(:) = v2f(:)
+            Gmi(:) = Gmf(:)
+            dtleft(:) = dtleft(:) - dt(:)
+            where (dtleft(:) <= 0.0_DP) 
+               ringmask(:) = .false.
+            elsewhere
+               dt(:) = min(0.9_DP * sarr(:) * dt(:),dtleft(:))
+            endwhere
+         end where
+      elsewhere (ringmask(:))
+         dt(:) = 0.5_DP * dt(:)
+         sarr(:) = 1._DP
       end where
-
-      where(ringmask(:).and.goodbin(:).and.((sarr(:) >= 1._DP).or.(dt * TU2S <= DTMIN)))
-         goodbin(:) = .true.
-      elsewhere
-         goodbin(:) = .false.
-      end where
-      
-      where (ringmask(:).and.goodbin(:))
-         v2i(:) = v2f(:)
-         Gmi(:) = Gmf(:)
-         dtleft(:) = dtleft(:) - dt(:)
-      end where
-
-      where(ringmask(:).and.goodbin(:).and.(dtleft(:) <= 0.0_DP))
-         ringmask(:) = .false.
-      end where
-
+      !write(*,*) 'loop ',loop
+      !write(*,*) count(ringmask),count(goodbin),minval(dt,mask=goodbin),maxval(dtleft,mask=ringmask)
+      !do i = 0,ring%N+1
+      !    write(*,*) i,goodbin(i),sarr(i),dt(i),dtleft(i),v2f(i),Gmf(i)
+      !end do 
+      !read(*,*)
       if (all(.not.ringmask(:))) exit
-      where(ringmask(:)) dt(:) = min(max(DTMIN / TU2S,0.9_DP * sarr(:) * dt(:)),dtleft(:))
    end do
 
    ring%vrel_pdisk(:) = sqrt(v2f(:))

@@ -58,7 +58,7 @@ elemental function ringmoons_ring_dMdt(Gm_pdisk,v2_pdisk,r_pdisk,tau,w) result(G
       Tcoll = Torb / (4 * tau)
       Tacc = Tcoll
 
-      Gmdot = Gm_pdisk * (1._DP / Tacc - (v2_pdisk / vth2) / Tcoll)
+      Gmdot = (Gm_pdisk/Tcoll) * (1._DP - (v2_pdisk / vth2)) 
       
      
     
