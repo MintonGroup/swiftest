@@ -63,7 +63,8 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    logical(lgt),dimension(0:ring%N+1)   :: ringmask,goodbin
 
 ! Executable code
-   dt(:) = dtin
+   dt(:) = 2 * PI / ring%w(:)  !dtin
+   
    dtnew = dtin
    v2i(:) = (ring%vrel_pdisk(:))**2
    Gmi(:) = ring%Gm_pdisk(:)
@@ -74,7 +75,7 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
 
    where ((ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk(:))) 
       ringmask(:) = .true.
-      dtleft(:) = dtin
+      dtleft(:) = dt(:)
    elsewhere
       ringmask(:) = .false.
       dtleft(:) = 0.0_DP
