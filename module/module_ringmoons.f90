@@ -39,6 +39,18 @@ module module_ringmoons
    real(DP),dimension(2:M_MAX),public,save :: mfac
    real(DP),parameter         :: RK_FACTOR = 0.01_DP
 
+   !Runge-Kutta-Fehlberg parameters
+   integer(I4B),parameter,public        :: rkfo = 6
+   real(DP),dimension(6,5),parameter,public    :: rkf45_btab = reshape( & ! Butcher tableau for Runge-Kutta-Fehlberg method
+      (/        1./4.,       1./4.,          0.,            0.,           0.,           0.,&
+                3./8.,      3./32.,      9./32.,            0.,           0.,           0.,&
+              12./13., 1932./2197., -7200./2197.,  7296./2197.,           0.,           0.,&
+                   1.,   439./216.,          -8.,   3680./513.,   -845./4104.,          0.,&
+                1./2.,     -8./27.,           2., -3544./2565.,   1859./4104.,    -11./40./), shape(rkf45_btab))
+   real(DP),dimension(6),parameter,public     :: rkf5_coeff =  (/ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. /)
+   real(DP),dimension(6),parameter,public     :: rkf4_coeff =  (/ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5. ,     0. /)
+
+
    type ringmoons_ring
       integer(I4B) :: N                   ! number of bins in disk
       integer(I4B) :: inside = 1          ! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)

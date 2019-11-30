@@ -89,7 +89,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
          ring%Torque(:) = 0.0_DP
          seeds%Torque(:) = 0.0_DP
-!write(*,*) 'update_ring'
+!write(*,*) 'update_ring.' ! max nu',maxval(ring%nu(:))
          call ringmoons_update_ring(swifter_pl1P,ring)
          dt = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
 
@@ -126,11 +126,14 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             swifter_pl1P%rot = old_swifter_pl1P%rot
             cycle
          end if
+         dtpp = dt
 
 !write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)
 
+
 !write(*,*) 'seed_construct'
+
          call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
 
          subcount = subcount + 1
@@ -157,7 +160,15 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          old_swifter_pl1P%mass = swifter_pl1P%mass
          old_swifter_pl1P%radius = swifter_pl1P%radius
          old_swifter_pl1P%rot = swifter_pl1P%rot
+!Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
+!Ltot_now = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active)
+!Ltot_now = Ltot_now + sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+!Ltot_now = Ltot_now + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+!Lerror = (Ltot_now - Ltot_orig) / Ltot_orig
+!if (abs(Lerror) > 2*epsilon(1._DP)) then
+!write(*,*) 'Lerror too big!',Lerror
 !read(*,*)
+!end if
       end do
       call ringmoons_deallocate(old_ring,old_seeds)
 
