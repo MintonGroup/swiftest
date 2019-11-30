@@ -57,7 +57,7 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    real(DP)                             :: mass_limit,rad_limit
 
 ! Executable code
-   dt(:) = min(1e-1_DP / ring%w(:),dtin)
+   dt(:) = min(1e-3_DP / ring%w(:),dtin)
    dtmin(:) = DTMIN_FAC * dt(:)
    
    dtnew = dtin
