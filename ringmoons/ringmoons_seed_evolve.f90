@@ -63,7 +63,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,Lnow,Llind,Ltide,sarr,Tide
    logical(lgt)                              :: chomped,goodstep
-   real(DP),parameter                        :: DTMIN_FAC = 1.0e-4_DP
+   real(DP),parameter                        :: DTMIN_FAC = 1.0e-3_DP
    real(DP),parameter                        :: TOL = 1e-6_DP
 
 
@@ -80,8 +80,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 
    Mr0 = sum(ring%Gm(:))
    Ms0 = sum(seeds%Gm(:),seeds%active(:))
-   dt = dtin * 0.000010_DP
    dtleft = dtin
+   dt = dtin
    dtmin = DTMIN_FAC * dtin
 
    iring%N = ring%N
