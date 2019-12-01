@@ -89,9 +89,10 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
          ring%Torque(:) = 0.0_DP
          seeds%Torque(:) = 0.0_DP
-!write(*,*) 'update_ring.' ! max nu',maxval(ring%nu(:))
+!write(*,*) 'update_ring.',dt
          call ringmoons_update_ring(swifter_pl1P,ring)
          dt = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
+!write(*,*) 'new timestep',dt
 
 !write(*,*) 'planet_accrete'
          call ringmoons_planet_accrete(swifter_pl1P,ring,seeds,dt)

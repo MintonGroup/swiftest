@@ -46,10 +46,10 @@ elemental function ringmoons_ring_dMdt(Gm_pdisk,v2_pdisk,r_pdisk,tau,w) result(G
 
       !Threshold velocity for sticking
       !See Esposito et al. (2012) and Blum (2006)
-     ! vth2 = 1.0_DP
+      vth2 = 1.0e-1_DP
 
       !See Weidling et al. (2012)
-      vth2 = ((Gm_pdisk * MU2GM / GU) / MBOUNCE_G)**(-5._DP / 18._DP)
+      !vth2 = ((Gm_pdisk * MU2GM / GU) / MBOUNCE_G)**(-5._DP / 18._DP)
       ! Convert from m/s to system units
       vth2 = vth2 * 100._DP * TU2S / DU2CM
       vth2 = max(vth2**2,2 * Gm_pdisk / r_pdisk)

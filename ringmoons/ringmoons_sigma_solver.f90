@@ -70,10 +70,7 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
       ring%Gm(1:N) = ring%Gsigma(1:N) * ring%deltaA(1:N)
 
       ! Prevent any bins from having negative mass by shifting mass upward from interior bins  
-      i = 1
       do while (any(ring%Gm(1:N) < 0.0_DP))
-         !write(*,*) i,'Negative mass!'
-         i = i + 1
          where(ring%Gm(:) < 0.0_DP)
             dM1(:) = ring%Gm(:)
          elsewhere

@@ -105,11 +105,12 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       !end if
       
       ! Make seeds small enough to fit into each bin 
-      do i = ring%iFRL,ring%N
-         if (((i > ring%iRRL).and.(ring%Q(i) < 1.0_DP)).or.((i > ring%iFRL).and.(ring%Gm(i) > ring%Gm_pdisk(i)))) then
+      do i = ring%iRRL,ring%N
+         !if (((i > ring%iRRL).and.(ring%Q(i) < 1.0_DP)).or.((i > ring%iFRL).and.(ring%Gm(i) > ring%Gm_pdisk(i)))) then
          ! See Tajeddine et al. (2017) section 2.3 
             R_min = (3.3e5 / DU2CM) *  (ring%nu(i) / (100 * TU2S / DU2CM**2))
-            if (((ring%r_pdisk(i) > R_min).or.(i > ring%iFRL)).and.(ring%Gm(i) > ring%Gm_pdisk(i))) then 
+            !if (((ring%r_pdisk(i) > R_min).or.(i > ring%iFRL)).and.(ring%Gm(i) > ring%Gm_pdisk(i))) then 
+            if ((ring%r_pdisk(i) > R_min).and.(ring%Gm(i) > ring%Gm_pdisk(i))) then 
                open_space = .not.any(seeds%rbin(:) == i .and. seeds%active(:))
                if (open_space) then
                   a = ring%r(i)
@@ -117,7 +118,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
                   call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,dGm)
                end if
             end if
-         end if
+         !end if
       end do     
 
       call ringmoons_update_seeds(swifter_pl1P,ring,seeds)

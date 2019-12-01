@@ -43,14 +43,14 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    logical(LGT),intent(out)               :: stepfail
 
 ! Internals
-   integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop
-   real(DP)                                  :: dadt, e, inc, sigavg, sigsum, Tr_evol,Gmsdot, n, Li, Lj, Ls,dt,dtleft,dtmin
+   integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop, N
+   real(DP)                                  :: dadt, e, inc, sigavg, sigsum, ns, Tr_evol,Gmsdot, Li, Lj, Ls,dt,dtleft,dtmin
    real(DP)                                  :: Mr0,Ms0,Mr1,Ms1
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
    real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmringi,Gmringf,Torquei
-   real(DP),dimension(0:ring%N+1)            :: Tlind,Tring
+   real(DP),dimension(0:ring%N+1)            :: Tlind,Tring,L,dM1,dM2
    !real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
    !integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
    real(DP),dimension(0:ring%N+1,rkfo)       :: kr,kL
@@ -63,8 +63,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,Lnow,Llind,Ltide,sarr,Tide
    logical(lgt)                              :: chomped,goodstep
-   real(DP),parameter                        :: DTMIN_FAC = 1.0e-3_DP
-   real(DP),parameter                        :: TOL = 1e-6_DP
+   real(DP),parameter                        :: DTMIN_FAC = 1.0e-6_DP
+   real(DP),parameter                        :: TOL = 1e-8_DP
 
 
 ! Executable code
@@ -86,6 +86,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 
    iring%N = ring%N
    iseeds%N = seeds%N
+   N = ring%N
    call ringmoons_allocate(iring,iseeds)
 
    ! Save initial state of the seeds
@@ -136,20 +137,20 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             ! Calculate torques
             Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,iring,iseeds%Gm(i),iseeds%a(i),e,inc)
 
-            n = sqrt((swifter_pl1P%mass + iseeds%Gm(i)) / iseeds%a(i)**3)
-            Tide = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),n,iseeds%a(i),e,inc) 
+            ns = sqrt((swifter_pl1P%mass + iseeds%Gm(i)) / iseeds%a(i)**3)
+            Tide = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),ns,iseeds%a(i),e,inc) 
             iseeds%Torque(i) = Tide - sum(Tlind(:)) 
 
-            if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
+            !if ((iring%Gm(rbin) / iseeds%Gm(i)) > 0.1_DP)  then
                Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iring%rho_pdisk(rbin),iseeds%a(i))
                Gmsdot = min(Gmsdot,iring%Gm(rbin) / dt)
                kr(rbin,rkn) = kr(rbin,rkn) - dt * Gmsdot  ! Remove mass from the ring
                ! Make sure we conserve angular momentum during growth
                Tr_evol = Gmsdot * iring%Iz(rbin) * iring%w(rbin)
-            else
-               Tr_evol = 0.0_DP
-               Gmsdot = 0.0_DP
-            end if
+            !else
+            !   Tr_evol = 0.0_DP
+            !   Gmsdot = 0.0_DP
+            !end if
 
             km(i,rkn) = dt * Gmsdot ! Grow the seed
             ka(i,rkn) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i) + Tr_evol,Gmsdot)
@@ -164,6 +165,19 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       end if
     
       Gmringf(:) = Gmringi(:) + matmul(kr(:,1:rkfo-1), rkf4_coeff(1:rkfo-1))
+      ! Prevent any bins from having negative mass by shifting mass upward from interior bins  
+      do while (any(Gmringf(1:N) < 0.0_DP))
+         where(Gmringf(:) < 0.0_DP)
+            dM1(:) = Gmringf(:)
+         elsewhere
+            dM1(:) = 0.0_DP
+         end where
+         L(:) = iring%Iz(:) * iring%w(:)
+         dM2(:) = dM1(:) * (L(:) - cshift(L(:),1)) / (cshift(L(:),1) - cshift(L(:),2)) 
+        ! Make sure we conserve both mass and angular momentum
+         Gmringf(1:N) = Gmringf(1:N) - dM1(1:N) + cshift(dM1(1:N),1) + &
+            cshift(dM2(1:N),1)  - cshift(dM2(1:N),2)
+      end do 
       if (any(Gmringf(:) < 0.0_DP)) then
          dt = 0.5_DP * dt
          cycle 
@@ -219,7 +233,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       stepfail = .true.
       return
    end if 
-
 
    fz_width(:) = FEEDING_ZONE_FACTOR * seeds%Rhill(1:seeds%N)
 
