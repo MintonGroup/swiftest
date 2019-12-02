@@ -61,8 +61,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide
    logical(lgt)                              :: chomped,goodstep
-   real(DP),parameter                        :: DTMIN_FAC = 1.0e-5_DP
-   real(DP),parameter                        :: TOL = 100 * epsilon(1._DP)
+   real(DP),parameter                        :: DTMIN_FAC = 1.0e-8_DP
+   real(DP),parameter                        :: TOL = 10000 * epsilon(1._DP)
    integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
 
 
@@ -72,13 +72,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    stepfail = .false.
    if (seeds%N == 0) return
 
-!   Lr0 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dtin
-!   Ls0 = sum(seeds%Gm(1:seeds%N) * sqrt((swifter_pl1P%mass + seeds%Gm(1:seeds%N)) * seeds%a(1:seeds%N)))
-!   Lp0 = ring%dLp !swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
-!   Lorig = Lr0 + Ls0 + Lp0
-
-!   Mr0 = sum(ring%Gm(:))
-!   Ms0 = sum(seeds%Gm(:),seeds%active(:))
    dtleft = dtin
    dt = dtin
    dtmin = DTMIN_FAC * dtin
