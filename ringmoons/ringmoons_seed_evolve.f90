@@ -232,6 +232,17 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    ring%dLP = ring%dLP - sum(dTtide(1:seeds%N))
    ring%Torque(:) = Torquei(:) + dTorque_ring(:) / dtin
 
+   
+   do while(any(abs(ring%Torque(2:ring%N)) > 0.0_DP .and. ring%Gm(2:ring%N) < N_DISK_FACTOR * ring%Gm_pdisk(2:ring%N)))
+      do i = 2,ring%N
+         if (abs(ring%Torque(i)) > 0.0_DP .and. ring%Gm(i) < N_DISK_FACTOR * ring%Gm_pdisk(i)) then
+            ring%Torque(i - 1) = ring%Torque(i-1) + ring%Torque(i)
+            ring%Torque(i) = 0.0_DP
+         end if
+      end do
+   end do  
+      
+
    swifter_pl1P%rot(3) = (ring%LPi + ring%dLP) / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2) 
    seeds%Torque(:) = 0.0_DP
    seeds%Ttide(:) = 0.0_DP
