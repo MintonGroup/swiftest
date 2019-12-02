@@ -161,7 +161,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
         	END IF 
     	END DO 
 
-        nsptp = nspto + ntp - nktp
+        nsptp = nsptp + ntp - nktp
         ntp = nktp
 
     	CALL symba_tp_deallocate(symba_tpA)
