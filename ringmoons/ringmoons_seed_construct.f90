@@ -106,10 +106,11 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       
       ! Make seeds small enough to fit into each bin 
       do i = ring%iRRL,ring%N
-         if (ring%Gm(i) < ring%Gm_pdisk(i)) cycle
-         if (any(seeds%rbin(:) == i .and. seeds%active(:))) cycle
+         if (ring%Gm(i) < ring%Gm_pdisk(i)) cycle ! don't consider bins that don't have enough mass
+         if (ring%Q(i) > 1._DP) cycle  ! don't consider bins that are gravitationally stable
+         if (any(seeds%rbin(:) == i .and. seeds%active(:))) cycle ! don't consider bins that already have a seed
 
-         spawnbin = (i >= ring%iFRL)  ! Always spawn seeds at the FRL
+         spawnbin = (i >= ring%iFRL)  ! Always spawn seeds at the FRL 
 
          ! See Tajeddine et al. (2017) section 2.3. Spawn seed if aggregates are 1% the gap opening mass
          R_min = 0.01_DP * (3.3e5 / DU2CM) *  (ring%nu(i) / (100 * TU2S / DU2CM**2))
