@@ -62,7 +62,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide
    logical(lgt)                              :: chomped,goodstep
    real(DP),parameter                        :: DTMIN_FAC = 1.0e-3_DP
-   real(DP),parameter                        :: TOL = 1e-12_DP !2 * epsilon(1._DP)
+   real(DP),parameter                        :: TOL = 2 * epsilon(1._DP)
    integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
 
 
