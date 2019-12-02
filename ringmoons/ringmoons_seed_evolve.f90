@@ -155,6 +155,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
                Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iring%rho_pdisk(rbin),iseeds%a(i))
                Gmsdot = max(0.0_DP,min(Gmsdot,iring%Gm(rbin) / dt))
+               kr(rbin,rkn) = kr(rbin,rkn) - dt * Gmsdot  ! Remove mass from the ring
 
                ! Make sure we conserve angular momentum during growth
                Tr_evol = Gmsdot * iring%Iz(rbin) * iring%w(rbin)
@@ -164,7 +165,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             end if
 
             km(i,rkn) = dt * Gmsdot ! Grow the seed
-            kr(rbin,rkn) = kr(rbin,rkn) - dt * Gmsdot  ! Remove mass from the ring
             ka(i,rkn) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i) + Tr_evol,Gmsdot)
             kT(i,rkn) = dt * Ttide
             kL(:,rkn) = kL(:,rkn) + dt * Tlind(:)
@@ -188,9 +188,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          cycle steploop
       end if
 
-      !Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      !sarr = (TOL / (2 * max(maxval(Em(:)),maxval(Ea(:)))))**(0.25_DP) 
       sarr = (TOL / (2 * maxval(Ea(1:iseeds%N))))**(0.25_DP) 
 
       if ((sarr < 1._DP).and.(dt > dtmin)) then
