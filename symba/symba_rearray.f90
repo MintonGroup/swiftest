@@ -92,6 +92,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
         	END IF 
     	END DO
 
+        nsppl = nsppl + npl - nkpl
         npl = nkpl
 
         ! remove all mentions of mergeadd and mergeadd_list from this loop after fragmentation 
@@ -160,6 +161,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
         	END IF 
     	END DO 
 
+        nsptp = nspto + ntp - nktp
         ntp = nktp
 
     	CALL symba_tp_deallocate(symba_tpA)
