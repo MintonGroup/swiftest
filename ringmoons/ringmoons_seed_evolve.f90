@@ -101,7 +101,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    dTtide(:) = 0.0_DP
 
 
-   do loop = 1, LOOPMAX 
+   steploop: do loop = 1, LOOPMAX 
       if (loop == LOOPMAX) then
          stepfail = .true.
          return
@@ -117,14 +117,18 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       goodstep = .true.
 
       do rkn = 1,rkfo ! Runge-Kutta steps 
-
          iseeds%a(1:iseeds%N) = ai(1:iseeds%N) + matmul(ka(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
          iseeds%Gm(1:iseeds%N) = Gmi(1:iseeds%N) + matmul(km(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
+         if (any(iseeds%Gm(:) < 0.0_DP)) then
+            goodstep = .false.
+            dt = 0.5_DP * dt
+            cycle steploop
+         end if 
          iring%Gm(:)  = Gmringi(:) + matmul(kr(:,1:rkn-1),rkf45_btab(2:rkn,rkn-1))
          if (any(iring%Gm(:) < 0.0_DP)) then
-            !write(*,*) 'negative ring mass in rk step: ',rkn
             goodstep = .false.
-            exit
+            dt = 0.5_DP * dt
+            cycle steploop
          end if
 
          iring%Gsigma(:) = iring%Gm(:) / iring%deltaA(:)
@@ -143,7 +147,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 
             if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
                Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iring%rho_pdisk(rbin),iseeds%a(i))
-               Gmsdot = min(Gmsdot,iring%Gm(rbin) / dt)
+               Gmsdot = max(0.0_DP,min(Gmsdot,iring%Gm(rbin) / dt))
+
                kr(rbin,rkn) = kr(rbin,rkn) - dt * Gmsdot  ! Remove mass from the ring
                ! Make sure we conserve angular momentum during growth
                Tr_evol = Gmsdot * iring%Iz(rbin) * iring%w(rbin)
@@ -161,30 +166,22 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       end do
       if (.not.goodstep) then
          dt = 0.5_DP * dt
-         cycle 
+         cycle steploop
       end if
     
       Gmringf(:) = Gmringi(:) + matmul(kr(:,1:rkfo-1), rkf4_coeff(1:rkfo-1))
-      ! Prevent any bins from having negative mass by shifting mass upward from interior bins  
-      !do while (any(Gmringf(1:N) < 0.0_DP))
-      !   where(Gmringf(:) < 0.0_DP)
-      !      dM1(:) = Gmringf(:)
-      !   elsewhere
-      !      dM1(:) = 0.0_DP
-      !   end where
-      !   L(:) = iring%Iz(:) * iring%w(:)
-      !   dM2(:) = dM1(:) * (L(:) - cshift(L(:),1)) / (cshift(L(:),1) - cshift(L(:),2)) 
-      !  ! Make sure we conserve both mass and angular momentum
-      !   Gmringf(1:N) = Gmringf(1:N) - dM1(1:N) + cshift(dM1(1:N),1) + &
-      !      cshift(dM2(1:N),1)  - cshift(dM2(1:N),2)
-      !end do 
       if (any(Gmringf(:) < 0.0_DP)) then
          dt = 0.5_DP * dt
-         cycle 
+         cycle steploop
       end if
 
       af(1:seeds%N) = ai(1:seeds%N) + matmul(ka(1:seeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
       Gmf(1:seeds%N) = Gmi(1:seeds%N) + matmul(km(1:seeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
+
+      if (any(Gmf(:) < 0.0_DP)) then
+         dt = 0.5_DP * dt
+         cycle steploop
+      end if
 
       Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
@@ -193,7 +190,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       if ((sarr < 1._DP).and.(dt > dtmin)) then
          goodstep =.false.
          dt = 0.5_DP * sarr * dt
-         cycle
+         cycle steploop
       end if
 
       dTtide(1:iseeds%N) = dTtide(1:iseeds%N) + matmul(kT(1:iseeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
@@ -206,10 +203,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 
       dtleft = dtleft - dt
    
-      if (dtleft <= 0.0_DP) exit
+      if (dtleft <= 0.0_DP) exit steploop
       dt = min(0.9_DP * sarr * dt,dtleft)
 
-   end do
+   end do steploop
 
    seeds%a(1:seeds%N) = af(1:seeds%N)
    seeds%Gm(1:seeds%N) = Gmf(1:seeds%N)

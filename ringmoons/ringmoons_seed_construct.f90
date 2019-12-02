@@ -45,7 +45,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
 ! Internals
       integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin,Nactive
       real(DP)                            :: a, dGm, Gmleft
-      logical(LGT)                        :: open_space,destructo
+      logical(LGT)                        :: open_space,destructo,spawnbin
       real(DP), parameter                 :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
       integer(I4B)                        :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
       real(DP)                            :: ndz,deltaL,Lorig,c,b,dr,Lring_orig
@@ -106,19 +106,23 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       
       ! Make seeds small enough to fit into each bin 
       do i = ring%iRRL,ring%N
-         ! See Tajeddine et al. (2017) section 2.3. 10% the gap opening size
-         R_min = 0.1_DP * (3.3e5 / DU2CM) *  (ring%nu(i) / (100 * TU2S / DU2CM**2))
-         if ((ring%r_pdisk(i) > R_min).and.(ring%Gm(i) > ring%Gm_pdisk(i))) then 
-               open_space = .not.any(seeds%rbin(:) == i .and. seeds%active(:))
-               if (open_space) then
-                  a = ring%r(i)
-                  dGm = ring%Gm_pdisk(i)
-                  call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,dGm)
-               end if
-            end if
-         !end if
-      end do     
+         if (ring%Gm(i) < ring%Gm_pdisk(i)) cycle
+         if (any(seeds%rbin(:) == i .and. seeds%active(:))) cycle
 
+         spawnbin = (i >= ring%iFRL)  ! Always spawn seeds at the FRL
+
+         ! See Tajeddine et al. (2017) section 2.3. Spawn seed if aggregates are 1% the gap opening mass
+         R_min = 0.01_DP * (3.3e5 / DU2CM) *  (ring%nu(i) / (100 * TU2S / DU2CM**2))
+         if (ring%r_pdisk(i) > R_min) spawnbin = .true.
+
+         if (spawnbin) then
+            a = ring%r(i)
+            dGm = ring%Gm_pdisk(i)
+            call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,dGm)
+         end if
+      end do     
+      !read(*,*)
+       
       call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
           
 

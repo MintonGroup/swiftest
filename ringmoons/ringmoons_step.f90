@@ -80,7 +80,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       subcount = 0
       dt = dtleft
       do loop = 1, LOOPMAX
-!write(*,*) (t + (dtin - dtleft)) * 1e-6_DP
+!write(*,*) 't: ',(t + (dtin - dtleft))
 !write(*,*) 'dt: ',dt, 'dtleft: ',dtleft
          if (loop == LOOPMAX) then
             write(*,*) 'LOOPMAX reached in seed evolution. Ringmoons_step failed'
