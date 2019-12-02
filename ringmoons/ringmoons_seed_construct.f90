@@ -106,7 +106,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       
       ! Make seeds small enough to fit into each bin 
       do i = ring%iRRL,ring%N
-         if (ring%Gm(i) < ring%Gm_pdisk(i)) cycle ! don't consider bins that don't have enough mass
+         if (ring%Gm(i) < N_DISK_FACTOR * ring%Gm_pdisk(i)) cycle ! don't consider bins that don't have enough mass
          if (ring%Q(i) > 1._DP) cycle  ! don't consider bins that are gravitationally stable
          if (any(seeds%rbin(:) == i .and. seeds%active(:))) cycle ! don't consider bins that already have a seed
 

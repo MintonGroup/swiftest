@@ -43,28 +43,27 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    logical(LGT),intent(out)               :: stepfail
 
 ! Internals
-   integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop, N
+   integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop, N,nloops
    real(DP)                                  :: dadt, e, inc, sigavg, sigsum, ns, Tr_evol,Gmsdot, Li, Lj, Ls,dt,dtleft,dtmin
    real(DP)                                  :: Mr0,Ms0,Mr1,Ms1
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
-   real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmringi,Gmringf,Torquei
-   real(DP),dimension(0:ring%N+1)            :: Tlind,Tring,L,dM1,dM2
-   !real(DP),dimension(2:4),parameter         :: rkh = (/0.5_DP, 0.5_DP, 1._DP/)
-   !integer(I4B),dimension(4),parameter       :: rkmult = (/1, 2, 2, 1/)
+   real(DP),dimension(0:ring%N+1)            :: dTorque_ring,Gmringi,Gmringf,Torquei,Torquef
+   real(DP),dimension(0:ring%N+1)            :: Tlind,Tring
    real(DP),dimension(0:ring%N+1,rkfo)       :: kr,kL
    real(DP),dimension(seeds%N,rkfo)          :: ka,km,kT
    real(DP),dimension(0:ring%N+1)            :: Evr
    real(DP),dimension(seeds%N)               :: Ea, Em
-   real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, dTtide, Lseeds
+   real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, dTtide,Ttidef
    integer(I4B)                              :: Nactive 
    real(DP),dimension(0:ring%N+1)            :: Lring_orig,Lring_now
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
-   real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,Lnow,Llind,Ltide,sarr,Tide
+   real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide
    logical(lgt)                              :: chomped,goodstep
-   real(DP),parameter                        :: DTMIN_FAC = 1.0e-6_DP
-   real(DP),parameter                        :: TOL = 1e-8_DP
+   real(DP),parameter                        :: DTMIN_FAC = 1.0e-8_DP
+   real(DP),parameter                        :: TOL = 2 * epsilon(1._DP)
+   integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
 
 
 ! Executable code
@@ -73,13 +72,13 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    stepfail = .false.
    if (seeds%N == 0) return
 
-   Lr0 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dtin
-   Ls0 = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:))
-   Lp0 = ring%LPi + ring%dLp !swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
-   Lorig = Lr0 + Ls0 + Lp0
+!   Lr0 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dtin
+!   Ls0 = sum(seeds%Gm(1:seeds%N) * sqrt((swifter_pl1P%mass + seeds%Gm(1:seeds%N)) * seeds%a(1:seeds%N)))
+!   Lp0 = ring%dLp !swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
+!   Lorig = Lr0 + Ls0 + Lp0
 
-   Mr0 = sum(ring%Gm(:))
-   Ms0 = sum(seeds%Gm(:),seeds%active(:))
+!   Mr0 = sum(ring%Gm(:))
+!   Ms0 = sum(seeds%Gm(:),seeds%active(:))
    dtleft = dtin
    dt = dtin
    dtmin = DTMIN_FAC * dtin
@@ -100,12 +99,18 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    dTorque_ring(:) = 0.0_DP
    dTtide(:) = 0.0_DP
 
+   Nnegative_seed = 0
+   Nnegative_ring = 0
+   Nbig_error = 0
 
    steploop: do loop = 1, LOOPMAX 
+      nloops = loop
       if (loop == LOOPMAX) then
          stepfail = .true.
+         write(*,*) 'max loop reached in seed_evolve'
          return
       end if
+      
 
       stepfail = .false.
 
@@ -119,13 +124,15 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       do rkn = 1,rkfo ! Runge-Kutta steps 
          iseeds%a(1:iseeds%N) = ai(1:iseeds%N) + matmul(ka(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
          iseeds%Gm(1:iseeds%N) = Gmi(1:iseeds%N) + matmul(km(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
-         if (any(iseeds%Gm(:) < 0.0_DP)) then
+         if (any(iseeds%Gm(1:iseeds%N) < 0.0_DP)) then
+            Nnegative_seed = Nnegative_seed + 1 
             goodstep = .false.
             dt = 0.5_DP * dt
             cycle steploop
          end if 
          iring%Gm(:)  = Gmringi(:) + matmul(kr(:,1:rkn-1),rkf45_btab(2:rkn,rkn-1))
          if (any(iring%Gm(:) < 0.0_DP)) then
+            Nnegative_ring = Nnegative_ring + 1 
             goodstep = .false.
             dt = 0.5_DP * dt
             cycle steploop
@@ -142,14 +149,13 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,iring,iseeds%Gm(i),iseeds%a(i),e,inc)
 
             ns = sqrt((swifter_pl1P%mass + iseeds%Gm(i)) / iseeds%a(i)**3)
-            Tide = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),ns,iseeds%a(i),e,inc) 
-            iseeds%Torque(i) = Tide - sum(Tlind(:)) 
+            Ttide = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),ns,iseeds%a(i),e,inc) 
+            iseeds%Torque(i) = Ttide - sum(Tlind(:)) 
 
             if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
                Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iring%rho_pdisk(rbin),iseeds%a(i))
                Gmsdot = max(0.0_DP,min(Gmsdot,iring%Gm(rbin) / dt))
 
-               kr(rbin,rkn) = kr(rbin,rkn) - dt * Gmsdot  ! Remove mass from the ring
                ! Make sure we conserve angular momentum during growth
                Tr_evol = Gmsdot * iring%Iz(rbin) * iring%w(rbin)
             else
@@ -158,48 +164,51 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             end if
 
             km(i,rkn) = dt * Gmsdot ! Grow the seed
+            kr(rbin,rkn) = kr(rbin,rkn) - dt * Gmsdot  ! Remove mass from the ring
             ka(i,rkn) = dt * ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i) + Tr_evol,Gmsdot)
-            kT(i,rkn) = dt * Tide
+            kT(i,rkn) = dt * Ttide
             kL(:,rkn) = kL(:,rkn) + dt * Tlind(:)
             
          end do
       end do
-      if (.not.goodstep) then
-         dt = 0.5_DP * dt
-         cycle steploop
-      end if
     
       Gmringf(:) = Gmringi(:) + matmul(kr(:,1:rkfo-1), rkf4_coeff(1:rkfo-1))
       if (any(Gmringf(:) < 0.0_DP)) then
+         Nnegative_ring = Nnegative_ring + 1 
          dt = 0.5_DP * dt
          cycle steploop
       end if
 
-      af(1:seeds%N) = ai(1:seeds%N) + matmul(ka(1:seeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
-      Gmf(1:seeds%N) = Gmi(1:seeds%N) + matmul(km(1:seeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
+      af(1:iseeds%N) = ai(1:iseeds%N) + matmul(ka(1:iseeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
+      Gmf(1:iseeds%N) = Gmi(1:iseeds%N) + matmul(km(1:iseeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
 
-      if (any(Gmf(:) < 0.0_DP)) then
+      if (any(Gmf(1:iseeds%N) < 0.0_DP)) then
+         Nnegative_seed = Nnegative_seed + 1 
          dt = 0.5_DP * dt
          cycle steploop
       end if
 
-      Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
+      !Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      sarr = (TOL / (2 * max(maxval(Em(:)),maxval(Ea(:)))))**(0.25_DP) 
+      !sarr = (TOL / (2 * max(maxval(Em(:)),maxval(Ea(:)))))**(0.25_DP) 
+      sarr = (TOL / (2 * maxval(Ea(1:iseeds%N))))**(0.25_DP) 
 
       if ((sarr < 1._DP).and.(dt > dtmin)) then
          goodstep =.false.
+         Nbig_error = Nbig_error + 1
          dt = 0.5_DP * sarr * dt
          cycle steploop
       end if
 
-      dTtide(1:iseeds%N) = dTtide(1:iseeds%N) + matmul(kT(1:iseeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
-      dTorque_ring(:) = dTorque_ring(:) + matmul(kL(:,1:rkfo-1), rkf4_coeff(1:rkfo-1)) 
+      Torquef(:) = matmul(kL(:,1:rkfo-1), rkf4_coeff(1:rkfo-1))
+      Ttidef(1:iseeds%N) = matmul(kT(1:seeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
 
       ! save final state of seeds and ring
       ai(1:iseeds%N) = af(1:iseeds%N)
       Gmi(1:iseeds%N) = Gmf(1:iseeds%N)
       Gmringi(:) = Gmringf(:)
+      dTtide(1:iseeds%N) = dTtide(1:iseeds%N) + Ttidef(1:seeds%N)
+      dTorque_ring(:) = dTorque_ring(:) + Torquef(:)
 
       dtleft = dtleft - dt
    
@@ -207,6 +216,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       dt = min(0.9_DP * sarr * dt,dtleft)
 
    end do steploop
+   !write(*,*) 'seed_evolve steploop num: ',nloops
+   !write(*,*) 'negative seed fails: ',Nnegative_seed
+   !write(*,*) 'negative ring fails: ',Nnegative_ring
+   !write(*,*) 'error too big fails: ',Nbig_error
 
    seeds%a(1:seeds%N) = af(1:seeds%N)
    seeds%Gm(1:seeds%N) = Gmf(1:seeds%N)
@@ -221,19 +234,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    call ringmoons_deallocate(iring,iseeds)
    call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
 
-   Lr1 = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) + sum(ring%Torque(:)) * dtin
-   Ls1 = sum(seeds%Gm(:) * sqrt((swifter_pl1P%mass + seeds%Gm(:)) * seeds%a(:)),seeds%active(:))
-   Lp1 = ring%Lpi + ring%dLp 
-   Lnow = Lr1 + Ls1 + Lp1
-
-   if (abs((Lnow - Lorig) / Lorig) > epsilon(1._DP)) then
-      stepfail = .true.
-      !write(*,*) 'failed to conserve angular momentum'
-      !write(*,*) 'Lerr: ',(Lnow - Lorig) / Lorig 
-      return
-   end if 
-
-   fz_width(:) = FEEDING_ZONE_FACTOR * seeds%Rhill(1:seeds%N)
+   fz_width(1:seeds%N) = FEEDING_ZONE_FACTOR * seeds%Rhill(1:seeds%N)
 
    !I'm hungry! What's there to eat?! Look for neighboring seeds
    !write(*,*) 'chomp'
@@ -242,7 +243,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       if (seeds%active(i)) then
          do j = i + 1, seeds%N
             if (seeds%active(j)) then
-               if ((seeds%a(j) > seeds%a(i) - fz_width(i)).and.(seeds%a(j) < seeds%a(i) + fz_width(i))) then ! This one is in the feeding zone
+               if ((seeds%a(j) > seeds%a(i) - fz_width(i) - fz_width(j)).and.(seeds%a(j) < seeds%a(i) + fz_width(i) + fz_width(j))) then ! This one is in the feeding zone
                   ! conserve both mass and angular momentum
                   
                   Li = seeds%Gm(i) * sqrt((swifter_pl1P%mass + seeds%Gm(i)) * seeds%a(i))
