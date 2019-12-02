@@ -43,7 +43,7 @@ elemental function ringmoons_seed_dMdt(ring,GMP,Gsigma,Gmseed,rhoseed,a) result(
 ! Internals
       integer(I4B)                           :: i
       real(DP)                               :: C
-      real(DP),parameter                     :: eff2   = 1e-7_DP ! This term gets the growth rate to match up closely to Andy's
+      real(DP),parameter                     :: eff2   = 1e-8_DP ! This term gets the growth rate to match up closely to Andy's
       real(DP),parameter                     :: growth_exponent = 4._DP / 3._DP
       real(DP), parameter                    :: SIGLIMIT = 1e-100_DP
 

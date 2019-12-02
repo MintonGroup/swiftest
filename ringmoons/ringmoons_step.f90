@@ -66,7 +66,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          lfirst = .false.
       end if
 !write(*,*)
-!write(*,*) (t + (dtin - dtleft)) * 1e-6_DP
       seeds%Torque(:) = 0.0_DP
 
       old_ring%N = ring%N
@@ -81,6 +80,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       subcount = 0
       dt = dtleft
       do loop = 1, LOOPMAX
+!write(*,*) (t + (dtin - dtleft)) * 1e-6_DP
 !write(*,*) 'dt: ',dt, 'dtleft: ',dtleft
          if (loop == LOOPMAX) then
             write(*,*) 'LOOPMAX reached in seed evolution. Ringmoons_step failed'
@@ -127,7 +127,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             swifter_pl1P%rot = old_swifter_pl1P%rot
             cycle
          end if
-         dtpp = dt
 
 !write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)
@@ -146,6 +145,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
                DESTRUCTION_COUNTER = 0
             end if
          end if
+!if (dt < 1e-4_DP) read(*,*)
 
          dtleft = dtleft - dt
          ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque
@@ -155,7 +155,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             dt = min(dtleft,submax * dt)
             subcount = 0
          end if
-         dt = min(dtleft,dtpp,dt)
+         dt = min(dtleft,dt)
          old_ring = ring
          old_seeds = seeds
          old_swifter_pl1P%mass = swifter_pl1P%mass
