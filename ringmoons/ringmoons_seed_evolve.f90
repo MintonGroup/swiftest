@@ -53,7 +53,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP),dimension(0:ring%N+1)            :: Tlind,Tring
    real(DP),dimension(0:ring%N+1,rkfo)       :: kr,kL
    real(DP),dimension(seeds%N,rkfo)          :: ka,km,kT
-   real(DP),dimension(0:ring%N+1)            :: Evr
+   real(DP),dimension(0:ring%N+1)            :: Er
    real(DP),dimension(seeds%N)               :: Ea, Em
    real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, dTtide,Ttidef
    integer(I4B)                              :: Nactive 
@@ -62,7 +62,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide
    logical(lgt)                              :: chomped,goodstep
    real(DP),parameter                        :: DTMIN_FAC = 1.0e-4_DP
-   real(DP),parameter                        :: TOL = 2 * epsilon(1._DP)
+   real(DP),parameter                        :: TOL = epsilon(1._DP)
    integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
 
 
@@ -172,15 +172,15 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          end do
       end do
     
-      Gmringf(:) = Gmringi(:) + matmul(kr(:,1:rkfo-1), rkf4_coeff(1:rkfo-1))
+      Gmringf(:) = Gmringi(:) + matmul(kr(:,1:rkfo), rkf5_coeff(1:rkfo))
       if (any(Gmringf(:) < 0.0_DP)) then
          Nnegative_ring = Nnegative_ring + 1 
          dt = 0.5_DP * dt
          cycle steploop
       end if
 
-      af(1:iseeds%N) = ai(1:iseeds%N) + matmul(ka(1:iseeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
-      Gmf(1:iseeds%N) = Gmi(1:iseeds%N) + matmul(km(1:iseeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
+      af(1:iseeds%N) = ai(1:iseeds%N) + matmul(ka(1:iseeds%N,1:rkfo), rkf5_coeff(1:rkfo))
+      Gmf(1:iseeds%N) = Gmi(1:iseeds%N) + matmul(km(1:iseeds%N,1:rkfo), rkf5_coeff(1:rkfo))
 
       if (any(Gmf(1:iseeds%N) < 0.0_DP)) then
          Nnegative_seed = Nnegative_seed + 1 
@@ -191,15 +191,21 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       sarr = (TOL / (2 * maxval(Ea(1:iseeds%N))))**(0.25_DP) 
 
-      if ((sarr < 1._DP).and.(dt > dtmin)) then
-         goodstep =.false.
-         Nbig_error = Nbig_error + 1
-         dt = max(0.5_DP * sarr * dt,dtmin)
-         cycle steploop
+      Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
+      sarr = min(sarr,(TOL / (2 * maxval(Em(1:iseeds%N))))**(0.25_DP)) 
+      if ((sarr < 1._DP - epsilon(1._DP))) then
+         if (dt > dtmin) then
+            goodstep =.false.
+            Nbig_error = Nbig_error + 1
+            dt = max(0.5_DP * sarr * dt,dtmin)
+            cycle steploop
+         else
+            sarr = 1._DP / 0.90_DP
+         end if
       end if
 
-      Torquef(:) = matmul(kL(:,1:rkfo-1), rkf4_coeff(1:rkfo-1))
-      Ttidef(1:iseeds%N) = matmul(kT(1:seeds%N,1:rkfo-1), rkf4_coeff(1:rkfo-1))
+      Torquef(:) = matmul(kL(:,1:rkfo), rkf5_coeff(1:rkfo))
+      Ttidef(1:iseeds%N) = matmul(kT(1:seeds%N,1:rkfo), rkf5_coeff(1:rkfo))
 
       ! save final state of seeds and ring
       ai(1:iseeds%N) = af(1:iseeds%N)
@@ -211,7 +217,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       dtleft = dtleft - dt
    
       if (dtleft <= 0.0_DP) exit steploop
-      dt = min(0.9_DP * sarr * dt,dtleft)
+      dt = min(0.90_DP * sarr * dt,dtleft)
 
    end do steploop
    !write(*,*) 'seed_evolve steploop num: ',nloops
