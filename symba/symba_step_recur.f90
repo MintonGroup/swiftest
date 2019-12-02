@@ -92,6 +92,9 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           WRITE(*, *) "   Roundoff error will be important!"
      END IF
      irecp = ireci + 1
+
+     !WRITE(*,*) "irecp:", irecp, "ireci:", ireci, "dtl:", dtl, "dth:", dth
+
      IF (ireci == 0) THEN
           icflg = 0
           ! OpenMP parallelization added by D. Minton
@@ -162,11 +165,11 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
                          IF (lfragmentation) THEN
-                              WRITE(*,*) "fragmentation" 
+                              !WRITE(*,*) "fragmentation" 
                             !CALL symba_fragmentation_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,&              ! check later
                              !      mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)                                                       
                          ELSE
-                              WRITE(*,*) "merge" 
+                              !WRITE(*,*) "merge" 
                             !CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,   &                    !check later
                              !      mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)
                          END IF
@@ -178,7 +181,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                     IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                          &
                         (symba_plA%levelg(index_pl) >= ireci) .AND.                                       &
                         (symba_tpA%levelg(index_tp) >= ireci)) THEN
-                        WRITE(*,*) "merge"                                                 
+                        !WRITE(*,*) "merge"                                                 
                          !CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type)                    !check later 
                     END IF
                END DO

@@ -83,7 +83,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
           IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) THEN
                !swifter_plP => swifter_pl1P
                !DO j = 2, nplm
-               DO j = 2, npl
+               DO j = 2, nplm
                     !swifter_plP => swifter_plP%nextP
                     dx(:) = symba_tpA%helio%swiftest%xh(:,i) - xh(:, j)
                     r2 = DOT_PRODUCT(dx(:), dx(:))

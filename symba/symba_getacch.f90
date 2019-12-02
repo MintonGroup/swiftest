@@ -59,7 +59,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
 ! Added by D. Minton
-     REAL(DP), DIMENSION(NDIM) :: accsum
+     !REAL(DP), DIMENSION(NDIM) :: accsum
 
 ! Executable code
      
@@ -86,7 +86,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
           !symba_pljP => symba_pliP
           !^^^^^^^^^^^^^^^^^^^^
           !Added by D. Minton
-          accsum(:)=0.0_DP
+          !accsum(:)=0.0_DP
           !^^^^^^^^^^^^^^^^^^^
           ! OpenMP parallelization added by D. Minton
           !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
@@ -100,30 +100,30 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                !Added by D. Minton
                !symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
                !^^^^^^^^^^^^^^^^^^
-               IF ((.NOT. symba_plA%lmerged(i)) .OR. &
-                    (.NOT. symba_plA%lmerged(j))) &
-                    ! .OR.  &
-                   !(.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) & !need to handle parents and children separately
-                   THEN !need to handle parents and children separately
-                    dx(:) = symba_plA%helio%swiftest%xh(:,i) - symba_plA%helio%swiftest%xh(:,j)
+               IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
+                   (symba_plA%index_parent(i) /= symba_plA%index_parent(j))) THEN
+                    dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
                     rji2 = DOT_PRODUCT(dx(:), dx(:))
                     irij3 = 1.0_DP/(rji2*SQRT(rji2))
                     faci = symba_plA%helio%swiftest%mass(i)*irij3
                     facj = symba_plA%helio%swiftest%mass(j)*irij3
+
                     !Removed by D. Minton
                     !helio_pliP%ah(:) = helio_pliP%ah(:) + facj*dx(:)
                     !^^^^^^^^^^^^^^^^^^^^
                     !Added by D. Minton
-                    accsum(:) = accsum(:) + facj*dx(:)
+                    !accsum(:) = accsum(:) + facj*dx(:)
                     !^^^^^^^^^^^^^^^^^^^^
+                    symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
                     symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
                END IF
           END DO
           !$OMP END PARALLEL DO
           !Added by D. Minton
-          symba_plA%helio%ah(:,i)=symba_plA%helio%ah(:,i)+accsum(:)
+          !symba_plA%helio%ah(:,i)=symba_plA%helio%ah(:,i)+accsum(:)
           !^^^^^^^^^^^^^^^^^^^^
      END DO
+
      ! OpenMP parallelization added by D. Minton
      !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
      !$OMP PRIVATE(i,symba_pliP,symba_pljP,helio_pliP,helio_pljP,dx,rji2,irij3,faci,facj) &
@@ -131,11 +131,8 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      DO i = 1, nplplenc
           index_i = plplenc_list%index1(i)
           index_j = plplenc_list%index2(i)
-          IF ((.NOT. symba_plA%lmerged(index_i)) .OR. &
-               (.NOT. symba_plA%lmerged(index_j)))  &
-               ! .OR. &
-              !(.NOT. ASSOCIATED(symba_pliP%parentP, symba_pljP%parentP))) & !need to update parent/children
-               THEN !need to update parent/children
+          IF ((.NOT. symba_plA%lmerged(index_i)) .OR. (.NOT. symba_plA%lmerged(index_j))  &
+                .OR. (symba_plA%index_parent(index_i) /= symba_plA%index_parent(index_j))) THEN !need to update parent/children
                dx(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
                rji2 = DOT_PRODUCT(dx(:), dx(:))
                irij3 = 1.0_DP/(rji2*SQRT(rji2))
@@ -167,7 +164,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                !Added by D. Minton
                !swifter_plP=>symba_pl1P%symba_plPA(i)%thisP%helio%swifter
                !^^^^^^^^^^^^^^^^^^
-               !xh(:, i) = swifter_plP%xh(:)
+               xh(:, i) = symba_plA%helio%swiftest%xh(:,i)
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO

@@ -65,6 +65,8 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
           index_j  = plplenc_list%index2(i)
           symba_plA%helio%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
           symba_plA%helio%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          !WRITE(*,*) "ps i bar vel:", symba_plA%helio%swiftest%vb(:,index_i), &
+          !"ps j bar vel:", symba_plA%helio%swiftest%vb(:,index_j)
      END DO
      DO i = 1, npltpenc
           index_tp  = pltpenc_list%indextp(i)
@@ -130,6 +132,8 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
           symba_plA%helio%swiftest%vb(:,index_j) = symba_plA%helio%swiftest%vb(:,index_j) + sgn*dt*symba_plA%helio%ah(:,index_j)
           symba_plA%helio%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
           symba_plA%helio%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          !WRITE(*,*) "ps i bar vel:", symba_plA%helio%swiftest%vb(:,index_i), "ps j bar vel:", &
+          !symba_plA%helio%swiftest%vb(:,index_j)
      END DO
      DO i = 1, npltpenc
           index_tp  = pltpenc_list%indextp(i)
