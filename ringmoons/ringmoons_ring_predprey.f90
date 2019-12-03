@@ -90,7 +90,7 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail)
 
    v2f(:) = v2i(:)
    Gmf(:) = Gmi(:)
-   rad_limit = 1e-1_DP / DU2CM
+   rad_limit = RAD_LIMIT_CM / DU2CM
    mass_limit = 4._DP / 3._DP * PI * rad_limit**3 * maxval(ring%rho_pdisk(:))
 
    do i = 1,ring%N

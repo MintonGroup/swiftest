@@ -39,13 +39,14 @@ subroutine ringmoons_update_ring(swifter_pl1P,ring)
 ! Arguments
    type(swifter_pl),pointer                  :: swifter_pl1P
    type(ringmoons_ring),intent(inout) :: ring
+   real(DP) :: rad_limit
 
 ! Internals
 
 ! Executable code
-
+   rad_limit = 1.1_DP * RAD_LIMIT_CM / DU2CM
    ring%r_hstar(:) = ring%r(:) * (2 * ring%Gm_pdisk(:) /(3._DP * swifter_pl1P%mass))**(1._DP/3._DP) / (2 * ring%r_pdisk(:)) 
-   where (ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk)
+   where ((ring%r_pdisk(:) > rad_limit).and.(ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk))
       ring%Q(:) = ring%w(:) * ring%vrel_pdisk(:) / (3.36_DP * ring%Gsigma(:))
       ring%tau(:) = PI * ring%r_pdisk(:)**2 * ring%Gsigma(:) / ring%Gm_pdisk(:)
       ring%nu(:) = ringmoons_viscosity(ring%Gsigma(:), ring%Gm_pdisk(:), (ring%vrel_pdisk(:))**2, &
