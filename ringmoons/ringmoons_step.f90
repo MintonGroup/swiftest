@@ -54,6 +54,8 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       type(ringmoons_seeds)                           :: old_seeds
       logical(LGT)                                    :: stepfail
       type(swifter_pl)                                :: old_swifter_pl1P
+      real(DP),parameter                              :: DTMIN_FAC = 1e-3_DP
+      real(DP),dimension(0:ring%N+1)                  :: L,dM1,dM2
 
 ! Executable code
       dtleft = dtin
@@ -116,19 +118,49 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail) ! Evolve the size and velocity dispersion distribution of the ring 
                                                                ! following the predator/prey model of Esposito et al. (2012)
 
-         if (stepfail) then
-!write(*,*) 'predprey called a step failure',dt,dtleft
-            subcount = 0
-            ring = old_ring
-            seeds = old_seeds
-            swifter_pl1P%mass = old_swifter_pl1P%mass
-            swifter_pl1P%radius = old_swifter_pl1P%radius
-            swifter_pl1P%rot = old_swifter_pl1P%rot
-            cycle
-         end if
+!         if (stepfail) then
+!!write(*,*) 'predprey called a step failure',dt,dtleft
+!            subcount = 0
+!            ring = old_ring
+!            seeds = old_seeds
+!            swifter_pl1P%mass = old_swifter_pl1P%mass
+!            swifter_pl1P%radius = old_swifter_pl1P%radius
+!            swifter_pl1P%rot = old_swifter_pl1P%rot
+!            cycle
+!         end if
 
 !write(*,*) 'sigma_solver'
-         call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt)
+         call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt,stepfail)
+         if (stepfail) then
+            if (dt > dtin * DTMIN_FAC) then
+!write(*,*) 'sigma_solver called a step failure',dt,dtleft
+               dt = dt / submax
+               subcount = 0
+               ring = old_ring
+               seeds = old_seeds
+               swifter_pl1P%mass = old_swifter_pl1P%mass
+               swifter_pl1P%radius = old_swifter_pl1P%radius
+               swifter_pl1P%rot = old_swifter_pl1P%rot
+               cycle
+            else
+                  ! Prevent any bins from having negative mass by shifting mass upward from interior bins  
+               do while (any(ring%Gm(1:ring%N) < 0.0_DP))
+                  where(ring%Gm(:) < 0.0_DP)
+                     dM1(:) = ring%Gm(:)
+                  elsewhere
+                     dM1(:) = 0.0_DP
+                  end where
+                  L(:) = ring%Iz(:) * ring%w(:)
+                  dM2(:) = dM1(:) * (L(:) - cshift(L(:),1)) / (cshift(L(:),1) - cshift(L(:),2)) 
+                 ! Make sure we conserve both mass and angular momentum
+                  ring%Gm(1:ring%N) = ring%Gm(1:ring%N) - dM1(1:ring%N) + cshift(dM1(1:ring%N),1) + &
+                     cshift(dM2(1:ring%N),1)  - cshift(dM2(1:ring%N),2)
+                  ring%Gsigma(1:ring%N) = ring%Gm(1:ring%N) / ring%deltaA(1:ring%N)
+               end do 
+            end if
+
+         end if
+
 
 
 !write(*,*) 'seed_construct'

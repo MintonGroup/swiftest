@@ -24,7 +24,7 @@
 !  Notes       : Adapted from Andy Hesselbrock's ringmoons Python scripts
 !
 !**********************************************************************************************************************************
-subroutine ringmoons_sigma_solver(ring,GMP,dt)
+subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
 
 ! Modules
       use module_parameters
@@ -36,13 +36,15 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
 ! Arguments
       type(ringmoons_ring),intent(inout)  :: ring
       real(DP),intent(in)                 :: GMP,dt
+      logical(lgt),intent(out)            :: stepfail
 
 ! Internals
 
-      real(DP),dimension(0:ring%N+1)      :: S,Snew,Sn1,Sn2,fac,L,dM1,dM2
+      real(DP),dimension(0:ring%N+1)      :: S,Snew,Sn1,Sn2,fac
       integer(I4B)                        :: i,N,j
 
 ! Executable code
+      stepfail = .false.
 
       N = ring%N
 
@@ -66,23 +68,11 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt)
 
       Snew(1:N) = S(1:N) + fac(1:N) * (Sn1(1:N) - Sn2(1:N))
 
-      ring%Gsigma(1:N) = Snew(1:N) / ring%X(1:N)
+      ring%Gsigma(1:N) =Snew(1:N) / ring%X(1:N)
       ring%Gm(1:N) = ring%Gsigma(1:N) * ring%deltaA(1:N)
 
-      ! Prevent any bins from having negative mass by shifting mass upward from interior bins  
-      do while (any(ring%Gm(1:N) < 0.0_DP))
-         where(ring%Gm(:) < 0.0_DP)
-            dM1(:) = ring%Gm(:)
-         elsewhere
-            dM1(:) = 0.0_DP
-         end where
-         L(:) = ring%Iz(:) * ring%w(:)
-         dM2(:) = dM1(:) * (L(:) - cshift(L(:),1)) / (cshift(L(:),1) - cshift(L(:),2)) 
-        ! Make sure we conserve both mass and angular momentum
-         ring%Gm(1:N) = ring%Gm(1:N) - dM1(1:N) + cshift(dM1(1:N),1) + &
-            cshift(dM2(1:N),1)  - cshift(dM2(1:N),2)
-         ring%Gsigma(1:N) = ring%Gm(1:N) / ring%deltaA(1:N)
-      end do 
+      if (any(ring%Gm(1:N) < 0.0_DP)) stepfail = .true.
+
 
 
       return 

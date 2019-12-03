@@ -71,13 +71,14 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_sigma_solver(ring,GMP,dt)
+         subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
          type(ringmoons_ring),intent(inout) :: ring
          real(DP),intent(in) :: GMP,dt
+         logical(lgt),intent(out) :: stepfail
          end subroutine ringmoons_sigma_solver
       end interface
 
