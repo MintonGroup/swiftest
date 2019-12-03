@@ -41,7 +41,7 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
 ! Internals
 
       real(DP),dimension(0:ring%N+1)      :: S,Snew,Sn1,Sn2,fac,artnu,L,dM1,dM2
-      integer(I4B)                        :: i,N,j
+      integer(I4B)                        :: i,N,j,loop
 
 ! Executable code
       stepfail = .false.
@@ -69,7 +69,8 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
       Snew(1:N) = S(1:N) + fac(1:N) * (Sn1(1:N) - Sn2(1:N))
 
       ! Prevent any bins from having negative mass by diffusing mass with an artificial viscosity
-      do while (any(Snew(1:N) < -tiny(1._DP)))
+      loop = 0
+      do while (any(Snew(1:N) < -epsilon(1._DP) * maxval(Snew(1:N))))
          where (Snew(1:N) < 0.0_DP)
             artnu(1:N) = 1._DP / (16 * fac(1:N))
          elsewhere
@@ -78,6 +79,8 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
          S(1:N) = Snew(1:N) 
          Sn1(1:N) = artnu(2:N+1) * S(2:N+1) - 2 * artnu(1:N) * S(1:N) + artnu(0:N-1) * S(0:N-1)
          Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
+         loop = loop + 1
+         if (loop >= LOOPMAX) exit
       end do
 
       ring%Gsigma(1:N) = max(0.0_DP,Snew(1:N) / ring%X(1:N))
