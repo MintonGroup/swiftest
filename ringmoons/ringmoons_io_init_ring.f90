@@ -44,8 +44,9 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    character(STRMAX)                   :: ringfile
    integer(I4B),parameter              :: LUN = 22
    integer(I4B)                        :: i,m,inner_outer_sign,ioerr
-   real(DP)                            :: beta, r_pdisk, Gm_pdisk
+   real(DP)                            :: beta, r_pdisk, Gm_pdisk,dt
    real(DP),dimension(:),allocatable   :: kappa_rhstar,eta_rhstar
+   logical(lgt)                        :: stepfail
 
 ! Executable code
    ringfile='ring.in'
@@ -88,6 +89,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    deallocate(kappa_rhstar)
    deallocate(eta_rhstar)
 
+
 ! For performance reasons, we compute a table of Laplace coefficient terms the first time through and then interpolate 
    do m = 2, m_max
       do inner_outer_sign = -1,1,2
@@ -108,7 +110,8 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    ring%dRP = 0.0_DP
    ring%rotPi = swifter_pl1P%rot(3)
    ring%drotP = 0.0_DP
-
+   dt = 1.0_DP
+   call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail)
    call ringmoons_seed_construct(swifter_pl1P,ring,seeds) 
 
 

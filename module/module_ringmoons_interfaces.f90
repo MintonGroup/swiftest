@@ -344,7 +344,7 @@ module module_ringmoons_interfaces
 
 
       interface
-         subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail,dtnew)
+         subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail)
          use module_parameters
          use module_swifter
          use module_ringmoons
@@ -354,7 +354,6 @@ module module_ringmoons_interfaces
          type(ringmoons_seeds),intent(in) :: seeds
          real(DP),intent(in)              :: dt
          logical(lgt), intent(out)                 :: stepfail
-         real(DP),intent(out)             :: dtnew
          end subroutine ringmoons_ring_predprey 
       end interface
 

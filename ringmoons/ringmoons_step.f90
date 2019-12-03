@@ -47,7 +47,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 ! Internals
       integer(I4B) :: i,loop,seedloop,subcount,loopcount
       integer(I4B), parameter :: submax = 2
-      real(DP) :: dt,dtleft,dtpp
+      real(DP) :: dt,dtleft
       real(DP),save :: Mtot_orig,Mtot_now,Ltot_orig,Ltot_now
       CHARACTER(*),parameter :: ring_outfile = "ring.dat"   ! Name of ringmoons output binary file
       type(ringmoons_ring)                            :: old_ring
@@ -113,12 +113,11 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
          end if
 
 !write(*,*) 'ring_predprey'
-         call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail,dtpp) ! Evolve the size and velocity dispersion distribution of the ring 
+         call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail) ! Evolve the size and velocity dispersion distribution of the ring 
                                                                ! following the predator/prey model of Esposito et al. (2012)
 
          if (stepfail) then
 !write(*,*) 'predprey called a step failure',dt,dtleft
-            dt = dtpp
             subcount = 0
             ring = old_ring
             seeds = old_seeds

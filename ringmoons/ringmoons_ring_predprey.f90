@@ -27,7 +27,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
+subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail)
 
 ! Modules
    use module_parameters
@@ -42,7 +42,6 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    type(ringmoons_seeds), intent(in)    :: seeds
    real(DP), intent(in)                 :: dtin
    logical(lgt), intent(out)            :: stepfail   
-   real(DP),intent(out)                 :: dtnew
 
 ! Internals
    integer(I4B)                         :: rkn,i,j,rki,loop,goodval
@@ -55,7 +54,7 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    real(DP),dimension(0:ring%N+1)       :: Ev2,EGm,sarr,dt,dtleft,dtmin
    real(DP),parameter                   :: DTMIN_FAC = 1.0e-5_DP
    logical(lgt),dimension(0:ring%N+1)   :: ringmask,goodbin
-   real(DP)                             :: mass_limit,rad_limit,upper_rad_limit,upper_mass_limit,rtmp,x1,x2
+   real(DP)                             :: mass_limit,rad_limit,rtmp,x1,x2
    interface
       function nufunc(Gm_pdisk,rho_pdisk,GMP,Gsigma,ringr,ringw) result(ans)
       use module_parameters 
@@ -86,97 +85,13 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    dt(:) = min(1.0e0_DP / ring%w(:),dtin)
    dtmin(:) = DTMIN_FAC * dt(:)
    
-   dtnew = dtin
    v2i(:) = (ring%vrel_pdisk(:))**2
    Gmi(:) = ring%Gm_pdisk(:)
 
    v2f(:) = v2i(:)
    Gmf(:) = Gmi(:)
    rad_limit = 1e-1_DP / DU2CM
-   upper_rad_limit = 1e6_DP / DU2cm
    mass_limit = 4._DP / 3._DP * PI * rad_limit**3 * maxval(ring%rho_pdisk(:))
-   upper_mass_limit = 4._DP / 3._DP * PI * upper_rad_limit**3 * maxval(ring%rho_pdisk(:))
-!   loopcounter = 0
-
-
-!   where (ring%Gm(:) > epsilon(1._DP) * maxval(ring%Gm(:)))
-!      ringmask(:) = .true.
-!      dtleft(:) = dt(:)
-!   elsewhere
-!      ringmask(:) = .false.
-!      dtleft(:) = 0.0_DP
-!   end where 
-!  
-!   do loop = 1, NRKFLOOP
-!      !if (loop == LOOPMAX) then
-!      !   write(*,*) 'max loop reached in preprey!'
-!      !   stepfail = .true.
-!      !   dtnew = 0.5_DP * dtin
-!      !   return
-!      !end if
-!      kGm(:,:) = 0._DP
-!      kv2(:,:) = 0._DP
-!      goodbin(:) = ringmask(:)
-!      where (ringmask(:)) loopcounter(:) = loopcounter(:) + 1
-!
-!      do rkn = 1,rkfo ! Runge-Kutta-Fehlberg steps 
-!         where (goodbin(:))
-!            v2(:) = v2i(:) + matmul(kv2(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
-!            Gm(:) = Gmi(:) + matmul(kGm(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
-!
-!            where((v2(:) < 0.0_DP).or.(GM(:) < 0.0_DP))
-!               goodbin(:) = .false.
-!            elsewhere 
-!               Q(:) = ring%w(:) * sqrt(v2(:)) / (3.36_DP * ring%Gsigma(:))
-!               r(:) = (3 * Gm(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP) 
-!               r_hstar(:) = ring%r(:) * (2 * Gm(:) /(3._DP * swifter_pl1P%mass))**(1._DP/3._DP) / (2 * r(:)) 
-!               tau(:) = PI * r(:)**2 * ring%Gsigma(:) / Gm(:)
-!               nu(:) = ringmoons_viscosity(ring%Gsigma(:), Gm(:), v2(:), r(:), r_hstar(:), Q(:), tau(:), ring%w(:))
-!               kv2(:,rkn) = dt(:) * ringmoons_ring_dvdt(Gm(:),v2(:),tau(:),nu(:),ring%w(:)) 
-!               kGm(:,rkn) = dt(:) * ringmoons_ring_dMdt(Gm(:),v2(:),r(:),tau(:),ring%w(:))
-!            end where
-!         end where
-!      end do
-!      where (goodbin(:))
-!         dv2(:) = matmul(kv2(:,1:rkfo-1), rkf4_coeff(1:rkfo-1))
-!         dGm(:) = matmul(kGm(:,1:rkfo-1), rkf4_coeff(1:rkfo-1))
-!         v2f(:) = v2i(:) + dv2(:)
-!         Gmf(:) = Gmi(:) + dGm(:)
-!         where((v2f(:) < 0.0_DP).or.(GMf(:) < 0.0_DP))
-!            goodbin(:) = .false.
-!         end where
-!      end where
-!      where (goodbin(:))
-!         Ev2(:) = abs(matmul(kv2(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-!         EGm(:) = abs(matmul(kGm(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-!         sarr(:) = (TOL / (2 * max(Ev2(:),EGm(:))))**(0.25_DP)
-!         where((sarr(:) < 1._DP).and.(dt(:) > dtmin(:)))
-!            goodbin(:) = .false.
-!            dt(:) = 0.5_DP * sarr(:) * dt(:)
-!         elsewhere 
-!            !dv2(:) = v2f(:) - v2i(:)
-!            !dGm(:) = Gmf(:) - Gmi(:)
-!            v2i(:) = v2f(:)
-!            Gmi(:) = Gmf(:)
-!            
-!            dtleft(:) = dtleft(:) - dt(:)
-!            where (dtleft(:) <= 0.0_DP) 
-!               ringmask(:) = .false.
-!            elsewhere(Gmf(:) < mass_limit) 
-!               ringmask(:) = .false.
-!            elsewhere
-!               dt(:) = min(0.9_DP * sarr(:) * dt(:),dtleft(:))
-!            endwhere
-!         end where
-!      elsewhere (ringmask(:))
-!         dt(:) = 0.5_DP * dt(:)
-!         sarr(:) = 1._DP
-!      end where
-!
-!      if (all(.not.ringmask(:))) exit
-!
-!   end do
-!
 
    do i = 1,ring%N
       if (ring%Gm(i) > epsilon(1._DP) * maxval(ring%Gm(:))) then
@@ -193,7 +108,6 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail,dtnew)
    call ringmoons_update_ring(swifter_pl1P,ring)
 
    stepfail = .false. 
-   dtnew = dtin 
    return
 end subroutine ringmoons_ring_predprey
 
