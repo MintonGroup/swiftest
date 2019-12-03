@@ -68,16 +68,6 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
 
       Snew(1:N) = S(1:N) + fac(1:N) * (Sn1(1:N) - Sn2(1:N))
 
-      
-      !if (any(Snew(1:N) < 0.0_DP)) then
-      !   do i = 1,N
-      !      if (Snew(i) < 0.0_DP) write(*,*) i-1,Snew(i-1)
-      !      if (Snew(i) < 0.0_DP) write(*,*) i,Snew(i)
-      !      if (Snew(i) < 0.0_DP) write(*,*) i+1,Snew(i+1)
-      !   end do
-      !   write(*,*)
-      !end if
-
       ! Prevent any bins from having negative mass by diffusing mass with an artificial viscosity
       do while (any(Snew(1:N) < -tiny(1._DP)))
          where (Snew(1:N) < 0.0_DP)
@@ -88,31 +78,10 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
          S(1:N) = Snew(1:N) 
          Sn1(1:N) = artnu(2:N+1) * S(2:N+1) - 2 * artnu(1:N) * S(1:N) + artnu(0:N-1) * S(0:N-1)
          Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
-
-         !do i = 1,N
-         !   if (Snew(i) < 0.0_DP) write(*,*) i-1,Snew(i-1),artnu(i-1)
-         !   if (Snew(i) < 0.0_DP) write(*,*) i,Snew(i),artnu(i)
-         !   if (Snew(i) < 0.0_DP) write(*,*) i+1,Snew(i+1),artnu(i+1)
-         !end do
-         !read(*,*)
       end do
 
       ring%Gsigma(1:N) = max(0.0_DP,Snew(1:N) / ring%X(1:N))
       ring%Gm(1:N) = ring%Gsigma(1:N) * ring%deltaA(1:N)
-
-      !do while (any(ring%Gm(1:ring%N) < 0.0_DP))
-      !   where(ring%Gm(:) < 0.0_DP)
-      !      dM1(:) = ring%Gm(:)
-      !   elsewhere
-      !      dM1(:) = 0.0_DP
-      !   end where
-      !   L(:) = ring%Iz(:) * ring%w(:)
-      !   dM2(:) = dM1(:) * (L(:) - cshift(L(:),1)) / (cshift(L(:),1) - cshift(L(:),2)) 
-      !  ! Make sure we conserve both mass and angular momentum
-      !   ring%Gm(1:ring%N) = ring%Gm(1:ring%N) - dM1(1:ring%N) + cshift(dM1(1:ring%N),1) + &
-      !      cshift(dM2(1:ring%N),1)  - cshift(dM2(1:ring%N),2)
-      !   ring%Gsigma(1:ring%N) = ring%Gm(1:ring%N) / ring%deltaA(1:ring%N)
-      !end do 
 
       return 
 
