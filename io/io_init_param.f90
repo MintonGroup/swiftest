@@ -53,7 +53,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,     &
      out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-     encounter_file, lextra_force, lbig_discard, lrhill_present, lrotation, mtiny,ring_outfile)
+     encounter_file, lextra_force, lbig_discard, lrhill_present, lrotation, lpredprey, mtiny,ring_outfile)
 
 ! Modules
      USE module_parameters
@@ -70,7 +70,8 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, out_stat
      REAL(DP), INTENT(OUT),OPTIONAL :: mtiny
      CHARACTER(*), INTENT(OUT),OPTIONAL :: ring_outfile
-     LOGICAL(LGT), INTENT(OUT), OPTIONAL  :: lrotation 
+     LOGICAL(LGT), INTENT(OUT), OPTIONAL  :: lrotation
+     LOGICAL(LGT), INTENT(OUT), OPTIONAL  :: lpredprey 
 
 ! Internals
      LOGICAL(LGT)            :: t0_set, tstop_set, dt_set
@@ -112,6 +113,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      IF (PRESENT(mtiny)) mtiny = -1.0_DP
      IF (PRESENT(ring_outfile)) ring_outfile = ""
      IF (PRESENT(lrotation)) lrotation = .FALSE.
+     IF (PRESENT(lpredprey)) lpredprey = .FALSE.
      WRITE(*, 100, ADVANCE = "NO") "Parameter data file is "
      WRITE(*, 100) inparfile
      WRITE(*, *) " "
@@ -317,6 +319,14 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
                          IF (PRESENT(lrotation).AND.(token == "YES")) lrotation = .TRUE. 
+
+
+                    CASE ("PREDPREY")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         CALL util_toupper(token)
+                         IF (PRESENT(lpredprey).AND.(token == "YES")) lpredprey = .TRUE. 
                     CASE DEFAULT
                          WRITE(*, 100, ADVANCE = "NO") "Unknown parameter -> "
                          WRITE(*, *) token
@@ -447,6 +457,12 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
             WRITE(*, 100, ADVANCE = "NO") "ROTATION    = "
             WRITE(*, *) lrotation
          END IF
+     END IF
+
+
+     IF (PRESENT(lpredprey)) THEN
+         WRITE(*, 100, ADVANCE = "NO") "PREDPREY    = "
+         WRITE(*, *) lpredprey
      END IF
             
 

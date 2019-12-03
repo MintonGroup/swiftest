@@ -26,7 +26,7 @@
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
+subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds,lpredprey)
 
 ! Modules
    use module_parameters
@@ -39,13 +39,13 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    type(swifter_pl),pointer            :: swifter_pl1P
    type(ringmoons_ring),intent(inout) :: ring
    type(ringmoons_seeds),intent(inout) :: seeds
+   logical(lgt), intent(in)            :: lpredprey
 
 ! Internals
    character(STRMAX)                   :: ringfile
    integer(I4B),parameter              :: LUN = 22
    integer(I4B)                        :: i,m,inner_outer_sign,ioerr
    real(DP)                            :: beta, r_pdisk, Gm_pdisk,dt
-   real(DP),dimension(:),allocatable   :: kappa_rhstar,eta_rhstar
    logical(lgt)                        :: stepfail
 
 ! Executable code
@@ -77,17 +77,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    end do
 
    call ringmoons_ring_construct(swifter_pl1P,ring,seeds)
-
-   allocate(kappa_rhstar(0:ring%N+1))
-   allocate(eta_rhstar(0:ring%N+1))
-   ! Initialize the velocity distribution of the ring
-   ! See Salmon et al. 2010 for this
-   kappa_rhstar(:) = ringmoons_transition_function(ring%r_hstar(:))
-   eta_rhstar(:) = 1._DP - kappa_rhstar(:)
-   ring%vrel_pdisk(:) = kappa_rhstar(:) * sqrt(ring%Gm_pdisk / ring%r_pdisk) + eta_rhstar(:) * (2 * ring%r_pdisk * ring%w(:))
-   call ringmoons_update_ring(swifter_pl1P,ring)
-   deallocate(kappa_rhstar)
-   deallocate(eta_rhstar)
+   call ringmoons_update_ring(swifter_pl1P,ring,lpredprey) 
 
 
 ! For performance reasons, we compute a table of Laplace coefficient terms the first time through and then interpolate 
@@ -111,7 +101,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
    ring%rotPi = swifter_pl1P%rot(3)
    ring%drotP = 0.0_DP
    dt = 1.0_DP
-   call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail)
+   
    call ringmoons_seed_construct(swifter_pl1P,ring,seeds) 
 
 

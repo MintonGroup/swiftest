@@ -81,8 +81,6 @@ subroutine ringmoons_ring_construct(swifter_pl1P,ring,seeds)
 
       ring%Torque(:) = 0.0_DP
 
-      call ringmoons_update_ring(swifter_pl1P,ring)
-
       seeds%Rhill(1:seeds%N)  = seeds%a(1:seeds%N) * (seeds%Gm(1:seeds%N) / (3 * GMP))**(1.0_DP / 3.0_DP)
       seeds%rbin(1:seeds%N)   = ringmoons_ring_bin_finder(ring,seeds%a(1:seeds%N))
       seeds%fz_bin_inner(1:seeds%N) = seeds%rbin(1:seeds%N) !ringmoons_ring_bin_finder(ring,seeds%a(i) - fz_width)

@@ -31,7 +31,7 @@ module module_ringmoons_interfaces
 
 
       interface
-         subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
+         subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds,lpredprey)
             use module_parameters
             use module_swifter
             use module_ringmoons
@@ -39,6 +39,7 @@ module module_ringmoons_interfaces
             type(swifter_pl),pointer :: swifter_pl1P
             type(ringmoons_ring),intent(inout) :: ring
             type(ringmoons_seeds),intent(inout)  :: seeds
+            logical(lgt), intent(in)             :: lpredprey
          end subroutine ringmoons_io_init_ring
       end interface
 
@@ -56,7 +57,7 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
+         subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lpredprey)
             use module_parameters
             use module_swifter
             use module_ringmoons
@@ -67,6 +68,7 @@ module module_ringmoons_interfaces
             type(ringmoons_seeds),intent(inout)              :: seeds
             logical(LGT), intent(inout)                      :: lfirst
             real(DP), intent(out)                            :: Merror,Lerror
+            logical(lgt),intent(in)                          :: lpredprey
          end subroutine ringmoons_step 
       end interface
 
@@ -115,13 +117,14 @@ module module_ringmoons_interfaces
 
 
       interface
-         subroutine ringmoons_update_ring(swifter_pl1P,ring)
+         subroutine ringmoons_update_ring(swifter_pl1P,ring,lpredprey)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
          type(swifter_pl),pointer                  :: swifter_pl1P
          type(ringmoons_ring),intent(inout)        :: ring
+         logical(lgt), intent(in)                  :: lpredprey
          end subroutine ringmoons_update_ring
       end interface
 
@@ -343,19 +346,27 @@ module module_ringmoons_interfaces
          end subroutine
       end interface
 
-
       interface
-         subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail)
+         subroutine ringmoons_ring_predprey(swifter_pl1P,ring)
          use module_parameters
          use module_swifter
          use module_ringmoons
          implicit none
          type(swifter_pl),pointer :: swifter_pl1P
          type(ringmoons_ring),intent(inout) :: ring
-         type(ringmoons_seeds),intent(in) :: seeds
-         real(DP),intent(in)              :: dt
-         logical(lgt), intent(out)                 :: stepfail
          end subroutine ringmoons_ring_predprey 
+      end interface
+
+      interface
+         subroutine ringmoons_ring_velocity_dispersion(swifter_pl1P,ring,lpredprey)
+         use module_parameters
+         use module_swifter
+         use module_ringmoons
+         implicit none
+         type(swifter_pl),pointer :: swifter_pl1P
+         type(ringmoons_ring),intent(inout) :: ring
+         logical(lgt),intent(in)             :: lpredprey
+         end subroutine ringmoons_ring_velocity_dispersion
       end interface
 
 end module module_ringmoons_interfaces

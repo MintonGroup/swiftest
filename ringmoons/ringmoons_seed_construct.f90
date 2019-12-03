@@ -46,10 +46,13 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin,Nactive
       real(DP)                            :: a, dGm, Gmleft
       logical(LGT)                        :: open_space,destructo,spawnbin
-      real(DP), parameter                 :: dzone_width = 0.01_DP ! Width of the destruction zone as a fraction of the RRL distance
+      real(DP), parameter                 :: dzone_width = 0.025_DP ! Width of the destruction zone as a fraction of the RRL distance
       integer(I4B)                        :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
-      real(DP)                            :: ndz,deltaL,Lorig,c,b,dr,Lring_orig
-      real(DP)                            :: Gm_min,R_min
+      real(DP)                            :: ndz,Lseed_orig,c,b,dr,Lring,deltaL
+      real(DP)                            :: Gm_min,R_min,dt,dtleft
+      logical(lgt)                        :: stepfail
+      type(ringmoons_ring)                :: seedring
+      type(ringmoons_seeds)               :: tmpseeds
       
 
 ! Executable code
@@ -61,53 +64,71 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
          if ((.not.seeds%active(i)).and.(seeds%Gm(i) > 0.0_DP)) then
             write(*,*) 'Destruction activated!',i,seeds%a(i),seeds%Gm(i)
             destructo = .true.
-            Lring_orig = sum(ring%Gm(:) * ring%Iz(:) * ring%w(:))
+            Lseed_orig = seeds%Gm(i) * sqrt((swifter_pl1P%mass + seeds%Gm(i)) * seeds%a(i)) 
+
+            seedring%N = ring%N
+            tmpseeds%N = 0
+            call ringmoons_allocate(seedring,tmpseeds)
+            seedring = ring
+            seedring%Gm(:) = 0.0_DP
+
             Gmleft = seeds%Gm(i)
-            Lorig = Gmleft * sqrt((swifter_pl1P%mass + Gmleft) * seeds%a(i)) 
-            deltaL = 0.0_DP
             c = dzone_width * ring%RRL ! Create an approximately Gaussian distribution of mass
             a = Gmleft / (sqrt(2 * PI) * c)
             do j = 0,(ring%N - ring%iRRL)
                do inner_outer_sign = -1,1,2
                   nbin = ring%iRRL + inner_outer_sign * j
-                  if ((nbin > 0).and.(nbin < ring%N).and.(Gmleft > 0.0_DP)) then
-                     dr = 0.5_DP * ring%X(nbin) * ring%deltaX
-                     dGm = min(Gmleft,a * dr *exp(-(ring%r(nbin) - ring%RRL)**2 / (2 * c**2)))
-                     ring%Gm(nbin) = ring%Gm(nbin) + dGm
+                  if ((nbin > 0).and.(nbin < seedring%N).and.(Gmleft > 0.0_DP)) then
+                     dr = 0.5_DP * seedring%X(nbin) * seedring%deltaX
+                     dGm = min(Gmleft,a * dr * exp(-(seedring%r(nbin) - seedring%RRL)**2 / (2 * c**2)))
+                     seedring%Gm(nbin) = seedring%Gm(nbin) + dGm
                      Gmleft = Gmleft - dGm
-                     deltaL = deltaL + (dGm * ring%Iz(nbin) * ring%w(nbin))
                   end if
                   if (j == 0) exit
                end do
                if (Gmleft == 0.0_DP) exit
             end do 
-            j = ring%iRRL
-            deltaL = Lorig - deltaL
-            do nbin = 1,2
-               dGm = deltaL / (ring%Iz(j) * ring%w(j) - ring%Iz(j + 1) * ring%w(j + 1))
-               ring%Gm(j) = ring%Gm(j) + dGm
-               ring%Gm(j + 1) = ring%Gm(j + 1) - dGm
-               deltaL = Lring_orig + Lorig - sum(ring%Gm(:) * ring%Iz(:) * ring%w(:)) 
+            !j = seedring%iRRL
+            ! Offset in angular momentum
+            Lring = sum(seedring%Gm(:) * seedring%Iz(:) * seedring%w(:))
+            deltaL = Lseed_orig - Lring
+
+            ! Apply a torque to the temporary ring to bring it back to the seed's original angular momentum
+            dt = 1._DP
+            seedring%nu(1:ring%N) =  1._DP / (12 * dt / (seedring%deltaX)**2) / seedring%X2(:)
+            seedring%Gsigma(:) = seedring%Gm(:) / seedring%deltaA(:)
+            where (seedring%Gm(:) > 0.0_DP)
+               seedring%Torque(:) = deltaL * seedring%Gm(:) / sum(seedring%Gm(:))
+            elsewhere
+               seedring%Torque(:) = 0.0_DP
+            end where
+            dtleft = dt
+            dt =  ringmoons_ring_timestep(swifter_pl1P,seedring,dt) 
+            do 
+               call ringmoons_sigma_solver(seedring,swifter_pl1P%mass,dt,stepfail)
+               dtleft = dtleft - dt
+               if (dtleft <= 0.0_DP) exit
+               dt = min(dtleft,dt)
             end do
+      
+            ring%Gm(:) = ring%Gm(:) + seedring%Gm(:) 
             ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
             seeds%Gm(i) = 0.0_DP
+            call ringmoons_deallocate(seedring,tmpseeds)
          end if
       end do
-      !if (destructo) then 
-         Nactive = count(seeds%active(:))
-         seeds%a(1:Nactive) = pack(seeds%a(:),seeds%active(:))
-         seeds%Gm(1:Nactive) = pack(seeds%Gm(:),seeds%active(:))
-         seeds%active(1:Nactive) = .true.
-         if (size(seeds%active) > Nactive) seeds%active(Nactive+1:size(seeds%active)) = .false.
-         seeds%N = Nactive
-         call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
-         call ringmoons_update_ring(swifter_pl1P,ring)
-      !end if
+      Nactive = count(seeds%active(:))
+      seeds%a(1:Nactive) = pack(seeds%a(:),seeds%active(:))
+      seeds%Gm(1:Nactive) = pack(seeds%Gm(:),seeds%active(:))
+      seeds%active(1:Nactive) = .true.
+      if (size(seeds%active) > Nactive) seeds%active(Nactive+1:size(seeds%active)) = .false.
+      seeds%N = Nactive
+      call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
       
       ! Make seeds small enough to fit into each bin 
-      do i = ring%iRRL,ring%N
+      do i = ring%iFRL,ring%N
          if (ring%Gm(i) < N_DISK_FACTOR * ring%Gm_pdisk(i)) cycle ! don't consider bins that don't have enough mass
-         if (i < ring%iFRL .and. ring%Q(i) > 2.0_DP) cycle  ! don't consider bins that are gravitationally stable inside the FRL
+         if (i < ring%iFRL .and. ring%Q(i) > 1.0_DP) cycle  ! don't consider bins that are gravitationally stable inside the FRL
          if (any(seeds%rbin(:) == i .and. seeds%active(:))) cycle ! don't consider bins that already have a seed
 
          spawnbin = (i >= ring%iFRL)  ! Always spawn seeds at the FRL 
@@ -122,7 +143,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,dGm)
          end if
       end do     
-       
+
       call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
           
 

@@ -17,7 +17,7 @@ class AnimatedScatter(object):
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=41000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=100, frames=41000,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")
@@ -34,12 +34,12 @@ class AnimatedScatter(object):
         Q = ring[:,3]
         r_pdisk = ring[:,4]
         xmin = 1.0
-        xmax = 3
-        ymin = 1.0
-        ymax = 10000e2
+        xmax = 6.0
+        ymin = 1.0e-1
+        ymax = 1e6
 
         y2min = 1e-3
-        y2max = 1e3
+        y2max = 1e5
         self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
 
         #self.ax.set_xlim(xmin, xmax)
@@ -49,7 +49,7 @@ class AnimatedScatter(object):
         self.ax.set_yscale('log')
 
         self.secax = self.ax.twinx()
-        self.secax.set_ylabel('Toomre parameter Q')
+        self.secax.set_ylabel('Toomre parameter Q', color="blue")
         self.secax.set_yscale('log')
         self.secax.set_ylim(y2min, y2max)
 
@@ -117,6 +117,9 @@ class AnimatedScatter(object):
         nu = ring[:,2]
         Q = ring[:,3]
         r_pdisk = ring[:,4]
+        r_pdisk[s < 1e-6] = 0.0
+        Q[s < 1e-6] = 0.0
+        nu[s < 1e-6] = 0.0
 
         self.rpline.set_data(r, r_pdisk)
 

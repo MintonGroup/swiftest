@@ -49,6 +49,7 @@ PROGRAM swifter_symba_ringmoons
      LOGICAL(LGT)      :: lbig_discard   ! Dump planet data with discards
      LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
      LOGICAL(LGT)      :: lrotation      ! Rotation parameters present
+     LOGICAL(LGT)      :: lpredprey      ! Use the predator/prey model for ring aggregate sizes
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
@@ -111,7 +112,7 @@ PROGRAM swifter_symba_ringmoons
      inparfile = TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
-          encounter_file, lextra_force, lbig_discard, lrhill_present, lrotation, mtiny, ring_outfile)
+          encounter_file, lextra_force, lbig_discard, lrhill_present, lrotation, lpredprey, mtiny, ring_outfile)
      IF (.NOT. lrhill_present) THEN
           WRITE(*, *) "SWIFTER Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
@@ -131,7 +132,7 @@ PROGRAM swifter_symba_ringmoons
      CALL util_valid(npl, ntp, swifter_pl1P, swifter_tp1P)
 
      !Read in RING-MOONS parameters and data
-     call ringmoons_io_init_ring(swifter_pl1P,ring,seeds)
+     call ringmoons_io_init_ring(swifter_pl1P,ring,seeds,lpredprey)
      
      DESTRUCTION_EVENT = .false.
      DESTRUCTION_COUNTER = 0
@@ -161,7 +162,7 @@ PROGRAM swifter_symba_ringmoons
       end if
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE (t < tstop) 
-          CALL ringmoons_step(t,swifter_pl1P,ring,seeds,dt,lrmfirst,Merror,Lerror)
+          CALL ringmoons_step(t,swifter_pl1P,ring,seeds,dt,lrmfirst,Merror,Lerror,lpredprey)
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4, dt,    &
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,       &
                mtiny, encounter_file, out_type)

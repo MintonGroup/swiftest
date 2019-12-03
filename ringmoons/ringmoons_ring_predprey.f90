@@ -20,14 +20,14 @@
 !    Teringinal  : 
 !    File      : 
 !
-!  Invocation  : CALL ringmoons_ring_predprey(dt,ring,ring)
+!  Invocation  : CALL ringmoons_ring_predprey(swifter_pl1P,ring)
 !
 !  Notes       : 
 !
 !**********************************************************************************************************************************
 !  Author(s)   : David A. Minton  
 !**********************************************************************************************************************************
-subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail)
+subroutine ringmoons_ring_predprey(swifter_pl1P,ring)
 
 ! Modules
    use module_parameters
@@ -39,22 +39,15 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail)
 ! Arguments
    type(swifter_pl),pointer             :: swifter_pl1P
    type(ringmoons_ring), intent(inout)  :: ring
-   type(ringmoons_seeds), intent(in)    :: seeds
-   real(DP), intent(in)                 :: dtin
-   logical(lgt), intent(out)            :: stepfail   
 
 ! Internals
    integer(I4B)                         :: rkn,i,j,rki,loop,goodval
-   real(DP),dimension(0:ring%N+1)       :: Gmi, v2i, Gm,v2,tau,r,r_hstar,Q,nu
-   real(DP),dimension(0:ring%N+1,rkfo)   :: kGm,kv2
-   real(DP),dimension(0:ring%N+1)     :: v2f,Gmf,dv2,dGm
-   integer(I4B),dimension(0:ring%N+1)     :: loopcounter
-   real(DP),parameter :: TOL = 1e-16_DP
-   integer(I4B),parameter               :: NRKFLOOP = 10000
-   real(DP),dimension(0:ring%N+1)       :: Ev2,EGm,sarr,dt,dtleft,dtmin
+   real(DP),dimension(0:ring%N+1)       :: Gm,v2,tau,r,r_hstar,Q,nu
+   real(DP),dimension(0:ring%N+1,rkfo)  :: kGm,kv2
+   real(DP),dimension(0:ring%N+1)       :: v2f,Gmf,dv2,dGm
+   real(DP),parameter                   :: TOL = 1e-16_DP
    real(DP),parameter                   :: DTMIN_FAC = 1.0e-5_DP
-   logical(lgt),dimension(0:ring%N+1)   :: ringmask,goodbin
-   real(DP)                             :: mass_limit,rad_limit,rtmp,x1,x2
+   real(DP)                             :: mass_limit,rad_limit,rtmp,x1
    interface
       function nufunc(Gm_pdisk,rho_pdisk,GMP,Gsigma,ringr,ringw) result(ans)
       use module_parameters 
@@ -82,22 +75,17 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail)
 
 
 ! Executable code
-   dt(:) = min(1.0e0_DP / ring%w(:),dtin)
-   dtmin(:) = DTMIN_FAC * dt(:)
-   
-   v2i(:) = (ring%vrel_pdisk(:))**2
-   Gmi(:) = ring%Gm_pdisk(:)
 
-   v2f(:) = v2i(:)
-   Gmf(:) = Gmi(:)
    rad_limit = RAD_LIMIT_CM / DU2CM
    mass_limit = 4._DP / 3._DP * PI * rad_limit**3 * maxval(ring%rho_pdisk(:))
-
    do i = 1,ring%N
       if (ring%Gm(i) > epsilon(1._DP) * maxval(ring%Gm(:))) then
          Gmf(i)  = ring%Gm_pdisk(i)
          goodval = BrentRoots(nufunc,Gmf(i),TOL*Gmf(i),ring%rho_pdisk(i),swifter_pl1P%mass,ring%Gsigma(i),ring%r(i),ring%w(i))
-         if (goodval /= 0) Gmf(i) = ring%Gm_pdisk(i)
+         if (goodval /= 0) then
+            write(*,*) 'bad Brent root on ring ',i,goodval,ring%r(i)/ ring%RRL
+            Gmf(i) = ring%Gm_pdisk(i)
+         end if
       end if
    end do
    
@@ -105,9 +93,7 @@ subroutine ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dtin,stepfail)
    ring%r_pdisk(:) = (3 * ring%Gm_pdisk(:) / (4 * PI * ring%rho_pdisk(:)))**(1._DP / 3._DP)
    v2f(:) = v2sticking_threshold(ring%Gm_pdisk(:),ring%r_pdisk(:))
    ring%vrel_pdisk(:) = sqrt(v2f(:))
-   call ringmoons_update_ring(swifter_pl1P,ring)
 
-   stepfail = .false. 
    return
 end subroutine ringmoons_ring_predprey
 
@@ -230,7 +216,7 @@ end function nufunc
   real(DP),intent(inout) :: x1
   real(DP),intent(in) :: Tolerance
   real(DP),intent(in) :: d1,d2,d3,d4,d5
-  integer,parameter :: maxIterations=100
+  integer,parameter :: maxIterations=1000
   real(DP) :: valueAtRoot
 
   real(DP),parameter :: FPP = 1.d-11
@@ -244,7 +230,7 @@ end function nufunc
   integer :: i, done
    integer,parameter :: NTRY = 50
    integer,parameter :: NBRACKET = 5
-   real(DP),parameter :: FIRSTFACTOR = 1.6_DP
+   real(DP),parameter :: FIRSTFACTOR = 16_DP
    integer :: br,j
    real(DP) :: startx,x2,factor,f1,f2
    

@@ -85,6 +85,7 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
 
       ring%Gsigma(1:N) = max(0.0_DP,Snew(1:N) / ring%X(1:N))
       ring%Gm(1:N) = ring%Gsigma(1:N) * ring%deltaA(1:N)
+      ring%Torque(:) = 0.0_DP
 
       return 
 

@@ -27,7 +27,7 @@
 !  Notes       : Adapted from Andy Hesselbrock's RING-MOONS Python scripts
 !
 !**********************************************************************************************************************************
-subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
+subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lpredprey)
 
 ! Modules
      use module_parameters
@@ -43,6 +43,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
       type(ringmoons_seeds),intent(inout)             :: seeds
       logical(LGT), intent(inout)                     :: lfirst
       real(DP),intent(out)                            :: Merror,Lerror
+      logical(lgt), intent(in)                        :: lpredprey
 
 ! Internals
       integer(I4B) :: i,loop,seedloop,subcount,loopcount
@@ -90,8 +91,10 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
 
          ring%Torque(:) = 0.0_DP
          seeds%Torque(:) = 0.0_DP
-!write(*,*) 'update_ring.',dt
-         call ringmoons_update_ring(swifter_pl1P,ring)
+!write(*,*) 'update_ring'
+         call ringmoons_update_ring(swifter_pl1P,ring,lpredprey)
+
+!write(*,*) 'getting timestep',dt
          dt = ringmoons_ring_timestep(swifter_pl1P,ring,dt)
 !write(*,*) 'new timestep',dt
 
@@ -113,9 +116,8 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror)
             cycle
          end if
 
-!write(*,*) 'ring_predprey'
-         call ringmoons_ring_predprey(swifter_pl1P,ring,seeds,dt,stepfail) ! Evolve the size and velocity dispersion distribution of the ring 
-                                                               ! following the predator/prey model of Esposito et al. (2012)
+!write(*,*) 'ring_update_ring'
+         call ringmoons_update_ring(swifter_pl1P,ring,lpredprey)
 
 !         if (stepfail) then
 !!write(*,*) 'predprey called a step failure',dt,dtleft
