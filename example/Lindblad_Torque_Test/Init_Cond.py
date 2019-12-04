@@ -44,7 +44,7 @@ sigma_peak = 1000 * DU2CM**2 / MU2GM
 sigma_slope = -1.5
 
 Gmseed = np.array([GU * 1e21 / MU2GM])
-aseed = np.array([1.0 * 4**(1./3.) * FRL])
+aseed = np.array([1.01 * 4**(1./3.) * FRL])
 
 
 r_I	= 0.9 * RP      #inside radius of disk is at the embryo's surface

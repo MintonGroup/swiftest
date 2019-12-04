@@ -35,7 +35,7 @@ class AnimatedScatter(object):
         ymin = 1.0
         ymax = 1e4
 
-        y2min = 1e15
+        y2min = 1e14
         y2max = 1e25
         self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
 
@@ -76,22 +76,23 @@ class AnimatedScatter(object):
     def data_stream(self):
         with FortranFile(self.ringfilename, 'r') as f:
             while True:
-                try:
-                    t = f.read_reals(np.float64)
-                except:
-                    f.close()
-                    break
-                Nbin = f.read_ints(np.int32)
-                r = f.read_reals(np.float64)
-                Gsigma = f.read_reals(np.float64)
-                nu = f.read_reals(np.float64)
-                Q = f.read_reals(np.float64)
-                r_pdisk = f.read_reals(np.float64)
-                vrel_pdisk = f.read_reals(np.float64)
-                kval = int(t / ic.t_print)
-                Nseeds = f.read_ints(np.int32)
-                a = f.read_reals(np.float64)
-                Gm = f.read_reals(np.float64)
+                for _ in range(10):
+                    try:
+                        t = f.read_reals(np.float64)
+                    except:
+                        f.close()
+                        break
+                    Nbin = f.read_ints(np.int32)
+                    r = f.read_reals(np.float64)
+                    Gsigma = f.read_reals(np.float64)
+                    nu = f.read_reals(np.float64)
+                    Q = f.read_reals(np.float64)
+                    r_pdisk = f.read_reals(np.float64)
+                    vrel_pdisk = f.read_reals(np.float64)
+                    kval = int(t / ic.t_print)
+                    Nseeds = f.read_ints(np.int32)
+                    a = f.read_reals(np.float64)
+                    Gm = f.read_reals(np.float64)
 
                 yield t,np.c_[a / ic.RP, Gm * ic.MU2GM / ic.GU], np.c_[r / ic.RP, Gsigma * ic.MU2GM / ic.DU2CM**2 / ic.GU]
 
