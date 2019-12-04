@@ -55,7 +55,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
       type(ringmoons_seeds)                           :: old_seeds
       logical(LGT)                                    :: stepfail
       type(swifter_pl)                                :: old_swifter_pl1P
-      real(DP),parameter                              :: DTMIN_FAC = 1e-4_DP
+      real(DP),parameter                              :: DTMIN_FAC = 1e-5_DP
 
 ! Executable code
       dtleft = dtin
@@ -118,17 +118,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
 
 !write(*,*) 'ring_update_ring'
          call ringmoons_update_ring(swifter_pl1P,ring,lpredprey)
-
-!         if (stepfail) then
-!!write(*,*) 'predprey called a step failure',dt,dtleft
-!            subcount = 0
-!            ring = old_ring
-!            seeds = old_seeds
-!            swifter_pl1P%mass = old_swifter_pl1P%mass
-!            swifter_pl1P%radius = old_swifter_pl1P%radius
-!            swifter_pl1P%rot = old_swifter_pl1P%rot
-!            cycle
-!         end if
 
 !write(*,*) 'sigma_solver'
          call ringmoons_sigma_solver(ring,swifter_pl1P%mass,dt,stepfail)

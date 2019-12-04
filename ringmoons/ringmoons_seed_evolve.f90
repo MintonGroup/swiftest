@@ -53,16 +53,16 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP),dimension(0:ring%N+1)            :: Tlind,Tring
    real(DP),dimension(0:ring%N+1,rkfo)       :: kr,kL
    real(DP),dimension(seeds%N,rkfo)          :: ka,km,kT
-   real(DP),dimension(0:ring%N+1)            :: Er
-   real(DP),dimension(seeds%N)               :: Ea, Em
+   real(DP),dimension(0:ring%N+1)            :: Er,rscale,rmdot
+   real(DP),dimension(seeds%N)               :: Ea, Em,ascale,mscale,mdot,adot
    real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, dTtide,Ttidef
    integer(I4B)                              :: Nactive 
    real(DP),dimension(0:ring%N+1)            :: Lring_orig,Lring_now
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE
    logical(lgt)                              :: chomped,goodstep
-   real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
-   real(DP),parameter                        :: TOL = 1e-6_DP 
+   real(DP),parameter                        :: DTMIN_FAC = 1e-4_DP
+   real(DP),parameter                        :: TOL = 1e-8_DP 
    integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
 
 
@@ -97,7 +97,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    Nbig_error = 0
 
    steploop: do loop = 1, LOOPMAX 
-      !write(*,*) 'loop ',loop
+     ! write(*,*) 'loop ',loop,dt,dtleft,dt/dtin
+   !write(*,*) 'negative seed fails: ',Nnegative_seed
+   !write(*,*) 'negative ring fails: ',Nnegative_ring
+   !write(*,*) 'error too big fails: ',Nbig_error
       nloops = loop
       if (loop == LOOPMAX) then
          stepfail = .true.
@@ -114,6 +117,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       kT(:,:) = 0.0_DP
       kL(:,:) = 0.0_DP
       goodstep = .true.
+
+      
 
       do rkn = 1,rkfo ! Runge-Kutta steps 
          !write(*,*) 'rkn ',rkn
@@ -150,7 +155,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          !write(*,*) 'updated'
 
          do i = 1, iseeds%N
-            !write(*,*) 'seed ',i
+          !  write(*,*) 'seed ',i
             rbin = iseeds%rbin(i)
 
             ! Calculate torques
@@ -203,16 +208,20 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          cycle steploop
       end if
 
+      ! save values for error estimation
+      ascale(:) = abs(ai(:)) + abs(ka(i,1)) + epsilon(1._DP) !1e-3_DP
+
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      maxE = maxval(Ea(1:iseeds%N))
+      maxE = maxval(Ea(1:iseeds%N) / ascale(1:iseeds%N))
       if (maxE > tiny(1._DP)) then
          sarr = (TOL / (2 * maxE))**(0.25_DP) 
       else
          sarr = 2._DP / 0.9_DP
       end if
 
+      mscale(:) = abs(Gmi(:)) + abs(km(i,1)) + epsilon(1._DP) !1e-3_DP
       Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      maxE = maxval(Em(1:iseeds%N))
+      maxE = maxval(Em(1:iseeds%N) / mscale(1:iseeds%N))
       if (maxE > tiny(1._DP)) then
          sarr = min(sarr,(TOL / (2 * maxE)))**(0.25_DP) 
       end if
@@ -312,18 +321,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
    end if
 
-
-       
-   do i = 1, seeds%N
-      if (seeds%active(i)) then
-         if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
-            write(*,*) 'We are on our way to destruction!'
-            DESTRUCTION_EVENT = .true.
-            DESTRUCTION_COUNTER = 0
-            seeds%active(i) = .false.
-         end if
-      end if
-   end do
 
    stepfail = .false.
    return

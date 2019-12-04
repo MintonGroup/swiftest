@@ -43,7 +43,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       type(ringmoons_seeds), intent(inout) :: seeds
 
 ! Internals
-      integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin,Nactive
+      integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin,Nactive,rbin
       real(DP)                            :: a, dGm, Gmleft
       logical(LGT)                        :: open_space,destructo,spawnbin
       real(DP), parameter                 :: dzone_width = 0.025_DP ! Width of the destruction zone as a fraction of the RRL distance
@@ -60,6 +60,18 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       
       ! First convert any recently destroyed satellites into ring material
       destructo = .false.
+
+      do i = 1, seeds%N
+         if (seeds%active(i)) then
+            if (seeds%a(i) <= ring%RRL) then   ! Destroy the satellite!
+               write(*,*) 'We are on our way to destruction!'
+               DESTRUCTION_EVENT = .true.
+               DESTRUCTION_COUNTER = 0
+               seeds%active(i) = .false.
+            end if
+         end if
+      end do
+
       do i = 1,seeds%N
          if ((.not.seeds%active(i)).and.(seeds%Gm(i) > 0.0_DP)) then
             write(*,*) 'Destruction activated!',i,seeds%a(i),seeds%Gm(i)
@@ -73,14 +85,15 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             seedring%Gm(:) = 0.0_DP
 
             Gmleft = seeds%Gm(i)
-            c = dzone_width * ring%RRL ! Create an approximately Gaussian distribution of mass
+            c = dzone_width * seeds%a(i) ! Create an approximately Gaussian distribution of mass
+            rbin = ringmoons_ring_bin_finder(ring,seeds%a(i))
             a = Gmleft / (sqrt(2 * PI) * c)
-            do j = 0,(ring%N - ring%iRRL)
+            do j = 0,(ring%N - rbin)
                do inner_outer_sign = -1,1,2
-                  nbin = ring%iRRL + inner_outer_sign * j
+                  nbin = rbin + inner_outer_sign * j
                   if ((nbin > 0).and.(nbin < seedring%N).and.(Gmleft > 0.0_DP)) then
                      dr = 0.5_DP * seedring%X(nbin) * seedring%deltaX
-                     dGm = min(Gmleft,a * dr * exp(-(seedring%r(nbin) - seedring%RRL)**2 / (2 * c**2)))
+                     dGm = min(Gmleft,a * dr * exp(-(seedring%r(nbin) - seeds%a(i))**2 / (2 * c**2)))
                      seedring%Gm(nbin) = seedring%Gm(nbin) + dGm
                      Gmleft = Gmleft - dGm
                   end if
