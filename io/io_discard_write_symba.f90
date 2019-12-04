@@ -65,6 +65,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
      INTEGER(I4B)              :: i, index, j, ncomp, ierr, nplm
 
 ! Executable code
+     WRITE(*,*) "io_discard_symba ", "nsptp", nsptp, "nsppl", nsppl
      CALL io_open(LUN, fname, "APPEND", "FORMATTED", ierr)
      IF (ierr /= 0) THEN
           CALL io_open(LUN, fname, "NEW", "FORMATTED", ierr)
