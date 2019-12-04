@@ -57,6 +57,7 @@ SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, x
      INTEGER(I4B), SAVE      :: iu = LUN
 
 ! Executable code
+
      lxdr = ((out_type == XDR4_TYPE) .OR. (out_type == XDR8_TYPE))
      IF (lxdr) THEN
           CALL io_open_fxdr(encounter_file, "A", .TRUE., iu, ierr)
