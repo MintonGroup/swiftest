@@ -61,8 +61,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE
    logical(lgt)                              :: chomped,goodstep
-   real(DP),parameter                        :: DTMIN_FAC = 1e-4_DP
-   real(DP),parameter                        :: TOL = 1e-8_DP 
+   real(DP),parameter                        :: DTMIN_FAC = 1e-10_DP
+   real(DP),parameter                        :: TOL = 1e-6_DP 
    integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
 
 
@@ -212,29 +212,25 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       ascale(:) = abs(ai(:)) + abs(ka(i,1)) + epsilon(1._DP) !1e-3_DP
 
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      maxE = maxval(Ea(1:iseeds%N) / ascale(1:iseeds%N))
-      if (maxE > tiny(1._DP)) then
-         sarr = (TOL / (2 * maxE))**(0.25_DP) 
-      else
-         sarr = 2._DP / 0.9_DP
+      maxE = maxval(Ea(1:iseeds%N) / ascale(1:iseeds%N)) / TOL
+      if (maxE > 1.0_DP) then
+         dt = 0.9_DP * dt / maxE**(0.25_DP)
+         goodstep =.false.
+         cycle steploop
       end if
+
 
       mscale(:) = abs(Gmi(:)) + abs(km(i,1)) + epsilon(1._DP) !1e-3_DP
       Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      maxE = maxval(Em(1:iseeds%N) / mscale(1:iseeds%N))
-      if (maxE > tiny(1._DP)) then
-         sarr = min(sarr,(TOL / (2 * maxE)))**(0.25_DP) 
-      end if
-
-      if ((sarr < 1._DP - epsilon(1._DP))) then
-         if (dt > dtmin) then
-            goodstep =.false.
-            Nbig_error = Nbig_error + 1
-            dt = max(0.5_DP * sarr * dt,dtmin)
-            cycle steploop
-         else
-            sarr = 1._DP / 0.90_DP
-         end if
+      maxE = max(maxval(Em(1:iseeds%N) / mscale(1:iseeds%N)), maxE)
+      if (maxE > 1.0_DP) then
+         dt = 0.9_DP * dt / maxE**(0.25_DP)
+         goodstep =.false.
+         cycle steploop
+      else if (maxE < 2e-4_DP) then
+         sarr = 5._DP
+      else
+         sarr = 0.9_DP / maxE**(0.25_DP)
       end if
 
       Torquef(:) = matmul(kL(:,1:rkfo), rkf5_coeff(1:rkfo))
@@ -250,7 +246,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       dtleft = dtleft - dt
    
       if (dtleft <= 0.0_DP) exit steploop
-      dt = min(0.90_DP * sarr * dt,dtleft)
+      dt = min(sarr * dt,dtleft)
 
    end do steploop
    

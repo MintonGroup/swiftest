@@ -58,6 +58,13 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
       ring%Gsigma(0) = 0.0_DP
       ring%Gsigma(N+1) = 0.0_DP
 
+
+      if (any(S(:) < 0.0_DP)) then
+         write(*,*) 'Negative mass already?'
+         read(*,*)
+      end if
+
+
       fac(:)  = 12 * dt / (ring%deltaX)**2  / ring%X2(:)
 
       Sn1(1:N) = ring%nu(2:N+1) * S(2:N+1) - 2 * ring%nu(1:N) * S(1:N) + ring%nu(0:N-1) * S(0:N-1)
@@ -69,18 +76,24 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
       Snew(1:N) = S(1:N) + fac(1:N) * (Sn1(1:N) - Sn2(1:N))
 
       ! Prevent any bins from having negative mass by diffusing mass with an artificial viscosity
-      loop = 0
-      do while (any(Snew(1:N) < -epsilon(1._DP) * maxval(Snew(1:N))))
-         where (Snew(1:N) < 0.0_DP)
+      loop = 1
+      do while (any(Snew(1:N) < -epsilon(1._DP) * maxval(S(1:N))))
+         Snew(0) = 0.0_DP
+         Snew(N+1) = 0.0_DP
+         artnu(:) = 0.0_DP
+         where (Snew(1:N) < 0._DP)
             artnu(1:N) = 1._DP / (16 * fac(1:N))
-         elsewhere
-            artnu(1:N) = 0.0_DP
+            artnu(0:N-1) = 1._DP / (16 * fac(0:N-1))
+            artnu(2:N+1) = 1._DP / (16 * fac(2:N+1))
          end where
          S(1:N) = Snew(1:N) 
          Sn1(1:N) = artnu(2:N+1) * S(2:N+1) - 2 * artnu(1:N) * S(1:N) + artnu(0:N-1) * S(0:N-1)
          Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
          loop = loop + 1
-         if (loop >= LOOPMAX) exit
+         if (loop > 10) then
+            stepfail = .true.
+            exit
+         end if
       end do
 
       ring%Gsigma(1:N) = max(0.0_DP,Snew(1:N) / ring%X(1:N))
