@@ -1,57 +1,54 @@
 import numpy as np
 import sys
-from uranus_system import *
+from mars_system import *
 
 
 #The following are Unit conversion factors
-MU2GM    =     M_Uranus          #Conversion from mass unit to grams
-DU2CM    =     R_Uranus                       #Conversion from radius unit to centimeters
+MU2GM    =     M_Mars          #Conversion from mass unit to grams
+DU2CM    =     R_Mars                       #Conversion from radius unit to centimeters
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 1.0e5 / DU2CM #disk particle size
-rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
+r_pdisk = 18.e0 / DU2CM #disk particle size
+rho_pdisk = 1.876 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
-t_print = 1.e6 * year / TU2S #output interval to print results
-deltaT	= 1.e6 * year / TU2S  #timestep simulation
-end_sim = 1.0e10 * year / TU2S + t_print #end time
-
-Nbins    = 1024 #number of bins in disk
-Nseeds   = 0
+t_print = 1.e4 * year / TU2S #output interval to print results
+deltaT	= 1.e2 * year / TU2S  #timestep simulation
+end_sim = 1.0e7 * year / TU2S + t_print #end time
 
 
-k_2         = k2_Uranus  #tidal love number for primary
-Q           = Q_Uranus_TWlo #tidal dissipation factor for primary
+
+k_2         = k2_Mars #tidal love number for primary
+Q           = Q_Mars #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
-J2 = J2_Uranus
-J4 = J4_Uranus
+J2 = J2_Mars
+J4 = J4_Mars
 
-RP    = R_Uranus / DU2CM  # Radius of primary
-RP_eq = R_Uranus_eq / DU2CM
-MP    = M_Uranus / MU2GM  # Mass of primary
+RP    = R_Mars / DU2CM  # Radius of primary
+RP_eq = R_Mars_eq / DU2CM
+MP    = M_Mars / MU2GM  # Mass of primary
 rhoP  = 3.0 * MP / (4.0 * np.pi * RP**3) #Density of primary
-TP    =  T_Uranus / TU2S # Rotation rate of primary
-IPp = Ipolar_Uranus # Polar moment of inertia of primary
+TP    =  T_Mars / TU2S # Rotation rate of primary
+IPp = Ipolar_Mars # Polar moment of inertia of primary
 IPe = J2 + IPp # equatorial moment of inertia of primary
 FRL = 2.456 * RP * (rhoP / rho_pdisk)**(1./3.)
 RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 Rsync = (GU * MP * TP**2 / (4 * np.pi**2))**(1./3.)
 
 
-sigma_FRL =  3e2 * DU2CM**2 / MU2GM
-sigma_slope = -4.0
-#sigma_peak = 1.2e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
-sigma_peak = sigma_FRL * (FRL / RP)**(-sigma_slope)
+Nbins    = 1024 #number of bins in disk
+Nseeds   = 1
+sigma_peak = 1000 * DU2CM**2 / MU2GM
+sigma_slope = -1.5
 
-
-#Gmseed = [uranian_satellites.M_Puck * GU / MU2GM]
-#aseed = [1.01 * FRL ]
+Gmseed = np.array([GU * 1e21 / MU2GM])
+aseed = np.array([1.0 * 4**(1./3.) * FRL])
 
 
 r_I	= 0.9 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 1.1 * FRL #3 * RP #1.1 * FRL  #outside radius of disk
+r_F	= 8 * RP  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -69,7 +66,8 @@ r = []
 
 sigma = []
 X = []
-
+deltaA = []
+mass = []
 
 
 def f(x):
@@ -78,10 +76,11 @@ def f(x):
     for a in range(int(Nbins)):
         X.append(2 * np.sqrt(r_I) + deltaX * (a + 0.5))
         r.append((0.5 * X[a])**2)
+        deltaA.append(0.25 * np.pi * X[a]**3 * deltaX)
 
         if x == 0:
             # Power law surface mass density
-            if r[a] <= RP or r[a] > 1.0 * FRL:
+            if r[a] <= 1.0 * RP or r[a] >= FRL:
                 sigma.append(0.0)
             else:
                 sigma.append(sigma_peak * (r[a] / RP) ** (sigma_slope))
@@ -92,13 +91,15 @@ def f(x):
             sigma.append(sigma_peak * np.exp(-(r[a] - centroid) ** 2 / (2 * spread ** 2)))
         else:
             print('You have not chosen a valid disk model')
+        mass.append(sigma[a] * deltaA[a])
 
 
 
 if __name__ == '__main__':
-    f(0) # Make the ring
+    f(0)
 
-
+    ringmass = np.sum(mass)
+    print('Ring mass: ', ringmass * MU2GM)
 
     outfile = open('ring.in', 'w')
     print(Nbins, Nseeds, file=outfile)
@@ -129,9 +130,9 @@ if __name__ == '__main__':
 
     iout = int(np.ceil(t_print / deltaT))
     rmin = RP
-    rmax = Rhill_Uranus / DU2CM
+    rmax = Rhill_Mars / DU2CM
 
-    mtiny = 1e-8 #roughly 1/3 the mass of Puck
+    mtiny = 1e-8
 
 
     t_0	= 0

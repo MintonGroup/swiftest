@@ -25,7 +25,7 @@ spread = 360e3  # width of the gaussian
 sigma_peak = 6.15e4  # scale factor to get a given mass
 
 t_0	= 0
-t_print = 1.e3 * year / TU2S #output interval to print results
+t_print = 1.e2 * year / TU2S #output interval to print results
 deltaT	= 1.e2 * year / TU2S  #timestep simulation
 end_sim = 1.e6 * year / TU2S + deltaT #end time
 

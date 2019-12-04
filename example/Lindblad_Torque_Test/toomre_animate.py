@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 import Init_Cond as ic
 from scipy.io import FortranFile
-from uranus_system import *
+from Init_Cond import *
 
 # First set up the figure, the axis, and the plot element we want to animate
 
@@ -17,10 +17,10 @@ class AnimatedScatter(object):
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=100, frames=41000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=41000,
                                           init_func=self.setup_plot, blit=True)
 
-        #self.ani.save('frames/uranian_ringsat.png', writer = "imagemagick")
+        #self.ani.save('frames/uranian_ringsat.png', writer = "imagemag")
         #self.ani.save('uranian_ringsat-S0.6e4g_cm2-480-dt10.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
 
     def setup_plot(self):
@@ -34,9 +34,9 @@ class AnimatedScatter(object):
         Q = ring[:,3]
         r_pdisk = ring[:,4]
         xmin = 1.0
-        xmax = 6.0
-        ymin = 1.0e-1
-        ymax = 1e6
+        xmax = 4.0
+        ymin = 1.0e-2
+        ymax = 1e4
 
         y2min = 1e-3
         y2max = 1e5
@@ -44,7 +44,7 @@ class AnimatedScatter(object):
 
         #self.ax.set_xlim(xmin, xmax)
         #self.ax.set_ylim(ymin, ymax)
-        self.ax.set_xlabel('Distance to Uranus (RU)')
+        self.ax.set_xlabel('Distance to Mars (Rp)')
         self.ax.set_ylabel('$r_{pdisk}$ (cm)')
         self.ax.set_yscale('log')
 
@@ -54,12 +54,12 @@ class AnimatedScatter(object):
         self.secax.set_ylim(y2min, y2max)
 
         self.rpline, = self.ax.plot(r, r_pdisk, '-', color="black", linewidth=1.0, zorder=50)
-        self.RRL = self.ax.plot([ic.RRL / ic.RP, ic.RRL / ic.RP], [ymin, ymax], '--', color="black", linewidth=0.5, zorder=50)
-        self.RRLlab = self.ax.text(ic.RRL / ic.RP - 0.20, 0.4 * ymax, "RRL", rotation=90, fontsize="10")
-        self.FRL = self.ax.plot([ic.FRL / ic.RP, ic.FRL / ic.RP], [ymin, ymax], ':', color="black", linewidth=0.5, zorder=50)
-        self.FRLlab = self.ax.text(ic.FRL / ic.RP - 0.20, 0.4 * ymax, "FRL", rotation=90, fontsize="10")
-        self.Rsync = self.ax.plot([ic.Rsync / ic.RP, ic.Rsync / ic.RP], [ymin, ymax], '-.', color="black", linewidth=0.5, zorder=50)
-        self.Rsynclab = self.ax.text(ic.Rsync / ic.RP - 0.20, 0.4 * ymax, "$a_{sync}$", rotation=90, fontsize="10")
+        self.RRL = self.ax.plot([RRL / RP, RRL / RP], [ymin, ymax], '--', color="black", linewidth=0.5, zorder=50)
+        self.RRLlab = self.ax.text(RRL / RP - 0.20, 0.4 * ymax, "RRL", rotation=90, fontsize="10")
+        self.FRL = self.ax.plot([FRL / RP, FRL / RP], [ymin, ymax], ':', color="black", linewidth=0.5, zorder=50)
+        self.FRLlab = self.ax.text(FRL / RP - 0.20, 0.4 * ymax, "FRL", rotation=90, fontsize="10")
+        self.Rsync = self.ax.plot([Rsync / RP, Rsync / RP], [ymin, ymax], '-.', color="black", linewidth=0.5, zorder=50)
+        self.Rsynclab = self.ax.text(Rsync / RP - 0.20, 0.4 * ymax, "$a_{sync}$", rotation=90, fontsize="10")
         #plt.axvline(x=xc, color='k', linestyle='--')
         self.Qstab = self.secax.plot(r,np.full_like(r,1.0), ':', color="blue", linewidth=0.5, zorder = 50)
         self.Qstab = self.secax.plot(r,np.full_like(r,2.0), '-.', color="blue", linewidth=0.5, zorder = 50)
@@ -67,10 +67,10 @@ class AnimatedScatter(object):
         self.Qline, = self.secax.plot(r, Q, '-', color="blue", linewidth=1.0, zorder=50)
         self.title = self.ax.text(0.80, 0.1, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5},
                         transform=self.ax.transAxes, ha="center")
-        #self.line.set_label(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:5.1f}$ My')
+        #self.line.set_label(f'Time = ${t[0]*TU2S/year * 1e-6:5.1f}$ My')
         #self.legend = plt.legend()
         #self.legend.remove()
-        self.title.set_text(f'Time = ${t[0] * ic.TU2S / ic.year * 1e-6:7.2f}$ My')
+        self.title.set_text(f'Time = ${t[0] * TU2S / year * 1e-6:7.2f}$ My')
 
         # For FuncAnimation's sake, we need to return the artist we'll be using
         # Note that it expects a sequence of artists, thus the trailing comma.
@@ -91,19 +91,19 @@ class AnimatedScatter(object):
                 Q = f.read_reals(np.float64)
                 r_pdisk = f.read_reals(np.float64)
                 vrel_pdisk = f.read_reals(np.float64)
-                kval = int(t / ic.t_print)
+                kval = int(t / t_print)
                 Nseeds = f.read_ints(np.int32)
                 a = f.read_reals(np.float64)
                 Gm = f.read_reals(np.float64)
 
-                yield t,np.c_[a / ic.RP,
-                              Gm * ic.MU2GM / ic.GU],\
-                        np.c_[r / ic.RP,
-                              Gsigma * ic.MU2GM / ic.DU2CM**2 / ic.GU,
-                              nu * ic.TU2S / ic.DU2CM**2,
+                yield t,np.c_[a / RP,
+                              Gm * MU2GM / GU],\
+                        np.c_[r / RP,
+                              Gsigma * MU2GM / DU2CM**2 / GU,
+                              nu * TU2S / DU2CM**2,
                               Q,
-                              r_pdisk * ic.DU2CM,
-                              vrel_pdisk * ic.DU2CM / ic.TU2S]
+                              r_pdisk * DU2CM,
+                              vrel_pdisk * DU2CM / TU2S]
 
 
     def update(self, i):
@@ -130,7 +130,7 @@ class AnimatedScatter(object):
         # Set colors..
         #self.scat.set_array(x,y)
 
-        self.title.set_text(f'Time = ${t[0]*ic.TU2S/ic.year * 1e-6:7.2f}$ My')
+        self.title.set_text(f'Time = ${t[0]*TU2S/year * 1e-6:7.2f}$ My')
         # We need to return the updated artist for FuncAnimation to draw..
         # Note that it expects a sequence of artists, thus the trailing comma.
         return self.Qline, self.rpline, self.title,

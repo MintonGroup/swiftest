@@ -2,8 +2,31 @@
 #inner sats from French, Dawson and Showalter (2015)
 import numpy as np
 
+#Units will be in terms of planet mass, planet radius, and years
+G	    = 6.674e-8                       #Gravitational constant (cgs)
+year    = 3600*24*365.25                #seconds in 1 year
+AU      = 1.4960e13
+M_Sun   = 1.9891e33
+
+
+###***Define initial conditions***###
 M_Uranus    = 8.6127e28
 R_Uranus    = 25362e5
+R_Uranus_eq = 25559e5
+a_Uranus    = 19.2184 * AU
+T_Uranus    = 0.71833 * 24 * 3600
+W_Uranus    = 2.0 * np.pi / T_Uranus
+Rhill_Uranus = a_Uranus * (M_Uranus / (3 * M_Sun))**(1.0 / 3.0)
+Ipolar_Uranus = 0.230
+J2_Uranus = 3341.29e-6
+J4_Uranus = 33.61e-6
+
+
+k2_Uranus = 0.104 #Gavrilov & Zharkov (1977)
+Q_Uranus_TWlo = 11000.0
+Q_Uranus_TWhi = 39000.0
+
+
 
 a_Cord      = 4.98e9
 M_Cord      = 3.88e19
