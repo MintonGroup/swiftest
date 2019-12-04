@@ -26,13 +26,13 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 1e2 / DU2CM #disk particle size
+r_pdisk = 70.0 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
-t_print = 1.e3 * year / TU2S #output interval to print results
+t_print = 1.e5 * year / TU2S #output interval to print results
 deltaT	= 1.e3 * year / TU2S  #timestep simulation
-end_sim = 1.0e9 * year / TU2S + t_print #end time
+end_sim = 1.0e10 * year / TU2S + t_print #end time
 
 Nbins    = 1024 #number of bins in disk
 Nseeds   = 0
@@ -67,8 +67,8 @@ sigma_peak = sigma_FRL * (FRL / RP)**(-sigma_slope)
 #aseed = [1.01 * FRL ]
 
 
-r_I	= 0.99 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 6 * RP #1.1 * FRL  #outside radius of disk
+r_I	= 0.9 * RP      #inside radius of disk is at the embryo's surface
+r_F	= 1.1 * FRL #3 * RP #1.1 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -98,7 +98,7 @@ def f(x):
 
         if x == 0:
             # Power law surface mass density
-            if r[a] > 1.1 * FRL:
+            if r[a] <= RP or r[a] > 1 * FRL:
                 sigma.append(0.0)
             else:
                 sigma.append(sigma_peak * (r[a] / RP) ** (sigma_slope))
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     print(f'MTINY          {mtiny}')
     print(f'RING_OUTFILE   ring.dat')
     print(f'ROTATION       yes')
-    print(f'PREDPREY       yes')
+    print(f'PREDPREY       no')
 
 
     sys.stdout = sys.__stdout__

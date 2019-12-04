@@ -30,10 +30,10 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 t_0	= 0
 t_print = 1e3 * year / TU2S #output interval to print results
-deltaT	= 1e0 * year / TU2S  #timestep simulation
+deltaT	= 1e2 * year / TU2S  #timestep simulation
 end_sim = 1.0e8 * year / TU2S + t_print #end time
 
-Nbins    = 512       #number of bins in disk
+Nbins    = 1024      #number of bins in disk
 
 
 

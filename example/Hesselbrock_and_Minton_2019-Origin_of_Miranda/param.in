@@ -2,12 +2,12 @@
 !NPLMAX         -1 
 !NTPMAX         -1
 T0             0 
-TSTOP          1000001000.0
+TSTOP          10000100000.0
 DT             1000.0
 PL_IN          pl.in
 TP_IN          tp.in
 IN_TYPE        ASCII
-ISTEP_OUT      1
+ISTEP_OUT      100
 BIN_OUT        bin.dat
 OUT_TYPE       REAL8
 OUT_FORM       EL
@@ -31,4 +31,4 @@ TU2S           31557600.0
 MTINY          1e-08
 RING_OUTFILE   ring.dat
 ROTATION       yes
-PREDPREY       yes
+PREDPREY       no

@@ -32,31 +32,31 @@ class AnimatedScatter(object):
         s = ring[:,1]
         xmin = 1.0
         xmax = 6
-        ymin = 0.01
-        ymax = 1e5
+        ymin = 0.1
+        ymax = 1e4
 
-        y2min = 1e-1
+        y2min = 1e15
         y2max = 1e25
         self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
 
         #self.ax.set_xlim(xmin, xmax)
         #self.ax.set_ylim(ymin, ymax)
-        self.ax.set_xlabel('Distance to Uranus (RU)')
-        self.ax.set_ylabel('$\Sigma$ (g$\cdot$cm$^{-2}$)')
+        self.ax.set_xlabel('Distance to Uranus ($R_p$)', fontsize="12")
+        self.ax.set_ylabel('$\Sigma$ (g$\cdot$cm$^{-2}$)',fontsize="12")
         self.ax.set_yscale('log')
 
         self.secax = self.ax.twinx()
         self.secax.set_yscale('log')
-        self.secax.set_ylabel('Mass of satellite (g)')
+        self.secax.set_ylabel('Mass of satellite (g)',fontsize="12")
         self.secax.set_ylim(y2min, y2max)
 
         self.line, = self.ax.plot(r, s, '-', color="black", linewidth=1.0, zorder=50)
         self.RRL = self.ax.plot([ic.RRL / ic.RP, ic.RRL / ic.RP], [ymin, ymax], '--', color="black", linewidth=0.5, zorder=50)
-        self.RRLlab = self.ax.text(ic.RRL / ic.RP - 0.20, 0.4 * ymax, "RRL", rotation=90, fontsize="10")
+        self.RRLlab = self.ax.text(ic.RRL / ic.RP - 0.00, 0.3 * ymax, "RRL", rotation=90, fontsize="12")
         self.FRL = self.ax.plot([ic.FRL / ic.RP, ic.FRL / ic.RP], [ymin, ymax], ':', color="black", linewidth=0.5, zorder=50)
-        self.FRLlab = self.ax.text(ic.FRL / ic.RP - 0.20, 0.4 * ymax, "FRL", rotation=90, fontsize="10")
+        self.FRLlab = self.ax.text(ic.FRL / ic.RP - 0.00, 0.3 * ymax, "FRL", rotation=90, fontsize="12")
         self.Rsync = self.ax.plot([ic.Rsync / ic.RP, ic.Rsync / ic.RP], [ymin, ymax], '-.', color="black", linewidth=0.5, zorder=50)
-        self.Rsynclab = self.ax.text(ic.Rsync / ic.RP - 0.20, 0.4 * ymax, "$a_{sync}$", rotation=90, fontsize="10")
+        self.Rsynclab = self.ax.text(ic.Rsync / ic.RP + 0.02, 0.3 * ymax, "$a_{sync}$", rotation=90, fontsize="12")
         #plt.axvline(x=xc, color='k', linestyle='--')
 
         self.title = self.ax.text(0.80, 0.1, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5},
@@ -65,8 +65,9 @@ class AnimatedScatter(object):
         #self.legend = plt.legend()
         #self.legend.remove()
         self.title.set_text(f'Time = ${t[0] * ic.TU2S / ic.year * 1e-6:7.2f}$ My')
-        self.usats = self.secax.scatter(Sat_r_RM, Sat_M_Mass, marker='o', color="silver", s=5, zorder=50)
-        self.scat = self.secax.scatter(seeds[:,0], seeds[:,1], marker='o', color="black", s=5, zorder=50)
+        self.usats = self.secax.scatter(Sat_r_RM, Sat_M_Mass, marker='o', color="lightsteelblue", s=15, zorder=40)
+        self.scat = self.secax.scatter(seeds[:,0], seeds[:,1], marker='o', color="black", s=15, zorder=50)
+        self.eps_ring = self.ax.plot(eps_ring_r / ic.DU2CM / ic.RP, eps_ring_s, '-', color="lightsteelblue", linewidth=1.5, zorder=50)
 
         # For FuncAnimation's sake, we need to return the artist we'll be using
         # Note that it expects a sequence of artists, thus the trailing comma.

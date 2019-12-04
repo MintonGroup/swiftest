@@ -113,78 +113,78 @@ def f(x):
         I.append(m[a]*R[a])
         w.append((GU*MP/r[a]**3)**0.5)
         Torque_to_disk.append(0.0)
-
-f(1) #Make a Gaussian ring
-
-
-outfile = open('ring.in', 'w')
-print(N, 0, file=outfile)
-print(r_I, r_F, file=outfile)
-print(r_pdisk, GU * m_pdisk, file=outfile)
+if __name__ == '__main__':
+    f(1) #Make a Gaussian ring
 
 
-for a in range(int(N)):
-    print(GU * sigma[a],file=outfile)
-
-plfile = open('pl.in', 'w')
-print(1,file=plfile)
-print(f'1 {GU*MP}',file=plfile)
-print(f'{RP} {k_2} {Q}', file=plfile)
-np.savetxt(plfile, IP, newline=' ')
-print('',file=plfile)
-np.savetxt(plfile, wP, newline=' ')
-print('',file=plfile)
-print(f'0.0 0.0 0.0',file=plfile)
-print(f'0.0 0.0 0.0',file=plfile)
-plfile.close()
-tpfile = open('tp.in', 'w')
-print(0,file=tpfile)
-tpfile.close()
+    outfile = open('ring.in', 'w')
+    print(N, 0, file=outfile)
+    print(r_I, r_F, file=outfile)
+    print(r_pdisk, GU * m_pdisk, file=outfile)
 
 
-iout = int(np.ceil(t_print / deltaT))
-rmin = RP
-rmax = Rhill_Saturn / DU2CM
+    for a in range(int(N)):
+        print(GU * sigma[a],file=outfile)
 
-mtiny = 1e-8 #roughly 1/3 the mass of Puck
-
-
-
-sys.stdout = open("param.in", "w")
-print(f'!Parameter file for the SyMBA-RINGMOONS test')
-print(f'!NPLMAX         -1 ')
-print(f'!NTPMAX         -1')
-print(f'T0             {t_0} ')
-print(f'TSTOP          {end_sim}')
-print(f'DT             {deltaT}')
-print(f'PL_IN          pl.in')
-print(f'TP_IN          tp.in')
-print(f'IN_TYPE        ASCII')
-print(f'ISTEP_OUT      {iout:d}')
-print(f'BIN_OUT        bin.dat')
-print(f'OUT_TYPE       REAL8')
-print(f'OUT_FORM       EL')
-print(f'OUT_STAT       NEW')
-print(f'J2             {J2}')
-print(f'J4             {J4}')
-print(f'CHK_CLOSE      yes')
-print(f'CHK_RMIN       {rmin}')
-print(f'CHK_RMAX       {rmax}')
-print(f'CHK_EJECT      {rmax}')
-print(f'CHK_QMIN       {rmin}')
-print(f'CHK_QMIN_COORD HELIO')
-print(f'CHK_QMIN_RANGE {rmin} {rmax}')
-print(f'ENC_OUT        enc.dat')
-print(f'EXTRA_FORCE    no')
-print(f'BIG_DISCARD    no')
-print(f'RHILL_PRESENT  yes')
-print(f'MU2GM          {MU2GM}')
-print(f'DU2CM          {DU2CM}')
-print(f'TU2S           {TU2S}')
-print(f'MTINY          {mtiny}')
-print(f'RING_OUTFILE   ring.dat')
-print(f'ROTATION       yes')
+    plfile = open('pl.in', 'w')
+    print(1,file=plfile)
+    print(f'1 {GU*MP}',file=plfile)
+    print(f'{RP} {k_2} {Q}', file=plfile)
+    np.savetxt(plfile, IP, newline=' ')
+    print('',file=plfile)
+    np.savetxt(plfile, wP, newline=' ')
+    print('',file=plfile)
+    print(f'0.0 0.0 0.0',file=plfile)
+    print(f'0.0 0.0 0.0',file=plfile)
+    plfile.close()
+    tpfile = open('tp.in', 'w')
+    print(0,file=tpfile)
+    tpfile.close()
 
 
-sys.stdout = sys.__stdout__
+    iout = int(np.ceil(t_print / deltaT))
+    rmin = RP
+    rmax = Rhill_Saturn / DU2CM
+
+    mtiny = 1e-8 #roughly 1/3 the mass of Puck
+
+
+
+    sys.stdout = open("param.in", "w")
+    print(f'!Parameter file for the SyMBA-RINGMOONS test')
+    print(f'!NPLMAX         -1 ')
+    print(f'!NTPMAX         -1')
+    print(f'T0             {t_0} ')
+    print(f'TSTOP          {end_sim}')
+    print(f'DT             {deltaT}')
+    print(f'PL_IN          pl.in')
+    print(f'TP_IN          tp.in')
+    print(f'IN_TYPE        ASCII')
+    print(f'ISTEP_OUT      {iout:d}')
+    print(f'BIN_OUT        bin.dat')
+    print(f'OUT_TYPE       REAL8')
+    print(f'OUT_FORM       EL')
+    print(f'OUT_STAT       NEW')
+    print(f'J2             {J2}')
+    print(f'J4             {J4}')
+    print(f'CHK_CLOSE      yes')
+    print(f'CHK_RMIN       {rmin}')
+    print(f'CHK_RMAX       {rmax}')
+    print(f'CHK_EJECT      {rmax}')
+    print(f'CHK_QMIN       {rmin}')
+    print(f'CHK_QMIN_COORD HELIO')
+    print(f'CHK_QMIN_RANGE {rmin} {rmax}')
+    print(f'ENC_OUT        enc.dat')
+    print(f'EXTRA_FORCE    no')
+    print(f'BIG_DISCARD    no')
+    print(f'RHILL_PRESENT  yes')
+    print(f'MU2GM          {MU2GM}')
+    print(f'DU2CM          {DU2CM}')
+    print(f'TU2S           {TU2S}')
+    print(f'MTINY          {mtiny}')
+    print(f'RING_OUTFILE   ring.dat')
+    print(f'ROTATION       yes')
+    print(f'PREDPREY       no')
+
+    sys.stdout = sys.__stdout__
 

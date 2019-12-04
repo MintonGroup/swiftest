@@ -33,10 +33,10 @@ class AnimatedScatter(object):
         y = seeds[:,1]
         r = ring[:,0]
         s = ring[:,1]
-        xmin = 58.0
-        xmax = 175.0
-        ymin = 0.01
-        ymax = 10.0
+        xmin = 100.0
+        xmax = 120.0
+        ymin = 0.0
+        ymax = 8.0
 
         y2min = 1e14
         y2max = 1e25
@@ -46,7 +46,7 @@ class AnimatedScatter(object):
         #self.ax.set_ylim(ymin, ymax)
         self.ax.set_xlabel('Distance to Saturn (1000 km)')
         self.ax.set_ylabel('$\Sigma$ ($10^4$ kg$\cdot$m$^{-2}$)')
-        self.ax.set_yscale('log')
+        #self.ax.set_yscale('log')
 
         self.secax = self.ax.twinx()
         self.secax.set_yscale('log')
@@ -86,6 +86,9 @@ class AnimatedScatter(object):
                 r = f.read_reals(np.float64)
                 Gsigma = f.read_reals(np.float64)
                 nu = f.read_reals(np.float64)
+                Q = f.read_reals(np.float64)
+                r_pdisk = f.read_reals(np.float64)
+                vrel_pdisk = f.read_reals(np.float64)
                 kval = int(t / ic.t_print)
                 Nseeds = f.read_ints(np.int32)
                 a = f.read_reals(np.float64)

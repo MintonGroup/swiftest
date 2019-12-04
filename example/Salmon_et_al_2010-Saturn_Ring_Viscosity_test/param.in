@@ -31,3 +31,4 @@ TU2S           1.0
 MTINY          1e-08
 RING_OUTFILE   ring.dat
 ROTATION       yes
+PREDPREY       no

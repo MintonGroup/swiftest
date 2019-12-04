@@ -47,6 +47,9 @@ with FortranFile('ring.dat', 'r') as f:
         r = f.read_reals(np.float64)
         Gsigma = f.read_reals(np.float64)
         nu = f.read_reals(np.float64)
+        Q = f.read_reals(np.float64)
+        r_pdisk = f.read_reals(np.float64)
+        vrel_pdisk = f.read_reals(np.float64)
         kval = int(t / ic.t_print)
         ring[kval] = [r, Gsigma, nu]
         Nseeds = f.read_ints(np.int32)

@@ -77,6 +77,14 @@ a_Oberon    = 583520e5
 M_Oberon    = 3014e21
 R_Oberon    = 7.614e7
 
+eps_ring_width = 96.4e5
+eps_ring_rad = 51149e5
+eps_ring_r = np.linspace(eps_ring_rad - 0.5 * eps_ring_width, eps_ring_rad + 0.5 * eps_ring_width, num=100)
+eps_ring_s = np.full_like(eps_ring_r,25.0)
+eps_ring_s[0] = 0
+eps_ring_s[-1] = 0
+
+
 Sat_r_RM = []
 Sat_M_Mass = []
 area = []
