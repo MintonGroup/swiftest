@@ -61,8 +61,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE,alind,adot
    logical(lgt)                              :: chomped,goodstep
-   real(DP),parameter                        :: DTMIN_FAC = 1e-10_DP
-   real(DP),parameter                        :: TOL = 1e-6_DP 
+   real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
+   real(DP),parameter                        :: TOL = 1e-4_DP 
    integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
 
 
@@ -166,9 +166,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             Ttide = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),ns,iseeds%a(i),e,inc) 
             iseeds%Torque(i) = Ttide - sum(Tlind(:)) 
 
-            
-               
-
             if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
                Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iring%rho_pdisk(rbin),iseeds%a(i))
                Gmsdot = max(0.0_DP,min(Gmsdot,iring%Gm(rbin) / dt))
@@ -186,22 +183,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             ka(i,rkn) = dt * adot
             kT(i,rkn) = dt * Ttide
             kL(:,rkn) = kL(:,rkn) + dt * Tlind(:)
-            !write(*,*) 'all ks calc' 
-            !if (i == 1) then
-            !   write(*,*) 'rkf step: ',rkn
-            !   write(*,*) 'a / alind: ',iseeds%a(i) / alind
-            !   write(*,*) 'M (gm): ',iseeds%Gm(i) * MU2GM / GU
-            !   write(*,*) 'mdot: ',Gmsdot * MU2GM / GU
-            !   write(*,*) 'adot: ',adot 
-            !   write(*,*) 'Total torque: ',iseeds%Torque(i) + Tr_evol
-            !   write(*,*) 'Tr_evol: ',Tr_evol
-            !   write(*,*) 'Tides: ',Ttide
-            !   write(*,*) 'Lindblad torques. Sum:',-sum(Tlind(:))
-            !   do j = 0,ring%N+1
-            !      write(*,*) j,ring%r(j) / ring%FRL,ring%Gsigma(j) * MU2GM/DU2CM**2 / GU,-Tlind(j)
-            !   end do
-            !   read(*,*)
-            !end if
          end do
       end do
     
@@ -229,20 +210,31 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       end if
 
       ! save values for error estimation
-      ascale(:) = abs(ai(:)) + abs(ka(i,1)) + epsilon(1._DP) !1e-3_DP
+      ascale(:) = abs(ai(:)) + abs(ka(:,1)) + epsilon(1._DP) 
 
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       maxE = maxval(Ea(1:iseeds%N) / ascale(1:iseeds%N)) / TOL
+
+      !write(*,*) 'loop: ',loop
+      !write(*,*) 'dt = ',dt
+      !write(*,*) 'a errors',maxE
+      !do i = 1,iseeds%N
+      !   write(*,*) i,ascale(i),Ea(i),Ea(i)/ascale(i),Ea(i)/ascale(i)/TOL
+      !end do
       if (maxE > 1.0_DP) then
          dt = 0.9_DP * dt / maxE**(0.25_DP)
          goodstep =.false.
          cycle steploop
       end if
 
-
-      mscale(:) = abs(Gmi(:)) + abs(km(i,1)) + epsilon(1._DP) !1e-3_DP
+      mscale(:) = abs(Gmi(:)) + abs(km(:,1)) + epsilon(1._DP) 
       Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      maxE = max(maxval(Em(1:iseeds%N) / mscale(1:iseeds%N)), maxE)
+      maxE = max(maxE, maxval(Em(1:iseeds%N) / mscale(1:iseeds%N)) / TOL)
+      !write(*,*) 'm errors',maxE
+      !do i = 1,iseeds%N
+      !   write(*,*) i,mscale(i),Em(i),Em(i)/mscale(i),Em(i)/mscale(i)/TOL
+      !end do
+      !read(*,*) 
       if (maxE > 1.0_DP) then
          dt = 0.9_DP * dt / maxE**(0.25_DP)
          goodstep =.false.
@@ -264,7 +256,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       dTorque_ring(:) = dTorque_ring(:) + Torquef(:)
 
       dtleft = dtleft - dt
-   
+  
+      !write(*,*) 'sarr: ',sarr 
+      !read(*,*)
       if (dtleft <= 0.0_DP) exit steploop
       dt = min(sarr * dt,dtleft)
 

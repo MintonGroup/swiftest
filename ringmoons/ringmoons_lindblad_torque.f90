@@ -72,7 +72,6 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    ! Inner then outer lindblads
    do il = -1,1,2
       Xr(2:mshep) = Xs * marr(2:mshep,il)
-     
       w1_arr(2:mshep) = min(max(ceiling((sqrt(Xr(2:mshep)**2 - Xw2) - ring%X_I) / ring%deltaX),0),ring%N+1)
       w2_arr(2:mshep) = min(max(ceiling((sqrt(Xr(2:mshep)**2 + Xw2) - ring%X_I) / ring%deltaX),0),ring%N+1)
       do m  = 2, mshep
