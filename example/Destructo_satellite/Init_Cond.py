@@ -23,17 +23,17 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 10.0e2 / DU2CM #disk particle size
+r_pdisk = 100.0e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 
 t_0	= 0
-t_print = 1e3 * year / TU2S #output interval to print results
-deltaT	= 1e2 * year / TU2S  #timestep simulation
+t_print = 1e6 * year / TU2S #output interval to print results
+deltaT	= 1e3 * year / TU2S  #timestep simulation
 end_sim = 1.0e8 * year / TU2S + t_print #end time
 
-Nbins    = 1024      #number of bins in disk
+Nbins    = 256      #number of bins in disk
 
 
 
@@ -45,7 +45,7 @@ J2_Uranus = 3341.29e-6
 J4_Uranus = 33.61e-6
 
 k_2         = 0.104 #tidal love number for primary
-Q           = 3000. #tidal dissipation factor for primary
+Q           = 11000. #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
 J2 = J2_Uranus
@@ -64,7 +64,7 @@ RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 Rsync = (GU * MP * TP**2 / (4 * np.pi**2))**(1./3.)
 
 r_I	= 0.99 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 1.2 * FRL  #outside radius of disk
+r_F	= 2.0 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -111,7 +111,7 @@ f() #Make a power law ring
 
 Nseeds   = 1
 Gmseed = [4 * uranian_satellites.M_Mira * GU / MU2GM]
-aseed= [1.001* RRL]
+aseed= [1.1* RRL]
 
 
 outfile = open('ring.in', 'w')
@@ -183,6 +183,7 @@ print(f'TU2S           {TU2S}')
 print(f'MTINY          {mtiny}')
 print(f'RING_OUTFILE   ring.dat')
 print(f'ROTATION       yes')
+print(f'PREDPREY       no')
 
 
 sys.stdout = sys.__stdout__

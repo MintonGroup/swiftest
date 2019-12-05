@@ -272,21 +272,6 @@ module module_ringmoons_interfaces
       end interface
 
       interface
-         function ringmoons_seed_timestep(swifter_pl1P,ring,seeds,dtin) result(dtout)
-         use module_parameters
-         use module_swifter
-         use module_ringmoons
-         implicit none
-         type(swifter_pl),pointer               :: swifter_pl1P
-         type(ringmoons_ring),intent(in)        :: ring
-         type(ringmoons_seeds),intent(in)       :: seeds
-         real(DP),intent(in)                    :: dtin
-         real(DP)                               :: dtout
-         end function ringmoons_seed_timestep
-      end interface
-
-
-      interface
          recursive function ringmoons_laplace_coefficient(alpha,j,s,n) result(ans)
          use module_parameters
          implicit none

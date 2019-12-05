@@ -12,17 +12,17 @@ SIGU2CGS = MU2GM / DU2CM**2
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
     def __init__(self):
-        self.stream = self.data_stream()
         self.ringfilename = 'ring.dat'
+        self.stream = self.data_stream()
 
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=100, frames=41000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=1,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/charnoz2010-saturn-ringmoons.png', writer = "imagemagick")
-        #self.ani.save('HesselbrockMinton2017PhobosCycle.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
+        #self.ani.save('LindbladTorqueTest.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
 
     def setup_plot(self):
         """Initial drawing of the scatter plot."""
@@ -69,9 +69,9 @@ class AnimatedScatter(object):
         #self.line.set_label(f'Time = ${t[0]*TU2S/year * 1e-6:5.1f}$ My')
         #self.legend = plt.legend()
         #self.legend.remove()
-        self.title.set_text(f'Time = ${t[0] * TU2S / year * 1e-6:4.0f}$ My')
+        self.title.set_text(f'Time = ${t[0] * TU2S / year * 1e-3:4.0f}$ ky')
         self.usats = self.secax.scatter(Sat_r_RM / RP / DU2CM , Sat_M_Mass, marker='o', color="lightsteelblue", s=15, zorder=50)
-        self.scat = self.secax.scatter(rs, ms, marker='o', color="black", s=15, zorder=50)
+        self.scat = self.secax.scatter(rs, ms, marker='o', color="black", s=15, zorder=100)
 
         # For FuncAnimation's sake, we need to return the artist we'll be using
         # Note that it expects a sequence of artists, thus the trailing comma.
@@ -80,24 +80,26 @@ class AnimatedScatter(object):
     def data_stream(self):
         with FortranFile(self.ringfilename, 'r') as f:
             while True:
-                for _ in range(1):
-                    try:
-                        t = f.read_reals(np.float64)
-                    except:
-                        f.close()
-                        break
-                    Nbin = f.read_ints(np.int32)
-                    r = f.read_reals(np.float64)
-                    Gsigma = f.read_reals(np.float64)
-                    nu = f.read_reals(np.float64)
-                    Q = f.read_reals(np.float64)
-                    r_pdisk = f.read_reals(np.float64)
-                    vrel_pdisk = f.read_reals(np.float64)
-                    Nseeds = f.read_ints(np.int32)
-                    a = f.read_reals(np.float64)
-                    Gm = f.read_reals(np.float64)
+                #for _ in range(1):
+                try:
+                    t = f.read_reals(np.float64)
+                except:
+                    f.close()
+                    break
+                Nbin = f.read_ints(np.int32)
+                r = f.read_reals(np.float64)
+                Gsigma = f.read_reals(np.float64)
+                nu = f.read_reals(np.float64)
+                Q = f.read_reals(np.float64)
+                r_pdisk = f.read_reals(np.float64)
+                vrel_pdisk = f.read_reals(np.float64)
+                Nseeds = f.read_ints(np.int32)
+                a = f.read_reals(np.float64)
+                Gm = f.read_reals(np.float64)
+
 
                 yield t,np.c_[a , Gm / GU], np.c_[r , Gsigma / GU]
+
 
 
     def update(self, i):
@@ -113,12 +115,14 @@ class AnimatedScatter(object):
         self.scat.set_offsets(seeds[: :2])
         self.line.set_data(r, s)
 
+
+
         # Set sizes...
         #self.scat.set_sizes(300 * abs(data[:, 2])**1.5 + 100)
         # Set colors..
         #self.scat.set_array(x,y)
 
-        self.title.set_text(f'Time = ${t[0]*TU2S/year * 1e-6:4.0f}$ My')
+        self.title.set_text(f'Time = ${t[0]*TU2S/year * 1e-3:4.0f}$ ky')
         # We need to return the updated artist for FuncAnimation to draw..
         # Note that it expects a sequence of artists, thus the trailing comma.
         return self.scat, self.line, self.title,

@@ -45,7 +45,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 ! Internals
    integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop, N,nloops
    real(DP)                                  :: dadt, e, inc, sigavg, sigsum, ns, Tr_evol,Gmsdot, Li, Lj, Ls,dt,dtleft,dtmin
-   real(DP)                                  :: Mr0,Ms0,Mr1,Ms1
+   real(DP)                                  :: impact_b
    type(ringmoons_ring)                      :: iring
    type(ringmoons_seeds)                     :: iseeds
    real(DP)                                  :: da,Gmleft,dGm,Gmdisk
@@ -353,7 +353,8 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       if (seeds%active(i)) then
          do j = i + 1, seeds%N
             if (seeds%active(j)) then
-               if ((seeds%a(j) > seeds%a(i) - fz_width(i)).and.(seeds%a(j) < seeds%a(i) + fz_width(i))) then ! This one is in the feeding zone
+               impact_b = FEEDING_ZONE_FACTOR * 0.5_DP * (seeds%a(i) + seeds%a(j)) * ((seeds%Gm(i) + seeds%Gm(j)) / (3 * swifter_pl1P%mass))**(1._DP / 3._DP)
+               if (abs(seeds%a(i) - seeds%a(j)) < impact_b) then
                   ! conserve both mass and angular momentum
                   !write(*,*) 'chomped: '
                   !write(*,*) i,seeds%a(i),seeds%Gm(i),seeds%active(i)

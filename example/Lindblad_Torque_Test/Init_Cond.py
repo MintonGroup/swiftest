@@ -15,7 +15,7 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 t_print = 1.e4 * year / TU2S #output interval to print results
 deltaT	= 1.e2 * year / TU2S  #timestep simulation
-end_sim = 1.0e7 * year / TU2S + t_print #end time
+end_sim = 12.0e4 * year / TU2S + t_print #end time
 
 
 

@@ -9,15 +9,15 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 1.0e4 / DU2CM #disk particle size
+r_pdisk = 1.0e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
-t_print = 1.e3 * year / TU2S #output interval to print results
+t_print = 1.e6 * year / TU2S #output interval to print results
 deltaT	= 1.e3 * year / TU2S  #timestep simulation
 end_sim = 1.0e10 * year / TU2S + t_print #end time
 
-Nbins    = 1024 #number of bins in disk
+Nbins    = 256 #number of bins in disk
 Nseeds   = 0
 
 
@@ -40,8 +40,8 @@ RRL = 1.44 * RP * (rhoP / rho_sat)**(1./3.)
 Rsync = (GU * MP * TP**2 / (4 * np.pi**2))**(1./3.)
 
 
-sigma_FRL =  3e2 * DU2CM**2 / MU2GM
-sigma_slope = -4.0
+sigma_FRL =  796e0 * DU2CM**2 / MU2GM
+sigma_slope = -3.0
 #sigma_peak = 1.2e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
 sigma_peak = sigma_FRL * (FRL / RP)**(-sigma_slope)
 
@@ -50,8 +50,8 @@ sigma_peak = sigma_FRL * (FRL / RP)**(-sigma_slope)
 #aseed = [1.01 * FRL ]
 
 
-r_I	= 0.9 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 1.1 * FRL #3 * RP #1.1 * FRL  #outside radius of disk
+r_I	= 0.90 * RP      #inside radius of disk is at the embryo's surface
+r_F	= 2.0 * FRL #3 * RP #1.1 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
@@ -69,7 +69,8 @@ r = []
 
 sigma = []
 X = []
-
+deltaA = []
+mass = []
 
 
 def f(x):
@@ -78,6 +79,7 @@ def f(x):
     for a in range(int(Nbins)):
         X.append(2 * np.sqrt(r_I) + deltaX * (a + 0.5))
         r.append((0.5 * X[a])**2)
+        deltaA.append(0.25 * np.pi * X[a] ** 3 * deltaX)
 
         if x == 0:
             # Power law surface mass density
@@ -92,12 +94,14 @@ def f(x):
             sigma.append(sigma_peak * np.exp(-(r[a] - centroid) ** 2 / (2 * spread ** 2)))
         else:
             print('You have not chosen a valid disk model')
-
+        mass.append(sigma[a] * deltaA[a])
 
 
 if __name__ == '__main__':
     f(0) # Make the ring
 
+    ringmass = np.sum(mass)
+    print('Ring mass: ', ringmass * MU2GM)
 
 
     outfile = open('ring.in', 'w')
