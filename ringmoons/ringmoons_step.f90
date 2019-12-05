@@ -142,14 +142,14 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
          call ringmoons_seed_construct(swifter_pl1P,ring,seeds) ! Spawn new seeds in any available bins outside the FRL where there is ring material
 
          subcount = subcount + 1
-         if (DESTRUCTION_EVENT) then
-            call ringmoons_io_write_frame(t + (dtin - dtleft - dtleft), ring, seeds, ring_outfile, out_stat = "APPEND")
-            DESTRUCTION_COUNTER = DESTRUCTION_COUNTER + 1
-            if (DESTRUCTION_COUNTER > DESTRUCTION_SAVE_FRAMES) then
-               DESTRUCTION_EVENT = .false.
-               DESTRUCTION_COUNTER = 0
-            end if
-         end if
+         !if (DESTRUCTION_EVENT) then
+         !   call ringmoons_io_write_frame(t + (dtin - dtleft - dtleft), ring, seeds, ring_outfile, out_stat = "APPEND")
+         !   DESTRUCTION_COUNTER = DESTRUCTION_COUNTER + 1
+         !   if (DESTRUCTION_COUNTER > DESTRUCTION_SAVE_FRAMES) then
+         !      DESTRUCTION_EVENT = .false.
+         !      DESTRUCTION_COUNTER = 0
+         !   end if
+         !end if
 !if ((dt < 1e-1_DP).and.(dtleft > dt)) read(*,*)
 
          dtleft = dtleft - dt
@@ -161,6 +161,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
             subcount = 0
          end if
          dt = min(dtleft,dt)
+
          old_ring = ring
          old_seeds = seeds
          old_swifter_pl1P%mass = swifter_pl1P%mass
@@ -175,6 +176,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
 !write(*,*) 'Lerror too big!',Lerror
 !read(*,*)
 !end if
+
       end do
       call ringmoons_deallocate(old_ring,old_seeds)
 
@@ -185,6 +187,8 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
       Mtot_now = swifter_pl1P%mass + sum(ring%Gm) + sum(seeds%Gm,seeds%active)
       Merror =  (Mtot_now - Mtot_orig) / Mtot_orig
       Lerror = (Ltot_now - Ltot_orig) / Ltot_orig
+
+
       !if ((Mtot_now /= Mtot_now).or.(Ltot_now /= Ltot_now)) then
       !   write(*,*) 'ERROR at time: ',t + (dtin - dtleft)
       !   write(*,*) 'Seeds:'

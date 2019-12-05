@@ -59,15 +59,14 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    integer(I4B)                              :: Nactive 
    real(DP),dimension(0:ring%N+1)            :: Lring_orig,Lring_now
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
-   real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE,alind,adot
+   real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE,adot
    logical(lgt)                              :: chomped,goodstep
    real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
-   real(DP),parameter                        :: TOL = 1e-4_DP 
-   integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
+   real(DP),parameter                        :: TOL = 1e-6_DP 
+   integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error,aloc,Gmloc
 
 
 ! Executable code
-   alind = (4._DP)**(1._DP / 3._DP) * ring%FRL
    e = 0.0_DP
    inc = 0.0_DP
    stepfail = .false.
@@ -210,35 +209,31 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       end if
 
       ! save values for error estimation
-      ascale(:) = abs(ai(:)) + abs(ka(:,1)) + epsilon(1._DP) 
+      ascale(:) = abs(ai(:)) + abs(ka(:,1)) 
 
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       maxE = maxval(Ea(1:iseeds%N) / ascale(1:iseeds%N)) / TOL
 
-      !write(*,*) 'loop: ',loop
-      !write(*,*) 'dt = ',dt
-      !write(*,*) 'a errors',maxE
-      !do i = 1,iseeds%N
-      !   write(*,*) i,ascale(i),Ea(i),Ea(i)/ascale(i),Ea(i)/ascale(i)/TOL
-      !end do
-      if (maxE > 1.0_DP) then
+      !write(*,*) 'loop',loop
+      !write(*,*) 'dt/dtmin',dt,dt/dtmin,dtleft
+      !write(*,*) 'a maxE: ',maxE
+      if ((maxE > 1.0_DP).and.(dt > dtmin)) then
          dt = 0.9_DP * dt / maxE**(0.25_DP)
          goodstep =.false.
          cycle steploop
       end if
 
-      mscale(:) = abs(Gmi(:)) + abs(km(:,1)) + epsilon(1._DP) 
+      mscale(:) = abs(Gmi(:)) + abs(km(:,1)) 
       Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       maxE = max(maxE, maxval(Em(1:iseeds%N) / mscale(1:iseeds%N)) / TOL)
-      !write(*,*) 'm errors',maxE
-      !do i = 1,iseeds%N
-      !   write(*,*) i,mscale(i),Em(i),Em(i)/mscale(i),Em(i)/mscale(i)/TOL
-      !end do
-      !read(*,*) 
       if (maxE > 1.0_DP) then
-         dt = 0.9_DP * dt / maxE**(0.25_DP)
-         goodstep =.false.
-         cycle steploop
+         if (dt > dtmin) then
+            dt = 0.9_DP * dt / maxE**(0.25_DP)
+            goodstep =.false.
+            cycle steploop
+         else
+            sarr = 1.0_DP
+         end if
       else if (maxE < 2e-4_DP) then
          sarr = 5._DP
       else
@@ -257,8 +252,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 
       dtleft = dtleft - dt
   
-      !write(*,*) 'sarr: ',sarr 
-      !read(*,*)
       if (dtleft <= 0.0_DP) exit steploop
       dt = min(sarr * dt,dtleft)
 
@@ -304,6 +297,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             if (seeds%active(j)) then
                if ((seeds%a(j) > seeds%a(i) - fz_width(i)).and.(seeds%a(j) < seeds%a(i) + fz_width(i))) then ! This one is in the feeding zone
                   ! conserve both mass and angular momentum
+                  !write(*,*) 'chomped: '
+                  !write(*,*) i,seeds%a(i),seeds%Gm(i),seeds%active(i)
+                  !write(*,*) j,seeds%a(j),seeds%Gm(j),seeds%active(j)
                   
                   Li = seeds%Gm(i) * sqrt((swifter_pl1P%mass + seeds%Gm(i)) * seeds%a(i))
                   Lj = seeds%Gm(j) * sqrt((swifter_pl1P%mass + seeds%Gm(j)) * seeds%a(j))
@@ -315,6 +311,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
                   seeds%a(j) = 0.0_DP
                   seeds%active(j) = .false.
                   chomped = .true.
+                  !write(*,*) 'after'
+                  !write(*,*) i,seeds%a(i),seeds%Gm(i),seeds%active(i)
+                  !write(*,*) j,seeds%a(j),seeds%Gm(j),seeds%active(j)
+                  !read(*,*) 
                end if
            end if
          end do
@@ -330,6 +330,10 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       seeds%N = Nactive
       call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
    end if
+
+  ! do i = 1,size(seeds%active)
+  !    write(*,*) i,seeds%Gm(i),seeds%a(i),seeds%active(i)
+  ! end do
 
 
    stepfail = .false.
