@@ -7,7 +7,7 @@ from uranus_system import *
 
 # First set up the figure, the axis, and the plot element we want to animate
 
-
+alind = 4**(1./3.) * ic.FRL
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
     def __init__(self):
@@ -57,6 +57,8 @@ class AnimatedScatter(object):
         self.FRLlab = self.ax.text(ic.FRL / ic.RP - 0.00, 0.3 * ymax, "FRL", rotation=90, fontsize="12")
         self.Rsync = self.ax.plot([ic.Rsync / ic.RP, ic.Rsync / ic.RP], [ymin, ymax], '-.', color="black", linewidth=0.5, zorder=50)
         self.Rsynclab = self.ax.text(ic.Rsync / ic.RP + 0.02, 0.3 * ymax, "$a_{sync}$", rotation=90, fontsize="12")
+        self.Rlind = self.ax.plot([alind / ic.RP , alind / ic.RP], [ymin, ymax], '-.', color="black", linewidth=0.5, zorder=50)
+        self.Rlindlab = self.ax.text(alind / ic.RP + 0.02, 0.25 * ymax, "$a_{lind}$", rotation=90, fontsize="12")
         #plt.axvline(x=xc, color='k', linestyle='--')
 
         self.title = self.ax.text(0.80, 0.1, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5},
@@ -105,8 +107,8 @@ class AnimatedScatter(object):
         # Set x and y data...
         r = ring[:,0]
         s = ring[:,1]
-        self.scat.set_offsets(seeds[:, :2]) #data[:, :2])
-        self.line.set_data(r, s) # :, :3])
+        self.scat.set_offsets(seeds)
+        self.line.set_data(r, s)
 
         # Set sizes...
         #self.scat.set_sizes(300 * abs(data[:, 2])**1.5 + 100)

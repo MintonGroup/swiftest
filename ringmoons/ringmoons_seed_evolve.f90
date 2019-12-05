@@ -55,7 +55,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP),dimension(seeds%N,rkfo)          :: ka,km,kT
    real(DP),dimension(0:ring%N+1)            :: Er,rscale,rmdot
    real(DP),dimension(seeds%N)               :: Ea, Em,ascale,mscale
-   real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf,fz_width, dTtide,Ttidef
+   real(DP),dimension(seeds%N)               :: ai,af,Gmi,Gmf, dTtide,Ttidef
    integer(I4B)                              :: Nactive 
    real(DP),dimension(0:ring%N+1)            :: Lring_orig,Lring_now
    real(DP),dimension(seeds%N)               :: Lseeds_orig,Lseeds_now,Lres
@@ -165,7 +165,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          iring%Gsigma(:) = iring%Gm(:) / iring%deltaA(:)
 
          !write(*,*) 'updating seeds'
-         call ringmoons_update_seeds(swifter_pl1P,iring,iseeds)
+         iseeds%rbin(:) = ringmoons_ring_bin_finder(iring,seeds%a(:))
          !write(*,*) 'updated'
 
 
@@ -342,9 +342,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    seeds%Torque(:) = 0.0_DP
    seeds%Ttide(:) = 0.0_DP
    call ringmoons_deallocate(iring,iseeds)
-   call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
-
-   fz_width(1:seeds%N) = FEEDING_ZONE_FACTOR * seeds%Rhill(1:seeds%N)
+   seeds%rbin(:) = ringmoons_ring_bin_finder(ring,seeds%a(:))
 
    !I'm hungry! What's there to eat?! Look for neighboring seeds
    !write(*,*) 'chomp'
@@ -353,13 +351,11 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       if (seeds%active(i)) then
          do j = i + 1, seeds%N
             if (seeds%active(j)) then
-               impact_b = FEEDING_ZONE_FACTOR * 0.5_DP * (seeds%a(i) + seeds%a(j)) * ((seeds%Gm(i) + seeds%Gm(j)) / (3 * swifter_pl1P%mass))**(1._DP / 3._DP)
+               impact_b =  0.5_DP * (seeds%a(i) + seeds%a(j)) * ((seeds%Gm(i) + seeds%Gm(j)) / (3 * swifter_pl1P%mass))**(1._DP / 3._DP)
+               impact_b = impact_b * seeds%feeding_zone_factor 
                if (abs(seeds%a(i) - seeds%a(j)) < impact_b) then
                   ! conserve both mass and angular momentum
                   !write(*,*) 'chomped: '
-                  !write(*,*) i,seeds%a(i),seeds%Gm(i),seeds%active(i)
-                  !write(*,*) j,seeds%a(j),seeds%Gm(j),seeds%active(j)
-                  
                   Li = seeds%Gm(i) * sqrt((swifter_pl1P%mass + seeds%Gm(i)) * seeds%a(i))
                   Lj = seeds%Gm(j) * sqrt((swifter_pl1P%mass + seeds%Gm(j)) * seeds%a(j))
                   seeds%Gm(i) = seeds%Gm(i) + seeds%Gm(j)
@@ -370,9 +366,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
                   seeds%a(j) = 0.0_DP
                   seeds%active(j) = .false.
                   chomped = .true.
-                  !write(*,*) 'after'
-                  !write(*,*) i,seeds%a(i),seeds%Gm(i),seeds%active(i)
-                  !write(*,*) j,seeds%a(j),seeds%Gm(j),seeds%active(j)
                   !read(*,*) 
                end if
            end if
@@ -385,9 +378,9 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       seeds%a(1:Nactive) = pack(seeds%a(:),seeds%active(:))
       seeds%Gm(1:Nactive) = pack(seeds%Gm(:),seeds%active(:))
       seeds%active(1:Nactive) = .true.
-      if (size(seeds%active) > Nactive) seeds%active(Nactive+1:size(seeds%active)) = .false.
       seeds%N = Nactive
-      call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
+      seeds%rbin(1:Nactive) = ringmoons_ring_bin_finder(ring,seeds%a(1:Nactive))
+      if (size(seeds%active) > Nactive) seeds%active(Nactive+1:size(seeds%active)) = .false.
    end if
 
   ! do i = 1,size(seeds%active)

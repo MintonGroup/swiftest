@@ -51,7 +51,7 @@ subroutine ringmoons_io_init_ring(swifter_pl1P,ring,seeds,lpredprey)
 ! Executable code
    ringfile='ring.in'
    open(unit=LUN,file=ringfile,status='old',iostat=ioerr)
-   read(LUN,*) ring%N, seeds%N
+   read(LUN,*) ring%N, seeds%N, seeds%feeding_zone_factor
    read(LUN,*) ring%r_I, ring%r_F
    read(LUN,*) r_pdisk,Gm_pdisk
    call ringmoons_allocate(ring,seeds)

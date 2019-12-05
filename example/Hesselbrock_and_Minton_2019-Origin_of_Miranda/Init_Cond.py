@@ -19,6 +19,7 @@ end_sim = 1.0e10 * year / TU2S + t_print #end time
 
 Nbins    = 256 #number of bins in disk
 Nseeds   = 0
+feeding_zone_factor = 10.0
 
 
 k_2         = k2_Uranus  #tidal love number for primary
@@ -105,7 +106,7 @@ if __name__ == '__main__':
 
 
     outfile = open('ring.in', 'w')
-    print(Nbins, Nseeds, file=outfile)
+    print(Nbins, Nseeds, feeding_zone_factor, file=outfile)
     print(r_I, r_F, file=outfile)
     print(r_pdisk, GU * m_pdisk, file=outfile)
 

@@ -29,7 +29,7 @@ module module_ringmoons
    use module_parameters
    implicit none
 
-   real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 20.0_DP  ! Size of the feeding zone relative to Hill's sphere
+   !real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 20.0_DP  ! Size of the feeding zone relative to Hill's sphere
    integer(I4B),public,parameter  :: N_DISK_FACTOR = 0 ! Minimum number of particles in a bin to consider it a fluid disk
    logical(LGT),public        :: DESTRUCTION_EVENT ! A destruction event has occurred when satellite/seed crosses the RRL
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
@@ -86,14 +86,13 @@ module module_ringmoons
 
    type ringmoons_seeds ! Satellite "seeds" that eventually turn into SyMBA massive bodies
       integer(I4B)                              :: N            ! Number of satellite seeds
+      real(DP)                                  :: feeding_zone_factor ! Width of feeding zone for seed mergers in units of mutual Hill's sphere
       real(DP)                                  :: Gminit       ! initial mass of seeds
       logical(LGT), dimension(:), allocatable   :: active       ! Flag to determine whether this body is active or not
       real(DP), dimension(:), allocatable       :: a            ! Semimajor axis of seed
       real(DP), dimension(:), allocatable       :: Gm           ! Mass of seed
       real(DP), dimension(:), allocatable       :: Rhill        ! Hill's sphere radius of seed
       integer(I4B), dimension(:), allocatable   :: rbin         ! Ring bin location of seed
-      integer(I4B), dimension(:), allocatable   :: fz_bin_inner ! Ring bin location of inner edge of seed feeding zone
-      integer(I4B), dimension(:), allocatable   :: fz_bin_outer ! Ring bin location of inner edge of seed feeding zone
       real(DP), dimension(:), allocatable       :: Torque       ! Total torque acting on the seed
       real(DP), dimension(:), allocatable       :: Ttide        ! Tidal torque acting on the seed
    end type ringmoons_seeds

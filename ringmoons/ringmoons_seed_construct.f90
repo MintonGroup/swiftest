@@ -136,7 +136,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
       seeds%active(1:Nactive) = .true.
       if (size(seeds%active) > Nactive) seeds%active(Nactive+1:size(seeds%active)) = .false.
       seeds%N = Nactive
-      call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
+      seeds%rbin(1:seeds%N) = ringmoons_ring_bin_finder(ring,seeds%a(1:seeds%N))
       
       ! Make seeds small enough to fit into each bin 
       do i = ring%iFRL,ring%N
@@ -152,8 +152,12 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
             call ringmoons_seed_spawn(swifter_pl1P,ring,seeds,a,dGm)
          end if
       end do     
+      where (seeds%active(:))
+         seeds%rbin(:) = ringmoons_ring_bin_finder(ring,seeds%a(:))
+      elsewhere
+         seeds%rbin(:) = 0
+      end where
 
-      call ringmoons_update_seeds(swifter_pl1P,ring,seeds)
           
 
 end subroutine ringmoons_seed_construct
