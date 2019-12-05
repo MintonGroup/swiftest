@@ -29,7 +29,7 @@ module module_ringmoons
    use module_parameters
    implicit none
 
-   real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 2.2_DP  ! Size of the feeding zone relative to Hill's sphere
+   real(DP),public,parameter  :: FEEDING_ZONE_FACTOR = 20.0_DP  ! Size of the feeding zone relative to Hill's sphere
    integer(I4B),public,parameter  :: N_DISK_FACTOR = 0 ! Minimum number of particles in a bin to consider it a fluid disk
    logical(LGT),public        :: DESTRUCTION_EVENT ! A destruction event has occurred when satellite/seed crosses the RRL
    integer(I4B),public        :: DESTRUCTION_COUNTER = 0
