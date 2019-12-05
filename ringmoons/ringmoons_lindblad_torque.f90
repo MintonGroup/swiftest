@@ -45,7 +45,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
 
 ! Internals
    integer(I4B)                           :: i,j, m, il,w,w1,w2,js, mshep
-   real(DP)                               :: a, dTorque, beta, Amk, nw,lap,dlap,da3,Xs, Xlo,Xhi,Gfac,lind_factor,Xw2
+   real(DP)                               :: a, dTorque, beta, Amk, nw,lap,dlap,da3,Xs,Xlo,Xhi,rlo,rhi,Gfac,lind_factor,Xw2
    real(DP), parameter                    :: g = 2.24_DP
    real(DP),dimension(2:M_MAX)            :: Xr,ar
    logical(lgt),dimension(0:ring%N+1)     :: T_mask
@@ -65,6 +65,9 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    Xw2 = 0.5_DP * Xs**2 * sqrt(Gfac)
    Xlo = ring%X_I + ring%deltaX * ring%inside
    Xhi = ring%X_F
+   rlo = 0.25_DP * Xlo**2
+   rhi = 0.25_DP * Xhi**2
+
    ! Just do the first order resonances for now. The full suite of resonances will come later
    Torque(:) = 0.0_DP
 
@@ -74,9 +77,11 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    ! Inner then outer Lindblads
    do il = -1,1,2
       ! Calculate resonance location in X space
+      !write(*,*) 'calc Xr'
       Xr(2:mshep) = Xs * marr(2:mshep,il)
 
       ! Calculate bin boundaries of resonance using its width in X space
+      !write(*,*) 'calc ws'
       where((Xr(2:mshep) > Xlo).and.(Xr(2:mshep) < Xhi))
          w1_arr(2:mshep) = min(max(ceiling((sqrt(Xr(2:mshep)**2 - Xw2) - ring%X_I) / ring%deltaX),0),ring%N+1)
          w2_arr(2:mshep) = min(max(ceiling((sqrt(Xr(2:mshep)**2 + Xw2) - ring%X_I) / ring%deltaX),0),ring%N+1)
@@ -84,6 +89,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
          w1_arr(2:mshep) = 0
          w2_arr(2:mshep) = 0
       end where 
+      !write(*,*) 'calc all modes'
       do m  = 2, mshep
          if ((Xr(m) > Xlo).and.(Xr(m) < Xhi)) then
             beta = (Xs / Xr(m))**(il * 2)
@@ -102,11 +108,10 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
 
       ! Add in shepherding torque
       a = as * marr(mshep+1,il)**2
+      if ((a > rhi).or.(a < rlo)) cycle
       j = ringmoons_ring_bin_finder(ring, a) !disk location of resonance
-      if ((j > ring%inside).and.(j < ring%N + 1)) then
-         da3 = il * max(abs((a - as)**3),epsilon(a))
-         if (T_mask(j)) Torque(j) = Torque(j) + g**2 / 6._DP * a**3 / da3 * (Gfac)**2 * ring%Gsigma(j) * (ring%w(j))**2 * a**4
-      end if
+      da3 = il * max(abs((a - as)**3),epsilon(a))
+      if (T_mask(j)) Torque(j) = Torque(j) + g**2 / 6._DP * a**3 / da3 * (Gfac)**2 * ring%Gsigma(j) * (ring%w(j))**2 * a**4
    end do
 
    return

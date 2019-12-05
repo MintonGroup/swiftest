@@ -107,7 +107,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          write(*,*) 'max loop reached in seed_evolve'
          return
       end if
-      
 
       stepfail = .false.
 
@@ -196,7 +195,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             end if
 
             km(i,rkn) = dt * Gmsdot ! Grow the seed
-               !write(*,*) 'calc adot'
+            !write(*,*) 'calc adot'
             adot = ringmoons_seed_dadt(swifter_pl1P%mass,abs(iseeds%Gm(i)),iseeds%a(i),iseeds%Torque(i) + Tr_evol,Gmsdot)
             ka(i,rkn) = dt * adot
             kT(i,rkn) = dt * Ttide
