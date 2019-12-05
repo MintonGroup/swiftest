@@ -9,12 +9,12 @@ DU2CM    =     R_Uranus                       #Conversion from radius unit to ce
 TU2S     =     year                           #Conversion from time unit to seconds
 GU       = G / (DU2CM**3 / (MU2GM * TU2S**2))
 
-r_pdisk = 1.0e2 / DU2CM #disk particle size
+r_pdisk = 100.0e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
-t_print = 1.e6 * year / TU2S #output interval to print results
-deltaT	= 1.e3 * year / TU2S  #timestep simulation
+t_print = 1.e5 * year / TU2S #output interval to print results
+deltaT	= 1.e5 * year / TU2S  #timestep simulation
 end_sim = 1.0e10 * year / TU2S + t_print #end time
 
 Nbins    = 256 #number of bins in disk
@@ -23,7 +23,7 @@ feeding_zone_factor = 10.0
 
 
 k_2         = k2_Uranus  #tidal love number for primary
-Q           = Q_Uranus_TWlo #tidal dissipation factor for primary
+Q           = 3000 #Q_Uranus_TWlo #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
 J2 = J2_Uranus

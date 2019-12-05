@@ -43,9 +43,14 @@ elemental function ringmoons_ring_bin_finder(ring,r) result(bin)
 
 ! Executable code
 
-      bin = ceiling(2 * (sqrt(r) - sqrt(ring%r_I)) / ring%deltaX) 
-      bin = min(max(0,bin),ring%N + 1)
-      !if (bin <= ring%inside) bin = 0
+      if (r > ring%r_F) then
+         bin = ring%N+1
+      else if (r < ring%r_I) then
+         bin = 0
+      else
+         bin = ceiling(2 * (sqrt(r) - sqrt(ring%r_I)) / ring%deltaX) 
+         !bin = !min(max(0,bin),ring%N + 1)
+      end if
     
       return
 end function ringmoons_ring_bin_finder
