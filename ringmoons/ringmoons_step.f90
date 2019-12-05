@@ -150,7 +150,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
          !      DESTRUCTION_COUNTER = 0
          !   end if
          !end if
-!if ((dt < 1e-1_DP).and.(dtleft > dt)) read(*,*)
 
          dtleft = dtleft - dt
          ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque

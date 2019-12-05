@@ -48,7 +48,8 @@ subroutine ringmoons_update_ring(swifter_pl1P,ring,lpredprey)
 ! Executable code
    rad_limit = 1.1_DP * RAD_LIMIT_CM / DU2CM
    call ringmoons_ring_velocity_dispersion(swifter_pl1P,ring,lpredprey)
-   where ((ring%r_pdisk(:) > rad_limit).and.(ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk))
+   !where ((ring%r_pdisk(:) > rad_limit).and.(ring%Gm(:) > N_DISK_FACTOR * ring%Gm_pdisk))
+   where(ring%Gsigma(:) * MU2GM / DU2CM**2 / GU > 1e-3_DP) 
       ring%Q(:) = ring%w(:) * ring%vrel_pdisk(:) / (3.36_DP * ring%Gsigma(:))
       ring%tau(:) = PI * ring%r_pdisk(:)**2 * ring%Gsigma(:) / ring%Gm_pdisk(:)
       ring%nu(:) = ringmoons_viscosity(ring%Gsigma(:), ring%Gm_pdisk(:), (ring%vrel_pdisk(:))**2, &

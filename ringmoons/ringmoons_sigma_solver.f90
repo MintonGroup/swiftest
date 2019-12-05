@@ -59,12 +59,6 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
       ring%Gsigma(N+1) = 0.0_DP
 
 
-      if (any(S(:) < 0.0_DP)) then
-         write(*,*) 'Negative mass already?'
-         read(*,*)
-      end if
-
-
       fac(:)  = 12 * dt / (ring%deltaX)**2  / ring%X2(:)
 
       Sn1(1:N) = ring%nu(2:N+1) * S(2:N+1) - 2 * ring%nu(1:N) * S(1:N) + ring%nu(0:N-1) * S(0:N-1)
@@ -90,7 +84,7 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
          Sn1(1:N) = artnu(2:N+1) * S(2:N+1) - 2 * artnu(1:N) * S(1:N) + artnu(0:N-1) * S(0:N-1)
          Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
          loop = loop + 1
-         if (loop > 100) then
+         if (loop > 1000) then
             stepfail = .true.
             exit
          end if

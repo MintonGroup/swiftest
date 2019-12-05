@@ -52,7 +52,7 @@ function ringmoons_ring_timestep(swifter_pl1P,ring,dtin) result(dtout)
       ! Start with viscous stability
       dtout = dtin
 
-      nu_max = max(maxval(ring%nu(:) / ring%X2(:),ring%Gm(:) >  N_DISK_FACTOR * ring%Gm_pdisk(:)),0.0_DP)
+      nu_max = max(maxval(ring%nu(:) / ring%X2(:)),0.0_DP)
 
 
       if (nu_max > 0.0_DP) then

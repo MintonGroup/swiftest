@@ -56,7 +56,7 @@ function ringmoons_lindblad_torque(swifter_pl1P,ring,Gm,as,e,inc) result(Torque)
    Gfac = (Gm / swifter_pl1P%mass)
 
    ! Mask out any ring bins that don't have enough mass in them
-   where (ring%Gm(0:ring%N+1) > N_DISK_FACTOR * ring%Gm_pdisk)
+   where ((ring%Gsigma(0:ring%N+1) * MU2GM / DU2CM**2 / GU) > 1e-3_DP)
       T_mask(0:ring%N+1) = .true.
    elsewhere
       T_mask(0:ring%N+1) = .false. 
