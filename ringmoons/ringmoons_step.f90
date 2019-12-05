@@ -55,7 +55,7 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
       type(ringmoons_seeds)                           :: old_seeds
       logical(LGT)                                    :: stepfail
       type(swifter_pl)                                :: old_swifter_pl1P
-      real(DP),parameter                              :: DTMIN_FAC = 1e-8_DP
+      real(DP),parameter                              :: DTMIN_FAC = 1e-16_DP
 
 ! Executable code
       dtleft = dtin

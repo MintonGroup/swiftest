@@ -84,7 +84,7 @@ subroutine ringmoons_sigma_solver(ring,GMP,dt,stepfail)
          Sn1(1:N) = artnu(2:N+1) * S(2:N+1) - 2 * artnu(1:N) * S(1:N) + artnu(0:N-1) * S(0:N-1)
          Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
          loop = loop + 1
-         if (loop > 100) then
+         if (loop > 10) then
             stepfail = .true.
             exit
          end if
