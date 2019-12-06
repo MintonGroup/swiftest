@@ -62,7 +62,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE,adot
    logical(lgt)                              :: chomped,goodstep
    real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
-   real(DP),parameter                        :: TOL = 1e-8_DP 
+!   real(DP),parameter                        :: TOL = 1e-8_DP 
    integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error,aloc,Gmloc
 
 
@@ -194,7 +194,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       ascale(:) = abs(ai(:)) + abs(ka(:,1)) 
 
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      maxE = maxval(Ea(1:iseeds%N) / ascale(1:iseeds%N)) / TOL
+      maxE = maxval(Ea(1:iseeds%N) / ascale(1:iseeds%N)) / iseeds%rkf_tol
 
       if ((maxE > 1.0_DP).and.(dt > dtmin)) then
          ! seed a error too high
@@ -207,7 +207,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 
       mscale(:) = abs(Gmi(:)) + abs(km(:,1)) 
       Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
-      maxE = max(maxE, maxval(Em(1:iseeds%N) / mscale(1:iseeds%N)) / TOL)
+      maxE = max(maxE, maxval(Em(1:iseeds%N) / mscale(1:iseeds%N)) / iseeds%rkf_tol)
 
       if (maxE > 1.0_DP) then
          if (dt > dtmin) then

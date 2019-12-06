@@ -50,7 +50,6 @@ module module_ringmoons
    real(DP),dimension(6),parameter,public     :: rkf5_coeff =  (/ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. /)
    real(DP),dimension(6),parameter,public     :: rkf4_coeff =  (/ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5. ,     0. /)
 
-
    type ringmoons_ring
       integer(I4B) :: N                   ! number of bins in disk
       integer(I4B) :: inside = 1          ! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
@@ -87,6 +86,7 @@ module module_ringmoons
    type ringmoons_seeds ! Satellite "seeds" that eventually turn into SyMBA massive bodies
       integer(I4B)                              :: N            ! Number of satellite seeds
       real(DP)                                  :: feeding_zone_factor ! Width of feeding zone for seed mergers in units of mutual Hill's sphere
+      real(DP)                                  :: rkf_tol      ! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
       real(DP)                                  :: Gminit       ! initial mass of seeds
       logical(LGT), dimension(:), allocatable   :: active       ! Flag to determine whether this body is active or not
       real(DP), dimension(:), allocatable       :: a            ! Semimajor axis of seed
