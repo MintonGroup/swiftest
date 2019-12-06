@@ -62,7 +62,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
    real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE,adot
    logical(lgt)                              :: chomped,goodstep
    real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
-   real(DP),parameter                        :: TOL = 1e-8_DP 
+   real(DP),parameter                        :: TOL = 1e-12_DP 
    integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error,aloc,Gmloc
 
 
@@ -129,13 +129,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 
          iseeds%Gm(1:iseeds%N) = Gmi(1:iseeds%N) + matmul(km(:,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
          if (any(iseeds%Gm(1:iseeds%N) < 0.0_DP)) then
-           ! write(*,*) 'negative seed m',rkn
-           ! write(*,*) 'step size reduced from ',dt,' to ', 0.5_DP * dt
-           ! read(*,*)
-            !do i = 1,iseeds%N
-            !   write(*,*) i,Gmi(i),km(i,1:rkn-1),iseeds%Gm(i)
-            !end do
-            !read(*,*)
             Nnegative_seed = Nnegative_seed + 1 
             goodstep = .false.
             dt = 0.5_DP * dt
@@ -143,46 +136,22 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          end if 
 
          iring%Gm(:)  = Gmringi(:) + matmul(kr(:,1:rkn-1),rkf45_btab(2:rkn,rkn-1))
-         !if (any(iring%Gm(:) < 0.0_DP)) then
-         !   write(*,*) 'negative ring m',rkn
-         !   write(*,*) 'step size reduced from ',dt,' to ', 0.5_DP * dt
-         !   do i = 0,iring%N+1
-         !      if (iring%Gm(i) < 0._DP) then
-         !         write(*,*) 'ring bin: ',i,iring%r(i),Gmringi(i)/iring%deltaA(i)/GU*MU2GM/DU2CM**2,iring%Gm(i)/iring%deltaA(i)/GU*MU2GM/DU2CM**2
-         !         do j = 1,iseeds%N
-         !            if (iseeds%rbin(j) == i) write(*,*) 'contains seed: ',j,iseeds%rbin(j),iseeds%a(j),iseeds%Gm(j)/GU*MU2GM
-         !         end do
-         !      end if
-         !   end do
-         !   read(*,*)
-         !   Nnegative_ring = Nnegative_ring + 1 
-         !   goodstep = .false.
-         !   dt = 0.5_DP * dt
-         !   cycle steploop
-         !end if
-
          iring%Gsigma(:) = iring%Gm(:) / iring%deltaA(:)
 
-         !write(*,*) 'updating seeds'
          iseeds%rbin(:) = ringmoons_ring_bin_finder(iring,seeds%a(:))
-         !write(*,*) 'updated'
 
 
          do i = 1, iseeds%N
-            !write(*,*) 'seed ',i
             rbin = iseeds%rbin(i)
 
             ! Calculate torques
-            !write(*,*) 'calc lindblad'
             Tlind(:) = ringmoons_lindblad_torque(swifter_pl1P,iring,iseeds%Gm(i),iseeds%a(i),e,inc)
 
             ns = sqrt((swifter_pl1P%mass + iseeds%Gm(i)) / iseeds%a(i)**3)
-            !write(*,*) 'calc tides'
             Ttide = ringmoons_tidal_torque(swifter_pl1P,iseeds%Gm(i),ns,iseeds%a(i),e,inc) 
             iseeds%Torque(i) = Ttide - sum(Tlind(:)) 
 
             if ((iring%Gm(rbin) / iseeds%Gm(i)) > epsilon(1._DP))  then
-               !write(*,*) 'calc mdot'
                Gmsdot = ringmoons_seed_dMdt(iring,swifter_pl1P%mass,iring%Gsigma(rbin),iseeds%Gm(i),iring%rho_pdisk(rbin),iseeds%a(i))
                Gmsdot = max(0.0_DP,Gmsdot)
                kr(rbin,rkn) = kr(rbin,rkn) - dt * Gmsdot  ! Remove mass from the ring
@@ -195,7 +164,6 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
             end if
 
             km(i,rkn) = dt * Gmsdot ! Grow the seed
-            !write(*,*) 'calc adot'
             adot = ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i) + Tr_evol,Gmsdot)
             ka(i,rkn) = dt * adot
             kT(i,rkn) = dt * Ttide
@@ -203,31 +171,11 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          end do
       end do
     
+      ! Allow ring mass to go negative, as it will get filled in by sigma_solver
       Gmringf(:) = Gmringi(:) + matmul(kr(:,1:rkfo), rkf5_coeff(1:rkfo))
-      !if (any(Gmringf(:) < 0.0_DP)) then
-      !   !write(*,*) 'negative ring m on final. trying to diffuse new mass in'
-      !   iring%Gm(:) = Gmringf(:)
-      !   iring%Gsigma(:) = iring%Gm(:) / iring%deltaA(:)
-      !   iring%Torque(:) = 0.0_DP
-      !   iring%nu(:) = 0.0_DP
-      !   call ringmoons_sigma_solver(iring,swifter_pl1P%mass,dt,stepfail)
-      !   Gmringf(:) = iring%Gm(:)
-      !end if   
-      !if (any(Gmringf(:) < 0.0_DP)) then
-            !write(*,*) 'negative ring m on final step'
-            !do i = 0,ring%N+1
-            !   if (Gmringf(i) < 0.0_DP) write(*,*) 'ring bin: ',i,Gmringi(i),Gmringf(i)
-            !end do
-           ! 
-           ! write(*,*) 'step size reduced from ',dt,' to ', 0.5_DP * dt
-           ! read(*,*) 
-      !   Nnegative_ring = Nnegative_ring + 1 
-      !   dt = 0.5_DP * dt
-      !   cycle steploop
-      !end if
-
       af(1:iseeds%N) = ai(1:iseeds%N) + matmul(ka(1:iseeds%N,1:rkfo), rkf5_coeff(1:rkfo))
 
+      !Don't let seed semimajor axes or masses go negative
       if (any(af(1:iseeds%N) < 0.0_DP)) then
          Nnegative_seed = Nnegative_seed + 1 
          dt = 0.5_DP * dt
@@ -242,20 +190,14 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
          cycle steploop
       end if
 
-      ! save values for error estimation
+      ! use the initial value and derivative for error scaling
       ascale(:) = abs(ai(:)) + abs(ka(:,1)) 
 
       Ea(:) = abs(matmul(ka(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       maxE = maxval(Ea(1:iseeds%N) / ascale(1:iseeds%N)) / TOL
 
-      !write(*,*) 'loop',loop
-      !write(*,*) 'dt/dtmin',dt,dt/dtmin,dtleft
-      !write(*,*) 'a maxE: ',maxE
       if ((maxE > 1.0_DP).and.(dt > dtmin)) then
-            !write(*,*) 'a error too big fail',maxE
-            !write(*,*) 'step size reduced from ',dt,' to ', 0.9_DP * dt / maxE**(0.25_DP)
-            !read(*,*)
-
+         ! seed a error too high
          dt = 0.9_DP * dt / maxE**(0.25_DP)
          goodstep =.false.
          Nbig_error = Nbig_error + 1
@@ -267,39 +209,29 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
       Em(:) = abs(matmul(km(:,:), (rkf5_coeff(:) - rkf4_coeff(:))))
       maxE = max(maxE, maxval(Em(1:iseeds%N) / mscale(1:iseeds%N)) / TOL)
 
-      !write(*,*) 'loop',loop
-      !write(*,*) 'dt/dtmin',dt,dt/dtmin,dtleft
-      !write(*,*) 'm maxE: ',maxE
-
       if (maxE > 1.0_DP) then
          if (dt > dtmin) then
-            !write(*,*) 'm error too big fail',maxE
-            !write(*,*) 'step size reduced from ',dt,' to ', 0.9_DP * dt / maxE**(0.25_DP)
-            !read(*,*)
-
+            ! seed Gm error too high
             dt = 0.9_DP * dt / maxE**(0.25_DP)
             goodstep =.false.
             Nbig_error = Nbig_error + 1
-
             cycle steploop
          else
-            !write(*,*) 'error too big fail',maxE
-            !write(*,*) 'step size is already at a minimum',dt/dtmin
-            !read(*,*)
+            ! already at minimum step size
             sarr = 1.0_DP
          end if
       else if (maxE < 2e-4_DP) then
+         ! error very low
          sarr = 5._DP
-         !write(*,*) maxE,'step size increased from ',dt,' to ', dt* sarr
       else
+         ! adjust step size based on error estimate
          sarr = max(0.90_DP / maxE**(0.25_DP),1._DP)
-         !write(*,*) maxE,'step size increased from ',dt,' to ', dt* sarr
       end if
 
+
+      ! save final state of seeds and ring and average of torques
       Torquef(:) = matmul(kL(:,1:rkfo), rkf5_coeff(1:rkfo))
       Ttidef(1:iseeds%N) = matmul(kT(1:seeds%N,1:rkfo), rkf5_coeff(1:rkfo))
-
-      ! save final state of seeds and ring
       ai(1:iseeds%N) = af(1:iseeds%N)
       Gmi(1:iseeds%N) = Gmf(1:iseeds%N)
       Gmringi(:) = Gmringf(:)

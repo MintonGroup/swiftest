@@ -49,7 +49,6 @@ elemental function ringmoons_ring_bin_finder(ring,r) result(bin)
          bin = 0
       else
          bin = ceiling(2 * (sqrt(r) - sqrt(ring%r_I)) / ring%deltaX) 
-         !bin = !min(max(0,bin),ring%N + 1)
       end if
     
       return
