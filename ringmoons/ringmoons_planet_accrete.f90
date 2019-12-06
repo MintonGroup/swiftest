@@ -53,7 +53,6 @@
       ring%inside = ringmoons_ring_bin_finder(ring,swifter_pl1P%radius)
       GMP = ring%GMPi + ring%dGMp
       dMtot = sum(ring%Gm(0:ring%inside))
-      if (dMtot < epsilon(1._DP) * GMP) return
             
       !Add ring mass and angular momentum to planet
       Lring_orig(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:) 
