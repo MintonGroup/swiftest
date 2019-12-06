@@ -196,7 +196,7 @@ subroutine ringmoons_seed_evolve(swifter_pl1P,ring,seeds,dtin,stepfail)
 
             km(i,rkn) = dt * Gmsdot ! Grow the seed
             !write(*,*) 'calc adot'
-            adot = ringmoons_seed_dadt(swifter_pl1P%mass,abs(iseeds%Gm(i)),iseeds%a(i),iseeds%Torque(i) + Tr_evol,Gmsdot)
+            adot = ringmoons_seed_dadt(swifter_pl1P%mass,iseeds%Gm(i),iseeds%a(i),iseeds%Torque(i) + Tr_evol,Gmsdot)
             ka(i,rkn) = dt * adot
             kT(i,rkn) = dt * Ttide
             kL(:,rkn) = kL(:,rkn) + dt * Tlind(:)
