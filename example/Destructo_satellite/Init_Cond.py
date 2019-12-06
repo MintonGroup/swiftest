@@ -29,9 +29,11 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
 
 t_0	= 0
-t_print = 1e6 * year / TU2S #output interval to print results
+t_print = 1e3 * year / TU2S #output interval to print results
 deltaT	= 1e3 * year / TU2S  #timestep simulation
 end_sim = 1.0e8 * year / TU2S + t_print #end time
+feeding_zone_factor = 2.2
+rkf_tol = 1e-8
 
 Nbins    = 256      #number of bins in disk
 
@@ -115,7 +117,7 @@ aseed= [1.1* RRL]
 
 
 outfile = open('ring.in', 'w')
-print(Nbins, Nseeds, file=outfile)
+print(Nbins, Nseeds, feeding_zone_factor, rkf_tol, file=outfile)
 print(r_I, r_F, file=outfile)
 print(r_pdisk, GU * m_pdisk, file=outfile)
 
