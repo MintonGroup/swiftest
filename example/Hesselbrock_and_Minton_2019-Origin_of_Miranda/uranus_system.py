@@ -108,79 +108,10 @@ eps_ring_s[0] = 0
 eps_ring_s[-1] = 0
 
 
-Sat_r_RM = []
-Sat_M_Mass = []
-area = []
-Sat_colors = []
+Sat_semimajor = np.array([a_Cord, a_Ophe, a_Bian, a_Cres, a_Desd, a_Juli, a_Port, a_Rosa, a_Cupi, a_Beli, a_Perd, a_Puck, a_Mab, a_Mira, a_Ariel, a_Umbriel, a_Titania, a_Oberon])
+Sat_mass = np.array([M_Cord, M_Ophe, M_Bian, M_Cres, M_Desd, M_Juli, M_Port, M_Rosa, M_Cupi, M_Beli, M_Perd, M_Puck, M_Mab, M_Mira, M_Ariel, M_Umbriel, M_Titania, M_Oberon])
+Sat_radius = np.array([R_Cord, R_Ophe, R_Bian, R_Cres, R_Desd, R_Juli, R_Port, R_Rosa, R_Cupi, R_Beli, R_Perd, R_Puck, R_Mab, R_Mira, R_Ariel, R_Umbriel, R_Titania, R_Oberon])
+#Sat_name = np.array(["Cordelia", "Ophelia", "Bianca", "Cressida", "Desdemona", "Juliet", "Portia", "Rosalind", "Cupid", "Belinda", "Perdita", "Puck", "Mab", "Miranda", "Ariel", "Umbriel", "Titania", "Oberon"])
+Sat_name = np.array(["Cor", "Oph", "Bia", "Cres", "Desd", "Juliet", "Por", "Ros", "Cu", "Bel", "Perd", "Puck", "Mab", "Miranda", "Ariel", "Umbriel", "Titania", "Oberon"])
 
 
-# plot existing satellite system
-Sat_r_RM.append(a_Cord / R_Uranus)
-Sat_M_Mass.append(M_Cord)
-area.append(np.pi * (75. * (10. * R_Cord / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Ophe / R_Uranus)
-Sat_M_Mass.append(M_Ophe)
-area.append(np.pi * (75. * (10. * R_Ophe / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Bian / R_Uranus)
-Sat_M_Mass.append(M_Bian)
-area.append(np.pi * (75. * (10. * R_Bian / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Cres / R_Uranus)
-Sat_M_Mass.append(M_Cres)
-area.append(np.pi * (75. * (10. * R_Cres / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Desd / R_Uranus)
-Sat_M_Mass.append(M_Desd)
-area.append(np.pi * (75. * (10. * R_Desd / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Juli / R_Uranus)
-Sat_M_Mass.append(M_Juli)
-area.append(np.pi * (75. * (10. * R_Juli / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Port / R_Uranus)
-Sat_M_Mass.append(M_Port)
-area.append(np.pi * (75. * (10. * R_Port / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Rosa / R_Uranus)
-Sat_M_Mass.append(M_Rosa)
-area.append(np.pi * (75. * (10. * R_Rosa / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Cupi / R_Uranus)
-Sat_M_Mass.append(M_Cupi)
-area.append(np.pi * (75. * (10. * R_Cupi / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Beli / R_Uranus)
-Sat_M_Mass.append(M_Beli)
-area.append(np.pi * (75. * (10. * R_Beli / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Perd / R_Uranus)
-Sat_M_Mass.append(M_Perd)
-area.append(np.pi * (75. * (10. * R_Perd / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Puck / R_Uranus)
-Sat_M_Mass.append(M_Puck)
-area.append(np.pi * (75. * (10. * R_Puck / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Mab / R_Uranus)
-Sat_M_Mass.append(M_Mab)
-area.append(np.pi * (75. * (10. * R_Mab / R_Uranus)) ** 2)
-Sat_colors.append('k')
-
-Sat_r_RM.append(a_Mira / R_Uranus)
-Sat_M_Mass.append(M_Mira)
-area.append(np.pi * (75. * (10. * R_Mira / R_Uranus)) ** 2)
-Sat_colors.append('k')

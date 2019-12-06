@@ -13,13 +13,13 @@ r_pdisk = 100.0e2 / DU2CM #disk particle size
 rho_pdisk = 1.2 * DU2CM**3 / MU2GM # Satellite/ring particle mass density in gm/cm**3
 rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 
-t_print = 1.e5 * year / TU2S #output interval to print results
-deltaT	= 1.e5 * year / TU2S  #timestep simulation
+t_print = 1.e3 * year / TU2S #output interval to print results
+deltaT	= 1.e3 * year / TU2S  #timestep simulation
 end_sim = 1.0e10 * year / TU2S + t_print #end time
 
 Nbins    = 256 #number of bins in disk
 Nseeds   = 0
-feeding_zone_factor = 10.0
+feeding_zone_factor = 2.20
 
 
 k_2         = k2_Uranus  #tidal love number for primary
@@ -52,7 +52,7 @@ sigma_peak = sigma_FRL * (FRL / RP)**(-sigma_slope)
 
 
 r_I	= 0.90 * RP      #inside radius of disk is at the embryo's surface
-r_F	= 2.0 * FRL #3 * RP #1.1 * FRL  #outside radius of disk
+r_F	= 1.5 * FRL #3 * RP #1.1 * FRL  #outside radius of disk
 
 wP = np.array([0.0,0.0,1.0]) * 2.0 * np.pi / TP # rotation vector of primary
 IP = np.array([IPe, IPe, IPp]) # Principal moments of inertia
