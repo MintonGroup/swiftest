@@ -108,7 +108,7 @@ subroutine ringmoons_seed_construct(swifter_pl1P,ring,seeds)
 
             ! Apply a torque to the temporary ring to bring it back to the seed's original angular momentum
             dt = 1._DP
-            seedring%nu(1:ring%N) =  1._DP / (12 * dt / (seedring%deltaX)**2) / seedring%X2(1:ring%N)
+            seedring%nu(1:ring%N) =  1._DP / (16 * 12 * dt / (seedring%deltaX)**2) / seedring%X2(1:ring%N)
             seedring%Gsigma(:) = seedring%Gm(:) / seedring%deltaA(:)
             where (seedring%Gm(:) > 0.0_DP)
                seedring%Torque(:) = deltaL * seedring%Gm(:) / sum(seedring%Gm(:))
