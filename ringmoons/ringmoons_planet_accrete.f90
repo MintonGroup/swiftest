@@ -84,9 +84,7 @@
       dL(0:ring%inside) = 0.0_DP
       dL(ring%N+1) = 0.0_DP
       dL(ring%inside+1:ring%N) = (Lring_now(ring%inside+1:ring%N) - Lring_orig(ring%inside+1:ring%N)) / dt 
-      where(abs(dL(:)) > epsilon(1._DP))
-         ring%Torque(:) = ring%Torque(:) - dL(:)
-      end where
+      ring%Torque(:) = ring%Torque(:) - dL(:)
 
       return
 
