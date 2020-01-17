@@ -20,7 +20,7 @@ class AnimatedScatter(object):
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=10000,
+        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=500,
                                           init_func=self.setup_plot, blit=True)
 
         #self.ani.save('frames/charnoz2010-saturn-ringmoons.png', writer = "imagemagick")

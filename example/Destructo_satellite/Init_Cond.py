@@ -1,20 +1,7 @@
 import numpy as np
 import sys
-import uranian_satellites
+from uranus_system import *
 
-#Units will be in terms of planet mass, planet radius, and years
-G	    = 6.674e-8                          #Gravitational constant (cgs)
-year    = 3600*24*365.25                #seconds in 1 year
-AU      = 1.4960e13
-M_Sun   = 1.9891e33
-
-###***Define initial conditions***###
-M_Uranus    = 8.6127e28
-R_Uranus    = 25362e5
-R_Uranus_eq = 25559e5
-a_Uranus    = 19.2184 * AU
-T_Uranus    = 0.71833 * 24 * 3600
-W_Uranus    = 2.0 * np.pi / T_Uranus
 
 
 #The following are Unit conversion factors
@@ -31,7 +18,7 @@ rho_sat   = rho_pdisk # Satellite/ring particle mass density in gm/cm**3
 t_0	= 0
 t_print = 1e3 * year / TU2S #output interval to print results
 deltaT	= 1e3 * year / TU2S  #timestep simulation
-end_sim = 1.0e8 * year / TU2S + t_print #end time
+end_sim = 1.0e6 * year / TU2S + t_print #end time
 feeding_zone_factor = 2.2
 rkf_tol = 1e-8
 
@@ -41,13 +28,9 @@ Nbins    = 256      #number of bins in disk
 
 sigma_peak = 0.6e4 * DU2CM ** 2 / MU2GM  # scale factor to get a given mass
 
-Rhill_Uranus = a_Uranus * (M_Uranus / (3 * M_Sun))**(1.0 / 3.0)
-Ipolar_Uranus = 0.230
-J2_Uranus = 3341.29e-6
-J4_Uranus = 33.61e-6
 
-k_2         = 0.104 #tidal love number for primary
-Q           = 11000. #tidal dissipation factor for primary
+k_2         = k2_Uranus #tidal love number for primary
+Q           = Q_Uranus_TWlo #tidal dissipation factor for primary
 Q_s         = 1.0e-5    #tidal dissipation factor for satellites
 
 J2 = J2_Uranus
@@ -109,84 +92,85 @@ def f():
         w.append((GU*MP/r[a]**3)**0.5)
         Torque_to_disk.append(0.0)
 
-f() #Make a power law ring
+if __name__ == '__main__':
+    f() #Make a power law ring
 
-Nseeds   = 1
-Gmseed = [4 * uranian_satellites.M_Mira * GU / MU2GM]
-aseed= [1.1* RRL]
-
-
-outfile = open('ring.in', 'w')
-print(Nbins, Nseeds, feeding_zone_factor, rkf_tol, file=outfile)
-print(r_I, r_F, file=outfile)
-print(r_pdisk, GU * m_pdisk, file=outfile)
-
-for a in range(int(Nbins)):
-    print(GU * sigma[a],file=outfile)
-
-for a in range(int(Nseeds)):
-    print(aseed[a], Gmseed[a], file=outfile)
-
-plfile = open('pl.in', 'w')
-print(1,file=plfile)
-print(f'1 {GU*MP}',file=plfile)
-print(f'{RP} {k_2} {Q}', file=plfile)
-np.savetxt(plfile, IP, newline=' ')
-print('',file=plfile)
-np.savetxt(plfile, wP, newline=' ')
-print('',file=plfile)
-print(f'0.0 0.0 0.0',file=plfile)
-print(f'0.0 0.0 0.0',file=plfile)
-plfile.close()
-tpfile = open('tp.in', 'w')
-print(0,file=tpfile)
-tpfile.close()
+    Nseeds   = 1
+    Gmseed = [4 * M_Mira * GU / MU2GM]
+    aseed= [1.1* RRL]
 
 
-iout = int(np.ceil(t_print / deltaT))
-rmin = RP
-rmax = Rhill_Uranus / DU2CM
+    outfile = open('ring.in', 'w')
+    print(Nbins, Nseeds, feeding_zone_factor, rkf_tol, file=outfile)
+    print(r_I, r_F, file=outfile)
+    print(r_pdisk, GU * m_pdisk, file=outfile)
 
-mtiny = 1e-8 #roughly 1/3 the mass of Puck
+    for a in range(int(Nbins)):
+        print(GU * sigma[a],file=outfile)
 
+    for a in range(int(Nseeds)):
+        print(aseed[a], Gmseed[a], file=outfile)
 
-
-sys.stdout = open("param.in", "w")
-print(f'!Parameter file for the SyMBA-RINGMOONS test')
-print(f'!NPLMAX         -1 ')
-print(f'!NTPMAX         -1')
-print(f'T0             {t_0} ')
-print(f'TSTOP          {end_sim}')
-print(f'DT             {deltaT}')
-print(f'PL_IN          pl.in')
-print(f'TP_IN          tp.in')
-print(f'IN_TYPE        ASCII')
-print(f'ISTEP_OUT      {iout:d}')
-print(f'BIN_OUT        bin.dat')
-print(f'OUT_TYPE       REAL8')
-print(f'OUT_FORM       EL')
-print(f'OUT_STAT       NEW')
-print(f'J2             {J2}')
-print(f'J4             {J4}')
-print(f'CHK_CLOSE      yes')
-print(f'CHK_RMIN       {rmin}')
-print(f'CHK_RMAX       {rmax}')
-print(f'CHK_EJECT      {rmax}')
-print(f'CHK_QMIN       {rmin}')
-print(f'CHK_QMIN_COORD HELIO')
-print(f'CHK_QMIN_RANGE {rmin} {rmax}')
-print(f'ENC_OUT        enc.dat')
-print(f'EXTRA_FORCE    no')
-print(f'BIG_DISCARD    no')
-print(f'RHILL_PRESENT  yes')
-print(f'MU2GM          {MU2GM}')
-print(f'DU2CM          {DU2CM}')
-print(f'TU2S           {TU2S}')
-print(f'MTINY          {mtiny}')
-print(f'RING_OUTFILE   ring.dat')
-print(f'ROTATION       yes')
-print(f'PREDPREY       no')
+    plfile = open('pl.in', 'w')
+    print(1,file=plfile)
+    print(f'1 {GU*MP}',file=plfile)
+    print(f'{RP} {k_2} {Q}', file=plfile)
+    np.savetxt(plfile, IP, newline=' ')
+    print('',file=plfile)
+    np.savetxt(plfile, wP, newline=' ')
+    print('',file=plfile)
+    print(f'0.0 0.0 0.0',file=plfile)
+    print(f'0.0 0.0 0.0',file=plfile)
+    plfile.close()
+    tpfile = open('tp.in', 'w')
+    print(0,file=tpfile)
+    tpfile.close()
 
 
-sys.stdout = sys.__stdout__
+    iout = int(np.ceil(t_print / deltaT))
+    rmin = RP
+    rmax = Rhill_Uranus / DU2CM
+
+    mtiny = 1e-8 #roughly 1/3 the mass of Puck
+
+
+
+    sys.stdout = open("param.in", "w")
+    print(f'!Parameter file for the SyMBA-RINGMOONS test')
+    print(f'!NPLMAX         -1 ')
+    print(f'!NTPMAX         -1')
+    print(f'T0             {t_0} ')
+    print(f'TSTOP          {end_sim}')
+    print(f'DT             {deltaT}')
+    print(f'PL_IN          pl.in')
+    print(f'TP_IN          tp.in')
+    print(f'IN_TYPE        ASCII')
+    print(f'ISTEP_OUT      {iout:d}')
+    print(f'BIN_OUT        bin.dat')
+    print(f'OUT_TYPE       REAL8')
+    print(f'OUT_FORM       EL')
+    print(f'OUT_STAT       NEW')
+    print(f'J2             {J2}')
+    print(f'J4             {J4}')
+    print(f'CHK_CLOSE      yes')
+    print(f'CHK_RMIN       {rmin}')
+    print(f'CHK_RMAX       {rmax}')
+    print(f'CHK_EJECT      {rmax}')
+    print(f'CHK_QMIN       {rmin}')
+    print(f'CHK_QMIN_COORD HELIO')
+    print(f'CHK_QMIN_RANGE {rmin} {rmax}')
+    print(f'ENC_OUT        enc.dat')
+    print(f'EXTRA_FORCE    no')
+    print(f'BIG_DISCARD    no')
+    print(f'RHILL_PRESENT  yes')
+    print(f'MU2GM          {MU2GM}')
+    print(f'DU2CM          {DU2CM}')
+    print(f'TU2S           {TU2S}')
+    print(f'MTINY          {mtiny}')
+    print(f'RING_OUTFILE   ring.dat')
+    print(f'ROTATION       yes')
+    print(f'PREDPREY       no')
+
+
+    sys.stdout = sys.__stdout__
 
