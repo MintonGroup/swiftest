@@ -537,8 +537,8 @@ MODULE module_interfaces
                REAL(DP), INTENT(IN)                           :: t, mtiny
                CHARACTER(*), INTENT(IN)                       :: fname
                TYPE(symba_pl), INTENT(INOUT)                  :: symba_plA
-               REAL(DP), DIMENSION(8,npl), INTENT(IN)         :: discard_plA
-               REAL(DP), DIMENSION(8,ntp), INTENT(IN)         :: discard_tpA
+               REAL(DP), DIMENSION(11,npl), INTENT(IN)         :: discard_plA
+               REAL(DP), DIMENSION(11,ntp), INTENT(IN)         :: discard_tpA
                TYPE(symba_merger), INTENT(INOUT)              :: mergeadd_list, mergesub_list
                INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)    :: discard_plA_id_status
                INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)    :: discard_tpA_id_status
@@ -1197,22 +1197,27 @@ MODULE module_interfaces
                TYPE(symba_pl), INTENT(INOUT)                     :: symba_plA
                TYPE(symba_tp), INTENT(INOUT)                     :: symba_tpA
                TYPE(symba_merger), INTENT(INOUT)                 :: mergeadd_list
-               REAL(DP), DIMENSION(8,npl), INTENT(OUT)           :: discard_plA
-               REAL(DP), DIMENSION(8,ntp), INTENT(OUT)           :: discard_tpA
+               REAL(DP), DIMENSION(11,npl), INTENT(OUT)           :: discard_plA
+               REAL(DP), DIMENSION(11,ntp), INTENT(OUT)           :: discard_tpA
                INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)       :: discard_plA_id_status
                INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)       :: discard_tpA_id_status
           END SUBROUTINE symba_rearray
      END INTERFACE  
 
      INTERFACE
-          SUBROUTINE symba_reorder_pl(npl, symba_pl1P)
+          SUBROUTINE symba_reorder_pl(npl, symba_plA)
                USE module_parameters
-               USE module_swifter
+               USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN) :: npl
-               TYPE(symba_pl), POINTER  :: symba_pl1P
+               TYPE(symba_pl), INTENT(INOUT)  :: symba_plA
+               INTEGER(I4B)                              :: i
+               INTEGER(I4B), DIMENSION(:), ALLOCATABLE   :: index
+               REAL(DP), DIMENSION(:), ALLOCATABLE       :: mass
+               REAL(DP), DIMENSION(:,:), allocatable     :: symba_plwkspA
+               INTEGER(I4B), DIMENSION(:,:), allocatable :: symba_plwkspA_id_status
           END SUBROUTINE symba_reorder_pl
      END INTERFACE
 
