@@ -125,8 +125,8 @@ PROGRAM swiftest_symba_omp
      CALL symba_merger_allocate(mergesub_list,nplmax)
      CALL symba_plplenc_allocate(plplenc_list, nplmax)
      CALL symba_pltpenc_allocate(pltpenc_list, ntpmax)
-     ALLOCATE(discard_plA(8,npl))
-     ALLOCATE(discard_tpA(8,ntp))
+     ALLOCATE(discard_plA(11,npl))
+     ALLOCATE(discard_tpA(11,ntp))
      ALLOCATE(discard_plA_id_status(2,npl))
      ALLOCATE(discard_tpA_id_status(2,ntp))
 
@@ -141,6 +141,7 @@ PROGRAM swiftest_symba_omp
      READ(*, *) mtiny
 
      ! Reorder linked list by mass 
+     CALL symba_reorder_pl(npl, symba_plA)
      CALL io_init_tp(intpfile, in_type, ntp, symba_tpA)
      CALL util_valid(npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest)
      lfirst = .TRUE.
@@ -223,42 +224,42 @@ PROGRAM swiftest_symba_omp
                END IF
           END IF
 
-     plplenc_list%lvdotr(:) = 0
-     plplenc_list%status(:) = 0
-     plplenc_list%level(:) = 0
-     plplenc_list%index1(:) = 0
-     plplenc_list%index2(:) = 0
-     plplenc_list%enc_child(:) = 0 
-     plplenc_list%enc_parent(:) = 0
+          plplenc_list%lvdotr(:) = 0
+          plplenc_list%status(:) = 0
+          plplenc_list%level(:) = 0
+          plplenc_list%index1(:) = 0
+          plplenc_list%index2(:) = 0
+          plplenc_list%enc_child(:) = 0 
+          plplenc_list%enc_parent(:) = 0
 
-     pltpenc_list%lvdotr(:) = 0
-     pltpenc_list%status(:) = 0
-     pltpenc_list%level(:) = 0
-     pltpenc_list%indexpl(:) = 0
-     pltpenc_list%indextp(:) = 0
+          pltpenc_list%lvdotr(:) = 0
+          pltpenc_list%status(:) = 0
+          pltpenc_list%level(:) = 0
+          pltpenc_list%indexpl(:) = 0
+          pltpenc_list%indextp(:) = 0
 
-     mergeadd_list%name(:) = 0
-     mergeadd_list%index_ps(:) = 0
-     mergeadd_list%status(:) = 0
-     mergeadd_list%ncomp(:) = 0
-     mergeadd_list%xh(:,:) = 0
-     mergeadd_list%vh(:,:) = 0
-     mergeadd_list%mass(:) = 0
-     mergeadd_list%radius(:) = 0
+          mergeadd_list%name(:) = 0
+          mergeadd_list%index_ps(:) = 0
+          mergeadd_list%status(:) = 0
+          mergeadd_list%ncomp(:) = 0
+          mergeadd_list%xh(:,:) = 0
+          mergeadd_list%vh(:,:) = 0
+          mergeadd_list%mass(:) = 0
+          mergeadd_list%radius(:) = 0
 
-     mergesub_list%name(:) = 0
-     mergesub_list%index_ps(:) = 0
-     mergesub_list%status(:) = 0
-     mergesub_list%ncomp(:) = 0
-     mergesub_list%xh(:,:) = 0
-     mergesub_list%vh(:,:) = 0
-     mergesub_list%mass(:) = 0
-     mergesub_list%radius(:) = 0
+          mergesub_list%name(:) = 0
+          mergesub_list%index_ps(:) = 0
+          mergesub_list%status(:) = 0
+          mergesub_list%ncomp(:) = 0
+          mergesub_list%xh(:,:) = 0
+          mergesub_list%vh(:,:) = 0
+          mergesub_list%mass(:) = 0
+          mergesub_list%radius(:) = 0
 
-     discard_plA(:,:) = 0
-     discard_tpA(:,:) = 0
-     discard_plA_id_status(:,:) = 0
-     discard_tpA_id_status(:,:) = 0
+          discard_plA(:,:) = 0
+          discard_tpA(:,:) = 0
+          discard_plA_id_status(:,:) = 0
+          discard_tpA_id_status(:,:) = 0
 
      END DO
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
