@@ -54,8 +54,8 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
      REAL(DP), INTENT(IN)                           :: t, mtiny
      CHARACTER(*), INTENT(IN)                       :: fname
      TYPE(symba_pl), INTENT(INOUT)                  :: symba_plA
-     REAL(DP), DIMENSION(8,npl), INTENT(IN)         :: discard_plA
-     REAL(DP), DIMENSION(8,ntp), INTENT(IN)         :: discard_tpA
+     REAL(DP), DIMENSION(11,npl), INTENT(IN)         :: discard_plA
+     REAL(DP), DIMENSION(11,ntp), INTENT(IN)         :: discard_tpA
      TYPE(symba_merger), INTENT(INOUT)              :: mergeadd_list, mergesub_list
      INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)    :: discard_plA_id_status
      INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)    :: discard_tpA_id_status
@@ -66,6 +66,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
 
 ! Executable code
      WRITE(*,*) "io_discard_symba ", "nsptp", nsptp, "nsppl", nsppl
+
      CALL io_open(LUN, fname, "APPEND", "FORMATTED", ierr)
      IF (ierr /= 0) THEN
           CALL io_open(LUN, fname, "NEW", "FORMATTED", ierr)
