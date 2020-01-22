@@ -79,7 +79,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
 
 ! Internals
      LOGICAL(LGT)              :: lencounter
-     INTEGER(I4B)              :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp
+     INTEGER(I4B)              :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp, k
      REAL(DP)                  :: dtl, dth, sgn
      REAL(DP), DIMENSION(NDIM) :: xr, vr, vbs
 
@@ -93,7 +93,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      END IF
      irecp = ireci + 1
 
-     !WRITE(*,*) "irecp:", irecp, "ireci:", ireci, "dtl:", dtl, "dth:", dth
+     WRITE(*,*) "**********start recur"
 
      IF (ireci == 0) THEN
           icflg = 0
@@ -267,7 +267,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          index_j  = plplenc_list%index2(i) 
                          IF ((plplenc_list%status(i) == ACTIVE) .AND.                                                             &
                              (symba_plA%levelg(index_i) >= ireci) .AND.                                                         &
-                             (symba_plA%levelg(index_j) >= ireci))                                                              &
+                             (symba_plA%levelg(index_j) >= ireci))  THEN    
                               CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list,         & !check that later
                                    mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
                     END DO
