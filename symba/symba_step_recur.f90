@@ -93,8 +93,6 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      END IF
      irecp = ireci + 1
 
-     WRITE(*,*) "**********start recur"
-
      IF (ireci == 0) THEN
           icflg = 0
           ! OpenMP parallelization added by D. Minton
