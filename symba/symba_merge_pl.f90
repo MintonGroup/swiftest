@@ -157,6 +157,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           index2_parent = symba_plA%index_parent(index2)
           m2 = symba_plA%helio%swiftest%mass(index2_parent)
           mass2 = m2
+          rad2 = symba_plA%helio%swiftest%radius(index2_parent)
           x2(:) = m2*symba_plA%helio%swiftest%xh(:,index2_parent)
           v2(:) = m2*symba_plA%helio%swiftest%vb(:,index2_parent)
           mmax = m2
@@ -220,6 +221,12 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           eold = eold - m1*m2/SQRT(DOT_PRODUCT(xr(:), xr(:)))
           enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
           eoffset = eoffset + eold - enew
+
+          !WRITE(*,*) "symba_merge_pl.f90 name", mergeadd_list%name(nmergeadd)
+          !WRITE(*,*) "symba_merge_pl.f90 xh", mergeadd_list%xh(:,nmergeadd)
+          !WRITE(*,*) "symba_merge_pl.f90 vh", mergeadd_list%vh(:,nmergeadd)
+          !WRITE(*,*) "symba_merge_pl.f90 eoffset", eoffset
+
           DO k = 1, nplplenc
                IF (plplenc_list%status(k) == ACTIVE) THEN
                     DO i = 0, symba_plA%nchild(index1_parent)
