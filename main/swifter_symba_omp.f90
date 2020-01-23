@@ -164,7 +164,7 @@ PROGRAM swiftest_symba_omp
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
           	j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-          	eoffset, mtiny, encounter_file, out_type) 
+          	eoffset, mtiny, encounter_file, out_type)
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
@@ -181,7 +181,6 @@ PROGRAM swiftest_symba_omp
                
                !CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)                                          ! CHECK THIS 
           !END IF
-
           ldiscard = .FALSE. 
           ldiscard_tp = .FALSE. 
           CALL symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)                                  ! CHECK THIS 
@@ -189,7 +188,6 @@ PROGRAM swiftest_symba_omp
                qmin_ahi, j2rp2, j4rp4, eoffset)
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
-
           IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
                     discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
@@ -223,8 +221,7 @@ PROGRAM swiftest_symba_omp
                     idump = istep_dump
                END IF
           END IF
-
-          plplenc_list%lvdotr(:) = 0
+          plplenc_list%lvdotr(:) = .FALSE.
           plplenc_list%status(:) = 0
           plplenc_list%level(:) = 0
           plplenc_list%index1(:) = 0
@@ -232,7 +229,7 @@ PROGRAM swiftest_symba_omp
           plplenc_list%enc_child(:) = 0 
           plplenc_list%enc_parent(:) = 0
 
-          pltpenc_list%lvdotr(:) = 0
+          pltpenc_list%lvdotr(:) = .FALSE.
           pltpenc_list%status(:) = 0
           pltpenc_list%level(:) = 0
           pltpenc_list%indexpl(:) = 0
