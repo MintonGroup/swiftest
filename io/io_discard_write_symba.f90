@@ -65,8 +65,6 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
      INTEGER(I4B)              :: i, index, j, ncomp, ierr, nplm
 
 ! Executable code
-     WRITE(*,*) "io_discard_symba ", "nsptp", nsptp, "nsppl", nsppl
-
      CALL io_open(LUN, fname, "APPEND", "FORMATTED", ierr)
      IF (ierr /= 0) THEN
           CALL io_open(LUN, fname, "NEW", "FORMATTED", ierr)
@@ -86,8 +84,8 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
  300      FORMAT(3(E23.16, 1X))
           WRITE(LUN, 300) mergeadd_list%vh(:,i)
           ncomp = mergeadd_list%ncomp(i)
-          DO j = 1, ncomp
-               index = index + 1
+          DO index = 1, ncomp !j=0 -> index=1
+               !index = index + 1
                WRITE(LUN, 200) SUB, mergesub_list%name(index), mergesub_list%status(index)
                WRITE(LUN, 300) mergesub_list%xh(:,index)
                WRITE(LUN, 300) mergesub_list%vh(:,index)
@@ -96,7 +94,6 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
      END DO
      DO i = 1, nsppl
           IF (discard_plA_id_status(2,i) /= MERGED) THEN
-               write(*,*) "entered if io_discard_write_symba"
                WRITE(LUN, 200) SUB, discard_plA_id_status(1,i), discard_plA_id_status(2,i)
                WRITE(LUN, 300) discard_plA(3,i),discard_plA(4,i),discard_plA(5,i)
                WRITE(LUN, 300) discard_plA(6,i),discard_plA(7,i),discard_plA(8,i)
