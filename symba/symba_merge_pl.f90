@@ -251,6 +251,8 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           END DO
           symba_plA%helio%swiftest%xh(:,index1_parent) = xnew(:)
           symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
+          symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:)
+          symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:)
           array_keep_child(:) = symba_plA%index_child(:,index1_parent)
           
           DO i = 1, symba_plA%nchild(index1_parent)
