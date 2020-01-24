@@ -35,11 +35,8 @@ PROGRAM swiftest_symba_omp
      USE module_parameters
      USE module_swiftest
      USE module_symba
-     !USE module_random_access
      USE module_interfaces
      USE module_swiftestalloc
-     !Added by D. Minton
-     !$ USE omp_lib
      IMPLICIT NONE
 
 ! Arguments
@@ -81,7 +78,7 @@ PROGRAM swiftest_symba_omp
      CHARACTER(STRMAX)                                          :: inparfile
      TYPE(symba_pl)                  							:: symba_plA
      TYPE(symba_tp)                  							:: symba_tpA
-     TYPE(swiftest_pl)               							:: swiftest_plA
+     TYPE(swiftest_pl)                                                :: swiftest_plA
      TYPE(swiftest_tp)               							:: swiftest_tpA
      TYPE(helio_pl)                  							:: helio_plA
      TYPE(helio_tp)                  							:: helio_tpA
@@ -95,16 +92,9 @@ PROGRAM swiftest_symba_omp
 
 ! Executable code
      CALL util_version
-     ! OpenMP code added by D. Minton
-     ! Define the maximum number of threads
      nthreads = 1                        ! In the *serial* case
-     !$ write(*,*) 'Dynamic thread allocation: ',OMP_get_dynamic()
-     !$ nthreads = OMP_get_max_threads() ! In the *parallel* case
-     !$ write(*,'(a)')      ' OpenMP parameters:'
-     !$ write(*,'(a)')      ' ------------------'
-     !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
      WRITE(*, 100, ADVANCE = "NO") "Enter name of parameter data file: "
-     READ(*, 100) inparfile
+     READ(*, 100) inparfiles
  100 FORMAT(A)
      inparfile = TRIM(ADJUSTL(inparfile))
      ! Read in the param.in file and get simulation parameters
