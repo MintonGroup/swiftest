@@ -44,48 +44,20 @@ SUBROUTINE coord_vh2vb(npl, swiftest_plA, msys)
      REAL(DP), DIMENSION(NDIM) :: vtmp
 
 ! Executable code
-     ! Removed by D. Minton
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^^
      vtmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      msys = swiftest_plA%mass(1)
-     !^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
 
 ! EDIT FOR PARALLELIZATION
 
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P) &
-     !$OMP REDUCTION(+:vtmp,msys)
      DO i = 2, npl
-          ! Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^^
-          ! Added by D. Minton
-          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^^
           msys = msys + swiftest_plA%mass(i)
           vtmp(:) = vtmp(:) + swiftest_plA%mass(i)*swiftest_plA%vh(:,i)
      END DO
-     !$OMP END PARALLEL DO
      swiftest_plA%vb(:,1) = -vtmp(:)/msys
      vtmp(:) = swiftest_plA%vb(:,1)
-     !^^^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P,vtmp) 
      DO i = 2, npl
-          ! Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^^
-          ! Added by D. Minton
-          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^^^^
           swiftest_plA%vb(:,i) = swiftest_plA%vh(:,i) + vtmp(:)
      END DO
-     !$OMP END PARALLEL DO
 
      RETURN
 

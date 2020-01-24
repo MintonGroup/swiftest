@@ -62,44 +62,12 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      !REAL(DP), DIMENSION(NDIM) :: accsum
 
 ! Executable code
-     
-     !Removed by D. Minton
-     !helio_pliP => symba_pl1P%helio
-     !symba_pliP => symba_pl1P
-     !^^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,helio_pliP) &
-     !$OMP SHARED(npl,symba_pl1P) 
+
      DO i = 2, npl
-          !Removed by D. Minton
-          !helio_pliP => helio_pliP%nextP
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          !helio_pliP => symba_pl1P%symba_plPA(i)%thisP%helio
-          !^^^^^^^^^^^^^^^^^^
           symba_plA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
-     !$OMP END PARALLEL DO
      DO i = 2, nplm
-          !Removed by D. Minton
-          !symba_pljP => symba_pliP
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          !accsum(:)=0.0_DP
-          !^^^^^^^^^^^^^^^^^^^
-          ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(j,symba_pljP,helio_pljP,dx,rji2,irij3,faci,facj) &
-          !$OMP SHARED(i,npl,symba_pliP,helio_pliP,symba_pl1P) &
-          !$OMP REDUCTION (+:accsum)
           DO j = i + 1, npl
-               !Removed by D. Minton
-               !symba_pljP => symba_pljP%nextP
-               !^^^^^^^^^^^^^^^^^^^^
-               !Added by D. Minton
-               !symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
-               !^^^^^^^^^^^^^^^^^^
                IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
                    (symba_plA%index_parent(i) /= symba_plA%index_parent(j))) THEN
                     dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
@@ -107,27 +75,12 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                     irij3 = 1.0_DP/(rji2*SQRT(rji2))
                     faci = symba_plA%helio%swiftest%mass(i)*irij3
                     facj = symba_plA%helio%swiftest%mass(j)*irij3
-
-                    !Removed by D. Minton
-                    !helio_pliP%ah(:) = helio_pliP%ah(:) + facj*dx(:)
-                    !^^^^^^^^^^^^^^^^^^^^
-                    !Added by D. Minton
-                    !accsum(:) = accsum(:) + facj*dx(:)
-                    !^^^^^^^^^^^^^^^^^^^^
                     symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
                     symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
                END IF
           END DO
-          !$OMP END PARALLEL DO
-          !Added by D. Minton
-          !symba_plA%helio%ah(:,i)=symba_plA%helio%ah(:,i)+accsum(:)
-          !^^^^^^^^^^^^^^^^^^^^
      END DO
 
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,symba_pliP,symba_pljP,helio_pliP,helio_pljP,dx,rji2,irij3,faci,facj) &
-     !$OMP SHARED(plplenc_list,nplplenc)
      DO i = 1, nplplenc
           index_i = plplenc_list%index1(i)
           index_j = plplenc_list%index2(i)
@@ -138,55 +91,24 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                irij3 = 1.0_DP/(rji2*SQRT(rji2))
                faci = symba_plA%helio%swiftest%mass(index_i)*irij3
                facj = symba_plA%helio%swiftest%mass(index_j)*irij3
-               !$OMP CRITICAL
                symba_plA%helio%ah(:,index_i) = symba_plA%helio%ah(:,index_i) - facj*dx(:)
                symba_plA%helio%ah(:,index_j) = symba_plA%helio%ah(:,index_j) + faci*dx(:)
-               !$OMP END CRITICAL
           END IF
      END DO
-     !$OMP END PARALLEL DO
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN
                ALLOCATE(aobl(NDIM, nplmax), irh(nplmax))
                lmalloc = .FALSE.
           END IF
-          !Removed by D. Minton
-          !swifter_plP => swifter_pl1P
-          !^^^^^^^^^^^^^^^^^^^^^
-          ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(i,swifter_plP,r2) &
-          !$OMP SHARED(npl,symba_pl1P,xh,irh)
           DO i = 2, npl
-               !Removed by D. Minton
-               !swifter_plP => swifter_plP%nextP
-               !^^^^^^^^^^^^^^^^^^
-               !Added by D. Minton
-               !swifter_plP=>symba_pl1P%symba_plPA(i)%thisP%helio%swifter
-               !^^^^^^^^^^^^^^^^^^
                xh(:, i) = symba_plA%helio%swiftest%xh(:,i)
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          !$OMP END PARALLEL DO
           CALL obl_acc(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)
-          !Removed by D. Minton
-          !helio_pliP => symba_pl1P%helio
-          !^^^^^^^^^^^^^^^^^^^^^
-          ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(i,helio_pliP) &
-          !$OMP SHARED(npl,symba_pl1P,aobl)
           DO i = 2, npl
-               !Removed by D. Minton
-               !helio_pliP => helio_pliP%nextP
-               !^^^^^^^^^^^^^^^^^^^^^
-               !Aded by D. Minton
-               !helio_pliP => symba_pl1P%symba_plPA(i)%thisP%helio
-               !^^^^^^^^^^^^^^^^^
                symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + aobl(:, i) - aobl(:, 1)
           END DO
-          !$OMP END PARALLEL DO
      END IF
      IF (lextra_force) CALL symba_user_getacch(t, npl, symba_plA)
 

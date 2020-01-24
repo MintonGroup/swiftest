@@ -43,23 +43,9 @@ SUBROUTINE helio_kickvb(npl, helio_plA, dt)
      INTEGER(I4B)              :: i
 
 ! Executable code
-     !Removed by D. Minton
-     !helio_plP => helio_pl1P
-     !^^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,helio_plP,swifter_plP) &
-     !$OMP SHARED(npl,helio_pl1P,dt) 
      DO i = 2, npl
-          !Removed by D. Minton
-          !helio_plP => helio_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          !helio_plP => helio_pl1P%helio_plPA(i)%thisP
-
           helio_plA%swiftest%vb(:,i) = helio_plA%swiftest%vb(:,i) + helio_plA%ah(:,i)*dt
      END DO
-     !$OMP END PARALLEL DO
 
      RETURN
 

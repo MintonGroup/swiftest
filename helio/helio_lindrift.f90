@@ -53,52 +53,16 @@ SUBROUTINE helio_lindrift(npl, swiftest_plA, dt, pt)
 ! EDIT THIS PARALLELIZATION
 
 ! Executable code
-     !Removed by D. Minton
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^
-     !Added by D. Minton
+    
      pttmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P) &
-     !$OMP REDUCTION(+:pttmp)     
      DO i = 2, npl
-          !Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !pt(:) = pt(:) + swifter_plP%mass*swifter_plP%vb(:)
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           pttmp(:) = pttmp(:) + swiftest_plA%mass(i)*swiftest_plA%vb(:,i)
-          !^^^^^^^^^^^^^^^^^^^^
      END DO
-     !$OMP END PARALLEL DO
-     !Removed by D. Minton
-     !pt(:) = pt(:)/swifter_pl1P%mass
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^^
-     !Added by D. Minton
      pttmp(:) = pttmp(:)/swiftest_plA%mass(1)
-     !^^^^^^^^^^^^^^^^^^
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,swifter_plP) &
-     !$OMP SHARED(npl,swifter_pl1P,pttmp,dt) 
      DO i = 2, npl
-          !Removed by D. Minton 
-          !swifter_plP => swifter_plP%nextP
-          !swifter_plP%xh(:) = swifter_plP%xh(:) + pt(:)*dt
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
           swiftest_plA%xh(:,i) = swiftest_plA%xh(:,i) + pttmp(:)*dt
-          !^^^^^^^^^^^^^^^^^^
      END DO
-     !$OMP END PARALLEL DO
-
-     !Added by D. Minton
      pt(:)=pttmp(:)
-     !^^^^^^^^^^^^^^^^^^
 
      RETURN
 

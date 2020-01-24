@@ -46,13 +46,6 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
      INTEGER(I4B)              :: i, iflag
 
 ! Executable code
-     !Removed by D. Minton
-     !symba_tpP => symba_tp1P
-     !^^^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_tpP,symba_tpP,iflag) &
-     !$OMP SHARED(ntp,symba_tp1P,mu,dt,irec) 
      DO i = 1, ntp
           IF ((symba_tpA%levelg(i) == irec) .AND. (symba_tpA%helio%swiftest%status(i) == ACTIVE)) THEN
                CALL drift_one(mu, symba_tpA%helio%swiftest%xh(:,i), symba_tpA%helio%swiftest%vb(:,i), dt, iflag)
@@ -61,11 +54,7 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
                     WRITE(*, *) "Particle ", symba_tpA%helio%swiftest%name(i), " lost due to error in Danby drift"
                END IF
           END IF
-          !Removed by D. Minton
-          !symba_tpP => symba_tpP%nextP
-          !^^^^^^^^^^^^^^^^^^^^
      END DO
-     !$OMP END PARALLEL DO
 
      RETURN
 

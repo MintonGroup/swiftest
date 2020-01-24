@@ -47,20 +47,7 @@ SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
 
 ! Executable code
      mu = symba_plA%helio%swiftest%mass(1)
-     ! Removed by D. Minton
-     !symba_plP => symba_pl1P
-     !^^^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) & 
-     !$OMP PRIVATE(i,swifter_plP,symba_plP,iflag) &
-     !$OMP SHARED(npl,symba_pl1P,mu,dt,irec)     
      DO i = 2, npl
-          ! Removed by D. Minton
-          !symba_plP => symba_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          !symba_plP => symba_pl1P%symba_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^
           IF ((symba_plA%levelg(i) == irec) .AND. (symba_plA%helio%swiftest%status(i) == ACTIVE)) THEN
                CALL drift_one(mu, symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%vb(:,i), dt, iflag)
                IF (iflag /= 0) THEN
@@ -73,7 +60,6 @@ SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
                END IF
           END IF
      END DO
-     !$OMP END PARALLEL DO
 
      RETURN
 
