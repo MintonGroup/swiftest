@@ -199,7 +199,6 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           mergesub_list%mass(nmergesub) = mass2
           mergesub_list%radius(nmergesub) = rad2
           nmergeadd = nmergeadd + 1
-
           IF (m2 > m1) THEN
                index_keep = index_big2
                index_rm = index_big1

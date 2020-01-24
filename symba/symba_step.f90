@@ -175,9 +175,9 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           !symba_pljP => symba_pliP
           !^^^^^^^^^^^^^^^^^^^^^
           ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(j,xr,vr,lencounter,lvdotr,symba_pljP,swifter_pljP) &
-          !$OMP SHARED(i,npl,irec,symba_pl1P,symba_pliP,swifter_pliP,dt,plplenc_list,nplplenc) 
+          !!$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
+          !!$OMP PRIVATE(j,xr,vr,lencounter,lvdotr,symba_pljP,swifter_pljP) &
+          !!$OMP SHARED(i,npl,irec,symba_pl1P,symba_pliP,swifter_pliP,dt,plplenc_list,nplplenc) 
           DO j = i + 1, npl
                ! Added by D. Minton
                !symba_pljP=>symba_pl1P%symba_plPA(j)%thisP
@@ -194,7 +194,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), &
                     symba_plA%helio%swiftest%rhill(j), dt, irec, lencounter, lvdotr)
                IF (lencounter) THEN
-                    !$OMP CRITICAL 
+                    !!$OMP CRITICAL 
                     nplplenc = nplplenc + 1
                     IF (nplplenc > NENMAX) THEN
                          WRITE(*, *) "SWIFTER Error:"
@@ -211,7 +211,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     symba_plA%nplenc(i) = symba_plA%nplenc(i) + 1
                     symba_plA%levelg(i) = irec
                     symba_plA%levelm(i) = irec
-                    !$OMP END CRITICAL 
+                    !!$OMP END CRITICAL 
                     !NULLIFY(symba_plA%index_child) 
                     symba_plA%nchild(i) = 0 
                     symba_plA%lmerged(j) = .FALSE.
@@ -222,14 +222,14 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     symba_plA%nchild(j) = 0
                END IF
           END DO
-          !$OMP END PARALLEL DO
+          !!$OMP END PARALLEL DO
           ! Removed by D. Minton
           !symba_tpP => symba_tp1P
           !^^^^^^^^^^^^^^^^^^^^^
           ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(j,xr,vr,lencounter,lvdotr,symba_tpP,swifter_tpP) &
-          !$OMP SHARED(ntp,irec,symba_tp1P,dt,swifter_pliP,symba_pliP,pltpenc_list,npltpenc) 
+          !!$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
+          !!$OMP PRIVATE(j,xr,vr,lencounter,lvdotr,symba_tpP,swifter_tpP) &
+          !!$OMP SHARED(ntp,irec,symba_tp1P,dt,swifter_pliP,symba_pliP,pltpenc_list,npltpenc) 
           DO j = 1, ntp
                !Added by D. Minton
                !symba_tpP => symba_tp1P%symba_tpPA(j)%thisP
@@ -246,7 +246,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     symba_tpA%levelg(j) = irec
                     symba_tpA%levelm(j) = irec
                     ! Added by D. Minton
-                    !$OMP CRITICAL 
+                    !!$OMP CRITICAL 
                     npltpenc = npltpenc + 1
                     IF (npltpenc > NENMAX) THEN
                          WRITE(*, *) "SWIFTER Error:"
@@ -259,13 +259,13 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     pltpenc_list%level(npltpenc) = irec
                     pltpenc_list%indexpl(npltpenc) = i
                     pltpenc_list%indextp(npltpenc) = j
-                    !$OMP END CRITICAL 
+                    !!$OMP END CRITICAL 
                END IF
                !Removed by D. Minton
                !symba_tpP => symba_tpP%nextP
                !^^^^^^^^^^^^^^^^^^^^
           END DO
-          !$OMP END PARALLEL DO
+          !!$OMP END PARALLEL DO
      END DO
 
 ! END OF THINGS THAT NEED TO BE CHANGED IN THE TREE

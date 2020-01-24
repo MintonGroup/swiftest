@@ -96,9 +96,9 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      IF (ireci == 0) THEN
           icflg = 0
           ! OpenMP parallelization added by D. Minton
-          !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-          !$OMP PRIVATE(i,symba_pliP,symba_pljP,swifter_pliP,swifter_pljP,xr,vr,lencounter) &
-          !$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
+          !!$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
+          !!$OMP PRIVATE(i,symba_pliP,symba_pljP,swifter_pliP,swifter_pljP,xr,vr,lencounter) &
+          !!$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
           DO i = 1, nplplenc
                IF ((plplenc_list%status(i) == ACTIVE) .AND. (plplenc_list%level(i) == ireci)) THEN
                     index_i  = plplenc_list%index1(i)
@@ -110,18 +110,18 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          plplenc_list%lvdotr(i))
                     IF (lencounter) THEN
                          !Added by D. Minton
-                         !$OMP CRITICAL
+                         !!$OMP CRITICAL
                          icflg = 1
                          symba_plA%levelg(index_i) = irecp
                          symba_plA%levelm(index_i) = MAX(irecp, symba_plA%levelm(index_i))
                          symba_plA%levelg(index_j) = irecp
                          symba_plA%levelm(index_j) = MAX(irecp, symba_plA%levelm(index_j))
                          plplenc_list%level(i) = irecp
-                         !$OMP END CRITICAL
+                         !!$OMP END CRITICAL
                     END IF
                END IF
           END DO
-          !$OMP END PARALLEL DO
+          !!$OMP END PARALLEL DO
           DO i = 1, npltpenc
                IF ((pltpenc_list%status(i) == ACTIVE) .AND. (pltpenc_list%level(i) == ireci)) THEN
                     index_pl  = pltpenc_list%indexpl(i)
@@ -202,9 +202,9 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           DO j = 1, NTENC
                icflg = 0
                ! OpenMP parallelization added by D. Minton
-               !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-               !$OMP PRIVATE(i,symba_pliP,symba_pljP,swifter_pliP,swifter_pljP,xr,vr,lencounter) &
-               !$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
+               !!$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
+               !!$OMP PRIVATE(i,symba_pliP,symba_pljP,swifter_pliP,swifter_pljP,xr,vr,lencounter) &
+               !!$OMP SHARED(plplenc_list,nplplenc,irecp,icflg,ireci,dtl)
                DO i = 1, nplplenc
                     IF ((plplenc_list%status(i) == ACTIVE) .AND. (plplenc_list%level(i) == ireci)) THEN
                          index_i  = plplenc_list%index1(i) 
@@ -215,14 +215,14 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                               symba_plA%helio%swiftest%rhill(index_j), dtl, irecp, lencounter,             &
                               plplenc_list%lvdotr(i))
                          IF (lencounter) THEN
-                              !$OMP CRITICAL
+                              !!$OMP CRITICAL
                               icflg = 1
                               symba_plA%levelg(index_i) = irecp
                               symba_plA%levelm(index_i) = MAX(irecp, symba_plA%levelm(index_i))
                               symba_plA%levelg(index_j) = irecp
                               symba_plA%levelm(index_j) = MAX(irecp, symba_plA%levelm(index_j))
                               plplenc_list%level(i) = irecp
-                              !$OMP END CRITICAL
+                              !!$OMP END CRITICAL
                          END IF
                     END IF
                END DO
