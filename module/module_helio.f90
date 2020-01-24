@@ -29,15 +29,6 @@ MODULE module_helio
      USE module_swiftest
      IMPLICIT NONE
 
-     ! Added by D. Minton
-     !TYPE helio_ptr_arr
-     !   TYPE(helio_pl), POINTER :: thisP   ! pointer to current swifter planet
-     !END TYPE helio_ptr_arr
-     !TYPE helio_ptr_arr_tp
-     !   TYPE(helio_tp), POINTER :: thisP   ! pointer to current swifter particle
-     !END TYPE helio_ptr_arr_tp
-     !^^^^^^^^^^^^^^^^^^^
-
      type helio_pl
        real(DP),     dimension(:,:),   allocatable :: ah     ! total heliocentric acceleration
        real(DP),     dimension(:,:),   allocatable :: ahi    ! heliocentric acceleration due to interactions

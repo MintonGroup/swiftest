@@ -58,8 +58,6 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      REAL(DP), DIMENSION(NDIM)                    :: dx
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
-! Added by D. Minton
-     !REAL(DP), DIMENSION(NDIM) :: accsum
 
 ! Executable code
 

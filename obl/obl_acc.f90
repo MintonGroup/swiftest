@@ -52,20 +52,7 @@ SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
 
 ! Executable code
      msun = swiftest_plA%mass(1)
-     !Removed by D. Minton
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
-     !!$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-     !!$OMP PRIVATE(i,swifter_plP,rinv2,t0,t1,t2,t3,fac1,fac2) &
-     !!$OMP SHARED(npl,swifter_pl1P,aobl,irh,msun,j2rp2,xh,j4rp4)     
      DO i = 2, npl
-          !Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          !swifter_plP => swifter_pl1P%swifter_plPA(i)%thisP
-          !^^^^^^^^^^^^^^^^^^
           rinv2 = irh(i)**2
           t0 = -msun*rinv2*rinv2*irh(i)
           t1 = 1.5_DP*j2rp2
@@ -76,26 +63,10 @@ SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
           aobl(:, i) = fac1*xh(:, i)
           aobl(3, i) = fac2*xh(3, i) + aobl(3, i)
      END DO
-     !!$OMP END PARALLEL DO
      aobl(:, 1) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     !Removed by D. Minton
-     !swifter_plP => swifter_pl1P
-     !^^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
-     !!$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-     !!$OMP PRIVATE(i,swifter_plP) &
-     !!$OMP SHARED(npl,swifter_pl1P,aobl,msun)  
      DO i = 2, npl
-          !Removed by D. Minton
-          !swifter_plP => swifter_plP%nextP
-          !aobl(:, 1) = aobl(:, 1) - swifter_plP%mass*aobl(:, i)/msun
-          !^^^^^^^^^^^^^^^^^^^^
-          !Added by D. Minton
-          !aobl(:, 1) = aobl(:, 1) - swifter_pl1P%swifter_plPA(i)%thisP%mass*aobl(:, i)/msun !redo with OpenMP 
           aobl(:, 1) = aobl(:, 1) - swiftest_plA%mass(i)*aobl(:, i)/msun
-          !^^^^^^^^^^^^^^^^^^
      END DO
-     !!$OMP END PARALLEL DO
 
      RETURN
 
