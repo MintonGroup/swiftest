@@ -94,7 +94,7 @@ PROGRAM swiftest_symba_omp
      CALL util_version
      nthreads = 1                        ! In the *serial* case
      WRITE(*, 100, ADVANCE = "NO") "Enter name of parameter data file: "
-     READ(*, 100) inparfiles
+     READ(*, 100) inparfile
  100 FORMAT(A)
      inparfile = TRIM(ADJUSTL(inparfile))
      ! Read in the param.in file and get simulation parameters
