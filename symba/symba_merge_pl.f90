@@ -96,7 +96,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
      ELSE 
           vr(:) = symba_plA%helio%swiftest%vb(:,index2) - symba_plA%helio%swiftest%vb(:,index1)
           vdotr = DOT_PRODUCT(xr(:), vr(:))
-          IF (plplenc_list%lvdotr(index_enc) .AND. (vdotr > 0.0_DP)) THEN
+          IF (plplenc_list%lvdotr(index_enc) .AND. (vdotr > 0.0_DP)) THEN 
                tcr2 = r2/DOT_PRODUCT(vr(:), vr(:))
                dt2 = dt*dt
                IF (tcr2 <= dt2) THEN
@@ -225,7 +225,6 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           !WRITE(*,*) "symba_merge_pl.f90 xh", mergeadd_list%xh(:,nmergeadd)
           !WRITE(*,*) "symba_merge_pl.f90 vh", mergeadd_list%vh(:,nmergeadd)
           !WRITE(*,*) "symba_merge_pl.f90 eoffset", eoffset
-
           DO k = 1, nplplenc
                IF (plplenc_list%status(k) == ACTIVE) THEN
                     DO i = 0, symba_plA%nchild(index1_parent)
@@ -251,10 +250,9 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           END DO
           symba_plA%helio%swiftest%xh(:,index1_parent) = xnew(:)
           symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
-          symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:)
-          symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:)
+          symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) !PROBLEM
+          symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) !PROBLEM
           array_keep_child(:) = symba_plA%index_child(:,index1_parent)
-          
           DO i = 1, symba_plA%nchild(index1_parent)
                indexchild = array_keep_child(i)
                symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)

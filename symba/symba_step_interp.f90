@@ -91,6 +91,7 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xbeg, xend
 
 ! Executable code
+
      IF (lmalloc) THEN
           ALLOCATE(xbeg(NDIM, nplmax), xend(NDIM, nplmax))
           lmalloc = .FALSE.

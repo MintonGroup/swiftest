@@ -57,14 +57,14 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      INTEGER(I4B), DIMENSION(2,NPLMAX)              :: keep_plA_id_status
      INTEGER(I4B), DIMENSION(2,ntp)             	:: keep_tpA_id_status					
 
+! Executable code
 
     IF (ldiscard .eqv. .TRUE.) THEN 
-    	CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tei, htot)
+        CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tei, htot)
     	nsppl = 0
     	nkpl = 0
-
     	DO i = 1, npl 
-        	IF (symba_plA%helio%swiftest%status(i) /= ACTIVE) THEN 
+        	IF (symba_plA%helio%swiftest%status(i) /= ACTIVE) THEN
                 nsppl = nsppl+1
             	discard_plA_id_status(1,nsppl) = symba_plA%helio%swiftest%name(i)
             	discard_plA_id_status(2,nsppl) = symba_plA%helio%swiftest%status(i)
@@ -104,9 +104,8 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 
         ! remove all mentions of mergeadd and mergeadd_list from this loop after fragmentation 
     	IF (nmergeadd == 0) THEN !this will change to nfragadd when fragmentation is implemented 
-    		CALL symba_pl_deallocate(symba_plA)
+            CALL symba_pl_deallocate(symba_plA)
     		CALL symba_pl_allocate(symba_plA, nkpl)
-
             DO k = 1, nkpl
                 symba_plA%helio%swiftest%name(k) = keep_plA_id_status(1,k)
                 symba_plA%helio%swiftest%status(k) = keep_plA_id_status(2,k)
@@ -143,7 +142,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
                 symba_plA%helio%swiftest%rhill(k) = keep_plA(12,k)
             END DO
     		CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tei, htot)
-		END IF
+        END IF
 	END IF 
 
 	IF (ldiscard_tp .eqv. .TRUE.) THEN 

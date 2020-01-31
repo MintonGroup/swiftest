@@ -172,7 +172,7 @@ PROGRAM swiftest_symba_omp
                !CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)                                          ! CHECK THIS 
           !END IF
           ldiscard = .FALSE. 
-          ldiscard_tp = .FALSE. 
+          ldiscard_tp = .FALSE.
           CALL symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)                                  ! CHECK THIS 
           CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
                qmin_ahi, j2rp2, j4rp4, eoffset)
@@ -247,7 +247,6 @@ PROGRAM swiftest_symba_omp
           discard_tpA(:,:) = 0
           discard_plA_id_status(:,:) = 0
           discard_tpA_id_status(:,:) = 0
-
      END DO
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
           j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
@@ -261,7 +260,6 @@ PROGRAM swiftest_symba_omp
      CALL symba_pltpenc_deallocate(pltpenc_list)
      DEALLOCATE(discard_plA)
      DEALLOCATE(discard_plA_id_status)
-     
      IF (ntp > 0) THEN
           CALL symba_tp_deallocate(symba_tpA)
           DEALLOCATE(discard_tpA)
