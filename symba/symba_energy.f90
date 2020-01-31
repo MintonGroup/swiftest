@@ -69,9 +69,11 @@ SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, hto
           v2 = DOT_PRODUCT(v(:), v(:))
           ke = ke + 0.5_DP*mass*v2
           DO j = i + 1, npl
-               dx(:) = swiftest_plA%xb(:,j) - x(:)
-               r2 = DOT_PRODUCT(dx(:), dx(:))
-               pe = pe - mass*swiftest_plA%mass(j)/SQRT(r2)
+               dx(:) = swiftest_plA%xb(:,j) - x(:) !this is 0 for the removed ps because swiftest_plA%xb(:,j) = swiftest_plA%xb(:,i)
+               r2 = DOT_PRODUCT(dx(:), dx(:)) !this is 0 for the removed ps
+               IF (r2 /= 0) THEN
+                    pe = pe - mass*swiftest_plA%mass(j)/SQRT(r2) !DIVISION !!!!!!r2 is 0 for ps 12 which is the removed ps
+               END IF
           END DO
      END DO
      x(:) = swiftest_plA%xb(:,i)
