@@ -67,7 +67,6 @@ subroutine ringmoons_step(t,swifter_pl1P,ring,seeds,dtin,lfirst,Merror,Lerror,lp
          Ltot_orig = Ltot_orig + swifter_pl1P%Ip(3) * swifter_pl1P%rot(3) * swifter_pl1P%mass * swifter_pl1P%radius**2
          lfirst = .false.
       end if
-!write(*,*)
       seeds%Torque(:) = 0.0_DP
 
       old_ring%N = ring%N
