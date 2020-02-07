@@ -76,19 +76,19 @@ PROGRAM swiftest_symba_omp
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                                  :: htot
      CHARACTER(STRMAX)                                          :: inparfile
-     TYPE(symba_pl)                  							:: symba_plA
-     TYPE(symba_tp)                  							:: symba_tpA
+     TYPE(symba_pl)                                                   :: symba_plA
+     TYPE(symba_tp)                                                   :: symba_tpA
      TYPE(swiftest_pl)                                                :: swiftest_plA
-     TYPE(swiftest_tp)               							:: swiftest_tpA
-     TYPE(helio_pl)                  							:: helio_plA
-     TYPE(helio_tp)                  							:: helio_tpA
-     TYPE(symba_plplenc)             							:: plplenc_list
-     TYPE(symba_pltpenc)            							:: pltpenc_list
-     TYPE(symba_merger)              							:: mergeadd_list, mergesub_list
-     REAL(DP), DIMENSION(:,:), allocatable     					:: discard_plA
-     REAL(DP), DIMENSION(:,:), allocatable      				:: discard_tpA
-     INTEGER(I4B), DIMENSION(:,:), allocatable  				:: discard_plA_id_status
-     INTEGER(I4B), DIMENSION(:,:), allocatable  				:: discard_tpA_id_status
+     TYPE(swiftest_tp)                                                :: swiftest_tpA
+     TYPE(helio_pl)                                                   :: helio_plA
+     TYPE(helio_tp)                                                   :: helio_tpA
+     TYPE(symba_plplenc)                                              :: plplenc_list
+     TYPE(symba_pltpenc)                                              :: pltpenc_list
+     TYPE(symba_merger)                                               :: mergeadd_list, mergesub_list
+     REAL(DP), DIMENSION(:,:), allocatable                            :: discard_plA
+     REAL(DP), DIMENSION(:,:), allocatable                       :: discard_tpA
+     INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_plA_id_status
+     INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_tpA_id_status
 
 ! Executable code
      CALL util_version
