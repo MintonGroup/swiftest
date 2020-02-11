@@ -13,7 +13,7 @@ class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
     def __init__(self):
         self.ringfilename = 'ring.dat'
-        self.frame_skip = 100
+        self.frame_skip = 1
         nframes = int(51000 / self.frame_skip)
 
         self.stream = self.data_stream()
@@ -24,7 +24,7 @@ class AnimatedScatter(object):
                                           init_func=self.setup_plot, blit=True)
 
 
-        self.ani.save('HesselbrockMinton2017PhobosCycle-5.10Gy-high-speed.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
+        #self.ani.save('HesselbrockMinton2017PhobosCycle-5.10Gy-high-speed.mp4', fps=60, dpi=600, extra_args=['-vcodec', 'libx264'])
 
     def setup_plot(self):
         """Initial drawing of the scatter plot."""
