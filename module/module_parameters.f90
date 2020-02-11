@@ -124,6 +124,8 @@ MODULE module_parameters
      CHARACTER(*), DIMENSION(2), PARAMETER :: DUMP_PARAM_FILE = (/ "dump_param1.dat", "dump_param2.dat" /)
      CHARACTER(*), DIMENSION(2), PARAMETER :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
      CHARACTER(*), DIMENSION(2), PARAMETER :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
+     CHARACTER(*), PARAMETER :: ENERGY_FILE = "energy.out"
+
 
 ! Integration control parameters:
      REAL(DP),     PARAMETER :: E2MAX    = 0.36_DP
