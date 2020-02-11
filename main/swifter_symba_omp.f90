@@ -89,6 +89,7 @@ PROGRAM swiftest_symba_omp
      REAL(DP), DIMENSION(:,:), allocatable                       :: discard_tpA
      INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_plA_id_status
      INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_tpA_id_status
+     INTEGER(I4B), PARAMETER                                     :: egyiu = 72
 
 ! Executable code
      CALL util_version
@@ -150,15 +151,23 @@ PROGRAM swiftest_symba_omp
           CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, &
           out_type, out_form, out_stat)
      END IF
+     IF (out_stat == "OLD") then
+        OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "OLD", ACTION = "WRITE", POSITION = "APPEND")
+     ELSE 
+        OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "REPLACE", ACTION = "WRITE")
+     END IF
+ 300 FORMAT(7(1X, E23.16))
+ 310 FORMAT(7(1X, A23))
+     WRITE(egyiu,310) "#t","ke","pe","te","htotx","htoty","htotz"
      WRITE(*, *) " *************** MAIN LOOP *************** "
+     CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+     WRITE(egyiu,300) t, ke, pe, te, htot
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
 
-          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-          WRITE(*,*) "ke", ke, "pe", pe, "te", te, "htot", htot
-          OPEN(UNIT=1,FILE=“energy.out”,FORM=“FORMATTED”,STATUS=“OLD”,ACTION=“READ”)
+
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
-          	j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-          	eoffset, mtiny, encounter_file, out_type)
+           j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+           eoffset, mtiny, encounter_file, out_type)
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
@@ -192,6 +201,8 @@ PROGRAM swiftest_symba_omp
                nmergesub = 0
                nsppl = 0
                nsptp = 0
+               CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+               WRITE(egyiu,300) t, ke, pe, te, htot
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1
@@ -199,6 +210,8 @@ PROGRAM swiftest_symba_omp
                     CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, &
                      out_form, out_stat)
                     iout = istep_out
+                  CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+                  WRITE(egyiu,300) t, ke, pe, te, htot
                END IF
           END IF
           IF (istep_dump > 0) THEN
@@ -257,6 +270,11 @@ PROGRAM swiftest_symba_omp
           lrhill_present)
      CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
+
+     CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+     WRITE(egyiu,300) t, ke, pe, te, htot
+     CLOSE(egyiu)
+
      CALL symba_pl_deallocate(symba_plA)
      CALL symba_merger_deallocate(mergeadd_list)
      CALL symba_merger_deallocate(mergesub_list)
@@ -269,6 +287,7 @@ PROGRAM swiftest_symba_omp
           DEALLOCATE(discard_tpA)
           DEALLOCATE(discard_tpA_id_status)
      END IF
+
      CALL util_exit(SUCCESS)
 
      STOP
