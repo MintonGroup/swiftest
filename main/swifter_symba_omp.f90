@@ -152,6 +152,10 @@ PROGRAM swiftest_symba_omp
      END IF
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
+
+          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+          WRITE(*,*) "ke", ke, "pe", pe, "te", te, "htot", htot
+          OPEN(UNIT=1,FILE=“energy.out”,FORM=“FORMATTED”,STATUS=“OLD”,ACTION=“READ”)
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
           	j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
           	eoffset, mtiny, encounter_file, out_type)
