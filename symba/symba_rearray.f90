@@ -104,42 +104,46 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
         ! remove all mentions of mergeadd and mergeadd_list from this loop after fragmentation 
         IF (nmergeadd == 0) THEN !this will change to nfragadd when fragmentation is implemented 
             CALL symba_pl_deallocate(symba_plA)
-            CALL symba_pl_allocate(symba_plA, nkpl)
-            DO k = 1, nkpl
-                symba_plA%helio%swiftest%name(k) = keep_plA_id_status(1,k)
-                symba_plA%helio%swiftest%status(k) = keep_plA_id_status(2,k)
-                symba_plA%helio%swiftest%mass(k) = keep_plA(1,k)
-                symba_plA%helio%swiftest%radius(k) = keep_plA(2,k)
-                symba_plA%helio%swiftest%xh(1,k) = keep_plA(3,k)
-                symba_plA%helio%swiftest%xh(2,k) = keep_plA(4,k)
-                symba_plA%helio%swiftest%xh(3,k) = keep_plA(5,k)
-                symba_plA%helio%swiftest%vh(1,k) = keep_plA(6,k)
-                symba_plA%helio%swiftest%vh(2,k) = keep_plA(7,k)
-                symba_plA%helio%swiftest%vh(3,k) = keep_plA(8,k)
-                symba_plA%helio%ah(1,k) = keep_plA(9,k)
-                symba_plA%helio%ah(2,k) = keep_plA(10,k)
-                symba_plA%helio%ah(3,k) = keep_plA(11,k)
-                symba_plA%helio%swiftest%rhill(k) = keep_plA(12,k)
-            END DO
+            IF (nkpl >= 1) THEN 
+                CALL symba_pl_allocate(symba_plA, nkpl)
+                DO k = 1, nkpl
+                    symba_plA%helio%swiftest%name(k) = keep_plA_id_status(1,k)
+                    symba_plA%helio%swiftest%status(k) = keep_plA_id_status(2,k)
+                    symba_plA%helio%swiftest%mass(k) = keep_plA(1,k)
+                    symba_plA%helio%swiftest%radius(k) = keep_plA(2,k)
+                    symba_plA%helio%swiftest%xh(1,k) = keep_plA(3,k)
+                    symba_plA%helio%swiftest%xh(2,k) = keep_plA(4,k)
+                    symba_plA%helio%swiftest%xh(3,k) = keep_plA(5,k)
+                    symba_plA%helio%swiftest%vh(1,k) = keep_plA(6,k)
+                    symba_plA%helio%swiftest%vh(2,k) = keep_plA(7,k)
+                    symba_plA%helio%swiftest%vh(3,k) = keep_plA(8,k)
+                    symba_plA%helio%ah(1,k) = keep_plA(9,k)
+                    symba_plA%helio%ah(2,k) = keep_plA(10,k)
+                    symba_plA%helio%ah(3,k) = keep_plA(11,k)
+                    symba_plA%helio%swiftest%rhill(k) = keep_plA(12,k)
+                END DO
+            END IF 
         ELSE 
             CALL symba_pl_deallocate(symba_plA)
-            CALL symba_pl_allocate(symba_plA, nkpl)
-            DO k = 1, nkpl
-                symba_plA%helio%swiftest%name(k) = keep_plA_id_status(1,k)
-                symba_plA%helio%swiftest%status(k) = keep_plA_id_status(2,k)
-                symba_plA%helio%swiftest%mass(k) = keep_plA(1,k)
-                symba_plA%helio%swiftest%radius(k) = keep_plA(2,k)
-                symba_plA%helio%swiftest%xh(1,k) = keep_plA(3,k)
-                symba_plA%helio%swiftest%xh(2,k) = keep_plA(4,k)
-                symba_plA%helio%swiftest%xh(3,k) = keep_plA(5,k)
-                symba_plA%helio%swiftest%vh(1,k) = keep_plA(6,k)
-                symba_plA%helio%swiftest%vh(2,k) = keep_plA(7,k)
-                symba_plA%helio%swiftest%vh(3,k) = keep_plA(8,k)
-                symba_plA%helio%ah(1,k) = keep_plA(9,k)
-                symba_plA%helio%ah(2,k) = keep_plA(10,k)
-                symba_plA%helio%ah(3,k) = keep_plA(11,k)
-                symba_plA%helio%swiftest%rhill(k) = keep_plA(12,k)
-            END DO
+            IF (nkpl >= 1) THEN 
+                CALL symba_pl_allocate(symba_plA, nkpl)
+                DO k = 1, nkpl
+                    symba_plA%helio%swiftest%name(k) = keep_plA_id_status(1,k)
+                    symba_plA%helio%swiftest%status(k) = keep_plA_id_status(2,k)
+                    symba_plA%helio%swiftest%mass(k) = keep_plA(1,k)
+                    symba_plA%helio%swiftest%radius(k) = keep_plA(2,k)
+                    symba_plA%helio%swiftest%xh(1,k) = keep_plA(3,k)
+                    symba_plA%helio%swiftest%xh(2,k) = keep_plA(4,k)
+                    symba_plA%helio%swiftest%xh(3,k) = keep_plA(5,k)
+                    symba_plA%helio%swiftest%vh(1,k) = keep_plA(6,k)
+                    symba_plA%helio%swiftest%vh(2,k) = keep_plA(7,k)
+                    symba_plA%helio%swiftest%vh(3,k) = keep_plA(8,k)
+                    symba_plA%helio%ah(1,k) = keep_plA(9,k)
+                    symba_plA%helio%ah(2,k) = keep_plA(10,k)
+                    symba_plA%helio%ah(3,k) = keep_plA(11,k)
+                    symba_plA%helio%swiftest%rhill(k) = keep_plA(12,k)
+                END DO
+            END IF
         END IF
     END IF 
 
