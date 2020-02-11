@@ -70,15 +70,11 @@ SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, rmin, rmax, rmaxu, q
 
 ! Executable code
      ldiscards = .FALSE.
-     !swifter_pl1P => symba_pl1P%helio%swifter
      IF ((rmin >= 0.0_DP) .OR. (rmax >= 0.0_DP) .OR. (rmaxu >= 0.0_DP) .OR. ((qmin >= 0.0_DP) .AND. (qmin_coord == "BARY")))      &
           CALL coord_h2b(npl, symba_plA%helio%swiftest, msys)
      IF ((rmin >= 0.0_DP) .OR. (rmax >= 0.0_DP) .OR. (rmaxu >= 0.0_DP))                                                           &
           CALL symba_discard_sun_pl(t, npl, msys, symba_plA%helio%swiftest, rmin, rmax, rmaxu, ldiscards)
      IF (qmin >= 0.0_DP) CALL symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
-     IF (ldiscards) THEN
-          ldiscard = .TRUE.
-     END IF
 
      RETURN
 

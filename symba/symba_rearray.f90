@@ -50,7 +50,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 
 ! Internals
      INTEGER(I4B)                   				:: i, index, j, ncomp, ierr, nplm, nkpl, nktp, k
-     REAL(DP)                                       :: ke, pe, tei
+     REAL(DP)                                       :: ke, pe, tei, tef
      REAL(DP), DIMENSION(NDIM)                      :: htot
      REAL(DP), DIMENSION(12,NPLMAX) 				:: keep_plA
      REAL(DP), DIMENSION(11,ntp)    				:: keep_tpA
@@ -60,11 +60,10 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 ! Executable code
 
     IF (ldiscard .eqv. .TRUE.) THEN 
-        CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tei, htot)
     	nsppl = 0
     	nkpl = 0
     	DO i = 1, npl 
-        	IF (symba_plA%helio%swiftest%status(i) /= ACTIVE) THEN
+        	IF (symba_plA%helio%swiftest%status(i) /= ACTIVE) THEN !do we ever mark the keep particle as ACTIVE or do we mark both as =/ACTIVE
                 nsppl = nsppl+1
             	discard_plA_id_status(1,nsppl) = symba_plA%helio%swiftest%name(i)
             	discard_plA_id_status(2,nsppl) = symba_plA%helio%swiftest%status(i)
@@ -81,7 +80,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
                 discard_plA(11,nsppl) = symba_plA%helio%ah(3,i)
             	
         	ELSE
-                nkpl = nkpl + 1
+                nkpl = nkpl + 1                                   ! both keep_plA and discard_plA will have the same x-coords during a merger
             	keep_plA_id_status(1,nkpl) = symba_plA%helio%swiftest%name(i)
             	keep_plA_id_status(2,nkpl) = symba_plA%helio%swiftest%status(i)
             	keep_plA(1,nkpl) = symba_plA%helio%swiftest%mass(i)
@@ -141,7 +140,6 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
                 symba_plA%helio%ah(3,k) = keep_plA(11,k)
                 symba_plA%helio%swiftest%rhill(k) = keep_plA(12,k)
             END DO
-    		CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, tei, htot)
         END IF
 	END IF 
 
