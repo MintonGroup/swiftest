@@ -111,11 +111,11 @@ PROGRAM swiftest_symba_omp
      CALL io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
 
      ! Create arrays of data structures big enough to store the number of bodies we are adding
-     CALL symba_pl_allocate(symba_plA,nplmax)
-     CALL symba_merger_allocate(mergeadd_list,nplmax)
-     CALL symba_merger_allocate(mergesub_list,nplmax)
-     CALL symba_plplenc_allocate(plplenc_list, nplmax)
-     CALL symba_pltpenc_allocate(pltpenc_list, ntpmax)
+     CALL symba_pl_allocate(symba_plA,npl)
+     CALL symba_merger_allocate(mergeadd_list,npl)
+     CALL symba_merger_allocate(mergesub_list,npl)
+     CALL symba_plplenc_allocate(plplenc_list, npl)
+     CALL symba_pltpenc_allocate(pltpenc_list, ntp)
      ALLOCATE(discard_plA(11,npl))
      ALLOCATE(discard_tpA(11,ntp))
      ALLOCATE(discard_plA_id_status(2,npl))
