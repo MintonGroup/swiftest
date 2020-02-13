@@ -1131,35 +1131,6 @@ MODULE module_interfaces
           END SUBROUTINE symba_step
      END INTERFACE
 
-
-! FOR TESTING PURPOSES ONLY _ USE WITH SYMBA_STEP_TEST
-     INTERFACE
-          SUBROUTINE symba_step_test(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA,  & 
-               j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, & 
-               mergesub_list, eoffset, mtiny, encounter_file, out_type)
-               USE module_parameters
-               USE module_swiftest
-               USE module_helio
-               USE module_symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
-               LOGICAL(LGT), INTENT(INOUT)        :: lfirst
-               INTEGER(I4B), INTENT(IN)           :: npl, nplmax, ntp, ntpmax
-               INTEGER(I4B), INTENT(INOUT)        :: nplplenc, npltpenc, nmergeadd, nmergesub
-               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
-               REAL(DP), INTENT(INOUT)            :: eoffset
-               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
-               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
-               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
-               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
-               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-          END SUBROUTINE symba_step_test
-     END INTERFACE
-
-
-
-
      INTERFACE
           SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2,     &
                j4rp4, dt)
