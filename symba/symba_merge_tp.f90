@@ -30,7 +30,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type)
+SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)
 
 ! Modules
      USE module_parameters
@@ -46,6 +46,8 @@ SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encount
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
+     TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
 
 ! Internals
      LOGICAL(LGT)              :: lmerge
@@ -54,8 +56,6 @@ SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encount
      REAL(DP), DIMENSION(NDIM) :: xr, vr, xh1, vh1, xh2, vh2
      TYPE(swiftest_pl)         :: swiftest_plA
      TYPE(swiftest_tp)         :: swiftest_tpA
-     TYPE(symba_pl)            :: symba_plA
-     TYPE(symba_tp)            :: symba_tpA
 
 ! Executable code
      lmerge = .FALSE.
@@ -63,12 +63,6 @@ SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encount
      indexpl = pltpenc_list%indexpl(index_enc)
      indextp = pltpenc_list%indextp(index_enc)
 
-
-
-     !symba_plP => pltpenc_list(index_enc)%plP
-     !symba_tpP => pltpenc_list(index_enc)%tpP
-     !swifter_plP => symba_plP%helio%swifter
-     !swifter_tpP => symba_tpP%helio%swifter
      rlim = symba_plA%helio%swiftest%radius(indexpl)
      xr(:) = symba_tpA%helio%swiftest%xh(:,indextp) - symba_plA%helio%swiftest%xh(:,indexpl)
      r2 = DOT_PRODUCT(xr(:), xr(:))

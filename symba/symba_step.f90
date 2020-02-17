@@ -93,6 +93,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      REAL(DP), DIMENSION(NDIM) :: xr, vr
      
 ! Executable code
+
      DO i = 1,npl
           symba_plA%nplenc(i) = 0
           symba_plA%ntpenc(i) = 0
@@ -125,7 +126,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           IF (symba_plA%helio%swiftest%mass(i) < mtiny) EXIT
           nplm = nplm + 1
           DO j = i + 1, npl
-
                xr(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
                vr(:) = symba_plA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
                CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), &
@@ -160,13 +160,13 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                vr(:) = symba_tpA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
                CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), 0.0_DP, dt, irec, lencounter, lvdotr)
                IF (lencounter) THEN
+                    npltpenc = npltpenc + 1
                     symba_plA%ntpenc(i) = symba_plA%ntpenc(i) + 1
                     symba_plA%levelg(i) = irec
                     symba_plA%levelm(i) = irec
                     symba_tpA%nplenc(j) = symba_tpA%nplenc(j) + 1
                     symba_tpA%levelg(j) = irec
                     symba_tpA%levelm(j) = irec
-                    npltpenc = npltpenc + 1
                     IF (npltpenc > NENMAX) THEN
                          WRITE(*, *) "SWIFTER Error:"
                          WRITE(*, *) "   PL-TP encounter list is full."
