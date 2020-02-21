@@ -446,9 +446,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA,discard_plA, &
-                    discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard, discard_plA_id_status, &
-                    discard_tpA_id_status)
+          SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, & 
+               discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard)
                USE module_parameters
                USE module_swiftest
                USE module_symba
@@ -458,11 +457,9 @@ MODULE module_interfaces
                REAL(DP), INTENT(IN)                           :: t, mtiny
                CHARACTER(*), INTENT(IN)                       :: fname
                TYPE(symba_pl), INTENT(INOUT)                  :: symba_plA
-               REAL(DP), DIMENSION(11,npl), INTENT(IN)         :: discard_plA
-               REAL(DP), DIMENSION(11,ntp), INTENT(IN)         :: discard_tpA
+               TYPE(swiftest_tp), INTENT(INOUT)               :: discard_tpA
+               TYPE(swiftest_pl), INTENT(INOUT)               :: discard_plA
                TYPE(symba_merger), INTENT(INOUT)              :: mergeadd_list, mergesub_list
-               INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)    :: discard_plA_id_status
-               INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)    :: discard_tpA_id_status
           END SUBROUTINE io_discard_write_symba
      END INTERFACE
 
@@ -1053,24 +1050,21 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, &
-               mergeadd_list, discard_plA, discard_tpA, discard_plA_id_status, & 
-               discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
+               mergeadd_list, discard_plA, discard_tpA, NPLMAX, j2rp2, j4rp4)
                USE module_parameters
                USE module_swiftestalloc 
                USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(INOUT)                       :: npl, ntp, nsppl, nsptp, nmergeadd
-               INTEGER(I4B), INTENT(INOUT)                       :: NPLMAX
-               REAL(DP), INTENT(IN)                              :: t, j2rp2, j4rp4
-               TYPE(symba_pl), INTENT(INOUT)                     :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)                     :: symba_tpA
-               TYPE(symba_merger), INTENT(INOUT)                 :: mergeadd_list
-               REAL(DP), DIMENSION(11,npl), INTENT(OUT)           :: discard_plA
-               REAL(DP), DIMENSION(11,ntp), INTENT(OUT)           :: discard_tpA
-               INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)       :: discard_plA_id_status
-               INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)       :: discard_tpA_id_status
+               INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nsppl, nsptp, nmergeadd, NPLMAX !change to fragadd
+               REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4
+               TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+               TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+               TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
+               TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
+               TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
+
           END SUBROUTINE symba_rearray
      END INTERFACE  
 

@@ -26,7 +26,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-    discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
+    discard_tpA, NPLMAX, j2rp2, j4rp4)
 
 ! Modules
      USE module_parameters
@@ -42,11 +42,9 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-     TYPE(symba_merger), INTENT(INOUT)                 :: mergeadd_list !change to fragadd_list
-     REAL(DP), DIMENSION(11,npl), INTENT(OUT)          :: discard_plA
-     REAL(DP), DIMENSION(8,ntp), INTENT(OUT)         :: discard_tpA
-     INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)    :: discard_plA_id_status
-     INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)     :: discard_tpA_id_status
+     TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
+     TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
+     TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
 
 ! Internals
      INTEGER(I4B)                                   :: i, index, j, ncomp, ierr, nplm, nkpl, nktp, k
@@ -55,153 +53,112 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      REAL(DP), DIMENSION(12,NPLMAX)                 :: keep_plA
      REAL(DP), DIMENSION(11,ntp)                    :: keep_tpA
      INTEGER(I4B), DIMENSION(2,NPLMAX)              :: keep_plA_id_status
-     INTEGER(I4B), DIMENSION(2,ntp)                 :: keep_tpA_id_status                    
+     INTEGER(I4B), DIMENSION(2,ntp)                 :: keep_tpA_id_status
+     LOGICAL, DIMENSION(npl)                        :: discard_l_pl
+     LOGICAL, DIMENSION(ntp)                        :: discard_l_tp
 
 ! Executable code
 
     IF (ldiscard .eqv. .TRUE.) THEN 
         nsppl = 0
         nkpl = 0
-        DO i = 1, npl 
-            IF (symba_plA%helio%swiftest%status(i) /= ACTIVE) THEN !do we ever mark the keep particle as ACTIVE or do we mark both as =/ACTIVE
-                nsppl = nsppl+1
-                discard_plA_id_status(1,nsppl) = symba_plA%helio%swiftest%name(i)
-                discard_plA_id_status(2,nsppl) = symba_plA%helio%swiftest%status(i)
-                discard_plA(1,nsppl) = symba_plA%helio%swiftest%mass(i)
-                discard_plA(2,nsppl) = symba_plA%helio%swiftest%radius(i)
-                discard_plA(3,nsppl) = symba_plA%helio%swiftest%xh(1,i)
-                discard_plA(4,nsppl) = symba_plA%helio%swiftest%xh(2,i)
-                discard_plA(5,nsppl) = symba_plA%helio%swiftest%xh(3,i)
-                discard_plA(6,nsppl) = symba_plA%helio%swiftest%vh(1,i)
-                discard_plA(7,nsppl) = symba_plA%helio%swiftest%vh(2,i)
-                discard_plA(8,nsppl) = symba_plA%helio%swiftest%vh(3,i)
-                discard_plA(9,nsppl) = symba_plA%helio%ah(1,i)
-                discard_plA(10,nsppl) = symba_plA%helio%ah(2,i)
-                discard_plA(11,nsppl) = symba_plA%helio%ah(3,i)
-                
-            ELSE
-                nkpl = nkpl + 1                                   ! both keep_plA and discard_plA will have the same x-coords during a merger
-                keep_plA_id_status(1,nkpl) = symba_plA%helio%swiftest%name(i)
-                keep_plA_id_status(2,nkpl) = symba_plA%helio%swiftest%status(i)
-                keep_plA(1,nkpl) = symba_plA%helio%swiftest%mass(i)
-                keep_plA(2,nkpl) = symba_plA%helio%swiftest%radius(i)
-                keep_plA(3,nkpl) = symba_plA%helio%swiftest%xh(1,i)
-                keep_plA(4,nkpl) = symba_plA%helio%swiftest%xh(2,i)
-                keep_plA(5,nkpl) = symba_plA%helio%swiftest%xh(3,i)
-                keep_plA(6,nkpl) = symba_plA%helio%swiftest%vh(1,i)
-                keep_plA(7,nkpl) = symba_plA%helio%swiftest%vh(2,i)
-                keep_plA(8,nkpl) = symba_plA%helio%swiftest%vh(3,i)
-                keep_plA(9,nkpl) = symba_plA%helio%ah(1,i)
-                keep_plA(10,nkpl) = symba_plA%helio%ah(2,i)
-                keep_plA(11,nkpl) = symba_plA%helio%ah(3,i)
-                keep_plA(12,nkpl) = symba_plA%helio%swiftest%rhill(i)
+        discard_l_pl(1:npl) = (symba_plA%helio%swiftest%status(1:npl) /= ACTIVE) 
+        nsppl = COUNT(discard_l_pl)
+        nkpl = npl - nsppl
 
-            END IF 
-        END DO
+        CALL swiftest_pl_allocate(discard_plA,nsppl)
 
+        discard_plA%name(1:nsppl) = PACK(symba_plA%helio%swiftest%name(1:npl), discard_l_pl)
+        discard_plA%status(1:nsppl) = PACK(symba_plA%helio%swiftest%status(1:npl), discard_l_pl)
+        discard_plA%mass(1:nsppl) = PACK(symba_plA%helio%swiftest%mass(1:npl), discard_l_pl)
+        discard_plA%radius(1:nsppl) = PACK(symba_plA%helio%swiftest%radius(1:npl), discard_l_pl)
+        discard_plA%xh(1,1:nsppl) = PACK(symba_plA%helio%swiftest%xh(1,1:npl), discard_l_pl)
+        discard_plA%xh(2,1:nsppl) = PACK(symba_plA%helio%swiftest%xh(2,1:npl), discard_l_pl)
+        discard_plA%xh(3,1:nsppl) = PACK(symba_plA%helio%swiftest%xh(3,1:npl), discard_l_pl)
+        discard_plA%vh(1,1:nsppl) = PACK(symba_plA%helio%swiftest%vh(1,1:npl), discard_l_pl)
+        discard_plA%vh(2,1:nsppl) = PACK(symba_plA%helio%swiftest%vh(2,1:npl), discard_l_pl)
+        discard_plA%vh(3,1:nsppl) = PACK(symba_plA%helio%swiftest%vh(3,1:npl), discard_l_pl)
+        discard_plA%rhill(1:nsppl) = PACK(symba_plA%helio%swiftest%rhill(1:npl), discard_l_pl)
+        discard_plA%xb(1,1:nsppl) = PACK(symba_plA%helio%swiftest%xb(1,1:npl), discard_l_pl)
+        discard_plA%xb(2,1:nsppl) = PACK(symba_plA%helio%swiftest%xb(2,1:npl), discard_l_pl)
+        discard_plA%xb(3,1:nsppl) = PACK(symba_plA%helio%swiftest%xb(3,1:npl), discard_l_pl)
+        discard_plA%vb(1,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(1,1:npl), discard_l_pl)
+        discard_plA%vb(2,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(2,1:npl), discard_l_pl)
+        discard_plA%vb(3,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(3,1:npl), discard_l_pl)
+
+        symba_plA%helio%swiftest%name(1:nkpl) = PACK(symba_plA%helio%swiftest%name(1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%status(1:nkpl) = PACK(symba_plA%helio%swiftest%status(1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%mass(1:nkpl) = PACK(symba_plA%helio%swiftest%mass(1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%radius(1:nkpl) = PACK(symba_plA%helio%swiftest%radius(1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%xh(1,1:nkpl) = PACK(symba_plA%helio%swiftest%xh(1,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%xh(2,1:nkpl) = PACK(symba_plA%helio%swiftest%xh(2,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%xh(3,1:nkpl) = PACK(symba_plA%helio%swiftest%xh(3,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%vh(1,1:nkpl) = PACK(symba_plA%helio%swiftest%vh(1,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%vh(2,1:nkpl) = PACK(symba_plA%helio%swiftest%vh(2,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%vh(3,1:nkpl) = PACK(symba_plA%helio%swiftest%vh(3,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%rhill(1:nkpl) = PACK(symba_plA%helio%swiftest%rhill(1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%xb(1,1:nkpl) = PACK(symba_plA%helio%swiftest%xb(1,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%xb(2,1:nkpl) = PACK(symba_plA%helio%swiftest%xb(2,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%xb(3,1:nkpl) = PACK(symba_plA%helio%swiftest%xb(3,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%vb(1,1:nkpl) = PACK(symba_plA%helio%swiftest%vb(1,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%vb(2,1:nkpl) = PACK(symba_plA%helio%swiftest%vb(2,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%swiftest%vb(3,1:nkpl) = PACK(symba_plA%helio%swiftest%vb(3,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%ah(1,1:nkpl) = PACK(symba_plA%helio%ah(1,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%ah(2,1:nkpl) = PACK(symba_plA%helio%ah(2,1:npl), .NOT. discard_l_pl)
+        symba_plA%helio%ah(3,1:nkpl) = PACK(symba_plA%helio%ah(3,1:npl), .NOT. discard_l_pl)
         npl = nkpl
-
-        ! remove all mentions of mergeadd and mergeadd_list from this loop after fragmentation 
-        IF (nmergeadd == 0) THEN !this will change to nfragadd when fragmentation is implemented 
-            CALL symba_pl_deallocate(symba_plA)
-            IF (nkpl >= 1) THEN 
-                CALL symba_pl_allocate(symba_plA, nkpl)
-                DO k = 1, nkpl
-                    symba_plA%helio%swiftest%name(k) = keep_plA_id_status(1,k)
-                    symba_plA%helio%swiftest%status(k) = keep_plA_id_status(2,k)
-                    symba_plA%helio%swiftest%mass(k) = keep_plA(1,k)
-                    symba_plA%helio%swiftest%radius(k) = keep_plA(2,k)
-                    symba_plA%helio%swiftest%xh(1,k) = keep_plA(3,k)
-                    symba_plA%helio%swiftest%xh(2,k) = keep_plA(4,k)
-                    symba_plA%helio%swiftest%xh(3,k) = keep_plA(5,k)
-                    symba_plA%helio%swiftest%vh(1,k) = keep_plA(6,k)
-                    symba_plA%helio%swiftest%vh(2,k) = keep_plA(7,k)
-                    symba_plA%helio%swiftest%vh(3,k) = keep_plA(8,k)
-                    symba_plA%helio%ah(1,k) = keep_plA(9,k)
-                    symba_plA%helio%ah(2,k) = keep_plA(10,k)
-                    symba_plA%helio%ah(3,k) = keep_plA(11,k)
-                    symba_plA%helio%swiftest%rhill(k) = keep_plA(12,k)
-                END DO
-            END IF 
-        ELSE 
-            CALL symba_pl_deallocate(symba_plA)
-            IF (nkpl >= 1) THEN 
-                CALL symba_pl_allocate(symba_plA, nkpl)
-                DO k = 1, nkpl
-                    symba_plA%helio%swiftest%name(k) = keep_plA_id_status(1,k)
-                    symba_plA%helio%swiftest%status(k) = keep_plA_id_status(2,k)
-                    symba_plA%helio%swiftest%mass(k) = keep_plA(1,k)
-                    symba_plA%helio%swiftest%radius(k) = keep_plA(2,k)
-                    symba_plA%helio%swiftest%xh(1,k) = keep_plA(3,k)
-                    symba_plA%helio%swiftest%xh(2,k) = keep_plA(4,k)
-                    symba_plA%helio%swiftest%xh(3,k) = keep_plA(5,k)
-                    symba_plA%helio%swiftest%vh(1,k) = keep_plA(6,k)
-                    symba_plA%helio%swiftest%vh(2,k) = keep_plA(7,k)
-                    symba_plA%helio%swiftest%vh(3,k) = keep_plA(8,k)
-                    symba_plA%helio%ah(1,k) = keep_plA(9,k)
-                    symba_plA%helio%ah(2,k) = keep_plA(10,k)
-                    symba_plA%helio%ah(3,k) = keep_plA(11,k)
-                    symba_plA%helio%swiftest%rhill(k) = keep_plA(12,k)
-                END DO
-            END IF
-        END IF
     END IF 
 
     IF (ldiscard_tp .eqv. .TRUE.) THEN 
         nktp = 0
         nsptp = 0  
-        DO i = 1, ntp
-            IF (symba_tpA%helio%swiftest%status(i) /= ACTIVE) THEN 
-                nsptp = nsptp+1
-                discard_tpA_id_status(1,nsptp) = symba_tpA%helio%swiftest%name(i)
-                discard_tpA_id_status(2,nsptp) = symba_tpA%helio%swiftest%status(i)
-                discard_tpA(1,nsptp) = 0.0_DP
-                discard_tpA(2,nsptp) = 0.0_DP
-                discard_tpA(3,nsptp) = symba_tpA%helio%swiftest%xh(1,i)
-                discard_tpA(4,nsptp) = symba_tpA%helio%swiftest%xh(2,i)
-                discard_tpA(5,nsptp) = symba_tpA%helio%swiftest%xh(3,i)
-                discard_tpA(6,nsptp) = symba_tpA%helio%swiftest%vh(1,i)
-                discard_tpA(7,nsptp) = symba_tpA%helio%swiftest%vh(2,i)
-                discard_tpA(8,nsptp) = symba_tpA%helio%swiftest%vh(3,i)
-                
-            ELSE 
-                nktp = nktp+1
-                keep_tpA_id_status(1,nktp) = symba_tpA%helio%swiftest%name(i)
-                keep_tpA_id_status(2,nktp) = symba_tpA%helio%swiftest%status(i)
-                keep_tpA(1,nktp) = 0.0_DP
-                keep_tpA(2,nktp) = 0.0_DP
-                keep_tpA(3,nktp) = symba_tpA%helio%swiftest%xh(1,i)
-                keep_tpA(4,nktp) = symba_tpA%helio%swiftest%xh(2,i)
-                keep_tpA(5,nktp) = symba_tpA%helio%swiftest%xh(3,i)
-                keep_tpA(6,nktp) = symba_tpA%helio%swiftest%vh(1,i)
-                keep_tpA(7,nktp) = symba_tpA%helio%swiftest%vh(2,i)
-                keep_tpA(8,nktp) = symba_tpA%helio%swiftest%vh(3,i)
-                keep_tpA(9,nktp) = symba_tpA%helio%ah(1,i)
-                keep_tpA(10,nktp) = symba_tpA%helio%ah(2,i)
-                keep_tpA(11,nktp) = symba_tpA%helio%ah(3,i)
 
-            END IF 
-        END DO 
+        discard_l_tp(1:ntp) = (symba_tpA%helio%swiftest%status(1:ntp) /= ACTIVE)
+        nsptp = COUNT(discard_l_tp)
+        nktp = ntp - nsptp
 
+        CALL swiftest_tp_allocate(discard_tpA,nsptp)
+
+        discard_tpA%name(1:nsptp) = PACK(symba_tpA%helio%swiftest%name(1:ntp), discard_l_tp)
+        discard_tpA%status(1:nsptp) = PACK(symba_tpA%helio%swiftest%status(1:ntp), discard_l_tp)
+        discard_tpA%xh(1,1:nsptp) = PACK(symba_tpA%helio%swiftest%xh(1,1:ntp), discard_l_tp)
+        discard_tpA%xh(2,1:nsptp) = PACK(symba_tpA%helio%swiftest%xh(2,1:ntp), discard_l_tp)
+        discard_tpA%xh(3,1:nsptp) = PACK(symba_tpA%helio%swiftest%xh(3,1:ntp), discard_l_tp)
+        discard_tpA%vh(1,1:nsptp) = PACK(symba_tpA%helio%swiftest%vh(1,1:ntp), discard_l_tp)
+        discard_tpA%vh(2,1:nsptp) = PACK(symba_tpA%helio%swiftest%vh(2,1:ntp), discard_l_tp)
+        discard_tpA%vh(3,1:nsptp) = PACK(symba_tpA%helio%swiftest%vh(3,1:ntp), discard_l_tp)
+        discard_tpA%isperi(1:nsptp) = PACK(symba_tpA%helio%swiftest%isperi(1:ntp), discard_l_tp)
+        discard_tpA%peri(1:nsptp) = PACK(symba_tpA%helio%swiftest%peri(1:ntp), discard_l_tp)
+        discard_tpA%atp(1:nsptp) = PACK(symba_tpA%helio%swiftest%atp(1:ntp), discard_l_tp)
+        discard_tpA%xb(1,1:nsptp) = PACK(symba_tpA%helio%swiftest%xb(1,1:ntp), discard_l_tp)
+        discard_tpA%xb(2,1:nsptp) = PACK(symba_tpA%helio%swiftest%xb(2,1:ntp), discard_l_tp)
+        discard_tpA%xb(3,1:nsptp) = PACK(symba_tpA%helio%swiftest%xb(3,1:ntp), discard_l_tp)
+        discard_tpA%vb(1,1:nsptp) = PACK(symba_tpA%helio%swiftest%vb(1,1:ntp), discard_l_tp)
+        discard_tpA%vb(2,1:nsptp) = PACK(symba_tpA%helio%swiftest%vb(2,1:ntp), discard_l_tp)
+        discard_tpA%vb(3,1:nsptp) = PACK(symba_tpA%helio%swiftest%vb(3,1:ntp), discard_l_tp)
+
+        symba_tpA%helio%swiftest%name(1:nktp) = PACK(symba_tpA%helio%swiftest%name(1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%status(1:nktp) = PACK(symba_tpA%helio%swiftest%status(1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%xh(1,1:nktp) = PACK(symba_tpA%helio%swiftest%xh(1,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%xh(2,1:nktp) = PACK(symba_tpA%helio%swiftest%xh(2,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%xh(3,1:nktp) = PACK(symba_tpA%helio%swiftest%xh(3,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%vh(1,1:nktp) = PACK(symba_tpA%helio%swiftest%vh(1,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%vh(2,1:nktp) = PACK(symba_tpA%helio%swiftest%vh(2,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%vh(3,1:nktp) = PACK(symba_tpA%helio%swiftest%vh(3,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%xb(1,1:nktp) = PACK(symba_tpA%helio%swiftest%xb(1,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%xb(2,1:nktp) = PACK(symba_tpA%helio%swiftest%xb(2,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%xb(3,1:nktp) = PACK(symba_tpA%helio%swiftest%xb(3,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%vb(1,1:nktp) = PACK(symba_tpA%helio%swiftest%vb(1,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%vb(2,1:nktp) = PACK(symba_tpA%helio%swiftest%vb(2,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%vb(3,1:nktp) = PACK(symba_tpA%helio%swiftest%vb(3,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%isperi(1:nktp) = PACK(symba_tpA%helio%swiftest%isperi(1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%peri(1:nktp) = PACK(symba_tpA%helio%swiftest%peri(1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%swiftest%atp(1:nktp) = PACK(symba_tpA%helio%swiftest%atp(1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%ah(1,1:nktp) = PACK(symba_tpA%helio%ah(1,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%ah(2,1:nktp) = PACK(symba_tpA%helio%ah(2,1:ntp), .NOT. discard_l_tp)
+        symba_tpA%helio%ah(3,1:nktp) = PACK(symba_tpA%helio%ah(3,1:ntp), .NOT. discard_l_tp)
         ntp = nktp
-
-        CALL symba_tp_deallocate(symba_tpA)
-        CALL symba_tp_allocate(symba_tpA, nktp)
-
-        symba_tpA%helio%swiftest%name(1:nktp) = keep_tpA_id_status(1,:)
-        symba_tpA%helio%swiftest%name(2:nktp) = keep_tpA_id_status(2,:)
-        symba_tpA%helio%swiftest%xh(1,1:nktp) = keep_tpA(3,:)
-        symba_tpA%helio%swiftest%xh(2,1:nktp) = keep_tpA(4,:)
-        symba_tpA%helio%swiftest%xh(3,1:nktp) = keep_tpA(5,:)
-        symba_tpA%helio%swiftest%vh(1,1:nktp) = keep_tpA(6,:)
-        symba_tpA%helio%swiftest%vh(2,1:nktp) = keep_tpA(7,:)
-        symba_tpA%helio%swiftest%vh(3,1:nktp) = keep_tpA(8,:)
-        symba_tpA%helio%ah(1,1:nktp) = keep_tpA(9,:)
-        symba_tpA%helio%ah(2,1:nktp) = keep_tpA(10,:)
-        symba_tpA%helio%ah(3,1:nktp) = keep_tpA(11,:)
-
     END IF 
-
 
 END SUBROUTINE symba_rearray
 

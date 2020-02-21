@@ -76,20 +76,18 @@ PROGRAM swiftest_symba_omp
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                                  :: htot
      CHARACTER(STRMAX)                                          :: inparfile
-     TYPE(symba_pl)                                                   :: symba_plA
-     TYPE(symba_tp)                                                   :: symba_tpA
-     TYPE(swiftest_pl)                                                :: swiftest_plA
-     TYPE(swiftest_tp)                                                :: swiftest_tpA
-     TYPE(helio_pl)                                                   :: helio_plA
-     TYPE(helio_tp)                                                   :: helio_tpA
-     TYPE(symba_plplenc)                                              :: plplenc_list
-     TYPE(symba_pltpenc)                                              :: pltpenc_list
-     TYPE(symba_merger)                                               :: mergeadd_list, mergesub_list
-     REAL(DP), DIMENSION(:,:), allocatable                            :: discard_plA
-     REAL(DP), DIMENSION(:,:), allocatable                       :: discard_tpA
-     INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_plA_id_status
-     INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_tpA_id_status
-     INTEGER(I4B), PARAMETER                                     :: egyiu = 72
+     TYPE(symba_pl)                                             :: symba_plA
+     TYPE(symba_tp)                                             :: symba_tpA
+     TYPE(swiftest_tp)                                          :: discard_tpA
+     TYPE(swiftest_pl)                                          :: discard_plA
+     TYPE(swiftest_pl)                                          :: swiftest_plA
+     TYPE(swiftest_tp)                                          :: swiftest_tpA
+     TYPE(helio_pl)                                             :: helio_plA
+     TYPE(helio_tp)                                             :: helio_tpA
+     TYPE(symba_plplenc)                                        :: plplenc_list
+     TYPE(symba_pltpenc)                                        :: pltpenc_list
+     TYPE(symba_merger)                                         :: mergeadd_list, mergesub_list
+     INTEGER(I4B), PARAMETER                                    :: egyiu = 72
 
 ! Executable code
      CALL util_version
@@ -116,10 +114,6 @@ PROGRAM swiftest_symba_omp
      CALL symba_merger_allocate(mergesub_list,npl)
      CALL symba_plplenc_allocate(plplenc_list, npl)
      CALL symba_pltpenc_allocate(pltpenc_list, ntp)
-     ALLOCATE(discard_plA(11,npl))
-     ALLOCATE(discard_tpA(11,ntp))
-     ALLOCATE(discard_plA_id_status(2,npl))
-     ALLOCATE(discard_tpA_id_status(2,ntp))
 
 
      IF (ntp > 0) THEN
@@ -193,10 +187,9 @@ PROGRAM swiftest_symba_omp
                qmin_alo, qmin_ahi, lclose, lrhill_present)
           IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-                    discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
-               CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA,discard_plA, &
-               	discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
-               	discard_tpA_id_status) 
+                    discard_tpA, NPLMAX, j2rp2, j4rp4)
+               CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, & 
+                    discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
@@ -260,10 +253,10 @@ PROGRAM swiftest_symba_omp
           mergesub_list%mass(:) = 0
           mergesub_list%radius(:) = 0
 
-          discard_plA(:,:) = 0
-          discard_tpA(:,:) = 0
-          discard_plA_id_status(:,:) = 0
-          discard_tpA_id_status(:,:) = 0
+
+          IF (ALLOCATED(discard_plA%name)) CALL swiftest_pl_deallocate(discard_plA)
+          IF (ALLOCATED(discard_tpA%name)) CALL swiftest_tp_deallocate(discard_tpA)
+
      END DO
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
           j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
@@ -280,12 +273,8 @@ PROGRAM swiftest_symba_omp
      CALL symba_merger_deallocate(mergesub_list)
      CALL symba_plplenc_deallocate(plplenc_list)
      CALL symba_pltpenc_deallocate(pltpenc_list)
-     DEALLOCATE(discard_plA)
-     DEALLOCATE(discard_plA_id_status)
      IF (ntp > 0) THEN
           CALL symba_tp_deallocate(symba_tpA)
-          DEALLOCATE(discard_tpA)
-          DEALLOCATE(discard_tpA_id_status)
      END IF
 
      CALL util_exit(SUCCESS)

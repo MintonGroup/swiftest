@@ -38,8 +38,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, & 
-     discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard,&
-     discard_plA_id_status, discard_tpA_id_status)
+     discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard)
 
 ! Modules
      USE module_parameters
@@ -54,11 +53,9 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
      REAL(DP), INTENT(IN)                           :: t, mtiny
      CHARACTER(*), INTENT(IN)                       :: fname
      TYPE(symba_pl), INTENT(INOUT)                  :: symba_plA
-     REAL(DP), DIMENSION(11,npl), INTENT(IN)         :: discard_plA
-     REAL(DP), DIMENSION(11,ntp), INTENT(IN)         :: discard_tpA
+     TYPE(swiftest_tp), INTENT(INOUT)               :: discard_tpA
+     TYPE(swiftest_pl), INTENT(INOUT)               :: discard_plA
      TYPE(symba_merger), INTENT(INOUT)              :: mergeadd_list, mergesub_list
-     INTEGER(I4B), DIMENSION(2,npl), INTENT(OUT)    :: discard_plA_id_status
-     INTEGER(I4B), DIMENSION(2,ntp), INTENT(OUT)    :: discard_tpA_id_status
 
 ! Internals
      INTEGER(I4B), PARAMETER   :: LUN = 40
@@ -93,17 +90,17 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
           END DO
      END DO
      DO i = 1, nsppl
-          IF (discard_plA_id_status(2,i) /= MERGED) THEN
-               WRITE(LUN, 200) SUB, discard_plA_id_status(1,i), discard_plA_id_status(2,i)
-               WRITE(LUN, 300) discard_plA(3,i),discard_plA(4,i),discard_plA(5,i)
-               WRITE(LUN, 300) discard_plA(6,i),discard_plA(7,i),discard_plA(8,i)
-               WRITE(LUN, 500) discard_plA_id_status(1,i),discard_plA(1,i),discard_plA(2,i)
+          IF (discard_plA%status(i) /= MERGED) THEN
+               WRITE(LUN, 200) SUB, discard_plA%name(i), discard_plA%status(i)
+               WRITE(LUN, 300) discard_plA%xh(1,i),discard_plA%xh(2,i), discard_plA%xh(3,i)
+               WRITE(LUN, 300) discard_plA%vh(1,i),discard_plA%vh(2,i), discard_plA%vh(3,i)
+               WRITE(LUN, 500) discard_plA%name(i),discard_plA%mass(i), discard_plA%radius(i)
           END IF
      END DO
      DO i = 1, nsptp
-          WRITE(LUN, 200) SUB, discard_tpA_id_status(1,i), discard_tpA_id_status(2,i)
-          WRITE(LUN, 300) discard_tpA(3,i),discard_tpA(4,i),discard_tpA(5,i)
-          WRITE(LUN, 300) discard_tpA(6,i),discard_tpA(7,i),discard_tpA(8,i)
+          WRITE(LUN, 200) SUB, discard_tpA%name(i), discard_tpA%status(i)
+          WRITE(LUN, 300) discard_tpA%xh(1,i),discard_tpA%xh(2,i), discard_tpA%xh(3,i)
+          WRITE(LUN, 300) discard_tpA%vh(1,i),discard_tpA%vh(2,i), discard_tpA%vh(3,i)
      END DO
      IF (lbig_discard) THEN
           nplm = 0
