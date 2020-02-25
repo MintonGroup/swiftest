@@ -131,7 +131,7 @@ real(DP) :: ans
 
 real(DP) :: nu,Tcoll,Torb,r_pdisk,r_hstar,Q,tau,v2_pdisk,S2
 real(DP)                               :: eps2 ! coefficient of restitution
-real(DP), parameter                    :: Vc = 0.0077 ! See Schmidt et al. (2006) eqn. 14.14
+real(DP), parameter                    :: Vc = 0.0077 ! See Schmidt et al. (2009) eqn. 14.14
 real(DP), parameter                    :: eps_exponent = -0.234_DP
 real(DP), parameter                    :: eps_constant = 0.89_DP ! See Brisset et al. (2019)
 interface
@@ -145,9 +145,12 @@ end interface
 
 
 
+!Model from Schmidt et al. (2009) for frosty
 !eps2 = (v2_pdisk * (DU2CM / TU2S)**2 / Vc**2)**(eps_exponent)
-!eps2 = 0.9_DP * exp(-0.22_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)) + 0.01_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)**(-0.6_DP)
-eps2 = eps_constant**2
+
+!Model from Schmidt et al. (2009) for smooth particles
+eps2 = 0.9_DP * exp(-0.22_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)) + 0.01_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)**(-0.6_DP)
+!eps2 = eps_constant**2
 
 r_pdisk = ((3 * Gm_pdisk) / (4 * PI * rho_pdisk))**(1._DP / 3._DP) 
 
