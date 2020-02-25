@@ -40,19 +40,22 @@ with FortranFile('ring.dat', 'r') as f:
         try:
             t = f.read_reals(np.float64)
         except:
+            f.close()
             break
         Nbin = f.read_ints(np.int32)
         r = f.read_reals(np.float64)
         Gsigma = f.read_reals(np.float64)
         nu = f.read_reals(np.float64)
+        Q = f.read_reals(np.float64)
+        r_pdisk = f.read_reals(np.float64)
+        vrel_pdisk = f.read_reals(np.float64)
         kval = int(t / ic.t_print)
-        ring[kval] = [r, Gsigma, nu]
+        ring[kval] = [r, Gsigma, nu, Q, r_pdisk, vrel_pdisk]
+
         Nseeds = f.read_ints(np.int32)
         a = f.read_reals(np.float64)
         Gm = f.read_reals(np.float64)
         seeds[kval] = [a, Gm]
-
-
 
 
 #convert the units

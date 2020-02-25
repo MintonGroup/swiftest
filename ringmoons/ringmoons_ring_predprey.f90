@@ -149,8 +149,8 @@ end interface
 !eps2 = (v2_pdisk * (DU2CM / TU2S)**2 / Vc**2)**(eps_exponent)
 
 !Model from Schmidt et al. (2009) for smooth particles
-eps2 = 0.9_DP * exp(-0.22_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)) + 0.01_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)**(-0.6_DP)
-!eps2 = eps_constant**2
+!eps2 = 0.9_DP * exp(-0.22_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)) + 0.01_DP * (sqrt(v2_pdisk) * DU2CM / TU2S)**(-0.6_DP)
+eps2 = eps_constant**2
 
 r_pdisk = ((3 * Gm_pdisk) / (4 * PI * rho_pdisk))**(1._DP / 3._DP) 
 

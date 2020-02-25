@@ -38,8 +38,8 @@ class AnimatedScatter(object):
         ymin = 1.0e-2
         ymax = 1e4
 
-        y2min = 1e-3
-        y2max = 1e5
+        y2min = 1e0
+        y2max = 1e6
         self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
 
         #self.ax.set_xlim(xmin, xmax)
@@ -49,7 +49,8 @@ class AnimatedScatter(object):
         self.ax.set_yscale('log')
 
         self.secax = self.ax.twinx()
-        self.secax.set_ylabel('Toomre parameter Q', color="blue")
+        #self.secax.set_ylabel('Toomre parameter Q', color="blue")
+        self.secax.set_ylabel('Kinematic viscosity (cm$^2$ s$^{-1}$)', color="blue")
         self.secax.set_yscale('log')
         self.secax.set_ylim(y2min, y2max)
 
@@ -61,10 +62,10 @@ class AnimatedScatter(object):
         self.Rsync = self.ax.plot([Rsync / RP, Rsync / RP], [ymin, ymax], '-.', color="black", linewidth=0.5, zorder=50)
         self.Rsynclab = self.ax.text(Rsync / RP - 0.20, 0.4 * ymax, "$a_{sync}$", rotation=90, fontsize="10")
         #plt.axvline(x=xc, color='k', linestyle='--')
-        self.Qstab = self.secax.plot(r,np.full_like(r,1.0), ':', color="blue", linewidth=0.5, zorder = 50)
-        self.Qstab = self.secax.plot(r,np.full_like(r,2.0), '-.', color="blue", linewidth=0.5, zorder = 50)
+        #self.Qstab = self.secax.plot(r,np.full_like(r,1.0), ':', color="blue", linewidth=0.5, zorder = 50)
+        #self.Qstab = self.secax.plot(r,np.full_like(r,2.0), '-.', color="blue", linewidth=0.5, zorder = 50)
 
-        self.Qline, = self.secax.plot(r, Q, '-', color="blue", linewidth=1.0, zorder=50)
+        self.Qline, = self.secax.plot(r, nu, '-', color="blue", linewidth=1.0, zorder=50)
         self.title = self.ax.text(0.80, 0.1, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5},
                         transform=self.ax.transAxes, ha="center")
         #self.line.set_label(f'Time = ${t[0]*TU2S/year * 1e-6:5.1f}$ My')
@@ -100,7 +101,7 @@ class AnimatedScatter(object):
                               Gm * MU2GM / GU],\
                         np.c_[r / RP,
                               Gsigma * MU2GM / DU2CM**2 / GU,
-                              nu * TU2S / DU2CM**2,
+                              nu * DU2CM**2 / TU2S,
                               Q,
                               r_pdisk * DU2CM,
                               vrel_pdisk * DU2CM / TU2S]
@@ -119,11 +120,11 @@ class AnimatedScatter(object):
         r_pdisk = ring[:,4]
         r_pdisk[s < 1e-6] = 0.0
         Q[s < 1e-6] = 0.0
-        nu[s < 1e-6] = 0.0
+        nu[s < 1e-8] = 0.0
 
         self.rpline.set_data(r, r_pdisk)
 
-        self.Qline.set_data(r,Q)
+        self.Qline.set_data(r,nu)
 
         # Set sizes...
         #self.scat.set_sizes(300 * abs(data[:, 2])**1.5 + 100)
