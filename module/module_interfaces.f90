@@ -524,7 +524,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
                out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
-               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mitny)
+               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
                USE module_parameters
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
@@ -757,6 +757,36 @@ MODULE module_interfaces
                REAL(DP), INTENT(OUT)                 :: a, e, inc, capom, omega, capm
           END SUBROUTINE orbel_xv2el
      END INTERFACE
+
+     INTERFACE
+          SUBROUTINE python_io_write_frame_pl(t, symba_plA, npl, out_stat)
+               use module_parameters
+               use module_swiftest
+               use module_helio
+               use module_symba
+               IMPLICIT NONE
+               real(DP), intent(in)      :: t
+               type(symba_pl),intent(in) :: symba_plA
+               integer, intent(in)       :: npl
+               character(*), intent(in)  :: out_stat
+          END SUBROUTINE python_io_write_frame_pl
+     END INTERFACE
+
+     INTERFACE
+          SUBROUTINE python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
+               use module_parameters
+               use module_swiftest
+               use module_helio
+               use module_symba
+               IMPLICIT NONE
+               real(DP), intent(in)      :: t
+               type(symba_tp),intent(in) :: symba_tpA
+               integer, intent(in)       :: ntp
+               character(*), intent(in)  :: out_stat
+          END SUBROUTINE python_io_write_frame_tp
+     END INTERFACE
+
+
 
      INTERFACE
           SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, iflag)

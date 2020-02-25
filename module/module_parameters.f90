@@ -125,6 +125,8 @@ MODULE module_parameters
      CHARACTER(*), DIMENSION(2), PARAMETER :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
      CHARACTER(*), DIMENSION(2), PARAMETER :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
      CHARACTER(*), PARAMETER :: ENERGY_FILE = "energy.out"
+     CHARACTER(*), PARAMETER :: pl_outfile = "pl_out.dat"
+     CHARACTER(*), PARAMETER :: tp_outfile = "tp_out.dat"
 
 
 ! Integration control parameters:
