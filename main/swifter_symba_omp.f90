@@ -122,8 +122,8 @@ PROGRAM swiftest_symba_omp
 
      ! Reads in initial conditions of all massive bodies from input file and fills the linked list
      CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
-     WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
-     READ(*, *) mtiny
+     !WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
+     !READ(*, *) mtiny
 
      ! Reorder linked list by mass 
      CALL symba_reorder_pl(npl, symba_plA)
