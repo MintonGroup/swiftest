@@ -46,6 +46,7 @@ PROGRAM tool_encounter_read
      REAL(DP)          :: qmin           ! Minimum pericenter distance for test particle
      REAL(DP)          :: qmin_alo       ! Minimum semimajor axis for qmin
      REAL(DP)          :: qmin_ahi       ! Maximum semimajor axis for qmin
+     REAL(DP)          :: mtiny          ! Mass cutoff
      CHARACTER(STRMAX) :: qmin_coord     ! Coordinate frame to use for qmin
      CHARACTER(STRMAX) :: encounter_file ! Name of output file for encounters
      CHARACTER(STRMAX) :: inplfile       ! Name of input file for planets
@@ -59,6 +60,7 @@ PROGRAM tool_encounter_read
      LOGICAL(LGT)      :: lextra_force   ! Use user-supplied force routines
      LOGICAL(LGT)      :: lbig_discard   ! Dump planet data with discards
      LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
+     LOGICAL(LGT)      :: lpython        ! Python flag for binary outputs tp and pl
 
 ! Internals
      INTEGER(I4B)              :: i,ierr,id1,id2
@@ -73,7 +75,7 @@ PROGRAM tool_encounter_read
      inparfile=TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile,nplmax,ntpmax,t0,tstop,dt,inplfile,intpfile,in_type,istep_out,outfile,out_type,out_form,        &
           out_stat,istep_dump,j2rp2,j4rp4,lclose,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,lextra_force,   &
-          lbig_discard,lrhill_present)
+          lbig_discard,lrhill_present, mtiny, lpython)
      ierr=0
      i=0
      DO

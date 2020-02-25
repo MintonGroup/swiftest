@@ -466,12 +466,12 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,            &
                istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,         &
-               lextra_force, lbig_discard, lrhill_present)
+               lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
                USE module_parameters
                IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lclose, lextra_force, lbig_discard, lrhill_present
+               LOGICAL(LGT), INTENT(IN) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython
                INTEGER(I4B), INTENT(IN) :: nplmax, ntpmax, ntp, istep_out, istep_dump
-               REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+               REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, mtiny
                CHARACTER(*), INTENT(IN) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
           END SUBROUTINE io_dump_param
      END INTERFACE
@@ -524,10 +524,10 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
                out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
-               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
+               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
                USE module_parameters
                IMPLICIT NONE
-               LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present
+               LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython
                INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
                REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
                REAL(DP), INTENT(OUT), OPTIONAL :: mtiny

@@ -44,6 +44,7 @@ PROGRAM swiftest_symba_omp
      LOGICAL(LGT)      :: lextra_force   ! Use user-supplied force routines
      LOGICAL(LGT)      :: lbig_discard   ! Dump planet data with discards
      LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
+     LOGICAL(LGT)      :: lpython        ! Python flag to output pl_out.dat and tp_out.dat 
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
@@ -145,8 +146,8 @@ PROGRAM swiftest_symba_omp
           CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, &
           out_type, out_form, out_stat)
           IF (lpython) THEN
-               call python_io_write_frame_pl(t, symba_plA, npl, out_stat="NEW")
-               IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat= "NEW")
+               call python_io_write_frame_pl(t, symba_plA, npl, out_stat)
+               IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
           END IF
      END IF
      IF (out_stat == "OLD") then
@@ -223,7 +224,7 @@ PROGRAM swiftest_symba_omp
  200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
                     CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
                          istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-                         encounter_file, lextra_force, lbig_discard, lrhill_present)
+                         encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
                     CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
                     IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
                     idump = istep_dump
@@ -268,7 +269,7 @@ PROGRAM swiftest_symba_omp
      END DO
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
           j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
-          lrhill_present)
+          lrhill_present, mtiny, lpython)
      CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
 
