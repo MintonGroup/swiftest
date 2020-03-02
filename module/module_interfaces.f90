@@ -1403,6 +1403,17 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
+          SUBROUTINE util_dist_index(npl, l, ik, jk)
+               USE module_parameters
+               USE module_swiftest
+               IMPLICIT NONE
+               INTEGER(I4B), INTENT(IN)  :: npl
+               INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik, jk
+               INTEGER(I4B), INTENT(OUT) :: l
+          END SUBROUTINE util_dist_index
+     END INTERFACE
+
+     INTERFACE
           SUBROUTINE util_hills(npl, swiftest_plA)
                USE module_parameters
                USE module_swiftest
