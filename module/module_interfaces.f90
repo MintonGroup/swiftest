@@ -1414,6 +1414,20 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
+          SUBROUTINE util_dist_eucl(npl, invar, l, ik, jk, outvar)
+               USE module_parameters
+               USE module_swiftest
+               USE module_symba
+               IMPLICIT NONE
+               INTEGER(I4B), INTENT(IN)  :: npl
+               INTEGER(I4B), DIMENSION(:),INTENT(IN) :: ik, jk
+               INTEGER(I4B), INTENT(IN) :: l
+               REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
+               REAL(DP), DIMENSION(NDIM,l),INTENT(INOUT) :: outvar
+          END SUBROUTINE util_dist_eucl
+     END INTERFACE
+
+     INTERFACE
           SUBROUTINE util_hills(npl, swiftest_plA)
                USE module_parameters
                USE module_swiftest
