@@ -89,6 +89,8 @@ PROGRAM swiftest_symba_omp
      REAL(DP), DIMENSION(:,:), allocatable      				:: discard_tpA
      INTEGER(I4B), DIMENSION(:,:), allocatable  				:: discard_plA_id_status
      INTEGER(I4B), DIMENSION(:,:), allocatable  				:: discard_tpA_id_status
+     INTEGER(I4B), DIMENSION(:),ALLOCATABLE :: ik, jk
+     INTEGER(I4B) :: l
 
 ! Executable code
      CALL util_version
@@ -151,10 +153,11 @@ PROGRAM swiftest_symba_omp
           out_type, out_form, out_stat)
      END IF
      WRITE(*, *) " *************** MAIN LOOP *************** "
+     CALL util_dist_index(npl, l, ik, jk)
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
-          	j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-          	eoffset, mtiny, encounter_file, out_type)
+               j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+               eoffset, mtiny, encounter_file, out_type, l, ik, jk)
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
@@ -182,8 +185,11 @@ PROGRAM swiftest_symba_omp
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
                     discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
                CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA,discard_plA, &
-               	discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
-               	discard_tpA_id_status) 
+                    discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
+                    discard_tpA_id_status)
+               DEALLOCATE(ik)
+               DEALLOCATE(jk)
+               CALL util_dist_index(npl,l,ik,jk) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
