@@ -153,7 +153,7 @@ PROGRAM swiftest_symba_omp
           out_type, out_form, out_stat)
      END IF
      WRITE(*, *) " *************** MAIN LOOP *************** "
-     CALL util_dist_index(npl, l, ik, jk)
+     CALL util_dist_index_plpl(npl, l, ik, jk)
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
                j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
@@ -189,7 +189,7 @@ PROGRAM swiftest_symba_omp
                     discard_tpA_id_status)
                DEALLOCATE(ik)
                DEALLOCATE(jk)
-               CALL util_dist_index(npl,l,ik,jk) 
+               CALL util_dist_index_plpl(npl,l,ik,jk) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0

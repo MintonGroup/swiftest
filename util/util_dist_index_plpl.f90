@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : util_dist_index
+!  Unit Name   : util_dist_index_plpl
 !  Unit Type   : subroutine
 !  Project     : Swiftest
 !  Package     : util
@@ -25,12 +25,12 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_index(npl, l, ik, jk)
+SUBROUTINE util_dist_index_plpl(npl, l, ik, jk)
 
 ! Modules
      USE module_parameters
      USE module_swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => util_dist_index
+     USE module_interfaces, EXCEPT_THIS_ONE => util_dist_index_plpl
      IMPLICIT NONE
 
 ! Arguments
@@ -51,15 +51,7 @@ SUBROUTINE util_dist_index(npl, l, ik, jk)
      allocate(jk(l))
      allocate(k(l))
 
-     ! do i = 1,l
-     !      k(i) = i
-     ! enddo
-
-     k = (/(i, i=1,l, 1)/)
-
-     ! jk = m - nint( sqrt( 2.*(1. + l - k)))
-     ! ik = mod(k + jk * (jk + 1) / 2 - 1, m) + 1
-     
+     k = (/(i, i=1,l, 1)/)     
 
      k_count = 1
 
@@ -71,13 +63,9 @@ SUBROUTINE util_dist_index(npl, l, ik, jk)
           enddo
      enddo
 
-     print *,'k: ',k
-     print *,'ik: ',ik
-     print *,'jk: ',jk
-
      RETURN
 
-END SUBROUTINE util_dist_index
+END SUBROUTINE util_dist_index_plpl
 !**********************************************************************************************************************************
 !
 !  Author(s)   : Jacob R. Elliott 
