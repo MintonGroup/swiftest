@@ -200,7 +200,7 @@ PROGRAM swiftest_symba_omp
                nsppl = 0
                nsptp = 0
                CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-               WRITE(egyiu,300) t, ke, pe, te, htot
+               !WRITE(egyiu,300) t, ke, pe, te, htot
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1
@@ -213,7 +213,7 @@ PROGRAM swiftest_symba_omp
                          IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat= "APPEND")
                     END IF 
                   CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-                  WRITE(egyiu,300) t, ke, pe, te, htot
+                  !WRITE(egyiu,300) t, ke, pe, te, htot
                END IF
           END IF
           IF (istep_dump > 0) THEN
