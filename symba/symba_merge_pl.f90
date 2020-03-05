@@ -75,8 +75,6 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
      REAL(DP)                     :: eold, enew, rad1, rad2, mass1, mass2
      REAL(DP), DIMENSION(NDIM)    :: xr, vr, x1, v1, x2, v2, xnew, vnew
      INTEGER(I4B), DIMENSION(npl) :: array_index1_child, array_index2_child, array_keep_child, array_rm_child
-     !TYPE(swifter_pl), POINTER :: swifter_pliP, swifter_pljP, swifter_plP
-     !TYPE(symba_pl), POINTER   :: symba_pliP, symba_pljP, symba_plP
 
 ! Executable code
      lmerge = .FALSE.
