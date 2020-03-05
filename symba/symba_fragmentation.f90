@@ -58,22 +58,69 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Internals
  
+     INTEGER(14B)                                     :: model, nres
+     REAL(DP)                                         :: m1, m2, rad1, rad2, mres, rres, pres, vres
+     REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2
+
+
 ! Executable code
 
-! Call collresolve
-
-! Model 2 is the model for collresolve_resolve (LS12)
+     lmerge = .FALSE.
+     lfrag_add = .FALSE.
+     ! Model 2 is the model for collresolve_resolve (LS12)
      model = 2
      ! nres number of bodies we want to output
      nres = 2
-     regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:),                              &
-                                  v1(:),v2(:),nres,mres,rres,pres,vres)
-     SELECT CASE (regime)
-          CASE (COLLRESOLVE_REGIME_DISRUPTION)
-          CASE (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-          CASE (COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-          CASE (COLLRESOLVE_REGIME_HIT_AND_RUN)
-          CASE (COLLRESOLVE_REGIME_MERGE)
+
+     index1 = plplenc_list%index1(index_enc)
+     index2 = plplenc_list%index2(index_enc)
+
+     rlim = symba_plA%helio%swiftest%radius(index1) + symba_plA%helio%swiftest%radius(index2)
+     xr(:) = symba_plA%helio%swiftest%xh(:,index2) - symba_plA%helio%swiftest%xh(:,index1)
+     r2 = DOT_PRODUCT(xr(:), xr(:))
+     rlim2 = rlim*rlim
+     ! checks if bodies are actively colliding in this time step
+     IF (rlim2 >= r2) THEN 
+          lmerge = .TRUE.
+          regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres, &
+               mres,rres,pres,vres)
+          CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+               eoffset, vbs, encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+               nplplenc, npltpenc, pltpenc_list, plplenc_list)
+
+     ! if they are not actively colliding in  this time step, 
+     !checks if they are going to collide next time step based on velocities and q
+     ELSE 
+          vr(:) = symba_plA%helio%swiftest%vb(:,index2) - symba_plA%helio%swiftest%vb(:,index1)
+          vdotr = DOT_PRODUCT(xr(:), vr(:))
+          IF (plplenc_list%lvdotr(index_enc) .AND. (vdotr > 0.0_DP)) THEN 
+               tcr2 = r2/DOT_PRODUCT(vr(:), vr(:))
+               dt2 = dt*dt
+               IF (tcr2 <= dt2) THEN
+                    mtot = symba_plA%helio%swiftest%mass(index1) + symba_plA%helio%swiftest%mass(index2)
+                    CALL orbel_xv2aeq(xr(:), vr(:), mtot, a, e, q)
+                    IF (q < rlim) lmerge = .TRUE.
+               END IF
+               ! if no collision is going to happen, write as close encounter, not  merger
+               IF (.NOT. lmerge) THEN
+                    IF (encounter_file /= "") THEN
+                         name1 = symba_plA%helio%swiftest%name(index1)
+                         m1 = symba_plA%helio%swiftest%mass(index1)
+                         rad1 = symba_plA%helio%swiftest%radius(index1)
+                         x1(:) = symba_plA%helio%swiftest%xh(:,index1)
+                         v1(:) = symba_plA%helio%swiftest%vb(:,index1) - vbs(:)
+                         name2 = symba_plA%helio%swiftest%name(index2)
+                         m2 = symba_plA%helio%swiftest%mass(index2)
+                         rad2 = symba_plA%helio%swiftest%radius(index2)
+                         x2(:) = symba_plA%helio%swiftest%xh(:,index2)
+                         v2(:) = symba_plA%helio%swiftest%vb(:,index2) - vbs(:)
+
+                         CALL io_write_encounter(t, name1, name2, m1, m2, rad1, rad2, x1(:), x2(:), &
+                              v1(:), v2(:), encounter_file, out_type)
+                    END IF
+               END IF
+          END IF
+     END IF
 
 
 !call symba_reorder
