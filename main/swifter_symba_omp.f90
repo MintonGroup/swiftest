@@ -150,17 +150,17 @@ PROGRAM swiftest_symba_omp
                IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
           END IF
      END IF
-     IF (out_stat == "OLD") then
-        OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "OLD", ACTION = "WRITE", POSITION = "APPEND")
-     ELSE 
-        OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "REPLACE", ACTION = "WRITE")
-     END IF
+     !IF (out_stat == "OLD") then
+        !OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "OLD", ACTION = "WRITE", POSITION = "APPEND")
+     !ELSE 
+        !OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "REPLACE", ACTION = "WRITE")
+     !END IF
  300 FORMAT(7(1X, E23.16))
  310 FORMAT(7(1X, A23))
-     WRITE(egyiu,310) "#t","ke","pe","te","htotx","htoty","htotz"
+     !WRITE(egyiu,310) "#t","ke","pe","te","htotx","htoty","htotz"
      WRITE(*, *) " *************** MAIN LOOP *************** "
      CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-     WRITE(egyiu,300) t, ke, pe, te, htot
+     !WRITE(egyiu,300) t, ke, pe, te, htot
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
 
 
@@ -175,13 +175,12 @@ PROGRAM swiftest_symba_omp
           t = tbase + iloop*dt
           ! Take the merger info and create fragments
           ! CALL some subroutine that returns the number of fragments and an array of new bodies (swifter_pl type)                     
-          !IF (lfragmentation) THEN
-               !CALL symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)                               ! CHECK THIS 
                ! update nplmax to add in the new number of bodies
                ! add new bodies into the current body linked list as in CALL symba_setup
                ! reorder bodies (if that is not already going to happen..check the discard subroutines
-               
-               !CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)                                          ! CHECK THIS 
+
+               !DO SOMETHING WITH LFRAG_ADD
+                                        ! CHECK THIS 
           !END IF
           ldiscard = .FALSE. 
           ldiscard_tp = .FALSE.
@@ -190,11 +189,12 @@ PROGRAM swiftest_symba_omp
                qmin_ahi, j2rp2, j4rp4, eoffset)
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
-          IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
+          IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.) .or. (lfrag_add .eqv. .TRUE.)) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
                     discard_tpA, NPLMAX, j2rp2, j4rp4)
-               CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, & 
-                    discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard) 
+               IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
+               		CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, &
+               			discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
@@ -274,8 +274,8 @@ PROGRAM swiftest_symba_omp
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
 
      CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-     WRITE(egyiu,300) t, ke, pe, te, htot
-     CLOSE(egyiu)
+     !WRITE(egyiu,300) t, ke, pe, te, htot
+     !CLOSE(egyiu)
 
      CALL symba_pl_deallocate(symba_plA)
      CALL symba_merger_deallocate(mergeadd_list)

@@ -32,7 +32,8 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_mass_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_fragmentation (t, npl, nplmax, ntp, ntpmax, symba_plA, nplplenc, plplenc_list)
+SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
 
 ! Modules
      USE module_parameters
@@ -43,15 +44,43 @@ SUBROUTINE symba_fragmentation (t, npl, nplmax, ntp, ntpmax, symba_plA, nplplenc
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                      :: nplplenc
-     INTEGER(I4B), INTENT(INOUT)                   :: npl, nplmax, ntp, ntpmax
-     REAL(DP), INTENT(IN)                          :: t
-     TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
-     TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
+     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+     REAL(DP), INTENT(IN)                             :: t, dt
+     REAL(DP), INTENT(INOUT)                          :: eoffset
+     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+     CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
+     TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
+     TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
+     TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+     TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
 
 ! Internals
  
 ! Executable code
+
+! Call collresolve
+
+! Model 2 is the model for collresolve_resolve (LS12)
+     model = 2
+     ! nres number of bodies we want to output
+     nres = 2
+     regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:),                              &
+                                  v1(:),v2(:),nres,mres,rres,pres,vres)
+     SELECT CASE (regime)
+          CASE (COLLRESOLVE_REGIME_DISRUPTION)
+          CASE (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+          CASE (COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+          CASE (COLLRESOLVE_REGIME_HIT_AND_RUN)
+          CASE (COLLRESOLVE_REGIME_MERGE)
+
+
+!call symba_reorder
+
+
+
+
      RETURN
 
 END SUBROUTINE symba_fragmentation
