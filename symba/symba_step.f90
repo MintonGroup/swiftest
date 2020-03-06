@@ -96,9 +96,9 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      REAL(DP), DIMENSION(NDIM) :: xr, vr
      REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
      REAL(DP), DIMENSION(NDIM,(npl-1)*ntp) :: dist_pltp_array, vel_pltp_array
+     REAL(DP) :: start, finish
      
 ! Executable code
-     ! vectorize this
      ! reinitialize all planets/particles
      DO i = 1,npl ! go through all the planets
           symba_plA%nplenc(i) = 0 ! number of planet encounters this particular planet has
@@ -113,7 +113,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           symba_tpA%levelg(i) = -1
           symba_tpA%levelm(i) = -1
      END DO 
-
 
      nplplenc = 0 ! number of encounters in the entire run 
      npltpenc = 0
@@ -189,7 +188,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                pltpenc_list%indextp(npltpenc) = jk_pltp(i)
           END IF
      ENDDO
-
 
      ! ! double loop through all planet-planet and then planet-test particle interactions
      ! DO i = 2, npl ! start at i=2, since we don't need the central body
