@@ -265,7 +265,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 ! END OF THINGS THAT NEED TO BE CHANGED IN THE TREE
 
      ! temp
-     ! nplm = npl
+     nplm = npl
 
      ! flag to see if there was an encounter
      lencounter = ((nplplenc > 0) .OR. (npltpenc > 0))
