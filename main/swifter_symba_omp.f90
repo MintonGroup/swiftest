@@ -76,20 +76,20 @@ PROGRAM swiftest_symba_omp
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                                  :: htot
      CHARACTER(STRMAX)                                          :: inparfile
-     TYPE(symba_pl)                  							:: symba_plA
-     TYPE(symba_tp)                  							:: symba_tpA
+     TYPE(symba_pl)                                                   :: symba_plA
+     TYPE(symba_tp)                                                   :: symba_tpA
      TYPE(swiftest_pl)                                                :: swiftest_plA
-     TYPE(swiftest_tp)               							:: swiftest_tpA
-     TYPE(helio_pl)                  							:: helio_plA
-     TYPE(helio_tp)                  							:: helio_tpA
-     TYPE(symba_plplenc)             							:: plplenc_list
-     TYPE(symba_pltpenc)            							:: pltpenc_list
-     TYPE(symba_merger)              							:: mergeadd_list, mergesub_list
-     REAL(DP), DIMENSION(:,:), allocatable     					:: discard_plA
-     REAL(DP), DIMENSION(:,:), allocatable      				:: discard_tpA
-     INTEGER(I4B), DIMENSION(:,:), allocatable  				:: discard_plA_id_status
-     INTEGER(I4B), DIMENSION(:,:), allocatable  				:: discard_tpA_id_status
-     INTEGER(I4B), DIMENSION(:),ALLOCATABLE :: ik, jk
+     TYPE(swiftest_tp)                                                :: swiftest_tpA
+     TYPE(helio_pl)                                                   :: helio_plA
+     TYPE(helio_tp)                                                   :: helio_tpA
+     TYPE(symba_plplenc)                                              :: plplenc_list
+     TYPE(symba_pltpenc)                                              :: pltpenc_list
+     TYPE(symba_merger)                                               :: mergeadd_list, mergesub_list
+     REAL(DP), DIMENSION(:,:), allocatable                            :: discard_plA
+     REAL(DP), DIMENSION(:,:), allocatable                       :: discard_tpA
+     INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_plA_id_status
+     INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_tpA_id_status
+     INTEGER(I4B), DIMENSION(:),ALLOCATABLE :: ik, jk, ik_pltp, jk_pltp
      INTEGER(I4B) :: l
 
 ! Executable code
@@ -158,7 +158,7 @@ PROGRAM swiftest_symba_omp
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
                j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-               eoffset, mtiny, encounter_file, out_type, l, ik, jk)
+               eoffset, mtiny, encounter_file, out_type, l, ik, jk, ik_pltp, jk_pltp)
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
