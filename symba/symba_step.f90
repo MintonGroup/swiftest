@@ -63,7 +63,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,        &
      nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,          &
-     encounter_file, out_type, l, ik, jk)
+     encounter_file, out_type, num_plpl_comparisons, ik_plpl, jk_plpl, ik_pltp, jk_pltp)
 
 ! Modules
      USE module_parameters
@@ -86,14 +86,16 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-     INTEGER(I4B), INTENT(IN)                         :: l
-     INTEGER(I4B), DIMENSION(l),INTENT(IN)                :: ik, jk
+     INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
+     INTEGER(I4B), DIMENSION(num_plpl_comparisons),INTENT(IN)            :: ik_plpl, jk_plpl ! relates the linear index to the i,j matrix indices for planet-planet collisions
+     INTEGER(I4B), DIMENSION((npl-1)*ntp),INTENT(IN)  :: ik_pltp, jk_pltp ! linear index to i,j matrix for planet-test particle
 
 ! Internals
      LOGICAL(LGT)              :: lencounter, lvdotr
      INTEGER(I4B)              :: i, j, irec, nplm
      REAL(DP), DIMENSION(NDIM) :: xr, vr
-     REAL(DP), DIMENSION(NDIM,l) :: dist, vel
+     REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
+     REAL(DP), DIMENSION(NDIM,(npl-1)*ntp) :: dist_pltp_array, vel_pltp_array
      
 ! Executable code
      ! vectorize this
@@ -122,17 +124,14 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      END IF
      irec = 0 ! recursion counter, 0 since we're in the top loop
 
-! THERE SHOULD BE SOME PARALLEL BITS IN HERE
 ! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
 
-     CALL util_dist_eucl(npl,symba_plA%helio%swiftest%xh, l, ik, jk, dist) ! does not care about mtiny
-     CALL util_dist_eucl(npl,symba_plA%helio%swiftest%vh, l, ik, jk, vel) ! does not care about mtiny
+     CALL util_dist_eucl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array) ! does not care about mtiny
+     CALL util_dist_eucl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, ik_plpl, jk_plpl, vel_plpl_array) ! does not care about mtiny
 
-     print *,'dist: ',dist
-
-     do i = 1,l
-          CALL symba_chk(dist(:,l), vel(:,l), symba_plA%helio%swiftest%rhill(ik(l)), &
-               symba_plA%helio%swiftest%rhill(jk(l)), dt, irec, lencounter, lvdotr)
+     DO i = 1,num_plpl_comparisons
+          CALL symba_chk(dist_plpl_array(:,i), vel_plpl_array(:,i), symba_plA%helio%swiftest%rhill(ik_plpl(i)), &
+               symba_plA%helio%swiftest%rhill(jk_plpl(i)), dt, irec, lencounter, lvdotr)
           IF (lencounter) THEN
                nplplenc = nplplenc + 1 ! increment the total number of encounters for this timestep
                IF (nplplenc > NENMAX) THEN ! there can only be so many recorded planet-planet encounters
@@ -144,97 +143,129 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                plplenc_list%status(nplplenc) = ACTIVE ! you are in an encounter
                plplenc_list%lvdotr(nplplenc) = lvdotr ! flag of relative accelerations to say if there will be a close encounter in next timestep
                plplenc_list%level(nplplenc) = irec ! recursion level
-               plplenc_list%index1(nplplenc) = ik(l) ! index of first planet in encounter
-               plplenc_list%index2(nplplenc) = jk(l) ! index of second planet in encounter
+               plplenc_list%index1(nplplenc) = ik_plpl(i) ! index of first planet in encounter
+               plplenc_list%index2(nplplenc) = jk_plpl(i) ! index of second planet in encounter
                ! for the i particle
-               symba_plA%lmerged(i) = .FALSE. ! they have not merged YET
-               symba_plA%nplenc(i) = symba_plA%nplenc(ik(l)) + 1 ! number of particles that planet "i" has close encountered
-               symba_plA%levelg(i) = irec ! recursion level
-               symba_plA%levelm(i) = irec ! recursion level
-               symba_plA%nchild(i) = 0 
+               symba_plA%lmerged(ik_plpl(i)) = .FALSE. ! they have not merged YET
+               symba_plA%nplenc(ik_plpl(i)) = symba_plA%nplenc(ik_plpl(i)) + 1 ! number of particles that planet "i" has close encountered
+               symba_plA%levelg(ik_plpl(i)) = irec ! recursion level
+               symba_plA%levelm(ik_plpl(i)) = irec ! recursion level
+               symba_plA%nchild(ik_plpl(i)) = 0 
                ! for the j particle
-               symba_plA%lmerged(j) = .FALSE.
-               symba_plA%nplenc(j) = symba_plA%nplenc(jk(l)) + 1
-               symba_plA%levelg(j) = irec
-               symba_plA%levelm(j) = irec
-               symba_plA%nchild(j) = 0
+               symba_plA%lmerged(jk_plpl(i)) = .FALSE.
+               symba_plA%nplenc(jk_plpl(i)) = symba_plA%nplenc(jk_plpl(i)) + 1
+               symba_plA%levelg(jk_plpl(i)) = irec
+               symba_plA%levelm(jk_plpl(i)) = irec
+               symba_plA%nchild(jk_plpl(i)) = 0
           END IF
-     enddo
+     ENDDO
 
-     ! double loop through all planet-planet and then planet-test particle interactions
-     DO i = 2, npl ! start at i=2, since we don't need the central body
-          ! IF (symba_plA%helio%swiftest%mass(i) < mtiny) EXIT ! don't do this if it's below mtiny
-          ! nplm = nplm + 1 ! otherwise, increase the count of planets > mtiny
-          ! DO j = i + 1, npl ! through all planets
-          !      ! xr = relative distance, vr = relative velocity
-          !      ! each of xh and vh arrays is (3,npl), where each row is ~(x, y, z) in heliocentric coordinates
-          !      ! xr and vr are thus xr(3)
-          !      xr(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
-          !      print *,'i: ',i,' j: ',j
-          !      print *,xr
-          !      vr(:) = symba_plA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
-          !      ! compare these two particles in symba_chk to check for close encounters
-          !      CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), &
-          !           symba_plA%helio%swiftest%rhill(j), dt, irec, lencounter, lvdotr)
-          !      ! if symba_chk returns a positive lencounter flag, the two planets are in a close encounter
-          !      ! OR there may be a close encounter in next timestep (by using vr and the timestep)
-          !      IF (lencounter) THEN
-          !           nplplenc = nplplenc + 1 ! increment the total number of encounters for this timestep
-          !           IF (nplplenc > NENMAX) THEN ! there can only be so many recorded planet-planet encounters
-          !                WRITE(*, *) "SWIFTER Error:"
-          !                WRITE(*, *) "   PL-PL encounter list is full."
-          !                WRITE(*, *) "   STOPPING..."
-          !                CALL util_exit(FAILURE)
-          !           END IF
-          !           plplenc_list%status(nplplenc) = ACTIVE ! you are in an encounter
-          !           plplenc_list%lvdotr(nplplenc) = lvdotr ! flag of relative accelerations to say if there will be a close encounter in next timestep
-          !           plplenc_list%level(nplplenc) = irec ! recursion level
-          !           plplenc_list%index1(nplplenc) = i ! index of first planet in encounter
-          !           plplenc_list%index2(nplplenc) = j ! index of second planet in encounter
-          !           ! for the i particle
-          !           symba_plA%lmerged(i) = .FALSE. ! they have not merged YET
-          !           symba_plA%nplenc(i) = symba_plA%nplenc(i) + 1 ! number of particles that planet "i" has close encountered
-          !           symba_plA%levelg(i) = irec ! recursion level
-          !           symba_plA%levelm(i) = irec ! recursion level
-          !           symba_plA%nchild(i) = 0 
-          !           ! for the j particle
-          !           symba_plA%lmerged(j) = .FALSE.
-          !           symba_plA%nplenc(j) = symba_plA%nplenc(j) + 1
-          !           symba_plA%levelg(j) = irec
-          !           symba_plA%levelm(j) = irec
-          !           symba_plA%nchild(j) = 0
-          !      END IF
-          ! END DO
-          DO j = 1, ntp ! through all test particles, same as above
-               xr(:) = symba_tpA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
-               vr(:) = symba_tpA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
-               CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), 0.0_DP, dt, irec, lencounter, lvdotr)
-               IF (lencounter) THEN
-                    ! for the planet
-                    symba_plA%ntpenc(i) = symba_plA%ntpenc(i) + 1
-                    symba_plA%levelg(i) = irec
-                    symba_plA%levelm(i) = irec
-                    ! for the test particle
-                    symba_tpA%nplenc(j) = symba_tpA%nplenc(j) + 1
-                    symba_tpA%levelg(j) = irec
-                    symba_tpA%levelm(j) = irec
-                    npltpenc = npltpenc + 1 ! increment number of planet-test particle interactions
-                    IF (npltpenc > NENMAX) THEN
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   PL-TP encounter list is full."
-                         WRITE(*, *) "   STOPPING..."
-                         CALL util_exit(FAILURE)
-                    END IF
-                    pltpenc_list%status(npltpenc) = ACTIVE
-                    pltpenc_list%lvdotr(npltpenc) = lvdotr
-                    pltpenc_list%level(npltpenc) = irec
-                    pltpenc_list%indexpl(npltpenc) = i
-                    pltpenc_list%indextp(npltpenc) = j
+     CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, ik_pltp, jk_pltp, dist_pltp_array)
+     CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, ik_pltp, jk_pltp, vel_pltp_array)
+
+     DO i = 1,(npl-1)*ntp
+          CALL symba_chk(dist_pltp_array(:,i), vel_pltp_array(:,i), symba_plA%helio%swiftest%rhill(ik_pltp(i)), &
+               0.0_DP, dt, irec, lencounter, lvdotr)
+          IF (lencounter) THEN
+               ! for the planet
+               symba_plA%ntpenc(ik_pltp(i)) = symba_plA%ntpenc(ik_pltp(i)) + 1
+               symba_plA%levelg(ik_pltp(i)) = irec
+               symba_plA%levelm(ik_pltp(i)) = irec
+               ! for the test particle
+               symba_tpA%nplenc(jk_pltp(i)) = symba_tpA%nplenc(jk_pltp(i)) + 1
+               symba_tpA%levelg(jk_pltp(i)) = irec
+               symba_tpA%levelm(jk_pltp(i)) = irec
+               npltpenc = npltpenc + 1 ! increment number of planet-test particle interactions
+               IF (npltpenc > NENMAX) THEN
+                    WRITE(*, *) "SWIFTER Error:"
+                    WRITE(*, *) "   PL-TP encounter list is full."
+                    WRITE(*, *) "   STOPPING..."
+                    CALL util_exit(FAILURE)
                END IF
-          END DO
-     END DO
+               pltpenc_list%status(npltpenc) = ACTIVE
+               pltpenc_list%lvdotr(npltpenc) = lvdotr
+               pltpenc_list%level(npltpenc) = irec
+               pltpenc_list%indexpl(npltpenc) = ik_pltp(i)
+               pltpenc_list%indextp(npltpenc) = jk_pltp(i)
+          END IF
+     ENDDO
+
+
+     ! ! double loop through all planet-planet and then planet-test particle interactions
+     ! DO i = 2, npl ! start at i=2, since we don't need the central body
+     !      IF (symba_plA%helio%swiftest%mass(i) < mtiny) EXIT ! don't do this if it's below mtiny
+     !      nplm = nplm + 1 ! otherwise, increase the count of planets > mtiny
+     !      DO j = i + 1, npl ! through all planets
+     !           ! xr = relative distance, vr = relative velocity
+     !           ! each of xh and vh arrays is (3,npl), where each row is ~(x, y, z) in heliocentric coordinates
+     !           ! xr and vr are thus xr(3)
+     !           xr(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
+     !           vr(:) = symba_plA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
+     !           ! compare these two particles in symba_chk to check for close encounters
+     !           CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), &
+     !                symba_plA%helio%swiftest%rhill(j), dt, irec, lencounter, lvdotr)
+     !           ! if symba_chk returns a positive lencounter flag, the two planets are in a close encounter
+     !           ! OR there may be a close encounter in next timestep (by using vr and the timestep)
+     !           IF (lencounter) THEN
+     !                nplplenc = nplplenc + 1 ! increment the total number of encounters for this timestep
+     !                IF (nplplenc > NENMAX) THEN ! there can only be so many recorded planet-planet encounters
+     !                     WRITE(*, *) "SWIFTER Error:"
+     !                     WRITE(*, *) "   PL-PL encounter list is full."
+     !                     WRITE(*, *) "   STOPPING..."
+     !                     CALL util_exit(FAILURE)
+     !                END IF
+     !                plplenc_list%status(nplplenc) = ACTIVE ! you are in an encounter
+     !                plplenc_list%lvdotr(nplplenc) = lvdotr ! flag of relative accelerations to say if there will be a close encounter in next timestep
+     !                plplenc_list%level(nplplenc) = irec ! recursion level
+     !                plplenc_list%index1(nplplenc) = i ! index of first planet in encounter
+     !                plplenc_list%index2(nplplenc) = j ! index of second planet in encounter
+     !                ! for the i particle
+     !                symba_plA%lmerged(i) = .FALSE. ! they have not merged YET
+     !                symba_plA%nplenc(i) = symba_plA%nplenc(i) + 1 ! number of particles that planet "i" has close encountered
+     !                symba_plA%levelg(i) = irec ! recursion level
+     !                symba_plA%levelm(i) = irec ! recursion level
+     !                symba_plA%nchild(i) = 0 
+     !                ! for the j particle
+     !                symba_plA%lmerged(j) = .FALSE.
+     !                symba_plA%nplenc(j) = symba_plA%nplenc(j) + 1
+     !                symba_plA%levelg(j) = irec
+     !                symba_plA%levelm(j) = irec
+     !                symba_plA%nchild(j) = 0
+     !           END IF
+     !      END DO
+     !      DO j = 1, ntp ! through all test particles, same as above
+     !           xr(:) = symba_tpA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
+     !           vr(:) = symba_tpA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
+     !           CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), 0.0_DP, dt, irec, lencounter, lvdotr)
+     !           IF (lencounter) THEN
+     !                ! for the planet
+     !                symba_plA%ntpenc(i) = symba_plA%ntpenc(i) + 1
+     !                symba_plA%levelg(i) = irec
+     !                symba_plA%levelm(i) = irec
+     !                ! for the test particle
+     !                symba_tpA%nplenc(j) = symba_tpA%nplenc(j) + 1
+     !                symba_tpA%levelg(j) = irec
+     !                symba_tpA%levelm(j) = irec
+     !                npltpenc = npltpenc + 1 ! increment number of planet-test particle interactions
+     !                IF (npltpenc > NENMAX) THEN
+     !                     WRITE(*, *) "SWIFTER Error:"
+     !                     WRITE(*, *) "   PL-TP encounter list is full."
+     !                     WRITE(*, *) "   STOPPING..."
+     !                     CALL util_exit(FAILURE)
+     !                END IF
+     !                pltpenc_list%status(npltpenc) = ACTIVE
+     !                pltpenc_list%lvdotr(npltpenc) = lvdotr
+     !                pltpenc_list%level(npltpenc) = irec
+     !                pltpenc_list%indexpl(npltpenc) = i
+     !                pltpenc_list%indextp(npltpenc) = j
+     !           END IF
+     !      END DO
+     ! END DO
 
 ! END OF THINGS THAT NEED TO BE CHANGED IN THE TREE
+
+     ! temp
+     ! nplm = npl
 
      ! flag to see if there was an encounter
      lencounter = ((nplplenc > 0) .OR. (npltpenc > 0))

@@ -1243,7 +1243,7 @@ MODULE module_interfaces
           SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
                symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
                nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
-               l, ik, jk)
+               num_plpl_comparisons, ik_plpl, jk_plpl, ik_pltp, jk_pltp)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1261,8 +1261,9 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               INTEGER(I4B), INTENT(IN)                         :: l
-               INTEGER(I4B), DIMENSION(l),INTENT(IN)                :: ik, jk
+               INTEGER(I4B), INTENT(IN)           :: num_plpl_comparisons
+               INTEGER(I4B), DIMENSION(num_plpl_comparisons),INTENT(IN) :: ik_plpl, jk_plpl
+               INTEGER(I4B), DIMENSION((npl-1)*ntp),INTENT(IN)  :: ik_pltp, jk_pltp
           END SUBROUTINE symba_step
      END INTERFACE
 
