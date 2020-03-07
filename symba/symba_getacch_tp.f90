@@ -72,9 +72,9 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      !helio_tpP => symba_tp1P%helio
      !^^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,helio_tpP,swifter_tpP,swifter_plP,dx,r2,fac) &
-     !$OMP SHARED(ntp,npl,symba_tp1P,swifter_pl1P,xh) 
+     ! $OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
+     ! $OMP PRIVATE(i,helio_tpP,swifter_tpP,swifter_plP,dx,r2,fac) &
+     ! $OMP SHARED(ntp,npl,symba_tp1P,swifter_pl1P,xh) 
      DO i = 1, ntp
           !Added by D. Minton
           !helio_tpP => symba_tp1P%symba_tpPA(i)%thisP%helio
@@ -95,11 +95,11 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
           !helio_tpP => helio_tpP%nextP
           !^^^^^^^^^^^^^^^^^^^^
      END DO
-     !$OMP END PARALLEL DO
+     ! $OMP END PARALLEL DO
      ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,swifter_plP,helio_tpP,dx,r2,fac) &
-     !$OMP SHARED(pltpenc_list,npltpenc)
+     ! $OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
+     ! $OMP PRIVATE(i,swifter_plP,helio_tpP,dx,r2,fac) &
+     ! $OMP SHARED(pltpenc_list,npltpenc)
      DO i = 1, npltpenc
           !swifter_plP => pltpenc_list(i)%plP%helio%swifter
           !helio_tpP => pltpenc_list(i)%tpP%helio
@@ -112,7 +112,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
                symba_tpA%helio%ah(:,index_tp) = symba_tpA%helio%ah(:,index_tp) + fac*dx(:)
           END IF
      END DO
-     !$OMP END PARALLEL DO
+     ! $OMP END PARALLEL DO
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN
                ALLOCATE(aobl(NDIM, nplmax), irh(nplmax), xht(NDIM, ntpmax), aoblt(NDIM, ntpmax), irht(ntpmax))
