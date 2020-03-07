@@ -50,9 +50,11 @@ SUBROUTINE util_dist_eucl(npl, invar, l, ik, jk, outvar)
      
 ! Executable code
 
+!$omp parallel do
      do i = 1,l
           outvar(:,i) = invar(:,jk(i)) - invar(:,ik(i))
      enddo
+!$omp end parallel do
 
      RETURN
 
