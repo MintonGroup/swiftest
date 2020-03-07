@@ -37,6 +37,7 @@ PROGRAM swiftest_symba_omp
      USE module_symba
      USE module_interfaces
      USE module_swiftestalloc
+     use omp_lib
      IMPLICIT NONE
 
 ! Arguments
@@ -91,6 +92,7 @@ PROGRAM swiftest_symba_omp
      INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_tpA_id_status
      INTEGER(I4B), DIMENSION(:),ALLOCATABLE :: ik, jk, ik_pltp, jk_pltp
      INTEGER(I4B) :: l
+     REAL(DP) :: start, finish
 
 ! Executable code
      CALL util_version
@@ -152,6 +154,7 @@ PROGRAM swiftest_symba_omp
           CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, &
           out_type, out_form, out_stat)
      END IF
+     start = omp_get_wtime()
      CALL util_dist_index_plpl(npl, l, ik, jk)
      CALL util_dist_index_pltp(npl, ntp, ik_pltp, jk_pltp)
      WRITE(*, *) " *************** MAIN LOOP *************** "
@@ -275,6 +278,8 @@ PROGRAM swiftest_symba_omp
           DEALLOCATE(discard_tpA)
           DEALLOCATE(discard_tpA_id_status)
      END IF
+     finish = omp_get_wtime()
+     print *,'Time: ',finish-start
      CALL util_exit(SUCCESS)
 
      STOP
