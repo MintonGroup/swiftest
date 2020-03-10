@@ -92,12 +92,13 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
 ! Internals
      LOGICAL(LGT)              :: lencounter, lvdotr
-     INTEGER(I4B)              :: i, j, irec, nplm
+     INTEGER(I4B)              :: i, j, irec, nplm, k
      REAL(DP), DIMENSION(NDIM) :: xr, vr
      REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
      REAL(DP), DIMENSION(NDIM,(npl-1)*ntp) :: dist_pltp_array, vel_pltp_array
-     LOGICAL(LGT), dimension(num_plpl_comparisons) :: plpl_encounters ! array for plpl encounters, will record when comparison results in encounter
+     LOGICAL(LGT), dimension(num_plpl_comparisons) :: plpl_encounters, plpl_lvdotr ! array for plpl encounters, will record when comparison results in encounter
      LOGICAL(LGT), dimension((npl-1)*ntp) :: pltp_encounters
+     INTEGER(I4B), dimension(num_plpl_comparisons) :: plpl_irec
      REAL(DP) :: start, finish
      
 ! Executable code
@@ -127,34 +128,38 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           nplm = 1
      END IF
      irec = 0 ! recursion counter, 0 since we're in the top loop
+     plpl_irec = 0
 
 ! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
 
      CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array) ! does not care about mtiny
      CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, ik_plpl, jk_plpl, vel_plpl_array) ! does not care about mtiny
 
-!$omp parallel do
-     
+!$omp parallel do default(none) &
+!$omp private(i, lencounter) &
+!$omp shared(dist_plpl_array, vel_plpl_array, ik_plpl, jk_plpl, symba_plA, plpl_encounters, plpl_irec, plpl_lvdotr, dt)
+
      DO i = 1,num_plpl_comparisons
           CALL symba_chk(dist_plpl_array(:,i), vel_plpl_array(:,i), symba_plA%helio%swiftest%rhill(ik_plpl(i)), &
-               symba_plA%helio%swiftest%rhill(jk_plpl(i)), dt, irec, lencounter, lvdotr)
+               symba_plA%helio%swiftest%rhill(jk_plpl(i)), dt, plpl_irec(i), lencounter, plpl_lvdotr(i))
           IF (lencounter) THEN
                plpl_encounters(i) = .TRUE. ! record that this comparison resulted in an encounter
                ! for the i particle
                symba_plA%lmerged(ik_plpl(i)) = .FALSE. ! they have not merged YET
                symba_plA%nplenc(ik_plpl(i)) = symba_plA%nplenc(ik_plpl(i)) + 1 ! number of particles that planet "i" has close encountered
-               symba_plA%levelg(ik_plpl(i)) = irec ! recursion level
-               symba_plA%levelm(ik_plpl(i)) = irec ! recursion level
+               symba_plA%levelg(ik_plpl(i)) = plpl_irec(i) ! recursion level
+               symba_plA%levelm(ik_plpl(i)) = plpl_irec(i) ! recursion level
                symba_plA%nchild(ik_plpl(i)) = 0 
                ! for the j particle
                symba_plA%lmerged(jk_plpl(i)) = .FALSE.
                symba_plA%nplenc(jk_plpl(i)) = symba_plA%nplenc(jk_plpl(i)) + 1
-               symba_plA%levelg(jk_plpl(i)) = irec
-               symba_plA%levelm(jk_plpl(i)) = irec
+               symba_plA%levelg(jk_plpl(i)) = plpl_irec(i)
+               symba_plA%levelm(jk_plpl(i)) = plpl_irec(i)
                symba_plA%nchild(jk_plpl(i)) = 0
           END IF
      ENDDO
 
+!$omp end parallel do
 
      ! here i'll order the encounters
      if(any(plpl_encounters))then ! first check if there were any encounters
@@ -170,8 +175,8 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                     END IF
 
                     plplenc_list%status(nplplenc) = ACTIVE ! you are in an encounter
-                    plplenc_list%lvdotr(nplplenc) = lvdotr ! flag of relative accelerations to say if there will be a close encounter in next timestep
-                    plplenc_list%level(nplplenc) = irec ! recursion level
+                    plplenc_list%lvdotr(nplplenc) = plpl_lvdotr(i) ! flag of relative accelerations to say if there will be a close encounter in next timestep
+                    plplenc_list%level(nplplenc) = plpl_irec(i) ! recursion level
                     plplenc_list%index1(nplplenc) = ik_plpl(i) ! index of first planet in encounter
                     plplenc_list%index2(nplplenc) = jk_plpl(i) ! index of second planet in encounter
                endif
