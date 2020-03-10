@@ -161,26 +161,14 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
 !$omp end parallel do
 
-     ! here i'll order the encounters
-     if(any(plpl_encounters))then ! first check if there were any encounters
-          do i = 1,num_plpl_comparisons
-               if(plpl_encounters(i))then
-                    nplplenc = nplplenc + 1
-
-                    IF (nplplenc > NENMAX) THEN ! there can only be so many recorded planet-planet encounters
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   PL-PL encounter list is full."
-                         WRITE(*, *) "   STOPPING..."
-                         CALL util_exit(FAILURE)
-                    END IF
-
-                    plplenc_list%status(nplplenc) = ACTIVE ! you are in an encounter
-                    plplenc_list%lvdotr(nplplenc) = plpl_lvdotr(i) ! flag of relative accelerations to say if there will be a close encounter in next timestep
-                    plplenc_list%level(nplplenc) = plpl_irec(i) ! recursion level
-                    plplenc_list%index1(nplplenc) = ik_plpl(i) ! index of first planet in encounter
-                    plplenc_list%index2(nplplenc) = jk_plpl(i) ! index of second planet in encounter
-               endif
-          enddo
+     ! ! here i'll order the encounters
+     nplplenc = count(plpl_encounters(:))
+     if(nplplenc>0)then
+          plplenc_list%status(1:nplplenc) = ACTIVE ! you are in an encounter
+          plplenc_list%lvdotr(1:nplplenc) = pack(plpl_lvdotr(:),plpl_encounters(:))! flag of relative accelerations to say if there will be a close encounter in next timestep 
+          plplenc_list%level(1:nplplenc) = pack(plpl_irec(:),plpl_encounters(:)) ! recursion level
+          plplenc_list%index1(1:nplplenc) = pack(ik_plpl(:),plpl_encounters(:)) ! index of first planet in encounter
+          plplenc_list%index2(1:nplplenc) = pack(jk_plpl(:),plpl_encounters(:)) ! index of second planet in encounter
      endif
 
      if(ntp>0)then
