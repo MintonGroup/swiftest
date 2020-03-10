@@ -50,10 +50,11 @@ SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, ik_pltp, jk_pl
      
 ! Executable code
 
+!$omp parallel do
      do i = 1,(npl-1)*ntp
           outvar(:,i) = test_particles(:,jk_pltp(i)) - planets(:,ik_pltp(i))
      enddo
-
+!$omp end parallel do
      RETURN
 
 END SUBROUTINE util_dist_eucl_pltp
