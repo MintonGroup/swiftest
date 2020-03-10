@@ -25,7 +25,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_index_plpl(npl, l, ik, jk)
+SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
 
 ! Modules
      USE module_parameters
@@ -35,30 +35,25 @@ SUBROUTINE util_dist_index_plpl(npl, l, ik, jk)
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: npl
-     INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik, jk
-     INTEGER(I4B), INTENT(OUT) :: l
+     INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik_plpl, jk_plpl
+     INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,m,k_count, j
-     INTEGER(I4B), DIMENSION(:),ALLOCATABLE :: k
+     INTEGER(I4B)              :: i,j,k_count
 
 ! Executable code
-     l = npl * (npl - 1) / 2 ! length of the distance matrix for a strict lower triangle, npl x npl
-     l = l - (npl - 1)! however, swifter doesn't compare anything to the 
-     m = ceiling(sqrt(2.*l))
+     num_comparisons = npl * (npl - 1) / 2 ! length of the distance matrix for a strict lower triangle, npl x npl
+     num_comparisons = num_comparisons - (npl - 1)! however, swifter doesn't compare anything to the central body
 
-     allocate(ik(l))
-     allocate(jk(l))
-     allocate(k(l))
-
-     k = (/(i, i=1,l, 1)/)     
+     allocate(ik_plpl(num_comparisons))
+     allocate(jk_plpl(num_comparisons))
 
      k_count = 1
 
      do i = 2, npl
           do j = i + 1, npl
-               ik(k_count) = i
-               jk(k_count) = j
+               ik_plpl(k_count) = i
+               jk_plpl(k_count) = j
                k_count = k_count + 1
           enddo
      enddo
