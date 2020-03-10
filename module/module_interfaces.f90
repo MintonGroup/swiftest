@@ -1407,13 +1407,13 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE util_dist_index_plpl(npl, l, ik, jk)
+          SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
                USE module_parameters
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl
-               INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik, jk
-               INTEGER(I4B), INTENT(OUT) :: l
+               INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik_plpl, jk_plpl
+               INTEGER(I4B), INTENT(OUT) :: num_comparisons
           END SUBROUTINE util_dist_index_plpl
      END INTERFACE
 
