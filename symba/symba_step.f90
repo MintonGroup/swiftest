@@ -178,48 +178,55 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           enddo
      endif
 
-     CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, ik_pltp, jk_pltp, dist_pltp_array)
-     CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, ik_pltp, jk_pltp, vel_pltp_array)
+     if(ntp>0)then
+          CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
+               ik_pltp, jk_pltp, dist_pltp_array)
+          CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, &
+               ik_pltp, jk_pltp, vel_pltp_array)
 
-     DO i = 1,(npl-1)*ntp
-          CALL symba_chk(dist_pltp_array(:,i), vel_pltp_array(:,i), symba_plA%helio%swiftest%rhill(ik_pltp(i)), &
-               0.0_DP, dt, irec, lencounter, lvdotr)
-          IF (lencounter) THEN
-               ! for the planet
-               symba_plA%ntpenc(ik_pltp(i)) = symba_plA%ntpenc(ik_pltp(i)) + 1
-               symba_plA%levelg(ik_pltp(i)) = irec
-               symba_plA%levelm(ik_pltp(i)) = irec
-               ! for the test particle
-               symba_tpA%nplenc(jk_pltp(i)) = symba_tpA%nplenc(jk_pltp(i)) + 1
-               symba_tpA%levelg(jk_pltp(i)) = irec
-               symba_tpA%levelm(jk_pltp(i)) = irec
-               pltp_encounters(i) = .TRUE.
-          END IF
-     ENDDO
+!$omp parallel do
 
+          DO i = 1,(npl-1)*ntp
+               CALL symba_chk(dist_pltp_array(:,i), vel_pltp_array(:,i), &
+                    symba_plA%helio%swiftest%rhill(ik_pltp(i)), 0.0_DP, dt, irec, lencounter, lvdotr)
+               IF (lencounter) THEN
+                    ! for the planet
+                    symba_plA%ntpenc(ik_pltp(i)) = symba_plA%ntpenc(ik_pltp(i)) + 1
+                    symba_plA%levelg(ik_pltp(i)) = irec
+                    symba_plA%levelm(ik_pltp(i)) = irec
+                    ! for the test particle
+                    symba_tpA%nplenc(jk_pltp(i)) = symba_tpA%nplenc(jk_pltp(i)) + 1
+                    symba_tpA%levelg(jk_pltp(i)) = irec
+                    symba_tpA%levelm(jk_pltp(i)) = irec
+                    pltp_encounters(i) = .TRUE.
+               END IF
+          ENDDO
 
-     if(any(pltp_encounters))then
-          do i = 1,(npl-1)*ntp
-               if(pltp_encounters(i))then
+!$omp end parallel do
 
-                    npltpenc = npltpenc + 1 ! increment number of planet-test particle interactions
-                    IF (npltpenc > NENMAX) THEN
-                         WRITE(*, *) "SWIFTER Error:"
-                         WRITE(*, *) "   PL-TP encounter list is full."
-                         WRITE(*, *) "   STOPPING..."
-                         CALL util_exit(FAILURE)
-                    END IF
-                    pltpenc_list%status(npltpenc) = ACTIVE
-                    pltpenc_list%lvdotr(npltpenc) = lvdotr
-                    pltpenc_list%level(npltpenc) = irec
-                    pltpenc_list%indexpl(npltpenc) = ik_pltp(i)
-                    pltpenc_list%indextp(npltpenc) = jk_pltp(i)
-               endif
-          enddo
+          if(any(pltp_encounters))then
+               do i = 1,(npl-1)*ntp
+                    if(pltp_encounters(i))then
+
+                         npltpenc = npltpenc + 1 ! increment number of planet-test particle interactions
+                         IF (npltpenc > NENMAX) THEN
+                              WRITE(*, *) "SWIFTER Error:"
+                              WRITE(*, *) "   PL-TP encounter list is full."
+                              WRITE(*, *) "   STOPPING..."
+                              CALL util_exit(FAILURE)
+                         END IF
+                         pltpenc_list%status(npltpenc) = ACTIVE
+                         pltpenc_list%lvdotr(npltpenc) = lvdotr
+                         pltpenc_list%level(npltpenc) = irec
+                         pltpenc_list%indexpl(npltpenc) = ik_pltp(i)
+                         pltpenc_list%indextp(npltpenc) = jk_pltp(i)
+                    endif
+               enddo
+          endif
      endif
 
 
-     ! double loop through all planet-planet and then planet-test particle interactions
+     ! ! double loop through all planet-planet and then planet-test particle interactions
      ! DO i = 2, npl ! start at i=2, since we don't need the central body
      !      IF (symba_plA%helio%swiftest%mass(i) < mtiny) EXIT ! don't do this if it's below mtiny
      !      nplm = nplm + 1 ! otherwise, increase the count of planets > mtiny
