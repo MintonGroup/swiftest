@@ -136,7 +136,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
 !$omp parallel do default(none) &
 !$omp private(i, lencounter) &
-!$omp shared(dist_plpl_array, vel_plpl_array, ik_plpl, jk_plpl, symba_plA, plpl_encounters, plpl_irec, plpl_lvdotr, dt)
+!$omp shared(dist_plpl_array, vel_plpl_array, ik_plpl, jk_plpl, symba_plA, plpl_encounters, plpl_irec, plpl_lvdotr, dt, num_plpl_comparisons)
 
      DO i = 1,num_plpl_comparisons
           CALL symba_chk(dist_plpl_array(:,i), vel_plpl_array(:,i), symba_plA%helio%swiftest%rhill(ik_plpl(i)), &
