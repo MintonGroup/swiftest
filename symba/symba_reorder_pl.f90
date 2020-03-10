@@ -70,8 +70,6 @@ SUBROUTINE symba_reorder_pl(npl, symba_plA)
      CALL util_index(mass, index)
      WRITE(*,*) "************ REORDER ***************"
      DO i = 1, npl
-          WRITE(*,*) "name", symba_plwkspA_id_status(1,index(npl-i+1)), "rhill", & 
-          symba_plwkspA(9,index(npl-i+1))
           symba_plA%helio%swiftest%name(i) = symba_plwkspA_id_status(1,index(npl-i+1))
           symba_plA%helio%swiftest%status(i) = symba_plwkspA_id_status(2,index(npl-i+1))
           symba_plA%helio%swiftest%mass(i) = symba_plwkspA(1,index(npl-i+1))
