@@ -14,13 +14,13 @@
 !    File      : none
 !
 !  Output
-!    Arguments : l            : length of the distance array
-!              : ik           : 
-!              : jk
+!    Arguments : num_comparisons     : length of the distance array
+!              : ik_plpl           : i index to convert linear indices to matrix indices
+!              : jk_plpl           : j index to convert linear indices to matrix indices
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL util_dist_index(npl, swifter_pl1P)
+!  Invocation  : CALL util_dist_index_plpl(npl, num_comparisons, ik, jk)
 !
 !  Notes       : 
 !
