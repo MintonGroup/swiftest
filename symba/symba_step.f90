@@ -130,9 +130,11 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
 ! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
 
-     CALL util_dist_eucl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array) ! does not care about mtiny
-     CALL util_dist_eucl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, ik_plpl, jk_plpl, vel_plpl_array) ! does not care about mtiny
+     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array) ! does not care about mtiny
+     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, ik_plpl, jk_plpl, vel_plpl_array) ! does not care about mtiny
 
+!$omp parallel do
+     
      DO i = 1,num_plpl_comparisons
           CALL symba_chk(dist_plpl_array(:,i), vel_plpl_array(:,i), symba_plA%helio%swiftest%rhill(ik_plpl(i)), &
                symba_plA%helio%swiftest%rhill(jk_plpl(i)), dt, irec, lencounter, lvdotr)

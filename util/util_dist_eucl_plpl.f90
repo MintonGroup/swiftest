@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : util_dist_eucl
+!  Unit Name   : util_dist_eucl_plpl
 !  Unit Type   : subroutine
 !  Project     : Swiftest
 !  Package     : util
@@ -29,13 +29,13 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_eucl(npl, invar, l, ik, jk, outvar)
+SUBROUTINE util_dist_eucl_plpl(npl, invar, l, ik, jk, outvar)
 
 ! Modules
      USE module_parameters
      USE module_swiftest
      USE module_symba
-     USE module_interfaces, EXCEPT_THIS_ONE => util_dist_eucl
+     USE module_interfaces, EXCEPT_THIS_ONE => util_dist_eucl_plpl
      IMPLICIT NONE
 
 ! Arguments
@@ -58,7 +58,7 @@ SUBROUTINE util_dist_eucl(npl, invar, l, ik, jk, outvar)
 
      RETURN
 
-END SUBROUTINE util_dist_eucl
+END SUBROUTINE util_dist_eucl_plpl
 !**********************************************************************************************************************************
 !
 !  Author(s)   : Jacob R. Elliott 
