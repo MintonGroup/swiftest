@@ -798,6 +798,125 @@ MODULE module_interfaces
           END SUBROUTINE rmvs_chk_ind
      END INTERFACE
 
+     INTERFACE
+          SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+          USE module_parameters
+          USE module_swiftest
+          USE module_helio
+          USE module_symba
+          USE module_interfaces, EXCEPT_THIS_ONE => symba_caseresolve
+          IMPLICIT NONE
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+          REAL(DP), INTENT(IN)                             :: t, dt
+          REAL(DP), INTENT(INOUT)                          :: eoffset
+          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
+          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
+          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
+          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+
+          END SUBROUTINE symba_casedisruption
+     END INTERFACE
+
+     INTERFACE
+          SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+          USE module_parameters
+          USE module_swiftest
+          USE module_helio
+          USE module_symba
+          USE module_interfaces, EXCEPT_THIS_ONE => symba_caseresolve
+          IMPLICIT NONE
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+          REAL(DP), INTENT(IN)                             :: t, dt
+          REAL(DP), INTENT(INOUT)                          :: eoffset
+          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
+          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
+          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
+          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+
+          END SUBROUTINE symba_casehitandrun
+     END INTERFACE
+
+     INTERFACE
+          SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+          USE module_parameters
+          USE module_swiftest
+          USE module_helio
+          USE module_symba
+          USE module_interfaces, EXCEPT_THIS_ONE => symba_caseresolve
+          IMPLICIT NONE
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+          REAL(DP), INTENT(IN)                             :: t, dt
+          REAL(DP), INTENT(INOUT)                          :: eoffset
+          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
+          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
+          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
+          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+
+          END SUBROUTINE symba_casemerge
+     END INTERFACE
+
+     INTERFACE
+          SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+          USE module_parameters
+          USE module_swiftest
+          USE module_helio
+          USE module_symba
+          USE module_interfaces, EXCEPT_THIS_ONE => symba_caseresolve
+          IMPLICIT NONE
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+          REAL(DP), INTENT(IN)                             :: t, dt
+          REAL(DP), INTENT(INOUT)                          :: eoffset
+          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
+          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
+          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
+          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+
+          END SUBROUTINE symba_caseresolve
+     END INTERFACE
+
+     INTERFACE
+          SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+          USE module_parameters
+          USE module_swiftest
+          USE module_helio
+          USE module_symba
+          USE module_interfaces, EXCEPT_THIS_ONE => symba_caseresolve
+          IMPLICIT NONE
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+          REAL(DP), INTENT(IN)                             :: t, dt
+          REAL(DP), INTENT(INOUT)                          :: eoffset
+          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
+          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
+          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
+          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+
+          END SUBROUTINE symba_casesupercatastrophic
+     END INTERFACE
 
      INTERFACE
           SUBROUTINE symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
