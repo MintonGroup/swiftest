@@ -77,6 +77,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
 
+
 ! Internals
      LOGICAL(LGT)              :: lencounter
      INTEGER(I4B)              :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp, k
@@ -156,8 +157,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
                          IF (lfragmentation) THEN
-                            CALL symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, & 
-                              eoffset, vbs, encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+                            CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, & 
+                              eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, &
                               nplplenc, npltpenc, pltpenc_list, plplenc_list)
                          ELSE
                             CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, & 
@@ -252,8 +253,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                              (symba_plA%levelg(index_i) >= ireci) .AND.                                                         &
                              (symba_plA%levelg(index_j) >= ireci))  THEN    
                               IF (lfragmentation) THEN
-                                   CALL symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, & 
-                                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, nplmax, ntp, ntpmax, &
+                                   CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, & 
+                                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, ntp, &
                                         symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
                               ELSE
                                    CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, & 
