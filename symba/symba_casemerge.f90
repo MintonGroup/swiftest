@@ -33,19 +33,19 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
 
 ! Modules
      USE module_parameters
      USE module_swiftest
      USE module_helio
      USE module_symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_caseresolve
+     USE module_interfaces, EXCEPT_THIS_ONE => symba_casemerge
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -58,12 +58,21 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
 
 ! Internals
  
-     INTEGER(14B)                                     :: model, nres
-     REAL(DP)                                         :: m1, m2, rad1, rad2, mres, rres, pres, vres
-     REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2
+     INTEGER(I4B)                 :: model, nres
+     REAL(DP)                     :: mres, rres, pres, vres
+     INTEGER(I4B)                 :: i, j, k, stat1, stat2, index1, index2, index_keep, index_rm, indexchild
+     INTEGER(I4B)                 :: index1_child, index2_child, index1_parent, index2_parent, index_big1, index_big2
+     INTEGER(I4B)                 :: name1, name2
+     REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax 
+     REAL(DP)                     :: eold, enew, rad1, rad2, mass1, mass2
+     REAL(DP), DIMENSION(NDIM)    :: xr, vr, x1, v1, x2, v2, xnew, vnew
+     INTEGER(I4B), DIMENSION(npl) :: array_index1_child, array_index2_child, array_keep_child, array_rm_child
+
 
 
 ! Executable code
+               index1 = plplenc_list%index1(index_enc)
+               index2 = plplenc_list%index2(index_enc)
                symba_plA%lmerged(index1) = .TRUE.
                symba_plA%lmerged(index2) = .TRUE.
                index1_parent = symba_plA%index_parent(index1)
@@ -179,7 +188,8 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                                    END IF
                                    IF ((index1_child == plplenc_list%index1(k)) .AND. (index2_child == plplenc_list%index2(k))) THEN
                                         plplenc_list%status(k) = MERGED
-                                   ELSE IF ((index1_child == plplenc_list%index2(k)) .AND. (index2_child == plplenc_list%index1(k))) THEN
+                                   ELSE IF ((index1_child == plplenc_list%index2(k)) .AND. &
+                                        (index2_child == plplenc_list%index1(k))) THEN
                                         plplenc_list%status(k) = MERGED
                                    END IF
                               END DO
@@ -213,5 +223,5 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                symba_plA%nchild(index1_parent) = symba_plA%nchild(index1_parent) + symba_plA%nchild(index2_parent) + 1
 
      RETURN 
-END SUBROUTINE
+END SUBROUTINE symba_casemerge
 

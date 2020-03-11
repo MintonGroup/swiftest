@@ -33,19 +33,19 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
 
 ! Modules
      USE module_parameters
      USE module_swiftest
      USE module_helio
      USE module_symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_caseresolve
+     USE module_interfaces, EXCEPT_THIS_ONE => symba_casedisruption
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -58,7 +58,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
 ! Internals
  
-     INTEGER(14B)                                     :: model, nres
+     INTEGER(I4B)                                     :: model, nres
      REAL(DP)                                         :: m1, m2, rad1, rad2, mres, rres, pres, vres
      REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2
 
@@ -66,4 +66,4 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 ! Executable code
 
      RETURN 
-END SUBROUTINE
+END SUBROUTINE symba_casedisruption
