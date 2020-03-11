@@ -71,7 +71,7 @@ PROGRAM swiftest_symba_omp
      CHARACTER(STRMAX) :: out_stat       ! Open status for output binary file
 
 ! Internals
-     LOGICAL(LGT)                                               :: lfirst
+     LOGICAL(LGT)                                               :: lfirst, lfrag_add
      INTEGER(I4B)                                               :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
      INTEGER(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
@@ -201,6 +201,7 @@ PROGRAM swiftest_symba_omp
                nsptp = 0
                CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                !WRITE(egyiu,300) t, ke, pe, te, htot
+               END IF 
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1
