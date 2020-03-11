@@ -33,7 +33,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
 
 ! Modules
      USE module_parameters
@@ -44,8 +44,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, nplmax, ntp, ntpmax, nmergeadd, nmergesub, nplplenc, npltpenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -58,9 +58,15 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Internals
  
-     INTEGER(14B)                                     :: model, nres
-     REAL(DP)                                         :: m1, m2, rad1, rad2, mres, rres, pres, vres
-     REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2
+     INTEGER(I4B)                 :: model, nres
+     REAL(DP)                     :: mres, rres, pres, vres
+     INTEGER(I4B)                 :: regime, collresolve_resolve
+     INTEGER(I4B)                 :: index1, index2
+     INTEGER(I4B)                 :: name1, name2
+     REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q
+     REAL(DP)                     :: rad1, rad2, m1, m2
+     REAL(DP), DIMENSION(NDIM)    :: xr, vr, x1, v1, x2, v2
+     LOGICAL(LGT)                 :: lfrag_add, lmerge
 
 
 ! Executable code
@@ -81,13 +87,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      rlim2 = rlim*rlim
      ! checks if bodies are actively colliding in this time step
      IF (rlim2 >= r2) THEN 
-          lmerge = .TRUE.
-          regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres, &
-               mres,rres,pres,vres)
-          CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-               eoffset, vbs, encounter_file, out_type, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
-               nplplenc, npltpenc, pltpenc_list, plplenc_list)
-
+          lfrag_add = .TRUE.
      ! if they are not actively colliding in  this time step, 
      !checks if they are going to collide next time step based on velocities and q
      ELSE 
@@ -99,10 +99,10 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                IF (tcr2 <= dt2) THEN
                     mtot = symba_plA%helio%swiftest%mass(index1) + symba_plA%helio%swiftest%mass(index2)
                     CALL orbel_xv2aeq(xr(:), vr(:), mtot, a, e, q)
-                    IF (q < rlim) lmerge = .TRUE.
+                    IF (q < rlim) lfrag_add = .TRUE.
                END IF
                ! if no collision is going to happen, write as close encounter, not  merger
-               IF (.NOT. lmerge) THEN
+               IF (.NOT. lfrag_add) THEN
                     IF (encounter_file /= "") THEN
                          name1 = symba_plA%helio%swiftest%name(index1)
                          m1 = symba_plA%helio%swiftest%mass(index1)
@@ -122,12 +122,15 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           END IF
      END IF
 
+     IF (lfrag_add) THEN 
+          regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres, &
+               mres,rres,pres,vres)
+          WRITE(*,*) "COLLISION REGIME = ", regime 
+          CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, &
+               nplplenc, npltpenc, pltpenc_list, plplenc_list, regime)
 
-!call symba_reorder
-
-
-
-
+     END IF 
      RETURN
 
 END SUBROUTINE symba_fragmentation
