@@ -160,8 +160,8 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           plplenc_list%level(1:nplplenc)  = plpl_irec(plpl_encounters_indices) ! recursion level
           plplenc_list%index1(1:nplplenc) = ik_plpl(plpl_encounters_indices) ! index of first planet in encounter
           plplenc_list%index2(1:nplplenc) = jk_plpl(plpl_encounters_indices) ! index of second planet in encounter
+          deallocate(plpl_encounters_indices)
      endif
-     deallocate(plpl_encounters_indices)
 
      if(ntp>0)then
           CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
