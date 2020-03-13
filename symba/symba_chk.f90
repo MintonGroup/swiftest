@@ -59,13 +59,14 @@ SUBROUTINE symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
      ! CALL rmvs_chk_ind(xr(:), vr(:), dt, r2crit, lencounter, lvdotr)
 
      r2 = DOT_PRODUCT(xr(:), xr(:)) 
+     vdotr = DOT_PRODUCT(vr(:), xr(:))
+
+     lvdotr_flag = (vdotr < 0.0_DP)
 
      IF (r2 < r2crit) THEN
           lencounter = .TRUE.
      ELSE
-          vdotr = DOT_PRODUCT(vr(:), xr(:))
           IF (vdotr < 0.0_DP) THEN
-               lvdotr = .TRUE.
                v2 = DOT_PRODUCT(vr(:), vr(:))
                tmin = -vdotr/v2
                IF (tmin < dt) THEN
