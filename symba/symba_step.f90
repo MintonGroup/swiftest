@@ -136,32 +136,22 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      CALL symba_chk_eucl(num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array, vel_plpl_array, &
           symba_plA%helio%swiftest%rhill, symba_plA%helio%swiftest%rhill, dt, plpl_irec, plpl_encounters, plpl_lvdotr)
 
-!$omp parallel do default(none) &
-!$omp private(i, lencounter) &
-!$omp shared(dist_plpl_array, vel_plpl_array, ik_plpl, jk_plpl, symba_plA, plpl_encounters, plpl_irec, plpl_lvdotr, dt) &
-!$omp shared(num_plpl_comparisons)
+     ! here i'll order the encounters
+     nplplenc = count(plpl_encounters > 0)
+     if(nplplenc>0)then
+          allocate(plpl_encounters_indices(nplplenc))
 
-     DO i = 1,num_plpl_comparisons
-          CALL symba_chk(dist_plpl_array(:,i), vel_plpl_array(:,i), symba_plA%helio%swiftest%rhill(ik_plpl(i)), &
-               symba_plA%helio%swiftest%rhill(jk_plpl(i)), dt, plpl_irec(i), lencounter, plpl_lvdotr(i))
-          IF (lencounter) THEN
-               plpl_encounters(i) = .TRUE. ! record that this comparison resulted in an encounter
-               ! for the i particle
-               symba_plA%lmerged(ik_plpl(i)) = .FALSE. ! they have not merged YET
-               symba_plA%nplenc(ik_plpl(i)) = symba_plA%nplenc(ik_plpl(i)) + 1 ! number of particles that planet "i" has close encountered
-               symba_plA%levelg(ik_plpl(i)) = plpl_irec(i) ! recursion level
-               symba_plA%levelm(ik_plpl(i)) = plpl_irec(i) ! recursion level
-               symba_plA%nchild(ik_plpl(i)) = 0 
-               ! for the j particle
-               symba_plA%lmerged(jk_plpl(i)) = .FALSE.
-               symba_plA%nplenc(jk_plpl(i)) = symba_plA%nplenc(jk_plpl(i)) + 1
-               symba_plA%levelg(jk_plpl(i)) = plpl_irec(i)
-               symba_plA%levelm(jk_plpl(i)) = plpl_irec(i)
-               symba_plA%nchild(jk_plpl(i)) = 0
-          END IF
-     ENDDO
-
-!$omp end parallel do
+          symba_plA%lmerged(ik_plpl(plpl_encounters_indices)) = .FALSE. ! they have not merged YET
+          symba_plA%nplenc(ik_plpl(plpl_encounters_indices)) = symba_plA%nplenc(ik_plpl(plpl_encounters_indices)) + 1 ! number of particles that planet "i" has close encountered
+          symba_plA%levelg(ik_plpl(plpl_encounters_indices)) = plpl_irec(ik_plpl(plpl_encounters_indices)) ! recursion level
+          symba_plA%levelm(ik_plpl(plpl_encounters_indices)) = plpl_irec(ik_plpl(plpl_encounters_indices)) ! recursion level
+          symba_plA%nchild(ik_plpl(plpl_encounters_indices)) = 0 
+          ! for the j particle
+          symba_plA%lmerged(jk_plpl(plpl_encounters_indices)) = .FALSE.
+          symba_plA%nplenc(jk_plpl(plpl_encounters_indices)) = symba_plA%nplenc(jk_plpl(plpl_encounters_indices)) + 1
+          symba_plA%levelg(jk_plpl(plpl_encounters_indices)) = plpl_irec(jk_plpl(plpl_encounters_indices))
+          symba_plA%levelm(jk_plpl(plpl_encounters_indices)) = plpl_irec(jk_plpl(plpl_encounters_indices))
+          symba_plA%nchild(jk_plpl(plpl_encounters_indices)) = 0
 
      ! ! here i'll order the encounters
      nplplenc = count(plpl_encounters(:))
