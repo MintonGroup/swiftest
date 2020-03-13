@@ -46,17 +46,38 @@ SUBROUTINE symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
      REAL(DP), DIMENSION(:), INTENT(IN) :: xr, vr
 
 ! Internals
-     INTEGER(I4B) :: iflag
-     REAL(DP)     :: rcrit, r2crit, vdotr
+     ! LOGICAL(LGT) :: iflag lvdotr_flag
+     REAL(DP)     :: rcrit, r2crit, vdotr, r2, v2, tmin, r2min
 
 ! Executable code
      lencounter = .FALSE.
-     rcrit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
-     r2crit = rcrit*rcrit
-     CALL rmvs_chk_ind(xr(:), vr(:), dt, r2crit, iflag)
-     IF (iflag /= 0) lencounter = .TRUE.
-     vdotr = DOT_PRODUCT(vr(:), xr(:))
-     lvdotr = (vdotr < 0.0_DP)
+     lvdotr = .FALSE.
+
+     rcrit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec)) 
+     r2crit = rcrit*rcrit 
+
+     ! CALL rmvs_chk_ind(xr(:), vr(:), dt, r2crit, lencounter, lvdotr)
+
+     r2 = DOT_PRODUCT(xr(:), xr(:)) 
+
+     IF (r2 < r2crit) THEN
+          lencounter = .TRUE.
+     ELSE
+          vdotr = DOT_PRODUCT(vr(:), xr(:))
+          IF (vdotr < 0.0_DP) THEN
+               lvdotr = .TRUE.
+               v2 = DOT_PRODUCT(vr(:), vr(:))
+               tmin = -vdotr/v2
+               IF (tmin < dt) THEN
+                    r2min = r2 - vdotr*vdotr/v2
+               ELSE
+                    r2min = r2 + 2.0_DP*vdotr*dt + v2*dt*dt
+               END IF
+               r2min = MIN(r2min, r2)
+               IF (r2min <= r2crit) lencounter = .TRUE.
+          END IF
+     END IF
+
 
      RETURN
 
