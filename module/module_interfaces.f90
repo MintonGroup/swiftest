@@ -868,6 +868,23 @@ MODULE module_interfaces
           END SUBROUTINE symba_chk
      END INTERFACE
 
+     INTERFACE 
+          SUBROUTINE symba_chk_eucl(num_encounters, ik, jk, xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+               USE module_parameters
+               USE module_swiftest
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr, irec
+               INTEGER(I4B), INTENT(IN)           :: num_encounters
+               INTEGER(I4B), DIMENSION(num_encounters),INTENT(IN)   :: ik, jk
+               REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill1, rhill2
+               REAL(DP), INTENT(IN)               :: dt
+               REAL(DP), DIMENSION(NDIM, num_encounters), INTENT(IN) :: xr, vr
+          END SUBROUTINE symba_chk_eucl
+     END INTERFACE
+
+
      INTERFACE
           SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
                USE module_parameters
