@@ -840,6 +840,16 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
+          SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, lencounter_flag, lvdotr_flag)
+               USE module_parameters
+               IMPLICIT NONE
+                    REAL(DP), INTENT(IN)                  :: dt, r2crit
+                    REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xr, vr
+                    LOGICAL(LGT), INTENT(OUT)             :: lencounter_flag, lvdotr_flag
+          END SUBROUTINE rmvs_chk_ind
+     END INTERFACE
+
+     INTERFACE
           SUBROUTINE symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)
                USE module_parameters
                USE module_swifter

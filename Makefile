@@ -122,6 +122,11 @@ lib:
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
+	cd $(SWIFTER_HOME)/rmvs; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  make libdir
 	cd $(SWIFTER_HOME)/symba; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
