@@ -840,12 +840,12 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
+          SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, lencounter_flag, lvdotr_flag)
                USE module_parameters
                IMPLICIT NONE
-               REAL(DP), INTENT(IN)                  :: dt, r2crit
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xr, vr
-               INTEGER(I4B), INTENT(OUT)             :: iflag
+                    REAL(DP), INTENT(IN)                  :: dt, r2crit
+                    REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xr, vr
+                    LOGICAL(LGT), INTENT(OUT)             :: lencounter_flag, lvdotr_flag
           END SUBROUTINE rmvs_chk_ind
      END INTERFACE
 
