@@ -133,6 +133,8 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
      CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array) ! does not care about mtiny
      CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, ik_plpl, jk_plpl, vel_plpl_array) ! does not care about mtiny
+     CALL symba_chk_eucl(num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array, vel_plpl_array, &
+          symba_plA%helio%swiftest%rhill, symba_plA%helio%swiftest%rhill, dt, plpl_irec, plpl_encounters, plpl_lvdotr)
 
 !$omp parallel do default(none) &
 !$omp private(i, lencounter) &
