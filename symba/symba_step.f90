@@ -93,17 +93,18 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 ! Internals
      LOGICAL(LGT)              :: lencounter, lvdotr
      INTEGER(I4B)              :: i, j, irec, nplm, k
+     INTEGER(I4B), DIMENSION(NPL) :: nplenc_local
+     INTEGER(I4B), ALLOCATABLE :: plpl_encounters_indices(:)
      REAL(DP), DIMENSION(NDIM) :: xr, vr
      REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
      REAL(DP), DIMENSION(NDIM,(npl-1)*ntp) :: dist_pltp_array, vel_pltp_array
-     LOGICAL(LGT), dimension(num_plpl_comparisons) :: plpl_encounters, plpl_lvdotr ! array for plpl encounters, will record when comparison results in encounter
      LOGICAL(LGT), dimension((npl-1)*ntp) :: pltp_encounters
-     INTEGER(I4B), dimension(num_plpl_comparisons) :: plpl_irec
-     REAL(DP) :: start, finish
+     INTEGER(I4B), dimension(num_plpl_comparisons) :: plpl_irec, plpl_encounters, plpl_lvdotr
      
 ! Executable code
 
-     plpl_encounters = .FALSE.
+     plpl_encounters = 0
+     plpl_lvdotr = 0
      pltp_encounters = .FALSE.
 
      ! initialize planets
@@ -140,6 +141,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      nplplenc = count(plpl_encounters > 0)
      if(nplplenc>0)then
           allocate(plpl_encounters_indices(nplplenc))
+          plpl_encounters_indices = pack(plpl_encounters,plpl_encounters > 0)
 
           symba_plA%lmerged(ik_plpl(plpl_encounters_indices)) = .FALSE. ! they have not merged YET
           symba_plA%nplenc(ik_plpl(plpl_encounters_indices)) = symba_plA%nplenc(ik_plpl(plpl_encounters_indices)) + 1 ! number of particles that planet "i" has close encountered
@@ -153,15 +155,13 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           symba_plA%levelm(jk_plpl(plpl_encounters_indices)) = plpl_irec(jk_plpl(plpl_encounters_indices))
           symba_plA%nchild(jk_plpl(plpl_encounters_indices)) = 0
 
-     ! ! here i'll order the encounters
-     nplplenc = count(plpl_encounters(:))
-     if(nplplenc>0)then
           plplenc_list%status(1:nplplenc) = ACTIVE ! you are in an encounter
-          plplenc_list%lvdotr(1:nplplenc) = pack(plpl_lvdotr(:),plpl_encounters(:))! flag of relative accelerations to say if there will be a close encounter in next timestep 
-          plplenc_list%level(1:nplplenc) = pack(plpl_irec(:),plpl_encounters(:)) ! recursion level
-          plplenc_list%index1(1:nplplenc) = pack(ik_plpl(:),plpl_encounters(:)) ! index of first planet in encounter
-          plplenc_list%index2(1:nplplenc) = pack(jk_plpl(:),plpl_encounters(:)) ! index of second planet in encounter
+          plplenc_list%lvdotr(1:nplplenc) = plpl_lvdotr(plpl_encounters_indices)! flag of relative accelerations to say if there will be a close encounter in next timestep 
+          plplenc_list%level(1:nplplenc)  = plpl_irec(plpl_encounters_indices) ! recursion level
+          plplenc_list%index1(1:nplplenc) = ik_plpl(plpl_encounters_indices) ! index of first planet in encounter
+          plplenc_list%index2(1:nplplenc) = jk_plpl(plpl_encounters_indices) ! index of second planet in encounter
      endif
+     deallocate(plpl_encounters_indices)
 
      if(ntp>0)then
           CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
