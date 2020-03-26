@@ -39,7 +39,7 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
      INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,j,count,m
+     INTEGER(I4B)              :: i,j,k,count,m
      ! INTEGER(I4B), DIMENSION(:), ALLOCATABLE :: k
 
 ! Executable code
@@ -63,16 +63,18 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
 
      ! brute force the index creation
 
-!$omp parallel do default(none) schedule(static) &
+!$omp parallel do default(none) schedule(dynamic) &
 !$omp shared (ik_plpl, jk_plpl, npl) &
 !$omp private (i, j, count)
      do i = 2,npl
           count = (i - 2) * npl - i*(i-1)/2 + 2
-          do j = i + 1,npl
-               ik_plpl(count) = i
-               jk_plpl(count) = j
-               count = count + 1
-          enddo
+          ik_plpl(count:count+(npl-(i+1))) = i
+          jk_plpl(count:count+(npl-(i+1))) = (/(j, j=i+1,npl, 1)/)
+          ! do j = i + 1,npl
+          !      ik_plpl(count) = i
+          !      jk_plpl(count) = j
+          !      count = count + 1
+          ! enddo
      enddo
 
      RETURN
