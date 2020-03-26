@@ -70,11 +70,6 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
           count = (i - 2) * npl - i*(i-1)/2 + 2
           ik_plpl(count:count+(npl-(i+1))) = i
           jk_plpl(count:count+(npl-(i+1))) = (/(j, j=i+1,npl, 1)/)
-          ! do j = i + 1,npl
-          !      ik_plpl(count) = i
-          !      jk_plpl(count) = j
-          !      count = count + 1
-          ! enddo
      enddo
 
      RETURN
