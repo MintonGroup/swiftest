@@ -50,7 +50,9 @@ SUBROUTINE util_dist_eucl_plpl(npl, invar, l, ik, jk, outvar)
      
 ! Executable code
 
-!$omp parallel do
+!$omp parallel do schedule(static) default(none) &
+!$omp shared (outvar, invar, jk, ik, l) &
+!$omp private(i)
      do i = 1,l
           outvar(:,i) = invar(:,jk(i)) - invar(:,ik(i))
      enddo
