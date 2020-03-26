@@ -168,10 +168,6 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
                eoffset = eoffset + eold - enew
 
-               !WRITE(*,*) "symba_merge_pl.f90 name", mergeadd_list%name(nmergeadd)
-               !WRITE(*,*) "symba_merge_pl.f90 xh", mergeadd_list%xh(:,nmergeadd)
-               !WRITE(*,*) "symba_merge_pl.f90 vh", mergeadd_list%vh(:,nmergeadd)
-               !WRITE(*,*) "symba_merge_pl.f90 eoffset", eoffset
                DO k = 1, nplplenc
                     IF (plplenc_list%status(k) == ACTIVE) THEN
                          DO i = 0, symba_plA%nchild(index1_parent)
@@ -198,8 +194,8 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                END DO
                symba_plA%helio%swiftest%xh(:,index1_parent) = xnew(:)
                symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
-               symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) !PROBLEM
-               symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) !PROBLEM
+               symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) 
+               symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) 
                array_keep_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
                DO i = 1, symba_plA%nchild(index1_parent)
                     indexchild = array_keep_child(i)
