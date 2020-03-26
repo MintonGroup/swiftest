@@ -39,19 +39,28 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
      INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,j,count
+     INTEGER(I4B)              :: i,j,count,m
+     ! INTEGER(I4B), DIMENSION(:), ALLOCATABLE :: k
 
 ! Executable code
-     num_comparisons = npl * (npl - 1) / 2 ! length of the distance matrix for a strict lower triangle, npl x npl
-     num_comparisons = num_comparisons - (npl - 1)! however, swifter doesn't compare anything to the central body
-
+     num_comparisons = (npl - 1) * (npl - 2) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column
+     m = ceiling(sqrt(2. * num_comparisons))
+     
      allocate(ik_plpl(num_comparisons))
      allocate(jk_plpl(num_comparisons))
 
-     count = 1
+     ! this is a 'fancier' code, but so far i think it runs slower
+     ! so leaving it in, but commenting it out
+     ! i think it's because of the 'mod' call, but i haven't profiled it yet
+     ! don't forget to uncomment the 'k' declaration up top!
+     ! allocate(k(num_comparisons))
 
-     do i = 2, npl
-          do j = i + 1, npl
+
+     ! k = (/(i, i=1,num_comparisons, 1)/)
+
+     ! ik_plpl = m - nint( sqrt( dble(2) * (dble(1) + num_comparisons - k))) + 1
+     ! jk_plpl = mod(k + (ik_plpl - 1) * ik_plpl / 2 - 1, m) + 2
+
                ik_plpl(count) = i
                jk_plpl(count) = j
                count = count + 1
