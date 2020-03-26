@@ -39,7 +39,7 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
      INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,j,k_count
+     INTEGER(I4B)              :: i,j,count
 
 ! Executable code
      num_comparisons = npl * (npl - 1) / 2 ! length of the distance matrix for a strict lower triangle, npl x npl
@@ -48,13 +48,13 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
      allocate(ik_plpl(num_comparisons))
      allocate(jk_plpl(num_comparisons))
 
-     k_count = 1
+     count = 1
 
      do i = 2, npl
           do j = i + 1, npl
-               ik_plpl(k_count) = i
-               jk_plpl(k_count) = j
-               k_count = k_count + 1
+               ik_plpl(count) = i
+               jk_plpl(count) = j
+               count = count + 1
           enddo
      enddo
 
