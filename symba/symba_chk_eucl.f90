@@ -54,7 +54,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, ik, jk, xr, vr, rhill1, rhill2, dt, ir
 
 ! Executable code
 
-!$omp parallel do default(none) &
+!$omp parallel do default(none) schedule(static) &
 !$omp private(l, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
 !$omp shared(num_encounters, lvdotr, lencounter, rhill1, rhill2, irec, ik, jk, xr, vr, dt)
 
