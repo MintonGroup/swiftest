@@ -61,6 +61,14 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
      ! ik_plpl = m - nint( sqrt( dble(2) * (dble(1) + num_comparisons - k))) + 1
      ! jk_plpl = mod(k + (ik_plpl - 1) * ik_plpl / 2 - 1, m) + 2
 
+     ! brute force the index creation
+
+!$omp parallel do default(none) schedule(static) &
+!$omp shared (ik_plpl, jk_plpl, npl) &
+!$omp private (i, j, count)
+     do i = 2,npl
+          count = (i - 2) * npl - i*(i-1)/2 + 2
+          do j = i + 1,npl
                ik_plpl(count) = i
                jk_plpl(count) = j
                count = count + 1
