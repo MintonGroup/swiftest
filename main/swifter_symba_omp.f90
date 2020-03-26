@@ -121,12 +121,10 @@ PROGRAM swiftest_symba_omp
           CALL symba_tp_allocate(symba_tpA, ntpmax)
      END IF
 
-     ! Reads in initial conditions of all massive bodies from input file and fills the linked list
+     ! Reads in initial conditions of all massive bodies from input file
      CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
-     !WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
-     !READ(*, *) mtiny
 
-     ! Reorder linked list by mass 
+     ! Reorder by mass 
      CALL symba_reorder_pl(npl, symba_plA)
      CALL io_init_tp(intpfile, in_type, ntp, symba_tpA)
      CALL util_valid(npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest)
@@ -157,31 +155,18 @@ PROGRAM swiftest_symba_omp
      !END IF
  300 FORMAT(7(1X, E23.16))
  310 FORMAT(7(1X, A23))
-     !WRITE(egyiu,310) "#t","ke","pe","te","htotx","htoty","htotz"
      WRITE(*, *) " *************** MAIN LOOP *************** "
      CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-     !WRITE(egyiu,300) t, ke, pe, te, htot
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
-
-
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
            j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-           eoffset, mtiny, encounter_file, out_type)
+           eoffset, mtiny, encounter_file, out_type, swiftest_plA, swiftest_tpA)
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
                iloop = 0
           END IF
           t = tbase + iloop*dt
-          ! Take the merger info and create fragments
-          ! CALL some subroutine that returns the number of fragments and an array of new bodies (swifter_pl type)                     
-               ! update nplmax to add in the new number of bodies
-               ! add new bodies into the current body linked list as in CALL symba_setup
-               ! reorder bodies (if that is not already going to happen..check the discard subroutines
-
-               !DO SOMETHING WITH LFRAG_ADD
-                                        ! CHECK THIS 
-          !END IF
           ldiscard = .FALSE. 
           ldiscard_tp = .FALSE.
           CALL symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)                                  ! CHECK THIS 
@@ -200,7 +185,6 @@ PROGRAM swiftest_symba_omp
                nsppl = 0
                nsptp = 0
                CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-               !WRITE(egyiu,300) t, ke, pe, te, htot
                END IF 
           END IF
           IF (istep_out > 0) THEN
@@ -214,7 +198,6 @@ PROGRAM swiftest_symba_omp
                          IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat= "APPEND")
                     END IF 
                   CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-                  !WRITE(egyiu,300) t, ke, pe, te, htot
                END IF
           END IF
           IF (istep_dump > 0) THEN
@@ -275,8 +258,6 @@ PROGRAM swiftest_symba_omp
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
 
      CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-     !WRITE(egyiu,300) t, ke, pe, te, htot
-     !CLOSE(egyiu)
 
      CALL symba_pl_deallocate(symba_plA)
      CALL symba_merger_deallocate(mergeadd_list)

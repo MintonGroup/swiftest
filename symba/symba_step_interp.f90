@@ -60,7 +60,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,   &
      eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,          &
-     encounter_file, out_type)
+     encounter_file, out_type, swiftest_plA, swiftest_tpA)
 
 ! Modules
      USE module_parameters
@@ -82,6 +82,8 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+     TYPE(swiftest_pl), INTENT(INOUT)                 :: swiftest_plA
+     TYPE(swiftest_tp), INTENT(INOUT)                 :: swiftest_tpA
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
@@ -122,7 +124,8 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      irec = 0
 
      CALL symba_step_recur(lclose, t, irec, npl, nplm, ntp, symba_plA, symba_tpA, dt, eoffset, nplplenc, npltpenc,              &
-          plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
+          plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type, &
+          swiftest_plA, swiftest_tpA)
      IF (ntp > 0) THEN
           DO i = 2, npl
                xend(:, i) = symba_plA%helio%swiftest%xh(:,i)
