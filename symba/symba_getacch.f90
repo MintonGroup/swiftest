@@ -64,6 +64,10 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      DO i = 2, npl
           symba_plA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
+
+!$omp parallel do default(none) schedule(dynamic) &
+!$omp shared (nplm, npl, symba_plA) &
+!$omp private (i, j, dx, rji2, irij3, faci, facj)
      DO i = 2, nplm
           DO j = i + 1, npl
                IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
@@ -78,6 +82,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                END IF
           END DO
      END DO
+!$omp end parallel do
 
      DO i = 1, nplplenc
           index_i = plplenc_list%index1(i)
