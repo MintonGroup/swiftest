@@ -34,15 +34,6 @@ MODULE module_symba
      REAL(DP), PARAMETER     :: RHSCALE = 6.5_DP
      REAL(DP), PARAMETER     :: RSHELL = 0.48075_DP
 
-     ! Added by D. Minton
-     !TYPE symba_ptr_arr
-     !   TYPE(symba_pl), POINTER :: thisP   ! pointer to current SyMBA planet
-     !END TYPE symba_ptr_arr
-
-     !TYPE symba_ptr_arr_tp
-     !   TYPE(symba_tp), POINTER :: thisP   ! pointer to current SyMBA planet
-     !END TYPE symba_ptr_arr_tp
-     !^^^^^^^^^^^^^^^^^^^
      type symba_pl
           logical(LGT), dimension(:),     allocatable :: lmerged ! flag indicating whether body has merged with another this time step
           integer(I4B), dimension(:),     allocatable :: nplenc  ! number of encounters with other planets this time step
@@ -69,26 +60,18 @@ MODULE module_symba
           logical(LGT), dimension(:),     allocatable :: lvdotr ! relative vdotr flag
           integer(I4B), dimension(:),     allocatable :: status ! status of the interaction
           integer(I4B), dimension(:),     allocatable :: level  ! encounter recursion level
-          !TODO: Pointer or arrays?
           integer(I4B), dimension(:),     allocatable :: index1     ! position of the first planet in encounter
           integer(I4B), dimension(:),     allocatable :: index2     ! position of the second planet in encounter
           integer(I4B), dimension(:),     allocatable :: enc_child   ! the child of the encounter
           integer(I4B), dimension(:),     allocatable :: enc_parent   ! the child of the encounter
-
-          !type(symba_pl), POINTER :: pl1P   ! pointer to first planet in encounter
-          !type(symba_pl), POINTER :: pl2P   ! pointer to second planet in encounter
      end type symba_plplenc
 
      type symba_pltpenc
           logical(LGT), dimension(:),     allocatable :: lvdotr ! relative vdotr flag
           integer(I4B), dimension(:),     allocatable :: status ! status of the interaction
           integer(I4B), dimension(:),     allocatable :: level  ! encounter recursion level
-          !TODO: Pointer or arrays?
           integer(I4B), dimension(:),     allocatable :: indexpl    ! position of the planet in encounter
           integer(I4B), dimension(:),     allocatable :: indextp    ! position of the test particle in encounter
-
-          !type(symba_pl), POINTER :: plP    ! pointer to planet in encounter
-          !type(symba_tp), POINTER :: tpP    ! pointer to test particle in encounter
      end type symba_pltpenc
 
      type symba_merger
