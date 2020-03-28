@@ -46,17 +46,31 @@ SUBROUTINE util_dist_eucl_plpl(npl, invar, l, ik, jk, outvar)
      REAL(DP), DIMENSION(NDIM,l),INTENT(INOUT) :: outvar
 
 ! Internals
-     INTEGER(I4B)              :: i
+     INTEGER(I4B)              :: i, j, k, kp, p, n, count
      
 ! Executable code
 
-!$omp parallel do schedule(static) default(none) &
-!$omp shared (outvar, invar, jk, ik, l) &
-!$omp private(i)
-     do i = 1,l
-          outvar(:,i) = invar(:,jk(i)) - invar(:,ik(i))
+! !$omp parallel do schedule(static) default(none) &
+! !$omp shared (outvar, invar, l, ik, jk) &
+! !$omp private(k)
+!      do k = 1,l
+!           ! kp = n * (n - 1) / 2 - k
+!           ! p = floor((sqrt(1. + 8. * kp) - 1.) / 2.)
+!           ! i = k - (n - 1) * (n - 2) / 2 + p * (p + 1) / 2 + 2
+!           ! j = n - p 
+!           ! outvar(:,k) = invar(:,j) - invar(:,i)
+
+!           outvar(:,k) = invar(:,jk(k)) - invar(:,ik(k))
+!      enddo
+! !$omp end parallel do
+
+!$omp parallel do default(none) schedule(dynamic) &
+!$omp shared (outvar, invar, npl) &
+!$omp private (i, count)
+     do i = 2,npl
+          count = (i - 2) * npl - i*(i-1)/2 + 2
+          outvar(:,count:count+(npl-(i+1))) = invar(:,i+1:npl) - invar(:,i)
      enddo
-!$omp end parallel do
 
      RETURN
 
