@@ -34,7 +34,8 @@
 !                Accelerations in an encounter are not included here
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
+SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
+     num_plpl_comparisons, ik_plpl, jk_plpl)
 
 ! Modules
      USE module_parameters
@@ -46,18 +47,22 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 
 ! Arguments
      LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-     INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
+     INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc, num_plpl_comparisons
      REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
      TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
      TYPE(symba_plplenc), INTENT(INOUT)            :: plplenc_list
+     INTEGER(I4B), DIMENSION(num_plpl_comparisons),INTENT(IN) :: ik_plpl, jk_plpl
+
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i, j, index_i, index_j
+     INTEGER(I4B)                                 :: i, j, index_i, index_j, k
      REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac
      REAL(DP), DIMENSION(NDIM)                    :: dx
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
+     REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array
+
 
 ! Executable code
 

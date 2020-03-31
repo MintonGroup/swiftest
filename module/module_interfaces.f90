@@ -1045,17 +1045,18 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
-               plplenc_list)
+               plplenc_list, num_plpl_comparisons, ik_plpl, jk_plpl)
                USE module_parameters
                USE module_swiftest
                USE module_helio
                USE module_symba
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
+               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc, num_plpl_comparisons
                REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
                TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
                TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
+               INTEGER(I4B), DIMENSION(num_plpl_comparisons),INTENT(IN) :: ik_plpl, jk_plpl
           END SUBROUTINE symba_getacch
      END INTERFACE
 
