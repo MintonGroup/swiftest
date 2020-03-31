@@ -92,7 +92,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
 ! Internals
      LOGICAL(LGT)              :: lencounter, lvdotr
-     INTEGER(I4B)              :: i, j, irec, nplm, k
+     INTEGER(I4B)              :: i, j, irec, nplm, k, counter
      INTEGER(I4B), DIMENSION(NPL) :: nplenc_local
      INTEGER(I4B), ALLOCATABLE :: plpl_encounters_indices(:)
      REAL(DP), DIMENSION(NDIM) :: xr, vr
@@ -141,7 +141,14 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      nplplenc = count(plpl_encounters > 0)
      if(nplplenc>0)then
           allocate(plpl_encounters_indices(nplplenc))
-          plpl_encounters_indices = pack(plpl_encounters,plpl_encounters > 0)
+          ! plpl_encounters_indices = pack(plpl_encounters,plpl_encounters > 0)
+          counter = 1
+          do k = 1,num_plpl_comparisons
+               if(plpl_encounters(k).gt.0)then
+                    plpl_encounters_indices(counter) = k
+                    counter = counter + 1
+               endif
+          enddo
 
           symba_plA%lmerged(ik_plpl(plpl_encounters_indices)) = .FALSE. ! they have not merged YET
           symba_plA%nplenc(ik_plpl(plpl_encounters_indices)) = symba_plA%nplenc(ik_plpl(plpl_encounters_indices)) + 1 ! number of particles that planet "i" has close encountered
