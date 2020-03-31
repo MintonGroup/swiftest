@@ -60,7 +60,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,   &
      eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,          &
-     encounter_file, out_type)
+     encounter_file, out_type, num_plpl_comparisons, ik_plpl, jk_plpl)
 
 ! Modules
      USE module_parameters
@@ -82,6 +82,10 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+     INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
+     INTEGER(I4B), DIMENSION(num_plpl_comparisons),INTENT(IN) :: ik_plpl, jk_plpl ! relates the linear index to the i,j matrix indices for planet-planet collisions
+
+
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
