@@ -142,6 +142,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      if(nplplenc>0)then
           allocate(plpl_encounters_indices(nplplenc))
           ! plpl_encounters_indices = pack(plpl_encounters,plpl_encounters > 0)
+          ! so it turns out this is significantly faster than the pack command
           counter = 1
           do k = 1,num_plpl_comparisons
                if(plpl_encounters(k).gt.0)then
