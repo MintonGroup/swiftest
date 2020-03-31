@@ -70,24 +70,56 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
           symba_plA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      END DO
 
-!$omp parallel do default(none) schedule(dynamic) &
-!$omp shared (nplm, npl, symba_plA) &
-!$omp private (i, j, dx, rji2, irij3, faci, facj)
-     DO i = 2, nplm
-          DO j = i + 1, npl
-               IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
-                   (symba_plA%index_parent(i) /= symba_plA%index_parent(j))) THEN
-                    dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
-                    rji2 = DOT_PRODUCT(dx(:), dx(:))
-                    irij3 = 1.0_DP/(rji2*SQRT(rji2))
-                    faci = symba_plA%helio%swiftest%mass(i)*irij3
-                    facj = symba_plA%helio%swiftest%mass(j)*irij3
-                    symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
-                    symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
-               END IF
-          END DO
+! to do, remember this later
+! pass through all of our ik and jk and num_comparisons
+! call util_dist_eucl_plpl
+! caution that not all comparisons are actually checked
+! it may be faster to just disregard them after the fact
+! then repeat what we did in symba_step
+! will take a lot of work
+     
+     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array) ! does not care about mtiny
+!$omp parallel do default(none) schedule(static) &
+!$omp shared (num_plpl_comparisons, dist_plpl_array, ik_plpl, jk_plpl, symba_plA) &
+!$omp private (i, j, k, rji2, irij3, faci, facj)
+     DO k = 1, num_plpl_comparisons
+          i = ik_plpl(k)
+          j = jk_plpl(k)
+          IF ((.NOT. symba_plA%lmerged(i) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
+               (symba_plA%index_parent(i) /= symba_plA%index_parent(j)))) THEN
+
+               rji2 = DOT_PRODUCT(dist_plpl_array(:,k), dist_plpl_array(:,k))
+               irij3 = 1.0_DP/(rji2*SQRT(rji2))
+               faci = symba_plA%helio%swiftest%mass(i)*irij3
+               facj = symba_plA%helio%swiftest%mass(j)*irij3
+               symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dist_plpl_array(:,k)
+               symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dist_plpl_array(:,k)
+
+          ENDIF
      END DO
 !$omp end parallel do
+
+
+! !$omp parallel do default(none) schedule(dynamic) &
+! !$omp shared (nplm, npl, symba_plA) &
+! !$omp private (i, j, dx, rji2, irij3, faci, facj)
+!      DO i = 2, nplm
+!           DO j = i + 1, npl
+!                IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
+!                    (symba_plA%index_parent(i) /= symba_plA%index_parent(j))) THEN
+!                     dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
+!                     rji2 = DOT_PRODUCT(dx(:), dx(:))
+!                     irij3 = 1.0_DP/(rji2*SQRT(rji2))
+!                     faci = symba_plA%helio%swiftest%mass(i)*irij3
+!                     facj = symba_plA%helio%swiftest%mass(j)*irij3
+!                     symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
+!                     symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
+!                END IF
+!           END DO
+!      END DO
+! !$omp end parallel do
+
+
 
      DO i = 1, nplplenc
           index_i = plplenc_list%index1(i)
