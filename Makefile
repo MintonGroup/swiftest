@@ -59,11 +59,11 @@ include Makefile.Defines
 
 MODULES         = $(SWIFTER_MODULES) $(USER_MODULES)
 
-.PHONY : all mod lib libdir fxdr collresolve drivers tools bin clean force 
+.PHONY : all mod lib libdir fxdr drivers tools bin clean force 
 
 % : %.f90 force
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include $< -o $@ \
-	  -L$(SWIFTER_HOME)/lib -lswifter -lfxdr -lcollresolve
+	  -L$(SWIFTER_HOME)/lib -lswifter -lfxdr
 	$(INSTALL_PROGRAM) $@ $(SWIFTER_HOME)/bin
 	rm -f $@
 
@@ -72,7 +72,6 @@ all:
 	  make mod; \
 	  make lib; \
 	  make fxdr; \
-	  make collresolve; \
 	  make drivers; \
 	  make tools
 
@@ -153,14 +152,6 @@ fxdr:
 	  make -f Makefile.fxdr install; \
 	  make -f Makefile.fxdr clean
 
-collresolve:
-	cd $(COLLRESOLVE_HOME); \
-	  autoreconf --install;\
-	  ./configure --prefix=$(SWIFTER_HOME);\
-	  make; \
-	  make install
-
-
 drivers:
 	cd $(SWIFTER_HOME)/main; \
 	  rm -f Makefile.Defines Makefile; \
@@ -196,7 +187,7 @@ clean:
 	cd $(SWIFTER_HOME)/bin;     rm -f swifter_*
 	cd $(SWIFTER_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTER_HOME)/lib;     rm -f lib*
-	cd $(SWIFTER_HOME)/include; rm -f *.mod fxdr.inc collresolve.h
+	cd $(SWIFTER_HOME)/include; rm -f *.mod fxdr.inc
 	cd $(COLLRESOLVE_HOME); rm -rf autom4te.cache aux Makefile stamp-h1 configure config.status config.h config.log aclocal.m4 lib* *.in *.o *.lo cambioni2019/*.o cambioni2019/*.lo
 
 
