@@ -66,10 +66,8 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 
 ! Executable code
 
-     DO i = 2, npl
-          symba_plA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     END DO
-
+     symba_plA%helio%ah(:,2:npl) = 0.0_DP
+     
 ! to do, remember this later
 ! pass through all of our ik and jk and num_comparisons
 ! call util_dist_eucl_plpl
