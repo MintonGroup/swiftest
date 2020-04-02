@@ -82,6 +82,7 @@ SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, hto
           END DO
      END DO
 !$omp end parallel do
+     i = npl ! needed to account for the parllelization above
      x(:) = swiftest_plA%xb(:,i)
      v(:) = swiftest_plA%vb(:,i)
      mass = swiftest_plA%mass(i)
