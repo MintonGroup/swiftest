@@ -56,9 +56,10 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i, j, index_i, index_j, k
+     INTEGER(I4B)                                 :: i, j, index_i, index_j, k, counter
      REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac
      REAL(DP), DIMENSION(NDIM)                    :: dx
+     REAL(DP), DIMENSION(NDIM, npl)               :: ah
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
      REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array
@@ -67,12 +68,15 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 ! Executable code
 
      symba_plA%helio%ah(:,2:npl) = 0.0_DP
+     ah(:,2:npl) = 0.0_DP
+
      
      CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array) ! does not care about mtiny
 
 !$omp parallel do default(none) schedule(static) &
 !$omp shared (num_plpl_comparisons, dist_plpl_array, ik_plpl, jk_plpl, symba_plA) &
-!$omp private (i, j, k, dx, rji2, irij3, faci, facj)
+!$omp private (i, j, k, dx, rji2, irij3, faci, facj) &
+!$omp reduction(+:ah)
      DO k = 1, num_plpl_comparisons
           i = ik_plpl(k)
           j = jk_plpl(k)
@@ -85,14 +89,36 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                irij3 = 1.0_DP/(rji2*SQRT(rji2))
                faci = symba_plA%helio%swiftest%mass(i)*irij3
                facj = symba_plA%helio%swiftest%mass(j)*irij3
-               symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
-               symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
+               ah(:,i) = ah(:,i) + facj*dx(:)
+               ah(:,j) = ah(:,j) - faci*dx(:)
 
           ENDIF
      END DO
 !$omp end parallel do
 
+     symba_plA%helio%ah(:,2:npl) = ah(:,2:npl)
+     ! counter = 0
+     ! DO i = 2, npl
+     !      symba_plA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+     ! END DO
+     ! DO i = 2, nplm
+     !      DO j = i + 1, npl
+     !           IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
+     !               (symba_plA%index_parent(i) /= symba_plA%index_parent(j))) THEN
+     !                counter = counter + 1
+     !                dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
+     !                rji2 = DOT_PRODUCT(dx(:), dx(:))
+     !                irij3 = 1.0_DP/(rji2*SQRT(rji2))
+     !                faci = symba_plA%helio%swiftest%mass(i)*irij3
+     !                facj = symba_plA%helio%swiftest%mass(j)*irij3
+     !                symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
+     !                symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
+     !           END IF
+     !      END DO
+     ! END DO
 
+     ! print *,counter
+     ! stop
 ! !$omp parallel do default(none) schedule(dynamic) &
 ! !$omp shared (nplm, npl, symba_plA) &
 ! !$omp private (i, j, dx, rji2, irij3, faci, facj)
