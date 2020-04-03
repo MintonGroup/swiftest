@@ -263,7 +263,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                                             &
                              (symba_plA%levelg(index_pl) >= ireci) .AND.                                                          &
                              (symba_tpA%levelg(index_tp) >= ireci))                                                               &
-                              CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type)                !check that later
+                              CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type, &
+                                   symba_plA, symba_tpA)                !check that later
                     END DO
                END IF
                DO i = 1, nplplenc

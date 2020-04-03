@@ -1170,7 +1170,7 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type)
+          SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)
                USE module_parameters
                USE module_swifter
                USE module_helio
@@ -1181,6 +1181,8 @@ MODULE module_interfaces
                REAL(DP), DIMENSION(NDIM), INTENT(IN)  :: vbs
                CHARACTER(*), INTENT(IN)               :: encounter_file, out_type
                TYPE(symba_pltpenc), INTENT(INOUT)     :: pltpenc_list
+               TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+               TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
           END SUBROUTINE symba_merge_tp
      END INTERFACE
 
