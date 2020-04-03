@@ -25,7 +25,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
+SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, ik_plpl, jk_plpl)
 
 ! Modules
      USE module_parameters
@@ -34,18 +34,20 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
      IMPLICIT NONE
 
 ! Arguments
+     REAL(DP), DIMENSION(npl), INTENT(IN) :: mass
      INTEGER(I4B), INTENT(IN)  :: npl
+     REAL (DP), INTENT(IN) :: mtiny
      INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik_plpl, jk_plpl
      INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,j,k,count,m
+     INTEGER(I4B)              :: i,j,k,counter,m, nplm
      ! INTEGER(I4B), DIMENSION(:), ALLOCATABLE :: k
 
 ! Executable code
-     num_comparisons = (npl - 1) * (npl - 2) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column
-     m = ceiling(sqrt(2. * num_comparisons))
-     
+     nplm = count(mass>mtiny)
+
+     num_comparisons = ((npl - 1) * (npl - 2) / 2) - ( (npl-nplm-1) * ((npl-nplm-1)+1)/2 )! number of entries in a strict lower triangle, npl x npl, minus first column
      allocate(ik_plpl(num_comparisons))
      allocate(jk_plpl(num_comparisons))
 
@@ -55,6 +57,7 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
      ! don't forget to uncomment the 'k' declaration up top!
      ! allocate(k(num_comparisons))
 
+     ! m = ceiling(sqrt(2. * num_comparisons))
 
      ! k = (/(i, i=1,num_comparisons, 1)/)
 
@@ -65,12 +68,13 @@ SUBROUTINE util_dist_index_plpl(npl, num_comparisons, ik_plpl, jk_plpl)
 
 !$omp parallel do default(none) schedule(dynamic) &
 !$omp shared (ik_plpl, jk_plpl, npl) &
-!$omp private (i, j, count)
-     do i = 2,npl
-          count = (i - 2) * npl - i*(i-1)/2 + 2
-          ik_plpl(count:count+(npl-(i+1))) = i
-          jk_plpl(count:count+(npl-(i+1))) = (/(j, j=i+1,npl, 1)/)
+!$omp private (i, j, counter)
+     do i = 2,nplm
+          counter = (i - 2) * npl - i*(i-1)/2 + 2
+          ik_plpl(counter:counter+(npl-(i+1))) = i
+          jk_plpl(counter:counter+(npl-(i+1))) = (/(j, j=i+1,npl, 1)/)
      enddo
+!$omp end parallel do
 
      RETURN
 
