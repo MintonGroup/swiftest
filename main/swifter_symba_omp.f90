@@ -73,7 +73,7 @@ PROGRAM swiftest_symba_omp
 ! Internals
      LOGICAL(LGT)                                               :: lfirst, lfrag_add
      INTEGER(I4B)                                               :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
-     INTEGER(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub
+     INTEGER(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                                  :: htot
      CHARACTER(STRMAX)                                          :: inparfile
@@ -140,6 +140,7 @@ PROGRAM swiftest_symba_omp
      nsppl = 0
      nsptp = 0
      eoffset = 0.0_DP
+     fragmax = 0 
      IF (istep_out > 0) THEN
           CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, &
           out_type, out_form, out_stat)
