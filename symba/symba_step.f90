@@ -63,7 +63,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,        &
      nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,          &
-     encounter_file, out_type, swiftest_plA, swiftest_tpA)
+     encounter_file, out_type, swiftest_plA, swiftest_tpA, fragmax)
 
 ! Modules
      USE module_parameters
@@ -77,7 +77,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      LOGICAL(LGT), INTENT(IN)                         :: lextra_force, lclose
      LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
      INTEGER(I4B), INTENT(IN)                         :: npl, nplmax, ntp, ntpmax
-     INTEGER(I4B), INTENT(INOUT)                      :: nplplenc, npltpenc, nmergeadd, nmergesub
+     INTEGER(I4B), INTENT(INOUT)                      :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
      REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
@@ -190,7 +190,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      IF (lencounter) THEN
           CALL symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,   &
                dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,           &
-               mergesub_list, encounter_file, out_type, swiftest_plA, swiftest_tpA)
+               mergesub_list, encounter_file, out_type, swiftest_plA, swiftest_tpA, fragmax)
           lfirst = .TRUE.
      ELSE
           CALL symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA%helio, symba_tpA%helio, &

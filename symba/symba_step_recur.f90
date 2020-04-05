@@ -55,7 +55,7 @@
 !**********************************************************************************************************************************
 RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, npltpenc, &
      plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type, swiftest_plA, &
-     swiftest_tpA)
+     swiftest_tpA, nplmax, ntpmax, fragmax)
 
 ! Modules
      USE module_parameters
@@ -67,7 +67,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
 
 ! Arguments
      LOGICAL(LGT), INTENT(IN)                         :: lclose
-     INTEGER(I4B), INTENT(INOUT)                      :: ireci, npl, nplm, ntp, nplplenc, npltpenc
+     INTEGER(I4B), INTENT(INOUT)                      :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
      INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                             :: t, dt0
      REAL(DP), INTENT(INOUT)                          :: eoffset
@@ -162,7 +162,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          IF (lfragmentation) THEN
                             CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, & 
                               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, &
-                              nplplenc, npltpenc, pltpenc_list, plplenc_list, swiftest_plA, swiftest_tpA)
+                              nplplenc, npltpenc, pltpenc_list, plplenc_list, swiftest_plA, swiftest_tpA, nplmax, ntpmax, &
+                              fragmax)
                          ELSE
                             CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, & 
                               mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
@@ -258,7 +259,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                               IF (lfragmentation) THEN
                                    CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, & 
                                         mergesub_list, eoffset, vbs, encounter_file, out_type, npl, ntp, &
-                                        symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+                                        symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, swiftest_plA, &
+                                        swiftest_tpA, nplmax, ntpmax, fragmax)
                               ELSE
                                    CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, & 
                                         mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)

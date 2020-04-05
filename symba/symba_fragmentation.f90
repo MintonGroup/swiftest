@@ -34,7 +34,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
      encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-     swiftest_plA, swiftest_tpA)
+     swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax)
 
 ! Modules
      USE module_parameters
@@ -45,8 +45,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -131,7 +131,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           WRITE(*,*) "COLLISION REGIME = ", regime 
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, &
-               nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, swiftest_plA, swiftest_tpA)
+               nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, swiftest_plA, swiftest_tpA, &
+               nplmax, ntpmax, fragmax)
 
      END IF 
      RETURN
