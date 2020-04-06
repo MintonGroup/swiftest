@@ -171,52 +171,80 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           deallocate(plpl_encounters_indices)
      endif
 
-     if(ntp>0)then
-          CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
-               ik_pltp, jk_pltp, dist_pltp_array)
-          CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, &
-               ik_pltp, jk_pltp, vel_pltp_array)
+!      if(ntp>0)then
+!           CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
+!                ik_pltp, jk_pltp, dist_pltp_array)
+!           CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, &
+!                ik_pltp, jk_pltp, vel_pltp_array)
 
-!$omp parallel do
+! !$omp parallel do
 
-          DO i = 1,(npl-1)*ntp
-               CALL symba_chk(dist_pltp_array(:,i), vel_pltp_array(:,i), &
-                    symba_plA%helio%swiftest%rhill(ik_pltp(i)), 0.0_DP, dt, irec, lencounter, lvdotr)
+!           DO i = 1,(npl-1)*ntp
+!                CALL symba_chk(dist_pltp_array(:,i), vel_pltp_array(:,i), &
+!                     symba_plA%helio%swiftest%rhill(ik_pltp(i)), 0.0_DP, dt, irec, lencounter, lvdotr)
+!                IF (lencounter) THEN
+!                     ! for the planet
+!                     symba_plA%ntpenc(ik_pltp(i)) = symba_plA%ntpenc(ik_pltp(i)) + 1
+!                     symba_plA%levelg(ik_pltp(i)) = irec
+!                     symba_plA%levelm(ik_pltp(i)) = irec
+!                     ! for the test particle
+!                     symba_tpA%nplenc(jk_pltp(i)) = symba_tpA%nplenc(jk_pltp(i)) + 1
+!                     symba_tpA%levelg(jk_pltp(i)) = irec
+!                     symba_tpA%levelm(jk_pltp(i)) = irec
+!                     pltp_encounters(i) = .TRUE.
+!                END IF
+!           ENDDO
+
+! !$omp end parallel do
+
+!           if(any(pltp_encounters))then
+!                do i = 1,(npl-1)*ntp
+!                     if(pltp_encounters(i))then
+
+!                          npltpenc = npltpenc + 1 ! increment number of planet-test particle interactions
+!                          IF (npltpenc > NENMAX) THEN
+!                               WRITE(*, *) "SWIFTER Error:"
+!                               WRITE(*, *) "   PL-TP encounter list is full."
+!                               WRITE(*, *) "   STOPPING..."
+!                               CALL util_exit(FAILURE)
+!                          END IF
+!                          pltpenc_list%status(npltpenc) = ACTIVE
+!                          pltpenc_list%lvdotr(npltpenc) = lvdotr
+!                          pltpenc_list%level(npltpenc) = irec
+!                          pltpenc_list%indexpl(npltpenc) = ik_pltp(i)
+!                          pltpenc_list%indextp(npltpenc) = jk_pltp(i)
+!                     endif
+!                enddo
+!           endif
+!      endif
+     
+     DO i = 2, npl
+      DO j = 1, ntp
+               xr(:) = symba_tpA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
+               vr(:) = symba_tpA%helio%swiftest%vh(:,j) - symba_plA%helio%swiftest%vh(:,i)
+               CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(i), 0.0_DP, dt, irec, lencounter, lvdotr)
                IF (lencounter) THEN
-                    ! for the planet
-                    symba_plA%ntpenc(ik_pltp(i)) = symba_plA%ntpenc(ik_pltp(i)) + 1
-                    symba_plA%levelg(ik_pltp(i)) = irec
-                    symba_plA%levelm(ik_pltp(i)) = irec
-                    ! for the test particle
-                    symba_tpA%nplenc(jk_pltp(i)) = symba_tpA%nplenc(jk_pltp(i)) + 1
-                    symba_tpA%levelg(jk_pltp(i)) = irec
-                    symba_tpA%levelm(jk_pltp(i)) = irec
-                    pltp_encounters(i) = .TRUE.
+                    npltpenc = npltpenc + 1
+                    symba_plA%ntpenc(i) = symba_plA%ntpenc(i) + 1
+                    symba_plA%levelg(i) = irec
+                    symba_plA%levelm(i) = irec
+                    symba_tpA%nplenc(j) = symba_tpA%nplenc(j) + 1
+                    symba_tpA%levelg(j) = irec
+                    symba_tpA%levelm(j) = irec
+                    IF (npltpenc > NENMAX) THEN
+                         WRITE(*, *) "SWIFTER Error:"
+                         WRITE(*, *) "   PL-TP encounter list is full."
+                         WRITE(*, *) "   STOPPING..."
+                         CALL util_exit(FAILURE)
+                    END IF
+                    pltpenc_list%status(npltpenc) = ACTIVE
+                    pltpenc_list%lvdotr(npltpenc) = lvdotr
+                    pltpenc_list%level(npltpenc) = irec
+                    pltpenc_list%indexpl(npltpenc) = i
+                    pltpenc_list%indextp(npltpenc) = j
                END IF
-          ENDDO
-
-!$omp end parallel do
-
-          if(any(pltp_encounters))then
-               do i = 1,(npl-1)*ntp
-                    if(pltp_encounters(i))then
-
-                         npltpenc = npltpenc + 1 ! increment number of planet-test particle interactions
-                         IF (npltpenc > NENMAX) THEN
-                              WRITE(*, *) "SWIFTER Error:"
-                              WRITE(*, *) "   PL-TP encounter list is full."
-                              WRITE(*, *) "   STOPPING..."
-                              CALL util_exit(FAILURE)
-                         END IF
-                         pltpenc_list%status(npltpenc) = ACTIVE
-                         pltpenc_list%lvdotr(npltpenc) = lvdotr
-                         pltpenc_list%level(npltpenc) = irec
-                         pltpenc_list%indexpl(npltpenc) = ik_pltp(i)
-                         pltpenc_list%indextp(npltpenc) = jk_pltp(i)
-                    endif
-               enddo
-          endif
-     endif
+          END DO
+     END DO
 
 ! END OF THINGS THAT NEED TO BE CHANGED IN THE TREE
 
