@@ -50,7 +50,7 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 #FFLAGS          = -O3 -qopenmp -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
 
 FORTRAN         = gfortran
-FFLAGS          = -O3 
+FFLAGS          = -O3 -fopenmp -g3 -fbacktrace -fbounds-check -fcheck=all
 
 #DEBUG ONLY 
 #FFLAGS		= -O0 -fcheck=all -fbounds-check -fbacktrace -Wall -Warray-bounds -Warray-temporaries -Wimplicit-interface -g3
