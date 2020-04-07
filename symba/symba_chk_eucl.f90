@@ -68,7 +68,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
           IF (vdotr < 0.0_DP) lvdotr(k) = k
 
           IF (r2 < r2crit) THEN
-               lencounter(k) = 
+               lencounter(k) = k
           ELSE
                IF (vdotr < 0.0_DP) THEN
                     v2 = DOT_PRODUCT(vr(k,:), vr(k,:))
