@@ -43,7 +43,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
      INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr, irec
      INTEGER(I4B), INTENT(IN)           :: num_encounters
      INTEGER(I4B), DIMENSION(num_encounters,2), INTENT(IN)     :: k_plpl
-     REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill1
+     REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
      REAL(DP), INTENT(IN)               :: dt
      REAL(DP), DIMENSION(num_encounters,NDIM), INTENT(IN) :: xr, vr
 
