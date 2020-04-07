@@ -10,13 +10,14 @@
 !
 !  Input
 !    Arguments : npl          : number of planets
+!              : mass         : array of planet masses
+!              : mtiny        : value of mtiny (we do not compare semi interacting particles with themselves)
 !    Terminal  : none
 !    File      : none
 !
 !  Output
 !    Arguments : num_comparisons     : length of the distance array
-!              : ik_plpl           : i index to convert linear indices to matrix indices
-!              : jk_plpl           : j index to convert linear indices to matrix indices
+!              : k_plpl              : matrix of index conversions (linear index to i, j indices)
 !    Terminal  : none
 !    File      : none
 !
@@ -25,7 +26,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, ik_plpl, jk_plpl)
+SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, k_plpl)
 
 ! Modules
      USE module_parameters
@@ -37,19 +38,17 @@ SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, ik_plpl, jk_p
      REAL(DP), DIMENSION(npl), INTENT(IN) :: mass
      INTEGER(I4B), INTENT(IN)  :: npl
      REAL (DP), INTENT(IN) :: mtiny
-     INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik_plpl, jk_plpl
+     INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_plpl
      INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,j,k,counter,m, nplm
-     ! INTEGER(I4B), DIMENSION(:), ALLOCATABLE :: k
+     INTEGER(I4B)              :: i,j,counter,nplm
 
 ! Executable code
      nplm = count(mass>mtiny)
 
      num_comparisons = ((npl - 1) * (npl - 2) / 2) - ( (npl-nplm-1) * ((npl-nplm-1)+1)/2 )! number of entries in a strict lower triangle, npl x npl, minus first column
-     allocate(ik_plpl(num_comparisons))
-     allocate(jk_plpl(num_comparisons))
+     allocate(k_plpl(num_comparisons,2))
 
      ! this is a 'fancier' code, but so far i think it runs slower
      ! so leaving it in, but commenting it out
@@ -67,12 +66,12 @@ SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, ik_plpl, jk_p
      ! brute force the index creation
 
 !$omp parallel do default(none) schedule(dynamic) &
-!$omp shared (ik_plpl, jk_plpl, npl) &
+!$omp shared (k_plpl, npl) &
 !$omp private (i, j, counter)
      do i = 2,nplm
           counter = (i - 2) * npl - i*(i-1)/2 + 2
-          ik_plpl(counter:counter+(npl-(i+1))) = i
-          jk_plpl(counter:counter+(npl-(i+1))) = (/(j, j=i+1,npl, 1)/)
+          k_plpl(counter:counter+(npl-(i+1)),1) = i
+          k_plpl(counter:counter+(npl-(i+1)),2) = (/(j, j=i+1,npl, 1)/)
      enddo
 !$omp end parallel do
 
