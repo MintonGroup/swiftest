@@ -90,7 +90,8 @@ PROGRAM swiftest_symba_omp
      REAL(DP), DIMENSION(:,:), allocatable                       :: discard_tpA
      INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_plA_id_status
      INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_tpA_id_status
-     INTEGER(I4B), DIMENSION(:),ALLOCATABLE :: ik, jk, ik_pltp, jk_pltp
+     INTEGER(I4B), DIMENSION(:),ALLOCATABLE :: ik_pltp, jk_pltp
+     INTEGER(I4B), DIMENSION(:,:), ALLOCATABLE :: k_plpl
      INTEGER(I4B) :: l
      REAL(DP) :: start, finish
 
@@ -155,13 +156,13 @@ PROGRAM swiftest_symba_omp
           out_type, out_form, out_stat)
      END IF
      start = omp_get_wtime()
-     CALL util_dist_index_plpl(npl, symba_plA%helio%swiftest%mass, mtiny, l, ik, jk)
+     CALL util_dist_index_plpl(npl, symba_plA%helio%swiftest%mass, mtiny, l, k_plpl)
      CALL util_dist_index_pltp(npl, ntp, ik_pltp, jk_pltp)
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
                j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-               eoffset, mtiny, encounter_file, out_type, l, ik, jk, ik_pltp, jk_pltp)
+               eoffset, mtiny, encounter_file, out_type, l, ik, jk, k_plpl, ik_pltp, jk_pltp)
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
@@ -191,9 +192,8 @@ PROGRAM swiftest_symba_omp
                CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA,discard_plA, &
                     discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
                     discard_tpA_id_status)
-               DEALLOCATE(ik)
-               DEALLOCATE(jk)
-               CALL util_dist_index_plpl(npl, symba_plA%helio%swiftest%mass, mtiny, l, ik, jk)
+               DEALLOCATE(k_plpl)
+               CALL util_dist_index_plpl(npl, symba_plA%helio%swiftest%mass, mtiny, l, k_plpl)
                DEALLOCATE(ik_pltp)
                DEALLOCATE(jk_pltp)
                CALL util_dist_index_pltp(npl, ntp, ik_pltp, jk_pltp)
