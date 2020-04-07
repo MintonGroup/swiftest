@@ -56,7 +56,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
 
 !$omp parallel do default(none) schedule(static) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
-!$omp shared(num_encounters, lvdotr, lencounter, rhill1, rhill2, irec, k_plpl, xr, vr, dt)
+!$omp shared(num_encounters, lvdotr, lencounter, rhill, irec, k_plpl, xr, vr, dt)
 
      do k = 1,num_encounters
           rcrit = (rhill(k_plpl(k,2)) + rhill(k_plpl(k,1)))*RHSCALE*(RSHELL**(irec(k))) 
