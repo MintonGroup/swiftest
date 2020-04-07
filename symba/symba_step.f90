@@ -122,11 +122,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
      nplplenc = 0 ! number of encounters in the entire run 
      npltpenc = 0
-     IF (symba_plA%helio%swiftest%mass(1) < mtiny) THEN
-          nplm = 0 ! number of planets > mtiny
-     ELSE
-          nplm = 1
-     END IF
+
      irec = 0 ! recursion counter, 0 since we're in the top loop
      plpl_irec = 0
 
