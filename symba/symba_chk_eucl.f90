@@ -42,36 +42,36 @@ SUBROUTINE symba_chk_eucl(num_encounters, ik, jk, xr, vr, rhill1, rhill2, dt, ir
 ! Arguments
      INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr, irec
      INTEGER(I4B), INTENT(IN)           :: num_encounters
-     INTEGER(I4B), DIMENSION(num_encounters), INTENT(IN)     :: ik, jk
+     INTEGER(I4B), DIMENSION(num_encounters,2), INTENT(IN)     :: k_plpl
      REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill1, rhill2
      REAL(DP), INTENT(IN)               :: dt
-     REAL(DP), DIMENSION(NDIM, num_encounters), INTENT(IN) :: xr, vr
+     REAL(DP), DIMENSION(num_encounters,NDIM), INTENT(IN) :: xr, vr
 
 ! Internals
      ! LOGICAL(LGT) :: iflag lvdotr_flag
      REAL(DP)     :: rcrit, r2crit, vdotr, r2, v2, tmin, r2min
-     INTEGER(I4B) :: l
+     INTEGER(I4B) :: k
 
 ! Executable code
 
 !$omp parallel do default(none) schedule(static) &
-!$omp private(l, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
+!$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
 !$omp shared(num_encounters, lvdotr, lencounter, rhill1, rhill2, irec, ik, jk, xr, vr, dt)
 
-     do l = 1,num_encounters
-          rcrit = (rhill1(ik(l)) + rhill2(jk(l)))*RHSCALE*(RSHELL**(irec(l))) 
+     do k = 1,num_encounters
+          rcrit = (rhill1(jk(k)) + rhill2(ik(k)))*RHSCALE*(RSHELL**(irec(k))) 
           r2crit = rcrit*rcrit 
 
-          r2 = DOT_PRODUCT(xr(:,l), xr(:,l)) 
-          vdotr = DOT_PRODUCT(vr(:,l), xr(:,l))
+          r2 = DOT_PRODUCT(xr(k,:), xr(k,:)) 
+          vdotr = DOT_PRODUCT(vr(k,:), xr(k,:))
 
-          IF (vdotr < 0.0_DP) lvdotr(l) = l
+          IF (vdotr < 0.0_DP) lvdotr(k) = k
 
           IF (r2 < r2crit) THEN
-               lencounter(l) = l
+               lencounter(k) = 
           ELSE
                IF (vdotr < 0.0_DP) THEN
-                    v2 = DOT_PRODUCT(vr(:,l), vr(:,l))
+                    v2 = DOT_PRODUCT(vr(k,:), vr(k,:))
                     tmin = -vdotr/v2
                     IF (tmin < dt) THEN
                          r2min = r2 - vdotr*vdotr/v2
@@ -79,7 +79,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, ik, jk, xr, vr, rhill1, rhill2, dt, ir
                          r2min = r2 + 2.0_DP*vdotr*dt + v2*dt*dt
                     END IF
                     r2min = MIN(r2min, r2)
-                    IF (r2min <= r2crit) lencounter(l) = l
+                    IF (r2min <= r2crit) lencounter(k) = k
                END IF
           END IF
      enddo
