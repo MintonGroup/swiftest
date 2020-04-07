@@ -134,7 +134,7 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
           END DO
      END IF
      CALL symba_getacch(lextra_force, t+dt, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
-          num_plpl_comparisons, ik_plpl, jk_plpl)
+          num_plpl_comparisons, k_plpl)
      IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t+dt, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xend, j2rp2,  &
           j4rp4, npltpenc, pltpenc_list)
      CALL helio_kickvb(npl, symba_plA%helio, dth)
