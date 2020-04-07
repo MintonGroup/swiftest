@@ -96,7 +96,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      INTEGER(I4B), DIMENSION(NPL) :: nplenc_local
      INTEGER(I4B), ALLOCATABLE :: plpl_encounters_indices(:)
      REAL(DP), DIMENSION(NDIM) :: xr, vr
-     REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
+     REAL(DP), DIMENSION(num_plpl_comparisons,NDIM) :: dist_plpl_array, vel_plpl_array
      REAL(DP), DIMENSION(NDIM,(npl-1)*ntp) :: dist_pltp_array, vel_pltp_array
      LOGICAL(LGT), dimension((npl-1)*ntp) :: pltp_encounters
      INTEGER(I4B), dimension(num_plpl_comparisons) :: plpl_irec, plpl_encounters, plpl_lvdotr
@@ -254,7 +254,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      IF (lencounter) THEN ! if there was an encounter, we need to enter symba_step_interp to see if we need recursion
           CALL symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,   &
                dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,           &
-               mergesub_list, encounter_file, out_type, num_plpl_comparisons, ik_plpl, jk_plpl)
+               mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl)
           lfirst = .TRUE.
      ELSE ! otherwise we can just advance the particles
           CALL symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA%helio, symba_tpA%helio, &
