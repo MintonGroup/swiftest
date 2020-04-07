@@ -29,7 +29,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_chk.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_chk_eucl(num_encounters, ik, jk, xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
 
 ! Modules
      USE module_parameters
@@ -56,10 +56,10 @@ SUBROUTINE symba_chk_eucl(num_encounters, ik, jk, xr, vr, rhill1, rhill2, dt, ir
 
 !$omp parallel do default(none) schedule(static) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
-!$omp shared(num_encounters, lvdotr, lencounter, rhill1, rhill2, irec, ik, jk, xr, vr, dt)
+!$omp shared(num_encounters, lvdotr, lencounter, rhill1, rhill2, irec, k_plpl, xr, vr, dt)
 
      do k = 1,num_encounters
-          rcrit = (rhill1(jk(k)) + rhill2(ik(k)))*RHSCALE*(RSHELL**(irec(k))) 
+          rcrit = (rhill1(k_plpl(k,2)) + rhill2(k_plpl(k,1)))*RHSCALE*(RSHELL**(irec(k))) 
           r2crit = rcrit*rcrit 
 
           r2 = DOT_PRODUCT(xr(k,:), xr(k,:)) 
