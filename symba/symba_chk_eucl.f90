@@ -29,7 +29,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_chk.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lencounter, lvdotr)
 
 ! Modules
      USE module_parameters
@@ -43,7 +43,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill1, rhill2, dt, ir
      INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr, irec
      INTEGER(I4B), INTENT(IN)           :: num_encounters
      INTEGER(I4B), DIMENSION(num_encounters,2), INTENT(IN)     :: k_plpl
-     REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill1, rhill2
+     REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill1
      REAL(DP), INTENT(IN)               :: dt
      REAL(DP), DIMENSION(num_encounters,NDIM), INTENT(IN) :: xr, vr
 
@@ -59,7 +59,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill1, rhill2, dt, ir
 !$omp shared(num_encounters, lvdotr, lencounter, rhill1, rhill2, irec, k_plpl, xr, vr, dt)
 
      do k = 1,num_encounters
-          rcrit = (rhill1(k_plpl(k,2)) + rhill2(k_plpl(k,1)))*RHSCALE*(RSHELL**(irec(k))) 
+          rcrit = (rhill(k_plpl(k,2)) + rhill(k_plpl(k,1)))*RHSCALE*(RSHELL**(irec(k))) 
           r2crit = rcrit*rcrit 
 
           r2 = DOT_PRODUCT(xr(k,:), xr(k,:)) 
