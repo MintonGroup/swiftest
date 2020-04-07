@@ -68,17 +68,16 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 ! Executable code
      symba_plA%helio%ah(:,2:npl) = 0.0_DP
      ah(:,2:npl) = 0.0_DP
-
      
      CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) ! does not care about mtiny
 
 !$omp parallel do default(none) schedule(static) &
-!$omp shared (num_plpl_comparisons, dist_plpl_array, ik_plpl, jk_plpl, symba_plA) &
+!$omp shared (num_plpl_comparisons, dist_plpl_array, k_plpl, symba_plA) &
 !$omp private (i, j, k, dx, rji2, irij3, faci, facj) &
 !$omp reduction(+:ah)
      DO k = 1, num_plpl_comparisons
-          i = ik_plpl(k)
-          j = jk_plpl(k)
+          i = k_plpl(k,1)
+          j = k_plpl(k,2)
           
           IF ((.NOT. symba_plA%lmerged(i) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
                (symba_plA%index_parent(i) /= symba_plA%index_parent(j)))) THEN
