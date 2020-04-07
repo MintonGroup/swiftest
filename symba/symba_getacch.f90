@@ -66,7 +66,6 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 
 
 ! Executable code
-     k_plpl = 0
      symba_plA%helio%ah(:,2:npl) = 0.0_DP
      ah(:,2:npl) = 0.0_DP
 
