@@ -1452,16 +1452,16 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE util_dist_eucl_plpl(npl, invar, l, ik, jk, outvar)
+          SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
                USE module_parameters
                USE module_swiftest
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl
-               INTEGER(I4B), DIMENSION(:),INTENT(IN) :: ik, jk
-               INTEGER(I4B), INTENT(IN) :: l
+               INTEGER(I4B), DIMENSION(num_comparisons,2),INTENT(IN) :: k_plpl
+               INTEGER(I4B), INTENT(IN) :: num_comparisons
                REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
-               REAL(DP), DIMENSION(NDIM,l),INTENT(INOUT) :: outvar
+               REAL(DP), DIMENSION(num_comparisons,NDIM),INTENT(INOUT) :: outvar
           END SUBROUTINE util_dist_eucl_plpl
      END INTERFACE
 
