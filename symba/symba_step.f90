@@ -63,7 +63,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,        &
      nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,          &
-     encounter_file, out_type, num_plpl_comparisons, ik_plpl, jk_plpl, ik_pltp, jk_pltp)
+     encounter_file, out_type, num_plpl_comparisons, k_plpl, ik_pltp, jk_pltp)
 
 ! Modules
      USE module_parameters
@@ -87,7 +87,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
-     INTEGER(I4B), DIMENSION(num_plpl_comparisons),INTENT(IN)            :: ik_plpl, jk_plpl ! relates the linear index to the i,j matrix indices for planet-planet collisions
+     INTEGER(I4B), DIMENSION(num_plpl_comparisons,2), INTENT(IN) :: k_plpl
      INTEGER(I4B), DIMENSION((npl-1)*ntp),INTENT(IN)  :: ik_pltp, jk_pltp ! linear index to i,j matrix for planet-test particle
 
 ! Internals
@@ -128,15 +128,17 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
 ! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
 
-     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array) ! does not care about mtiny
-     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, ik_plpl, jk_plpl, vel_plpl_array) ! does not care about mtiny
+     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) 
+     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, k_plpl, vel_plpl_array) 
      CALL symba_chk_eucl(num_plpl_comparisons, ik_plpl, jk_plpl, dist_plpl_array, vel_plpl_array, &
           symba_plA%helio%swiftest%rhill, symba_plA%helio%swiftest%rhill, dt, plpl_irec, plpl_encounters, plpl_lvdotr)
 
      ! here i'll order the encounters
      nplplenc = count(plpl_encounters > 0)
      if(nplplenc>0)then
+
           allocate(plpl_encounters_indices(nplplenc))
+
           ! plpl_encounters_indices = pack(plpl_encounters,plpl_encounters > 0)
           ! so it turns out this is significantly faster than the pack command
           counter = 1
@@ -147,23 +149,23 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
                endif
           enddo
 
-          symba_plA%lmerged(ik_plpl(plpl_encounters_indices)) = .FALSE. ! they have not merged YET
-          symba_plA%nplenc(ik_plpl(plpl_encounters_indices)) = symba_plA%nplenc(ik_plpl(plpl_encounters_indices)) + 1 ! number of particles that planet "i" has close encountered
-          symba_plA%levelg(ik_plpl(plpl_encounters_indices)) = plpl_irec(ik_plpl(plpl_encounters_indices)) ! recursion level
-          symba_plA%levelm(ik_plpl(plpl_encounters_indices)) = plpl_irec(ik_plpl(plpl_encounters_indices)) ! recursion level
-          symba_plA%nchild(ik_plpl(plpl_encounters_indices)) = 0 
+          symba_plA%lmerged(k_plpl(plpl_encounters_indices,1)) = .FALSE. ! they have not merged YET
+          symba_plA%nplenc(k_plpl(plpl_encounters_indices,1)) = symba_plA%nplenc(k_plpl(plpl_encounters_indices,1)) + 1 ! number of particles that planet "i" has close encountered
+          symba_plA%levelg(k_plpl(plpl_encounters_indices,1)) = plpl_irec(k_plpl(plpl_encounters_indices,1)) ! recursion level
+          symba_plA%levelm(k_plpl(plpl_encounters_indices,1)) = plpl_irec(k_plpl(plpl_encounters_indices,1)) ! recursion level
+          symba_plA%nchild(k_plpl(plpl_encounters_indices,1)) = 0 
           ! for the j particle
-          symba_plA%lmerged(jk_plpl(plpl_encounters_indices)) = .FALSE.
-          symba_plA%nplenc(jk_plpl(plpl_encounters_indices)) = symba_plA%nplenc(jk_plpl(plpl_encounters_indices)) + 1
-          symba_plA%levelg(jk_plpl(plpl_encounters_indices)) = plpl_irec(jk_plpl(plpl_encounters_indices))
-          symba_plA%levelm(jk_plpl(plpl_encounters_indices)) = plpl_irec(jk_plpl(plpl_encounters_indices))
-          symba_plA%nchild(jk_plpl(plpl_encounters_indices)) = 0
+          symba_plA%lmerged(k_plpl(plpl_encounters_indices,2)) = .FALSE.
+          symba_plA%nplenc(k_plpl(plpl_encounters_indices,2)) = symba_plA%nplenc(k_plpl(plpl_encounters_indices,2)) + 1
+          symba_plA%levelg(k_plpl(plpl_encounters_indices,2)) = plpl_irec(k_plpl(plpl_encounters_indices,2))
+          symba_plA%levelm(k_plpl(plpl_encounters_indices,2)) = plpl_irec(k_plpl(plpl_encounters_indices,2))
+          symba_plA%nchild(k_plpl(plpl_encounters_indices,2)) = 0
 
           plplenc_list%status(1:nplplenc) = ACTIVE ! you are in an encounter
           plplenc_list%lvdotr(1:nplplenc) = plpl_lvdotr(plpl_encounters_indices)! flag of relative accelerations to say if there will be a close encounter in next timestep 
           plplenc_list%level(1:nplplenc)  = plpl_irec(plpl_encounters_indices) ! recursion level
-          plplenc_list%index1(1:nplplenc) = ik_plpl(plpl_encounters_indices) ! index of first planet in encounter
-          plplenc_list%index2(1:nplplenc) = jk_plpl(plpl_encounters_indices) ! index of second planet in encounter
+          plplenc_list%index1(1:nplplenc) = k_plpl(plpl_encounters_indices,1) ! index of first planet in encounter
+          plplenc_list%index2(1:nplplenc) = k_plpl(plpl_encounters_indices,2) ! index of second planet in encounter
           deallocate(plpl_encounters_indices)
      endif
 
