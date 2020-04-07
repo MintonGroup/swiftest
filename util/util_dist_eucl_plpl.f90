@@ -9,27 +9,24 @@
 !  Description : Calculates the Euclidean distance matrix (but in array form)
 !
 !  Input
-!    Arguments : npl          : number of planets
-!              : swifter_pl1P : pointer to head of SWIFTER planet structure linked-list
-!              : ik
-!              : jk
-!              : l
+!    Arguments : npl : number of planets
+!              : invar : variable that we want to make comparisons between
+!              : num_comparisons : number of comparisons to make
+!              : k_plpl : matrix to convert linear index k into i,j indices
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : l            : length of the distance array
-!              : ik           : 
-!              : jk
+!    Arguments : outvar : results of comparisons
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL util_dist_index(npl, swifter_pl1P)
+!  Invocation  : CALL util_dist_index(invar, num_comparisons, k_plpl_outvar)
 !
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_eucl_plpl(npl, invar, l, ik, jk, outvar)
+SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
 
 ! Modules
      USE module_parameters
@@ -39,33 +36,24 @@ SUBROUTINE util_dist_eucl_plpl(npl, invar, l, ik, jk, outvar)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: npl
-     INTEGER(I4B), DIMENSION(:),INTENT(IN) :: ik, jk
-     INTEGER(I4B), INTENT(IN) :: l
+     INTEGER(I4B), INTENT(IN) :: npl
+     INTEGER(I4B), DIMENSION(num_comparisons,2),INTENT(IN) :: k_plpl
+     INTEGER(I4B), INTENT(IN) :: num_comparisons
      REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
-     REAL(DP), DIMENSION(NDIM,l),INTENT(INOUT) :: outvar
+     REAL(DP), DIMENSION(NDIM,num_comparisons),INTENT(INOUT) :: outvar
 
 ! Internals
-     INTEGER(I4B)              :: i, j, k, kp, p, n, count
+     INTEGER(I4B) :: k
      
 ! Executable code
 
 !$omp parallel do schedule(static) default(none) &
-!$omp shared (outvar, invar, l, ik, jk) &
+!$omp shared (outvar, invar, num_comparisons, k_plpl) &
 !$omp private(k)
-     do k = 1,l
-          outvar(:,k) = invar(:,jk(k)) - invar(:,ik(k))
-     enddo
+      do k = 1,num_comparisons
+           outvar(:,k) = invar(:,k_plpl(k,2)) - invar(:,k_plpl(k,1))
+      enddo
 !$omp end parallel do
-
-! !$omp parallel do default(none) schedule(dynamic) &
-! !$omp shared (outvar, invar, npl) &
-! !$omp private (i, count)
-!      do i = 2,npl-1
-!           count = (i - 2) * npl - i*(i-1)/2 + 2
-!           outvar(:,count:count+(npl-(i+1))) = invar(:,i+1:npl) - spread(invar(:,i),2,npl-i)        
-!      enddo
-! !$omp end parallel do
 
      RETURN
 
