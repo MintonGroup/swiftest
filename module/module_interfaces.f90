@@ -1461,7 +1461,7 @@ MODULE module_interfaces
                INTEGER(I4B), DIMENSION(num_comparisons,2),INTENT(IN) :: k_plpl
                INTEGER(I4B), INTENT(IN) :: num_comparisons
                REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
-               REAL(DP), DIMENSION(num_comparisons,NDIM),INTENT(INOUT) :: outvar
+               REAL(DP), DIMENSION(NDIM,num_comparisons),INTENT(INOUT) :: outvar
           END SUBROUTINE util_dist_eucl_plpl
      END INTERFACE
 

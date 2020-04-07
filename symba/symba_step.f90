@@ -96,7 +96,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      INTEGER(I4B), DIMENSION(NPL) :: nplenc_local
      INTEGER(I4B), ALLOCATABLE :: plpl_encounters_indices(:)
      REAL(DP), DIMENSION(NDIM) :: xr, vr
-     REAL(DP), DIMENSION(num_plpl_comparisons,NDIM) :: dist_plpl_array, vel_plpl_array
+     REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
      REAL(DP), DIMENSION(NDIM,(npl-1)*ntp) :: dist_pltp_array, vel_pltp_array
      LOGICAL(LGT), dimension((npl-1)*ntp) :: pltp_encounters
      INTEGER(I4B), dimension(num_plpl_comparisons) :: plpl_irec, plpl_encounters, plpl_lvdotr

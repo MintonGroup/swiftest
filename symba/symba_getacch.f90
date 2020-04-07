@@ -62,7 +62,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      REAL(DP), DIMENSION(NDIM, npl)               :: ah
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
-     REAL(DP), DIMENSION(num_plpl_comparisons,NDIM) :: dist_plpl_array
+     REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array
 
 
 ! Executable code
@@ -82,7 +82,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
           IF ((.NOT. symba_plA%lmerged(i) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
                (symba_plA%index_parent(i) /= symba_plA%index_parent(j)))) THEN
                
-               dx(:) = dist_plpl_array(k,:)
+               dx(:) = dist_plpl_array(:,k)
                rji2 = DOT_PRODUCT(dx(:), dx(:))
                irij3 = 1.0_DP/(rji2*SQRT(rji2))
                faci = symba_plA%helio%swiftest%mass(i)*irij3

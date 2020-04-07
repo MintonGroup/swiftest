@@ -45,7 +45,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
      INTEGER(I4B), DIMENSION(num_encounters,2), INTENT(IN)     :: k_plpl
      REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
      REAL(DP), INTENT(IN)               :: dt
-     REAL(DP), DIMENSION(num_encounters,NDIM), INTENT(IN) :: xr, vr
+     REAL(DP), DIMENSION(NDIM,num_encounters), INTENT(IN) :: xr, vr
 
 ! Internals
      ! LOGICAL(LGT) :: iflag lvdotr_flag
@@ -62,8 +62,8 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
           rcrit = (rhill(k_plpl(k,2)) + rhill(k_plpl(k,1)))*RHSCALE*(RSHELL**(irec(k))) 
           r2crit = rcrit*rcrit 
 
-          r2 = DOT_PRODUCT(xr(k,:), xr(k,:)) 
-          vdotr = DOT_PRODUCT(vr(k,:), xr(k,:))
+          r2 = DOT_PRODUCT(xr(:,k), xr(:,k)) 
+          vdotr = DOT_PRODUCT(vr(:,k), xr(:,k))
 
           IF (vdotr < 0.0_DP) lvdotr(k) = k
 
@@ -71,7 +71,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
                lencounter(k) = k
           ELSE
                IF (vdotr < 0.0_DP) THEN
-                    v2 = DOT_PRODUCT(vr(k,:), vr(k,:))
+                    v2 = DOT_PRODUCT(vr(:,k), vr(:,k))
                     tmin = -vdotr/v2
                     IF (tmin < dt) THEN
                          r2min = r2 - vdotr*vdotr/v2
