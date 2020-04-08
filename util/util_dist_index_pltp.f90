@@ -25,7 +25,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_index_pltp(nplm, ntp, k_pltp)
+SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
 
 ! Modules
      USE module_parameters
@@ -36,6 +36,7 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, k_pltp)
 ! Arguments
      INTEGER(I4B), INTENT(IN)  :: nplm, ntp
      INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_pltp
+     INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
      INTEGER(I4B)              :: i,j,counter
