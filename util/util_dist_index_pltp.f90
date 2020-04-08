@@ -25,7 +25,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_index_pltp(npl, ntp, ik_pltp, jk_pltp)
+SUBROUTINE util_dist_index_pltp(nplm, ntp, k_pltp)
 
 ! Modules
      USE module_parameters
@@ -34,27 +34,30 @@ SUBROUTINE util_dist_index_pltp(npl, ntp, ik_pltp, jk_pltp)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: npl, ntp
-     INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik_pltp, jk_pltp
+     INTEGER(I4B), INTENT(IN)  :: nplm, ntp
+     INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_pltp
 
 ! Internals
-     INTEGER(I4B)              :: i,j,l,k_count
+     INTEGER(I4B)              :: i,j,k,num_comparisons
 
 ! Executable code
-     l = (npl - 1) * ntp ! number of entries in our distance array
+     num_comparisons = (nplm - 1) * ntp ! number of entries in our distance array
 
-     allocate(ik_pltp(l))
-     allocate(jk_pltp(l)) 
+     allocate(k_pltp(num_comparisons,2))
 
-     k_count = 1
 
-     do i = 2, npl
+!$omp parallel do schedule(static) default(none) &
+!$omp shared(k_pltp, nplm, ntp) &
+!$omp private(i, j, counter)
+     do i = 2, nplm
+          counter = (i-2) * ntp + 1
           do j = 1, ntp
-               ik_pltp(k_count) = i
-               jk_pltp(k_count) = j
-               k_count = k_count + 1
+               k_pltp(counter,1) = i
+               k_pltp(counter,2) = j
+               counter = counter + 1
           enddo
      enddo
+!$omp end parallel do
 
      RETURN
 
