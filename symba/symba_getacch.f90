@@ -65,13 +65,18 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array
 
 
-! Executable code
+!Executable code
+ 
      symba_plA%helio%ah(:,2:npl) = 0.0_DP
      ah(:,2:npl) = 0.0_DP
      
      CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) ! does not care about mtiny
 
-!$omp parallel do default(none) schedule(static) &
+! There is floating point arithmetic round off error in this loop
+! For now, we will keep it in the serial operation, so we can easily compare
+! it to the older swifter versions
+
+!$omp parallel do num_threads(1) default(none) schedule(static) &
 !$omp shared (num_plpl_comparisons, dist_plpl_array, k_plpl, symba_plA) &
 !$omp private (i, j, k, dx, rji2, irij3, faci, facj) &
 !$omp reduction(+:ah)
@@ -95,48 +100,6 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 !$omp end parallel do
 
      symba_plA%helio%ah(:,2:npl) = ah(:,2:npl)
-     ! counter = 0
-     ! DO i = 2, npl
-     !      symba_plA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     ! END DO
-     ! DO i = 2, nplm
-     !      DO j = i + 1, npl
-     !           IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
-     !               (symba_plA%index_parent(i) /= symba_plA%index_parent(j))) THEN
-     !                counter = counter + 1
-     !                dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
-     !                rji2 = DOT_PRODUCT(dx(:), dx(:))
-     !                irij3 = 1.0_DP/(rji2*SQRT(rji2))
-     !                faci = symba_plA%helio%swiftest%mass(i)*irij3
-     !                facj = symba_plA%helio%swiftest%mass(j)*irij3
-     !                symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
-     !                symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
-     !           END IF
-     !      END DO
-     ! END DO
-
-     ! print *,counter
-     ! stop
-! !$omp parallel do default(none) schedule(dynamic) &
-! !$omp shared (nplm, npl, symba_plA) &
-! !$omp private (i, j, dx, rji2, irij3, faci, facj)
-!      DO i = 2, nplm
-!           DO j = i + 1, npl
-!                IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
-!                    (symba_plA%index_parent(i) /= symba_plA%index_parent(j))) THEN
-!                     dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
-!                     rji2 = DOT_PRODUCT(dx(:), dx(:))
-!                     irij3 = 1.0_DP/(rji2*SQRT(rji2))
-!                     faci = symba_plA%helio%swiftest%mass(i)*irij3
-!                     facj = symba_plA%helio%swiftest%mass(j)*irij3
-!                     symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
-!                     symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
-!                END IF
-!           END DO
-!      END DO
-! !$omp end parallel do
-
-
 
      DO i = 1, nplplenc
           index_i = plplenc_list%index1(i)
@@ -152,6 +115,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                symba_plA%helio%ah(:,index_j) = symba_plA%helio%ah(:,index_j) + faci*dx(:)
           END IF
      END DO
+
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN
                ALLOCATE(aobl(NDIM, nplmax), irh(nplmax))
@@ -167,6 +131,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + aobl(:, i) - aobl(:, 1)
           END DO
      END IF
+
      IF (lextra_force) CALL symba_user_getacch(t, npl, symba_plA)
 
      RETURN
