@@ -63,7 +63,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,        &
      nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,          &
-     encounter_file, out_type, num_plpl_comparisons, k_plpl, ik_pltp, jk_pltp)
+     encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
 
 ! Modules
      USE module_parameters
@@ -86,9 +86,9 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-     INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
+     INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons, num_pltp_comparisons
      INTEGER(I4B), DIMENSION(num_plpl_comparisons,2), INTENT(IN) :: k_plpl
-     INTEGER(I4B), DIMENSION((npl-1)*ntp),INTENT(IN)  :: ik_pltp, jk_pltp ! linear index to i,j matrix for planet-test particle
+     INTEGER(I4B), DIMENSION(num_pltp_comparisons,2),INTENT(IN)  :: k_pltp
 
 ! Internals
      LOGICAL(LGT)              :: lencounter, lvdotr
@@ -248,7 +248,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
      ! temp
      nplm = count(symba_plA%helio%swiftest%mass > mtiny)
-
      ! flag to see if there was an encounter
      lencounter = ((nplplenc > 0) .OR. (npltpenc > 0))
      IF (lencounter) THEN ! if there was an encounter, we need to enter symba_step_interp to see if we need recursion
