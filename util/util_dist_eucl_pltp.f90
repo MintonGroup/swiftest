@@ -29,7 +29,7 @@
 ! !  Notes       : 
 ! !
 ! !**********************************************************************************************************************************
-SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, ik_pltp, jk_pltp, outvar)
+SUBROUTINE util_dist_eucl_pltp(planets, test_particles, num_pltp_comparisons, k_pltp, outvar)
 
 ! Modules
      USE module_parameters
@@ -39,20 +39,22 @@ SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, ik_pltp, jk_pl
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)  :: npl, ntp
-     INTEGER(I4B), DIMENSION((npl-1)*ntp),INTENT(IN) :: ik_pltp, jk_pltp
+     INTEGER(I4B), DIMENSION(num_pltp_comparisons,2),INTENT(IN) :: k_pltp
+     INTEGER(I4B), INTENT(IN) :: num_pltp_comparisons
      REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: planets
      REAL(DP),DIMENSION(NDIM,ntp),INTENT(IN) :: test_particles
-     REAL(DP), DIMENSION(NDIM,(npl-1)*ntp),INTENT(INOUT) :: outvar
+     REAL(DP), DIMENSION(NDIM,num_pltp_comparisons),INTENT(INOUT) :: outvar
 
 ! Internals
-     INTEGER(I4B)              :: i
+     INTEGER(I4B)              :: k
      
 ! Executable code
 
-!$omp parallel do
-     do i = 1,(npl-1)*ntp
-          outvar(:,i) = test_particles(:,jk_pltp(i)) - planets(:,ik_pltp(i))
+!$omp parallel do default(none) schedule(static) &
+!$omp shared (num_pltp_comparisons, test_particles, planets, outvar, k_pltp) &
+!$omp private (k)
+     do k = 1,num_pltp_comparisons
+          outvar(:,k) = test_particles(:,k_pltp(k,2)) - planets(:,k_pltp(k,1))
      enddo
 !$omp end parallel do
      RETURN
