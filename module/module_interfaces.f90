@@ -1440,12 +1440,13 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE util_dist_index_pltp(npl, ntp, ik_pltp, jk_pltp)
+          SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
                USE module_parameters
                USE module_swiftest
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: npl, ntp
-               INTEGER(I4B), DIMENSION(:),ALLOCATABLE,INTENT(OUT) :: ik_pltp, jk_pltp
+               INTEGER(I4B), INTENT(IN)  :: nplm, ntp
+               INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_pltp
+               INTEGER(I4B), INTENT(OUT) :: num_comparisons
           END SUBROUTINE util_dist_index_pltp
      END INTERFACE
 
