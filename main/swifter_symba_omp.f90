@@ -156,7 +156,8 @@ PROGRAM swiftest_symba_omp
           out_type, out_form, out_stat)
      END IF
      start = omp_get_wtime()
-     CALL util_dist_index_plpl(npl, symba_plA%helio%swiftest%mass, mtiny, l, k_plpl)
+     nplm = count(symba_plA%helio%swiftest%mass>mtiny)
+     CALL util_dist_index_plpl(npl, nplm, l, k_plpl)
      CALL util_dist_index_pltp(npl, ntp, ik_pltp, jk_pltp)
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
@@ -193,7 +194,8 @@ PROGRAM swiftest_symba_omp
                     discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
                     discard_tpA_id_status)
                DEALLOCATE(k_plpl)
-               CALL util_dist_index_plpl(npl, symba_plA%helio%swiftest%mass, mtiny, l, k_plpl)
+               nplm = count(symba_plA%helio%swiftest%mass>mtiny)
+               CALL util_dist_index_plpl(npl, nplm, l, k_plpl)
                DEALLOCATE(ik_pltp)
                DEALLOCATE(jk_pltp)
                CALL util_dist_index_pltp(npl, ntp, ik_pltp, jk_pltp)

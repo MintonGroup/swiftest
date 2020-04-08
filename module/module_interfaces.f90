@@ -1429,13 +1429,11 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, k_plpl)
+          SUBROUTINE util_dist_index_plpl(npl, nplm, num_comparisons, k_plpl)
                USE module_parameters
                USE module_swiftest
                IMPLICIT NONE
-               REAL(DP), DIMENSION(npl), INTENT(IN) :: mass
-               INTEGER(I4B), INTENT(IN)  :: npl
-               REAL (DP), INTENT(IN) :: mtiny
+               INTEGER(I4B), INTENT(IN)  :: npl, nplm
                INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_plpl
                INTEGER(I4B), INTENT(OUT) :: num_comparisons
           END SUBROUTINE

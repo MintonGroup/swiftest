@@ -10,8 +10,7 @@
 !
 !  Input
 !    Arguments : npl          : number of planets
-!              : mass         : array of planet masses
-!              : mtiny        : value of mtiny (we do not compare semi interacting particles with themselves)
+!              : nplm         : number of planets above mtiny
 !    Terminal  : none
 !    File      : none
 !
@@ -21,12 +20,12 @@
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL util_dist_index_plpl(npl, num_comparisons, ik, jk)
+!  Invocation  : CALL util_dist_index_plpl(npl, nplm, num_comparison, k_plpl)
 !
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, k_plpl)
+SUBROUTINE util_dist_index_plpl(npl, nplm, num_comparisons, k_plpl)
 
 ! Modules
      USE module_parameters
@@ -35,17 +34,14 @@ SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, k_plpl)
      IMPLICIT NONE
 
 ! Arguments
-     REAL(DP), DIMENSION(npl), INTENT(IN) :: mass
-     INTEGER(I4B), INTENT(IN)  :: npl
-     REAL (DP), INTENT(IN) :: mtiny
+     INTEGER(I4B), INTENT(IN)  :: npl, nplm
      INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_plpl
      INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,j,counter,nplm
+     INTEGER(I4B)              :: i,j,counter
 
 ! Executable code
-     nplm = count(mass>mtiny)
 
      num_comparisons = ((npl - 1) * (npl - 2) / 2) - ( (npl-nplm-1) * ((npl-nplm-1)+1)/2 )! number of entries in a strict lower triangle, npl x npl, minus first column
      allocate(k_plpl(num_comparisons,2))
@@ -66,7 +62,7 @@ SUBROUTINE util_dist_index_plpl(npl, mass, mtiny, num_comparisons, k_plpl)
      ! brute force the index creation
 
 !$omp parallel do default(none) schedule(dynamic) &
-!$omp shared (k_plpl, npl) &
+!$omp shared (k_plpl, npl, nplm) &
 !$omp private (i, j, counter)
      do i = 2,nplm
           counter = (i - 2) * npl - i*(i-1)/2 + 2
