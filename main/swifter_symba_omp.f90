@@ -72,7 +72,7 @@ PROGRAM swiftest_symba_omp
 
 ! Internals
      LOGICAL(LGT)                                               :: lfirst
-     INTEGER(I4B)                                               :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
+     INTEGER(I4B)                                               :: npl, nplm, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
      INTEGER(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                                  :: htot
