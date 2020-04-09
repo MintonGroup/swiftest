@@ -33,6 +33,7 @@ SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
      USE module_swiftest
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => util_dist_eucl_plpl
+     USE omp_lib
      IMPLICIT NONE
 
 ! Arguments
@@ -48,6 +49,7 @@ SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
 ! Executable code
 
 !$omp parallel do schedule(static) default(none) &
+!$omp num_threads(min(omp_get_max_threads(),ceiling(num_comparisons/10000.))) &
 !$omp shared (outvar, invar, num_comparisons, k_plpl) &
 !$omp private(k)
       do k = 1,num_comparisons

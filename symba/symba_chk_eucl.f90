@@ -37,6 +37,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_chk_eucl
+     USE omp_lib
      IMPLICIT NONE
 
 ! Arguments
@@ -55,6 +56,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
 ! Executable code
 
 !$omp parallel do default(none) schedule(static) &
+!$omp num_threads(min(omp_get_max_threads(),ceiling(num_encounters/10000.))) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
 !$omp shared(num_encounters, lvdotr, lencounter, rhill, irec, k_plpl, xr, vr, dt)
 

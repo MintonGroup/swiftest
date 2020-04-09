@@ -43,6 +43,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch
+     USE omp_lib
      IMPLICIT NONE
 
 ! Arguments
@@ -76,7 +77,8 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 ! For now, we will keep it in the serial operation, so we can easily compare
 ! it to the older swifter versions
 
-!$omp parallel do num_threads(1) default(none) schedule(static) &
+!$omp parallel do default(none) schedule(static) &
+!$omp num_threads(min(omp_get_max_threads(),ceiling(num_plpl_comparisons/10000.))) &
 !$omp shared (num_plpl_comparisons, dist_plpl_array, k_plpl, symba_plA) &
 !$omp private (i, j, k, dx, rji2, irij3, faci, facj) &
 !$omp reduction(+:ah)
