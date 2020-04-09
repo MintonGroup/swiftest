@@ -155,6 +155,7 @@ PROGRAM swiftest_symba_omp
           out_type, out_form, out_stat)
      END IF
      start = omp_get_wtime()
+     ! call cpu_time(start)     
      nplm = count(symba_plA%helio%swiftest%mass>mtiny)
      CALL util_dist_index_plpl(npl, nplm, num_plpl_comparisons, k_plpl)
      CALL util_dist_index_pltp(nplm, ntp, num_pltp_comparisons, k_pltp)
@@ -281,6 +282,7 @@ PROGRAM swiftest_symba_omp
           DEALLOCATE(discard_tpA_id_status)
      END IF
      finish = omp_get_wtime()
+     ! call cpu_time(finish)     
      print *,'Time: ',finish-start
      CALL util_exit(SUCCESS)
 
