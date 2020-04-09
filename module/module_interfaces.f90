@@ -840,12 +840,12 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, lencounter_flag, lvdotr_flag)
+          SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
                USE module_parameters
                IMPLICIT NONE
-                    REAL(DP), INTENT(IN)                  :: dt, r2crit
-                    REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xr, vr
-                    LOGICAL(LGT), INTENT(OUT)             :: lencounter_flag, lvdotr_flag
+               REAL(DP), INTENT(IN)                  :: dt, r2crit
+               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xr, vr
+               INTEGER(I4B), INTENT(OUT)             :: iflag
           END SUBROUTINE rmvs_chk_ind
      END INTERFACE
 
@@ -894,6 +894,21 @@ MODULE module_interfaces
           END SUBROUTINE symba_chk_eucl
      END INTERFACE
 
+     INTERFACE 
+          SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lencounter, lvdotr)
+               USE module_parameters
+               USE module_swiftest
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr, irec
+               INTEGER(I4B), INTENT(IN)           :: num_encounters
+               INTEGER(I4B), DIMENSION(num_encounters,2),INTENT(IN)   :: k_plpl
+               REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
+               REAL(DP), INTENT(IN)               :: dt
+               REAL(DP), DIMENSION(num_encounters,NDIM), INTENT(IN) :: xr, vr
+          END SUBROUTINE symba_chk_eucl_pltp
+     END INTERFACE
 
      INTERFACE
           SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
@@ -1465,11 +1480,12 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE util_dist_eucl_pltp(planets, test_particles, num_pltp_comparisons, k_pltp, outvar)
+          SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, num_pltp_comparisons, k_pltp, outvar)
                USE module_parameters
                USE module_swiftest
                USE module_symba
                IMPLICIT NONE
+               INTEGER(I4B), INTENT(IN) :: npl, ntp
                INTEGER(I4B), DIMENSION(num_pltp_comparisons,2),INTENT(IN) :: k_pltp
                INTEGER(I4B), INTENT(IN) :: num_pltp_comparisons
                REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: planets
