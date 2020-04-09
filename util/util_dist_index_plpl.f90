@@ -45,7 +45,6 @@ SUBROUTINE util_dist_index_plpl(npl, nplm, num_comparisons, k_plpl)
 
      num_comparisons = ((npl - 1) * (npl - 2) / 2) - ( (npl-nplm-1) * ((npl-nplm-1)+1)/2 )! number of entries in a strict lower triangle, npl x npl, minus first column
      allocate(k_plpl(num_comparisons,2))
-
      ! this is a 'fancier' code, but so far i think it runs slower
      ! so leaving it in, but commenting it out
      ! i think it's because of the 'mod' call, but i haven't profiled it yet
@@ -66,8 +65,13 @@ SUBROUTINE util_dist_index_plpl(npl, nplm, num_comparisons, k_plpl)
 !$omp private (i, j, counter)
      do i = 2,nplm
           counter = (i - 2) * npl - i*(i-1)/2 + 2
-          k_plpl(counter:counter+(npl-(i+1)),1) = i
-          k_plpl(counter:counter+(npl-(i+1)),2) = (/(j, j=i+1,npl, 1)/)
+          ! k_plpl(counter:counter+(npl-(i+1)),1) = i
+          ! k_plpl(counter:counter+(npl-(i+1)),2) = (/(j, j=i+1,npl, 1)/)
+          do j = i+1,npl
+               k_plpl(counter,1) = i
+               k_plpl(counter,2) = j
+               counter = counter + 1
+          enddo
      enddo
 !$omp end parallel do
 
