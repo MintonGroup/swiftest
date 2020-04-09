@@ -138,7 +138,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           name1 = symba_plA%helio%swiftest%name(index1_parent)
           index_big1 = index1_parent
           stat1 = symba_plA%helio%swiftest%status(index1_parent)
-          array_index1_child(:) = symba_plA%index_child(:,index1_parent)
+          array_index1_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
           DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children
                index1_child = array_index1_child(i)
                mtmp = symba_plA%helio%swiftest%mass(index1_child)
@@ -164,7 +164,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           name2 = symba_plA%helio%swiftest%name(index2_parent)
           index_big2 = index2_parent
           stat2 = symba_plA%helio%swiftest%status(index2_parent)
-          array_index2_child(:) = symba_plA%index_child(:,index2_parent)
+          array_index2_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
           DO i = 1, symba_plA%nchild(index2_parent)
                index2_child = array_index2_child(i)
                mtmp = symba_plA%helio%swiftest%mass(index2_child)
@@ -252,7 +252,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
           symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) !PROBLEM
           symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) !PROBLEM
-          array_keep_child(:) = symba_plA%index_child(:,index1_parent)
+          array_keep_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
           DO i = 1, symba_plA%nchild(index1_parent)
                indexchild = array_keep_child(i)
                symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
@@ -260,7 +260,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           END DO
 
           symba_plA%index_child((symba_plA%nchild(index1_parent)+1),index1_parent) = index2_parent
-          array_rm_child(:) = symba_plA%index_child(:,index2_parent)
+          array_rm_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
           symba_plA%index_parent(index2) = index1_parent
 
           DO i = 1, symba_plA%nchild(index2_parent)
@@ -269,6 +269,9 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
                symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
                symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
           END DO
+          DO i = 1, symba_plA%nchild(index2_parent)
+               symba_plA%index_child(symba_plA%nchild(index1_parent)+i+1,index1_parent)= array_rm_child(i)
+          END DO 
           symba_plA%nchild(index1_parent) = symba_plA%nchild(index1_parent) + symba_plA%nchild(index2_parent) + 1
      END IF
 
