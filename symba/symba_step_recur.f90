@@ -218,7 +218,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          index_pl  = pltpenc_list%indexpl(i) 
                          index_tp  = pltpenc_list%indextp(i) 
                          xr(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
-                         vr(:) = symba_tpA%helio%swiftest%vb(:,index_tp)  - symba_plA%helio%swiftest%xh(:,index_pl) 
+                         vr(:) = symba_tpA%helio%swiftest%vb(:,index_tp)  - symba_plA%helio%swiftest%vb(:,index_pl) 
                          CALL symba_chk(xr(:), vr(:), symba_plA%helio%swiftest%rhill(index_pl), 0.0_DP, &     
                               dtl, irecp, lencounter, pltpenc_list%lvdotr(i))
                          IF (lencounter) THEN
