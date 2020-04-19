@@ -29,7 +29,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_chk.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lencounter, lvdotr)
+SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, lencounter, lvdotr)
 
 ! Modules
      USE module_parameters
@@ -41,7 +41,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr, irec
+     INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
      INTEGER(I4B), INTENT(IN)           :: num_encounters
      INTEGER(I4B), DIMENSION(num_encounters,2), INTENT(IN)     :: k_plpl
      REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
@@ -50,18 +50,20 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lenco
 
 ! Internals
      ! LOGICAL(LGT) :: iflag lvdotr_flag
-     REAL(DP)     :: rcrit, r2crit, vdotr, r2, v2, tmin, r2min
+     REAL(DP)     :: rcrit, r2crit, vdotr, r2, v2, tmin, r2min, term2
      INTEGER(I4B) :: k
 
 ! Executable code
 
+     term2 = RHSCALE*RSHELL**0
 !$omp parallel do default(none) schedule(static) &
 !$omp num_threads(min(omp_get_max_threads(),ceiling(num_encounters/10000.))) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
-!$omp shared(num_encounters, lvdotr, lencounter, rhill, irec, k_plpl, xr, vr, dt)
+!$omp shared(num_encounters, lvdotr, lencounter, rhill, k_plpl, xr, vr, dt, term2)
 
      do k = 1,num_encounters
-          rcrit = (rhill(k_plpl(k,2)) + rhill(k_plpl(k,1)))*RHSCALE*(RSHELL**(irec(k))) 
+          ! rcrit = (rhill(k_plpl(k,2)) + rhill(k_plpl(k,1)))*RHSCALE*(RSHELL**(irec(k))) 
+          rcrit = (rhill(k_plpl(k,2)) + rhill(k_plpl(k,1))) * term2
           r2crit = rcrit*rcrit 
 
           r2 = DOT_PRODUCT(xr(:,k), xr(:,k)) 
