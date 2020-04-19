@@ -194,7 +194,7 @@ PROGRAM swiftest_symba_omp
                     discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
                     discard_tpA_id_status)
                DEALLOCATE(k_plpl)
-               nplm = count(symba_plA%helio%swiftest%mass>mtiny)
+               nplm = count(symba_plA%helio%swiftest%mass(1:npl)>mtiny)
                CALL util_dist_index_plpl(npl, nplm, num_plpl_comparisons, k_plpl)
                if(ntp>0)then
                     DEALLOCATE(k_pltp)
