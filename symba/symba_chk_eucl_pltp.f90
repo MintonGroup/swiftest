@@ -49,39 +49,47 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, irec, 
 
 ! Internals
      ! LOGICAL(LGT) :: iflag lvdotr_flag
-     REAL(DP)     :: rcrit, r2crit, vdotr, r2, v2, tmin, r2min
+     REAL(DP)     :: rcrit, r2crit, vdotr, r2, v2, tmin, r2min, term2, rcritmax, r2critmax
      INTEGER(I4B) :: k
 
 ! Executable code
+     
+     term2 = RHSCALE*(RSHELL**0)
+
+     rcritmax = rhill(2) * term2
+     r2critmax = rcritmax * rcritmax
 
 !$omp parallel do default(none) schedule(static) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
-!$omp shared(num_encounters, lvdotr, lencounter, rhill, irec, k_plpl, xr, vr, dt)
+!$omp shared(num_encounters, lvdotr, lencounter, rhill, irec, k_plpl, xr, vr, dt, term2, r2critmax)
 
      do k = 1,num_encounters
-          rcrit = rhill(k_plpl(k,1))*RHSCALE*(RSHELL**(irec(k))) 
-          r2crit = rcrit*rcrit 
-
           r2 = DOT_PRODUCT(xr(:,k), xr(:,k)) 
-          vdotr = DOT_PRODUCT(vr(:,k), xr(:,k))
+          if (r2<r2critmax) then
 
-          IF (vdotr < 0.0_DP) lvdotr(k) = k
+               rcrit = rhill(k_plpl(k,1))*term2
+               r2crit = rcrit*rcrit 
 
-          IF (r2 < r2crit) THEN
-               lencounter(k) = k
-          ELSE
-               IF (vdotr < 0.0_DP) THEN
-                    v2 = DOT_PRODUCT(vr(:,k), vr(:,k))
-                    tmin = -vdotr/v2
-                    IF (tmin < dt) THEN
-                         r2min = r2 - vdotr*vdotr/v2
-                    ELSE
-                         r2min = r2 + 2.0_DP*vdotr*dt + v2*dt*dt
+               vdotr = DOT_PRODUCT(vr(:,k), xr(:,k))
+
+               IF (vdotr < 0.0_DP) lvdotr(k) = k
+
+               IF (r2 < r2crit) THEN
+                    lencounter(k) = k
+               ELSE
+                    IF (vdotr < 0.0_DP) THEN
+                         v2 = DOT_PRODUCT(vr(:,k), vr(:,k))
+                         tmin = -vdotr/v2
+                         IF (tmin < dt) THEN
+                              r2min = r2 - vdotr*vdotr/v2
+                         ELSE
+                              r2min = r2 + 2.0_DP*vdotr*dt + v2*dt*dt
+                         END IF
+                         r2min = MIN(r2min, r2)
+                         IF (r2min <= r2crit) lencounter(k) = k
                     END IF
-                    r2min = MIN(r2min, r2)
-                    IF (r2min <= r2crit) lencounter(k) = k
                END IF
-          END IF
+          endif
      enddo
 
 !$omp end parallel do
