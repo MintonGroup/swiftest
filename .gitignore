@@ -43,3 +43,5 @@
 collresolve/config.h
 
 example/
+
+Makefile.Defines
