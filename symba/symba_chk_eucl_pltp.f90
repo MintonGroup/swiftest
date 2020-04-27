@@ -29,7 +29,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_chk.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, irec, lencounter, lvdotr)
+SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, lencounter, lvdotr)
 
 ! Modules
      USE module_parameters
@@ -40,7 +40,7 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, irec, 
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr, irec
+     INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
      INTEGER(I4B), INTENT(IN)           :: num_encounters
      INTEGER(I4B), DIMENSION(num_encounters,2), INTENT(IN)     :: k_plpl
      REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
@@ -61,7 +61,7 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, irec, 
 
 !$omp parallel do default(none) schedule(static) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
-!$omp shared(num_encounters, lvdotr, lencounter, rhill, irec, k_plpl, xr, vr, dt, term2, r2critmax)
+!$omp shared(num_encounters, lvdotr, lencounter, rhill, k_plpl, xr, vr, dt, term2, r2critmax)
 
      do k = 1,num_encounters
           r2 = DOT_PRODUCT(xr(:,k), xr(:,k)) 
