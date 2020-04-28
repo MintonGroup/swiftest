@@ -40,7 +40,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xh, j2rp2, j4rp4, npltpenc,  &
-     pltpenc_list, num_pltp_comparisons, k_pltp)
+     pltpenc_list, num_pltp_comparisons, k_pltp, dist_pltp_array)
 
 ! Modules
      USE module_parameters
@@ -60,6 +60,8 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      TYPE(symba_tp), INTENT(INOUT)                 :: symba_tpA
      TYPE(symba_pltpenc), INTENT(IN)               :: pltpenc_list
      INTEGER(I4B), DIMENSION(num_pltp_comparisons,2), INTENT(IN) :: k_pltp
+     REAL(DP), DIMENSION(NDIM, num_pltp_comparisons), INTENT(INOUT) :: dist_pltp_array
+
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
@@ -68,7 +70,6 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      REAL(DP), DIMENSION(NDIM)                    :: dx
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh, irht
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: aobl, xht, aoblt
-     REAL(DP), DIMENSION(NDIM,num_pltp_comparisons) :: dist_pltp_array
      REAL(DP), DIMENSION(NDIM, ntp)               :: ah
 
 ! Executable code
