@@ -42,53 +42,23 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
      INTEGER(I4B)              :: i,j,ii,jj,nb,np,nt,counter, nplm1, ntp1
 
 ! Executable code
-
-
-! !$omp parallel do schedule(static) default(none) &
-! !$omp shared(k_pltp, nplm, ntp) &
-! !$omp private(i, j, counter)
-!      do i = 2,nplm
-!           counter = (i-2) * ntp + 1
-!           do j = 1,ntp
-!                k_pltp(counter,1) = i
-!                k_pltp(counter,2) = j
-!                counter = counter + 1
-!           enddo
-!      enddo
-! !$omp end parallel do
-
-     ! nplm1 = 11
-     ! ntp1 = 10
-
      num_comparisons = (nplm - 1) * ntp ! number of entries in our distance array
 
      allocate(k_pltp(num_comparisons,2))
 
-     nb = 8 ! number of blocks
-     np = (nplm-1)/nb ! number of planets per block
-     nt = ntp/nb ! number of test particles per block
-     counter = 1
 
-     do i = 2,nplm,np
-          do j = 1,ntp,nt
-               do ii = i, min(nplm,i+np-1)
-                    do jj = j, min(ntp,j+nt-1)
-                         ! print *,'i j ii jj: ',i,j,ii,jj
-                         k_pltp(counter,1) = ii
-                         k_pltp(counter,2) = jj
-                         counter = counter + 1
-                    enddo
-               enddo
+!$omp parallel do schedule(static) default(none) &
+!$omp shared(k_pltp, nplm, ntp) &
+!$omp private(i, j, counter)
+     do i = 2,nplm
+          counter = (i-2) * ntp + 1
+          do j = 1,ntp
+               k_pltp(counter,1) = i
+               k_pltp(counter,2) = j
+               counter = counter + 1
           enddo
      enddo
-
-    !  deallocate(k_pltp)
-    !  nplm1 = 11
-    !  ntp1 = 9
-
-    ! num_comparisons = (nplm1 - 1) * ntp1 ! number of entries in our distance array
-
-    !  allocate(k_pltp(num_comparisons,2))
+!$omp end parallel do
 
     !  nb = 2 ! number of blocks
     !  np = (nplm1-1)/nb ! number of planets per block
@@ -118,7 +88,6 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
     !                 enddo
     !  enddo
 
-    !  stop
      RETURN
 
 END SUBROUTINE util_dist_index_pltp
