@@ -43,7 +43,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, lencounter,
 ! Arguments
      INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
      INTEGER(I4B), INTENT(IN)           :: num_encounters
-     INTEGER(I4B), DIMENSION(num_encounters,2), INTENT(IN)     :: k_plpl
+     INTEGER(I4B), DIMENSION(2,num_encounters), INTENT(IN)     :: k_plpl
      REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
      REAL(DP), INTENT(IN)               :: dt
      REAL(DP), DIMENSION(NDIM,num_encounters), INTENT(IN) :: xr, vr
@@ -67,7 +67,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, xr, vr, rhill, dt, lencounter,
      do k = 1,num_encounters
           r2 = DOT_PRODUCT(xr(:,k), xr(:,k)) 
           if (r2<r2critmax) then
-               rcrit = (rhill(k_plpl(k,2)) + rhill(k_plpl(k,1))) * term2
+               rcrit = (rhill(k_plpl(2,k)) + rhill(k_plpl(1,k))) * term2
                r2crit = rcrit*rcrit 
 
                vdotr = DOT_PRODUCT(vr(:,k), xr(:,k))

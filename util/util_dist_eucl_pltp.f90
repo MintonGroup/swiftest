@@ -40,7 +40,7 @@ SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, num_pltp_compa
 
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: npl, ntp
-     INTEGER(I4B), DIMENSION(num_pltp_comparisons,2),INTENT(IN) :: k_pltp
+     INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
      INTEGER(I4B), INTENT(IN) :: num_pltp_comparisons
      REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: planets
      REAL(DP),DIMENSION(NDIM,ntp),INTENT(IN) :: test_particles
@@ -55,7 +55,7 @@ SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, num_pltp_compa
 !$omp shared (num_pltp_comparisons, test_particles, planets, outvar, k_pltp) &
 !$omp private (k)
      do k = 1,num_pltp_comparisons
-          outvar(:,k) = test_particles(:,k_pltp(k,2)) - planets(:,k_pltp(k,1))
+          outvar(:,k) = test_particles(:,k_pltp(2,k)) - planets(:,k_pltp(1,k))
      enddo
 !$omp end parallel do
      RETURN

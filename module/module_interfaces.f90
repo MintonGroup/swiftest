@@ -887,10 +887,10 @@ MODULE module_interfaces
                IMPLICIT NONE
                INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
                INTEGER(I4B), INTENT(IN)           :: num_encounters
-               INTEGER(I4B), DIMENSION(num_encounters,2),INTENT(IN)   :: k_plpl
+               INTEGER(I4B), DIMENSION(2,num_encounters),INTENT(IN)   :: k_plpl
                REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
                REAL(DP), INTENT(IN)               :: dt
-               REAL(DP), DIMENSION(num_encounters,NDIM), INTENT(IN) :: xr, vr
+               REAL(DP), DIMENSION(NDIM,num_encounters), INTENT(IN) :: xr, vr
           END SUBROUTINE symba_chk_eucl
      END INTERFACE
 
@@ -903,7 +903,7 @@ MODULE module_interfaces
                IMPLICIT NONE
                INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
                INTEGER(I4B), INTENT(IN)           :: num_encounters
-               INTEGER(I4B), DIMENSION(num_encounters,2),INTENT(IN)   :: k_plpl
+               INTEGER(I4B), DIMENSION(2,num_encounters),INTENT(IN)   :: k_plpl
                REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
                REAL(DP), INTENT(IN)               :: dt
                REAL(DP), DIMENSION(num_encounters,NDIM), INTENT(IN) :: xr, vr
@@ -1299,8 +1299,8 @@ MODULE module_interfaces
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
                INTEGER(I4B), INTENT(IN)           :: num_plpl_comparisons, num_pltp_comparisons
-               INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
-               INTEGER(I4B), DIMENSION(num_pltp_comparisons,2),INTENT(IN) :: k_pltp
+               INTEGER(I4B), DIMENSION(2,num_plpl_comparisons),INTENT(IN) :: k_plpl
+               INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
                REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
                REAL(DP), DIMENSION(NDIM,num_pltp_comparisons) :: dist_pltp_array, vel_pltp_array
           END SUBROUTINE symba_step
@@ -1393,7 +1393,7 @@ MODULE module_interfaces
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
                INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
                INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
-               INTEGER(I4B), DIMENSION(num_pltp_comparisons,2),INTENT(IN) :: k_pltp
+               INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
                REAL(DP), DIMENSION(NDIM, num_plpl_comparisons),INTENT(INOUT) :: dist_plpl_array
                REAL(DP), DIMENSION(NDIM, num_pltp_comparisons),INTENT(INOUT) :: dist_pltp_array
           END SUBROUTINE symba_step_interp
@@ -1480,7 +1480,7 @@ MODULE module_interfaces
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl
-               INTEGER(I4B), DIMENSION(num_comparisons,2),INTENT(IN) :: k_plpl
+               INTEGER(I4B), DIMENSION(2,num_comparisons),INTENT(IN) :: k_plpl
                INTEGER(I4B), INTENT(IN) :: num_comparisons
                REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
                REAL(DP), DIMENSION(NDIM,num_comparisons),INTENT(INOUT) :: outvar

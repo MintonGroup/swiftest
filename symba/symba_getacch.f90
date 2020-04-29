@@ -52,7 +52,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
      TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
      TYPE(symba_plplenc), INTENT(INOUT)            :: plplenc_list
-     INTEGER(I4B), DIMENSION(num_plpl_comparisons,2), INTENT(IN) :: k_plpl
+     INTEGER(I4B), DIMENSION(2,num_plpl_comparisons), INTENT(IN) :: k_plpl
      REAL(DP), DIMENSION(NDIM, num_plpl_comparisons), INTENT(INOUT) :: dist_plpl_array
 
 
@@ -85,8 +85,8 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 !$omp private (i, j, k, dx, rji2, irij3, faci, facj) &
 !$omp reduction(+:ah)
      DO k = 1, num_plpl_comparisons
-          i = k_plpl(k,1)
-          j = k_plpl(k,2)
+          i = k_plpl(1,k)
+          j = k_plpl(2,k)
           
           IF ((.NOT. symba_plA%lmerged(i) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
                (symba_plA%index_parent(i) /= symba_plA%index_parent(j)))) THEN

@@ -59,7 +59,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                 :: symba_tpA
      TYPE(symba_pltpenc), INTENT(IN)               :: pltpenc_list
-     INTEGER(I4B), DIMENSION(num_pltp_comparisons,2), INTENT(IN) :: k_pltp
+     INTEGER(I4B), DIMENSION(2,num_pltp_comparisons), INTENT(IN) :: k_pltp
      REAL(DP), DIMENSION(NDIM, num_pltp_comparisons), INTENT(INOUT) :: dist_pltp_array
 
 
@@ -85,9 +85,9 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
 !$omp private(k, i, j, dx, r2, fac) &
 !$omp reduction(+:ah)
      do k = 1,num_pltp_comparisons
-          j = k_pltp(k,2)
+          j = k_pltp(2,k)
           IF (symba_tpA%helio%swiftest%status(j) == ACTIVE) THEN
-               i = k_pltp(k,1)
+               i = k_pltp(1,k)
                dx(:) = dist_pltp_array(:,k)
                r2 = DOT_PRODUCT(dx(:), dx(:))
                fac = symba_PlA%helio%swiftest%mass(i)/(r2*SQRT(r2))

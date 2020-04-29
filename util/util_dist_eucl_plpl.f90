@@ -38,7 +38,7 @@ SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
 
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: npl
-     INTEGER(I4B), DIMENSION(num_comparisons,2),INTENT(IN) :: k_plpl
+     INTEGER(I4B), DIMENSION(2,num_comparisons),INTENT(IN) :: k_plpl
      INTEGER(I4B), INTENT(IN) :: num_comparisons
      REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
      REAL(DP), DIMENSION(NDIM,num_comparisons),INTENT(INOUT) :: outvar
@@ -53,7 +53,7 @@ SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
 !$omp shared (outvar, invar, num_comparisons, k_plpl) &
 !$omp private(k)
       do k = 1,num_comparisons
-           outvar(:,k) = invar(:,k_plpl(k,2)) - invar(:,k_plpl(k,1))
+           outvar(:,k) = invar(:,k_plpl(2,k)) - invar(:,k_plpl(1,k))
       enddo
 !$omp end parallel do
 

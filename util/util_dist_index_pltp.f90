@@ -44,7 +44,7 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
 ! Executable code
      num_comparisons = (nplm - 1) * ntp ! number of entries in our distance array
 
-     allocate(k_pltp(num_comparisons,2))
+     allocate(k_pltp(2,num_comparisons))
 
 
 !$omp parallel do schedule(static) default(none) &
@@ -53,8 +53,8 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
      do i = 2,nplm
           counter = (i-2) * ntp + 1
           do j = 1,ntp
-               k_pltp(counter,1) = i
-               k_pltp(counter,2) = j
+               k_pltp(1,counter) = i
+               k_pltp(2,counter) = j
                counter = counter + 1
           enddo
      enddo
