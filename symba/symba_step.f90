@@ -139,10 +139,9 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
 ! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
 
-     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) 
-     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, k_plpl, vel_plpl_array) 
-     CALL symba_chk_eucl(num_plpl_comparisons, k_plpl, dist_plpl_array, vel_plpl_array, &
-          symba_plA%helio%swiftest%rhill, dt, plpl_encounters, plpl_lvdotr)
+     ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) 
+     ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, k_plpl, vel_plpl_array) 
+     CALL symba_chk_eucl(num_plpl_comparisons, k_plpl, symba_plA, dt, plpl_encounters, plpl_lvdotr)
 
      ! here i'll order the encounters
      nplplenc = count(plpl_encounters > 0)
