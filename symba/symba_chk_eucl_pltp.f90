@@ -29,7 +29,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_chk.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, lencounter, lvdotr)
+SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr)
 
 ! Modules
      USE module_parameters
@@ -40,37 +40,40 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, lencou
      IMPLICIT NONE
 
 ! Arguments
+     TYPE(symba_pl), INTENT(IN)                    :: symba_plA
+     TYPE(symba_tp), INTENT(IN)                    :: symba_tpA
      INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
      INTEGER(I4B), INTENT(IN)           :: num_encounters
-     INTEGER(I4B), DIMENSION(2,num_encounters), INTENT(IN)     :: k_plpl
-     REAL(DP), DIMENSION(:),INTENT(IN)  :: rhill
+     INTEGER(I4B), DIMENSION(2,num_encounters), INTENT(IN)     :: k_pltp
      REAL(DP), INTENT(IN)               :: dt
-     REAL(DP), DIMENSION(NDIM,num_encounters), INTENT(IN) :: xr, vr
 
 ! Internals
      ! LOGICAL(LGT) :: iflag lvdotr_flag
      REAL(DP)     :: rcrit, r2crit, vdotr, r2, v2, tmin, r2min, term2, rcritmax, r2critmax
      INTEGER(I4B) :: k
+     REAL(DP), DIMENSION(NDIM) :: xr, vr
 
 ! Executable code
      
      term2 = RHSCALE*(RSHELL**0)
 
-     rcritmax = rhill(2) * term2
+     rcritmax = symba_plA%helio%swiftest%rhill(2) * term2
      r2critmax = rcritmax * rcritmax
 
 !$omp parallel do default(none) schedule(static) &
-!$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min) &
-!$omp shared(num_encounters, lvdotr, lencounter, rhill, k_plpl, xr, vr, dt, term2, r2critmax)
+!$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min, xr, vr) &
+!$omp shared(num_encounters, lvdotr, lencounter, k_pltp, dt, term2, r2critmax, symba_plA, symba_tpA)
 
      do k = 1,num_encounters
-          r2 = DOT_PRODUCT(xr(:,k), xr(:,k)) 
+          xr(:) = symba_tpA%helio%swiftest%xh(:,k_pltp(2,k)) - symba_plA%helio%swiftest%xh(:,k_pltp(1,k))
+          r2 = DOT_PRODUCT(xr(:), xr(:)) 
           if (r2<r2critmax) then
 
-               rcrit = rhill(k_plpl(1,k))*term2
+               rcrit = symba_plA%helio%swiftest%rhill(k_pltp(1,k))*term2
                r2crit = rcrit*rcrit 
+               vr(:) = symba_tpA%helio%swiftest%vh(:,k_pltp(2,k)) - symba_plA%helio%swiftest%vh(:,k_pltp(1,k))
 
-               vdotr = DOT_PRODUCT(vr(:,k), xr(:,k))
+               vdotr = DOT_PRODUCT(vr(:), xr(:))
 
                IF (vdotr < 0.0_DP) lvdotr(k) = k
 
@@ -78,7 +81,7 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_plpl, xr, vr, rhill, dt, lencou
                     lencounter(k) = k
                ELSE
                     IF (vdotr < 0.0_DP) THEN
-                         v2 = DOT_PRODUCT(vr(:,k), vr(:,k))
+                         v2 = DOT_PRODUCT(vr(:), vr(:))
                          tmin = -vdotr/v2
                          IF (tmin < dt) THEN
                               r2min = r2 - vdotr*vdotr/v2

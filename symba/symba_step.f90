@@ -182,12 +182,11 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
      if(ntp>0)then
 
-          CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
-               num_pltp_comparisons, k_pltp, dist_pltp_array)
-          CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, &
-               num_pltp_comparisons, k_pltp, vel_pltp_array)
-          CALL symba_chk_eucl_pltp(num_pltp_comparisons, k_pltp, dist_pltp_array, vel_pltp_array, &
-               symba_plA%helio%swiftest%rhill, dt, pltp_encounters, pltp_lvdotr)
+          ! CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
+          !      num_pltp_comparisons, k_pltp, dist_pltp_array)
+          ! CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, &
+          !      num_pltp_comparisons, k_pltp, vel_pltp_array)
+          CALL symba_chk_eucl_pltp(num_pltp_comparisons, k_pltp, symba_plA, symba_tpA, dt, pltp_encounters, pltp_lvdotr)
      
           npltpenc = count(pltp_encounters > 0)
           if(npltpenc>0)then
