@@ -1059,7 +1059,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
-               plplenc_list, num_plpl_comparisons, k_plpl, dist_plpl_array)
+               plplenc_list, num_plpl_comparisons, k_plpl)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1071,13 +1071,12 @@ MODULE module_interfaces
                TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
                TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
                INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
-               REAL(DP), DIMENSION(NDIM, num_plpl_comparisons),INTENT(INOUT) :: dist_plpl_array
           END SUBROUTINE symba_getacch
      END INTERFACE
 
      INTERFACE
           SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
-               xh, j2rp2, j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp, dist_pltp_array)
+               xh, j2rp2, j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1091,7 +1090,6 @@ MODULE module_interfaces
                TYPE(symba_tp), INTENT(INOUT)                 :: symba_tpA
                TYPE(symba_pltpenc), INTENT(IN)               :: pltpenc_list
                INTEGER(I4B), DIMENSION(num_pltp_comparisons,2), INTENT(IN) :: k_pltp
-               REAL(DP), DIMENSION(NDIM, num_pltp_comparisons), INTENT(INOUT) :: dist_pltp_array
           END SUBROUTINE symba_getacch_tp
      END INTERFACE
 
@@ -1278,8 +1276,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,&
                nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,&
-               encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp, dist_plpl_array, &
-               vel_plpl_array, dist_pltp_array, vel_pltp_array)
+               encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1300,8 +1297,6 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)           :: num_plpl_comparisons, num_pltp_comparisons
                INTEGER(I4B), DIMENSION(2,num_plpl_comparisons),INTENT(IN) :: k_plpl
                INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
-               REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
-               REAL(DP), DIMENSION(NDIM,num_pltp_comparisons) :: dist_pltp_array, vel_pltp_array
           END SUBROUTINE symba_step
      END INTERFACE
 
@@ -1372,8 +1367,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,    &
                j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,    &
-               mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp, &
-               dist_plpl_array,dist_pltp_array)
+               mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1393,8 +1387,6 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
                INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
                INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
-               REAL(DP), DIMENSION(NDIM, num_plpl_comparisons),INTENT(INOUT) :: dist_plpl_array
-               REAL(DP), DIMENSION(NDIM, num_pltp_comparisons),INTENT(INOUT) :: dist_pltp_array
           END SUBROUTINE symba_step_interp
      END INTERFACE
 

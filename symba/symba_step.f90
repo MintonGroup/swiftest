@@ -63,8 +63,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,        &
      nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,          &
-     encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp, dist_plpl_array, vel_plpl_array, &
-     dist_pltp_array, vel_pltp_array)
+     encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
 
 ! Modules
      USE module_parameters
@@ -90,8 +89,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons, num_pltp_comparisons
      INTEGER(I4B), DIMENSION(2,num_plpl_comparisons), INTENT(IN) :: k_plpl
      INTEGER(I4B), DIMENSION(2,num_pltp_comparisons), INTENT(IN)  :: k_pltp
-     REAL(DP), DIMENSION(NDIM,num_plpl_comparisons) :: dist_plpl_array, vel_plpl_array
-     REAL(DP), DIMENSION(NDIM,num_pltp_comparisons) :: dist_pltp_array, vel_pltp_array
 
 ! Internals
      LOGICAL(LGT)              :: lencounter, lvdotr
@@ -99,11 +96,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      INTEGER(I4B), ALLOCATABLE :: plpl_encounters_indices(:), pltp_encounters_indices(:)
      REAL(DP), DIMENSION(NDIM) :: xr, vr
      
-     ! INTEGER(I4B), dimension(num_pltp_comparisons) :: pltp_encounters, pltp_lvdotr
-     ! INTEGER(I4B), dimension(num_plpl_comparisons) :: plpl_encounters, plpl_lvdotr
-
-     ! REAL(DP), ALLOCATABLE, DIMENSION(:,:) :: dist_plpl_array, vel_plpl_array
-     ! REAL(DP), ALLOCATABLE, DIMENSION(:,:) :: dist_pltp_array, vel_pltp_array
      INTEGER(I4B), ALLOCATABLE, DIMENSION(:) :: pltp_encounters, pltp_lvdotr
      INTEGER(I4B), ALLOCATABLE, DIMENSION(:) :: plpl_encounters, plpl_lvdotr
      
@@ -226,8 +218,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      IF (lencounter) THEN ! if there was an encounter, we need to enter symba_step_interp to see if we need recursion
           CALL symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,   &
                dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,           &
-               mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp, &
-               dist_plpl_array, dist_pltp_array)
+               mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
           lfirst = .TRUE.
      ELSE ! otherwise we can just advance the particles
           CALL symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA%helio, symba_tpA%helio, &

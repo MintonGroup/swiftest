@@ -35,7 +35,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
-     num_plpl_comparisons, k_plpl, dist_plpl_array)
+     num_plpl_comparisons, k_plpl)
 
 ! Modules
      USE module_parameters
@@ -53,7 +53,6 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
      TYPE(symba_plplenc), INTENT(INOUT)            :: plplenc_list
      INTEGER(I4B), DIMENSION(2,num_plpl_comparisons), INTENT(IN) :: k_plpl
-     REAL(DP), DIMENSION(NDIM, num_plpl_comparisons), INTENT(INOUT) :: dist_plpl_array
 
 
 ! Internals
@@ -80,7 +79,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 
 !$omp parallel do default(none) schedule(static) &
 !$omp num_threads(min(omp_get_max_threads(),ceiling(num_plpl_comparisons/10000.))) &
-!$omp shared (num_plpl_comparisons, dist_plpl_array, k_plpl, symba_plA) &
+!$omp shared (num_plpl_comparisons, k_plpl, symba_plA) &
 !$omp private (i, j, k, dx, rji2, irij3, faci, facj) &
 !$omp reduction(+:ah)
      DO k = 1, num_plpl_comparisons

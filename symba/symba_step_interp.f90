@@ -60,7 +60,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,   &
      eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,          &
-     encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp, dist_plpl_array, dist_pltp_array)
+     encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
 
 ! Modules
      USE module_parameters
@@ -85,8 +85,6 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons, num_pltp_comparisons
      INTEGER(I4B), DIMENSION(2,num_plpl_comparisons),INTENT(IN) :: k_plpl 
      INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
-     REAL(DP), DIMENSION(NDIM, num_plpl_comparisons),INTENT(INOUT) :: dist_plpl_array
-     REAL(DP), DIMENSION(NDIM, num_pltp_comparisons),INTENT(INOUT) :: dist_pltp_array
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
@@ -115,9 +113,9 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      END IF
 
      CALL symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
-          num_plpl_comparisons, k_plpl, dist_plpl_array)
+          num_plpl_comparisons, k_plpl)
      IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xbeg, j2rp2,     &
-          j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp, dist_pltp_array)
+          j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
 
      CALL helio_kickvb(npl, symba_plA%helio, dth)
      IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
@@ -135,9 +133,9 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
           END DO
      END IF
      CALL symba_getacch(lextra_force, t+dt, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
-          num_plpl_comparisons, k_plpl, dist_plpl_array)
+          num_plpl_comparisons, k_plpl)
      IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t+dt, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xend, j2rp2,  &
-          j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp, dist_pltp_array)
+          j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
      CALL helio_kickvb(npl, symba_plA%helio, dth)
      IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
      CALL coord_vb2vh(npl, symba_plA%helio%swiftest)

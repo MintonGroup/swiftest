@@ -40,7 +40,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xh, j2rp2, j4rp4, npltpenc,  &
-     pltpenc_list, num_pltp_comparisons, k_pltp, dist_pltp_array)
+     pltpenc_list, num_pltp_comparisons, k_pltp)
 
 ! Modules
      USE module_parameters
@@ -60,7 +60,6 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      TYPE(symba_tp), INTENT(INOUT)                 :: symba_tpA
      TYPE(symba_pltpenc), INTENT(IN)               :: pltpenc_list
      INTEGER(I4B), DIMENSION(2,num_pltp_comparisons), INTENT(IN) :: k_pltp
-     REAL(DP), DIMENSION(NDIM, num_pltp_comparisons), INTENT(INOUT) :: dist_pltp_array
 
 
 ! Internals
@@ -81,7 +80,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
 
 !$omp parallel do default(none) schedule(static) &
 !$omp num_threads(min(omp_get_max_threads(),ceiling(num_pltp_comparisons/10000.))) &
-!$omp shared(num_pltp_comparisons, symba_plA, symba_tpA, k_pltp, dist_pltp_array) &
+!$omp shared(num_pltp_comparisons, symba_plA, symba_tpA, k_pltp) &
 !$omp private(k, i, j, dx, r2, fac) &
 !$omp reduction(+:ah)
      do k = 1,num_pltp_comparisons
