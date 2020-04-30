@@ -76,8 +76,8 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
 
      ah(:,1:ntp) = 0.0_DP
 
-     CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
-          num_pltp_comparisons, k_pltp, dist_pltp_array)
+     ! CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
+     !      num_pltp_comparisons, k_pltp, dist_pltp_array)
 
 !$omp parallel do default(none) schedule(static) &
 !$omp num_threads(min(omp_get_max_threads(),ceiling(num_pltp_comparisons/10000.))) &
@@ -88,7 +88,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
           j = k_pltp(2,k)
           IF (symba_tpA%helio%swiftest%status(j) == ACTIVE) THEN
                i = k_pltp(1,k)
-               dx(:) = dist_pltp_array(:,k)
+               dx(:) = symba_tpA%helio%swiftest%xh(:,k_pltp(2,k)) - symba_plA%helio%swiftest%xh(:,k_pltp(1,k))
                r2 = DOT_PRODUCT(dx(:), dx(:))
                fac = symba_PlA%helio%swiftest%mass(i)/(r2*SQRT(r2))
                ah(:,j) = ah(:,j) - fac*dx(:)
