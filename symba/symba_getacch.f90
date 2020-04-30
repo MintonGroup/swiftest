@@ -69,11 +69,10 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 
 !Executable code
  
-     ! allocate(dist_plpl_array(NDIM,num_plpl_comparisons))
      symba_plA%helio%ah(:,2:npl) = 0.0_DP
      ah(:,2:npl) = 0.0_DP
      
-     CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) ! does not care about mtiny
+     ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) ! does not care about mtiny
 
 ! There is floating point arithmetic round off error in this loop
 ! For now, we will keep it in the serial operation, so we can easily compare
@@ -91,7 +90,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
           IF ((.NOT. symba_plA%lmerged(i) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
                (symba_plA%index_parent(i) /= symba_plA%index_parent(j)))) THEN
                
-               dx(:) = dist_plpl_array(:,k)
+               dx(:) = symba_plA%helio%swiftest%xh(:,k_plpl(2,k)) - symba_plA%helio%swiftest%xh(:,k_plpl(1,k))
                rji2 = DOT_PRODUCT(dx(:), dx(:))
                irij3 = 1.0_DP/(rji2*SQRT(rji2))
                faci = symba_plA%helio%swiftest%mass(i)*irij3
