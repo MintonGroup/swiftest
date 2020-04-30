@@ -118,6 +118,9 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      plpl_encounters = 0
      plpl_lvdotr = 0
 
+     pltp_encounters = 0
+     pltp_lvdotr = 0
+
      ! initialize planets
      symba_plA%nplenc(1:npl) = 0 ! number of planet encounters this particular planet has
      symba_plA%ntpenc(1:npl) = 0 ! number of test particle encounters this particle planet has
