@@ -133,10 +133,11 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
      ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) 
      ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, k_plpl, vel_plpl_array) 
-     CALL symba_chk_eucl(num_plpl_comparisons, k_plpl, symba_plA, dt, plpl_encounters, plpl_lvdotr)
+     CALL symba_chk_eucl(num_plpl_comparisons, k_plpl, symba_plA, dt, plpl_encounters, plpl_lvdotr, nplplenc)
 
      ! here i'll order the encounters
-     nplplenc = count(plpl_encounters > 0)
+     ! nplplenc = count(plpl_encounters > 0)
+     ! print *,'step nplplenc: ',nplplenc
      if(nplplenc>0)then
 
           allocate(plpl_encounters_indices(nplplenc))
@@ -177,9 +178,10 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           !      num_pltp_comparisons, k_pltp, dist_pltp_array)
           ! CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, &
           !      num_pltp_comparisons, k_pltp, vel_pltp_array)
-          CALL symba_chk_eucl_pltp(num_pltp_comparisons, k_pltp, symba_plA, symba_tpA, dt, pltp_encounters, pltp_lvdotr)
+          CALL symba_chk_eucl_pltp(num_pltp_comparisons, k_pltp, symba_plA, symba_tpA, dt, pltp_encounters, pltp_lvdotr, npltpenc)
      
-          npltpenc = count(pltp_encounters > 0)
+          ! npltpenc = count(pltp_encounters > 0)
+          ! print *,'step npltpenc: ',npltpenc
           if(npltpenc>0)then
 
                allocate(pltp_encounters_indices(npltpenc))

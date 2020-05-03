@@ -29,7 +29,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_chk.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr)
+SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr, npltpenc)
 
 ! Modules
      USE module_parameters
@@ -46,6 +46,7 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt,
      INTEGER(I4B), INTENT(IN)           :: num_encounters
      INTEGER(I4B), DIMENSION(2,num_encounters), INTENT(IN)     :: k_pltp
      REAL(DP), INTENT(IN)               :: dt
+     INTEGER(I4B), INTENT(INOUT)        :: npltpenc
 
 ! Internals
      ! LOGICAL(LGT) :: iflag lvdotr_flag
@@ -54,6 +55,8 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt,
      REAL(DP), DIMENSION(NDIM) :: xr, vr
 
 ! Executable code
+
+     npltpenc = 0
      
      term2 = RHSCALE*(RSHELL**0)
 
@@ -62,7 +65,8 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt,
 
 !$omp parallel do default(none) schedule(static) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min, xr, vr) &
-!$omp shared(num_encounters, lvdotr, lencounter, k_pltp, dt, term2, r2critmax, symba_plA, symba_tpA)
+!$omp shared(num_encounters, lvdotr, lencounter, k_pltp, dt, term2, r2critmax, symba_plA, symba_tpA) &
+!$omp reduction(+:npltpenc)
 
      do k = 1,num_encounters
           xr(:) = symba_tpA%helio%swiftest%xh(:,k_pltp(2,k)) - symba_plA%helio%swiftest%xh(:,k_pltp(1,k))
@@ -79,6 +83,7 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt,
 
                IF (r2 < r2crit) THEN
                     lencounter(k) = k
+                    npltpenc = npltpenc + 1
                ELSE
                     IF (vdotr < 0.0_DP) THEN
                          v2 = DOT_PRODUCT(vr(:), vr(:))
@@ -89,7 +94,10 @@ SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt,
                               r2min = r2 + 2.0_DP*vdotr*dt + v2*dt*dt
                          END IF
                          r2min = MIN(r2min, r2)
-                         IF (r2min <= r2crit) lencounter(k) = k
+                         IF (r2min <= r2crit)then
+                              lencounter(k) = k
+                              npltpenc = npltpenc + 1
+                         endif
                     END IF
                END IF
           endif

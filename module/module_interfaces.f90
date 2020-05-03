@@ -879,7 +879,7 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE 
-          SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvdotr)
+          SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvdotr, nplplenc)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -890,11 +890,12 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)           :: num_encounters
                INTEGER(I4B), DIMENSION(2,num_encounters),INTENT(IN)   :: k_plpl
                REAL(DP), INTENT(IN)               :: dt
+               INTEGER(I4B), INTENT(INOUT)        :: nplplenc
           END SUBROUTINE symba_chk_eucl
      END INTERFACE
 
      INTERFACE 
-          SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr)
+          SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr, npltpenc)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -906,6 +907,7 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)           :: num_encounters
                INTEGER(I4B), DIMENSION(2,num_encounters),INTENT(IN)   :: k_pltp
                REAL(DP), INTENT(IN)               :: dt
+               INTEGER(I4B), INTENT(INOUT)        :: npltpenc
           END SUBROUTINE symba_chk_eucl_pltp
      END INTERFACE
 

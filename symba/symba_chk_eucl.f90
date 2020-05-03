@@ -29,7 +29,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_chk.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvdotr)
+SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvdotr, nplplenc)
 
 ! Modules
      USE module_parameters
@@ -46,6 +46,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvd
      INTEGER(I4B), INTENT(IN)           :: num_encounters
      INTEGER(I4B), DIMENSION(2,num_encounters), INTENT(IN)     :: k_plpl
      REAL(DP), INTENT(IN)               :: dt
+     INTEGER(I4B), INTENT(INOUT)        :: nplplenc
 
 ! Internals
      ! LOGICAL(LGT) :: iflag lvdotr_flag
@@ -55,6 +56,8 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvd
 
 ! Executable code
 
+     nplplenc = 0
+
      term2 = RHSCALE*RSHELL**0
 
      rcritmax = (symba_plA%helio%swiftest%rhill(2) + symba_plA%helio%swiftest%rhill(3)) * term2
@@ -63,7 +66,8 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvd
 !$omp parallel do default(none) schedule(static) &
 !$omp num_threads(min(omp_get_max_threads(),ceiling(num_encounters/10000.))) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min, xr, vr) &
-!$omp shared(num_encounters, lvdotr, lencounter, k_plpl, dt, term2, r2critmax, symba_plA)
+!$omp shared(num_encounters, lvdotr, lencounter, k_plpl, dt, term2, r2critmax, symba_plA) &
+!$omp reduction(+:nplplenc)
 
      do k = 1,num_encounters
           xr(:) = symba_plA%helio%swiftest%xh(:,k_plpl(2,k)) - symba_plA%helio%swiftest%xh(:,k_plpl(1,k))
@@ -81,6 +85,7 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvd
 
                IF (r2 < r2crit) THEN
                     lencounter(k) = k
+                    nplplenc = nplplenc + 1
                ELSE
                     IF (vdotr < 0.0_DP) THEN
                          v2 = DOT_PRODUCT(vr(:), vr(:))
@@ -91,13 +96,17 @@ SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvd
                               r2min = r2 + 2.0_DP*vdotr*dt + v2*dt*dt
                          END IF
                          r2min = MIN(r2min, r2)
-                         IF (r2min <= r2crit) lencounter(k) = k
+                         IF (r2min <= r2crit) then
+                              lencounter(k) = k
+                              nplplenc = nplplenc + 1
+                         endif
                     END IF
                END IF
           endif
      enddo
 
 !$omp end parallel do
+     
      RETURN
 
 END SUBROUTINE symba_chk_eucl
