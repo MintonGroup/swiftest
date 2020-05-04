@@ -61,6 +61,8 @@ SUBROUTINE symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, l
                     ldiscards = .TRUE.
                     swiftest_plA%status(i) = DISCARDED_RMAX
                     WRITE(*, *) "Particle ",  swiftest_plA%name(i), " too far from Sun at t = ", t
+                    print *,'rmax: ',rmax
+                    print *,'rh2: ',rh2
                ELSE IF ((rmin >= 0.0_DP) .AND. (rh2 < rmin2)) THEN
                     ldiscards = .TRUE.
                     swiftest_plA%status(i) = DISCARDED_RMIN
