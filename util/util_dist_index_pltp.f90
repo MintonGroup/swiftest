@@ -39,7 +39,7 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
      INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,j,ii,jj,nb,np,nt,counter, nplm1, ntp1
+     INTEGER(I4B)              :: i,j,ii,jj,nb,np,nt,counter, nplm1, ntp1, bnp, bntp
 
 ! Executable code
      num_comparisons = (nplm -1) * ntp ! number of entries in our distance array
