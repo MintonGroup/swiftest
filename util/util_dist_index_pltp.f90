@@ -42,51 +42,55 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
      INTEGER(I4B)              :: i,j,ii,jj,nb,np,nt,counter, nplm1, ntp1
 
 ! Executable code
-     num_comparisons = (nplm - 1) * ntp ! number of entries in our distance array
+     num_comparisons = (nplm -1) * ntp ! number of entries in our distance array
 
      allocate(k_pltp(2,num_comparisons))
 
+! !$omp parallel do schedule(static) default(none) &
+! !$omp shared(k_pltp, nplm, ntp) &
+! !$omp private(i, j, counter)
+!      do i = 2,nplm
+!           counter = (i-2) * ntp + 1
+!           do j = 1,ntp
+!                k_pltp(1,counter) = i
+!                k_pltp(2,counter) = j
+!                counter = counter + 1
+!           enddo
+!      enddo
+! !$omp end parallel do
 
-!$omp parallel do schedule(static) default(none) &
-!$omp shared(k_pltp, nplm, ntp) &
-!$omp private(i, j, counter)
-     do i = 2,nplm
-          counter = (i-2) * ntp + 1
-          do j = 1,ntp
-               k_pltp(1,counter) = i
-               k_pltp(2,counter) = j
-               counter = counter + 1
+     nb = 16 ! number of blocks
+     np = (nplm-1)/nb ! number of planets per block
+     nt = ntp/nb ! number of test particles per block
+     counter = 1
+
+     do i = 2,nplm-np,np
+          do j = 1,ntp-nt,nt
+               do ii = i, min(i+np-1, nplm-1)
+                    do jj = j, min(j+nt-1, ntp)
+                         k_pltp(1,counter) = ii
+                         k_pltp(2,counter) = jj
+                         counter = counter + 1
+                    enddo
+               enddo
           enddo
      enddo
-!$omp end parallel do
+     
+     do ii = i,nplm
+         do jj = 1,ntp
+             k_pltp(1,counter) = ii
+             k_pltp(2,counter) = jj
+             counter = counter + 1
+         enddo
+     enddo  
 
-    !  nb = 2 ! number of blocks
-    !  np = (nplm1-1)/nb ! number of planets per block
-    !  nt = ntp1/nb ! number of test particles per block
-    !  counter = 1
-
-    !  do i = 2,np*nb,np
-    !       do j = 1,nt*nb,nt
-    !            do ii = i, i+np-1
-    !                 do jj = j, j+nt-1
-    !                      print *,'i j ii jj: ',i,j,ii,jj
-    !                      k_pltp(counter,1) = ii
-    !                      k_pltp(counter,2) = jj
-    !                      counter = counter + 1
-    !                 enddo
-    !            enddo
-    !       enddo
-    !  enddo
-
-    !  print *,'break'
-    !            do ii = i, nplm1
-    !                 do jj = j, ntp1
-    !                      print *,'i j ii jj: ',i,j,ii,jj
-    !                      k_pltp(counter,1) = ii
-    !                      k_pltp(counter,2) = jj
-    !                      counter = counter + 1
-    !                 enddo
-    !  enddo
+     do ii = 2,i
+         do jj = j,ntp
+             k_pltp(1,counter) = ii
+             k_pltp(2,counter) = jj
+             counter = counter + 1
+         enddo
+     enddo  
 
      RETURN
 
