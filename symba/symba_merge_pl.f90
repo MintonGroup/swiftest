@@ -223,7 +223,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           !WRITE(*,*) "symba_merge_pl.f90 xh", mergeadd_list%xh(:,nmergeadd)
           !WRITE(*,*) "symba_merge_pl.f90 vh", mergeadd_list%vh(:,nmergeadd)
           !WRITE(*,*) "symba_merge_pl.f90 eoffset", eoffset
-          DO k = 1, nplplenc
+          DO k = 1, nplplenc                                          !go through the encounter list and for particles actively encoutering, get their children
                IF (plplenc_list%status(k) == ACTIVE) THEN
                     DO i = 0, symba_plA%nchild(index1_parent)
                          IF (i == 0) THEN 
@@ -248,8 +248,8 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
           END DO
           symba_plA%helio%swiftest%xh(:,index1_parent) = xnew(:)
           symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
-          symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) !PROBLEM
-          symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) !PROBLEM
+          symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) 
+          symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) 
           array_keep_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
           DO i = 1, symba_plA%nchild(index1_parent)
                indexchild = array_keep_child(i)

@@ -163,16 +163,16 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
           mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
           mergeadd_list%status(nmergeadd) = ACTIVE
           mergeadd_list%ncomp(nmergeadd) = 2
-          mergeadd_list%xh(:,nmergeadd) = SOMETHING(:)
-          mergeadd_list%vh(:,nmergeadd) = SOMETHING(:) -vbs(:)
-          mergeadd_list%mass(nmergeadd) = SOMETHING
-          mergeadd_list%radius(nmergeadd) = SOMETHING
+          mergeadd_list%xh(:,nmergeadd) = SOMETHING(:)                               ! FIX
+          mergeadd_list%vh(:,nmergeadd) = SOMETHING(:) -vbs(:)                       ! FIX
+          mergeadd_list%mass(nmergeadd) = SOMETHING                                  ! FIX
+          mergeadd_list%radius(nmergeadd) = SOMETHING                                ! FIX
      END DO
 
      ! Calculate energy after frag
-     mtot = NEW MASS OF ALL ADDED POS
-     xnew(:) = NEW BARYCENTRIC POS OF ALL ADDED PS
-     vnew(:) = NEW BARYCENTRIC VEL OF ALL ADDED PS
+     mtot = NEW MASS OF ALL ADDED PS                                                 ! FIX
+     xnew(:) = NEW BARYCENTRIC POS OF ALL ADDED PS                                   ! FIX
+     vnew(:) = NEW BARYCENTRIC VEL OF ALL ADDED PS                                   ! FIX
      enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
      eoffset = eoffset + eold - enew
 
