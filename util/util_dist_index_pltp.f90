@@ -39,7 +39,7 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
      INTEGER(I4B), INTENT(OUT) :: num_comparisons
 
 ! Internals
-     INTEGER(I4B)              :: i,j,ii,jj,nb,np,nt,counter, nplm1, ntp1, bnp, bntp
+     INTEGER(I4B)              :: i,j,ii,jj,nb,np,nt,counter,ii_end,jj_end
 
 ! Executable code
      num_comparisons = (nplm -1) * ntp ! number of entries in our distance array
@@ -59,15 +59,20 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
 !      enddo
 ! !$omp end parallel do
 
-     nb = 16 ! number of blocks
+     nb = 10 ! number of blocks
      np = (nplm-1)/nb ! number of planets per block
      nt = ntp/nb ! number of test particles per block
+
+     np = 1000
+
      counter = 1
 
-     do i = 2,nplm-np,np
-          do j = 1,ntp-nt,nt
-               do ii = i, min(i+np-1, nplm-1)
-                    do jj = j, min(j+nt-1, ntp)
+     do i = 2,nplm,np
+        ii_end = min(i+np-1, nplm)
+          do j = 1,ntp,np
+            jj_end = min(j+np-1, ntp)
+               do ii = i, ii_end
+                    do jj = j, jj_end
                          k_pltp(1,counter) = ii
                          k_pltp(2,counter) = jj
                          counter = counter + 1
@@ -75,22 +80,6 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
                enddo
           enddo
      enddo
-     
-     do ii = i,nplm
-         do jj = 1,ntp
-             k_pltp(1,counter) = ii
-             k_pltp(2,counter) = jj
-             counter = counter + 1
-         enddo
-     enddo  
-
-     do ii = 2,i
-         do jj = j,ntp
-             k_pltp(1,counter) = ii
-             k_pltp(2,counter) = jj
-             counter = counter + 1
-         enddo
-     enddo  
 
      RETURN
 
