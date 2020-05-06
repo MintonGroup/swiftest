@@ -58,6 +58,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
 
+
 ! Internals
  
      INTEGER(I4B)                                     :: model, nres, nfrag, i, index1, index2, stat1, stat2, index1_child
