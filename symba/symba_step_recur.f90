@@ -79,6 +79,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
 
 
+
 ! Internals
      LOGICAL(LGT)              :: lencounter
      INTEGER(I4B)              :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp, k
