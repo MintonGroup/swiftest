@@ -807,7 +807,7 @@ MODULE module_interfaces
           USE module_helio
           USE module_symba
           IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax, nfrag
           INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
           REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset
@@ -917,6 +917,7 @@ MODULE module_interfaces
           TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
           TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+
 
           END SUBROUTINE symba_casesupercatastrophic
      END INTERFACE
