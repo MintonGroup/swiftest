@@ -72,9 +72,6 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
           SELECT CASE (regime)
 
           CASE (COLLRESOLVE_REGIME_DISRUPTION)
-
-               ! determine the number of fragments and the SFD
-               nfrag = 2 !this will be determined later from collresolve
                CALL symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
                encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
                nplmax, ntpmax, fragmax, mres, rres)
