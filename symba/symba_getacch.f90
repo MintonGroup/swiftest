@@ -95,7 +95,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      END DO
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN
-               ALLOCATE(aobl(NDIM, nplmax), irh(nplmax))
+               ALLOCATE(xh(NDIM, npl),aobl(NDIM, npl), irh(npl))
                lmalloc = .FALSE.
           END IF
           DO i = 2, npl
