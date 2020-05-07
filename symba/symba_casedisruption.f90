@@ -34,7 +34,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
      encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, swiftest_plA, &
-     swiftest_tpA, nplmax, ntpmax, fragmax)
+     swiftest_tpA, nplmax, ntpmax, fragmax, mres, rres)
 
 ! Modules
      USE module_parameters
@@ -47,7 +47,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-     REAL(DP), INTENT(IN)                             :: t, dt
+     REAL(DP), INTENT(IN)                             :: t, dt, mres, rres
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
@@ -62,8 +62,10 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 ! Internals
  
      INTEGER(I4B)                                     :: model, nres, nfrag
-     REAL(DP)                                         :: m1, m2, rad1, rad2, mres, rres, pres, vres, mtot, msun
-     REAL(DP)                                         :: r, mu, vdot, energy, ap
+     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres, mtot, msun, mtot, mv 
+     REAL(DP)                                         :: r, mu, vdot, energy, ap, rhill_p1, rhill_p2, pi, r_circle, theta
+     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
+     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, fz_frag
      REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2, xbs, xh, xb, vb, vh
      INTEGER(I4B), DIMENSION(nfrag, 17)               :: array_frag
      INTEGER(I4B), DIMENSION(npl+nfrag, 17)           :: array_fragpl
@@ -187,16 +189,16 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
           mergeadd_list%status(nmergeadd) = ACTIVE
           mergeadd_list%ncomp(nmergeadd) = 2
           IF (i == 1) THEN
-               ! first largest particle from collresolve ret[0].mass ret[0].radius
-               mergeadd_list%mass(nmergeadd) = SOMETHING
-               mergeadd_list%radius(nmergeadd) = SOMETHING
-               mtot = mtot + mergeadd_list%mass(nmergeadd)                             ! FIX
+               ! first largest particle from collresolve mres[0] rres[0]
+               mergeadd_list%mass(nmergeadd) = mres(1)
+               mergeadd_list%radius(nmergeadd) = rres(1)
+               mtot = mtot + mergeadd_list%mass(nmergeadd)                             
           END IF
           IF (i == 2) THEN
-               ! second largest particle from collresolve ret[1].mass ret[1].radius
-               mergeadd_list%mass(nmergeadd) = SOMETHING
-               mergeadd_list%radius(nmergeadd) = SOMETHING 
-               mtot = mtot + mergeadd_list%mass(nmergeadd)                            ! FIX
+               ! second largest particle from collresolve mres[1] rres[1]
+               mergeadd_list%mass(nmergeadd) = mres(2)
+               mergeadd_list%radius(nmergeadd) = rres(2) 
+               mtot = mtot + mergeadd_list%mass(nmergeadd)                            
           END IF
           IF (i > 2) THEN
                ! all other particles implement eq. 31 LS12

@@ -801,7 +801,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
      encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, swiftest_plA, &
-     swiftest_tpA, nplmax, ntpmax, fragmax)
+     swiftest_tpA, nplmax, ntpmax, fragmax, mres, rres)
           USE module_parameters
           USE module_swiftest
           USE module_helio
@@ -809,7 +809,7 @@ MODULE module_interfaces
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
           INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-          REAL(DP), INTENT(IN)                             :: t, dt
+          REAL(DP), INTENT(IN)                             :: t, dt, mres, rres
           REAL(DP), INTENT(INOUT)                          :: eoffset
           REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
           CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
@@ -876,7 +876,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
      encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, &
-     swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax)
+     swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax, mres, rres)
           USE module_parameters
           USE module_swiftest
           USE module_helio
@@ -885,7 +885,7 @@ MODULE module_interfaces
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
           INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
           REAL(DP), INTENT(IN)                             :: t, dt
-          REAL(DP), INTENT(INOUT)                          :: eoffset
+          REAL(DP), INTENT(INOUT)                          :: eoffset, mres, rres
           REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
           CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
           TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list

@@ -34,7 +34,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
      encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, &
-     swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax)
+     swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax, mres, rres)
 
 ! Modules
      USE module_parameters
@@ -48,7 +48,7 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
      REAL(DP), INTENT(IN)                             :: t, dt
-     REAL(DP), INTENT(INOUT)                          :: eoffset
+     REAL(DP), INTENT(INOUT)                          :: eoffset, mres, rres
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
@@ -63,7 +63,7 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
 ! Internals
  
      INTEGER(I4B)                                     :: model, nres
-     REAL(DP)                                         :: m1, m2, rad1, rad2, mres, rres, pres, vres
+     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres
      REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2
 
 
@@ -75,24 +75,27 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
           CASE (COLLRESOLVE_REGIME_DISRUPTION)
                CALL symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
                encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-               swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax)
+               swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax, mres, rres)
 
           CASE (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                CALL symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, & 
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, & 
-               pltpenc_list, plplenc_list)
+               pltpenc_list, plplenc_list, mres, rres)
 
           CASE (COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
                CALL symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-               encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+               encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+               mres, rres)
 
           CASE (COLLRESOLVE_REGIME_HIT_AND_RUN)
                CALL symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-               encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+               encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+               mres, rres)
 
           CASE (COLLRESOLVE_REGIME_MERGE)
                CALL symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-               encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+               encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+               mres, rres)
           
           CASE DEFAULT 
                WRITE(*,*) "ERROR IN SYMBA_CASERESOLVE, NO REGIME SELECTED"
