@@ -62,7 +62,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 ! Internals
  
      INTEGER(I4B)                                     :: model, nres, nfrag
-     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres, mtot, msun, mtot, mv 
+     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres, mtot, msun, mtot, mv, avg_d, dp_1, dp_2 
      REAL(DP)                                         :: r, mu, vdot, energy, ap, rhill_p1, rhill_p2, pi, r_circle, theta
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
      REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, fz_frag
@@ -201,10 +201,13 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
                mtot = mtot + mergeadd_list%mass(nmergeadd)                            
           END IF
           IF (i > 2) THEN
-               ! all other particles implement eq. 31 LS12
-               mergeadd_list%mass(nmergeadd) = SOMETHING
-               mergeadd_list%radius(nmergeadd) = SOMETHING 
-               mtot = mtot + mergeadd_list%mass(nmergeadd)                            ! FIX
+               ! FIXME all other particles implement eq. 31 LS12
+               d_p1 = (3.0_DP * m1) / (4.0_DP * pi * (rad1 ** 3.0_DP))
+               d_p2 = (3.0_DP * m2) / (4.0_DP * pi * (rad2 ** 3.0_DP))
+               avg_d = (d_p1 + d_p2) / 2.0_DP
+               mergeadd_list%mass(nmergeadd) = (m1 + m2) - (mres(1) + mres(2))
+               mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * pi * avg_d))  ** (1.0_DP / 3.0_DP) 
+               mtot = mtot + mergeadd_list%mass(nmergeadd)                                                              
           END IF                                  
           x_frag = (r_circle * cos(theta * i)) + x_com
           y_frag = (r_cirlce * sin(theta * i)) + y_com
