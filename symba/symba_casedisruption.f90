@@ -72,7 +72,9 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 ! Executable code
 
      ! determine the number of fragments and the SFD
-     nfrag = 2 !this will be determined later from collresolve
+     nfrag = 3 !this will be determined later from collresolve
+     ! instead of nfrag do a mfrag and that way we calculate the number of appropriate frags for each regime and collision
+     ! or do a % of parents mass minus two biggest fragments split 
 
      ! pull in parent data
      index1 = plplenc_list%index1(index_enc)
@@ -133,6 +135,18 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      x2(:) = x2(:)/m2
      v2(:) = v2(:)/m2
 
+     ! Find COM
+     x_com = ((x1(1) * m1) + (x2(1) * m2)) / (m1 + m2)
+     y_com = ((x1(2) * m1) + (x2(2) * m2)) / (m1 + m2)
+     z_com = ((x1(3) * m1) + (x2(3) * m2)) / (m1 + m2)
+
+     vx_com = ((v1(1) * m1) + (v2(1) * m2)) / (m1 + m2)
+     vy_com = ((v1(2) * m1) + (v2(2) * m2)) / (m1 + m2)
+     vz_com = ((v1(3) * m1) + (v2(3) * m2)) / (m1 + m2)
+
+     !phi_p1 = atan(v1(2) / v1(1))
+     !phi_p2 = atan(v2(2) / v2(1))
+
      ! Find energy pre-frag
      eold = 0.5_DP*(m1*DOT_PRODUCT(v1(:), v1(:)) + m2*DOT_PRODUCT(v2(:), v2(:)))
      xr(:) = x2(:) - x1(:)
@@ -144,7 +158,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      ! Add both parents to mergesub_list
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name1
-     mergesub_list%status(nmergesub) = MERGED
+     mergesub_list%status(nmergesub) = MERGED ! possibly change to disruption for new flag in discard.out
      mergesub_list%xh(:,nmergesub) = x1(:)
      mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass1
@@ -156,23 +170,57 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass2
      mergesub_list%radius(nmergesub) = rad2
-     
+
+     ! Calculate the positions of the new fragments
+     rhill_p1 = symba_plA%rhill(index1_parent)
+     rhill_p2 = symba_plA%rhill(index2_parent)
+     pi = (4 * atan (1.0_8))
+     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(pi) / nfrag)
+     theta = (8 * pi) / nfrag
+
      ! Add new fragments to mergeadd_list
+     mtot = 0.0_DP ! running total mass of new fragments
+     mv = 0.0_DP   ! running sum of m*v of new fragments to be used in COM calculation
      DO i = 1, nfrag
           nmergeadd = nmergeadd + 1
           mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
           mergeadd_list%status(nmergeadd) = ACTIVE
           mergeadd_list%ncomp(nmergeadd) = 2
-          mergeadd_list%xh(:,nmergeadd) = SOMETHING(:)                               ! FIX
-          mergeadd_list%vh(:,nmergeadd) = SOMETHING(:) -vbs(:)                       ! FIX
-          mergeadd_list%mass(nmergeadd) = SOMETHING                                  ! FIX
-          mergeadd_list%radius(nmergeadd) = SOMETHING                                ! FIX
+          IF (i == 1) THEN
+               ! first largest particle from collresolve ret[0].mass ret[0].radius
+               mergeadd_list%mass(nmergeadd) = SOMETHING
+               mergeadd_list%radius(nmergeadd) = SOMETHING
+               mtot = mtot + mergeadd_list%mass(nmergeadd)                             ! FIX
+          END IF
+          IF (i == 2) THEN
+               ! second largest particle from collresolve ret[1].mass ret[1].radius
+               mergeadd_list%mass(nmergeadd) = SOMETHING
+               mergeadd_list%radius(nmergeadd) = SOMETHING 
+               mtot = mtot + mergeadd_list%mass(nmergeadd)                            ! FIX
+          END IF
+          IF (i > 2) THEN
+               ! all other particles implement eq. 31 LS12
+               mergeadd_list%mass(nmergeadd) = SOMETHING
+               mergeadd_list%radius(nmergeadd) = SOMETHING 
+               mtot = mtot + mergeadd_list%mass(nmergeadd)                            ! FIX
+          END IF                                  
+          x_frag = (r_circle * cos(theta * i)) + x_com
+          y_frag = (r_cirlce * sin(theta * i)) + y_com
+          z_frag = z_com
+          vx_frag = ((1 / nfrag) * (1 / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
+          vy_frag = ((1 / nfrag) * (1 / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
+          vz_frag = vz_com - vbs(3)
+          mergeadd_list%xh(1,nmergeadd) = x_frag
+          mergeadd_list%xh(2,nmergeadd) = y_frag 
+          mergeadd_list%xh(3,nmergeadd) = z_frag                                                    
+          mergeadd_list%vh(1,nmergeadd) = vx_frag
+          mergeadd_list%vh(2,nmergeadd) = vy_frag
+          mergeadd_list%vh(3,nmergeadd) = vz_frag
+          mv = mv + (mergeadd_list%mass(nmergeadd) * mergeadd_list%(:,nmergeadd))
      END DO
 
-     ! Calculate energy after frag
-     mtot = NEW MASS OF ALL ADDED PS                                                 ! FIX
-     xnew(:) = NEW BARYCENTRIC POS OF ALL ADDED PS                                   ! FIX
-     vnew(:) = NEW BARYCENTRIC VEL OF ALL ADDED PS                                   ! FIX
+     ! Calculate energy after frag                                                                           
+     vnew(:) = mv / mtot    ! COM of new fragments                               
      enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
      eoffset = eoffset + eold - enew
 
