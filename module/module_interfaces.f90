@@ -800,8 +800,8 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, swiftest_plA, &
-     swiftest_tpA, nplmax, ntpmax, fragmax, mres, rres)
+     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+     nplmax, ntpmax, fragmax, mres, rres)
           USE module_parameters
           USE module_swiftest
           USE module_helio
@@ -818,8 +818,6 @@ MODULE module_interfaces
           TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
           TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          TYPE(swiftest_pl), INTENT(INOUT)                 :: swiftest_plA
-          TYPE(swiftest_tp), INTENT(INOUT)                 :: swiftest_tpA
 
           END SUBROUTINE symba_casedisruption
      END INTERFACE
@@ -876,7 +874,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
      encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, &
-     swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax, mres, rres)
+     nplmax, ntpmax, fragmax, mres, rres)
           USE module_parameters
           USE module_swiftest
           USE module_helio
@@ -894,8 +892,6 @@ MODULE module_interfaces
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
           TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
           INTEGER(I4B), INTENT(IN)                         :: regime 
-          TYPE(swiftest_pl), INTENT(INOUT)                 :: swiftest_plA
-          TYPE(swiftest_tp), INTENT(INOUT)                 :: swiftest_tpA
 
           END SUBROUTINE symba_caseresolve
      END INTERFACE
@@ -1273,7 +1269,7 @@ MODULE module_interfaces
           SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
                symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
                nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
-               swiftest_plA, swiftest_tpA, fragmax)
+               fragmax)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1291,8 +1287,6 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               TYPE(swiftest_pl), INTENT(INOUT)   :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT)   :: swiftest_tpA
           END SUBROUTINE symba_step
      END INTERFACE
 
@@ -1334,7 +1328,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,    &
                j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,    &
-               mergesub_list, encounter_file, out_type, swiftest_plA, swiftest_tpA, fragmax)
+               mergesub_list, encounter_file, out_type, fragmax)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1351,15 +1345,13 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               TYPE(swiftest_pl), INTENT(INOUT)   :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT)   :: swiftest_tpA
           END SUBROUTINE symba_step_interp
      END INTERFACE
 
      INTERFACE
           RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
                npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, & 
-               out_type, swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax)
+               out_type, nplmax, ntpmax, fragmax)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1376,8 +1368,6 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               TYPE(swiftest_pl), INTENT(INOUT)   :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT)   :: swiftest_tpA
           END SUBROUTINE symba_step_recur
      END INTERFACE
 

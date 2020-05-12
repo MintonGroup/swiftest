@@ -33,8 +33,8 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, swiftest_plA, &
-     swiftest_tpA, nplmax, ntpmax, fragmax, mres, rres)
+     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+     nplmax, ntpmax, fragmax, mres, rres)
 
 ! Modules
      USE module_parameters
@@ -56,8 +56,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-     TYPE(swiftest_pl), INTENT(INOUT)                 :: swiftest_plA
-     TYPE(swiftest_tp), INTENT(INOUT)                 :: swiftest_tpA
 
 ! Internals
  
