@@ -75,7 +75,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 
 ! Executable code
-
+     WRITE(*, *) "ENTERING SYMBA_FRAGMENTATION"
      lmerge = .FALSE.
      lfrag_add = .FALSE.
      ! Model 2 is the model for collresolve_resolve (LS12)

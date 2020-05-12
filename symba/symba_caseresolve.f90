@@ -67,7 +67,7 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
 
 
 ! Executable code
-
+          WRITE(*, *) "ENTERING SYMBA_CASERESOLVE"
           WRITE(*,*) "COLLISION REGIME = ", regime 
           SELECT CASE (regime)
 
