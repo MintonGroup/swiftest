@@ -174,6 +174,32 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      mergesub_list%mass(nmergesub) = mass2
      mergesub_list%radius(nmergesub) = rad2
 
+
+     DO k = 1, nplplenc  !go through the encounter list and for particles actively encoutering, get their children
+          IF (plplenc_list%status(k) == ACTIVE) THEN
+               DO i = 0, symba_plA%nchild(index1_parent)
+                    IF (i == 0) THEN
+                         index1_child = index1_parent
+                    ELSE
+                         index1_child = array_index1_child(i)
+                    END IF
+                    DO j = 0, symba_plA%nchild(index2_parent)
+                         IF (j == 0) THEN
+                              index2_child = index2_parent
+                         ELSE
+                              index2_child = array_index2_child(j)
+                         END IF
+                         IF ((index1_child == plplenc_list%index1(k)) .OR. (index2_child == plplenc_list%index2(k))) THEN
+                              plplenc_list%status(k) = MERGED
+                         ELSE IF ((index1_child == plplenc_list%index2(k)) .OR. (index2_child == plplenc_list%index1(k))) THEN
+                              plplenc_list%status(k) = MERGED
+                         END IF
+                    END DO
+               END DO
+          END IF
+     END DO
+
+
      ! Calculate the positions of the new fragments
      rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
      rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
