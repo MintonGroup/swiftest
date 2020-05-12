@@ -47,7 +47,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-     REAL(DP), INTENT(IN)                             :: t, dt
+     REAL(DP), INTENT(INOUT)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
@@ -59,15 +59,16 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Internals
  
-     INTEGER(I4B)                 :: model, nres
-     REAL(DP)                     :: mres, rres, pres, vres
-     INTEGER(I4B)                 :: regime, collresolve_resolve
-     INTEGER(I4B)                 :: index1, index2
-     INTEGER(I4B)                 :: name1, name2
-     REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q
-     REAL(DP)                     :: rad1, rad2, m1, m2
-     REAL(DP), DIMENSION(NDIM)    :: xr, vr, x1, v1, x2, v2
-     LOGICAL(LGT)                 :: lfrag_add, lmerge
+     INTEGER(I4B)                   :: model, nres
+     REAL(DP), DIMENSION(3)         :: mres, rres
+     REAL(DP), DIMENSION(NDIM, 3)   :: pres, vres
+     INTEGER(I4B)                   :: regime, collresolve_resolve
+     INTEGER(I4B)                   :: index1, index2
+     INTEGER(I4B)                   :: name1, name2
+     REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q
+     REAL(DP)                       :: rad1, rad2, m1, m2
+     REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
+     LOGICAL(LGT)                   :: lfrag_add, lmerge
 
 
 ! Executable code
@@ -76,8 +77,6 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      lfrag_add = .FALSE.
      ! Model 2 is the model for collresolve_resolve (LS12)
      model = 2
-     ! nres number of bodies we want to output
-     nres = 2
 
      index1 = plplenc_list%index1(index_enc)
      index2 = plplenc_list%index2(index_enc)
@@ -128,9 +127,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                mres,rres,pres,vres)
           !WRITE(*,*) "COLLISION REGIME = ", regime 
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, &
-               nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, &
-               nplmax, ntpmax, fragmax)
+               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
+               npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres)
 
      END IF 
      RETURN
