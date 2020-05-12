@@ -34,7 +34,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
      encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-     nplmax, ntpmax, fragmax, mres, rres)
+     nplmax, ntpmax, fragmax, mres, rres) 
 
 ! Modules
      USE module_parameters
@@ -47,8 +47,9 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-     REAL(DP), INTENT(IN)                             :: t, dt, mres, rres
+     REAL(DP), INTENT(INOUT)                          :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
+     REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
@@ -59,16 +60,16 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
 ! Internals
  
-     INTEGER(I4B)                                     :: model, nres, nfrag
-     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres, mtot, msun, mtot, mv, avg_d, dp_1, dp_2 
-     REAL(DP)                                         :: r, mu, vdot, energy, ap, rhill_p1, rhill_p2, pi, r_circle, theta
-     REAL(DP)                                         :: m_rem, m_test
+     INTEGER(I4B)                                     :: model, nres, nfrag, i, index1, index2, stat1, stat2, index1_child
+     INTEGER(I4B)                                     :: index2_child, index1_parent, index2_parent, index_big1, index_big2
+     INTEGER(I4B)                                     :: name1, name2
+     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres, mtot, msun, avg_d, d_p1, d_p2 
+     REAL(DP)                                         :: r, rhill_p1, rhill_p2, r_circle, theta
+     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, mmax, mtmp
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
-     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, fz_frag
-     REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2, xbs, xh, xb, vb, vh
-     INTEGER(I4B), DIMENSION(nfrag, 17)               :: array_frag
-     INTEGER(I4B), DIMENSION(npl+nfrag, 17)           :: array_fragpl
-
+     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
+     REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2, xbs, xh, xb, vb, vh, vnew, xr, mv
+     INTEGER(I4B), DIMENSION(npl)                     :: array_index1_child, array_index2_child
 
 ! Executable code
 
@@ -96,7 +97,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children of parent 1
           index1_child = array_index1_child(i)
           mtmp = symba_plA%helio%swiftest%mass(index1_child)
-          IF (mtmp > mmax) EXCEPT_THIS_ONE   ! check if the mass of the child is bigger than the mass of the parent
+          IF (mtmp > mmax) THEN   ! check if the mass of the child is bigger than the mass of the parent
                mmax = mtmp
                name1 = symba_plA%helio%swiftest%name(index1_child)
                index_big1 = index1_child ! if yes, replace the biggest particle variable with the child
@@ -151,7 +152,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      ! Find energy pre-frag
      eold = 0.5_DP*(m1*DOT_PRODUCT(v1(:), v1(:)) + m2*DOT_PRODUCT(v2(:), v2(:)))
      xr(:) = x2(:) - x1(:)
-     eold = eold - m1*m2/SQRT(DOT_PRODUCT(xr(:), xr(:)))
+     eold = eold - (m1*m2/(SQRT(DOT_PRODUCT(xr(:), xr(:)))))
 
      WRITE(*, *) "Disruption between particles ", name1, " and ", name2, " at time t = ",t
      WRITE(*, *) "Number of fragments added: ", nfrag
@@ -173,11 +174,10 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      mergesub_list%radius(nmergesub) = rad2
 
      ! Calculate the positions of the new fragments
-     rhill_p1 = symba_plA%rhill(index1_parent)
-     rhill_p2 = symba_plA%rhill(index2_parent)
-     pi = (4 * atan (1.0_8))
-     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(pi) / nfrag)
-     theta = (8 * pi) / nfrag
+     rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
+     rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
+     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI) / nfrag)
+     theta = (8 * PI) / nfrag
 
      ! Add new fragments to mergeadd_list
      mtot = 0.0_DP ! running total mass of new fragments
@@ -202,24 +202,24 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          IF (i > 2) THEN
              ! FIXME all other particles implement eq. 31 LS12
              ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
-             d_p1 = (3.0_DP * m1) / (4.0_DP * pi * (rad1 ** 3.0_DP))
-             d_p2 = (3.0_DP * m2) / (4.0_DP * pi * (rad2 ** 3.0_DP))
+             d_p1 = (3.0_DP * m1) / (4.0_DP * PI * (rad1 ** 3.0_DP))
+             d_p2 = (3.0_DP * m2) / (4.0_DP * PI * (rad2 ** 3.0_DP))
              avg_d = (d_p1 + d_p2) / 2.0_DP
 
              m_rem = (m1 + m2) - (mres(1) + mres(2))
-             m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * pi * avg_d)
+             m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * avg_d)
              
-             IF (m_test < m_rem):
+             IF (m_test < m_rem) THEN
              	 mergeadd_list%mass(nmergeadd) = m_test
              ELSE
              	 mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
              END IF 
-             mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * pi * avg_d))  & 
+             mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
              	 ** (1.0_DP / 3.0_DP) 
              mtot = mtot + mergeadd_list%mass(nmergeadd)                                                              
          END IF                                  
          x_frag = (r_circle * cos(theta * i)) + x_com
-         y_frag = (r_cirlce * sin(theta * i)) + y_com
+         y_frag = (r_circle * sin(theta * i)) + y_com
          z_frag = z_com
          vx_frag = ((1 / nfrag) * (1 / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
          vy_frag = ((1 / nfrag) * (1 / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
@@ -230,7 +230,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          mergeadd_list%vh(1,nmergeadd) = vx_frag
          mergeadd_list%vh(2,nmergeadd) = vy_frag
          mergeadd_list%vh(3,nmergeadd) = vz_frag
-         mv = mv + (mergeadd_list%mass(nmergeadd) * mergeadd_list%(:,nmergeadd))
+         mv = mv + (mergeadd_list%mass(nmergeadd) * mergeadd_list%vh(:,nmergeadd))
      END DO
 
      ! Calculate energy after frag                                                                           
