@@ -819,8 +819,6 @@ MODULE module_interfaces
           TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
           TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          TYPE(swiftest_pl), INTENT(INOUT)                 :: swiftest_plA
-          TYPE(swiftest_tp), INTENT(INOUT)                 :: swiftest_tpA
 
           END SUBROUTINE symba_casedisruption
      END INTERFACE
@@ -845,8 +843,6 @@ MODULE module_interfaces
           TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
           TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          TYPE(swiftest_pl), INTENT(INOUT)                 :: swiftest_plA
-          TYPE(swiftest_tp), INTENT(INOUT)                 :: swiftest_tpA
 
           END SUBROUTINE symba_casehitandrun
      END INTERFACE
@@ -896,8 +892,6 @@ MODULE module_interfaces
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
           TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
           INTEGER(I4B), INTENT(IN)                         :: regime 
-          TYPE(swiftest_pl), INTENT(INOUT)                 :: swiftest_plA
-          TYPE(swiftest_tp), INTENT(INOUT)                 :: swiftest_tpA
 
           END SUBROUTINE symba_caseresolve
      END INTERFACE
@@ -923,8 +917,6 @@ MODULE module_interfaces
           TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
           TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          TYPE(swiftest_pl), INTENT(INOUT)                 :: swiftest_plA
-          TYPE(swiftest_tp), INTENT(INOUT)                 :: swiftest_tpA
 
           END SUBROUTINE symba_casesupercatastrophic
      END INTERFACE
@@ -1358,7 +1350,7 @@ MODULE module_interfaces
      INTERFACE
           RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
                npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, & 
-               out_type, swiftest_plA, swiftest_tpA, nplmax, ntpmax, fragmax)
+               out_type, nplmax, ntpmax, fragmax)
                USE module_parameters
                USE module_swiftest
                USE module_helio
