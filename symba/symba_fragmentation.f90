@@ -47,7 +47,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-     REAL(DP), INTENT(INOUT)                             :: t, dt
+     REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type

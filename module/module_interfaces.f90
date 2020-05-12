@@ -809,7 +809,7 @@ MODULE module_interfaces
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
           INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-          REAL(DP), INTENT(INOUT)                          :: t, dt
+          REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset
           REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
           REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -881,7 +881,7 @@ MODULE module_interfaces
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
           INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-          REAL(DP), INTENT(INOUT)                             :: t, dt
+          REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset
           REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
           REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -1038,7 +1038,7 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
                INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
                INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp
-               REAL(DP), INTENT(INOUT)                          :: t, dt
+               REAL(DP), INTENT(IN)                             :: t, dt
                REAL(DP), INTENT(INOUT)                          :: eoffset
                REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
                CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
@@ -1357,7 +1357,7 @@ MODULE module_interfaces
                LOGICAL(LGT), INTENT(IN)           :: lclose
                INTEGER(I4B), INTENT(IN)           :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
                INTEGER(I4B), INTENT(INOUT)        :: nmergeadd, nmergesub
-               REAL(DP), INTENT(INOUT)            :: t, dt0
+               REAL(DP), INTENT(IN)               :: t, dt0
                REAL(DP), INTENT(INOUT)            :: eoffset
                CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
                TYPE(symba_pl), INTENT(INOUT)      :: symba_plA

@@ -69,7 +69,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      LOGICAL(LGT), INTENT(IN)                         :: lclose
      INTEGER(I4B), INTENT(INOUT)                      :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
      INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
-     REAL(DP), INTENT(INOUT)                          :: t, dt0
+     REAL(DP), INTENT(IN)                             :: t, dt0
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
