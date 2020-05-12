@@ -33,7 +33,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, mres, rres)
 
 ! Modules
      USE module_parameters
@@ -48,6 +48,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
+     REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
@@ -59,7 +60,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
 ! Internals
  
      INTEGER(I4B)                                     :: model, nres
-     REAL(DP)                                         :: m1, m2, rad1, rad2, mres, rres, pres, vres
+     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres
      REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2
 
 
