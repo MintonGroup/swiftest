@@ -69,7 +69,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      LOGICAL(LGT), INTENT(IN)                         :: lclose
      INTEGER(I4B), INTENT(INOUT)                      :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
      INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
-     REAL(DP), INTENT(IN)                             :: t, dt0
+     REAL(DP), INTENT(INOUT)                          :: t, dt0
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
@@ -142,7 +142,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           CALL symba_helio_drift(ireci, npl, symba_plA, dtl)
           IF (ntp > 0) CALL symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%helio%swiftest%mass(1), dtl)
           IF (lencounter) CALL symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
-               npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
+               npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type, &
+               nplmax, ntpmax, fragmax)
           sgn = 1.0_DP
           CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
           IF (lclose) THEN
@@ -240,7 +241,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                IF (ntp > 0) CALL symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%helio%swiftest%mass(1), dtl)
                IF (lencounter) CALL symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset,      &
                     nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,           &
-                    encounter_file, out_type)
+                    encounter_file, out_type, nplmax, ntpmax, fragmax)
                sgn = 1.0_DP
                CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
                sgn = -1.0_DP
