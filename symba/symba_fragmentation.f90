@@ -67,8 +67,10 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: index1, index2
      INTEGER(I4B)                   :: name1, name2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q
-     REAL(DP)                       :: rad1, rad2, m1, m2
+     REAL(DP)                       :: rad1, rad2, m1, m2, GU
+     REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
+     REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs
      LOGICAL(LGT)                   :: lfrag_add, lmerge
 
 
@@ -123,10 +125,31 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           END IF
      END IF
 
+     nres = 2
      IF (lfrag_add) THEN 
-          regime = collresolve_resolve(model,m1,m2,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres, &
-               mres,rres,pres,vres)
-          !WRITE(*,*) "COLLISION REGIME = ", regime 
+          name1 = symba_plA%helio%swiftest%name(index1)
+          m1 = symba_plA%helio%swiftest%mass(index1)
+          rad1 = symba_plA%helio%swiftest%radius(index1)
+          x1(:) = symba_plA%helio%swiftest%xh(:,index1)
+          v1(:) = symba_plA%helio%swiftest%vb(:,index1) - vbs(:)
+          name2 = symba_plA%helio%swiftest%name(index2)
+          m2 = symba_plA%helio%swiftest%mass(index2)
+          rad2 = symba_plA%helio%swiftest%radius(index2)
+          x2(:) = symba_plA%helio%swiftest%xh(:,index2)
+          v2(:) = symba_plA%helio%swiftest%vb(:,index2) - vbs(:)
+          GU = GC / (DU2CM**3 / (MU2GM * TU2S**2))
+          m1_cgs = (m1 / GU) * MU2GM
+          m2_cgs = (m2 / GU) * MU2GM
+          rad1_cgs = (rad1) * DU2CM
+          rad2_cgs = (rad2) * DU2CM
+          x1_cgs(:) = x1(:) * DU2CM
+          x2_cgs(:) = x2(:) * DU2CM
+          v1_cgs(:) = v1(:) * DU2CM / TU2S 
+          v2_cgs(:) = v2(:) * DU2CM / TU2S
+
+          regime = collresolve_resolve(model,m1_cgs,m2_cgs,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
+               nres,mres,rres,pres,vres)
+          WRITE(*,*) "COLLISION REGIME = ", regime
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
                npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres)
