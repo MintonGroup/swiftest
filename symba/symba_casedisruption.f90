@@ -73,7 +73,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      INTEGER(I4B), DIMENSION(npl)                     :: array_index1_child, array_index2_child
 
 ! Executable code
-
+     WRITE(*, *) "ENTERING SYMBA_CASEDISRUPTION"
      ! determine the number of fragments and the SFD
      nfrag = 3 !this will be determined later from collresolve
      ! instead of nfrag do a mfrag and that way we calculate the number of appropriate frags for each regime and collision
