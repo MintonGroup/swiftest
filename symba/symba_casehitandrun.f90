@@ -33,7 +33,8 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, mres, rres)
+     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+     nplmax, ntpmax, fragmax, mres, rres)
 
 ! Modules
      USE module_parameters
@@ -44,8 +45,8 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
@@ -59,12 +60,223 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Internals
  
-     INTEGER(I4B)                                     :: model, nres
-     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres
-     REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2
+     INTEGER(I4B)                                     :: model, nres, nfrag, i, j, k, index1, index2, stat1, stat2, index1_child
+     INTEGER(I4B)                                     :: index2_child, index1_parent, index2_parent, index_big1, index_big2
+     INTEGER(I4B)                                     :: name1, name2, index_keep, index_rm
+     REAL(DP)                                         :: m1, m2, rad1, rad2, mtot, msun, d_rm, m_rm, r_rm, vx_rm, vy_rm
+     REAL(DP)                                         :: r, rhill_keep r_circle, theta
+     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, mmax, mtmp
+     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
+     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
+     REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2, xbs, xh, xb, vb, vh, vnew, xr, mv
+     INTEGER(I4B), DIMENSION(npl)                     :: array_index1_child, array_index2_child
 
 
 ! Executable code
+      WRITE(*, *) "ENTERING SYMBA_CASEHITANDRUN"
+
+      nfrag = 4
+
+     ! pull in parent data
+     index1 = plplenc_list%index1(index_enc)
+     index2 = plplenc_list%index2(index_enc)
+     symba_plA%lmerged(index1) = .TRUE.
+     symba_plA%lmerged(index2) = .TRUE.
+     index1_parent = symba_plA%index_parent(index1)
+     m1 = symba_plA%helio%swiftest%mass(index1_parent)
+     mass1 = m1 
+     rad1 = symba_plA%helio%swiftest%radius(index1_parent)
+     x1(:) = m1*symba_plA%helio%swiftest%xh(:,index1_parent)
+     v1(:) = m1*symba_plA%helio%swiftest%vb(:,index1_parent)
+     mmax = m1
+     name1 = symba_plA%helio%swiftest%name(index1_parent)
+     index_big1 = index1_parent
+     stat1 = symba_plA%helio%swiftest%status(index1_parent)
+     array_index1_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
+     DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children of parent 1
+          index1_child = array_index1_child(i)
+          mtmp = symba_plA%helio%swiftest%mass(index1_child)
+          IF (mtmp > mmax) THEN   ! check if the mass of the child is bigger than the mass of the parent
+               mmax = mtmp
+               name1 = symba_plA%helio%swiftest%name(index1_child)
+               index_big1 = index1_child ! if yes, replace the biggest particle variable with the child
+               stat1 = symba_plA%helio%swiftest%status(index1_child)
+          END IF
+          m1 = m1 + mtmp ! mass of the parent is the mass of the parent plus the mass of all the children
+          x1(:) = x1(:) + mtmp*symba_plA%helio%swiftest%xh(:,index1_child)
+          v1(:) = v1(:) + mtmp*symba_plA%helio%swiftest%vb(:,index1_child)
+     END DO
+     x1(:) = x1(:)/m1
+     v1(:) = v1(:)/m1
+
+     index2_parent = symba_plA%index_parent(index2)
+     m2 = symba_plA%helio%swiftest%mass(index2_parent)
+     mass2 = m2
+     rad2 = symba_plA%helio%swiftest%radius(index2_parent)
+     x2(:) = m2*symba_plA%helio%swiftest%xh(:,index2_parent)
+     v2(:) = m2*symba_plA%helio%swiftest%vb(:,index2_parent)
+     mmax = m2
+     name2 = symba_plA%helio%swiftest%name(index2_parent)
+     index_big2 = index2_parent
+     stat2 = symba_plA%helio%swiftest%status(index2_parent)
+     array_index2_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
+     DO i = 1, symba_plA%nchild(index2_parent)
+          index2_child = array_index2_child(i)
+          mtmp = symba_plA%helio%swiftest%mass(index2_child)
+          IF (mtmp > mmax) THEN
+               mmax = mtmp
+               name2 = symba_plA%helio%swiftest%name(index2_child)
+               index_big2 = index2_child
+               stat2 = symba_plA%helio%swiftest%status(index2_child)
+          END IF
+          m2 = m2 + mtmp
+          x2(:) = x2(:) + mtmp*symba_plA%helio%swiftest%xh(:,index2_child)
+          v2(:) = v2(:) + mtmp*symba_plA%helio%swiftest%vb(:,index2_child)
+     END DO
+     x2(:) = x2(:)/m2
+     v2(:) = v2(:)/m2
+
+     IF (m2 > m1) THEN
+          index_keep = index_big2
+          index_rm = index_big1
+     ELSE
+          index_keep = index_big1
+          index_rm = index_big2
+     END IF
+
+     ! Find COM
+     x_com = ((x1(1) * m1) + (x2(1) * m2)) / (m1 + m2)
+     y_com = ((x1(2) * m1) + (x2(2) * m2)) / (m1 + m2)
+     z_com = ((x1(3) * m1) + (x2(3) * m2)) / (m1 + m2)
+
+     vx_com = ((v1(1) * m1) + (v2(1) * m2)) / (m1 + m2)
+     vy_com = ((v1(2) * m1) + (v2(2) * m2)) / (m1 + m2)
+     vz_com = ((v1(3) * m1) + (v2(3) * m2)) / (m1 + m2)
+
+
+
+     ! Find energy pre-frag
+     eold = 0.5_DP*(m1*DOT_PRODUCT(v1(:), v1(:)) + m2*DOT_PRODUCT(v2(:), v2(:)))
+     xr(:) = x2(:) - x1(:)
+     eold = eold - (m1*m2/(SQRT(DOT_PRODUCT(xr(:), xr(:)))))
+
+     WRITE(*, *) "Hit and run between particles ", name1, " and ", name2, " at time t = ",t
+     WRITE(*, *) "Particle ", index_keep, " survives; Particle ", index_rm, " is fragmented."
+     WRITE(*, *) "Number of fragments added: ", (nfrag - 1)
+
+     ! Add both parents to mergesub_list
+     nmergesub = nmergesub + 1
+     mergesub_list%name(nmergesub) = name1
+     mergesub_list%status(nmergesub) = MERGED ! possibly change to disruption for new flag in discard.out
+     mergesub_list%xh(:,nmergesub) = x1(:)
+     mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
+     mergesub_list%mass(nmergesub) = mass1
+     mergesub_list%radius(nmergesub) = rad1
+     nmergesub = nmergesub + 1
+     mergesub_list%name(nmergesub) = name2
+     mergesub_list%status(nmergesub) = MERGED
+     mergesub_list%xh(:,nmergesub) = x2(:)
+     mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
+     mergesub_list%mass(nmergesub) = mass2
+     mergesub_list%radius(nmergesub) = rad2
+
+     DO k = 1, nplplenc  !go through the encounter list and for particles actively encoutering, get their children
+          IF (plplenc_list%status(k) == ACTIVE) THEN
+               DO i = 0, symba_plA%nchild(index1_parent)
+                    IF (i == 0) THEN
+                         index1_child = index1_parent
+                    ELSE
+                         index1_child = array_index1_child(i)
+                    END IF
+                    DO j = 0, symba_plA%nchild(index2_parent)
+                         IF (j == 0) THEN
+                              index2_child = index2_parent
+                         ELSE
+                              index2_child = array_index2_child(j)
+                         END IF
+                         IF ((index1_child == plplenc_list%index1(k)) .OR. (index2_child == plplenc_list%index2(k))) THEN
+                              plplenc_list%status(k) = MERGED
+                         ELSE IF ((index1_child == plplenc_list%index2(k)) .OR. (index2_child == plplenc_list%index1(k))) THEN
+                              plplenc_list%status(k) = MERGED
+                         END IF
+                    END DO
+               END DO
+          END IF
+     END DO
+
+     ! Calculate the positions of the new fragments
+     rhill_keep = symba_plA%helio%swiftest%rhill(index_keep)
+     r_circle = rhill_keep
+     theta = (8 * PI) / (nfrag - 1)
+
+     ! Add new fragments to mergeadd_list
+     mtot = 0.0_DP ! running total mass of new fragments
+     mv = 0.0_DP   ! running sum of m*v of new fragments to be used in COM calculation
+
+     DO i = 1, nfrag
+         nmergeadd = nmergeadd + 1
+         mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+         mergeadd_list%status(nmergeadd) = ACTIVE
+         mergeadd_list%ncomp(nmergeadd) = 2
+         IF (i == 1) THEN
+             ! first largest particle equal to index_keep
+             mergeadd_list%mass(nmergeadd) = symba_plA%helio%swiftest%mass(index_keep)
+             mergeadd_list%radius(nmergeadd) = symba_plA%helio%swiftest%radius(index_keep)
+             mergeadd_list%xh(:,nmergeadd) = symba_plA%helio%swiftest%xh(:,index_keep)
+             mergeadd_list%vh(:,nmergeadd) = symba_plA%helio%swiftest%vh(:,index_keep)
+             mtot = mtot + mergeadd_list%mass(nmergeadd)                             
+         END IF
+         IF (i == 2) THEN
+             ! second largest particle from collresolve mres[1] rres[1]
+             mergeadd_list%mass(nmergeadd) = mres(2)
+             mergeadd_list%radius(nmergeadd) = rres(2) 
+             mtot = mtot + mergeadd_list%mass(nmergeadd)              
+         END IF
+         IF (i > 2) THEN
+             ! FIXME all other particles implement eq. 31 LS12
+             ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
+             m_rm = symba_plA%helio%swiftest%mass(index_keep)
+             r_rm = symba_plA%helio%swiftest%radius(index_keep)
+             vx_rm = symba_plA%helio%swiftest%vh(1,index_keep)
+             vy_rm = symba_plA%helio%swiftest%vh(2,index_keep)
+             d_rm = (3.0_DP * m_rm) / (4.0_DP * PI * (r_rm ** 3.0_DP))
+
+             m_rem = m_rm - mres(2)
+             m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * d_rm)
+             
+             IF (m_test < m_rem) THEN
+                mergeadd_list%mass(nmergeadd) = m_test
+             ELSE
+                mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
+             END IF 
+             mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * d_rm))  & 
+                ** (1.0_DP / 3.0_DP) 
+             mtot = mtot + mergeadd_list%mass(nmergeadd)
+         END IF
+         IF (i > 1) THEN
+             x_frag = (r_circle * cos(theta * i)) + x_com
+             y_frag = (r_circle * sin(theta * i)) + y_com
+             z_frag = z_com
+             vx_frag = ((1 / (nfrag-1)) * (1 / mergeadd_list%mass(nmergeadd)) * ((m_rm * vx_rm))) - vbs(1)
+             vy_frag = ((1 / (nfrag-1)) * (1 / mergeadd_list%mass(nmergeadd)) * ((m_rm * vy_rm))) - vbs(2)
+             vz_frag = vz_com - vbs(3)
+             mergeadd_list%xh(1,nmergeadd) = x_frag
+             mergeadd_list%xh(2,nmergeadd) = y_frag 
+             mergeadd_list%xh(3,nmergeadd) = z_frag                                                    
+             mergeadd_list%vh(1,nmergeadd) = vx_frag
+             mergeadd_list%vh(2,nmergeadd) = vy_frag
+             mergeadd_list%vh(3,nmergeadd) = vz_frag   
+          END IF                                             
+          mv = mv + (mergeadd_list%mass(nmergeadd) * mergeadd_list%vh(:,nmergeadd))
+     END DO
+
+     ! Calculate energy after frag                                                                           
+     vnew(:) = mv / mtot    ! COM of new fragments                               
+     enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
+     eoffset = eoffset + eold - enew
+
+     ! Update fragmax to account for new fragments
+     fragmax = fragmax + (nfrag - 1)
 
      RETURN 
 END SUBROUTINE symba_casehitandrun
