@@ -825,14 +825,15 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, mres, rres)
+          encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+          nplmax, ntpmax, fragmax, mres, rres)
           USE module_parameters
           USE module_swiftest
           USE module_helio
           USE module_symba
           IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
+          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
           REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset
           REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
@@ -897,16 +898,16 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-           eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, & 
-           pltpenc_list, plplenc_list, mres, rres)
+          SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+          encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+          nplmax, ntpmax, fragmax, mres, rres)
           USE module_parameters
           USE module_swiftest
           USE module_helio
           USE module_symba
           IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
+          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
           REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset
           REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
