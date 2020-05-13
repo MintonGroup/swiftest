@@ -63,7 +63,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      INTEGER(I4B)                                     :: model, nres, nfrag, i, j, k, index1, index2, stat1, stat2, index1_child
      INTEGER(I4B)                                     :: index2_child, index1_parent, index2_parent, index_big1, index_big2
      INTEGER(I4B)                                     :: name1, name2
-     REAL(DP)                                         :: m1, m2, rad1, rad2, pres, vres, mtot, msun, avg_d, d_p1, d_p2 
+     REAL(DP)                                         :: m1, m2, rad1, rad2, mtot, msun, avg_d, d_p1, d_p2 
      REAL(DP)                                         :: r, rhill_p1, rhill_p2, r_circle, theta
      REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, mmax, mtmp
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
