@@ -77,9 +77,9 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
                nplmax, ntpmax, fragmax, mres, rres)
 
           CASE (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-               CALL symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-               encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-               nplmax, ntpmax, fragmax, mres, rres)
+               CALL symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, &
+               plplenc_list, nplmax, ntpmax, fragmax, mres, rres)
 
           CASE (COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
                CALL symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
