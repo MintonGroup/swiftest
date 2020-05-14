@@ -47,94 +47,35 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-     REAL(DP), INTENT(IN)                             :: t, dt
+     REAL(DP), INTENT(IN)                             :: t, dt, m1, m2, rad1, rad2
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
-     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs, x1, x2, v1, v2
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+     INTEGER(I4B), DIMENSION(npl), INTENT(IN)         :: array_index1_child, array_index2_child
 
 ! Internals
  
      INTEGER(I4B)                                     :: model, nres, nfrag, i, j, k, index1, index2, stat1, stat2, index1_child
      INTEGER(I4B)                                     :: index2_child, index1_parent, index2_parent, index_big1, index_big2
      INTEGER(I4B)                                     :: name1, name2, index_keep, index_rm
-     REAL(DP)                                         :: m1, m2, rad1, rad2, mtot, msun, d_rm, m_rm, r_rm, vx_rm, vy_rm
+     REAL(DP)                                         :: mtot, msun, d_rm, m_rm, r_rm, vx_rm, vy_rm
      REAL(DP)                                         :: r, rhill_keep, r_circle, theta
      REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, mmax, mtmp
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
      REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
-     REAL(DP), DIMENSION(NDIM)                        :: x1, x2, v1, v2, xbs, xh, xb, vb, vh, vnew, xr, mv
-     INTEGER(I4B), DIMENSION(npl)                     :: array_index1_child, array_index2_child
+     REAL(DP), DIMENSION(NDIM)                        :: xbs, xh, xb, vb, vh, vnew, xr, mv
 
 
 ! Executable code
       WRITE(*, *) "ENTERING SYMBA_CASEHITANDRUN"
 
       nfrag = 4
-
-     ! pull in parent data
-     index1 = plplenc_list%index1(index_enc)
-     index2 = plplenc_list%index2(index_enc)
-     symba_plA%lmerged(index1) = .TRUE.
-     symba_plA%lmerged(index2) = .TRUE.
-     index1_parent = symba_plA%index_parent(index1)
-     m1 = symba_plA%helio%swiftest%mass(index1_parent)
-     mass1 = m1 
-     rad1 = symba_plA%helio%swiftest%radius(index1_parent)
-     x1(:) = m1*symba_plA%helio%swiftest%xh(:,index1_parent)
-     v1(:) = m1*symba_plA%helio%swiftest%vb(:,index1_parent)
-     mmax = m1
-     name1 = symba_plA%helio%swiftest%name(index1_parent)
-     index_big1 = index1_parent
-     stat1 = symba_plA%helio%swiftest%status(index1_parent)
-     array_index1_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
-     DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children of parent 1
-          index1_child = array_index1_child(i)
-          mtmp = symba_plA%helio%swiftest%mass(index1_child)
-          IF (mtmp > mmax) THEN   ! check if the mass of the child is bigger than the mass of the parent
-               mmax = mtmp
-               name1 = symba_plA%helio%swiftest%name(index1_child)
-               index_big1 = index1_child ! if yes, replace the biggest particle variable with the child
-               stat1 = symba_plA%helio%swiftest%status(index1_child)
-          END IF
-          m1 = m1 + mtmp ! mass of the parent is the mass of the parent plus the mass of all the children
-          x1(:) = x1(:) + mtmp*symba_plA%helio%swiftest%xh(:,index1_child)
-          v1(:) = v1(:) + mtmp*symba_plA%helio%swiftest%vb(:,index1_child)
-     END DO
-     x1(:) = x1(:)/m1
-     v1(:) = v1(:)/m1
-
-     index2_parent = symba_plA%index_parent(index2)
-     m2 = symba_plA%helio%swiftest%mass(index2_parent)
-     mass2 = m2
-     rad2 = symba_plA%helio%swiftest%radius(index2_parent)
-     x2(:) = m2*symba_plA%helio%swiftest%xh(:,index2_parent)
-     v2(:) = m2*symba_plA%helio%swiftest%vb(:,index2_parent)
-     mmax = m2
-     name2 = symba_plA%helio%swiftest%name(index2_parent)
-     index_big2 = index2_parent
-     stat2 = symba_plA%helio%swiftest%status(index2_parent)
-     array_index2_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
-     DO i = 1, symba_plA%nchild(index2_parent)
-          index2_child = array_index2_child(i)
-          mtmp = symba_plA%helio%swiftest%mass(index2_child)
-          IF (mtmp > mmax) THEN
-               mmax = mtmp
-               name2 = symba_plA%helio%swiftest%name(index2_child)
-               index_big2 = index2_child
-               stat2 = symba_plA%helio%swiftest%status(index2_child)
-          END IF
-          m2 = m2 + mtmp
-          x2(:) = x2(:) + mtmp*symba_plA%helio%swiftest%xh(:,index2_child)
-          v2(:) = v2(:) + mtmp*symba_plA%helio%swiftest%vb(:,index2_child)
-     END DO
-     x2(:) = x2(:)/m2
-     v2(:) = v2(:)/m2
 
      IF (m2 > m1) THEN
           index_keep = index_big2
@@ -180,27 +121,13 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      mergesub_list%mass(nmergesub) = mass2
      mergesub_list%radius(nmergesub) = rad2
 
-     DO k = 1, nplplenc  !go through the encounter list and for particles actively encoutering, get their children
-          IF (plplenc_list%status(k) == ACTIVE) THEN
-               DO i = 0, symba_plA%nchild(index1_parent)
-                    IF (i == 0) THEN
-                         index1_child = index1_parent
-                    ELSE
-                         index1_child = array_index1_child(i)
-                    END IF
-                    DO j = 0, symba_plA%nchild(index2_parent)
-                         IF (j == 0) THEN
-                              index2_child = index2_parent
-                         ELSE
-                              index2_child = array_index2_child(j)
-                         END IF
-                         IF ((index1_child == plplenc_list%index1(k)) .OR. (index2_child == plplenc_list%index2(k))) THEN
-                              plplenc_list%status(k) = MERGED
-                         ELSE IF ((index1_child == plplenc_list%index2(k)) .OR. (index2_child == plplenc_list%index1(k))) THEN
-                              plplenc_list%status(k) = MERGED
-                         END IF
-                    END DO
-               END DO
+    ! go through the encounter list and for particles actively encoutering
+    ! prevent them from having further encounters in this timestep by setting status to MERGED
+     DO k = 1, nplplenc 
+          IF (plplenc_list%status(k) == ACTIVE) .AND. &
+             ((index1 == plplenc_list%index1(k) .OR. index2 == plplenc_list%index2(k)) .OR. &
+             (index2 == plplenc_list%index1(k) .OR. index1 == plplenc_list%index2(k))) THEN
+                    plplenc_list%status(k) = MERGED
           END IF
      END DO
 

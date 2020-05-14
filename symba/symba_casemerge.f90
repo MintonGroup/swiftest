@@ -46,15 +46,16 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
-     REAL(DP), INTENT(IN)                             :: t, dt
+     REAL(DP), INTENT(IN)                             :: t, dt, m1, m2, rad1, rad2
      REAL(DP), INTENT(INOUT)                          :: eoffset
-     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs, x1, x2, v1, v2
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+     INTEGER(I4B), DIMENSION(npl), INTENT(IN)         :: array_index1_child, array_index2_child
 
 ! Internals
  
@@ -65,68 +66,14 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
      INTEGER(I4B)                 :: name1, name2
      REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax 
      REAL(DP)                     :: eold, enew, rad1, rad2, mass1, mass2
-     REAL(DP), DIMENSION(NDIM)    :: xr, vr, x1, v1, x2, v2, xnew, vnew
-     INTEGER(I4B), DIMENSION(npl) :: array_index1_child, array_index2_child, array_keep_child, array_rm_child
+     REAL(DP), DIMENSION(NDIM)    :: xr, vr, xnew, vnew
+     INTEGER(I4B), DIMENSION(npl) :: array_keep_child, array_rm_child
 
 
 
 ! Executable code
                index1 = plplenc_list%index1(index_enc)
                index2 = plplenc_list%index2(index_enc)
-               symba_plA%lmerged(index1) = .TRUE.
-               symba_plA%lmerged(index2) = .TRUE.
-               index1_parent = symba_plA%index_parent(index1)
-               m1 = symba_plA%helio%swiftest%mass(index1_parent)
-               mass1 = m1 
-               rad1 = symba_plA%helio%swiftest%radius(index1_parent)
-               x1(:) = m1*symba_plA%helio%swiftest%xh(:,index1_parent)
-               v1(:) = m1*symba_plA%helio%swiftest%vb(:,index1_parent)
-               mmax = m1
-               name1 = symba_plA%helio%swiftest%name(index1_parent)
-               index_big1 = index1_parent
-               stat1 = symba_plA%helio%swiftest%status(index1_parent)
-               array_index1_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
-               DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children
-                    index1_child = array_index1_child(i)
-                    mtmp = symba_plA%helio%swiftest%mass(index1_child)
-                    IF (mtmp > mmax) THEN
-                         mmax = mtmp
-                         name1 = symba_plA%helio%swiftest%name(index1_child)
-                         index_big1 = index1_child
-                         stat1 = symba_plA%helio%swiftest%status(index1_child)
-                    END IF
-                    m1 = m1 + mtmp
-                    x1(:) = x1(:) + mtmp*symba_plA%helio%swiftest%xh(:,index1_child)
-                    v1(:) = v1(:) + mtmp*symba_plA%helio%swiftest%vb(:,index1_child)
-               END DO
-               x1(:) = x1(:)/m1
-               v1(:) = v1(:)/m1
-               index2_parent = symba_plA%index_parent(index2)
-               m2 = symba_plA%helio%swiftest%mass(index2_parent)
-               mass2 = m2
-               rad2 = symba_plA%helio%swiftest%radius(index2_parent)
-               x2(:) = m2*symba_plA%helio%swiftest%xh(:,index2_parent)
-               v2(:) = m2*symba_plA%helio%swiftest%vb(:,index2_parent)
-               mmax = m2
-               name2 = symba_plA%helio%swiftest%name(index2_parent)
-               index_big2 = index2_parent
-               stat2 = symba_plA%helio%swiftest%status(index2_parent)
-               array_index2_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
-               DO i = 1, symba_plA%nchild(index2_parent)
-                    index2_child = array_index2_child(i)
-                    mtmp = symba_plA%helio%swiftest%mass(index2_child)
-                    IF (mtmp > mmax) THEN
-                         mmax = mtmp
-                         name2 = symba_plA%helio%swiftest%name(index2_child)
-                         index_big2 = index2_child
-                         stat2 = symba_plA%helio%swiftest%status(index2_child)
-                    END IF
-                    m2 = m2 + mtmp
-                    x2(:) = x2(:) + mtmp*symba_plA%helio%swiftest%xh(:,index2_child)
-                    v2(:) = v2(:) + mtmp*symba_plA%helio%swiftest%vb(:,index2_child)
-               END DO
-               x2(:) = x2(:)/m2
-               v2(:) = v2(:)/m2
                mtot = m1 + m2
                xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
                vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
@@ -196,7 +143,9 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
                symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) 
                symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) 
+               ! The children of parent one are the children we are keeping
                array_keep_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
+               ! Go through the children of parent1 and add those children to the array of kept children
                DO i = 1, symba_plA%nchild(index1_parent)
                     indexchild = array_keep_child(i)
                     symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
