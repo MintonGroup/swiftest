@@ -74,10 +74,15 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 
 ! Executable code
-      WRITE(*, *) "ENTERING SYMBA_CASEHITANDRUN"
+     WRITE(*, *) "ENTERING SYMBA_CASEHITANDRUN"
 
-      nfrag = 4
-
+     nfrag = 4
+     index1 = plplenc_list%index1(index_enc)
+     index2 = plplenc_list%index2(index_enc)
+     index1_parent = symba_plA%index_parent(index1)
+     index2_parent = symba_plA%index_parent(index2)
+     name1 = symba_plA%helio%swiftest%name(index1)
+     name2 = symba_plA%helio%swiftest%name(index2)
      IF (m2 > m1) THEN
           index_keep = index_big2
           index_rm = index_big1
@@ -107,14 +112,14 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      ! Add both parents to mergesub_list
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name1
-     mergesub_list%status(nmergesub) = MERGED ! possibly change to disruption for new flag in discard.out
+     mergesub_list%status(nmergesub) = HIT_AND_RUN ! possibly change to disruption for new flag in discard.out
      mergesub_list%xh(:,nmergesub) = x1(:)
      mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass1
      mergesub_list%radius(nmergesub) = rad1
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name2
-     mergesub_list%status(nmergesub) = MERGED
+     mergesub_list%status(nmergesub) = HIT_AND_RUN
      mergesub_list%xh(:,nmergesub) = x2(:)
      mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass2
@@ -142,7 +147,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      DO i = 1, nfrag
          nmergeadd = nmergeadd + 1
          mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
-         mergeadd_list%status(nmergeadd) = ACTIVE
+         mergeadd_list%status(nmergeadd) = HIT_AND_RUN
          mergeadd_list%ncomp(nmergeadd) = 2
          IF (i == 1) THEN
              ! first largest particle equal to index_keep

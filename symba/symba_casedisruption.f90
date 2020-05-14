@@ -79,6 +79,12 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      nfrag = 3 !this will be determined later from collresolve
      ! instead of nfrag do a mfrag and that way we calculate the number of appropriate frags for each regime and collision
      ! or do a % of parents mass minus two biggest fragments split 
+     index1 = plplenc_list%index1(index_enc)
+     index2 = plplenc_list%index2(index_enc)
+     index1_parent = symba_plA%index_parent(index1)
+     index2_parent = symba_plA%index_parent(index2)
+     name1 = symba_plA%helio%swiftest%name(index1)
+     name2 = symba_plA%helio%swiftest%name(index2)
 
      ! Find COM
      x_com = ((x1(1) * m1) + (x2(1) * m2)) / (m1 + m2)
@@ -100,14 +106,14 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      ! Add both parents to mergesub_list
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name1
-     mergesub_list%status(nmergesub) = MERGED ! possibly change to disruption for new flag in discard.out
+     mergesub_list%status(nmergesub) = DISRUPTION ! possibly change to disruption for new flag in discard.out
      mergesub_list%xh(:,nmergesub) = x1(:)
      mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass1
      mergesub_list%radius(nmergesub) = rad1
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name2
-     mergesub_list%status(nmergesub) = MERGED
+     mergesub_list%status(nmergesub) = DISRUPTION
      mergesub_list%xh(:,nmergesub) = x2(:)
      mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass2
@@ -135,7 +141,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      DO i = 1, nfrag
          nmergeadd = nmergeadd + 1
          mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
-         mergeadd_list%status(nmergeadd) = ACTIVE
+         mergeadd_list%status(nmergeadd) = DISRUPTION
          mergeadd_list%ncomp(nmergeadd) = 2
          IF (i == 1) THEN
              ! first largest particle from collresolve mres[0] rres[0]

@@ -80,6 +80,12 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      ! nfrag should be larger than disruption to account for the majority of mass entering fragments instead of lr and slr
 
      nfrag = 10 
+     index1 = plplenc_list%index1(index_enc)
+     index2 = plplenc_list%index2(index_enc)
+     index1_parent = symba_plA%index_parent(index1)
+     index2_parent = symba_plA%index_parent(index2)
+     name1 = symba_plA%helio%swiftest%name(index1)
+     name2 = symba_plA%helio%swiftest%name(index2)
 
      ! Find COM
      x_com = ((x1(1) * m1) + (x2(1) * m2)) / (m1 + m2)
@@ -101,14 +107,14 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      ! Add both parents to mergesub_list
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name1
-     mergesub_list%status(nmergesub) = MERGED ! possibly change to disruption for new flag in discard.out
+     mergesub_list%status(nmergesub) = SUPERCATASTROPHIC ! possibly change to disruption for new flag in discard.out
      mergesub_list%xh(:,nmergesub) = x1(:)
      mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass1
      mergesub_list%radius(nmergesub) = rad1
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name2
-     mergesub_list%status(nmergesub) = MERGED
+     mergesub_list%status(nmergesub) = SUPERCATASTROPHIC
      mergesub_list%xh(:,nmergesub) = x2(:)
      mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass2
