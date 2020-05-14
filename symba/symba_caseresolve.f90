@@ -47,10 +47,11 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-     REAL(DP), INTENT(IN)                             :: t, dt, m1, m2, rad1, rad2
-     REAL(DP), INTENT(INOUT)                          :: eoffset
+     REAL(DP), INTENT(IN)                             :: t, dt
+     REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
      REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
-     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs, x1, x2, v1, v2
+     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+     REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
@@ -58,7 +59,7 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
      INTEGER(I4B), INTENT(IN)                         :: regime
-     INTEGER(I4B), DIMENSION(npl), INTENT(IN)         :: array_index1_child, array_index2_child
+     INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
 
 ! Internals
  

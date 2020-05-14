@@ -60,15 +60,15 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Internals
  
-     INTEGER(I4B)                   :: model, nres
+     INTEGER(I4B)                   :: model, nres, i
      REAL(DP), DIMENSION(3)         :: mres, rres
      REAL(DP), DIMENSION(NDIM, 3)   :: pres, vres
      INTEGER(I4B)                   :: regime, collresolve_resolve
-     INTEGER(I4B)                   :: index1, index2
-     INTEGER(I4B)                   :: name1, name2
+     INTEGER(I4B)                   :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
+     INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
      REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild
-     REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs
+     REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
      REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs
      LOGICAL(LGT)                   :: lfrag_add, lmerge
@@ -143,11 +143,11 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           stat1 = symba_plA%helio%swiftest%status(index1_parent)
           array_index1_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
           
-          den1 = (m1**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_parent)**3))
+          den1 = (m1**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_parent)**3)
           DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children
                index1_child = array_index1_child(i)
                mtmp = symba_plA%helio%swiftest%mass(index1_child)
-               denchild = (mtmp**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_child)**3))
+               denchild = (mtmp**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_child)**3)
                den1 = den1 + denchild
                IF (mtmp > mmax) THEN
                     mmax = mtmp
@@ -176,11 +176,11 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           stat2 = symba_plA%helio%swiftest%status(index2_parent)
           array_index2_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
 
-          den2 = (m2**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_parent)**3))
+          den2 = (m2**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_parent)**3)
           DO i = 1, symba_plA%nchild(index2_parent)
                index2_child = array_index2_child(i)
                mtmp = symba_plA%helio%swiftest%mass(index2_child)
-               denchild = (mtmp**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_child)**3))
+               denchild = (mtmp**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_child)**3)
                den2 = den2 + denchild
                IF (mtmp > mmax) THEN
                     mmax = mtmp

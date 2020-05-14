@@ -33,7 +33,8 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list)
+     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+     array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
 ! Modules
      USE module_parameters
@@ -46,16 +47,17 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc
      INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
-     REAL(DP), INTENT(IN)                             :: t, dt, m1, m2, rad1, rad2
-     REAL(DP), INTENT(INOUT)                          :: eoffset
-     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs, x1, x2, v1, v2
+     REAL(DP), INTENT(IN)                             :: t, dt
+     REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
+     REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
+     REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-     INTEGER(I4B), DIMENSION(npl), INTENT(IN)         :: array_index1_child, array_index2_child
+     INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
 
 ! Internals
  
@@ -64,8 +66,8 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
      INTEGER(I4B)                 :: i, j, k, stat1, stat2, index1, index2, index_keep, index_rm, indexchild
      INTEGER(I4B)                 :: index1_child, index2_child, index1_parent, index2_parent, index_big1, index_big2
      INTEGER(I4B)                 :: name1, name2, index_keep_parent, index_rm_parent
-     REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax 
-     REAL(DP)                     :: eold, enew, rad1, rad2, mass1, mass2
+     REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, mtmp, mmax 
+     REAL(DP)                     :: eold, enew, mass1, mass2
      REAL(DP), DIMENSION(NDIM)    :: xr, vr, xnew, vnew
      INTEGER(I4B), DIMENSION(npl) :: array_keep_child, array_rm_child
 
