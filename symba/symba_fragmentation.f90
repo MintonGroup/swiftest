@@ -66,12 +66,13 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: regime, collresolve_resolve
      INTEGER(I4B)                   :: index1, index2
      INTEGER(I4B)                   :: name1, name2
-     REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q
-     REAL(DP)                       :: rad1, rad2, m1, m2, GU
+     REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
+     REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild
      REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
      REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs
      LOGICAL(LGT)                   :: lfrag_add, lmerge
+     INTEGER(I4B), DIMENSION(npl)   :: array_index1_child, array_index2_child
 
 
 ! Executable code
@@ -126,17 +127,76 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      END IF
 
      nres = 2
+
      IF (lfrag_add) THEN 
-          name1 = symba_plA%helio%swiftest%name(index1)
-          m1 = symba_plA%helio%swiftest%mass(index1)
-          rad1 = symba_plA%helio%swiftest%radius(index1)
-          x1(:) = symba_plA%helio%swiftest%xh(:,index1)
-          v1(:) = symba_plA%helio%swiftest%vb(:,index1) - vbs(:)
-          name2 = symba_plA%helio%swiftest%name(index2)
-          m2 = symba_plA%helio%swiftest%mass(index2)
-          rad2 = symba_plA%helio%swiftest%radius(index2)
-          x2(:) = symba_plA%helio%swiftest%xh(:,index2)
-          v2(:) = symba_plA%helio%swiftest%vb(:,index2) - vbs(:)
+          symba_plA%lmerged(index1) = .TRUE.
+          symba_plA%lmerged(index2) = .TRUE.
+          index1_parent = symba_plA%index_parent(index1)
+          m1 = symba_plA%helio%swiftest%mass(index1_parent)
+          mass1 = m1 
+          rad1 = symba_plA%helio%swiftest%radius(index1_parent)
+          x1(:) = m1*symba_plA%helio%swiftest%xh(:,index1_parent)
+          v1(:) = m1*symba_plA%helio%swiftest%vb(:,index1_parent)
+          mmax = m1
+          name1 = symba_plA%helio%swiftest%name(index1_parent)
+          index_big1 = index1_parent
+          stat1 = symba_plA%helio%swiftest%status(index1_parent)
+          array_index1_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
+          
+          den1 = (m1**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_parent)**3))
+          DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children
+               index1_child = array_index1_child(i)
+               mtmp = symba_plA%helio%swiftest%mass(index1_child)
+               denchild = (mtmp**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_child)**3))
+               den1 = den1 + denchild
+               IF (mtmp > mmax) THEN
+                    mmax = mtmp
+                    name1 = symba_plA%helio%swiftest%name(index1_child)
+                    index_big1 = index1_child
+                    stat1 = symba_plA%helio%swiftest%status(index1_child)
+               END IF
+               m1 = m1 + mtmp
+               x1(:) = x1(:) + mtmp*symba_plA%helio%swiftest%xh(:,index1_child)
+               v1(:) = v1(:) + mtmp*symba_plA%helio%swiftest%vb(:,index1_child)
+          END DO
+          den1 = den1 / m1
+          rad1 = ((3.0_DP * m1) / (den1 * 4.0_DP * PI)) ** (1.0_DP / 3.0_DP)
+          x1(:) = x1(:)/m1
+          v1(:) = v1(:)/m1
+
+          index2_parent = symba_plA%index_parent(index2)
+          m2 = symba_plA%helio%swiftest%mass(index2_parent)
+          mass2 = m2
+          rad2 = symba_plA%helio%swiftest%radius(index2_parent)
+          x2(:) = m2*symba_plA%helio%swiftest%xh(:,index2_parent)
+          v2(:) = m2*symba_plA%helio%swiftest%vb(:,index2_parent)
+          mmax = m2
+          name2 = symba_plA%helio%swiftest%name(index2_parent)
+          index_big2 = index2_parent
+          stat2 = symba_plA%helio%swiftest%status(index2_parent)
+          array_index2_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
+
+          den2 = (m2**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_parent)**3))
+          DO i = 1, symba_plA%nchild(index2_parent)
+               index2_child = array_index2_child(i)
+               mtmp = symba_plA%helio%swiftest%mass(index2_child)
+               denchild = (mtmp**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_child)**3))
+               den2 = den2 + denchild
+               IF (mtmp > mmax) THEN
+                    mmax = mtmp
+                    name2 = symba_plA%helio%swiftest%name(index2_child)
+                    index_big2 = index2_child
+                    stat2 = symba_plA%helio%swiftest%status(index2_child)
+               END IF
+               m2 = m2 + mtmp
+               x2(:) = x2(:) + mtmp*symba_plA%helio%swiftest%xh(:,index2_child)
+               v2(:) = v2(:) + mtmp*symba_plA%helio%swiftest%vb(:,index2_child)
+          END DO
+          den2 = den2 / m2
+          rad2 = ((3.0_DP * m2) / (den2 * 4.0_DP * PI)) ** (1.0_DP / 3.0_DP)
+          x2(:) = x2(:)/m2
+          v2(:) = v2(:)/m2
+
           GU = GC / (DU2CM**3 / (MU2GM * TU2S**2))
           m1_cgs = (m1 / GU) * MU2GM
           m2_cgs = (m2 / GU) * MU2GM
@@ -152,7 +212,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           WRITE(*,*) "COLLISION REGIME = ", regime
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
-               npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres)
+               npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, &
+               array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
      END IF 
      RETURN
