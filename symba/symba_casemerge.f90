@@ -63,7 +63,7 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
      REAL(DP)                     :: mres, rres, pres, vres
      INTEGER(I4B)                 :: i, j, k, stat1, stat2, index1, index2, index_keep, index_rm, indexchild
      INTEGER(I4B)                 :: index1_child, index2_child, index1_parent, index2_parent, index_big1, index_big2
-     INTEGER(I4B)                 :: name1, name2
+     INTEGER(I4B)                 :: name1, name2, index_keep_parent, index_rm_parent
      REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax 
      REAL(DP)                     :: eold, enew, rad1, rad2, mass1, mass2
      REAL(DP), DIMENSION(NDIM)    :: xr, vr, xnew, vnew
@@ -106,6 +106,10 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                     mergeadd_list%status(nmergeadd) = stat1
 
                END IF
+
+               index_keep_parent = symba_plA%index_parent(index_keep)
+               index_rm_parent = symba_plA%index_parent(index_rm)
+
                mergeadd_list%ncomp(nmergeadd) = 2
                mergeadd_list%xh(:,nmergeadd) = xnew(:)
                mergeadd_list%vh(:,nmergeadd) = vnew(:) - vbs(:)
@@ -139,33 +143,39 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                          END DO
                     END IF
                END DO
+
                symba_plA%helio%swiftest%xh(:,index1_parent) = xnew(:)
                symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
                symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) 
                symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) 
                ! The children of parent one are the children we are keeping
-               array_keep_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
-               ! Go through the children of parent1 and add those children to the array of kept children
-               DO i = 1, symba_plA%nchild(index1_parent)
+               array_keep_child(1:npl) = symba_plA%index_child(1:npl,index_keep_parent)
+               ! Go through the children of the kept parent and add those children to the array of kept children
+               DO i = 1, symba_plA%nchild(index_keep_parent)
                     indexchild = array_keep_child(i)
                     symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
                     symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
                END DO
-
-               symba_plA%index_child((symba_plA%nchild(index1_parent)+1),index1_parent) = index2_parent
-               array_rm_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
-               symba_plA%index_parent(index2) = index1_parent
-
-               DO i = 1, symba_plA%nchild(index2_parent)
-                    symba_plA%index_parent(array_rm_child(i)) = index1_parent
+               ! the removed parent is assigned as a new child to the list of children of the kept parent
+               ! gives kept parent a new child 
+               symba_plA%index_child((symba_plA%nchild(index_keep_parent)+1),index_keep_parent) = index_rm_parent
+               array_rm_child(1:npl) = symba_plA%index_child(1:npl,index_rm_parent)
+               ! the parent of the removed parent is assigned to be the kept parent 
+               ! gives removed parent a new parent
+               symba_plA%index_parent(index_rm) = index_keep_parent
+               ! go through the children of the removed parent and add those children to the array of removed children 
+               DO i = 1, symba_plA%nchild(index_rm_parent)
+                    symba_plA%index_parent(array_rm_child(i)) = index_keep_parent
                     indexchild = array_rm_child(i)
                     symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
                     symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
                END DO
-               DO i = 1, symba_plA%nchild(index2_parent)
-                    symba_plA%index_child(symba_plA%nchild(index1_parent)+i+1,index1_parent)= array_rm_child(i)
+               ! go through the children of the removed parent and add those children to the list of children of the kept parent
+               DO i = 1, symba_plA%nchild(index_rm_parent)
+                    symba_plA%index_child(symba_plA%nchild(index_keep_parent)+i+1,index_keep_parent)= array_rm_child(i)
                END DO 
-               symba_plA%nchild(index1_parent) = symba_plA%nchild(index1_parent) + symba_plA%nchild(index2_parent) + 1
+               ! updates the number of children of the kept parent
+               symba_plA%nchild(index_keep_parent) = symba_plA%nchild(index_keep_parent) + symba_plA%nchild(index_rm_parent) + 1
 
      RETURN 
 END SUBROUTINE symba_casemerge
