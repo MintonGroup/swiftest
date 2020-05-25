@@ -1061,6 +1061,42 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+               plplenc_list)
+               USE module_parameters
+               USE module_swiftest
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               LOGICAL(LGT), INTENT(IN)                      :: lextra_force
+               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
+               REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
+               TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
+               TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
+          END SUBROUTINE symba_getacch
+     END INTERFACE
+
+     INTERFACE
+          SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+               xh, j2rp2, j4rp4,  &
+               npltpenc, pltpenc_list)
+               USE module_parameters
+               USE module_swiftest
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               LOGICAL(LGT), INTENT(IN)                      :: lextra_force
+               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, ntp, ntpmax, npltpenc
+               REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
+               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)    :: xh
+               TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
+               TYPE(symba_tp), INTENT(INOUT)                 :: symba_tpA
+               TYPE(symba_pltpenc), INTENT(IN)               :: pltpenc_list
+          END SUBROUTINE symba_getacch_tp
+     END INTERFACE
+
+
+     INTERFACE
+          SUBROUTINE symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
                plplenc_list, num_plpl_comparisons, k_plpl)
                USE module_parameters
                USE module_swiftest
@@ -1073,11 +1109,11 @@ MODULE module_interfaces
                TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
                TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
                INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
-          END SUBROUTINE symba_getacch
+          END SUBROUTINE symba_getacch_eucl
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+          SUBROUTINE symba_getacch_tp_eucl(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
                xh, j2rp2, j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
                USE module_parameters
                USE module_swiftest
@@ -1092,7 +1128,7 @@ MODULE module_interfaces
                TYPE(symba_tp), INTENT(INOUT)                 :: symba_tpA
                TYPE(symba_pltpenc), INTENT(IN)               :: pltpenc_list
                INTEGER(I4B), DIMENSION(num_pltp_comparisons,2), INTENT(IN) :: k_pltp
-          END SUBROUTINE symba_getacch_tp
+          END SUBROUTINE symba_getacch_tp_eucl
      END INTERFACE
 
      INTERFACE
@@ -1276,9 +1312,9 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,&
-               nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,&
-               encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
+          SUBROUTINE symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,&
+               dt,nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,&
+               mtiny,encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1299,9 +1335,32 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)           :: num_plpl_comparisons, num_pltp_comparisons
                INTEGER(I4B), DIMENSION(2,num_plpl_comparisons),INTENT(IN) :: k_plpl
                INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
-          END SUBROUTINE symba_step
+          END SUBROUTINE symba_step_eucl
      END INTERFACE
 
+     INTERFACE
+          SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
+               symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
+               nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type)
+               USE module_parameters
+               USE module_swiftest
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
+               LOGICAL(LGT), INTENT(INOUT)        :: lfirst
+               INTEGER(I4B), INTENT(IN)           :: npl, nplmax, ntp, ntpmax
+               INTEGER(I4B), INTENT(INOUT)        :: nplplenc, npltpenc, nmergeadd, nmergesub
+               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
+               REAL(DP), INTENT(INOUT)            :: eoffset
+               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
+               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
+               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
+               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
+               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
+               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+          END SUBROUTINE symba_step
+     END INTERFACE
 
 ! FOR TESTING PURPOSES ONLY _ USE WITH SYMBA_STEP_TEST
      INTERFACE
@@ -1367,8 +1426,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,    &
-               j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,    &
+          SUBROUTINE symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,&
+               j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
                mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
                USE module_parameters
                USE module_swiftest
@@ -1389,8 +1448,32 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
                INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
                INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
+          END SUBROUTINE symba_step_interp_eucl
+     END INTERFACE
+
+     INTERFACE
+          SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,    &
+               j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,    &
+               mergesub_list, encounter_file, out_type)
+               USE module_parameters
+               USE module_swiftest
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
+               INTEGER(I4B), INTENT(IN)           :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc
+               INTEGER(I4B), INTENT(INOUT)        :: nmergeadd, nmergesub
+               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
+               REAL(DP), INTENT(INOUT)            :: eoffset
+               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
+               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
+               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
+               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
+               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
+               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
           END SUBROUTINE symba_step_interp
      END INTERFACE
+
 
      INTERFACE
           RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &

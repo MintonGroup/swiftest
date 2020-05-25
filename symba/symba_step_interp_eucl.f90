@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : symba_step_interp
+!  Unit Name   : symba_step_interp_eucl
 !  Unit Type   : subroutine
 !  Project     : Swiftest
 !  Package     : symba
@@ -58,16 +58,16 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_step_interp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,   &
-     eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,          &
-     encounter_file, out_type)
+SUBROUTINE symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,&
+     eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,&
+     encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
 
 ! Modules
      USE module_parameters
      USE module_swiftest
      USE module_helio
      USE module_symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_step_interp
+     USE module_interfaces, EXCEPT_THIS_ONE => symba_step_interp_eucl
      IMPLICIT NONE
 
 ! Arguments
@@ -82,6 +82,9 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
+     INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons, num_pltp_comparisons
+     INTEGER(I4B), DIMENSION(2,num_plpl_comparisons),INTENT(IN) :: k_plpl 
+     INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
 
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
@@ -109,9 +112,10 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
           END DO
      END IF
 
-     CALL symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
-     IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xbeg, j2rp2,     &
-          j4rp4, npltpenc, pltpenc_list)
+     CALL symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
+          num_plpl_comparisons, k_plpl)
+     IF (ntp > 0) CALL symba_getacch_tp_eucl(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xbeg, j2rp2,&
+          j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
 
      CALL helio_kickvb(npl, symba_plA%helio, dth)
      IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
@@ -121,16 +125,17 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      IF (ntp > 0) CALL symba_helio_drift_tp(irec, ntp, symba_tpA, symba_plA%helio%swiftest%mass(1), dt)
      irec = 0
 
-     CALL symba_step_recur(lclose, t, irec, npl, nplm, ntp, symba_plA, symba_tpA, dt, eoffset, nplplenc, npltpenc,              &
+     CALL symba_step_recur(lclose, t, irec, npl, nplm, ntp, symba_plA, symba_tpA, dt, eoffset, nplplenc, npltpenc,&
           plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
      IF (ntp > 0) THEN
           DO i = 2, npl
                xend(:, i) = symba_plA%helio%swiftest%xh(:,i)
           END DO
      END IF
-     CALL symba_getacch(lextra_force, t+dt, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
-     IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t+dt, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xend, j2rp2,  &
-          j4rp4, npltpenc, pltpenc_list)
+     CALL symba_getacch_eucl(lextra_force, t+dt, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
+          num_plpl_comparisons, k_plpl)
+     IF (ntp > 0) CALL symba_getacch_tp_eucl(lextra_force, t+dt, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xend, &
+          j2rp2,j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
      CALL helio_kickvb(npl, symba_plA%helio, dth)
      IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
      CALL coord_vb2vh(npl, symba_plA%helio%swiftest)
@@ -142,7 +147,7 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
 
      RETURN
 
-END SUBROUTINE symba_step_interp
+END SUBROUTINE symba_step_interp_eucl
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann
