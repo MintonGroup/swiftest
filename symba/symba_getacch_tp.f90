@@ -79,7 +79,6 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      !      num_pltp_comparisons, k_pltp, dist_pltp_array)
 
 !$omp parallel do default(none) schedule(static) &
-!$omp num_threads(min(omp_get_max_threads(),ceiling(num_pltp_comparisons/10000.))) &
 !$omp shared(num_pltp_comparisons, symba_plA, symba_tpA, k_pltp) &
 !$omp private(k, i, j, dx, r2, fac) &
 !$omp reduction(+:ah)
