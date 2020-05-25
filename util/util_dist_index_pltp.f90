@@ -59,11 +59,7 @@ SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
 !      enddo
 ! !$omp end parallel do
 
-     nb = 10 ! number of blocks
-     np = (nplm-1)/nb ! number of planets per block
-     nt = ntp/nb ! number of test particles per block
-
-     np = 1000
+     np = 500
 
      counter = 1
 
