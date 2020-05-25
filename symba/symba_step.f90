@@ -101,18 +101,6 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      
 ! Executable code
 
-
-     allocate(pltp_encounters(num_pltp_comparisons))
-     allocate(pltp_lvdotr(num_pltp_comparisons))
-     allocate(plpl_encounters(num_plpl_comparisons))
-     allocate(plpl_lvdotr(num_plpl_comparisons))
-
-     plpl_encounters = 0
-     plpl_lvdotr = 0
-
-     pltp_encounters = 0
-     pltp_lvdotr = 0
-
      ! initialize planets
      symba_plA%nplenc(1:npl) = 0 ! number of planet encounters this particular planet has
      symba_plA%ntpenc(1:npl) = 0 ! number of test particle encounters this particle planet has
@@ -130,6 +118,10 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      npltpenc = 0
 
 ! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
+     allocate(plpl_encounters(num_plpl_comparisons))
+     allocate(plpl_lvdotr(num_plpl_comparisons))
+     plpl_encounters = 0
+     plpl_lvdotr = 0
 
      ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) 
      ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, k_plpl, vel_plpl_array) 
@@ -171,8 +163,16 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           plplenc_list%index2(1:nplplenc) = k_plpl(2,plpl_encounters_indices) ! index of second planet in encounter
           deallocate(plpl_encounters_indices)
      endif
+     
+     deallocate(plpl_encounters, plpl_lvdotr)
 
      if(ntp>0)then
+         allocate(pltp_encounters(num_pltp_comparisons))
+         allocate(pltp_lvdotr(num_pltp_comparisons))
+
+
+         pltp_encounters = 0
+         pltp_lvdotr = 0
 
           ! CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
           !      num_pltp_comparisons, k_pltp, dist_pltp_array)
@@ -210,6 +210,8 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
                deallocate(pltp_encounters_indices)
           endif
+
+          deallocate(pltp_encounters, pltp_lvdotr)
      endif
      
 ! END OF THINGS THAT NEED TO BE CHANGED IN THE TREE
@@ -217,6 +219,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      nplm = count(symba_plA%helio%swiftest%mass > mtiny)
      ! flag to see if there was an encounter
      lencounter = ((nplplenc > 0) .OR. (npltpenc > 0))
+
      IF (lencounter) THEN ! if there was an encounter, we need to enter symba_step_interp to see if we need recursion
           CALL symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,   &
                dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,           &
