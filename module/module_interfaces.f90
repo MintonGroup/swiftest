@@ -1444,6 +1444,21 @@ MODULE module_interfaces
           END SUBROUTINE util_peri
      END INTERFACE
 
+     INTERFACE 
+          SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
+               USE module_parameters
+               USE module_symba
+               USE module_swiftest
+               USE module_helio
+               USE module_nrutil
+               USE module_swfitestalloc
+               USE module_interfaces, EXCEPT_THIS_ONE => util_resize_pl
+               IMPLICIT NONE
+               TYPE(symba_pl), INTENT(INOUT) :: symba_plA
+               INTEGER(I4B), INTENT(IN)      :: npl_old, npl_new
+          END SUBROUTINE utile_resize_pl
+     END INTERFACE
+
      INTERFACE util_sort
           SUBROUTINE util_sort_i4b(arr)
                USE module_parameters
