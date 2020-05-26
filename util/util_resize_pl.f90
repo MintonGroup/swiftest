@@ -41,10 +41,7 @@ SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
      INTEGER(I4B), INTENT(IN)      :: npl_old, npl_new
 
 ! Internals
-     INTEGER(I4B), PARAMETER         ::
-     INTEGER(I4B)                    :: 
-     INTEGER(I4B), DIMENSION(NSTACK) :: 
-     REAL(DP)                        :: 
+     TYPE(symba_pl)                :: new_symba_plA
 
 ! Executable code
      IF (npl_new >= npl_old) THEN 
@@ -75,8 +72,44 @@ SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
 
 
      IF (npl_new < npl_old) THEN 
+          CALL symba_pl_allocate(new_symba_pl, npl_new)
+          new_symba_plA%helio%swiftest%name(1:npl_new) = symba_plA%helio%swiftest%name(1:npl_new)
+          new_symba_plA%helio%swiftest%status(1:npl_new) = symba_plA%helio%swiftest%status(1:npl_new)
+          new_symba_plA%helio%swiftest%mass(1:npl_new) = symba_plA%helio%swiftest%mass(1:npl_new)
+          new_symba_plA%helio%swiftest%radius(1:npl_new) = symba_plA%helio%swiftest%radius(1:npl_new)
+          new_symba_plA%helio%swiftest%xh(1,1:npl_new) = symba_plA%helio%swiftest%xh(1,1:npl_new)
+          new_symba_plA%helio%swiftest%xh(2,1:npl_new) = symba_plA%helio%swiftest%xh(2,1:npl_new)
+          new_symba_plA%helio%swiftest%xh(3,1:npl_new) = symba_plA%helio%swiftest%xh(3,1:npl_new)
+          new_symba_plA%helio%swiftest%vh(1,1:npl_new) = symba_plA%helio%swiftest%vh(1,1:npl_new)
+          new_symba_plA%helio%swiftest%vh(2,1:npl_new) = symba_plA%helio%swiftest%vh(2,1:npl_new)
+          new_symba_plA%helio%swiftest%vh(3,1:npl_new) = symba_plA%helio%swiftest%vh(3,1:npl_new)
+          new_symba_plA%helio%swiftest%rhill(1:npl_new) = symba_plA%helio%swiftest%rhill(1:npl_new)
+          new_symba_plA%helio%swiftest%xb(1,1:npl_new) = symba_plA%helio%swiftest%xb(1,1:npl_new)
+          new_symba_plA%helio%swiftest%xb(2,1:npl_new) = symba_plA%helio%swiftest%xb(2,1:npl_new)
+          new_symba_plA%helio%swiftest%xb(3,1:npl_new) = symba_plA%helio%swiftest%xb(3,1:npl_new)
+          new_symba_plA%helio%swiftest%vb(1,1:npl_new) = symba_plA%helio%swiftest%vb(1,1:npl_new)
+          new_symba_plA%helio%swiftest%vb(2,1:npl_new) = symba_plA%helio%swiftest%vb(2,1:npl_new)
+          new_symba_plA%helio%swiftest%vb(3,1:npl_new) = symba_plA%helio%swiftest%vb(3,1:npl_new)
+          new_symba_plA%helio%ah(1,1:npl_new) = symba_plA%helio%ah(1,1:npl_old)
+          new_symba_plA%helio%ah(2,1:npl_new) = symba_plA%helio%ah(2,1:npl_old)
+          new_symba_plA%helio%ah(3,1:npl_new) = symba_plA%helio%ah(3,1:npl_old)
+
      END IF
-     
+     CALL symba_pl_deallocate(symba_plA)
+     CALL symba_pl_allocate(symba_pl, npl_new)
+     symba_plA%helio%swiftest%name = new_symba_plA%helio%swiftest%name
+     symba_plA%helio%swiftest%status = new_symba_plA%helio%swiftest%status
+     symba_plA%helio%swiftest%mass = new_symba_plA%helio%swiftest%mass
+     symba_plA%helio%swiftest%radius = new_symba_plA%helio%swiftest%radius
+     symba_plA%helio%swiftest%xh = new_symba_plA%helio%swiftest%xh
+     symba_plA%helio%swiftest%vh = new_symba_plA%helio%swiftest%vh
+     symba_plA%helio%swiftest%rhill = new_symba_plA%helio%swiftest%rhill
+     symba_plA%helio%swiftest%xb = new_symba_plA%helio%swiftest%xb 
+     symba_plA%helio%swiftest%vb = new_symba_plA%helio%swiftest%vb
+     symba_plA%helio%ah = new_symba_plA%helio%ah
+     CALL symba_pl_deallocate(new_symba_pl)
+
+
      RETURN
 
 END SUBROUTINE util_resize_pl
