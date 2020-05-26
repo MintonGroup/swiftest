@@ -149,7 +149,10 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                symba_plA%helio%swiftest%xh(:,index1_parent) = xnew(:)
                symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
                symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) 
-               symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:) 
+               symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:)
+	       index_keep_parent = index1_parent
+	       index_rm_parent = index2_parent 
+	       index_rm = index2  
                ! The children of parent one are the children we are keeping
                array_keep_child(1:npl) = symba_plA%index_child(1:npl,index_keep_parent)
                ! Go through the children of the kept parent and add those children to the array of kept children
