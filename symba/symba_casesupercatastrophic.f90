@@ -130,6 +130,9 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
           END IF
      END DO
 
+     symba_plA%helio%swiftest%status(index1) = SUPERCATASTROPHIC
+     symba_plA%helio%swiftest%status(index2) = SUPERCATASTROPHIC
+
      ! Calculate the positions of the new fragments
      rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
      rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
