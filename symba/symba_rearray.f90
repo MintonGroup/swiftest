@@ -62,7 +62,18 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
         nsppl = COUNT(discard_l_pl)
         nkpl = npl - nsppl
         IF (lfragmentation) THEN
-            frag_l_add(1:npl) = (mergeadd_list%status(1:npl) == (DISRUPTION .OR. HIT_AND_RUN .OR. SUPERCATASTROPHIC))
+            DO i = 1, npl
+                IF (mergeadd_list%status(i) == DISRUPTION) THEN
+                    frag_l_add(i) = .TRUE.
+                ELSE IF (mergeadd_list%status(i) == HIT_AND_RUN) THEN
+                    frag_l_add(i) = .TRUE.
+                ELSE IF (mergeadd_list%status(i) == SUPERCATASTROPHIC) THEN
+                    frag_l_add(i) = .TRUE.
+                ELSE
+                    frag_l_add(i) = .FALSE.
+                END IF
+            END DO
+            !frag_l_add(1:npl) = (mergeadd_list%status(1:npl) == ((DISRUPTION .OR. HIT_AND_RUN) .OR. SUPERCATASTROPHIC))
             nfrag = COUNT(frag_l_add)
         END IF
 
