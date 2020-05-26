@@ -54,6 +54,11 @@ SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, hto
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh
 
 ! Executable code
+
+     WRITE(*,*) "NPL: ", npl
+     WRITE(*,*) "Name of Last Particle: ", swiftest_plA%name(npl)
+     WRITE(*,*) "X-Pos of Last Particle: ", swiftest_plA%xh(1,npl)
+
      CALL coord_h2b(npl, swiftest_plA, msys)
      htot = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      ke = 0.0_DP
@@ -87,7 +92,7 @@ SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, hto
      ke = ke + 0.5_DP*mass*v2
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN
-               ALLOCATE(xh(NDIM, nplmax), irh(nplmax))
+               ALLOCATE(xh(NDIM, npl), irh(npl))
                lmalloc = .FALSE.
           END IF
           DO i = 2, npl
