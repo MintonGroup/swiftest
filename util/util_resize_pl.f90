@@ -45,7 +45,7 @@ SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
 
 ! Executable code
      IF (npl_new >= npl_old) THEN 
-          CALL symba_pl_allocate(new_symba_pl, npl_new)
+          CALL symba_pl_allocate(new_symba_plA, npl_new)
           new_symba_plA%helio%swiftest%name(1:npl_old) = symba_plA%helio%swiftest%name(1:npl_old)
           new_symba_plA%helio%swiftest%status(1:npl_old) = symba_plA%helio%swiftest%status(1:npl_old)
           new_symba_plA%helio%swiftest%mass(1:npl_old) = symba_plA%helio%swiftest%mass(1:npl_old)
@@ -72,7 +72,7 @@ SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
 
 
      IF (npl_new < npl_old) THEN 
-          CALL symba_pl_allocate(new_symba_pl, npl_new)
+          CALL symba_pl_allocate(new_symba_plA, npl_new)
           new_symba_plA%helio%swiftest%name(1:npl_new) = symba_plA%helio%swiftest%name(1:npl_new)
           new_symba_plA%helio%swiftest%status(1:npl_new) = symba_plA%helio%swiftest%status(1:npl_new)
           new_symba_plA%helio%swiftest%mass(1:npl_new) = symba_plA%helio%swiftest%mass(1:npl_new)
@@ -96,7 +96,7 @@ SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
 
      END IF
      CALL symba_pl_deallocate(symba_plA)
-     CALL symba_pl_allocate(symba_pl, npl_new)
+     CALL symba_pl_allocate(symba_plA, npl_new)
      symba_plA%helio%swiftest%name = new_symba_plA%helio%swiftest%name
      symba_plA%helio%swiftest%status = new_symba_plA%helio%swiftest%status
      symba_plA%helio%swiftest%mass = new_symba_plA%helio%swiftest%mass
@@ -107,7 +107,7 @@ SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
      symba_plA%helio%swiftest%xb = new_symba_plA%helio%swiftest%xb 
      symba_plA%helio%swiftest%vb = new_symba_plA%helio%swiftest%vb
      symba_plA%helio%ah = new_symba_plA%helio%ah
-     CALL symba_pl_deallocate(new_symba_pl)
+     CALL symba_pl_deallocate(new_symba_plA)
 
 
      RETURN
