@@ -90,8 +90,6 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
         discard_plA%vb(2,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(2,1:npl), discard_l_pl)
         discard_plA%vb(3,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(3,1:npl), discard_l_pl)
         IF (lfragmentation .AND. (nkpl + nfrag > npl)) THEN 
-
-            CALL resize_symba_pl(symba_plA, nkpl + nfrag)
             symba_plA%helio%swiftest%name(1:nkpl) = PACK(symba_plA%helio%swiftest%name(1:npl), .NOT. discard_l_pl)
             symba_plA%helio%swiftest%status(1:nkpl) = PACK(symba_plA%helio%swiftest%status(1:npl), .NOT. discard_l_pl)
             symba_plA%helio%swiftest%mass(1:nkpl) = PACK(symba_plA%helio%swiftest%mass(1:npl), .NOT. discard_l_pl)
@@ -111,20 +109,20 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
             symba_plA%helio%swiftest%vb(3,1:nkpl) = PACK(symba_plA%helio%swiftest%vb(3,1:npl), .NOT. discard_l_pl)
             symba_plA%helio%ah(1,1:nkpl) = PACK(symba_plA%helio%ah(1,1:npl), .NOT. discard_l_pl)
             symba_plA%helio%ah(2,1:nkpl) = PACK(symba_plA%helio%ah(2,1:npl), .NOT. discard_l_pl)
-            symba_plA%helio%ah(3,1:nkpl) = PACK(symba_plA%helio%ah(3,1:npl), .NOT. discard_l_pl)
-
+            symba_plA%helio%ah(3,1:nkpl) =PACK(symba_plA%helio%ah(3,1:npl), .NOT. discard_l_pl)
+            CALL util_resize_pl(symba_plA, nkpl+nfrag, npl)
             npl = nkpl  + nfrag
             !add fragments 
             symba_plA%helio%swiftest%name(nkpl+1:npl) = PACK(mergeadd_list%name(:), frag_l_add)
-            symba_plA%helio%swiftest%status(1:nkpl) = [(ACTIVE,i=1,nfrag)]!array of ACTIVE STATUS 
-            symba_plA%helio%swiftest%mass(1:nkpl) = PACK(mergeadd_list%mass(:), frag_l_add)
-            symba_plA%helio%swiftest%radius(1:nkpl) = PACK(mergeadd_list%radius(:), frag_l_add)
-            symba_plA%helio%swiftest%xh(1,1:nkpl) = PACK(mergeadd_list%xh(1,:), frag_l_add)
-            symba_plA%helio%swiftest%xh(2,1:nkpl) = PACK(mergeadd_list%xh(2,:), frag_l_add)
-            symba_plA%helio%swiftest%xh(3,1:nkpl) = PACK(mergeadd_list%xh(3,:), frag_l_add)
-            symba_plA%helio%swiftest%vh(1,1:nkpl) = PACK(mergeadd_list%vh(1,:), frag_l_add)
-            symba_plA%helio%swiftest%vh(2,1:nkpl) = PACK(mergeadd_list%vh(2,:), frag_l_add)
-            symba_plA%helio%swiftest%vh(3,1:nkpl) = PACK(mergeadd_list%vh(3,:), frag_l_add)
+            symba_plA%helio%swiftest%status(nkpl+1:npl) = [(ACTIVE,i=1,nfrag)]!array of ACTIVE STATUS 
+            symba_plA%helio%swiftest%mass(nkpl+1:npl) = PACK(mergeadd_list%mass(:), frag_l_add)
+            symba_plA%helio%swiftest%radius(nkpl+1:npl) = PACK(mergeadd_list%radius(:), frag_l_add)
+            symba_plA%helio%swiftest%xh(1,nkpl+1:npl) = PACK(mergeadd_list%xh(1,:), frag_l_add)
+            symba_plA%helio%swiftest%xh(2,nkpl+1:npl) = PACK(mergeadd_list%xh(2,:), frag_l_add)
+            symba_plA%helio%swiftest%xh(3,nkpl+1:npl) = PACK(mergeadd_list%xh(3,:), frag_l_add)
+            symba_plA%helio%swiftest%vh(1,nkpl+1:npl) = PACK(mergeadd_list%vh(1,:), frag_l_add)
+            symba_plA%helio%swiftest%vh(2,nkpl+1:npl) = PACK(mergeadd_list%vh(2,:), frag_l_add)
+            symba_plA%helio%swiftest%vh(3,nkpl+1:npl) = PACK(mergeadd_list%vh(3,:), frag_l_add)
 
     
         ELSE
