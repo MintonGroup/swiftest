@@ -1451,12 +1451,11 @@ MODULE module_interfaces
                USE module_swiftest
                USE module_helio
                USE module_nrutil
-               USE module_swfitestalloc
-               USE module_interfaces, EXCEPT_THIS_ONE => util_resize_pl
+               USE module_swiftestalloc
                IMPLICIT NONE
                TYPE(symba_pl), INTENT(INOUT) :: symba_plA
                INTEGER(I4B), INTENT(IN)      :: npl_old, npl_new
-          END SUBROUTINE utile_resize_pl
+          END SUBROUTINE util_resize_pl
      END INTERFACE
 
      INTERFACE util_sort

@@ -50,10 +50,6 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      INTEGER(I4B)                                   :: i, index, j, ncomp, ierr, nplm, nkpl, nktp, k, nfrag
      REAL(DP)                                       :: ke, pe, tei, tef
      REAL(DP), DIMENSION(NDIM)                      :: htot
-     REAL(DP), DIMENSION(12,NPLMAX)                 :: keep_plA
-     REAL(DP), DIMENSION(11,ntp)                    :: keep_tpA
-     INTEGER(I4B), DIMENSION(2,NPLMAX)              :: keep_plA_id_status
-     INTEGER(I4B), DIMENSION(2,ntp)                 :: keep_tpA_id_status
      LOGICAL, DIMENSION(npl)                        :: discard_l_pl, frag_l_add
      LOGICAL, DIMENSION(ntp)                        :: discard_l_tp
 
@@ -66,7 +62,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
         nsppl = COUNT(discard_l_pl)
         nkpl = npl - nsppl
         IF (lfragmentation) THEN
-            frag_l_add(1:npl) = (mergeadd_list%status(1:npl) = (DISRUPTION .OR. HIT_AND_RUN .OR. SUPERCATASTROPHIC))
+            frag_l_add(1:npl) = (mergeadd_list%status(1:npl) == (DISRUPTION .OR. HIT_AND_RUN .OR. SUPERCATASTROPHIC))
             nfrag = COUNT(frag_l_add)
         END IF
 
@@ -147,6 +143,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
             symba_plA%helio%ah(2,1:nkpl) = PACK(symba_plA%helio%ah(2,1:npl), .NOT. discard_l_pl)
             symba_plA%helio%ah(3,1:nkpl) = PACK(symba_plA%helio%ah(3,1:npl), .NOT. discard_l_pl)
             npl = nkpl
+        END IF
     END IF 
 
     IF (ldiscard_tp .eqv. .TRUE.) THEN 
