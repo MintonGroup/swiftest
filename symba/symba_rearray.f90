@@ -73,7 +73,6 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
                     frag_l_add(i) = .FALSE.
                 END IF
             END DO
-            !frag_l_add(1:npl) = (mergeadd_list%status(1:npl) == ((DISRUPTION .OR. HIT_AND_RUN) .OR. SUPERCATASTROPHIC))
             nfrag = COUNT(frag_l_add)
         END IF
 
@@ -131,11 +130,6 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
             symba_plA%helio%swiftest%vh(2,nkpl+1:npl) = PACK(mergeadd_list%vh(2,:), frag_l_add)
             symba_plA%helio%swiftest%vh(3,nkpl+1:npl) = PACK(mergeadd_list%vh(3,:), frag_l_add)
 
-            WRITE(*,*) "NPL: ", npl
-            WRITE(*,*) "Name of Last Particle: ", symba_plA%helio%swiftest%name(npl)
-            WRITE(*,*) "X-Pos of Last Particle: ", symba_plA%helio%swiftest%xh(1,npl)
-
-    
         ELSE
             symba_plA%helio%swiftest%name(1:nkpl) = PACK(symba_plA%helio%swiftest%name(1:npl), .NOT. discard_l_pl)
             symba_plA%helio%swiftest%status(1:nkpl) = PACK(symba_plA%helio%swiftest%status(1:npl), .NOT. discard_l_pl)
