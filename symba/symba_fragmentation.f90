@@ -76,7 +76,6 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 
 ! Executable code
-     WRITE(*, *) "ENTERING SYMBA_FRAGMENTATION"
      lmerge = .FALSE.
      lfrag_add = .FALSE.
      ! Model 2 is the model for collresolve_resolve (LS12)
@@ -209,7 +208,6 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
           regime = collresolve_resolve(model,m1_cgs,m2_cgs,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
                nres,mres,rres,pres,vres)
-          WRITE(*,*) "COLLISION REGIME = ", regime
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
                npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, &

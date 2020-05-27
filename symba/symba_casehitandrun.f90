@@ -74,7 +74,6 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 
 ! Executable code
-     WRITE(*, *) "ENTERING SYMBA_CASEHITANDRUN"
 
      nfrag = 4
      index1 = plplenc_list%index1(index_enc)

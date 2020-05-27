@@ -67,8 +67,6 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
      REAL(DP)                                         :: pres, vres
 
 ! Executable code
-          WRITE(*, *) "ENTERING SYMBA_CASERESOLVE"
-          WRITE(*,*) "COLLISION REGIME = ", regime 
           SELECT CASE (regime)
 
           CASE (COLLRESOLVE_REGIME_DISRUPTION)

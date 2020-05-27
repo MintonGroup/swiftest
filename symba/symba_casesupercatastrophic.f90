@@ -74,7 +74,6 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
 
 
 ! Executable code
-     WRITE(*, *) "ENTERING SYMBA_CASESUPERCATASTROPHIC"
      
      ! NOTE: This subroutine is nearly identical to the disruption regime 
      ! nfrag should be larger than disruption to account for the majority of mass entering fragments instead of lr and slr
