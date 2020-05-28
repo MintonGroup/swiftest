@@ -63,7 +63,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: model, nres, i
      REAL(DP), DIMENSION(3)         :: mres, rres
      REAL(DP), DIMENSION(NDIM, 3)   :: pres, vres
-     INTEGER(I4B)                   :: regime, collresolve_resolve
+     INTEGER(I4B)                   :: regime, collresolve_resolve, regime2
      INTEGER(I4B)                   :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
      INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
@@ -76,7 +76,6 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 
 ! Executable code
-     WRITE(*, *) "ENTERING SYMBA_FRAGMENTATION"
      lmerge = .FALSE.
      lfrag_add = .FALSE.
      ! Model 2 is the model for collresolve_resolve (LS12)
@@ -206,10 +205,23 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           x2_cgs(:) = x2(:) * DU2CM
           v1_cgs(:) = v1(:) * DU2CM / TU2S 
           v2_cgs(:) = v2(:) * DU2CM / TU2S
-
+          WRITE(*,*) "m1_cgs", m1_cgs
+          WRITE(*,*) "rad1_cgs", rad1_cgs
+          WRITE(*,*) "x1_cgs", x1_cgs
+          WRITE(*,*) "x2_cgs", x2_cgs
+          WRITE(*,*) "x1", x1
+          WRITE(*,*) "x2", x2
+          WRITE(*,*) "v1_cgs", v1_cgs
           regime = collresolve_resolve(model,m1_cgs,m2_cgs,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
                nres,mres,rres,pres,vres)
-          WRITE(*,*) "COLLISION REGIME = ", regime
+          regime2 = collresolve_resolve(model,m1_cgs,m2_cgs,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
+               nres,mres,rres,pres,vres)
+          WRITE(*,*) "regime", regime
+          WRITE(*,*) "vres collresolve", vres
+          WRITE(*,*) "pres collresolve", pres
+          WRITE(*,*) "nres collresolve", nres
+          WRITE(*,*) "mres collresolve", mres
+          WRITE(*,*) "rres collresolve", rres
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
                npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, &
