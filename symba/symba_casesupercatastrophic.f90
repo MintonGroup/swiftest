@@ -153,13 +153,13 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
              mergeadd_list%radius(nmergeadd) = rres(1)
              mtot = mtot + mergeadd_list%mass(nmergeadd)                             
          END IF
-         IF (i == 2) THEN
+         !IF (i == 2) THEN
              ! second largest particle from collresolve mres[1] rres[1]
-             mergeadd_list%mass(nmergeadd) = mres(2)
-             mergeadd_list%radius(nmergeadd) = rres(2) 
-             mtot = mtot + mergeadd_list%mass(nmergeadd)                            
-         END IF
-         IF (i > 2) THEN
+          !   mergeadd_list%mass(nmergeadd) = mres(2)
+           !  mergeadd_list%radius(nmergeadd) = rres(2) 
+            ! mtot = mtot + mergeadd_list%mass(nmergeadd)                            
+         !END IF
+         IF (i > 1) THEN
              ! FIXME all other particles implement eq. 31 LS12
              ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
              d_p1 = (3.0_DP * m1) / (4.0_DP * PI * (rad1 ** 3.0_DP))
