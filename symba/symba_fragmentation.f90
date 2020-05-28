@@ -219,7 +219,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           year = 3.154e7
           v1_auy(:) = v1_cgs(:) / AU2CM * (year)
           v2_auy(:) = v2_cgs(:) / AU2CM * (year)
-
+          WRITE(*,*) "m1 in SI:", m1, "m2 in SI:" ,m2 
           WRITE(*,*) "m1_msun", m1_msun
           WRITE(*,*) "rad1_au", rad1_au
           WRITE(*,*) "x1_au", x1_au
@@ -229,8 +229,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           WRITE(*,*) "v1_cgs", v1_cgs
           regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
                nres,mres,rres,pres,vres)
-          regime2 = collresolve_resolve(model,m1_msun,m2_msun,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
-               nres,mres,rres,pres,vres)
+          !regime2 = collresolve_resolve(model,m1_msun,m2_msun,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
+              ! nres,mres,rres,pres,vres)
           mres= mres*GU*MSUN/MU2GM
           rres = rres*AU2CM/DU2CM
           WRITE(*,*) "regime", regime
