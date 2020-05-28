@@ -45,6 +45,7 @@ PROGRAM swiftest_symba_omp
      LOGICAL(LGT)      :: lbig_discard   ! Dump planet data with discards
      LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
      LOGICAL(LGT)      :: lpython        ! Python flag to output pl_out.dat and tp_out.dat 
+     LOGICAL(LGT)      :: lenergy        ! Python flag to output energy.out 
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
@@ -89,8 +90,9 @@ PROGRAM swiftest_symba_omp
      TYPE(symba_pltpenc)                                        :: pltpenc_list
      TYPE(symba_merger)                                         :: mergeadd_list, mergesub_list
      INTEGER(I4B), PARAMETER                                    :: egyiu = 72
-
+     REAL(DP) :: start, finish
 ! Executable code
+     CALL CPU_TIME(START)
      CALL util_version
      nthreads = 1                        ! In the *serial* case
      WRITE(*, 100, ADVANCE = "NO") "Enter name of parameter data file: "
@@ -100,7 +102,7 @@ PROGRAM swiftest_symba_omp
      ! Read in the param.in file and get simulation parameters
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
-          encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
+          encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython, lenergy)
      IF (.NOT. lrhill_present) THEN
           WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
@@ -149,14 +151,18 @@ PROGRAM swiftest_symba_omp
                IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
           END IF
      END IF
-     !IF (out_stat == "OLD") then
-        !OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "OLD", ACTION = "WRITE", POSITION = "APPEND")
-     !ELSE 
-        !OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "REPLACE", ACTION = "WRITE")
-     !END IF
+     IF (out_stat == "OLD") then
+        OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "OLD", ACTION = "WRITE", POSITION = "APPEND")
+     ELSE 
+        OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "REPLACE", ACTION = "WRITE")
+     END IF
  300 FORMAT(7(1X, E23.16))
  310 FORMAT(7(1X, A23))
      WRITE(*, *) " *************** MAIN LOOP *************** "
+     IF (lenergy) THEN 
+          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+          WRITE(egyiu,300) t, ke, pe, te, htot
+     END IF
      CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
@@ -185,8 +191,11 @@ PROGRAM swiftest_symba_omp
                nmergesub = 0
                nsppl = 0
                nsptp = 0
-               CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                END IF 
+               IF (lenergy) THEN 
+                    CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+                    WRITE(egyiu,300) t, ke, pe, te, htot
+               END IF
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1
@@ -198,6 +207,10 @@ PROGRAM swiftest_symba_omp
                          call python_io_write_frame_pl(t, symba_plA, npl, out_stat= "APPEND")
                          IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat= "APPEND")
                     END IF 
+                    IF (lenergy) THEN 
+                         CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+                         WRITE(egyiu,300) t, ke, pe, te, htot
+                    END IF
                   CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                END IF
           END IF
@@ -257,9 +270,12 @@ PROGRAM swiftest_symba_omp
           lrhill_present, mtiny, lpython)
      CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
-
-     CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-
+     IF (lenergy) THEN 
+          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+          WRITE(egyiu,300) t, ke, pe, te, htot
+          close(egyiu)
+     END IF
+     
      CALL symba_pl_deallocate(symba_plA)
      CALL symba_merger_deallocate(mergeadd_list)
      CALL symba_merger_deallocate(mergesub_list)
@@ -268,7 +284,8 @@ PROGRAM swiftest_symba_omp
      IF (ntp > 0) THEN
           CALL symba_tp_deallocate(symba_tpA)
      END IF
-
+     CALL CPU_TIME(FINISH)
+     print *,'Time: ',finish-start
      CALL util_exit(SUCCESS)
 
      STOP

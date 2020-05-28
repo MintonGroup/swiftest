@@ -55,7 +55,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,     &
      out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-     encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
+     encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython, lenergy)
 
 ! Modules
      USE module_parameters
@@ -65,7 +65,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython
+     LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython, lenergy
      INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
      REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
      CHARACTER(*), INTENT(IN)  :: inparfile
@@ -112,6 +112,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      lrhill_present = .FALSE.
      mtiny = -1.0_DP
      lpython = .FALSE.
+     lenergy = .FALSE.
      WRITE(*, 100, ADVANCE = "NO") "Parameter data file is "
      WRITE(*, 100) inparfile
      WRITE(*, *) " "
@@ -319,6 +320,12 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
                          IF (token == "YES") lpython = .TRUE.
+                    CASE ("ENERGY")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         CALL util_toupper(token)
+                         IF (token == "YES") lenergy = .TRUE.
                     CASE DEFAULT
                          WRITE(*, 100, ADVANCE = "NO") "Unknown parameter -> "
                          WRITE(*, *) token
@@ -436,6 +443,10 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      IF (lpython) THEN
          WRITE(*, 100, ADVANCE = "NO") "PYTHON    = "
           WRITE(*, *) lpython
+     END IF
+     IF (lenergy) THEN
+         WRITE(*, 100, ADVANCE = "NO") "ENERGY    = "
+          WRITE(*, *) lenergy
      END IF
      IF (ierr < 0) THEN
           WRITE(*, 100) "Input parameter(s) failed check"
