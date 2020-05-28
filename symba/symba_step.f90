@@ -93,11 +93,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      REAL(DP), DIMENSION(NDIM) :: xr, vr
      
 ! Executable code
-     WRITE(*,*) 'entering symba_step'
-     WRITE(*,*) "pl: ", 2, "name:", symba_plA%helio%swiftest%name(2), &
-     "and pl:", 3, "name:", symba_plA%helio%swiftest%name(3)
-     WRITE(*,*) "pl: ", 2, "xh:", symba_plA%helio%swiftest%xh(1,2), &
-     "and pl:", 3, "xh:", symba_plA%helio%swiftest%xh(1,3)
+
           DO i = 1,npl
           symba_plA%nplenc(i) = 0
           symba_plA%ntpenc(i) = 0
@@ -198,11 +194,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
           CALL symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA%helio, symba_tpA%helio, &
                j2rp2, j4rp4, dt)
      END IF
-     WRITE(*,*) 'leaving symba_step'
-     WRITE(*,*) "pl: ", 2, "name:", symba_plA%helio%swiftest%name(2), &
-     "and pl:", 3, "name:", symba_plA%helio%swiftest%name(3)
-     WRITE(*,*) "pl: ", 3, "xh:", symba_plA%helio%swiftest%xh(1,2), &
-     "and pl:", 3, "xh:", symba_plA%helio%swiftest%xh(1,3)
+
      RETURN
 
 END SUBROUTINE symba_step

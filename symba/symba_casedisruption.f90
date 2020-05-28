@@ -182,10 +182,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          vx_frag = ((1.0_DP / nfrag) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
          vy_frag = ((1.0_DP / nfrag) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
          vz_frag = vz_com - vbs(3)
-         WRITE(*,*) "mres", mres
-         WRITE(*,*) "rres", rres
-         WRITE(*,*) "vx_frag", vx_frag
-         WRITE(*,*) "mass Gmres(1)", mres(1)*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
          mergeadd_list%xh(1,nmergeadd) = x_frag
          mergeadd_list%xh(2,nmergeadd) = y_frag 
          mergeadd_list%xh(3,nmergeadd) = z_frag                                                    

@@ -219,26 +219,13 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           year = 3.154e7
           v1_auy(:) = v1_cgs(:) / AU2CM * (year)
           v2_auy(:) = v2_cgs(:) / AU2CM * (year)
-          WRITE(*,*) "m1 in SI:", m1, "m2 in SI:" ,m2 
-          WRITE(*,*) "m1_msun", m1_msun
-          WRITE(*,*) "rad1_au", rad1_au
-          WRITE(*,*) "x1_au", x1_au
-          WRITE(*,*) "x2_au", x2_au
-          WRITE(*,*) "x1", x1
-          WRITE(*,*) "x2", x2
-          WRITE(*,*) "v1_cgs", v1_cgs
+
           regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
                nres,mres,rres,pres,vres)
-          !regime2 = collresolve_resolve(model,m1_msun,m2_msun,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
-              ! nres,mres,rres,pres,vres)
+
           mres= mres*GU*MSUN/MU2GM
           rres = rres*AU2CM/DU2CM
-          WRITE(*,*) "regime", regime
-          WRITE(*,*) "vres collresolve", vres * (TU2S / DU2CM) * (AU2CM) / (year)
-          WRITE(*,*) "pres collresolve", pres
-          WRITE(*,*) "nres collresolve", nres
-          WRITE(*,*) "mres collresolve in SI", mres
-          WRITE(*,*) "rres collresolve in SI", rres
+
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
                npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, &

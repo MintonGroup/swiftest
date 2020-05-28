@@ -91,11 +91,6 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xbeg, xend
 
 ! Executable code
-     WRITE(*,*) 'entering step_interp'
-     WRITE(*,*) "pl: ", 2, "name:", symba_plA%helio%swiftest%name(2), &
-     "and pl:", 3, "name:", symba_plA%helio%swiftest%name(3)
-     WRITE(*,*) "pl: ", 2, "xh:", symba_plA%helio%swiftest%xh(1,2), &
-     "and pl:", 3, "xh:", symba_plA%helio%swiftest%xh(1,3)
 
      IF (lmalloc) THEN
           ALLOCATE(xbeg(NDIM, nplmax), xend(NDIM, nplmax))
@@ -105,12 +100,6 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
 
      CALL coord_vh2vb(npl, symba_plA%helio%swiftest, msys)
 
-     WRITE(*,*) 'afer coordvh2vb step_interp'
-     WRITE(*,*) "pl: ", 2, "name:", symba_plA%helio%swiftest%name(2), &
-     "and pl:", 3, "name:", symba_plA%helio%swiftest%name(3)
-     WRITE(*,*) "pl: ", 2, "xh:", symba_plA%helio%swiftest%xh(1,2), &
-     "and pl:", 3, "xh:", symba_plA%helio%swiftest%xh(1,3)
-
      CALL helio_lindrift(npl, symba_plA%helio%swiftest, dth, ptb)
      IF (ntp > 0) THEN
           CALL coord_vh2vb_tp(ntp, symba_tpA%helio%swiftest, -ptb)
@@ -119,12 +108,6 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
                xbeg(:, i) = symba_plA%helio%swiftest%xh(:,i)
           END DO
      END IF
-
-     WRITE(*,*) 'after lindrift 1 step_interp'
-     WRITE(*,*) "pl: ", 2, "name:", symba_plA%helio%swiftest%name(2), &
-     "and pl:", 3, "name:", symba_plA%helio%swiftest%name(3)
-     WRITE(*,*) "pl: ", 2, "xh:", symba_plA%helio%swiftest%xh(1,2), &
-     "and pl:", 3, "xh:", symba_plA%helio%swiftest%xh(1,3)
 
      CALL symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
      IF (ntp > 0) CALL symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xbeg, j2rp2,     &
@@ -157,11 +140,6 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
           CALL coord_vb2vh_tp(ntp, symba_tpA%helio%swiftest, -pte)
           CALL helio_lindrift_tp(ntp, symba_tpA%helio%swiftest, dth, pte)
      END IF
-     WRITE(*,*) 'leaving symba_step'
-     WRITE(*,*) "pl: ", 2, "name:", symba_plA%helio%swiftest%name(2), &
-     "and pl:", 3, "name:", symba_plA%helio%swiftest%name(3)
-     WRITE(*,*) "pl: ", 2, "xh:", symba_plA%helio%swiftest%xh(1,2), &
-     "and pl:", 3, "xh:", symba_plA%helio%swiftest%xh(1,3)
      RETURN
 
 END SUBROUTINE symba_step_interp
