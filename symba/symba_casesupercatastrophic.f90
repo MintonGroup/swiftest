@@ -135,8 +135,8 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      ! Calculate the positions of the new fragments
      rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
      rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
-     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI) / nfrag)
-     theta = (8 * PI) / nfrag
+     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
+     theta = (2.0_DP * PI) / nfrag
 
      ! Add new fragments to mergeadd_list
      mtot = 0.0_DP ! running total mass of new fragments
@@ -180,8 +180,8 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
          x_frag = (r_circle * cos(theta * i)) + x_com
          y_frag = (r_circle * sin(theta * i)) + y_com
          z_frag = z_com
-         vx_frag = ((1 / nfrag) * (1 / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
-         vy_frag = ((1 / nfrag) * (1 / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
+         vx_frag = ((1.0_DP / nfrag) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
+         vy_frag = ((1.0_DP / nfrag) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
          vz_frag = vz_com - vbs(3)
          mergeadd_list%xh(1,nmergeadd) = x_frag
          mergeadd_list%xh(2,nmergeadd) = y_frag 

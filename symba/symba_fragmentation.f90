@@ -70,9 +70,10 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild
      REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
-     REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs
+     REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs, x1_au, x2_au, v1_auy, v2_auy
      LOGICAL(LGT)                   :: lfrag_add, lmerge
      INTEGER(I4B), DIMENSION(npl)   :: array_index1_child, array_index2_child
+     REAL(DP)                       :: MSUN, K2, m1_msun, m2_msun, rad1_au, rad2_au, AU2CM, year
 
 
 ! Executable code
@@ -197,31 +198,47 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           v2(:) = v2(:)/m2
 
           GU = GC / (DU2CM**3 / (MU2GM * TU2S**2))
-          m1_cgs = (m1 / GU) * MU2GM
-          m2_cgs = (m2 / GU) * MU2GM
+          m1_cgs = (m1 / GU) * MU2GM 
+          m2_cgs = (m2 / GU) * MU2GM 
+          MSUN = 1.989e33 !Msun in cgs
+          AU2CM = 1.496e+13 !AU in cgs
+          m1_msun = m1_cgs / MSUN
+          m2_msun = m2_cgs / MSUN
+          K2 = 2.959122082855911e-4
           rad1_cgs = (rad1) * DU2CM
           rad2_cgs = (rad2) * DU2CM
+          rad1_au = rad1_cgs / AU2CM
+          rad2_au = rad2_cgs / AU2CM
           x1_cgs(:) = x1(:) * DU2CM
           x2_cgs(:) = x2(:) * DU2CM
+          x1_au(:) = x1_cgs(:) / AU2CM
+          x2_au(:) = x2_cgs(:) / AU2CM
+
           v1_cgs(:) = v1(:) * DU2CM / TU2S 
           v2_cgs(:) = v2(:) * DU2CM / TU2S
-          WRITE(*,*) "m1_cgs", m1_cgs
-          WRITE(*,*) "rad1_cgs", rad1_cgs
-          WRITE(*,*) "x1_cgs", x1_cgs
-          WRITE(*,*) "x2_cgs", x2_cgs
+          year = 3.154e7
+          v1_auy(:) = v1_cgs(:) / AU2CM * (year)
+          v2_auy(:) = v2_cgs(:) / AU2CM * (year)
+
+          WRITE(*,*) "m1_msun", m1_msun
+          WRITE(*,*) "rad1_au", rad1_au
+          WRITE(*,*) "x1_au", x1_au
+          WRITE(*,*) "x2_au", x2_au
           WRITE(*,*) "x1", x1
           WRITE(*,*) "x2", x2
           WRITE(*,*) "v1_cgs", v1_cgs
-          regime = collresolve_resolve(model,m1_cgs,m2_cgs,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
+          regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
                nres,mres,rres,pres,vres)
-          regime2 = collresolve_resolve(model,m1_cgs,m2_cgs,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
+          regime2 = collresolve_resolve(model,m1_msun,m2_msun,rad1_cgs,rad2_cgs,x1_cgs(:),x2_cgs(:), v1_cgs(:),v2_cgs(:), &
                nres,mres,rres,pres,vres)
+          mres= mres*GU*MSUN/MU2GM
+          rres = rres*AU2CM/DU2CM
           WRITE(*,*) "regime", regime
-          WRITE(*,*) "vres collresolve", vres
+          WRITE(*,*) "vres collresolve", vres * (TU2S / DU2CM) * (AU2CM) / (year)
           WRITE(*,*) "pres collresolve", pres
           WRITE(*,*) "nres collresolve", nres
-          WRITE(*,*) "mres collresolve", mres
-          WRITE(*,*) "rres collresolve", rres
+          WRITE(*,*) "mres collresolve in SI", mres
+          WRITE(*,*) "rres collresolve in SI", rres
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
                npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, &
