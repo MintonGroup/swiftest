@@ -46,12 +46,12 @@ SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, hto
      TYPE(swiftest_pl), INTENT(INOUT)       :: swiftest_plA
 
 ! Internals
-     LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
+     LOGICAL(LGT)                                 :: lmalloc = .TRUE.
      INTEGER(I4B)                                 :: i, j
      REAL(DP)                                     :: mass, msys, r2, v2, oblpot
      REAL(DP), DIMENSION(NDIM)                    :: h, x, v, dx
-     REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh
+     REAL(DP), DIMENSION(npl)                     :: irh
+
 
 ! Executable code
 
@@ -91,16 +91,15 @@ SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, hto
      v2 = DOT_PRODUCT(v(:), v(:))
      ke = ke + 0.5_DP*mass*v2
      IF (j2rp2 /= 0.0_DP) THEN
-          IF (lmalloc) THEN
-               ALLOCATE(xh(NDIM, npl), irh(npl))
-               lmalloc = .FALSE.
-          END IF
+          !IF (lmalloc) THEN
+               !ALLOCATE(xh(NDIM, npl), irh(npl))
+               !lmalloc = .FALSE.
+          !END IF
           DO i = 2, npl
-               xh(:, i) = swiftest_plA%xh(:,i)
-               r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
+               r2 = DOT_PRODUCT(swiftest_plA%xh(:,i),swiftest_plA%xh(:,i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
+          CALL obl_pot(npl, swiftest_plA, j2rp2, j4rp4, swiftest_plA%xh(:,:), irh, oblpot)
           pe = pe + oblpot
      END IF
      te = ke + pe

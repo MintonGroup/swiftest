@@ -52,12 +52,12 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      TYPE(symba_plplenc), INTENT(INOUT)            :: plplenc_list
 
 ! Internals
-     LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
+     LOGICAL(LGT)                                 :: lmalloc = .TRUE.
      INTEGER(I4B)                                 :: i, j, index_i, index_j
      REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac
      REAL(DP), DIMENSION(NDIM)                    :: dx
-     REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
+     REAL(DP), DIMENSION(npl)                     :: irh
+     REAL(DP), DIMENSION(NDIM, npl)               :: aobl
 
 ! Executable code
 
@@ -71,6 +71,15 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                     dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
                     rji2 = DOT_PRODUCT(dx(:), dx(:))
                     irij3 = 1.0_DP/(rji2*SQRT(rji2))
+                    IF (irij3  .NE. irij3 ) then 
+                         WRITE(*,*) "dx==0 for pl: ", i, "name:", symba_plA%helio%swiftest%name(i), &
+                    "and pl:", j, "name:", symba_plA%helio%swiftest%name(j)
+                    WRITE(*,*) "dx==0 for pl: ", i, "xh:", symba_plA%helio%swiftest%xh(1,i), &
+                    "and pl:", j, "xh:", symba_plA%helio%swiftest%xh(1,j)
+                         WRITE(*,*) "parent pl 1:", symba_plA%helio%swiftest%name(symba_plA%index_parent(i))
+                         WRITE(*,*) "parent pl 2:", symba_plA%helio%swiftest%name(symba_plA%index_parent(j))
+                         STOP
+                    END IF
                     faci = symba_plA%helio%swiftest%mass(i)*irij3
                     facj = symba_plA%helio%swiftest%mass(j)*irij3
                     symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
@@ -87,6 +96,15 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                dx(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
                rji2 = DOT_PRODUCT(dx(:), dx(:))
                irij3 = 1.0_DP/(rji2*SQRT(rji2))
+               IF (irij3  .NE. irij3 ) then 
+                         WRITE(*,*) "dx==0 for pl: ", i, "name:", symba_plA%helio%swiftest%name(i), &
+                    "and pl:", j, "name:", symba_plA%helio%swiftest%name(j)
+                    WRITE(*,*) "dx==0 for pl: ", i, "xh:", symba_plA%helio%swiftest%xh(1,i), &
+                    "and pl:", j, "xh:", symba_plA%helio%swiftest%xh(1,j)
+                         WRITE(*,*) "parent pl 1:", symba_plA%helio%swiftest%name(symba_plA%index_parent(i))
+                         WRITE(*,*) "parent pl 2:", symba_plA%helio%swiftest%name(symba_plA%index_parent(j))
+                         STOP
+               END IF
                faci = symba_plA%helio%swiftest%mass(index_i)*irij3
                facj = symba_plA%helio%swiftest%mass(index_j)*irij3
                symba_plA%helio%ah(:,index_i) = symba_plA%helio%ah(:,index_i) - facj*dx(:)
@@ -94,13 +112,12 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
           END IF
      END DO
      IF (j2rp2 /= 0.0_DP) THEN
-          IF (lmalloc) THEN
-               ALLOCATE(xh(NDIM, npl),aobl(NDIM, npl), irh(npl))
-               lmalloc = .FALSE.
-          END IF
+          !IF (lmalloc) THEN
+              !ALLOCATE(xh(NDIM, npl),aobl(NDIM, npl), irh(npl))
+               !lmalloc = .FALSE.
+          !END IF
           DO i = 2, npl
-               xh(:, i) = symba_plA%helio%swiftest%xh(:,i)
-               r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
+               r2 = DOT_PRODUCT(symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%xh(:,i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
           CALL obl_acc(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)

@@ -134,8 +134,8 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      ! Calculate the positions of the new fragments
      rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
      rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
-     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI) / nfrag)
-     theta = (8 * PI) / nfrag
+     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
+     theta = (2.0_DP * PI) / nfrag
 
      ! Add new fragments to mergeadd_list
      mtot = 0.0_DP ! running total mass of new fragments
@@ -147,14 +147,14 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          mergeadd_list%ncomp(nmergeadd) = 2
          IF (i == 1) THEN
              ! first largest particle from collresolve mres[0] rres[0]
-             mergeadd_list%mass(nmergeadd) = mres(1)
-             mergeadd_list%radius(nmergeadd) = rres(1)
+             mergeadd_list%mass(nmergeadd) = mres(1)*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
+             mergeadd_list%radius(nmergeadd) = rres(1)/DU2CM
              mtot = mtot + mergeadd_list%mass(nmergeadd)                             
          END IF
          IF (i == 2) THEN
              ! second largest particle from collresolve mres[1] rres[1]
-             mergeadd_list%mass(nmergeadd) = mres(2)
-             mergeadd_list%radius(nmergeadd) = rres(2) 
+             mergeadd_list%mass(nmergeadd) = mres(2)*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
+             mergeadd_list%radius(nmergeadd) = rres(2)/DU2CM
              mtot = mtot + mergeadd_list%mass(nmergeadd)                            
          END IF
          IF (i > 2) THEN
@@ -164,7 +164,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
              d_p2 = (3.0_DP * m2) / (4.0_DP * PI * (rad2 ** 3.0_DP))
              avg_d = (d_p1 + d_p2) / 2.0_DP
 
-             m_rem = (m1 + m2) - (mres(1) + mres(2))
+             m_rem = (m1 + m2) - (mres(1) + mres(2))*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
              m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * avg_d)
              
              IF (m_test < m_rem) THEN
@@ -179,9 +179,13 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          x_frag = (r_circle * cos(theta * i)) + x_com
          y_frag = (r_circle * sin(theta * i)) + y_com
          z_frag = z_com
-         vx_frag = ((1 / nfrag) * (1 / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
-         vy_frag = ((1 / nfrag) * (1 / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
+         vx_frag = ((1.0_DP / nfrag) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
+         vy_frag = ((1.0_DP / nfrag) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
          vz_frag = vz_com - vbs(3)
+         WRITE(*,*) "mres", mres
+         WRITE(*,*) "rres", rres
+         WRITE(*,*) "vx_frag", vx_frag
+         WRITE(*,*) "mass Gmres(1)", mres(1)*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
          mergeadd_list%xh(1,nmergeadd) = x_frag
          mergeadd_list%xh(2,nmergeadd) = y_frag 
          mergeadd_list%xh(3,nmergeadd) = z_frag                                                    
