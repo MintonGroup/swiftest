@@ -146,37 +146,35 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
          mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
          mergeadd_list%status(nmergeadd) = ACTIVE
          mergeadd_list%ncomp(nmergeadd) = 2
-         IF (i == 1) THEN
-             ! first largest particle from collresolve mres[0] rres[0]
-             mergeadd_list%mass(nmergeadd) = mres(1)
-             mergeadd_list%radius(nmergeadd) = rres(1)
-             mtot = mtot + mergeadd_list%mass(nmergeadd)                             
-         END IF
-         !IF (i == 2) THEN
-             ! second largest particle from collresolve mres[1] rres[1]
-          !   mergeadd_list%mass(nmergeadd) = mres(2)
-           !  mergeadd_list%radius(nmergeadd) = rres(2) 
-            ! mtot = mtot + mergeadd_list%mass(nmergeadd)                            
-         !END IF
-         IF (i > 1) THEN
+         IF (mres(1) < (0.1_DP * (m1 + m2))) THEN
+            mergeadd_list%mass(nmergeadd) = (0.1_DP * (m1 + m2))
+         ELSE 
+            IF (i == 1) THEN
+                ! first largest particle from collresolve mres[0] rres[0]
+                mergeadd_list%mass(nmergeadd) = mres(1)
+                mergeadd_list%radius(nmergeadd) = rres(1)
+                mtot = mtot + mergeadd_list%mass(nmergeadd)                             
+            END IF
+            IF (i > 1) THEN
              ! FIXME all other particles implement eq. 31 LS12
              ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
-             d_p1 = (3.0_DP * m1) / (4.0_DP * PI * (rad1 ** 3.0_DP))
-             d_p2 = (3.0_DP * m2) / (4.0_DP * PI * (rad2 ** 3.0_DP))
-             avg_d = (d_p1 + d_p2) / 2.0_DP
+                d_p1 = (3.0_DP * m1) / (4.0_DP * PI * (rad1 ** 3.0_DP))
+                d_p2 = (3.0_DP * m2) / (4.0_DP * PI * (rad2 ** 3.0_DP))
+                avg_d = (d_p1 + d_p2) / 2.0_DP
 
-             m_rem = (m1 + m2) - (mres(1) + mres(2))
-             m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * avg_d)
+                m_rem = (m1 + m2) - (mres(1) + mres(2))
+                m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * avg_d)
              
-             IF (m_test < m_rem) THEN
-                mergeadd_list%mass(nmergeadd) = m_test
-             ELSE
-                mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
-             END IF 
-             mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
-                ** (1.0_DP / 3.0_DP) 
-             mtot = mtot + mergeadd_list%mass(nmergeadd)                                                              
-         END IF                                  
+                IF (m_test < m_rem) THEN
+                    mergeadd_list%mass(nmergeadd) = m_test
+                ELSE
+                    mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
+                END IF 
+                mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
+                    ** (1.0_DP / 3.0_DP) 
+                mtot = mtot + mergeadd_list%mass(nmergeadd)                                                              
+            END IF  
+         END IF                                
          x_frag = (r_circle * cos(theta * i)) + x_com
          y_frag = (r_circle * sin(theta * i)) + y_com
          z_frag = z_com
