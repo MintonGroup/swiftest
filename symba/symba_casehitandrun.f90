@@ -83,11 +83,11 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      name1 = symba_plA%helio%swiftest%name(index1)
      name2 = symba_plA%helio%swiftest%name(index2)
      IF (m2 > m1) THEN
-          index_keep = index_big2
-          index_rm = index_big1
+          index_keep = index2
+          index_rm = index1
      ELSE
-          index_keep = index_big1
-          index_rm = index_big2
+          index_keep = index1
+          index_rm = index2
      END IF
 
      ! Find COM
@@ -134,10 +134,13 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           END IF
      END DO
 
+     symba_plA%helio%swiftest%status(index1) = HIT_AND_RUN
+     symba_plA%helio%swiftest%status(index2) = HIT_AND_RUN
+
      ! Calculate the positions of the new fragments
      rhill_keep = symba_plA%helio%swiftest%rhill(index_keep)
      r_circle = rhill_keep
-     theta = (8 * PI) / (nfrag - 1)
+     theta = (2.0_DP * PI) / (nfrag - 1)
 
      ! Add new fragments to mergeadd_list
      mtot = 0.0_DP ! running total mass of new fragments
@@ -145,11 +148,11 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
      DO i = 1, nfrag
          nmergeadd = nmergeadd + 1
-         mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
          mergeadd_list%status(nmergeadd) = HIT_AND_RUN
          mergeadd_list%ncomp(nmergeadd) = 2
          IF (i == 1) THEN
              ! first largest particle equal to index_keep
+             mergeadd_list%name(nmergeadd) = symba_plA%helio%swiftest%name(index_keep)
              mergeadd_list%mass(nmergeadd) = symba_plA%helio%swiftest%mass(index_keep)
              mergeadd_list%radius(nmergeadd) = symba_plA%helio%swiftest%radius(index_keep)
              mergeadd_list%xh(:,nmergeadd) = symba_plA%helio%swiftest%xh(:,index_keep)
@@ -158,6 +161,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
          END IF
          IF (i == 2) THEN
              ! second largest particle from collresolve mres[1] rres[1]
+             mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i - 1
              mergeadd_list%mass(nmergeadd) = mres(2)
              mergeadd_list%radius(nmergeadd) = rres(2) 
              mtot = mtot + mergeadd_list%mass(nmergeadd)              
@@ -165,6 +169,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
          IF (i > 2) THEN
              ! FIXME all other particles implement eq. 31 LS12
              ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
+             mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i - 1
              m_rm = symba_plA%helio%swiftest%mass(index_keep)
              r_rm = symba_plA%helio%swiftest%radius(index_keep)
              vx_rm = symba_plA%helio%swiftest%vh(1,index_keep)
@@ -187,8 +192,8 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
              x_frag = (r_circle * cos(theta * i)) + x_com
              y_frag = (r_circle * sin(theta * i)) + y_com
              z_frag = z_com
-             vx_frag = ((1 / (nfrag-1)) * (1 / mergeadd_list%mass(nmergeadd)) * ((m_rm * vx_rm))) - vbs(1)
-             vy_frag = ((1 / (nfrag-1)) * (1 / mergeadd_list%mass(nmergeadd)) * ((m_rm * vy_rm))) - vbs(2)
+             vx_frag = ((1.0_DP / (nfrag-1)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vx_rm))) - vbs(1)
+             vy_frag = ((1.0_DP / (nfrag-1)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vy_rm))) - vbs(2)
              vz_frag = vz_com - vbs(3)
              mergeadd_list%xh(1,nmergeadd) = x_frag
              mergeadd_list%xh(2,nmergeadd) = y_frag 
