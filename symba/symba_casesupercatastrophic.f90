@@ -106,7 +106,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      ! Add both parents to mergesub_list
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name1
-     mergesub_list%status(nmergesub) = SUPERCATASTROPHIC ! possibly change to disruption for new flag in discard.out
+     mergesub_list%status(nmergesub) = SUPERCATASTROPHIC
      mergesub_list%xh(:,nmergesub) = x1(:)
      mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass1
@@ -149,7 +149,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      DO i = 1, nfrag
          nmergeadd = nmergeadd + 1
          mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
-         mergeadd_list%status(nmergeadd) = ACTIVE
+         mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
          mergeadd_list%ncomp(nmergeadd) = 2
          IF (mres(1) < m1m2_10) THEN
             mergeadd_list%mass(nmergeadd) = m1m2_10
