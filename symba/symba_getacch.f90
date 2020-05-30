@@ -57,7 +57,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
      REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac
      REAL(DP), DIMENSION(NDIM)                    :: dx
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
+     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: aobl
 
 ! Executable code
 
@@ -99,8 +99,7 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
                lmalloc = .FALSE.
           END IF
           DO i = 2, npl
-               xh(:, i) = symba_plA%helio%swiftest%xh(:,i)
-               r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
+               r2 = DOT_PRODUCT(symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%xh(:,i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
           CALL obl_acc(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)
