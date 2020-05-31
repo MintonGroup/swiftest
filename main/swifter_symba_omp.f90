@@ -195,6 +195,26 @@ PROGRAM swiftest_symba_omp
                qmin_ahi, j2rp2, j4rp4, eoffset)
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
+          IF(nplplenc > 0)THEN
+               
+               plplenc_list%lvdotr(1:1+nplplenc) = .FALSE.
+               plplenc_list%status(1:1+nplplenc) = 0
+               plplenc_list%level(1:1+nplplenc) = 0
+               plplenc_list%index1(1:1+nplplenc) = 0
+               plplenc_list%index2(1:1+nplplenc) = 0
+               plplenc_list%enc_child(1:1+nplplenc) = 0 
+               plplenc_list%enc_parent(1:1+nplplenc) = 0
+
+            IF(npltpenc > 0)THEN
+                  pltpenc_list%lvdotr(1:1+npltpenc) = .FALSE.
+                  pltpenc_list%status(1:1+npltpenc) = 0
+                  pltpenc_list%level(1:1+npltpenc) = 0
+                  pltpenc_list%indexpl(1:1+npltpenc) = 0
+                  pltpenc_list%indextp(1:1+npltpenc) = 0
+            ENDIF
+
+           ENDIF
+
           IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
                     discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
@@ -208,6 +228,34 @@ PROGRAM swiftest_symba_omp
                     DEALLOCATE(k_pltp)
                     CALL util_dist_index_pltp(nplm, ntp, num_pltp_comparisons, k_pltp)
                endif
+               
+               mergeadd_list%name(1:1+nmergeadd) = 0
+               mergeadd_list%index_ps(1:1+nmergeadd) = 0
+               mergeadd_list%status(1:1+nmergeadd) = 0
+               mergeadd_list%ncomp(1:1+nmergeadd) = 0
+               mergeadd_list%xh(:,1:1+nmergeadd) = 0
+               mergeadd_list%vh(:,1:1+nmergeadd) = 0
+               mergeadd_list%mass(1:1+nmergeadd) = 0
+               mergeadd_list%radius(1:1+nmergeadd) = 0
+
+               mergesub_list%name(1:1+nmergesub) = 0
+               mergesub_list%index_ps(1:1+nmergesub) = 0
+               mergesub_list%status(1:1+nmergesub) = 0
+               mergesub_list%ncomp(1:1+nmergesub) = 0
+               mergesub_list%xh(:,1:1+nmergesub) = 0
+               mergesub_list%vh(:,1:1+nmergesub) = 0
+               mergesub_list%mass(1:1+nmergesub) = 0
+               mergesub_list%radius(1:1+nmergesub) = 0
+
+               discard_plA(:,:) = 0
+               discard_plA_id_status(:,:) = 0
+
+               if(ntp>0)then
+
+                  discard_tpA(:,:) = 0
+                  discard_tpA_id_status(:,:) = 0
+               endif
+
 
                nmergeadd = 0
                nmergesub = 0
@@ -236,46 +284,6 @@ PROGRAM swiftest_symba_omp
                     idump = istep_dump
                END IF
           END IF
-
-          plplenc_list%lvdotr(1:1+nplplenc) = .FALSE.
-          plplenc_list%status(1:1+nplplenc) = 0
-          plplenc_list%level(1:1+nplplenc) = 0
-          plplenc_list%index1(1:1+nplplenc) = 0
-          plplenc_list%index2(1:1+nplplenc) = 0
-          plplenc_list%enc_child(1:1+nplplenc) = 0 
-          plplenc_list%enc_parent(1:1+nplplenc) = 0
-
-          mergeadd_list%name(1:1+nmergeadd) = 0
-          mergeadd_list%index_ps(1:1+nmergeadd) = 0
-          mergeadd_list%status(1:1+nmergeadd) = 0
-          mergeadd_list%ncomp(1:1+nmergeadd) = 0
-          mergeadd_list%xh(:,1:1+nmergeadd) = 0
-          mergeadd_list%vh(:,1:1+nmergeadd) = 0
-          mergeadd_list%mass(1:1+nmergeadd) = 0
-          mergeadd_list%radius(1:1+nmergeadd) = 0
-
-          mergesub_list%name(1:1+nmergesub) = 0
-          mergesub_list%index_ps(1:1+nmergesub) = 0
-          mergesub_list%status(1:1+nmergesub) = 0
-          mergesub_list%ncomp(1:1+nmergesub) = 0
-          mergesub_list%xh(:,1:1+nmergesub) = 0
-          mergesub_list%vh(:,1:1+nmergesub) = 0
-          mergesub_list%mass(1:1+nmergesub) = 0
-          mergesub_list%radius(1:1+nmergesub) = 0
-
-          discard_plA(:,:) = 0
-          discard_plA_id_status(:,:) = 0
-
-          if(ntp>0)then
-              pltpenc_list%lvdotr(1:1+npltpenc) = .FALSE.
-              pltpenc_list%status(1:1+npltpenc) = 0
-              pltpenc_list%level(1:1+npltpenc) = 0
-              pltpenc_list%indexpl(1:1+npltpenc) = 0
-              pltpenc_list%indextp(1:1+npltpenc) = 0
-
-              discard_tpA(:,:) = 0
-              discard_tpA_id_status(:,:) = 0
-          endif
 
      END DO
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
