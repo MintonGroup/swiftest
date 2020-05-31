@@ -236,41 +236,42 @@ PROGRAM swiftest_symba_omp
                     idump = istep_dump
                END IF
           END IF
-          plplenc_list%lvdotr(:) = .FALSE.
-          plplenc_list%status(:) = 0
-          plplenc_list%level(:) = 0
-          plplenc_list%index1(:) = 0
-          plplenc_list%index2(:) = 0
-          plplenc_list%enc_child(:) = 0 
-          plplenc_list%enc_parent(:) = 0
 
-          mergeadd_list%name(:) = 0
-          mergeadd_list%index_ps(:) = 0
-          mergeadd_list%status(:) = 0
-          mergeadd_list%ncomp(:) = 0
-          mergeadd_list%xh(:,:) = 0
-          mergeadd_list%vh(:,:) = 0
-          mergeadd_list%mass(:) = 0
-          mergeadd_list%radius(:) = 0
+          plplenc_list%lvdotr(1:1+nplplenc) = .FALSE.
+          plplenc_list%status(1:1+nplplenc) = 0
+          plplenc_list%level(1:1+nplplenc) = 0
+          plplenc_list%index1(1:1+nplplenc) = 0
+          plplenc_list%index2(1:1+nplplenc) = 0
+          plplenc_list%enc_child(1:1+nplplenc) = 0 
+          plplenc_list%enc_parent(1:1+nplplenc) = 0
 
-          mergesub_list%name(:) = 0
-          mergesub_list%index_ps(:) = 0
-          mergesub_list%status(:) = 0
-          mergesub_list%ncomp(:) = 0
-          mergesub_list%xh(:,:) = 0
-          mergesub_list%vh(:,:) = 0
-          mergesub_list%mass(:) = 0
-          mergesub_list%radius(:) = 0
+          mergeadd_list%name(1:1+nmergeadd) = 0
+          mergeadd_list%index_ps(1:1+nmergeadd) = 0
+          mergeadd_list%status(1:1+nmergeadd) = 0
+          mergeadd_list%ncomp(1:1+nmergeadd) = 0
+          mergeadd_list%xh(:,1:1+nmergeadd) = 0
+          mergeadd_list%vh(:,1:1+nmergeadd) = 0
+          mergeadd_list%mass(1:1+nmergeadd) = 0
+          mergeadd_list%radius(1:1+nmergeadd) = 0
+
+          mergesub_list%name(1:1+nmergesub) = 0
+          mergesub_list%index_ps(1:1+nmergesub) = 0
+          mergesub_list%status(1:1+nmergesub) = 0
+          mergesub_list%ncomp(1:1+nmergesub) = 0
+          mergesub_list%xh(:,1:1+nmergesub) = 0
+          mergesub_list%vh(:,1:1+nmergesub) = 0
+          mergesub_list%mass(1:1+nmergesub) = 0
+          mergesub_list%radius(1:1+nmergesub) = 0
 
           discard_plA(:,:) = 0
           discard_plA_id_status(:,:) = 0
 
           if(ntp>0)then
-              pltpenc_list%lvdotr(:) = .FALSE.
-              pltpenc_list%status(:) = 0
-              pltpenc_list%level(:) = 0
-              pltpenc_list%indexpl(:) = 0
-              pltpenc_list%indextp(:) = 0
+              pltpenc_list%lvdotr(1:1+npltpenc) = .FALSE.
+              pltpenc_list%status(1:1+npltpenc) = 0
+              pltpenc_list%level(1:1+npltpenc) = 0
+              pltpenc_list%indexpl(1:1+npltpenc) = 0
+              pltpenc_list%indextp(1:1+npltpenc) = 0
 
               discard_tpA(:,:) = 0
               discard_tpA_id_status(:,:) = 0
