@@ -162,7 +162,7 @@ PROGRAM swiftest_symba_omp
 
      WRITE(*, *) " *************** MAIN LOOP *************** "
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
-          if(num_plpl_comparisons > 10000)then
+          if(num_plpl_comparisons > 100000)then
             CALL symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
                 j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                 eoffset, mtiny, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
@@ -244,12 +244,6 @@ PROGRAM swiftest_symba_omp
           plplenc_list%enc_child(:) = 0 
           plplenc_list%enc_parent(:) = 0
 
-          pltpenc_list%lvdotr(:) = .FALSE.
-          pltpenc_list%status(:) = 0
-          pltpenc_list%level(:) = 0
-          pltpenc_list%indexpl(:) = 0
-          pltpenc_list%indextp(:) = 0
-
           mergeadd_list%name(:) = 0
           mergeadd_list%index_ps(:) = 0
           mergeadd_list%status(:) = 0
@@ -269,9 +263,19 @@ PROGRAM swiftest_symba_omp
           mergesub_list%radius(:) = 0
 
           discard_plA(:,:) = 0
-          discard_tpA(:,:) = 0
           discard_plA_id_status(:,:) = 0
-          discard_tpA_id_status(:,:) = 0
+
+          if(ntp>0)then
+              pltpenc_list%lvdotr(:) = .FALSE.
+              pltpenc_list%status(:) = 0
+              pltpenc_list%level(:) = 0
+              pltpenc_list%indexpl(:) = 0
+              pltpenc_list%indextp(:) = 0
+
+              discard_tpA(:,:) = 0
+              discard_tpA_id_status(:,:) = 0
+          endif
+
      END DO
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
           j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
