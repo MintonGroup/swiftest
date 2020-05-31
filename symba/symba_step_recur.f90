@@ -54,7 +54,8 @@
 !
 !**********************************************************************************************************************************
 RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, npltpenc, &
-     plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
+     plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type, &
+     nplmax, ntpmax, fragmax)
 
 ! Modules
      USE module_parameters
@@ -66,7 +67,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
 
 ! Arguments
      LOGICAL(LGT), INTENT(IN)                         :: lclose
-     INTEGER(I4B), INTENT(INOUT)                      :: ireci, npl, nplm, ntp, nplplenc, npltpenc
+     INTEGER(I4B), INTENT(INOUT)                      :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
      INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                             :: t, dt0
      REAL(DP), INTENT(INOUT)                          :: eoffset
@@ -77,6 +78,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
 
+
+
 ! Internals
      LOGICAL(LGT)              :: lencounter
      INTEGER(I4B)              :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp, k
@@ -84,7 +87,6 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      REAL(DP), DIMENSION(NDIM) :: xr, vr, vbs
 
 ! Executable code
-
      dtl = dt0/(NTENC**ireci)
      dth = 0.5_DP*dtl
      IF (dtl/dt0 < TINY) THEN
@@ -140,7 +142,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           CALL symba_helio_drift(ireci, npl, symba_plA, dtl)
           IF (ntp > 0) CALL symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%helio%swiftest%mass(1), dtl)
           IF (lencounter) CALL symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
-               npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
+               npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type, &
+               nplmax, ntpmax, fragmax)
           sgn = 1.0_DP
           CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
           IF (lclose) THEN
@@ -156,11 +159,10 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
                          IF (lfragmentation) THEN
-                              !WRITE(*,*) "fragmentation" 
-                            !CALL symba_fragmentation_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub,&              ! check later
-                             !      mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type)                                                       
+                            CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, & 
+                              eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, &
+                              nplplenc, npltpenc, pltpenc_list, plplenc_list, nplmax, ntpmax, fragmax)
                          ELSE
-                              !WRITE(*,*) "merge" 
                             CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, & 
                               mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
                          END IF
@@ -171,7 +173,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                     index_tp  = pltpenc_list%indextp(i) 
                     IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                          &
                         (symba_plA%levelg(index_pl) >= ireci) .AND.                                       &
-                        (symba_tpA%levelg(index_tp) >= ireci)) THEN
+                        (symba_tpA%levelg(index_tp) >= ireci)) THEN                                          
                          CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)                    !check later 
                     END IF
                END DO
@@ -239,7 +241,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                IF (ntp > 0) CALL symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%helio%swiftest%mass(1), dtl)
                IF (lencounter) CALL symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset,      &
                     nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,           &
-                    encounter_file, out_type)
+                    encounter_file, out_type, nplmax, ntpmax, fragmax)
                sgn = 1.0_DP
                CALL symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
                sgn = -1.0_DP
@@ -252,8 +254,15 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          IF ((plplenc_list%status(i) == ACTIVE) .AND.                                                             &
                              (symba_plA%levelg(index_i) >= ireci) .AND.                                                         &
                              (symba_plA%levelg(index_j) >= ireci))  THEN    
-                              CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list,         & !check that later
-                                   mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
+                              IF (lfragmentation) THEN
+                                   CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, & 
+                                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, ntp, &
+                                        symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+                                        nplmax, ntpmax, fragmax)
+                              ELSE
+                                   CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, & 
+                                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
+                              END IF
                          END IF
                     END DO
                     DO i = 1, npltpenc

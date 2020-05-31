@@ -35,6 +35,8 @@
 !                lextra_force   : logical flag indicating whether to use user-supplied accelerations
 !                lbig_discard   : logical flag indicating whether to dump planet data with discards
 !                lrhill_present : logical flag indicating whether Hill's sphere radii are present in planet data
+!                mtiny          : mass cutoff 
+!                lpython        : python flag for binary outputs pl and tp 
 !    Terminal  : none
 !    File      : none
 !
@@ -56,7 +58,7 @@
 !**********************************************************************************************************************************
 SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,   &
      j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,          &
-     lrhill_present)
+     lrhill_present, mtiny, lpython)
 
 ! Modules
      USE module_parameters
@@ -64,9 +66,9 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN) :: lclose, lextra_force, lbig_discard, lrhill_present
+     LOGICAL(LGT), INTENT(IN) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython
      INTEGER(I4B), INTENT(IN) :: nplmax, ntpmax, ntp, istep_out, istep_dump
-     REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+     REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, mtiny
      CHARACTER(*), INTENT(IN) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
 
 ! Internals
@@ -178,6 +180,14 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
      ELSE
           WRITE(LUN, *) "NO"
      END IF
+     WRITE(LUN, 100, ADVANCE = "NO") "MTINY "
+          WRITE(LUN, *) mtiny
+     WRITE(LUN, 100, ADVANCE = "NO") "PYTHON "
+          IF (lpython) THEN 
+               WRITE(LUN, *) "YES"
+          ELSE
+               WRITE(LUN, *) "NO"
+          END IF
      CLOSE(UNIT = LUN)
      idx = idx + 1
      IF (idx > 2) idx = 1

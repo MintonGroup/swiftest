@@ -45,6 +45,8 @@ PROGRAM swiftest_symba_omp
      LOGICAL(LGT)      :: lextra_force   ! Use user-supplied force routines
      LOGICAL(LGT)      :: lbig_discard   ! Dump planet data with discards
      LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
+     LOGICAL(LGT)      :: lpython        ! Python flag to output pl_out.dat and tp_out.dat 
+     LOGICAL(LGT)      :: lenergy        ! Python flag to output energy.out 
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
@@ -71,9 +73,9 @@ PROGRAM swiftest_symba_omp
      CHARACTER(STRMAX) :: out_stat       ! Open status for output binary file
 
 ! Internals
-     LOGICAL(LGT)                                               :: lfirst
-     INTEGER(I4B)                                               :: npl, nplm, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
-     INTEGER(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub
+     LOGICAL(LGT)                                               :: lfirst, lfrag_add
+     INTEGER(I4B)                                               :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
+     INTEGER(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
      REAL(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
      REAL(DP), DIMENSION(NDIM)                                  :: htot
      CHARACTER(STRMAX)                                          :: inparfile
@@ -86,15 +88,13 @@ PROGRAM swiftest_symba_omp
      TYPE(symba_plplenc)                                              :: plplenc_list
      TYPE(symba_pltpenc)                                              :: pltpenc_list
      TYPE(symba_merger)                                               :: mergeadd_list, mergesub_list
-     REAL(DP), DIMENSION(:,:), allocatable                            :: discard_plA
-     REAL(DP), DIMENSION(:,:), allocatable                       :: discard_tpA
-     INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_plA_id_status
-     INTEGER(I4B), DIMENSION(:,:), allocatable                   :: discard_tpA_id_status
      INTEGER(I4B), DIMENSION(:,:), ALLOCATABLE :: k_plpl, k_pltp
      INTEGER(I4B) :: num_plpl_comparisons, num_pltp_comparisons
      REAL(DP) :: start, finish
 
+     INTEGER(I4B), PARAMETER                                    :: egyiu = 72
 ! Executable code
+     CALL CPU_TIME(START)
      CALL util_version
      nthreads = 1                        ! In the *serial* case
      WRITE(*, 100, ADVANCE = "NO") "Enter name of parameter data file: "
@@ -104,7 +104,7 @@ PROGRAM swiftest_symba_omp
      ! Read in the param.in file and get simulation parameters
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
           out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
-          encounter_file, lextra_force, lbig_discard, lrhill_present)
+          encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython, lenergy)
      IF (.NOT. lrhill_present) THEN
           WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
@@ -114,27 +114,21 @@ PROGRAM swiftest_symba_omp
      CALL io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
 
      ! Create arrays of data structures big enough to store the number of bodies we are adding
-     CALL symba_pl_allocate(symba_plA,nplmax)
-     CALL symba_merger_allocate(mergeadd_list,nplmax)
-     CALL symba_merger_allocate(mergesub_list,nplmax)
-     CALL symba_plplenc_allocate(plplenc_list, nplmax)
-     CALL symba_pltpenc_allocate(pltpenc_list, ntpmax)
-     ALLOCATE(discard_plA(11,npl))
-     ALLOCATE(discard_tpA(11,ntp))
-     ALLOCATE(discard_plA_id_status(2,npl))
-     ALLOCATE(discard_tpA_id_status(2,ntp))
+     CALL symba_pl_allocate(symba_plA,npl)
+     CALL symba_merger_allocate(mergeadd_list,npl)
+     CALL symba_merger_allocate(mergesub_list,npl)
+     CALL symba_plplenc_allocate(plplenc_list, npl)
+     CALL symba_pltpenc_allocate(pltpenc_list, ntp)
 
 
      IF (ntp > 0) THEN
           CALL symba_tp_allocate(symba_tpA, ntpmax)
      END IF
 
-     ! Reads in initial conditions of all massive bodies from input file and fills the linked list
+     ! Reads in initial conditions of all massive bodies from input file
      CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
-     WRITE(*, 100, ADVANCE = "NO") "Enter the smallest mass to self-gravitate: "
-     READ(*, *) mtiny
 
-     ! Reorder linked list by mass 
+     ! Reorder by mass 
      CALL symba_reorder_pl(npl, symba_plA)
      CALL io_init_tp(intpfile, in_type, ntp, symba_tpA)
      CALL util_valid(npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest)
@@ -150,17 +144,34 @@ PROGRAM swiftest_symba_omp
      nsppl = 0
      nsptp = 0
      eoffset = 0.0_DP
+     fragmax = 0 
      IF (istep_out > 0) THEN
           CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, &
           out_type, out_form, out_stat)
+          IF (lpython) THEN
+               call python_io_write_frame_pl(t, symba_plA, npl, out_stat)
+               IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
+          END IF
      END IF
+     IF (out_stat == "OLD") then
+        OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "OLD", ACTION = "WRITE", POSITION = "APPEND")
+     END IF
+     ELSE 
+        OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "REPLACE", ACTION = "WRITE")
+ 300 FORMAT(7(1X, E23.16))
+ 310 FORMAT(7(1X, A23))
      start = omp_get_wtime()
      ! call cpu_time(start)     
      nplm = count(symba_plA%helio%swiftest%mass>mtiny)
      CALL util_dist_index_plpl(npl, nplm, num_plpl_comparisons, k_plpl)
-     CALL util_dist_index_pltp(nplm, ntp, num_pltp_comparisons, k_pltp)
 
+     CALL util_dist_index_pltp(nplm, ntp, num_pltp_comparisons, k_pltp)
      WRITE(*, *) " *************** MAIN LOOP *************** "
+     IF (lenergy) THEN 
+          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+          WRITE(egyiu,300) t, ke, pe, te, htot
+     END IF
+     CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           if(num_plpl_comparisons > 100000)then
             CALL symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
@@ -178,16 +189,6 @@ PROGRAM swiftest_symba_omp
                iloop = 0
           END IF
           t = tbase + iloop*dt
-          ! Take the merger info and create fragments
-          ! CALL some subroutine that returns the number of fragments and an array of new bodies (swifter_pl type)                     
-          !IF (lfragmentation) THEN
-               !CALL symba_fragmentation(t, npl, nplmax, ntp, ntpmax, symba_pl1P, nplplenc, plplenc_list)                               ! CHECK THIS 
-               ! update nplmax to add in the new number of bodies
-               ! add new bodies into the current body linked list as in CALL symba_setup
-               ! reorder bodies (if that is not already going to happen..check the discard subroutines
-               
-               !CALL symba_add(npl, mergeadd_list, nmergeadd, symba_pl1P, swifter_pl1P, mtiny)                                          ! CHECK THIS 
-          !END IF
           ldiscard = .FALSE. 
           ldiscard_tp = .FALSE.
           CALL symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)                                  ! CHECK THIS 
@@ -195,32 +196,31 @@ PROGRAM swiftest_symba_omp
                qmin_ahi, j2rp2, j4rp4, eoffset)
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, lclose, lrhill_present)
-          IF(nplplenc > 0)THEN
-               
-               plplenc_list%lvdotr(1:1+nplplenc) = .FALSE.
-               plplenc_list%status(1:1+nplplenc) = 0
-               plplenc_list%level(1:1+nplplenc) = 0
-               plplenc_list%index1(1:1+nplplenc) = 0
-               plplenc_list%index2(1:1+nplplenc) = 0
-               plplenc_list%enc_child(1:1+nplplenc) = 0 
-               plplenc_list%enc_parent(1:1+nplplenc) = 0
-
-            IF(npltpenc > 0)THEN
-                  pltpenc_list%lvdotr(1:1+npltpenc) = .FALSE.
-                  pltpenc_list%status(1:1+npltpenc) = 0
-                  pltpenc_list%level(1:1+npltpenc) = 0
-                  pltpenc_list%indexpl(1:1+npltpenc) = 0
-                  pltpenc_list%indextp(1:1+npltpenc) = 0
-            ENDIF
-
            ENDIF
 
-          IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
+            ENDIF
+                  pltpenc_list%indextp(1:1+npltpenc) = 0
+                  pltpenc_list%indexpl(1:1+npltpenc) = 0
+                  pltpenc_list%level(1:1+npltpenc) = 0
+                  pltpenc_list%lvdotr(1:1+npltpenc) = .FALSE.
+                  pltpenc_list%status(1:1+npltpenc) = 0
+            IF(npltpenc > 0)THEN
+
+               plplenc_list%enc_parent(1:1+nplplenc) = 0
+               plplenc_list%index2(1:1+nplplenc) = 0
+               plplenc_list%enc_child(1:1+nplplenc) = 0 
+               plplenc_list%index1(1:1+nplplenc) = 0
+               plplenc_list%level(1:1+nplplenc) = 0
+               plplenc_list%status(1:1+nplplenc) = 0
+               plplenc_list%lvdotr(1:1+nplplenc) = .FALSE.
+               
+          IF(nplplenc > 0)THEN
+          IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.) .or. (lfrag_add .eqv. .TRUE.)) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-                    discard_tpA, discard_plA_id_status,discard_tpA_id_status, NPLMAX, j2rp2, j4rp4)
-               CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA,discard_plA, &
-                    discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard, discard_plA_id_status, &
-                    discard_tpA_id_status)
+                    discard_tpA, NPLMAX, j2rp2, j4rp4)
+               IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
+               		CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, &
+               			discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard) 
                DEALLOCATE(k_plpl)
                nplm = count(symba_plA%helio%swiftest%mass(1:npl)>mtiny)
                CALL util_dist_index_plpl(npl, nplm, num_plpl_comparisons, k_plpl)
@@ -231,8 +231,8 @@ PROGRAM swiftest_symba_omp
                
                mergeadd_list%name(1:1+nmergeadd) = 0
                mergeadd_list%index_ps(1:1+nmergeadd) = 0
-               mergeadd_list%status(1:1+nmergeadd) = 0
                mergeadd_list%ncomp(1:1+nmergeadd) = 0
+               mergeadd_list%status(1:1+nmergeadd) = 0
                mergeadd_list%xh(:,1:1+nmergeadd) = 0
                mergeadd_list%vh(:,1:1+nmergeadd) = 0
                mergeadd_list%mass(1:1+nmergeadd) = 0
@@ -242,18 +242,18 @@ PROGRAM swiftest_symba_omp
                mergesub_list%index_ps(1:1+nmergesub) = 0
                mergesub_list%status(1:1+nmergesub) = 0
                mergesub_list%ncomp(1:1+nmergesub) = 0
-               mergesub_list%xh(:,1:1+nmergesub) = 0
                mergesub_list%vh(:,1:1+nmergesub) = 0
+               mergesub_list%xh(:,1:1+nmergesub) = 0
                mergesub_list%mass(1:1+nmergesub) = 0
                mergesub_list%radius(1:1+nmergesub) = 0
 
-               discard_plA(:,:) = 0
                discard_plA_id_status(:,:) = 0
+               discard_plA(:,:) = 0
 
                if(ntp>0)then
 
-                  discard_tpA(:,:) = 0
                   discard_tpA_id_status(:,:) = 0
+                  discard_tpA(:,:) = 0
                endif
 
 
@@ -261,6 +261,11 @@ PROGRAM swiftest_symba_omp
                nmergesub = 0
                nsppl = 0
                nsptp = 0
+               END IF 
+               IF (lenergy) THEN 
+                    CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+                    WRITE(egyiu,300) t, ke, pe, te, htot
+               END IF
           END IF
           IF (istep_out > 0) THEN
                iout = iout - 1
@@ -268,6 +273,15 @@ PROGRAM swiftest_symba_omp
                     CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, &
                      out_form, out_stat)
                     iout = istep_out
+                    IF (lpython) THEN 
+                         call python_io_write_frame_pl(t, symba_plA, npl, out_stat= "APPEND")
+                         IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat= "APPEND")
+                    END IF 
+                    IF (lenergy) THEN 
+                         CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+                         WRITE(egyiu,300) t, ke, pe, te, htot
+                    END IF
+                  CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                END IF
           END IF
           IF (istep_dump > 0) THEN
@@ -278,7 +292,7 @@ PROGRAM swiftest_symba_omp
  200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
                     CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
                          istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-                         encounter_file, lextra_force, lbig_discard, lrhill_present)
+                         encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
                     CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
                     IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
                     idump = istep_dump
@@ -288,20 +302,22 @@ PROGRAM swiftest_symba_omp
      END DO
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
           j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
-          lrhill_present)
+          lrhill_present, mtiny, lpython)
      CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
+     IF (lenergy) THEN 
+          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+          WRITE(egyiu,300) t, ke, pe, te, htot
+          close(egyiu)
+     END IF
+     
      CALL symba_pl_deallocate(symba_plA)
      CALL symba_merger_deallocate(mergeadd_list)
      CALL symba_merger_deallocate(mergesub_list)
      CALL symba_plplenc_deallocate(plplenc_list)
      CALL symba_pltpenc_deallocate(pltpenc_list)
-     DEALLOCATE(discard_plA)
-     DEALLOCATE(discard_plA_id_status)
      IF (ntp > 0) THEN
           CALL symba_tp_deallocate(symba_tpA)
-          DEALLOCATE(discard_tpA)
-          DEALLOCATE(discard_tpA_id_status)
      END IF
      finish = omp_get_wtime()
      ! call cpu_time(finish)     

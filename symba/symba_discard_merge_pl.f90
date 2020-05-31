@@ -62,6 +62,7 @@ SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
           IF (plplenc_list%status(i) == MERGED) THEN
                index1 = plplenc_list%index1(i)
                index2 = plplenc_list%index2(i)
+               ! This IF statement is for if lfragmentation = FALSE
                IF ((symba_plA%helio%swiftest%status(index1) == ACTIVE) .AND.                                                    &
                    (symba_plA%helio%swiftest%status(index2) == ACTIVE)) THEN
 
@@ -117,8 +118,46 @@ SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
                          indexchild = array_child(j+1)
                     END DO
 
-               ELSE
-                    !CALL symba_discard_frag_pl(t, npl, symba_plA, nplplenc, plplenc_list)
+               ELSE IF ((symba_plA%helio%swiftest%status(index1) == DISRUPTION) .AND.    &                                                
+                   (symba_plA%helio%swiftest%status(index2) == DISRUPTION)) THEN 
+
+                    enc_big = plplenc_list%index1(i)
+                    nchild = symba_plA%nchild(enc_big)
+                    array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
+                    DO j = 1, nchild
+                         symba_plA%helio%swiftest%status(array_child(j)) = INACTIVE
+                    END DO
+                    ldiscard = .TRUE.
+               ELSE IF ((symba_plA%helio%swiftest%status(index1) == SUPERCATASTROPHIC) .AND.   &                                                 
+                   (symba_plA%helio%swiftest%status(index2) == SUPERCATASTROPHIC)) THEN 
+                    
+                    enc_big = plplenc_list%index1(i)
+                    nchild = symba_plA%nchild(enc_big)
+                    array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
+                    DO j = 1, nchild
+                         symba_plA%helio%swiftest%status(array_child(j)) = INACTIVE
+                    END DO
+                    ldiscard = .TRUE.
+               ELSE IF ((symba_plA%helio%swiftest%status(index1) == HIT_AND_RUN) .AND.      &                                              
+                   (symba_plA%helio%swiftest%status(index2) == HIT_AND_RUN)) THEN 
+
+                    enc_big = plplenc_list%index1(i)
+                    nchild = symba_plA%nchild(enc_big)
+                    array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
+                    DO j = 1, nchild
+                         symba_plA%helio%swiftest%status(array_child(j)) = INACTIVE
+                    END DO
+                    ldiscard = .TRUE.
+               ELSE IF ((symba_plA%helio%swiftest%status(index1) == GRAZE_AND_MERGE) .AND.  &                                                  
+                   (symba_plA%helio%swiftest%status(index2) == GRAZE_AND_MERGE)) THEN 
+
+                    enc_big = plplenc_list%index1(i)
+                    nchild = symba_plA%nchild(enc_big)
+                    array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
+                    DO j = 1, nchild
+                         symba_plA%helio%swiftest%status(array_child(j)) = INACTIVE
+                    END DO
+                    ldiscard = .TRUE.
                END IF
           END IF
      END DO
