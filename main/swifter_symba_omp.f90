@@ -113,9 +113,9 @@ PROGRAM swiftest_symba_omp
 
      ! Create arrays of data structures big enough to store the number of bodies we are adding
      CALL symba_pl_allocate(symba_plA,npl)
-     CALL symba_merger_allocate(mergeadd_list,npl)
+     CALL symba_merger_allocate(mergeadd_list,10*npl)
      CALL symba_merger_allocate(mergesub_list,npl)
-     CALL symba_plplenc_allocate(plplenc_list, npl)
+     CALL symba_plplenc_allocate(plplenc_list, 10*npl)
      CALL symba_pltpenc_allocate(pltpenc_list, ntp)
 
 

@@ -121,16 +121,16 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 
             npl = nkpl  + nfrag
             !add fragments 
-            symba_plA%helio%swiftest%name(nkpl+1:npl) = PACK(mergeadd_list%name(:), frag_l_add)
+            symba_plA%helio%swiftest%name(nkpl+1:npl) = PACK(mergeadd_list%name(1:nmergeadd), frag_l_add)
             symba_plA%helio%swiftest%status(nkpl+1:npl) = [(ACTIVE,i=1,nfrag)]!array of ACTIVE STATUS 
-            symba_plA%helio%swiftest%mass(nkpl+1:npl) = PACK(mergeadd_list%mass(:), frag_l_add)
-            symba_plA%helio%swiftest%radius(nkpl+1:npl) = PACK(mergeadd_list%radius(:), frag_l_add)
-            symba_plA%helio%swiftest%xh(1,nkpl+1:npl) = PACK(mergeadd_list%xh(1,:), frag_l_add)
-            symba_plA%helio%swiftest%xh(2,nkpl+1:npl) = PACK(mergeadd_list%xh(2,:), frag_l_add)
-            symba_plA%helio%swiftest%xh(3,nkpl+1:npl) = PACK(mergeadd_list%xh(3,:), frag_l_add)
-            symba_plA%helio%swiftest%vh(1,nkpl+1:npl) = PACK(mergeadd_list%vh(1,:), frag_l_add)
-            symba_plA%helio%swiftest%vh(2,nkpl+1:npl) = PACK(mergeadd_list%vh(2,:), frag_l_add)
-            symba_plA%helio%swiftest%vh(3,nkpl+1:npl) = PACK(mergeadd_list%vh(3,:), frag_l_add)
+            symba_plA%helio%swiftest%mass(nkpl+1:npl) = PACK(mergeadd_list%mass(1:nmergeadd), frag_l_add)
+            symba_plA%helio%swiftest%radius(nkpl+1:npl) = PACK(mergeadd_list%radius(1:nmergeadd), frag_l_add)
+            symba_plA%helio%swiftest%xh(1,nkpl+1:npl) = PACK(mergeadd_list%xh(1,1:nmergeadd), frag_l_add)
+            symba_plA%helio%swiftest%xh(2,nkpl+1:npl) = PACK(mergeadd_list%xh(2,1:nmergeadd), frag_l_add)
+            symba_plA%helio%swiftest%xh(3,nkpl+1:npl) = PACK(mergeadd_list%xh(3,1:nmergeadd), frag_l_add)
+            symba_plA%helio%swiftest%vh(1,nkpl+1:npl) = PACK(mergeadd_list%vh(1,1:nmergeadd), frag_l_add)
+            symba_plA%helio%swiftest%vh(2,nkpl+1:npl) = PACK(mergeadd_list%vh(2,1:nmergeadd), frag_l_add)
+            symba_plA%helio%swiftest%vh(3,nkpl+1:npl) = PACK(mergeadd_list%vh(3,1:nmergeadd), frag_l_add)
     
         ELSE
             symba_plA%helio%swiftest%name(1:nkpl) = PACK(symba_plA%helio%swiftest%name(1:npl), .NOT. discard_l_pl)
