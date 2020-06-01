@@ -1,9 +1,31 @@
+/**
+ * FORTRAN bindings for the collresolve library.
+ *
+ * Copyright (c) 2016-2017 University of Bern, Switzerland
+ * Copyright (c) 2018-2019 Arizona Board of Regents
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @file
+ * @author Alexandre Emsenhuber
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-/* #include <stdio.h> */
 #include <stdlib.h> /* For malloc()/free() */
+#include <math.h> /* For M_PI/cbrt() */
 
 #include "collresolve.h"
 
@@ -34,18 +56,6 @@
 int collresolve_resolve_( int* model, double* m1, double* m2, double* r1, double* r2, double* p1, double* p2, double* v1, double* v2, int* n,
 	double* mres, double* rres, double* pres, double* vres
 ) {
-	/*
-	printf( "collresolve_resolve_:\n" );
-	printf( "model=%i\n", *model );
-	printf( "m1=%g m2=%g\n", *m1, *m2 );
-	printf( "r1=%g r2=%g\n", *r1, *r2 );
-	printf( "p1=(%g, %g, %g)\n", p1[0], p1[1], p1[2] );
-	printf( "p2=(%g, %g, %g)\n", p2[0], p2[1], p2[2] );
-	printf( "v1=(%g, %g, %g)\n", v1[0], v1[1], v1[2] );
-	printf( "v2=(%g, %g, %g)\n", v2[0], v2[1], v2[2] );
-	printf( "n=%d\n", *n );
-	*/
-
 	struct collresolve_conf* conf = collresolve_conf_new();
 	collresolve_conf_unit_merc( conf );
 	collresolve_conf_model( conf, *model );
@@ -56,8 +66,7 @@ int collresolve_resolve_( int* model, double* m1, double* m2, double* r1, double
 	small.mass = *m2;
 	big.radius = *r1;
 	small.radius = *r2;
-	int i;
-	for ( i = 0; i < 3; i++ ) {
+	for ( int i = 0; i < 3; i++ ) {
 		big.pos[i] = p1[i];
 		small.pos[i] = p2[i];
 		big.vel[i] = v1[i];
@@ -67,11 +76,11 @@ int collresolve_resolve_( int* model, double* m1, double* m2, double* r1, double
 	struct collresolve_body* ret = malloc( sizeof( struct collresolve_body ) * ( *n + 1 ) );
 
 	int res = collresolve_resolve( conf, big, small, *n, ret );
-	for ( i = 0; i <= *n; i++ ) {
+
+	for ( int i = 0; i <= *n; i++ ) {
 		mres[i] = ret[i].mass;
 		rres[i] = ret[i].radius;
-		int j;
-		for ( j = 0; j < 3; j++ ) {
+		for ( int j = 0; j < 3; j++ ) {
 			pres[3*i+j] = ret[i].pos[j];
 			vres[3*i+j] = ret[i].vel[j];
 		}
@@ -82,4 +91,28 @@ int collresolve_resolve_( int* model, double* m1, double* m2, double* r1, double
 	free( ret );
 
 	return res;
+}
+
+
+/**
+ * FORTRAN binding to retrieve the radius of a body of a given mass.
+ *
+ * Configuration is the following:
+ * - Collision model is provided as first parameter
+ * - Unit system is fixed to Mercury's one.
+ *
+ * Interface:
+ * INTEGER, INTENT(IN) :: model          ! collision model to apply
+ * DOUBLE PRECISION, INTENT(IN) :: mass  ! Mass of the body
+ */
+double collresolve_radius_( int* model, double* mass ) {
+	struct collresolve_conf* conf = collresolve_conf_new();
+	collresolve_conf_unit_merc( conf );
+	collresolve_conf_model( conf, *model );
+
+	double dens = collresolve_bulk_density( conf, *mass );
+
+	collresolve_conf_free( conf );
+
+	return cbrt( 3. / 4. / M_PI * (*mass) / dens );
 }
