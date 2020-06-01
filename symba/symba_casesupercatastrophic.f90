@@ -192,6 +192,12 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
          mergeadd_list%vh(2,nmergeadd) = vy_frag
          mergeadd_list%vh(3,nmergeadd) = vz_frag
          mv = mv + (mergeadd_list%mass(nmergeadd) * mergeadd_list%vh(:,nmergeadd))
+
+        WRITE(*,*) "mergeadd_list mass: ", mergeadd_list%mass(nmergeadd)
+        WRITE(*,*) "mergeadd_list radius: ", mergeadd_list%radius(nmergeadd)
+        WRITE(*,*) "mergeadd_list xh: ", mergeadd_list%xh(:,nmergeadd)
+        WRITE(*,*) "mergeadd_list vh: ", mergeadd_list%vh(:,nmergeadd)
+
      END DO
 
      ! Calculate energy after frag                                                                           
