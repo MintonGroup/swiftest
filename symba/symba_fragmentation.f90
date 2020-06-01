@@ -226,33 +226,33 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           vres(:,:) = 0.0_DP
 
           ! PROBLEM
-          WRITE(*,*) "model: ", model
-          WRITE(*,*) "m1_msun: ", m1_msun
-          WRITE(*,*) "m2_msun: ", m2_msun
-          WRITE(*,*) "rad1_au: ", rad1_au
-          WRITE(*,*) "rad2_au: ", rad2_au
-          WRITE(*,*) "x1_au: ", x1_au
-          WRITE(*,*) "x2_au: ", x2_au
-          WRITE(*,*) "v1_auy: ", v1_auy
-          WRITE(*,*) "v2_auy: ", v2_auy
-          WRITE(*,*) "nres: ", nres 
-          WRITE(*,*) "mres: ", mres(:) !THIS IS THE PROBLEM
-          WRITE(*,*) "rres: ", rres(:)
-          WRITE(*,*) "pres: ", pres(:,:)
-          WRITE(*,*) "vres: ", vres(:,:)
+          !WRITE(*,*) "model: ", model
+          !WRITE(*,*) "m1_msun: ", m1_msun
+          !WRITE(*,*) "m2_msun: ", m2_msun
+          !WRITE(*,*) "rad1_au: ", rad1_au
+          !WRITE(*,*) "rad2_au: ", rad2_au
+          !WRITE(*,*) "x1_au: ", x1_au
+          !WRITE(*,*) "x2_au: ", x2_au
+          !WRITE(*,*) "v1_auy: ", v1_auy
+          !WRITE(*,*) "v2_auy: ", v2_auy
+          !WRITE(*,*) "nres: ", nres 
+          !WRITE(*,*) "mres: ", mres(:) !THIS IS THE PROBLEM
+          !WRITE(*,*) "rres: ", rres(:)
+          !WRITE(*,*) "pres: ", pres(:,:)
+          !WRITE(*,*) "vres: ", vres(:,:)
 
-          WRITE(*,*) "Before collresolve_resolve"
+          !WRITE(*,*) "Before collresolve_resolve"
 
           regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
                nres,mres,rres,pres,vres)
 
-          WRITE(*,*) "After collresolve_resolve"
+          !WRITE(*,*) "After collresolve_resolve"
 
-          WRITE(*,*) "nres: ", nres 
-          WRITE(*,*) "mres: ", mres(:) !THIS IS THE PROBLEM
-          WRITE(*,*) "rres: ", rres(:)
-          WRITE(*,*) "pres: ", pres(:,:)
-          WRITE(*,*) "vres: ", vres(:,:)
+          !WRITE(*,*) "nres: ", nres 
+          !WRITE(*,*) "mres: ", mres(:) !THIS IS THE PROBLEM
+          !WRITE(*,*) "rres: ", rres(:)
+          !WRITE(*,*) "pres: ", pres(:,:)
+          !WRITE(*,*) "vres: ", vres(:,:)
 
 
           !PROBLEM
