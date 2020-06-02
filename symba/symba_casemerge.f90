@@ -76,6 +76,8 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
 ! Executable code
                index1 = plplenc_list%index1(index_enc)
                index2 = plplenc_list%index2(index_enc)
+               index1_parent = symba_plA%index_parent(index1)
+               index2_parent = symba_plA%index_parent(index2)
                mtot = m1 + m2
                xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
                vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
