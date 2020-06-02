@@ -176,6 +176,7 @@ PROGRAM swiftest_symba_omp
           t = tbase + iloop*dt
           ldiscard = .FALSE. 
           ldiscard_tp = .FALSE.
+          lfrag_add = .FALSE.
           CALL symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)                                  ! CHECK THIS 
           CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
                qmin_ahi, j2rp2, j4rp4, eoffset)
