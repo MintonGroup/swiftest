@@ -46,7 +46,7 @@ SUBROUTINE obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, msun)
 
 ! Internals
      INTEGER(I4B) :: i
-     REAL(DP)     :: rinv2, t0, t1, t2, t3, r2, fac1, fac2
+     REAL(DP)     :: rinv2, t0, t1, t2, t3, fac1, fac2
 
 ! Executable code
      DO i = 1, ntp
