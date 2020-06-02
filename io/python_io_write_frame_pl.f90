@@ -48,7 +48,7 @@ subroutine python_io_write_frame_pl(t, symba_plA, npl, out_stat)
    ! internals
    logical(LGT), save        :: lfirst = .true.
    integer(I4B), parameter   :: lun = 88
-   integer(I4B)              :: i,ierr 
+   integer(I4B)              :: ierr 
    integer(I4B), save        :: iu = lun
    !real(DP),dimension(count(seeds%active)) :: aseeds, Gmseeds
 

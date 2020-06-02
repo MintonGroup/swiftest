@@ -37,7 +37,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine io_discard_mass.f and io_discard_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, & 
+SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, & 
      discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard)
 
 ! Modules
@@ -49,7 +49,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
 
 ! Arguments
      LOGICAL(LGT), INTENT(IN)                       :: lbig_discard
-     INTEGER(I4B), INTENT(IN)                       :: npl, ntp, nsppl, nsptp, nmergeadd, nmergesub
+     INTEGER(I4B), INTENT(IN)                       :: npl, ntp, nsppl, nsptp, nmergeadd
      REAL(DP), INTENT(IN)                           :: t, mtiny
      CHARACTER(*), INTENT(IN)                       :: fname
      TYPE(symba_pl), INTENT(INOUT)                  :: symba_plA
@@ -59,7 +59,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, n
 
 ! Internals
      INTEGER(I4B), PARAMETER   :: LUN = 40
-     INTEGER(I4B)              :: i, index, j, ncomp, ierr, nplm
+     INTEGER(I4B)              :: i, index, ncomp, ierr, nplm
 
 ! Executable code
      CALL io_open(LUN, fname, "APPEND", "FORMATTED", ierr)
