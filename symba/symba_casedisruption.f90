@@ -33,8 +33,8 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-     nplmax, ntpmax, fragmax, mres, rres, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
+     npl, symba_plA, symba_tpA, nplplenc, plplenc_list, &
+     nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
 ! Modules
      USE module_parameters
@@ -46,29 +46,26 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc, fragmax
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
      REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-     CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-     TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-     INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
 
 
 ! Internals
  
-     INTEGER(I4B)                                     :: model, nres, nfrag, i, j, k, index1, index2, stat1, stat2, index1_child
-     INTEGER(I4B)                                     :: index2_child, index1_parent, index2_parent, index_big1, index_big2
+     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2, stat1, stat2
+     INTEGER(I4B)                                     :: index1_parent, index2_parent
      INTEGER(I4B)                                     :: name1, name2
      REAL(DP)                                         :: mtot, msun, avg_d, d_p1, d_p2, semimajor_encounter, e, q, semimajor_inward
      REAL(DP)                                         :: r, rhill_p1, rhill_p2, r_circle, theta, radius1, radius2
-     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, mmax, mtmp
+     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
      REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
      REAL(DP), DIMENSION(NDIM)                        :: xbs, xh, xb, vb, vh, vnew, xr, mv
@@ -180,12 +177,12 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
                  m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * avg_d)
              
                  IF (m_test < m_rem) THEN
-             	       mergeadd_list%mass(nmergeadd) = m_test
+             	  mergeadd_list%mass(nmergeadd) = m_test
                 ELSE
-             	      mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
+             	  mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
                 END IF 
                  mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
-             	 ** (1.0_DP / 3.0_DP) 
+             	  ** (1.0_DP / 3.0_DP) 
                 mtot = mtot + mergeadd_list%mass(nmergeadd)                                                              
             END IF                                  
             x_frag = (r_circle * cos(theta * i)) + x_com
