@@ -54,7 +54,7 @@ SUBROUTINE helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, he
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
      INTEGER(I4B)                                 :: i
-     REAL(DP)                                     :: r2, fac, mu
+     REAL(DP)                                     :: r2, mu
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh, irht
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: aobl, xht, aoblt
 
@@ -63,7 +63,7 @@ SUBROUTINE helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, he
           DO i = 1, ntp
                helio_tpA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
           END DO
-          CALL helio_getacch_int_tp(npl, ntp, helio_plA%swiftest, helio_tpA, xh)
+          CALL helio_getacch_int_tp(npl, ntp, helio_plA%swiftest, helio_tpA)
      END IF
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN

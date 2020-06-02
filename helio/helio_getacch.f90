@@ -47,7 +47,7 @@ SUBROUTINE helio_getacch(lflag, lextra_force, t, npl, nplmax, helio_plA, j2rp2, 
 ! Internals
      LOGICAL(LGT), SAVE                             :: lmalloc = .TRUE.
      INTEGER(I4B)                                   :: i
-     REAL(DP)                                       :: r2, fac
+     REAL(DP)                                       :: r2
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE      :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE   :: xh, aobl
      TYPE(helio_pl), INTENT(INOUT)                  :: helio_plA

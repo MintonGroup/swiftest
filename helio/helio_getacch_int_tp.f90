@@ -27,7 +27,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_getacch_int_tp(npl, ntp, swiftest_plA, helio_tpA, xh)
+SUBROUTINE helio_getacch_int_tp(npl, ntp, swiftest_plA, helio_tpA)
 
 ! Modules
      USE module_parameters
@@ -38,7 +38,6 @@ SUBROUTINE helio_getacch_int_tp(npl, ntp, swiftest_plA, helio_tpA, xh)
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                    :: npl, ntp
-     REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)  :: xh
      TYPE(swiftest_pl), INTENT(INOUT)            :: swiftest_plA
      TYPE(helio_tp), INTENT(INOUT)               :: helio_tpA
 

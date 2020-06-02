@@ -45,12 +45,9 @@ SUBROUTINE helio_lindrift(npl, swiftest_plA, dt, pt)
      INTEGER(I4B)              :: i
 
 ! Added by D. Minton
-     REAL(DP) :: ptx,pty,ptz
+
      REAL(DP),DIMENSION(NDIM) :: pttmp !INTENT(OUT) variables don't play nicely 
                                        !with OpenMP's reduction for some reason
-
-
-! EDIT THIS PARALLELIZATION
 
 ! Executable code
     

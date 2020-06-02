@@ -47,7 +47,7 @@ SUBROUTINE helio_lindrift_tp(ntp, swiftest_tpA, dt, pt)
 ! Executable code
      DO i = 1, ntp
           IF (swiftest_tpA%status(i) == ACTIVE) THEN 
-		swiftest_tpA%xh(:,i) = swiftest_tpA%xh(:,i) + pt(:)*dt
+		   swiftest_tpA%xh(:,i) = swiftest_tpA%xh(:,i) + pt(:)*dt
 	  END IF
      END DO
 
