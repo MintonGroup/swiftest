@@ -181,8 +181,8 @@ PROGRAM swiftest_symba_omp
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
                     discard_tpA, NPLMAX, j2rp2, j4rp4, feature)
                IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
-               		CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
-               			discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, feature%lbig_discard) 
+                   CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
+                   discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, feature%lbig_discard) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
