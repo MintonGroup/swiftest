@@ -56,18 +56,14 @@ PROGRAM tool_encounter_read
      CHARACTER(STRMAX) :: out_type       ! Binary format of output file
      CHARACTER(STRMAX) :: out_form       ! Data to write to output file
      CHARACTER(STRMAX) :: out_stat       ! Open status for output binary file
-     LOGICAL(LGT)      :: lclose         ! Check for planet-test particle encounters
-     LOGICAL(LGT)      :: lextra_force   ! Use user-supplied force routines
-     LOGICAL(LGT)      :: lbig_discard   ! Dump planet data with discards
-     LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
-     LOGICAL(LGT)      :: lpython        ! Python flag for binary outputs tp and pl
-     LOGICAL(LGT)      :: lenergy        ! Python flag for energy.out output
+     TYPE(feature_list):: feature        ! Derived type containing logical flags to turn on or off various features of the code
 
 ! Internals
      INTEGER(I4B)              :: i,ierr,id1,id2
      REAL(DP)                  :: t,mass1,mass2
      REAL(DP), DIMENSION(NDIM) :: xh1,xh2,vh1,vh2
      CHARACTER(STRMAX)         :: inparfile
+    
 
 ! Executable code
      WRITE(*,100,ADVANCE="NO")"Enter name of parameter data file: "
@@ -75,8 +71,8 @@ PROGRAM tool_encounter_read
  100 FORMAT(A)
      inparfile=TRIM(ADJUSTL(inparfile))
      CALL io_init_param(inparfile,nplmax,ntpmax,t0,tstop,dt,inplfile,intpfile,in_type,istep_out,outfile,out_type,out_form,        &
-          out_stat,istep_dump,j2rp2,j4rp4,lclose,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,lextra_force,   &
-          lbig_discard,lrhill_present, mtiny, lpython, lenergy)
+          out_stat,istep_dump,j2rp2,j4rp4,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,   &
+          mtiny, feature)
      ierr=0
      i=0
      DO

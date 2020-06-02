@@ -145,15 +145,34 @@ MODULE module_parameters
 
 ! Added by D. Minton
 ! Unit conversion definitions. The user supplies these definitions in param.in.
-     LOGICAL,  SAVE       :: lfragmentation = .FALSE. ! If true, then do fragmentation modeling instead of simple merger.
      REAL(DP), SAVE       :: MU2GM = -1.0_DP          ! Converts mass units to grams
      REAL(DP), SAVE       :: TU2S  = -1.0_DP          ! Converts time units to seconds
      REAL(DP), SAVE       :: DU2CM = -1.0_DP          ! Converts distance unit to centimeters
      REAL(DP), PARAMETER  :: GC    = 6.6743E-8_DP      ! Universal gravitational constant in cgs units (from NIST in 2019)
 
 ! Added by Carlisle Wishard and Jennifer Pouplin 
-     LOGICAL,  SAVE       :: ldiscard = .FALSE. ! If true, then proceed to discard spilled pl and complete discard.out file.
-     LOGICAL,  SAVE       :: ldiscard_tp = .FALSE. ! If true, then proceed to discard spilled tp 
+     LOGICAL,  SAVE       :: ldiscard = .false. ! If true, then proceed to discard spilled pl and complete discard.out file.
+     LOGICAL,  SAVE       :: ldiscard_tp = .false. ! If true, then proceed to discard spilled tp 
+
+    type feature_list !Logical flags to turn on or off various features of the code
+        logical :: lextra_force = .false. ! User defined force function turned on
+        logical :: lbig_discard = .false. ! Save big bodies on every discard
+        logical :: lrhill_present = .false. ! Hill's radius is in input file
+        logical :: lclose = .false. ! Turn on close encounters
+        logical :: lfragmentation = .false. ! Do fragmentation modeling instead of simple merger.
+        logical :: lpython = .false. ! Output binary data in Python-friendly format
+        logical :: lenergy = .false. ! Track the total energy of the system
+        logical :: lrotation  = .false. ! Include rotation states of big bodies
+        logical :: ltides     = .false. ! Include tidal dissipation 
+        logical :: lringmoons = .false. ! Turn on the ringmoons code 
+        logical :: lpredprey  = .false. ! Turn on the predator/prey model for seed growth in ringmoons (experimental)
+
+        ! Future features not implemented or in development
+        logical :: lgr = .false. ! Turn on GR
+        logical :: lyarkosvsky = .false. ! Turn on Yarkovsky effect
+        logical :: lyorp = .false. ! Turn on YORP effect
+    end type feature_list   
+
 
 END MODULE module_parameters
 !**********************************************************************************************************************************
