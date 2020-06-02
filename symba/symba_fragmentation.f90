@@ -134,7 +134,6 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           index1_parent = symba_plA%index_parent(index1)
           m1 = symba_plA%helio%swiftest%mass(index1_parent)
           mass1 = m1 
-          rad1 = symba_plA%helio%swiftest%radius(index1_parent)
           x1(:) = m1*symba_plA%helio%swiftest%xh(:,index1_parent)
           v1(:) = m1*symba_plA%helio%swiftest%vb(:,index1_parent)
           mmax = m1
@@ -266,7 +265,6 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
      END IF 
-
      RETURN
 
 END SUBROUTINE symba_fragmentation
