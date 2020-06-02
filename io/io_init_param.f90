@@ -47,15 +47,15 @@
 !    File      : none
 !
 !  Invocation  : CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,
-!                                   out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin,
-!                                   qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny)
+!                                   out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin,
+!                                   qmin_coord, qmin_alo, qmin_ahi, encounter_file, mtiny, feature, ring_outfile)
 !
 !  Notes       : Adapted from Martin Duncan's Swift routine io_init_param.f
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,     &
-     out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-     encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython, lenergy)
+     out_form, out_stat, istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
+     encounter_file, mtiny, feature, ring_outfile)
 
 ! Modules
      USE module_parameters
@@ -65,12 +65,13 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython, lenergy
      INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
      REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
      CHARACTER(*), INTENT(IN)  :: inparfile
-     REAl(DP), INTENT(OUT), OPTIONAL :: mtiny 
      CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, out_stat
+     REAl(DP), INTENT(OUT), OPTIONAL :: mtiny 
+     TYPE(feature_list),INTENT(OUT) :: feature
+     CHARACTER(*), INTENT(OUT), OPTIONAL :: ring_outfile
 
 ! Internals
      LOGICAL(LGT)            :: t0_set, tstop_set, dt_set
@@ -98,7 +99,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      istep_dump = -1
      j2rp2 = 0.0_DP
      j4rp4 = 0.0_DP
-     lclose = .FALSE.
+
      rmin = -1.0_DP
      rmax = -1.0_DP
      rmaxu = -1.0_DP
@@ -107,12 +108,9 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      qmin_alo = -1.0_DP
      qmin_ahi = -1.0_DP
      encounter_file = ""
-     lextra_force = .FALSE.
-     lbig_discard = .FALSE.
-     lrhill_present = .FALSE.
+
      mtiny = -1.0_DP
-     lpython = .FALSE.
-     lenergy = .FALSE.
+
      WRITE(*, 100, ADVANCE = "NO") "Parameter data file is "
      WRITE(*, 100) inparfile
      WRITE(*, *) " "
@@ -225,7 +223,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
-                         IF (token == "YES") lclose = .TRUE.
+                         IF (token == "YES") feature%lclose = .TRUE.
                     CASE ("CHK_RMIN")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
@@ -271,28 +269,27 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
-                         IF (token == "YES") lextra_force = .TRUE.
+                         IF (token == "YES") feature%lextra_force = .TRUE.
                     CASE ("BIG_DISCARD")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
-                         IF (token == "YES") lbig_discard = .TRUE.
+                         IF (token == "YES") feature%lbig_discard = .TRUE.
                     CASE ("RHILL_PRESENT")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
-                         IF (token == "YES") lrhill_present = .TRUE.
+                         IF (token == "YES") feature%lrhill_present = .TRUE.
 
-                    ! Added by D. Minton
+                    ! Added by the Purdue Swiftest development group (Minton, Wishard, Populin, and Elliott)
                     CASE ("FRAGMENTATION")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
-                         IF (token == "YES") lfragmentation = .TRUE.
-                    
+                         IF (token == "YES") feature%lfragmentation = .TRUE.
                     CASE ("MU2GM")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
@@ -308,7 +305,6 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          READ(token, *) DU2CM
-                    !^^^^^^^^^^^^^^^^^^^^^^
                     CASE ("MTINY")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
@@ -319,13 +315,30 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
-                         IF (token == "YES") lpython = .TRUE.
+                         IF (token == "YES") feature%lpython = .TRUE.
                     CASE ("ENERGY")
                          ifirst = ilast + 1
                          CALL io_get_token(line, ilength, ifirst, ilast, ierr)
                          token = line(ifirst:ilast)
                          CALL util_toupper(token)
-                         IF (token == "YES") lenergy = .TRUE.
+                         IF (token == "YES") feature%lenergy = .TRUE.
+                    CASE ("RINGMOONS")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         CALL util_toupper(token)
+                         IF (token == "YES") feature%lringmoons = .TRUE.
+                    CASE ("RING_OUTFILE")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         IF (PRESENT(ring_outfile)) ring_outfile = token
+                    CASE ("ROTATION")
+                         ifirst = ilast + 1
+                         CALL io_get_token(line, ilength, ifirst, ilast, ierr)
+                         token = line(ifirst:ilast)
+                         CALL util_toupper(token)
+                         IF (token == "YES") feature%lrotation = .TRUE. 
                     CASE DEFAULT
                          WRITE(*, 100, ADVANCE = "NO") "Unknown parameter -> "
                          WRITE(*, *) token
@@ -374,7 +387,7 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      WRITE(*, 100, ADVANCE = "NO") "J4             = "
      WRITE(*, *) j4rp4
      WRITE(*, 100, ADVANCE = "NO") "CHK_CLOSE      = "
-     WRITE(*, *) lclose
+     WRITE(*, *) feature%lclose
      WRITE(*, 100, ADVANCE = "NO") "CHK_RMIN       = "
      WRITE(*, *) rmin
      WRITE(*, 100, ADVANCE = "NO") "CHK_RMAX       = "
@@ -392,11 +405,11 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      ilength = LEN_TRIM(encounter_file)
      WRITE(*, *) encounter_file(1:ilength)
      WRITE(*, 100, ADVANCE = "NO") "EXTRA_FORCE    = "
-     WRITE(*, *) lextra_force
+     WRITE(*, *) feature%lextra_force
      WRITE(*, 100, ADVANCE = "NO") "BIG_DISCARD    = "
-     WRITE(*, *) lbig_discard
+     WRITE(*, *) feature%lbig_discard
      WRITE(*, 100, ADVANCE = "NO") "RHILL_PRESENT  = "
-     WRITE(*, *) lrhill_present
+     WRITE(*, *) feature%lrhill_present
      WRITE(*, *) " "
      ierr = 0
      IF ((.NOT. t0_set) .OR. (.NOT. tstop_set) .OR. (.NOT. dt_set)) ierr = -1
@@ -420,8 +433,8 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
      ! Added by D. Minton
      ! The fragmentation model requires the user to set the unit system explicitly.
      WRITE(*, 100, ADVANCE = "NO") "FRAGMENTATION  = "
-     WRITE(*, *) lfragmentation
-     IF (lfragmentation) THEN
+     WRITE(*, *) feature%lfragmentation
+     IF (feature%lfragmentation) THEN
           WRITE(*, 100, ADVANCE = "NO") "MU2GM          = "
           WRITE(*, *) MU2GM
           WRITE(*, 100, ADVANCE = "NO") "TU2S           = "
@@ -440,14 +453,20 @@ SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
             WRITE(*, *) mtiny    
          END IF
      END IF
-     IF (lpython) THEN
+     IF (feature%lpython) THEN
          WRITE(*, 100, ADVANCE = "NO") "PYTHON    = "
-          WRITE(*, *) lpython
+          WRITE(*, *) feature%lpython
      END IF
-     IF (lenergy) THEN
+     IF (feature%lenergy) THEN
          WRITE(*, 100, ADVANCE = "NO") "ENERGY    = "
-          WRITE(*, *) lenergy
+         WRITE(*, *) feature%lenergy
      END IF
+     IF (feature%lringmoons) THEN
+         WRITE(*, 100, ADVANCE = "NO") "RINGMOONS    = "
+         WRITE(*, *) feature%lringmoons
+     END IF
+
+
      IF (ierr < 0) THEN
           WRITE(*, 100) "Input parameter(s) failed check"
           CALL util_exit(FAILURE)

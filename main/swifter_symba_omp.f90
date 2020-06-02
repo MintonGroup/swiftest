@@ -40,12 +40,7 @@ PROGRAM swiftest_symba_omp
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT)      :: lclose         ! Check for planet-test particle encounters
-     LOGICAL(LGT)      :: lextra_force   ! Use user-supplied force routines
-     LOGICAL(LGT)      :: lbig_discard   ! Dump planet data with discards
-     LOGICAL(LGT)      :: lrhill_present ! Hill's sphere radius present
-     LOGICAL(LGT)      :: lpython        ! Python flag to output pl_out.dat and tp_out.dat 
-     LOGICAL(LGT)      :: lenergy        ! Python flag to output energy.out 
+     TYPE(feature_list):: feature        ! Derived type containing logical flags to turn on or off various features of the code
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
@@ -101,9 +96,9 @@ PROGRAM swiftest_symba_omp
      inparfile = TRIM(ADJUSTL(inparfile))
      ! Read in the param.in file and get simulation parameters
      CALL io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,      &
-          out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
-          encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython, lenergy)
-     IF (.NOT. lrhill_present) THEN
+          out_form, out_stat, istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,          &
+          encounter_file, mtiny, feature)
+     IF (.NOT. feature%lrhill_present) THEN
           WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Integrator SyMBA requires planet Hill sphere radii on input"
           CALL util_exit(FAILURE)
@@ -124,7 +119,7 @@ PROGRAM swiftest_symba_omp
      END IF
 
      ! Reads in initial conditions of all massive bodies from input file
-     CALL io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
+     CALL io_init_pl(inplfile, in_type, feature%lclose, feature%lrhill_present, npl, symba_plA)
 
      ! Reorder by mass 
      CALL symba_reorder_pl(npl, symba_plA)
@@ -146,7 +141,7 @@ PROGRAM swiftest_symba_omp
      IF (istep_out > 0) THEN
           CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, &
           out_type, out_form, out_stat)
-          IF (lpython) THEN
+          IF (feature%lpython) THEN
                call python_io_write_frame_pl(t, symba_plA, npl, out_stat)
                IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
           END IF
@@ -159,15 +154,15 @@ PROGRAM swiftest_symba_omp
  300 FORMAT(7(1X, E23.16))
  310 FORMAT(7(1X, A23))
      WRITE(*, *) " *************** MAIN LOOP *************** "
-     IF (lenergy) THEN 
+     IF (feature%lenergy) THEN 
           CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
           WRITE(egyiu,300) t, ke, pe, te, htot
      END IF
      CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
-          CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
+          CALL symba_step(lfirst, feature%lextra_force, feature%lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
            j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-           eoffset, mtiny, encounter_file, out_type, fragmax)
+           eoffset, mtiny, encounter_file, out_type, fragmax, feature)
           iloop = iloop + 1
           IF (iloop == LOOPMAX) THEN
                tbase = tbase + iloop*dt
@@ -181,19 +176,19 @@ PROGRAM swiftest_symba_omp
           CALL symba_discard_pl(t, npl, nplmax, nsppl, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! CHECK THIS 
                qmin_ahi, j2rp2, j4rp4, eoffset)
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
-               qmin_alo, qmin_ahi, lclose, lrhill_present)
+               qmin_alo, qmin_ahi, feature%lclose, feature%lrhill_present)
           IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.) .or. (lfrag_add .eqv. .TRUE.)) THEN
                CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-                    discard_tpA, NPLMAX, j2rp2, j4rp4)
+                    discard_tpA, NPLMAX, j2rp2, j4rp4, feature)
                IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
                		CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
-               			discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, lbig_discard) 
+               			discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, feature%lbig_discard) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0
                nsptp = 0
                END IF 
-               IF (lenergy) THEN 
+               IF (feature%lenergy) THEN 
                     CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                     WRITE(egyiu,300) t, ke, pe, te, htot
                END IF
@@ -204,11 +199,11 @@ PROGRAM swiftest_symba_omp
                     CALL io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, &
                      out_form, out_stat)
                     iout = istep_out
-                    IF (lpython) THEN 
+                    IF (feature%lpython) THEN 
                          call python_io_write_frame_pl(t, symba_plA, npl, out_stat= "APPEND")
                          IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat= "APPEND")
                     END IF 
-                    IF (lenergy) THEN 
+                    IF (feature%lenergy) THEN 
                          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                          WRITE(egyiu,300) t, ke, pe, te, htot
                     END IF
@@ -222,9 +217,9 @@ PROGRAM swiftest_symba_omp
                     WRITE(*, 200) t, tfrac, npl, ntp
  200                FORMAT(" Time = ", ES12.5, "; fraction done = ", F5.3, "; Number of active pl, tp = ", I5, ", ", I5)
                     CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
-                         istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-                         encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
-                    CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
+                         istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
+                         encounter_file, mtiny, feature)
+                    CALL io_dump_pl(npl, symba_plA%helio%swiftest, feature%lclose, feature%lrhill_present)
                     IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
                     idump = istep_dump
                END IF
@@ -267,11 +262,11 @@ PROGRAM swiftest_symba_omp
 
      END DO
      CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
-          j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,     &
-          lrhill_present, mtiny, lpython)
-     CALL io_dump_pl(npl, symba_plA%helio%swiftest, lclose, lrhill_present)
+          j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,      &
+          mtiny, feature)
+     CALL io_dump_pl(npl, symba_plA%helio%swiftest, feature%lclose, feature%lrhill_present)
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
-     IF (lenergy) THEN 
+     IF (feature%lenergy) THEN 
           CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
           WRITE(egyiu,300) t, ke, pe, te, htot
           close(egyiu)

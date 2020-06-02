@@ -464,14 +464,16 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,            &
-               istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,         &
-               lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
+               istep_dump, j2rp2, j4rp4,rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,         &
+               mtiny, feature, ring_outfile)
                USE module_parameters
                IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython
                INTEGER(I4B), INTENT(IN) :: nplmax, ntpmax, ntp, istep_out, istep_dump
-               REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, mtiny
+               REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
                CHARACTER(*), INTENT(IN) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
+               REAl(DP), INTENT(IN), OPTIONAL :: mtiny 
+               TYPE(feature_list), INTENT(IN) :: feature
+               CHARACTER(*), INTENT(IN), OPTIONAL :: ring_outfile
           END SUBROUTINE io_dump_param
      END INTERFACE
 
@@ -522,17 +524,18 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
-               out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
-               qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython, lenergy)
+               out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
+               qmin_ahi, encounter_file, mtiny, feature, ring_outfile)
                USE module_parameters
                IMPLICIT NONE
-               LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython, lenergy
                INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
                REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               REAL(DP), INTENT(OUT), OPTIONAL :: mtiny
                CHARACTER(*), INTENT(IN)  :: inparfile
                CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, &
                                             out_stat
+              REAl(DP), INTENT(OUT), OPTIONAL :: mtiny 
+              TYPE(feature_list), INTENT(OUT) :: feature
+              CHARACTER(*), INTENT(OUT), OPTIONAL :: ring_outfile
           END SUBROUTINE io_init_param
      END INTERFACE
 
@@ -1218,7 +1221,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, &
-               mergeadd_list, discard_plA, discard_tpA, NPLMAX, j2rp2, j4rp4)
+               mergeadd_list, discard_plA, discard_tpA, NPLMAX, j2rp2, j4rp4, feature)
                USE module_parameters
                USE module_swiftestalloc 
                USE module_swiftest
@@ -1232,6 +1235,7 @@ MODULE module_interfaces
                TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
                TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
                TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
+               type(feature_list),intent(in)                    :: feature
 
           END SUBROUTINE symba_rearray
      END INTERFACE  
@@ -1275,7 +1279,7 @@ MODULE module_interfaces
           SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
                symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
                nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
-               fragmax)
+               fragmax, feature)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1293,6 +1297,7 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+               TYPE(feature_list):: feature        ! Derived type containing logical flags to turn on or off various features of the code
           END SUBROUTINE symba_step
      END INTERFACE
 
@@ -1334,7 +1339,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,    &
                j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,    &
-               mergesub_list, encounter_file, out_type, fragmax)
+               mergesub_list, encounter_file, out_type, fragmax, feature)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1351,13 +1356,14 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+               type(feature_list), intent(in)     :: feature
           END SUBROUTINE symba_step_interp
      END INTERFACE
 
      INTERFACE
           RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
                npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, & 
-               out_type, nplmax, ntpmax, fragmax)
+               out_type, nplmax, ntpmax, fragmax, feature)
                USE module_parameters
                USE module_swiftest
                USE module_helio
@@ -1374,6 +1380,7 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+               type(feature_list), intent(in)     :: feature
           END SUBROUTINE symba_step_recur
      END INTERFACE
 

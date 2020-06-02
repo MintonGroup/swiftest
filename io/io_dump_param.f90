@@ -23,7 +23,6 @@
 !                istep_dump     : number of time steps between dumps
 !                j2rp2          : J2 * R**2 for the Sun
 !                j4rp4          : J4 * R**4 for the Sun
-!                lclose         : logical flag indicating whether to check for planet-test particle encounters
 !                rmin           : minimum heliocentric radius for test particle
 !                rmax           : maximum heliocentric radius for test particle
 !                rmaxu          : maximum unbound heliocentric radius for test particle
@@ -32,11 +31,8 @@
 !                qmin_alo       : minimum semimajor axis for qmin
 !                qmin_ahi       : maximum semimajor axis for qmin
 !                encounter_file : name of output file for encounters
-!                lextra_force   : logical flag indicating whether to use user-supplied accelerations
-!                lbig_discard   : logical flag indicating whether to dump planet data with discards
-!                lrhill_present : logical flag indicating whether Hill's sphere radii are present in planet data
 !                mtiny          : mass cutoff 
-!                lpython        : python flag for binary outputs pl and tp 
+!                feature        : feature list
 !    Terminal  : none
 !    File      : none
 !
@@ -50,15 +46,15 @@
 !                out_stat       : open status for output binary file                 (WRITTEN)
 !
 !  Invocation  : CALL io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,
-!                                   istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,
+!                                   istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,
 !                                   encounter_file, lextra_force, lbig_discard, lrhill_present)
 !
 !  Notes       : Adapted from Martin Duncan's Swift routine io_dump_param.f
 !
 !**********************************************************************************************************************************
 SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,   &
-     j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file, lextra_force, lbig_discard,          &
-     lrhill_present, mtiny, lpython)
+     j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,          &
+     mtiny, feature, ring_outfile)
 
 ! Modules
      USE module_parameters
@@ -66,10 +62,12 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython
      INTEGER(I4B), INTENT(IN) :: nplmax, ntpmax, ntp, istep_out, istep_dump
-     REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, mtiny
+     REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
      CHARACTER(*), INTENT(IN) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
+     REAl(DP), INTENT(OUT), OPTIONAL :: mtiny 
+     TYPE(feature_list), INTENT(OUT) :: feature
+     CHARACTER(*), INTENT(OUT), OPTIONAL :: ring_outfile
 
 ! Internals
      INTEGER(I4B), PARAMETER :: LUN = 7
@@ -138,7 +136,7 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
           WRITE(LUN, 100) "!J4 "
      END IF
      WRITE(LUN, 100, ADVANCE = "NO") "CHK_CLOSE "
-     IF (lclose) THEN
+     IF (feature%lclose) THEN
           WRITE(LUN, *) "YES"
      ELSE
           WRITE(LUN, *) "NO"
@@ -163,19 +161,19 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
      WRITE(LUN, 100, ADVANCE = "NO") "ENC_OUT "
      WRITE(LUN, *) TRIM(encounter_file)
      WRITE(LUN, 100, ADVANCE = "NO") "EXTRA_FORCE "
-     IF (lextra_force) THEN
+     IF (feature%lextra_force) THEN
           WRITE(LUN, *) "YES"
      ELSE
           WRITE(LUN, *) "NO"
      END IF
      WRITE(LUN, 100, ADVANCE = "NO") "BIG_DISCARD "
-     IF (lbig_discard) THEN
+     IF (feature%lbig_discard) THEN
           WRITE(LUN, *) "YES"
      ELSE
           WRITE(LUN, *) "NO"
      END IF
      WRITE(LUN, 100, ADVANCE = "NO") "RHILL_PRESENT "
-     IF (lrhill_present) THEN
+     IF (feature%lrhill_present) THEN
           WRITE(LUN, *) "YES"
      ELSE
           WRITE(LUN, *) "NO"
@@ -183,7 +181,7 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
      WRITE(LUN, 100, ADVANCE = "NO") "MTINY "
           WRITE(LUN, *) mtiny
      WRITE(LUN, 100, ADVANCE = "NO") "PYTHON "
-          IF (lpython) THEN 
+          IF (feature%lpython) THEN 
                WRITE(LUN, *) "YES"
           ELSE
                WRITE(LUN, *) "NO"
@@ -194,8 +192,8 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
 
      ! The fragmentation model requires the user to set the unit system explicitly.
      WRITE(LUN, 100, ADVANCE = "NO") "FRAGMENTATION  = "
-     WRITE(LUN, *) lfragmentation
-     IF (lfragmentation) THEN
+     WRITE(LUN, *) feature%lfragmentation
+     IF (feature%lfragmentation) THEN
           WRITE(LUN, 100, ADVANCE = "NO") "MU2GM          = "
           WRITE(LUN, *) MU2GM
           WRITE(LUN, 100, ADVANCE = "NO") "TU2S           = "
