@@ -48,7 +48,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
 
 ! Internals
      INTEGER(I4B)                                   :: i, index, j, ncomp, ierr, nplm, nkpl, nktp, k, nfrag
-     REAL(DP)                                       :: ke, pe, tei, tef
+     REAL(DP)                                       :: ke, pe, tei, tef, mu, energy, ap, r, v2
      REAL(DP), DIMENSION(NDIM)                      :: htot
      LOGICAL, DIMENSION(npl)                        :: discard_l_pl, frag_l_add
      LOGICAL, DIMENSION(ntp)                        :: discard_l_tp
@@ -131,7 +131,16 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
             symba_plA%helio%swiftest%vh(1,nkpl+1:npl) = PACK(mergeadd_list%vh(1,1:nmergeadd), frag_l_add)
             symba_plA%helio%swiftest%vh(2,nkpl+1:npl) = PACK(mergeadd_list%vh(2,1:nmergeadd), frag_l_add)
             symba_plA%helio%swiftest%vh(3,nkpl+1:npl) = PACK(mergeadd_list%vh(3,1:nmergeadd), frag_l_add)
-    
+
+            DO i = nkpl+1, npl
+                mu = symba_plA%helio%swiftest%mass(1) + symba_plA%helio%swiftest%mass(i)
+                r = SQRT(DOT_PRODUCT(symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%xh(:,i)))
+                v2 = DOT_PRODUCT(symba_plA%helio%swiftest%vh(:,i), symba_plA%helio%swiftest%vh(:,i))
+                energy = 0.5_DP*v2 - mu/r
+                ap = -0.5_DP*mu/energy
+               symba_plA%helio%swiftest%rhill(i) = ap*(((symba_plA%helio%swiftest%mass(i)/mu)/3.0_DP)**(1.0_DP/3.0_DP))
+            END DO
+
         ELSE
             symba_plA%helio%swiftest%name(1:nkpl) = PACK(symba_plA%helio%swiftest%name(1:npl), .NOT. discard_l_pl)
             symba_plA%helio%swiftest%status(1:nkpl) = PACK(symba_plA%helio%swiftest%status(1:npl), .NOT. discard_l_pl)
