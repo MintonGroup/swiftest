@@ -7,7 +7,7 @@ AM_INIT_AUTOMAKE([foreign subdir-objects -Wall -Werror])
 AC_USE_SYSTEM_EXTENSIONS
 
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_AR
 
 # Initialise libtool
