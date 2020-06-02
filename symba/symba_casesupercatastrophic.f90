@@ -66,7 +66,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      INTEGER(I4B)                                     :: index2_child, index1_parent, index2_parent, index_big1, index_big2
      INTEGER(I4B)                                     :: name1, name2
      REAL(DP)                                         :: mtot, msun, avg_d, d_p1, d_p2, semimajor_encounter, e, q, semimajor_inward
-     REAL(DP)                                         :: r, rhill_p1, rhill_p2, r_circle, theta
+     REAL(DP)                                         :: r, rhill_p1, rhill_p2, r_circle, theta, radius1, radius2
      REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, mmax, mtmp
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
      REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag, m1m2_10
@@ -75,7 +75,6 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
 
 ! Executable code
      
-     ! NOTE: This subroutine is nearly identical to the disruption regime 
      ! nfrag should be larger than disruption to account for the majority of mass entering fragments instead of lr and slr
 
      nfrag = 10 
@@ -86,6 +85,10 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      name1 = symba_plA%helio%swiftest%name(index1)
      name2 = symba_plA%helio%swiftest%name(index2)
      msun = symba_plA%helio%swiftest%mass(1)
+     mass1 = symba_plA%helio%swiftest%mass(index1)
+     mass2 = symba_plA%helio%swiftest%mass(index2)
+     radius1 = symba_plA%helio%swiftest%radius(index1)
+     radius2 = symba_plA%helio%swiftest%radius(index2)
 
      ! Find COM
      x_com = ((x1(1) * m1) + (x2(1) * m2)) / (m1 + m2)
@@ -111,14 +114,29 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      mergesub_list%xh(:,nmergesub) = x1(:)
      mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass1
-     mergesub_list%radius(nmergesub) = rad1
+     mergesub_list%radius(nmergesub) = radius1
+
+     WRITE(*,*) "Name: ", name1
+     WRITE(*,*) "Mass: ", mass1
+     WRITE(*,*) "Radius: ", rad1
+     WRITE(*,*) "Position: ", x1(:)
+     WRITE(*,*) "Velocity: ", v1(:) - vbs(:)
+     WRITE(*,*) "RHill: ", symba_plA%helio%swiftest%rhill(index1)
+
      nmergesub = nmergesub + 1
      mergesub_list%name(nmergesub) = name2
      mergesub_list%status(nmergesub) = SUPERCATASTROPHIC
      mergesub_list%xh(:,nmergesub) = x2(:)
      mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
      mergesub_list%mass(nmergesub) = mass2
-     mergesub_list%radius(nmergesub) = rad2
+     mergesub_list%radius(nmergesub) = radius2
+
+     WRITE(*,*) "Name: ", name2
+     WRITE(*,*) "Mass: ", mass2
+     WRITE(*,*) "Radius: ", rad2
+     WRITE(*,*) "Position: ", x2(:)
+     WRITE(*,*) "Velocity: ", v2(:) - vbs(:)
+     WRITE(*,*) "RHill: ", symba_plA%helio%swiftest%rhill(index2)
 
     ! go through the encounter list and for particles actively encoutering
     ! prevent them from having further encounters in this timestep by setting status to MERGED
@@ -201,10 +219,10 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
             mergeadd_list%vh(3,nmergeadd) = vz_frag
             mv = mv + (mergeadd_list%mass(nmergeadd) * mergeadd_list%vh(:,nmergeadd))
 
-            WRITE(*,*) "mergeadd_list mass: ", mergeadd_list%mass(nmergeadd)
-            WRITE(*,*) "mergeadd_list radius: ", mergeadd_list%radius(nmergeadd)
-            WRITE(*,*) "mergeadd_list xh: ", mergeadd_list%xh(:,nmergeadd)
-            WRITE(*,*) "mergeadd_list vh: ", mergeadd_list%vh(:,nmergeadd)
+            !WRITE(*,*) "mergeadd_list mass: ", mergeadd_list%mass(nmergeadd)
+            !WRITE(*,*) "mergeadd_list radius: ", mergeadd_list%radius(nmergeadd)
+            !WRITE(*,*) "mergeadd_list xh: ", mergeadd_list%xh(:,nmergeadd)
+            !WRITE(*,*) "mergeadd_list vh: ", mergeadd_list%vh(:,nmergeadd)
 
         END DO
     END IF
@@ -215,6 +233,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
 
      ! Update fragmax to account for new fragments
      fragmax = fragmax + nfrag
+
 
      RETURN 
 END SUBROUTINE symba_casesupercatastrophic
