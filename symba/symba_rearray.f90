@@ -51,7 +51,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
      TYPE(feature_list),intent(in)                    :: feature
 
 ! Internals
-     INTEGER(I4B)                                   :: i, nkpl, nktp, k, nfrag
+     INTEGER(I4B)                                   :: i, nkpl, nktp, nfrag
      REAL(DP)                                       :: mu, energy, ap, r, v2
      LOGICAL, DIMENSION(npl)                        :: discard_l_pl, frag_l_add
      LOGICAL, DIMENSION(ntp)                        :: discard_l_tp
@@ -64,6 +64,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         discard_l_pl(1:npl) = (symba_plA%helio%swiftest%status(1:npl) /= ACTIVE) 
         nsppl = COUNT(discard_l_pl)
         nkpl = npl - nsppl
+        frag_l_add = [(.FALSE.,i=1,npl)]
         IF (feature%lfragmentation) THEN
             DO i = 1, npl
                 IF (mergeadd_list%status(i) == DISRUPTION) THEN
@@ -76,8 +77,8 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
                     frag_l_add(i) = .FALSE.
                 END IF
             END DO
-            nfrag = COUNT(frag_l_add)
         END IF
+        nfrag = COUNT(frag_l_add)
 
         CALL swiftest_pl_allocate(discard_plA,nsppl)
 
