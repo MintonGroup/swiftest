@@ -48,7 +48,7 @@ SUBROUTINE symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
      TYPE(symba_pl), INTENT(INOUT)  :: symba_plA
 
 ! Internals
-     INTEGER(I4B)              :: i, j
+     INTEGER(I4B)              :: i
      REAL(DP)                  :: vdotr, e, mu, msun
 
 ! Executable code
