@@ -32,9 +32,9 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_mass_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-     nplmax, ntpmax, fragmax, mres, rres, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
+SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+     npl, symba_plA, nplplenc, plplenc_list, &
+     nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
 ! Modules
      USE module_parameters
@@ -46,31 +46,27 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-     REAL(DP), INTENT(IN)                             :: t, dt
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc, fragmax
+     REAL(DP), INTENT(IN)                             :: t
      REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
      REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-     CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-     TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-     INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
 
 ! Internals
  
-     INTEGER(I4B)                                     :: model, nres, nfrag, i, j, k, index1, index2, stat1, stat2, index1_child
-     INTEGER(I4B)                                     :: index2_child, index1_parent, index2_parent, index_big1, index_big2
+     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2
+     INTEGER(I4B)                                     :: index1_parent, index2_parent
      INTEGER(I4B)                                     :: name1, name2, index_keep, index_rm
-     REAL(DP)                                         :: mtot, msun, d_rm, m_rm, r_rm, vx_rm, vy_rm
-     REAL(DP)                                         :: r, rhill_keep, r_circle, theta
-     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, mmax, mtmp
+     REAL(DP)                                         :: mtot, d_rm, m_rm, r_rm, vx_rm, vy_rm
+     REAL(DP)                                         :: rhill_keep, r_circle, theta
+     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
      REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
-     REAL(DP), DIMENSION(NDIM)                        :: xbs, xh, xb, vb, vh, vnew, xr, mv
+     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
 
 
 ! Executable code
@@ -82,6 +78,11 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      index2_parent = symba_plA%index_parent(index2)
      name1 = symba_plA%helio%swiftest%name(index1)
      name2 = symba_plA%helio%swiftest%name(index2)
+     mass1 = symba_plA%helio%swiftest%mass(index1)
+     mass2 = symba_plA%helio%swiftest%mass(index2)
+     radius1 = symba_plA%helio%swiftest%radius(index1)
+     radius2 = symba_plA%helio%swiftest%radius(index2)
+
      IF (m2 > m1) THEN
           index_keep = index2
           index_rm = index1
@@ -150,6 +151,12 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
          nmergeadd = nmergeadd + 1
          mergeadd_list%status(nmergeadd) = HIT_AND_RUN
          mergeadd_list%ncomp(nmergeadd) = 2
+         m_rm = symba_plA%helio%swiftest%mass(index_rm)
+         r_rm = symba_plA%helio%swiftest%radius(index_rm)
+         vx_rm = symba_plA%helio%swiftest%vh(1,index_rm)
+         vy_rm = symba_plA%helio%swiftest%vh(2,index_rm)
+         d_rm = (3.0_DP * m_rm) / (4.0_DP * PI * (r_rm ** 3.0_DP))
+
          IF (i == 1) THEN
              ! first largest particle equal to index_keep
              mergeadd_list%name(nmergeadd) = symba_plA%helio%swiftest%name(index_keep)
@@ -170,12 +177,6 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
              ! FIXME all other particles implement eq. 31 LS12
              ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
              mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i - 1
-             m_rm = symba_plA%helio%swiftest%mass(index_keep)
-             r_rm = symba_plA%helio%swiftest%radius(index_keep)
-             vx_rm = symba_plA%helio%swiftest%vh(1,index_keep)
-             vy_rm = symba_plA%helio%swiftest%vh(2,index_keep)
-             d_rm = (3.0_DP * m_rm) / (4.0_DP * PI * (r_rm ** 3.0_DP))
-
              m_rem = m_rm - mres(2)
              m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * d_rm)
              
