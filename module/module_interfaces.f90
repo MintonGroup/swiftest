@@ -1054,7 +1054,7 @@ nplmax               USE module_symba
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+          SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, symba_plA, j2rp2, j4rp4, nplplenc, &
                plplenc_list)
                USE module_parameters
                USE module_swiftest
@@ -1062,7 +1062,7 @@ nplmax               USE module_symba
                USE module_symba
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
+               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplplenc
                REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
                TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
                TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list

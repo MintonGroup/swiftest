@@ -34,7 +34,7 @@
 !                Accelerations in an encounter are not included here
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
+SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
 
 ! Modules
      USE module_parameters
@@ -46,15 +46,14 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j
 
 ! Arguments
      LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-     INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
+     INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplplenc
      REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
      TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
      TYPE(symba_plplenc), INTENT(INOUT)            :: plplenc_list
 
 ! Internals
-     LOGICAL(LGT)                                 :: lmalloc = .TRUE.
      INTEGER(I4B)                                 :: i, j, index_i, index_j
-     REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac
+     REAL(DP)                                     :: rji2, irij3, faci, facj, r2
      REAL(DP), DIMENSION(NDIM)                    :: dx
      REAL(DP), DIMENSION(npl)                     :: irh
      REAL(DP), DIMENSION(NDIM, npl)               :: aobl
