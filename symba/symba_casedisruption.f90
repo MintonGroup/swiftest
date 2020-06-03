@@ -132,7 +132,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     symba_plA%helio%swiftest%status(index2) = DISRUPTION
 
      ! Calculate the positions of the new fragments
-<<<<<<< HEAD
     rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
     rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
@@ -141,17 +140,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
 
     IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
-=======
-     rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
-     rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
-     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
-     theta = (2.0_DP * PI) / nfrag
-     semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
-     CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
-     CALL orbel_xv2aeq(x1, v1, symba_plA%helio%swiftest%mass(1), semimajor_encounter, e, q)
-
-     IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
->>>>>>> Fragmentation
         WRITE(*,*) "Timestep is too large to resolve fragments."
         STOP
     ELSE
