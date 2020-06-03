@@ -45,12 +45,11 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
      TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
-     type(feature_list),intent(in)                  :: feature
+     type(feature_list),intent(in)                    :: feature
 
 ! Internals
-     INTEGER(I4B)                                   :: i, index, j, ncomp, ierr, nplm, nkpl, nktp, k, nfrag
-     REAL(DP)                                       :: ke, pe, tei, tef, mu, energy, ap, r, v2
-     REAL(DP), DIMENSION(NDIM)                      :: htot
+     INTEGER(I4B)                                   :: i, nkpl, nktp, k, nfrag
+     REAL(DP)                                       :: mu, energy, ap, r, v2
      LOGICAL, DIMENSION(npl)                        :: discard_l_pl, frag_l_add
      LOGICAL, DIMENSION(ntp)                        :: discard_l_tp
 
