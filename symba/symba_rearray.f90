@@ -8,25 +8,29 @@
 !
 !  Description : Redo array of pl and tp based on discarded and added pl and tp
 !
-!  Input
-!    Arguments : t           : time
-!                npl         : number of planets
-!    Terminal  : none
-!    File      : none
+! Arguments
+!    INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nsppl, nsptp, nmergeadd !change to fragadd
+!    TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
+!    TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
+!   TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
+!    TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
+!    TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
+!    type(feature_list),intent(in)                    :: feature
 !
 !  Output
 !    Arguments : npl         : number of planets
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL symba_discard_pl(t, npl, nplmax, nsp, symba_pl1P, symba_pld1P, rmin, rmax, rmaxu, qmin, qmin_coord,
-!                                      qmin_alo, qmin_ahi, j2rp2, j4rp4, eoffset)
+!  Invocation  : CALL symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
+!  discard_tpA,feature)
+!    
 !
 !  Notes       : Adapted from Hal Levison's Swift routine discard_massive5.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-    discard_tpA, NPLMAX, j2rp2, j4rp4,feature)
+SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
+    discard_tpA,feature)
 
 ! Modules
      USE module_parameters
@@ -38,8 +42,7 @@ SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmerge
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nsppl, nsptp, nmergeadd, NPLMAX !change to fragadd
-     REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nsppl, nsptp, nmergeadd !change to fragadd
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
      TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
