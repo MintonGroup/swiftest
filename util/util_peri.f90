@@ -47,7 +47,7 @@ SUBROUTINE util_peri(lfirst, ntp, swiftest_tpA, mu, msys, qmin_coord)
      TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
 
 ! Internals
-     INTEGER(I4B)              :: i, j
+     INTEGER(I4B)              :: i
      REAL(DP)                  :: vdotr, e
 
 ! Executable code

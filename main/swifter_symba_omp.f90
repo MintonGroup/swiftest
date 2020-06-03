@@ -77,10 +77,6 @@ PROGRAM swiftest_symba_omp
      TYPE(symba_tp)                                             :: symba_tpA
      TYPE(swiftest_tp)                                          :: discard_tpA
      TYPE(swiftest_pl)                                          :: discard_plA
-     TYPE(swiftest_pl)                                          :: swiftest_plA
-     TYPE(swiftest_tp)                                          :: swiftest_tpA
-     TYPE(helio_pl)                                             :: helio_plA
-     TYPE(helio_tp)                                             :: helio_tpA
      TYPE(symba_plplenc)                                        :: plplenc_list
      TYPE(symba_pltpenc)                                        :: pltpenc_list
      TYPE(symba_merger)                                         :: mergeadd_list, mergesub_list
@@ -152,7 +148,6 @@ PROGRAM swiftest_symba_omp
         OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "REPLACE", ACTION = "WRITE")
      END IF
  300 FORMAT(7(1X, E23.16))
- 310 FORMAT(7(1X, A23))
      WRITE(*, *) " *************** MAIN LOOP *************** "
      IF (feature%lenergy) THEN 
           CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
@@ -178,11 +173,11 @@ PROGRAM swiftest_symba_omp
           CALL symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! CHECK THIS 
                qmin_alo, qmin_ahi, feature%lclose, feature%lrhill_present)
           IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.) .or. (lfrag_add .eqv. .TRUE.)) THEN
-               CALL symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-                    discard_tpA, NPLMAX, j2rp2, j4rp4, feature)
+               CALL symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
+                                   discard_tpA,feature)
                IF ((ldiscard .eqv. .TRUE.) .or. (ldiscard_tp .eqv. .TRUE.)) THEN
-               		CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
-               			discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, feature%lbig_discard) 
+                   CALL io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
+                   discard_plA, discard_tpA, mergeadd_list, mergesub_list, DISCARD_FILE, feature%lbig_discard) 
                nmergeadd = 0
                nmergesub = 0
                nsppl = 0

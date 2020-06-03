@@ -54,8 +54,6 @@ SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encount
      INTEGER(I4B)              :: name1, name2, indexpl, indextp
      REAL(DP)                  :: r2, rlim, rlim2, vdotr, tcr2, dt2, mu, a, e, q, rad1
      REAL(DP), DIMENSION(NDIM) :: xr, vr, xh1, vh1, xh2, vh2
-     TYPE(swiftest_pl)         :: swiftest_plA
-     TYPE(swiftest_tp)         :: swiftest_tpA
 
 ! Executable code
      lmerge = .FALSE.
