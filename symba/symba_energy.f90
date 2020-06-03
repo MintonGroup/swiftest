@@ -30,7 +30,7 @@
 !  Notes       : Adapted from Martin Duncan's Swift routine anal_energy.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
+SUBROUTINE symba_energy(npl, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
 
 ! Modules
      USE module_parameters
@@ -39,14 +39,13 @@ SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, hto
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)               :: npl, nplmax
+     INTEGER(I4B), INTENT(IN)               :: npl
      REAL(DP), INTENT(IN)                   :: j2rp2, j4rp4
      REAL(DP), INTENT(OUT)                  :: ke, pe, te
      REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: htot
      TYPE(swiftest_pl), INTENT(INOUT)       :: swiftest_plA
 
 ! Internals
-     LOGICAL(LGT)                                 :: lmalloc = .TRUE.
      INTEGER(I4B)                                 :: i, j
      REAL(DP)                                     :: mass, msys, r2, v2, oblpot
      REAL(DP), DIMENSION(NDIM)                    :: h, x, v, dx

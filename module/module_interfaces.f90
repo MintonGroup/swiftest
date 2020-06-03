@@ -929,7 +929,7 @@ MODULE module_interfaces
                USE module_parameters
                USE module_swiftest
                USE module_helio
-               USE module_symba
+nplmax               USE module_symba
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(OUT)          :: lencounter, lvdotr
                INTEGER(I4B), INTENT(IN)           :: irec
@@ -1016,11 +1016,11 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
+          SUBROUTINE symba_energy(npl, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
                USE module_parameters
                USE module_swiftest
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)               :: npl, nplmax
+               INTEGER(I4B), INTENT(IN)               :: npl
                REAL(DP), INTENT(IN)                   :: j2rp2, j4rp4
                REAL(DP), INTENT(OUT)                  :: ke, pe, te
                REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: htot

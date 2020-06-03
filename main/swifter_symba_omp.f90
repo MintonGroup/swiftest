@@ -150,10 +150,10 @@ PROGRAM swiftest_symba_omp
  300 FORMAT(7(1X, E23.16))
      WRITE(*, *) " *************** MAIN LOOP *************** "
      IF (feature%lenergy) THEN 
-          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+          CALL symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
           WRITE(egyiu,300) t, ke, pe, te, htot
      END IF
-     CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+     CALL symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
      DO WHILE ((t < tstop) .AND. ((ntp0 == 0) .OR. (ntp > 0)))
           CALL symba_step(lfirst, feature%lextra_force, feature%lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
            j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
@@ -184,7 +184,7 @@ PROGRAM swiftest_symba_omp
                nsptp = 0
                END IF 
                IF (feature%lenergy) THEN 
-                    CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+                    CALL symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                     WRITE(egyiu,300) t, ke, pe, te, htot
                END IF
           END IF
@@ -199,10 +199,10 @@ PROGRAM swiftest_symba_omp
                          IF (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat= "APPEND")
                     END IF 
                     IF (feature%lenergy) THEN 
-                         CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+                         CALL symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                          WRITE(egyiu,300) t, ke, pe, te, htot
                     END IF
-                  CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+                  CALL symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                END IF
           END IF
           IF (istep_dump > 0) THEN
@@ -262,7 +262,7 @@ PROGRAM swiftest_symba_omp
      CALL io_dump_pl(npl, symba_plA%helio%swiftest, feature%lclose, feature%lrhill_present)
      IF (ntp > 0) CALL io_dump_tp(ntp, symba_tpA%helio%swiftest)
      IF (feature%lenergy) THEN 
-          CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+          CALL symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
           WRITE(egyiu,300) t, ke, pe, te, htot
           close(egyiu)
      END IF
