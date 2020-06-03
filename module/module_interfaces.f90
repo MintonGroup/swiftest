@@ -802,7 +802,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-          npl, symba_plA, symba_tpA, nplplenc, plplenc_list, &
+          npl, symba_plA, nplplenc, plplenc_list, &
           nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
           USE module_parameters
           USE module_swiftest
@@ -819,34 +819,29 @@ MODULE module_interfaces
           TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
           TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
 
           END SUBROUTINE symba_casedisruption
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-          encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-          nplmax, ntpmax, fragmax, mres, rres, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
+          SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+          npl, symba_plA, nplplenc, plplenc_list, &
+          nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
           USE module_parameters
           USE module_swiftest
           USE module_helio
           USE module_symba
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-          REAL(DP), INTENT(IN)                             :: t, dt
+          INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc, fragmax
+          REAL(DP), INTENT(IN)                             :: t
           REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
           REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
           REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
           REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
           TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
           TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
           TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
 
           END SUBROUTINE symba_casehitandrun
      END INTERFACE
