@@ -49,7 +49,7 @@ SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, 
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
 
 ! Internals
-     INTEGER(I4B)              :: i, j, irm1, irecl, index_i,index_j,index_tp,index_pl
+     INTEGER(I4B)              :: i, irm1, irecl, index_i,index_j,index_tp,index_pl
      REAL(DP)                  :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
      REAL(DP), DIMENSION(NDIM) :: dx
 
