@@ -48,7 +48,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
      TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
      TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
-     type(feature_list),intent(in)                    :: feature
+     TYPE(feature_list),intent(in)                    :: feature
 
 ! Internals
      INTEGER(I4B)                                   :: i, nkpl, nktp, k, nfrag
