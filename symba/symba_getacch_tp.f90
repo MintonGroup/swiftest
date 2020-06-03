@@ -62,7 +62,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
      INTEGER(I4B)                                 :: i, j, index_pl, index_tp
-     REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac, mu
+     REAL(DP)                                     :: r2, fac, mu
      REAL(DP), DIMENSION(NDIM)                    :: dx
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh, irht
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: aobl, xht, aoblt
