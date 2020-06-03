@@ -148,7 +148,6 @@ PROGRAM swiftest_symba_omp
         OPEN(UNIT = egyiu, FILE = ENERGY_FILE, FORM = "FORMATTED", STATUS = "REPLACE", ACTION = "WRITE")
      END IF
  300 FORMAT(7(1X, E23.16))
- 310 FORMAT(7(1X, A23))
      WRITE(*, *) " *************** MAIN LOOP *************** "
      IF (feature%lenergy) THEN 
           CALL symba_energy(npl, nplmax, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
