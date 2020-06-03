@@ -59,7 +59,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,   &
-     eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,          &
+     eoffset, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,          &
      encounter_file, out_type, fragmax, feature)
 
 ! Modules
@@ -74,7 +74,7 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      LOGICAL(LGT), INTENT(IN)                         :: lextra_force, lclose
      INTEGER(I4B), INTENT(IN)                         :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc
      INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
-     REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
+     REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
