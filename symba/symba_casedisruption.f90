@@ -33,7 +33,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     npl, symba_plA, symba_tpA, nplplenc, plplenc_list, &
+     npl, symba_plA, nplplenc, plplenc_list, &
      nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
 ! Modules
@@ -55,20 +55,18 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-
 
 ! Internals
  
-     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2, stat1, stat2
+     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2
      INTEGER(I4B)                                     :: index1_parent, index2_parent
      INTEGER(I4B)                                     :: name1, name2
      REAL(DP)                                         :: mtot, msun, avg_d, d_p1, d_p2, semimajor_encounter, e, q, semimajor_inward
-     REAL(DP)                                         :: r, rhill_p1, rhill_p2, r_circle, theta, radius1, radius2
+     REAL(DP)                                         :: rhill_p1, rhill_p2, r_circle, theta, radius1, radius2
      REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
      REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
-     REAL(DP), DIMENSION(NDIM)                        :: xbs, xh, xb, vb, vh, vnew, xr, mv
+     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
 
 ! Executable code
 
