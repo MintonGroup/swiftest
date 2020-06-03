@@ -58,6 +58,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
 ! Internals
  
+<<<<<<< HEAD
     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2
     INTEGER(I4B)                                     :: index1_parent, index2_parent
     INTEGER(I4B)                                     :: name1, name2
@@ -67,6 +68,17 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
+=======
+     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2
+     INTEGER(I4B)                                     :: index1_parent, index2_parent
+     INTEGER(I4B)                                     :: name1, name2
+     REAL(DP)                                         :: mtot, avg_d, d_p1, d_p2, semimajor_encounter, e, q, semimajor_inward
+     REAL(DP)                                         :: rhill_p1, rhill_p2, r_circle, theta, radius1, radius2
+     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold
+     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
+     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
+     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
+>>>>>>> Fragmentation
 
 ! Executable code
 
@@ -132,6 +144,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     symba_plA%helio%swiftest%status(index2) = DISRUPTION
 
      ! Calculate the positions of the new fragments
+<<<<<<< HEAD
     rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
     rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
@@ -140,6 +153,17 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
 
     IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
+=======
+     rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
+     rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
+     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
+     theta = (2.0_DP * PI) / nfrag
+     semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
+     CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
+     CALL orbel_xv2aeq(x1, v1, symba_plA%helio%swiftest%mass(1), semimajor_encounter, e, q)
+
+     IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
+>>>>>>> Fragmentation
         WRITE(*,*) "Timestep is too large to resolve fragments."
         STOP
     ELSE
