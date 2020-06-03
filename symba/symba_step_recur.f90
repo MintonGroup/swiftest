@@ -83,7 +83,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
 
 ! Internals
      LOGICAL(LGT)              :: lencounter
-     INTEGER(I4B)              :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp, k
+     INTEGER(I4B)              :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp
      REAL(DP)                  :: dtl, dth, sgn
      REAL(DP), DIMENSION(NDIM) :: xr, vr, vbs
 
