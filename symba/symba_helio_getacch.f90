@@ -50,7 +50,7 @@ SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_
 ! Internals
      LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
      INTEGER(I4B)                                 :: i
-     REAL(DP)                                     :: r2, fac
+     REAL(DP)                                     :: r2
      REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
 
