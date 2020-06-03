@@ -77,10 +77,6 @@ PROGRAM swiftest_symba_omp
      TYPE(symba_tp)                                             :: symba_tpA
      TYPE(swiftest_tp)                                          :: discard_tpA
      TYPE(swiftest_pl)                                          :: discard_plA
-     TYPE(swiftest_pl)                                          :: swiftest_plA
-     TYPE(swiftest_tp)                                          :: swiftest_tpA
-     TYPE(helio_pl)                                             :: helio_plA
-     TYPE(helio_tp)                                             :: helio_tpA
      TYPE(symba_plplenc)                                        :: plplenc_list
      TYPE(symba_pltpenc)                                        :: pltpenc_list
      TYPE(symba_merger)                                         :: mergeadd_list, mergesub_list
