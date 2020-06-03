@@ -68,41 +68,18 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: aobl, xht, aoblt
 
 ! Executable code
-     !Removed by D. Minton
-     !helio_tpP => symba_tp1P%helio
-     !^^^^^^^^^^^^^^^^^^^^
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE(STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,helio_tpP,swifter_tpP,swifter_plP,dx,r2,fac) &
-     !$OMP SHARED(ntp,npl,symba_tp1P,swifter_pl1P,xh) 
      DO i = 1, ntp
-          !Added by D. Minton
-          !helio_tpP => symba_tp1P%symba_tpPA(i)%thisP%helio
-          !^^^^^^^^^^^^^^^^^^
           symba_tpA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
           IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) THEN
-               !swifter_plP => swifter_pl1P
-               !DO j = 2, nplm
                DO j = 2, nplm
-                    !swifter_plP => swifter_plP%nextP
                     dx(:) = symba_tpA%helio%swiftest%xh(:,i) - xh(:, j)
                     r2 = DOT_PRODUCT(dx(:), dx(:))
                     fac = symba_PlA%helio%swiftest%mass(j)/(r2*SQRT(r2))
                     symba_tpA%helio%ah(:,i) = symba_tpA%helio%ah(:,i) - fac*dx(:)
                END DO
           END IF
-          !Removed by D. Minton
-          !helio_tpP => helio_tpP%nextP
-          !^^^^^^^^^^^^^^^^^^^^
      END DO
-     !$OMP END PARALLEL DO
-     ! OpenMP parallelization added by D. Minton
-     !$OMP PARALLEL DO SCHEDULE (STATIC) DEFAULT(NONE) &
-     !$OMP PRIVATE(i,swifter_plP,helio_tpP,dx,r2,fac) &
-     !$OMP SHARED(pltpenc_list,npltpenc)
      DO i = 1, npltpenc
-          !swifter_plP => pltpenc_list(i)%plP%helio%swifter
-          !helio_tpP => pltpenc_list(i)%tpP%helio
           index_pl = pltpenc_list%indexpl(i)
           index_tp = pltpenc_list%indextp(i)
           IF (symba_tpA%helio%swiftest%status(index_tp) == ACTIVE) THEN
@@ -112,7 +89,6 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
                symba_tpA%helio%ah(:,index_tp) = symba_tpA%helio%ah(:,index_tp) + fac*dx(:)
           END IF
      END DO
-     !$OMP END PARALLEL DO
      IF (j2rp2 /= 0.0_DP) THEN
           IF (lmalloc) THEN
                ALLOCATE(aobl(NDIM, nplmax), irh(nplmax), xht(NDIM, ntpmax), aoblt(NDIM, ntpmax), irht(ntpmax))
@@ -125,7 +101,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
           CALL obl_acc(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)
           mu = symba_plA%helio%swiftest%mass(1)
           DO i = 1, ntp
-               xht(:, i) = symba_tpA%helio%swiftest%xh(:,i) !optimize
+               xht(:, i) = symba_tpA%helio%swiftest%xh(:,i) 
                r2 = DOT_PRODUCT(xht(:, i), xht(:, i))
                irht(i) = 1.0_DP/SQRT(r2)
           END DO
