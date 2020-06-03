@@ -62,9 +62,6 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
      INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
 
 ! Internals
- 
-     INTEGER(I4B)                                     :: model, nres
-     REAL(DP)                                         :: pres, vres
 
 ! Executable code
 
@@ -72,7 +69,7 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
 
           CASE (COLLRESOLVE_REGIME_DISRUPTION)
                CALL symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-               npl, symba_plA, nplplenc, plplenc_list, &
+               symba_plA, nplplenc, plplenc_list, &
                nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
           CASE (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
@@ -88,7 +85,7 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
 
           CASE (COLLRESOLVE_REGIME_HIT_AND_RUN)
                CALL symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-               npl, symba_plA, nplplenc, plplenc_list, &
+               symba_plA, nplplenc, plplenc_list, &
                nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
           CASE (COLLRESOLVE_REGIME_MERGE)
