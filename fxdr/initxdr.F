@@ -73,6 +73,8 @@ c========================================================================
 	integer function ifxdrstrlen( s )
 
 	character*(*) s
+	integer	      i
+
 
 	i = 1
 100	continue
