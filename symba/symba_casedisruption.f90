@@ -58,7 +58,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
 ! Internals
  
-<<<<<<< HEAD
     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2
     INTEGER(I4B)                                     :: index1_parent, index2_parent
     INTEGER(I4B)                                     :: name1, name2
@@ -68,17 +67,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
-=======
-     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2
-     INTEGER(I4B)                                     :: index1_parent, index2_parent
-     INTEGER(I4B)                                     :: name1, name2
-     REAL(DP)                                         :: mtot, avg_d, d_p1, d_p2, semimajor_encounter, e, q, semimajor_inward
-     REAL(DP)                                         :: rhill_p1, rhill_p2, r_circle, theta, radius1, radius2
-     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold
-     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
-     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
-     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
->>>>>>> Fragmentation
 
 ! Executable code
 
