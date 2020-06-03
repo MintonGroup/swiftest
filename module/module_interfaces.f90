@@ -929,7 +929,7 @@ MODULE module_interfaces
                USE module_parameters
                USE module_swiftest
                USE module_helio
-nplmax               USE module_symba
+               USE module_symba
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(OUT)          :: lencounter, lvdotr
                INTEGER(I4B), INTENT(IN)           :: irec
