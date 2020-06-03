@@ -63,7 +63,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: model, nres, i
      REAL(DP), DIMENSION(3)         :: mres, rres
      REAL(DP), DIMENSION(NDIM, 3)   :: pres, vres
-     INTEGER(I4B)                   :: regime, collresolve_resolve, regime2
+     INTEGER(I4B)                   :: regime, collresolve_resolve
      INTEGER(I4B)                   :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
      INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
