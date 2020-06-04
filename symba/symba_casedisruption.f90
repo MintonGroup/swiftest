@@ -174,12 +174,12 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
                 m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * avg_d)
              
                 IF (m_test < m_rem) THEN
-             	    mergeadd_list%mass(nmergeadd) = m_test
+                    mergeadd_list%mass(nmergeadd) = m_test
                 ELSE
-             	    mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
+                    mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
                 END IF 
                 mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
-             	** (1.0_DP / 3.0_DP) 
+                    ** (1.0_DP / 3.0_DP) 
                 mtot = mtot + mergeadd_list%mass(nmergeadd)                                                              
             END IF                                  
             x_frag = (r_circle * cos(theta * i)) + x_com
