@@ -1503,6 +1503,28 @@ MODULE module_interfaces
          END FUNCTION
      END INTERFACE
 
+     INTERFACE
+         FUNCTION collresolve_resolve(model,m1,m2,r1,r2,p1,p2,v1,v2,n,mres,rres,pres,vres)
+         USE module_parameters
+         IMPLICIT NONE
+         INTEGER(I4B) :: collresolve_resolve
+         INTEGER(I4B), INTENT(IN) :: model               ! collision model to apply
+         REAL(DP), INTENT(IN) :: m1                      ! mass of the target
+         REAL(DP), INTENT(IN) :: m2                      ! mass of the impactor
+         REAL(DP), INTENT(IN) :: r1                      ! radius of the target
+         REAL(DP), INTENT(IN) :: r2                      ! radius of the impactor
+         REAL(DP), DIMENSION(3), INTENT(IN) :: p1        ! position of the target
+         REAL(DP), DIMENSION(3), INTENT(IN) :: p2        ! position of the impactor
+         REAL(DP), DIMENSION(3), INTENT(IN) :: v1        ! velocity of the target
+         REAL(DP), DIMENSION(3), INTENT(IN) :: v2        ! velocity of the impactor
+         INTEGER, INTENT(IN) :: n                                ! number of bodies to return
+         REAL(DP), DIMENSION(n+1), INTENT(OUT) :: mres   ! mass of the resulting bodies
+         REAL(DP), DIMENSION(n+1), INTENT(OUT) :: rres   ! radius of the resulting bodies
+         REAL(DP), DIMENSION(3,n+1), INTENT(OUT) :: pres ! position of the resulting bodies
+         REAL(DP), DIMENSION(3,n+1), INTENT(OUT) :: vres ! velocity of the resulting bodies
+         END FUNCTION
+      END INTERFACE
+
 END MODULE module_interfaces
 !**********************************************************************************************************************************
 !
