@@ -68,7 +68,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
      REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild
-     REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot
+     REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
      REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs, x1_au, x2_au, v1_auy, v2_auy
      LOGICAL(LGT)                   :: lfrag_add, lmerge
@@ -215,6 +215,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
           v1_cgs(:) = v1(:) * DU2CM / TU2S 
           v2_cgs(:) = v2(:) * DU2CM / TU2S
+     
           year = 3.154e7
           v1_auy(:) = v1_cgs(:) / AU2CM * (year)
           v2_auy(:) = v2_cgs(:) / AU2CM * (year)
@@ -223,6 +224,9 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           rres(:) = 0.0_DP
           pres(:,:) = 0.0_DP
           vres(:,:) = 0.0_DP
+
+          m1_si = m1 / (GC * 1000.0_DP)
+          m2_si = m2 / (GC * 1000.0_DP)
 
           ! PROBLEM
           !WRITE(*,*) "model: ", model
@@ -242,8 +246,10 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
           !WRITE(*,*) "Before collresolve_resolve"
 
-          regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
-               nres,mres,rres,pres,vres)
+          !regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
+               !nres,mres,rres,pres,vres)
+
+          regime = collresolve_resolve(model,m1_si,m2_si,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres,mres,rres,pres,vres)
 
           !WRITE(*,*) "After collresolve_resolve"
 
