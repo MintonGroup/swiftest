@@ -36,7 +36,7 @@ SUBROUTINE symba_user_getacch(t, npl, symba_plA)
 ! Arguments
      INTEGER(I4B), INTENT(IN)                     :: npl
      REAL(DP), INTENT(IN)                         :: t
-     TYPE(symba_pl), INTENT(INOUT)  		      :: symba_plA
+     TYPE(symba_pl), INTENT(INOUT)                :: symba_plA
 
 ! Internals
 
