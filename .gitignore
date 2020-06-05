@@ -12,9 +12,9 @@
 !example/cleanup
 !example/swifter_symba_omp
 !Makefile
-*/Makefile
+src/*/Makefile
 !Makefile.Defines
-*/Makefile.Defines
+src/*/Makefile.Defines
 !.gitignore
 
 #fxdr library
