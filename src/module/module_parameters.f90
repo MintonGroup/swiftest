@@ -41,7 +41,7 @@ module module_parameters
 
    integer(I4B), parameter  :: SWIFTEST = 1
       !! Symbolic name for swiftest types
-   !NTEGER(I4B), parameter  :: BS       = 2
+   !integer(I4B), parameter  :: BS       = 2
    !integer(I4B), parameter :: HELIO    = 3
    !integer(I4B), parameter :: RA15     = 4
    !integer(I4B), parameter :: TU4      = 5
