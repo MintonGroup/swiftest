@@ -49,11 +49,11 @@ SWIFTER_MODULES = module_parameters.f90 \
 		  module_swiftest.f90 \
 		  module_swifter.f90 \
 		  module_helio.f90 \
-        	  module_nrutil.f90 \
+        module_nrutil.f90 \
 		  module_symba.f90 \
 		  module_fxdr.f90 \
 		  module_swiftestalloc.f90 \
-       		  module_interfaces.f90
+        module_interfaces.f90
 
 include Makefile.Defines
 
@@ -77,7 +77,7 @@ all:
 	  make tools
 
 mod:
-	cd $(SWIFTER_HOME)/module; \
+	cd $(SWIFTER_HOME)/src/module; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
@@ -87,52 +87,52 @@ mod:
 	  rm -f *.o *.mod
 
 lib:
-	cd $(SWIFTER_HOME)/coord; \
+	cd $(SWIFTER_HOME)/src/coord; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/discard; \
+	cd $(SWIFTER_HOME)/src/discard; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/drift; \
+	cd $(SWIFTER_HOME)/src/drift; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/helio; \
+	cd $(SWIFTER_HOME)/src/helio; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/io; \
+	cd $(SWIFTER_HOME)/src/io; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/obl; \
+	cd $(SWIFTER_HOME)/src/obl; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/orbel; \
+	cd $(SWIFTER_HOME)/src/orbel; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/rmvs; \
+	cd $(SWIFTER_HOME)/src/rmvs; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/symba; \
+	cd $(SWIFTER_HOME)/src/symba; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/util; \
+	cd $(SWIFTER_HOME)/src/util; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
@@ -144,7 +144,7 @@ libdir:
 	rm -f *.o
 
 fxdr:
-	cd $(SWIFTER_HOME)/fxdr; \
+	cd $(SWIFTER_HOME)/src/fxdr; \
 	  rm -f Makefile.Defines; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
      chmod -w test_read_only.xdr ; \
@@ -162,14 +162,14 @@ collresolve:
 
 
 drivers:
-	cd $(SWIFTER_HOME)/main; \
+	cd $(SWIFTER_HOME)/src/main; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
 	  make bin
 
 tools:
-	cd $(SWIFTER_HOME)/tool; \
+	cd $(SWIFTER_HOME)/src/tool; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTER_HOME)/Makefile .; \
@@ -179,20 +179,20 @@ bin: *.f90
 	make $(basename $^)
 
 clean:
-	cd $(SWIFTER_HOME)/module;  rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/coord;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/discard; rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/drift;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/helio;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/io;      rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/obl;     rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/orbel;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/rmvs;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/symba;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/util;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/fxdr;    rm -f Makefile.Defines  *.gc*
-	cd $(SWIFTER_HOME)/main;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/tool;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/module;  rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/coord;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/helio;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/io;      rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/obl;     rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/orbel;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/rmvs;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/symba;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/fxdr;    rm -f Makefile.Defines  *.gc*
+	cd $(SWIFTER_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTER_HOME)/src/tool;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/bin;     rm -f swifter_*
 	cd $(SWIFTER_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTER_HOME)/lib;     rm -f lib*
