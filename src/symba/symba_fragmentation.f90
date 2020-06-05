@@ -249,7 +249,16 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           !regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
                !nres,mres,rres,pres,vres)
 
-          regime = collresolve_resolve(model,m1_si,m2_si,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres,mres,rres,pres,vres)
+          !regime = collresolve_resolve(model,m1_si,m2_si,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres,mres,rres,pres,vres)
+
+          IF (m1 > m2) THEN 
+               m1 = mbig
+               m2 = msmall
+          ELSE 
+               m2 = mbig
+               m1 = msmall
+
+          CALL util_regime(symba_plA, mbig, msmall, regime, Mlr, Mslr)
 
           !WRITE(*,*) "After collresolve_resolve"
 
