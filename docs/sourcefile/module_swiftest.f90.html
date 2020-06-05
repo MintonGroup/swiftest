@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>module_swiftest.f90 &ndash; swiftest</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../lists/programs.html">Programs</a></li>
+        
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/programs.html">Programs</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>module_swiftest.f90
+    <small>Source File</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 0.3% of total for source files.">26 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/module_swiftest.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+  
+     <li class="active">module_swiftest.f90</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#mods-0">Modules</a></h3></div>
+  <div id="mods-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/module_swiftest.html">module_swiftest</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/module_swiftest.f90.html#src">module_swiftest.f90</a>
+  </div>
+</div>
+
+
+
+</div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      <hr>
+<p>Unit Name   : module_swiftest
+  Unit Type   : module
+  Project     : SWIFTEST
+  Package     : module
+  Language    : Fortran 2003 </p>
+<p>Description : Definition of data and structures generic to all integrators</p>
+<p>Input
+    Arguments : N/A
+    Terminal  : N/A
+    File      : N/A</p>
+<p>Output
+    Arguments : N/A
+    Terminal  : N/A
+    File      : N/A</p>
+<p>Invocation  : N/A</p>
+<p>Notes       : </p>
+<hr>
+<p>Author(s)   : David A. Minton</p>
+<hr>
+      <br>
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">This file depends on</h3>
+      </div>
+      <div class="panel-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: sourcefile~~module_swiftest.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefilemodule_swiftestf90EfferentGraph" width="278pt" height="32pt"
+ viewBox="0.00 0.00 278.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~module_swiftest.f90~~EfferentGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>sourcefile~~module_swiftest.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 274,-28 274,4 -4,4"/>
+<!-- sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~module_swiftest.f90</title>
+<polygon fill="none" stroke="black" points="270,-24 163,-24 163,0 270,0 270,-24"/>
+<text text-anchor="middle" x="216.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">module_swiftest.f90</text>
+</g>
+<!-- sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~module_parameters.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~EfferentGraph_node2"><a xlink:href=".././sourcefile/module_parameters.f90.html" xlink:title="module_parameters.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="127,-24 0,-24 0,0 127,0 127,-24"/>
+<text text-anchor="middle" x="63.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_parameters.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~module_swiftest.f90&#45;&gt;sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~module_swiftest.f90&#45;&gt;sourcefile~module_parameters.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M162.69,-12C154.44,-12 145.78,-12 137.18,-12"/>
+<polygon fill="#000000" stroke="#000000" points="137.13,-8.5 127.13,-12 137.13,-15.5 137.13,-8.5"/>
+</g>
+</g>
+</svg>
+</div><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="190pt" height="32pt"
+ viewBox="0.00 0.00 190.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 186,-28 186,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="67,-24 0,-24 0,0 67,0 67,-24"/>
+<text text-anchor="middle" x="33.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="182,-24 85,-24 85,0 182,0 182,-24"/>
+<text text-anchor="middle" x="133.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a file to a file which it depends on. A file
+    is dependent upon another if the latter must be compiled before the former
+    can be.
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+    
+      
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Files dependent on this one</h3>
+      </div>
+      <div class="panel-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: sourcefile~~module_swiftest.f90~~AfferentGraph Pages: 1 -->
+<svg id="sourcefilemodule_swiftestf90AfferentGraph" width="641pt" height="1708pt"
+ viewBox="0.00 0.00 641.00 1708.31" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph" class="graph" transform="scale(0.76 0.76) rotate(0) translate(4 2232)">
+<title>sourcefile~~module_swiftest.f90~~AfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-2232 835,-2232 835,4 -4,4"/>
+<!-- sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node1" class="node">
+<title>sourcefile~module_swiftest.f90</title>
+<polygon fill="none" stroke="black" points="107,-486 0,-486 0,-462 107,-462 107,-486"/>
+<text text-anchor="middle" x="53.5" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50">module_swiftest.f90</text>
+</g>
+<!-- sourcefile~coord_h2b.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node2" class="node">
+<title>sourcefile~coord_h2b.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node2"><a xlink:href=".././sourcefile/coord_h2b.f90.html" xlink:title="coord_h2b.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="254,-1770 172,-1770 172,-1746 254,-1746 254,-1770"/>
+<text text-anchor="middle" x="213" y="-1755.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">coord_h2b.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~coord_h2b.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge1" class="edge">
+<title>sourcefile~coord_h2b.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M171.81,-1754.18C160.87,-1751.14 150.1,-1745.91 143,-1737 62.59,-1636.05 55.23,-657.28 54.57,-496.34"/>
+<polygon fill="#000000" stroke="#000000" points="58.07,-496.18 54.53,-486.19 51.07,-496.21 58.07,-496.18"/>
+</g>
+<!-- sourcefile~discard_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node3" class="node">
+<title>sourcefile~discard_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node3"><a xlink:href=".././sourcefile/discard_pl.f90.html" xlink:title="discard_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="252.5,-1728 173.5,-1728 173.5,-1704 252.5,-1704 252.5,-1728"/>
+<text text-anchor="middle" x="213" y="-1713.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">discard_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~discard_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge2" class="edge">
+<title>sourcefile~discard_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M173.45,-1709.76C161.9,-1705.96 150.35,-1699.85 143,-1690 68.78,-1590.63 56.28,-653.9 54.7,-496.42"/>
+<polygon fill="#000000" stroke="#000000" points="58.2,-496.05 54.6,-486.09 51.2,-496.12 58.2,-496.05"/>
+</g>
+<!-- sourcefile~symba_discard_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node4" class="node">
+<title>sourcefile~symba_discard_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node4"><a xlink:href=".././sourcefile/symba_discard_pl.f90.html" xlink:title="symba_discard_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="640,-2020 523,-2020 523,-1996 640,-1996 640,-2020"/>
+<text text-anchor="middle" x="581.5" y="-2005.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_discard_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge3" class="edge">
+<title>sourcefile~symba_discard_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.95,-2019.37C513.13,-2022.04 503.15,-2025.24 494,-2029 443.85,-2049.64 436.27,-2119.46 389.5,-2092"/>
+</g>
+<!-- sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node48" class="node">
+<title>sourcefile~module_helio.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node48"><a xlink:href=".././sourcefile/module_helio.f90.html" xlink:title="module_helio.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="260,-1107 166,-1107 166,-1083 260,-1083 260,-1107"/>
+<text text-anchor="middle" x="213" y="-1092.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_helio.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_discard_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge67" class="edge">
+<title>sourcefile~symba_discard_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.76,-2017.63C480.88,-2021.18 425.51,-2018.29 389.5,-1987"/>
+</g>
+<!-- sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node72" class="node">
+<title>sourcefile~module_symba.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node72"><a xlink:href=".././sourcefile/module_symba.f90.html" xlink:title="module_symba.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="440,-1270 337,-1270 337,-1246 440,-1246 440,-1270"/>
+<text text-anchor="middle" x="388.5" y="-1255.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_symba.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_discard_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge117" class="edge">
+<title>sourcefile~symba_discard_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.61,-2004.56C511.64,-2001.24 501.33,-1995.78 494,-1987 449.86,-1934.1 478.85,-1433.66 458,-1368 447.05,-1333.51 422.82,-1298.94 406.32,-1278"/>
+<polygon fill="#000000" stroke="#000000" points="409,-1275.75 399.99,-1270.16 403.55,-1280.14 409,-1275.75"/>
+</g>
+<!-- sourcefile~symba_chk.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node5" class="node">
+<title>sourcefile~symba_chk.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node5"><a xlink:href=".././sourcefile/symba_chk.f90.html" xlink:title="symba_chk.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="624,-1978 539,-1978 539,-1954 624,-1954 624,-1978"/>
+<text text-anchor="middle" x="581.5" y="-1963.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_chk.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_chk.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge4" class="edge">
+<title>sourcefile~symba_chk.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.72,-1971.35C523.93,-1974.46 507.6,-1979.34 494,-1987 436.63,-2019.31 446.28,-2125.34 389.5,-2092"/>
+</g>
+<!-- sourcefile~symba_chk.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge68" class="edge">
+<title>sourcefile~symba_chk.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M539,-1973.77C486.21,-1983.17 400.55,-1996.6 389.5,-1987"/>
+</g>
+<!-- sourcefile~symba_chk.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge118" class="edge">
+<title>sourcefile~symba_chk.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.84,-1966.01C522.42,-1963.74 504.92,-1958.03 494,-1945 452.74,-1895.77 477.57,-1429.18 458,-1368 446.97,-1333.54 422.76,-1298.96 406.29,-1278.01"/>
+<polygon fill="#000000" stroke="#000000" points="408.97,-1275.76 399.97,-1270.17 403.52,-1280.15 408.97,-1275.76"/>
+</g>
+<!-- sourcefile~helio_kickvb.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node6" class="node">
+<title>sourcefile~helio_kickvb.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node6"><a xlink:href=".././sourcefile/helio_kickvb.f90.html" xlink:title="helio_kickvb.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="432.5,-904 344.5,-904 344.5,-880 432.5,-880 432.5,-904"/>
+<text text-anchor="middle" x="388.5" y="-889.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_kickvb.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_kickvb.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge5" class="edge">
+<title>sourcefile~helio_kickvb.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M344.46,-882.32C335.7,-879.4 326.78,-875.68 319,-871 262.44,-836.99 272.64,-796.28 214,-766"/>
+</g>
+<!-- sourcefile~helio_kickvb.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge70" class="edge">
+<title>sourcefile~helio_kickvb.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M344.14,-903.41C335.21,-907.09 326.3,-911.86 319,-918 267.72,-961.11 235.23,-1036.01 221.52,-1073.02"/>
+<polygon fill="#000000" stroke="#000000" points="218.09,-1072.21 218,-1082.8 224.68,-1074.57 218.09,-1072.21"/>
+</g>
+<!-- sourcefile~symba_step_recur.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node7" class="node">
+<title>sourcefile~symba_step_recur.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node7"><a xlink:href=".././sourcefile/symba_step_recur.f90.html" xlink:title="symba_step_recur.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="640.5,-1936 522.5,-1936 522.5,-1912 640.5,-1912 640.5,-1936"/>
+<text text-anchor="middle" x="581.5" y="-1921.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_step_recur.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_step_recur.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge6" class="edge">
+<title>sourcefile~symba_step_recur.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.5,-2092C343.85,-2066.37 337.83,-2047.99 319,-2001 293.53,-1937.45 327.61,-1746.94 283,-1695 262.28,-1670.87 226.87,-1705.09 214,-1676"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.46,-1931.62C512.38,-1934.69 502.43,-1938.99 494,-1945 461.35,-1968.25 424.06,-2112.29 389.5,-2092"/>
+</g>
+<!-- sourcefile~symba_step_recur.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge71" class="edge">
+<title>sourcefile~symba_step_recur.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M525.72,-1936.04C515.12,-1938.72 504.15,-1941.75 494,-1945 446.33,-1960.28 427.28,-2019.83 389.5,-1987"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.5,-1987C318.73,-1927.23 232.79,-1248.94 216.67,-1117.12"/>
+<polygon fill="#000000" stroke="#000000" points="220.12,-1116.52 215.44,-1107.02 213.17,-1117.37 220.12,-1116.52"/>
+</g>
+<!-- sourcefile~symba_step_recur.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge120" class="edge">
+<title>sourcefile~symba_step_recur.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.23,-1920.38C511.42,-1917.04 501.27,-1911.63 494,-1903 417.24,-1811.86 494.59,-1481.4 458,-1368 446.89,-1333.56 422.7,-1298.98 406.25,-1278.02"/>
+<polygon fill="#000000" stroke="#000000" points="408.94,-1275.78 399.95,-1270.17 403.48,-1280.16 408.94,-1275.78"/>
+</g>
+<!-- sourcefile~symba_getacch_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node8" class="node">
+<title>sourcefile~symba_getacch_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node8"><a xlink:href=".././sourcefile/symba_getacch_tp.f90.html" xlink:title="symba_getacch_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="642,-1894 521,-1894 521,-1870 642,-1870 642,-1894"/>
+<text text-anchor="middle" x="581.5" y="-1879.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_getacch_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_getacch_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge7" class="edge">
+<title>sourcefile~symba_getacch_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M524.87,-1869.88C513.88,-1865.76 502.99,-1860.27 494,-1853 422.99,-1795.52 479.05,-1657.95 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_getacch_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge69" class="edge">
+<title>sourcefile~symba_getacch_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M520.59,-1873.37C510.56,-1869.49 501.12,-1863.94 494,-1856 435.44,-1790.72 515.07,-1728.58 458,-1662 437.01,-1637.51 409.32,-1663.46 389.5,-1638"/>
+</g>
+<!-- sourcefile~symba_getacch_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge119" class="edge">
+<title>sourcefile~symba_getacch_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M550.76,-1869.99C531.09,-1860.37 506.68,-1844.86 494,-1823 443.11,-1735.26 489.71,-1464.34 458,-1368 446.69,-1333.63 422.55,-1299.03 406.17,-1278.05"/>
+<polygon fill="#000000" stroke="#000000" points="408.87,-1275.82 399.89,-1270.19 403.4,-1280.19 408.87,-1275.82"/>
+</g>
+<!-- sourcefile~symba_helio_drift.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node9" class="node">
+<title>sourcefile~symba_helio_drift.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node9"><a xlink:href=".././sourcefile/symba_helio_drift.f90.html" xlink:title="symba_helio_drift.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="639,-1646 524,-1646 524,-1622 639,-1622 639,-1646"/>
+<text text-anchor="middle" x="581.5" y="-1631.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_helio_drift.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_helio_drift.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge8" class="edge">
+<title>sourcefile~symba_helio_drift.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M527.91,-1646.09C489.6,-1654.76 436.43,-1666.54 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_helio_drift.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge72" class="edge">
+<title>sourcefile~symba_helio_drift.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.5,-1638C367.4,-1612.18 340.03,-1636.07 319,-1611 254.2,-1533.76 223.12,-1206.57 215.75,-1117.48"/>
+<polygon fill="#000000" stroke="#000000" points="219.23,-1117.08 214.94,-1107.39 212.26,-1117.64 219.23,-1117.08"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M523.59,-1644.62C473.27,-1652.43 405.44,-1658.48 389.5,-1638"/>
+</g>
+<!-- sourcefile~symba_helio_drift.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge121" class="edge">
+<title>sourcefile~symba_helio_drift.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M523.63,-1630.2C512.47,-1626.91 501.81,-1621.56 494,-1613 419.85,-1531.67 495.89,-1471.33 458,-1368 445.54,-1334.03 421.7,-1299.32 405.69,-1278.22"/>
+<polygon fill="#000000" stroke="#000000" points="408.46,-1276.07 399.58,-1270.3 402.92,-1280.35 408.46,-1276.07"/>
+</g>
+<!-- sourcefile~helio_drift_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node10" class="node">
+<title>sourcefile~helio_drift_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node10"><a xlink:href=".././sourcefile/helio_drift_tp.f90.html" xlink:title="helio_drift_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="259,-738 167,-738 167,-714 259,-714 259,-738"/>
+<text text-anchor="middle" x="213" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_drift_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_drift_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge9" class="edge">
+<title>sourcefile~helio_drift_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M166.88,-718.7C158.17,-715.62 149.69,-711.23 143,-705 81.18,-647.38 62.11,-541.86 56.59,-496.12"/>
+<polygon fill="#000000" stroke="#000000" points="60.06,-495.64 55.49,-486.08 53.1,-496.41 60.06,-495.64"/>
+</g>
+<!-- sourcefile~symba_fragmentation.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node11" class="node">
+<title>sourcefile~symba_fragmentation.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node11"><a xlink:href=".././sourcefile/symba_fragmentation.f90.html" xlink:title="symba_fragmentation.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="648.5,-1604 514.5,-1604 514.5,-1580 648.5,-1580 648.5,-1604"/>
+<text text-anchor="middle" x="581.5" y="-1589.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_fragmentation.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_fragmentation.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge10" class="edge">
+<title>sourcefile~symba_fragmentation.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M514.19,-1603.77C507.14,-1606.28 500.26,-1609.32 494,-1613 473.67,-1624.96 477.72,-1639.05 458,-1652 431.04,-1669.71 421.12,-1669.63 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_fragmentation.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge75" class="edge">
+<title>sourcefile~symba_fragmentation.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M521.98,-1579.97C447.15,-1564.35 326.28,-1538.23 319,-1531 258.84,-1471.27 225.05,-1197.69 216.3,-1117.28"/>
+<polygon fill="#000000" stroke="#000000" points="219.77,-1116.83 215.23,-1107.26 212.81,-1117.58 219.77,-1116.83"/>
+</g>
+<!-- sourcefile~symba_fragmentation.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge122" class="edge">
+<title>sourcefile~symba_fragmentation.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M514.17,-1584.59C506.6,-1581.37 499.61,-1576.97 494,-1571 431.27,-1504.21 490.81,-1453.55 458,-1368 445.03,-1334.18 421.28,-1299.39 405.44,-1278.23"/>
+<polygon fill="#000000" stroke="#000000" points="408.04,-1275.87 399.19,-1270.04 402.47,-1280.11 408.04,-1275.87"/>
+</g>
+<!-- sourcefile~symba_discard_sun_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node12" class="node">
+<title>sourcefile~symba_discard_sun_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node12"><a xlink:href=".././sourcefile/symba_discard_sun_pl.f90.html" xlink:title="symba_discard_sun_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="283,-696 143,-696 143,-672 283,-672 283,-696"/>
+<text text-anchor="middle" x="213" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard_sun_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_discard_sun_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge11" class="edge">
+<title>sourcefile~symba_discard_sun_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M156.64,-671.9C151.72,-669.46 147.07,-666.53 143,-663 90.95,-617.88 67.4,-535.53 58.72,-496.14"/>
+<polygon fill="#000000" stroke="#000000" points="62.13,-495.31 56.66,-486.24 55.27,-496.74 62.13,-495.31"/>
+</g>
+<!-- sourcefile~helio_step_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node13" class="node">
+<title>sourcefile~helio_step_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node13"><a xlink:href=".././sourcefile/helio_step_pl.f90.html" xlink:title="helio_step_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="435.5,-862 341.5,-862 341.5,-838 435.5,-838 435.5,-862"/>
+<text text-anchor="middle" x="388.5" y="-847.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_step_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_step_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge12" class="edge">
+<title>sourcefile~helio_step_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M342.7,-837.99C334.69,-835.35 326.5,-832.34 319,-829 269.28,-806.86 262.36,-790.97 214,-766"/>
+</g>
+<!-- sourcefile~helio_step_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge76" class="edge">
+<title>sourcefile~helio_step_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M341.27,-858.37C333.21,-861.37 325.39,-865.45 319,-871 255.33,-926.28 227.57,-1028.5 218.08,-1073.16"/>
+<polygon fill="#000000" stroke="#000000" points="214.65,-1072.48 216.1,-1082.98 221.51,-1073.87 214.65,-1072.48"/>
+</g>
+<!-- sourcefile~io_init_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node14" class="node">
+<title>sourcefile~io_init_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node14"><a xlink:href=".././sourcefile/io_init_pl.f90.html" xlink:title="io_init_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="618,-1562 545,-1562 545,-1538 618,-1538 618,-1562"/>
+<text text-anchor="middle" x="581.5" y="-1547.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_init_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~io_init_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge13" class="edge">
+<title>sourcefile~io_init_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M544.83,-1551.48C527.8,-1553.85 508.12,-1559.22 494,-1571 463.75,-1596.24 486.96,-1625.3 458,-1652 434.28,-1673.87 421.12,-1669.63 389.5,-1676"/>
+</g>
+<!-- sourcefile~io_init_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge77" class="edge">
+<title>sourcefile~io_init_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M545,-1546.27C528.6,-1543.36 509.39,-1538.19 494,-1529 473.46,-1516.74 478.34,-1501.59 458,-1489 431.14,-1472.37 413.36,-1490.71 389.5,-1470"/>
+</g>
+<!-- sourcefile~io_init_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge123" class="edge">
+<title>sourcefile~io_init_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M544.64,-1549.77C527.14,-1547.76 507.1,-1542.34 494,-1529 442.63,-1476.68 485.77,-1435.86 458,-1368 444.28,-1334.48 420.72,-1299.61 405.13,-1278.35"/>
+<polygon fill="#000000" stroke="#000000" points="407.77,-1276.04 398.99,-1270.12 402.16,-1280.23 407.77,-1276.04"/>
+</g>
+<!-- sourcefile~util_hills.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node15" class="node">
+<title>sourcefile~util_hills.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node15"><a xlink:href=".././sourcefile/util_hills.f90.html" xlink:title="util_hills.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="247,-654 179,-654 179,-630 247,-630 247,-654"/>
+<text text-anchor="middle" x="213" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_hills.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_hills.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge14" class="edge">
+<title>sourcefile~util_hills.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M178.77,-637.05C166.58,-633.97 153.27,-629.01 143,-621 100.57,-587.93 73.97,-528.37 61.97,-496.14"/>
+<polygon fill="#000000" stroke="#000000" points="65.13,-494.58 58.46,-486.34 58.54,-496.94 65.13,-494.58"/>
+</g>
+<!-- sourcefile~util_valid.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node16" class="node">
+<title>sourcefile~util_valid.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node16"><a xlink:href=".././sourcefile/util_valid.f90.html" xlink:title="util_valid.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="249,-612 177,-612 177,-588 249,-588 249,-612"/>
+<text text-anchor="middle" x="213" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_valid.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_valid.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge15" class="edge">
+<title>sourcefile~util_valid.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M176.95,-593.5C165.5,-590.32 153.14,-585.69 143,-579 109.44,-556.87 81.69,-518.34 66.66,-494.61"/>
+<polygon fill="#000000" stroke="#000000" points="69.59,-492.7 61.37,-486.02 63.64,-496.37 69.59,-492.7"/>
+</g>
+<!-- sourcefile~io_dump_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node17" class="node">
+<title>sourcefile~io_dump_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node17"><a xlink:href=".././sourcefile/io_dump_pl.f90.html" xlink:title="io_dump_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="256,-570 170,-570 170,-546 256,-546 256,-570"/>
+<text text-anchor="middle" x="213" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_dump_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~io_dump_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge16" class="edge">
+<title>sourcefile~io_dump_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M169.94,-547.57C160.84,-544.66 151.43,-541.14 143,-537 118.42,-524.91 93.25,-506.26 76.06,-492.39"/>
+<polygon fill="#000000" stroke="#000000" points="78.25,-489.66 68.31,-486.01 73.81,-495.06 78.25,-489.66"/>
+</g>
+<!-- sourcefile~symba_energy.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node18" class="node">
+<title>sourcefile~symba_energy.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node18"><a xlink:href=".././sourcefile/symba_energy.f90.html" xlink:title="symba_energy.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="263,-528 163,-528 163,-504 263,-504 263,-528"/>
+<text text-anchor="middle" x="213" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_energy.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_energy.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge18" class="edge">
+<title>sourcefile~symba_energy.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M166.87,-503.96C148.99,-499.2 128.27,-493.67 109.53,-488.67"/>
+<polygon fill="#000000" stroke="#000000" points="110.2,-485.23 99.64,-486.04 108.4,-492 110.2,-485.23"/>
+</g>
+<!-- sourcefile~python_io_write_frame_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node19" class="node">
+<title>sourcefile~python_io_write_frame_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node19"><a xlink:href=".././sourcefile/python_io_write_frame_tp.f90.html" xlink:title="python_io_write_frame_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="658.5,-1520 504.5,-1520 504.5,-1496 658.5,-1496 658.5,-1520"/>
+<text text-anchor="middle" x="581.5" y="-1505.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">python_io_write_frame_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~python_io_write_frame_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge17" class="edge">
+<title>sourcefile~python_io_write_frame_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M506.34,-1520.03C501.86,-1522.52 497.69,-1525.48 494,-1529 452.8,-1568.33 497.21,-1610.68 458,-1652 435.79,-1675.4 421.12,-1669.63 389.5,-1676"/>
+</g>
+<!-- sourcefile~python_io_write_frame_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge78" class="edge">
+<title>sourcefile~python_io_write_frame_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.5,-1470C362.79,-1448.55 341.17,-1467.07 319,-1443 230.45,-1346.83 216.45,-1178.44 214.34,-1117.67"/>
+<polygon fill="#000000" stroke="#000000" points="217.83,-1117.22 214.06,-1107.31 210.83,-1117.4 217.83,-1117.22"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M504.42,-1496.53C455.12,-1488.47 398.47,-1477.78 389.5,-1470"/>
+</g>
+<!-- sourcefile~python_io_write_frame_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge124" class="edge">
+<title>sourcefile~python_io_write_frame_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M506.38,-1495.93C501.89,-1493.45 497.7,-1490.5 494,-1487 453.86,-1449.03 480.8,-1418.33 458,-1368 443.05,-1335.01 419.81,-1300.01 404.62,-1278.57"/>
+<polygon fill="#000000" stroke="#000000" points="407.33,-1276.34 398.65,-1270.26 401.65,-1280.42 407.33,-1276.34"/>
+</g>
+<!-- sourcefile~obl_acc.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node20" class="node">
+<title>sourcefile~obl_acc.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node20"><a xlink:href=".././sourcefile/obl_acc.f90.html" xlink:title="obl_acc.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="246.5,-486 179.5,-486 179.5,-462 246.5,-462 246.5,-486"/>
+<text text-anchor="middle" x="213" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">obl_acc.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~obl_acc.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge66" class="edge">
+<title>sourcefile~obl_acc.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M179.37,-474C161.48,-474 138.69,-474 117.49,-474"/>
+<polygon fill="#000000" stroke="#000000" points="117.24,-470.5 107.24,-474 117.24,-477.5 117.24,-470.5"/>
+</g>
+<!-- sourcefile~symba_discard_peri_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node21" class="node">
+<title>sourcefile~symba_discard_peri_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node21"><a xlink:href=".././sourcefile/symba_discard_peri_pl.f90.html" xlink:title="symba_discard_peri_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="652,-1394 511,-1394 511,-1370 652,-1370 652,-1394"/>
+<text text-anchor="middle" x="581.5" y="-1379.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard_peri_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_discard_peri_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge19" class="edge">
+<title>sourcefile~symba_discard_peri_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M510.62,-1390.8C504.39,-1393.87 498.68,-1397.86 494,-1403 418.76,-1485.72 529.06,-1565.67 458,-1652 437.5,-1676.91 421.12,-1669.63 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_discard_peri_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge79" class="edge">
+<title>sourcefile~symba_discard_peri_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M534.11,-1394.05C493.33,-1401.96 433.75,-1406.81 389.5,-1382"/>
+</g>
+<!-- sourcefile~symba_discard_peri_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge125" class="edge">
+<title>sourcefile~symba_discard_peri_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M514.36,-1369.93C507.28,-1367.48 500.35,-1364.53 494,-1361 456.51,-1340.12 423.1,-1302.11 404.64,-1278.56"/>
+<polygon fill="#000000" stroke="#000000" points="407.18,-1276.12 398.32,-1270.31 401.63,-1280.38 407.18,-1276.12"/>
+</g>
+<!-- sourcefile~symba_step_interp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node22" class="node">
+<title>sourcefile~symba_step_interp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node22"><a xlink:href=".././sourcefile/symba_step_interp.f90.html" xlink:title="symba_step_interp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="642,-1352 521,-1352 521,-1328 642,-1328 642,-1352"/>
+<text text-anchor="middle" x="581.5" y="-1337.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_step_interp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_step_interp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge20" class="edge">
+<title>sourcefile~symba_step_interp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M520.82,-1344.5C510.65,-1347.84 501.09,-1353.04 494,-1361 407.3,-1458.3 539.79,-1550.54 458,-1652 437.75,-1677.12 421.12,-1669.63 389.5,-1676"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M212,-1676C112.96,-1452.05 63.84,-642.09 55.72,-496.5"/>
+<polygon fill="#000000" stroke="#000000" points="59.19,-495.95 55.15,-486.15 52.2,-496.33 59.19,-495.95"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.5,-1676C349.7,-1683.62 229.59,-1711.26 214,-1676"/>
+</g>
+<!-- sourcefile~symba_step_interp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge80" class="edge">
+<title>sourcefile~symba_step_interp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M529.41,-1352.09C473.89,-1365.11 392.61,-1383.74 389.5,-1382"/>
+</g>
+<!-- sourcefile~symba_step_interp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge126" class="edge">
+<title>sourcefile~symba_step_interp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M520.69,-1327.89C511.61,-1325.36 502.46,-1322.41 494,-1319 465.66,-1307.57 435.78,-1289.43 415.27,-1275.9"/>
+<polygon fill="#000000" stroke="#000000" points="417.07,-1272.9 406.81,-1270.24 413.17,-1278.71 417.07,-1272.9"/>
+</g>
+<!-- sourcefile~coord_vb2vh_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node23" class="node">
+<title>sourcefile~coord_vb2vh_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node23"><a xlink:href=".././sourcefile/coord_vb2vh_tp.f90.html" xlink:title="coord_vb2vh_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="635,-2188 528,-2188 528,-2164 635,-2164 635,-2188"/>
+<text text-anchor="middle" x="581.5" y="-2173.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">coord_vb2vh_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~coord_vb2vh_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge21" class="edge">
+<title>sourcefile~coord_vb2vh_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M528,-2165.97C516.58,-2163.04 504.72,-2159.41 494,-2155 443.85,-2134.36 436.27,-2119.46 389.5,-2092"/>
+</g>
+<!-- sourcefile~coord_vb2vh_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge128" class="edge">
+<title>sourcefile~coord_vb2vh_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M527.91,-2174.09C514.99,-2170.99 502.45,-2165.26 494,-2155 438.34,-2087.44 483.98,-1451.59 458,-1368 447.26,-1333.45 422.98,-1298.89 406.41,-1277.97"/>
+<polygon fill="#000000" stroke="#000000" points="409.07,-1275.7 400.05,-1270.14 403.63,-1280.11 409.07,-1275.7"/>
+</g>
+<!-- sourcefile~symba_casedisruption.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node24" class="node">
+<title>sourcefile~symba_casedisruption.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node24"><a xlink:href=".././sourcefile/symba_casedisruption.f90.html" xlink:title="symba_casedisruption.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="650,-864 513,-864 513,-840 650,-840 650,-864"/>
+<text text-anchor="middle" x="581.5" y="-849.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_casedisruption.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_casedisruption.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge22" class="edge">
+<title>sourcefile~symba_casedisruption.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M512.85,-844.07C505.78,-840.9 499.27,-836.65 494,-831 428.83,-761.1 522.03,-689.95 458,-619 436.83,-595.55 419.88,-591.34 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_casedisruption.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge83" class="edge">
+<title>sourcefile~symba_casedisruption.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M525.76,-864.12C514.83,-867.72 503.73,-872.28 494,-878 474.76,-889.31 477.36,-901.89 458,-913 430.6,-928.72 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_casedisruption.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge129" class="edge">
+<title>sourcefile~symba_casedisruption.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M553.8,-864.08C534.55,-874.08 509.36,-890.03 494,-911 417.3,-1015.67 396.36,-1176.92 391.12,-1235.64"/>
+<polygon fill="#000000" stroke="#000000" points="387.6,-1235.71 390.26,-1245.97 394.57,-1236.29 387.6,-1235.71"/>
+</g>
+<!-- sourcefile~io_init_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node25" class="node">
+<title>sourcefile~io_init_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node25"><a xlink:href=".././sourcefile/io_init_tp.f90.html" xlink:title="io_init_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="618,-822 545,-822 545,-798 618,-798 618,-822"/>
+<text text-anchor="middle" x="581.5" y="-807.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_init_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~io_init_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge23" class="edge">
+<title>sourcefile~io_init_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M544.57,-809.83C527.06,-807.84 507.03,-802.42 494,-789 440.2,-733.59 510.89,-675.27 458,-619 436.36,-595.98 419.88,-591.34 389.5,-600"/>
+</g>
+<!-- sourcefile~io_init_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge84" class="edge">
+<title>sourcefile~io_init_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M544.8,-811.46C527.78,-813.82 508.09,-819.19 494,-831 463.5,-856.57 488.08,-886.94 458,-913 434.12,-933.69 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~io_init_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge130" class="edge">
+<title>sourcefile~io_init_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M544.75,-810.34C527.28,-812.38 507.23,-817.79 494,-831 479.15,-845.82 412.73,-1150.14 394.27,-1235.76"/>
+<polygon fill="#000000" stroke="#000000" points="390.81,-1235.21 392.13,-1245.72 397.65,-1236.68 390.81,-1235.21"/>
+</g>
+<!-- sourcefile~python_io_write_frame_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node26" class="node">
+<title>sourcefile~python_io_write_frame_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node26"><a xlink:href=".././sourcefile/python_io_write_frame_pl.f90.html" xlink:title="python_io_write_frame_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="658.5,-780 504.5,-780 504.5,-756 658.5,-756 658.5,-780"/>
+<text text-anchor="middle" x="581.5" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">python_io_write_frame_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~python_io_write_frame_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge24" class="edge">
+<title>sourcefile~python_io_write_frame_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M505.89,-755.79C501.58,-753.34 497.56,-750.43 494,-747 451.47,-705.97 499.86,-660.71 458,-619 435.62,-596.7 419.88,-591.34 389.5,-600"/>
+</g>
+<!-- sourcefile~python_io_write_frame_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge85" class="edge">
+<title>sourcefile~python_io_write_frame_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M506.33,-780.02C501.86,-782.51 497.69,-785.47 494,-789 452.53,-828.67 498.82,-872.67 458,-913 435.53,-935.21 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~python_io_write_frame_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge131" class="edge">
+<title>sourcefile~python_io_write_frame_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M505.27,-780.23C501.17,-782.68 497.36,-785.58 494,-789 491.97,-791.07 414.56,-1143.69 394.31,-1236.06"/>
+<polygon fill="#000000" stroke="#000000" points="390.85,-1235.48 392.13,-1245.99 397.69,-1236.98 390.85,-1235.48"/>
+</g>
+<!-- sourcefile~symba_helio_drift_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node27" class="node">
+<title>sourcefile~symba_helio_drift_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node27"><a xlink:href=".././sourcefile/symba_helio_drift_tp.f90.html" xlink:title="symba_helio_drift_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="646.5,-1772 516.5,-1772 516.5,-1748 646.5,-1748 646.5,-1772"/>
+<text text-anchor="middle" x="581.5" y="-1757.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_helio_drift_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_helio_drift_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge25" class="edge">
+<title>sourcefile~symba_helio_drift_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M520.65,-1748C511.57,-1745.45 502.43,-1742.47 494,-1739 443.85,-1718.36 442.66,-1665.29 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_helio_drift_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge86" class="edge">
+<title>sourcefile~symba_helio_drift_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M516.43,-1751.45C508.32,-1748.42 500.58,-1744.38 494,-1739 464.76,-1715.08 486.02,-1687.34 458,-1662 434.07,-1640.36 409.32,-1663.46 389.5,-1638"/>
+</g>
+<!-- sourcefile~symba_helio_drift_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge132" class="edge">
+<title>sourcefile~symba_helio_drift_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M516.28,-1754.07C507.79,-1750.71 499.98,-1745.89 494,-1739 439.71,-1676.44 484.59,-1446.45 458,-1368 446.38,-1333.73 422.32,-1299.1 406.04,-1278.09"/>
+<polygon fill="#000000" stroke="#000000" points="408.76,-1275.89 399.81,-1270.22 403.27,-1280.23 408.76,-1275.89"/>
+</g>
+<!-- sourcefile~symba_step.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node28" class="node">
+<title>sourcefile~symba_step.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node28"><a xlink:href=".././sourcefile/symba_step.f90.html" xlink:title="symba_step.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="625.5,-1730 537.5,-1730 537.5,-1706 625.5,-1706 625.5,-1730"/>
+<text text-anchor="middle" x="581.5" y="-1715.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_step.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_step.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge26" class="edge">
+<title>sourcefile~symba_step.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M537.42,-1707.61C483.36,-1694.7 396.78,-1674.53 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_step.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge87" class="edge">
+<title>sourcefile~symba_step.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M537.47,-1712.25C523.04,-1709.12 507.26,-1704.32 494,-1697 474.47,-1686.21 476.98,-1673.74 458,-1662 430.57,-1645.02 409.32,-1663.46 389.5,-1638"/>
+</g>
+<!-- sourcefile~symba_step.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge133" class="edge">
+<title>sourcefile~symba_step.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M537.34,-1717.49C521.5,-1715.02 504.81,-1709.31 494,-1697 445.46,-1641.75 482.04,-1437.51 458,-1368 446.17,-1333.8 422.17,-1299.16 405.96,-1278.12"/>
+<polygon fill="#000000" stroke="#000000" points="408.69,-1275.93 399.75,-1270.24 403.19,-1280.26 408.69,-1275.93"/>
+</g>
+<!-- sourcefile~discard.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node29" class="node">
+<title>sourcefile~discard.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node29"><a xlink:href=".././sourcefile/discard.f90.html" xlink:title="discard.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="245.5,-444 180.5,-444 180.5,-420 245.5,-420 245.5,-444"/>
+<text text-anchor="middle" x="213" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">discard.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~discard.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge27" class="edge">
+<title>sourcefile~discard.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M180.13,-440.5C159.91,-445.89 133.22,-453.01 109.64,-459.3"/>
+<polygon fill="#000000" stroke="#000000" points="108.52,-455.97 99.76,-461.93 110.32,-462.74 108.52,-455.97"/>
+</g>
+<!-- sourcefile~coord_h2b_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node30" class="node">
+<title>sourcefile~coord_h2b_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node30"><a xlink:href=".././sourcefile/coord_h2b_tp.f90.html" xlink:title="coord_h2b_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="261.5,-402 164.5,-402 164.5,-378 261.5,-378 261.5,-402"/>
+<text text-anchor="middle" x="213" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">coord_h2b_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~coord_h2b_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge28" class="edge">
+<title>sourcefile~coord_h2b_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M164.82,-402.12C157.36,-404.67 149.85,-407.63 143,-411 118.42,-423.09 93.25,-441.74 76.06,-455.61"/>
+<polygon fill="#000000" stroke="#000000" points="73.81,-452.94 68.31,-461.99 78.25,-458.34 73.81,-452.94"/>
+</g>
+<!-- sourcefile~helio_kickvb_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node31" class="node">
+<title>sourcefile~helio_kickvb_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node31"><a xlink:href=".././sourcefile/helio_kickvb_tp.f90.html" xlink:title="helio_kickvb_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="440,-820 337,-820 337,-796 440,-796 440,-820"/>
+<text text-anchor="middle" x="388.5" y="-805.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_kickvb_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_kickvb_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge29" class="edge">
+<title>sourcefile~helio_kickvb_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M336.66,-802.2C300.83,-796.6 252.55,-785.9 214,-766"/>
+</g>
+<!-- sourcefile~helio_kickvb_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge88" class="edge">
+<title>sourcefile~helio_kickvb_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M336.77,-817.77C330.27,-820.61 324.11,-824.27 319,-829 245.79,-896.68 222.83,-1021.85 216.33,-1072.68"/>
+<polygon fill="#000000" stroke="#000000" points="212.82,-1072.54 215.12,-1082.88 219.77,-1073.36 212.82,-1072.54"/>
+</g>
+<!-- sourcefile~helio_lindrift.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node32" class="node">
+<title>sourcefile~helio_lindrift.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node32"><a xlink:href=".././sourcefile/helio_lindrift.f90.html" xlink:title="helio_lindrift.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="625.5,-2146 537.5,-2146 537.5,-2122 625.5,-2122 625.5,-2146"/>
+<text text-anchor="middle" x="581.5" y="-2131.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_lindrift.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_lindrift.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge30" class="edge">
+<title>sourcefile~helio_lindrift.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M537.13,-2132.09C496.5,-2128.61 435.32,-2118.91 389.5,-2092"/>
+</g>
+<!-- sourcefile~helio_lindrift.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge135" class="edge">
+<title>sourcefile~helio_lindrift.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M537.4,-2133.89C521.37,-2131.51 504.53,-2125.75 494,-2113 441.22,-2049.11 482.7,-1447.11 458,-1368 447.22,-1333.46 422.94,-1298.9 406.39,-1277.98"/>
+<polygon fill="#000000" stroke="#000000" points="409.06,-1275.71 400.04,-1270.15 403.62,-1280.12 409.06,-1275.71"/>
+</g>
+<!-- sourcefile~io_discard_write_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node33" class="node">
+<title>sourcefile~io_discard_write_symba.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node33"><a xlink:href=".././sourcefile/io_discard_write_symba.f90.html" xlink:title="io_discard_write_symba.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="654,-2062 509,-2062 509,-2038 654,-2038 654,-2062"/>
+<text text-anchor="middle" x="581.5" y="-2047.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_discard_write_symba.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~io_discard_write_symba.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge31" class="edge">
+<title>sourcefile~io_discard_write_symba.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M529.89,-2062C474.35,-2075.04 392.58,-2093.81 389.5,-2092"/>
+</g>
+<!-- sourcefile~io_discard_write_symba.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge134" class="edge">
+<title>sourcefile~io_discard_write_symba.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M508.92,-2040.97C503.26,-2037.91 498.15,-2033.99 494,-2029 446.98,-1972.44 480.14,-1438.14 458,-1368 447.11,-1333.49 422.86,-1298.92 406.34,-1277.99"/>
+<polygon fill="#000000" stroke="#000000" points="409.02,-1275.73 400.01,-1270.15 403.57,-1280.13 409.02,-1275.73"/>
+</g>
+<!-- sourcefile~symba_discard_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node34" class="node">
+<title>sourcefile~symba_discard_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node34"><a xlink:href=".././sourcefile/symba_discard_tp.f90.html" xlink:title="symba_discard_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="640.5,-1688 522.5,-1688 522.5,-1664 640.5,-1664 640.5,-1688"/>
+<text text-anchor="middle" x="581.5" y="-1673.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_discard_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge32" class="edge">
+<title>sourcefile~symba_discard_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.24,-1670.07C484.1,-1667.64 433.38,-1667.16 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_discard_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge89" class="edge">
+<title>sourcefile~symba_discard_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.32,-1668.3C469.21,-1660.66 397.74,-1648.59 389.5,-1638"/>
+</g>
+<!-- sourcefile~symba_discard_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge136" class="edge">
+<title>sourcefile~symba_discard_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.16,-1671.91C511.49,-1668.59 501.41,-1663.3 494,-1655 451.2,-1607.05 479.49,-1428.58 458,-1368 445.9,-1333.9 421.97,-1299.23 405.84,-1278.16"/>
+<polygon fill="#000000" stroke="#000000" points="408.59,-1275.99 399.68,-1270.27 403.07,-1280.3 408.59,-1275.99"/>
+</g>
+<!-- sourcefile~symba_step_helio_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node35" class="node">
+<title>sourcefile~symba_step_helio_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node35"><a xlink:href=".././sourcefile/symba_step_helio_pl.f90.html" xlink:title="symba_step_helio_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="647,-2104 516,-2104 516,-2080 647,-2080 647,-2104"/>
+<text text-anchor="middle" x="581.5" y="-2089.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_step_helio_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_step_helio_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge33" class="edge">
+<title>sourcefile~symba_step_helio_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M535.86,-2104.07C494.88,-2112.5 433.96,-2118.11 389.5,-2092"/>
+</g>
+<!-- sourcefile~symba_step_helio_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge90" class="edge">
+<title>sourcefile~symba_step_helio_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M516.53,-2079.87C508.76,-2077.41 501.07,-2074.48 494,-2071 440.54,-2044.67 434.48,-2026.09 389.5,-1987"/>
+</g>
+<!-- sourcefile~symba_step_helio_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge137" class="edge">
+<title>sourcefile~symba_step_helio_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M516,-2086.31C507.55,-2082.92 499.82,-2078.02 494,-2071 444.1,-2010.77 481.42,-1442.63 458,-1368 447.17,-1333.48 422.91,-1298.91 406.37,-1277.99"/>
+<polygon fill="#000000" stroke="#000000" points="409.04,-1275.72 400.03,-1270.15 403.6,-1280.13 409.04,-1275.72"/>
+</g>
+<!-- sourcefile~util_regime.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node36" class="node">
+<title>sourcefile~util_regime.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node36"><a xlink:href=".././sourcefile/util_regime.f90.html" xlink:title="util_regime.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="809.5,-324 726.5,-324 726.5,-300 809.5,-300 809.5,-324"/>
+<text text-anchor="middle" x="768" y="-309.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_regime.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge34" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M726.35,-300.6C686.65,-291.95 626.02,-285.54 582.5,-312"/>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge91" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M766.66,-324.17C764.35,-398.48 748.49,-790.67 669,-873 646.95,-895.83 412.56,-910.19 389.5,-932"/>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node55" class="node">
+<title>sourcefile~module_swiftestalloc.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node55"><a xlink:href=".././sourcefile/module_swiftestalloc.f90.html" xlink:title="module_swiftestalloc.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="646,-1436 517,-1436 517,-1412 646,-1412 646,-1436"/>
+<text text-anchor="middle" x="581.5" y="-1421.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_swiftestalloc.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_swiftestalloc.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge113" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_swiftestalloc.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M766.75,-324.29C764.31,-438.82 743.24,-1316.82 669,-1403 665.22,-1407.39 660.69,-1410.95 655.71,-1413.82"/>
+<polygon fill="#000000" stroke="#000000" points="653.86,-1410.82 646.33,-1418.27 656.86,-1417.14 653.86,-1410.82"/>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge138" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M766.43,-324.23C761.73,-423.41 727.89,-1094 669,-1159 615.56,-1217.98 568.17,-1168.14 494,-1197 465.35,-1208.15 435.31,-1226.48 414.82,-1240.15"/>
+<polygon fill="#000000" stroke="#000000" points="412.71,-1237.36 406.4,-1245.87 416.64,-1243.15 412.71,-1237.36"/>
+</g>
+<!-- sourcefile~swifter_symba_omp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node37" class="node">
+<title>sourcefile~swifter_symba_omp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node37"><a xlink:href=".././sourcefile/swifter_symba_omp.f90.html" xlink:title="swifter_symba_omp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="831,-2228 705,-2228 705,-2204 831,-2204 831,-2228"/>
+<text text-anchor="middle" x="768" y="-2213.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swifter_symba_omp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swifter_symba_omp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge35" class="edge">
+<title>sourcefile~swifter_symba_omp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M704.79,-2209.43C668.68,-2207.24 622.55,-2207.24 582.5,-2216"/>
+</g>
+<!-- sourcefile~swifter_symba_omp.f90&#45;&gt;sourcefile~module_swiftestalloc.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge114" class="edge">
+<title>sourcefile~swifter_symba_omp.f90&#45;&gt;sourcefile~module_swiftestalloc.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M765.65,-2203.83C754.82,-2106.65 682.31,-1459.88 669,-1445 665.14,-1440.68 660.55,-1437.17 655.53,-1434.34"/>
+<polygon fill="#000000" stroke="#000000" points="656.65,-1430.99 646.1,-1429.92 653.68,-1437.33 656.65,-1430.99"/>
+</g>
+<!-- sourcefile~swifter_symba_omp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge139" class="edge">
+<title>sourcefile~swifter_symba_omp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M765.58,-2203.75C758.64,-2143.72 727.71,-1874.68 705,-1654 696.39,-1570.28 724.8,-1340 669,-1277 642.9,-1247.54 613.86,-1281.79 582.5,-1258"/>
+</g>
+<!-- sourcefile~helio_getacch_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node38" class="node">
+<title>sourcefile~helio_getacch_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node38"><a xlink:href=".././sourcefile/helio_getacch_tp.f90.html" xlink:title="helio_getacch_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="444.5,-778 332.5,-778 332.5,-754 444.5,-754 444.5,-778"/>
+<text text-anchor="middle" x="388.5" y="-763.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_getacch_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_getacch_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge36" class="edge">
+<title>sourcefile~helio_getacch_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M335.22,-778.04C299.16,-783.56 251.2,-785.21 214,-766"/>
+</g>
+<!-- sourcefile~helio_getacch_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge92" class="edge">
+<title>sourcefile~helio_getacch_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M332.46,-777.51C327.53,-780.07 322.93,-783.19 319,-787 235.89,-867.56 218.56,-1016.46 214.95,-1072.7"/>
+<polygon fill="#000000" stroke="#000000" points="211.44,-1072.78 214.38,-1082.95 218.43,-1073.16 211.44,-1072.78"/>
+</g>
+<!-- sourcefile~symba_caseresolve.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node39" class="node">
+<title>sourcefile~symba_caseresolve.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node39"><a xlink:href=".././sourcefile/symba_caseresolve.f90.html" xlink:title="symba_caseresolve.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="644,-986 519,-986 519,-962 644,-962 644,-986"/>
+<text text-anchor="middle" x="581.5" y="-971.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_caseresolve.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_caseresolve.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge37" class="edge">
+<title>sourcefile~symba_caseresolve.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M518.96,-968.99C509.46,-965.62 500.62,-960.55 494,-953 395.55,-840.75 554.62,-732.83 458,-619 437.56,-594.91 419.88,-591.34 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_caseresolve.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge93" class="edge">
+<title>sourcefile~symba_caseresolve.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M530.22,-961.89C474.51,-948.63 392.11,-929.54 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_caseresolve.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge140" class="edge">
+<title>sourcefile~symba_caseresolve.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M518.78,-981.23C509.75,-984.39 501.12,-988.82 494,-995 419.52,-1059.71 397.59,-1184.73 391.59,-1235.62"/>
+<polygon fill="#000000" stroke="#000000" points="388.08,-1235.52 390.49,-1245.84 395.04,-1236.28 388.08,-1235.52"/>
+</g>
+<!-- sourcefile~coord_vh2vb.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node40" class="node">
+<title>sourcefile~coord_vh2vb.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node40"><a xlink:href=".././sourcefile/coord_vh2vb.f90.html" xlink:title="coord_vh2vb.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="627.5,-406 535.5,-406 535.5,-382 627.5,-382 627.5,-406"/>
+<text text-anchor="middle" x="581.5" y="-391.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">coord_vh2vb.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~coord_vh2vb.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge38" class="edge">
+<title>sourcefile~coord_vh2vb.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M535.21,-400.84C520.93,-404.68 505.81,-410.67 494,-420 421.4,-477.33 478.46,-574.65 389.5,-600"/>
+</g>
+<!-- sourcefile~coord_vh2vb.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge142" class="edge">
+<title>sourcefile~coord_vh2vb.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M550.29,-406.19C530.68,-415.82 506.52,-431.26 494,-453 439.18,-548.19 473.82,-837.3 458,-946 441.97,-1056.18 408.95,-1185.44 395.45,-1236.08"/>
+<polygon fill="#000000" stroke="#000000" points="392.02,-1235.36 392.81,-1245.92 398.78,-1237.17 392.02,-1235.36"/>
+</g>
+<!-- sourcefile~helio_getacch.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node41" class="node">
+<title>sourcefile~helio_getacch.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node41"><a xlink:href=".././sourcefile/helio_getacch.f90.html" xlink:title="helio_getacch.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="437,-736 340,-736 340,-712 437,-712 437,-736"/>
+<text text-anchor="middle" x="388.5" y="-721.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_getacch.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_getacch.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge39" class="edge">
+<title>sourcefile~helio_getacch.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M343.9,-736.06C294.44,-749.51 219.85,-769.02 214,-766"/>
+</g>
+<!-- sourcefile~helio_getacch.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge95" class="edge">
+<title>sourcefile~helio_getacch.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M339.88,-731.91C332.14,-734.96 324.79,-739.18 319,-745 225.95,-838.61 214.79,-1011.23 213.88,-1072.62"/>
+<polygon fill="#000000" stroke="#000000" points="210.38,-1072.71 213.81,-1082.74 217.38,-1072.76 210.38,-1072.71"/>
+</g>
+<!-- sourcefile~io_dump_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node42" class="node">
+<title>sourcefile~io_dump_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node42"><a xlink:href=".././sourcefile/io_dump_tp.f90.html" xlink:title="io_dump_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="256.5,-360 169.5,-360 169.5,-336 256.5,-336 256.5,-360"/>
+<text text-anchor="middle" x="213" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_dump_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~io_dump_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge40" class="edge">
+<title>sourcefile~io_dump_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M169.42,-356.78C160.25,-359.78 150.94,-363.76 143,-369 109.44,-391.13 81.69,-429.66 66.66,-453.39"/>
+<polygon fill="#000000" stroke="#000000" points="63.64,-451.63 61.37,-461.98 69.59,-455.3 63.64,-451.63"/>
+</g>
+<!-- sourcefile~util_peri.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node43" class="node">
+<title>sourcefile~util_peri.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node43"><a xlink:href=".././sourcefile/util_peri.f90.html" xlink:title="util_peri.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="247,-318 179,-318 179,-294 247,-294 247,-318"/>
+<text text-anchor="middle" x="213" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_peri.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_peri.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge41" class="edge">
+<title>sourcefile~util_peri.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M178.77,-310.95C166.58,-314.03 153.27,-318.99 143,-327 100.57,-360.07 73.97,-419.63 61.97,-451.86"/>
+<polygon fill="#000000" stroke="#000000" points="58.54,-451.06 58.46,-461.66 65.13,-453.42 58.54,-451.06"/>
+</g>
+<!-- sourcefile~discard_sun.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node44" class="node">
+<title>sourcefile~discard_sun.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node44"><a xlink:href=".././sourcefile/discard_sun.f90.html" xlink:title="discard_sun.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="257,-276 169,-276 169,-252 257,-252 257,-276"/>
+<text text-anchor="middle" x="213" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">discard_sun.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~discard_sun.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge42" class="edge">
+<title>sourcefile~discard_sun.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M168.66,-271.18C159.43,-274.27 150.29,-278.68 143,-285 90.95,-330.12 67.4,-412.47 58.72,-451.86"/>
+<polygon fill="#000000" stroke="#000000" points="55.27,-451.26 56.66,-461.76 62.13,-452.69 55.27,-451.26"/>
+</g>
+<!-- sourcefile~symba_getacch.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node45" class="node">
+<title>sourcefile~symba_getacch.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node45"><a xlink:href=".././sourcefile/symba_getacch.f90.html" xlink:title="symba_getacch.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="634.5,-944 528.5,-944 528.5,-920 634.5,-920 634.5,-944"/>
+<text text-anchor="middle" x="581.5" y="-929.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_getacch.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_getacch.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge43" class="edge">
+<title>sourcefile~symba_getacch.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M551.59,-919.95C532.05,-910.23 507.44,-894.61 494,-873 433.77,-776.19 533.22,-704.68 458,-619 437.16,-595.26 419.88,-591.34 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_getacch.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge97" class="edge">
+<title>sourcefile~symba_getacch.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M528.2,-924.31C478.56,-918.33 408.77,-913.77 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_getacch.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge144" class="edge">
+<title>sourcefile~symba_getacch.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M528.37,-935.97C515.9,-939.11 503.48,-944.36 494,-953 409.27,-1030.28 393.23,-1179.22 390.2,-1235.62"/>
+<polygon fill="#000000" stroke="#000000" points="386.69,-1235.76 389.74,-1245.9 393.68,-1236.07 386.69,-1235.76"/>
+</g>
+<!-- sourcefile~helio_step_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node46" class="node">
+<title>sourcefile~helio_step_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node46"><a xlink:href=".././sourcefile/helio_step_tp.f90.html" xlink:title="helio_step_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="435.5,-694 341.5,-694 341.5,-670 435.5,-670 435.5,-694"/>
+<text text-anchor="middle" x="388.5" y="-679.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_step_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_step_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge44" class="edge">
+<title>sourcefile~helio_step_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M341.22,-692.1C333.43,-694.92 325.71,-698.49 319,-703 298.02,-717.08 304.18,-733.22 283,-747 256.34,-764.35 242.26,-780.59 214,-766"/>
+</g>
+<!-- sourcefile~helio_step_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge98" class="edge">
+<title>sourcefile~helio_step_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M341.49,-689.09C333.13,-692.2 325.13,-696.64 319,-703 292.42,-730.55 235.3,-993.8 218.65,-1072.74"/>
+<polygon fill="#000000" stroke="#000000" points="215.12,-1072.49 216.49,-1082.99 221.97,-1073.93 215.12,-1072.49"/>
+</g>
+<!-- sourcefile~util_resize_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node47" class="node">
+<title>sourcefile~util_resize_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node47"><a xlink:href=".././sourcefile/util_resize_pl.f90.html" xlink:title="util_resize_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="814.5,-1645 721.5,-1645 721.5,-1621 814.5,-1621 814.5,-1645"/>
+<text text-anchor="middle" x="768" y="-1630.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_resize_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_resize_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge45" class="edge">
+<title>sourcefile~util_resize_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M580.5,-2216C542.05,-2224.41 528.5,-2215.94 494,-2197 436.28,-2165.32 446.28,-2125.34 389.5,-2092"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M766.66,-1645.22C764.36,-1719.88 748.53,-2113.88 669,-2197 641.79,-2225.44 620.95,-2207.59 582.5,-2216"/>
+</g>
+<!-- sourcefile~util_resize_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge99" class="edge">
+<title>sourcefile~util_resize_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M765.09,-1645.27C758.86,-1680.57 735.56,-1782.44 669,-1823 602.58,-1863.47 554.7,-1871.63 494,-1823 436.78,-1777.16 506.73,-1716.79 458,-1662 436.56,-1637.89 409.32,-1663.46 389.5,-1638"/>
+</g>
+<!-- sourcefile~util_resize_pl.f90&#45;&gt;sourcefile~module_swiftestalloc.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge115" class="edge">
+<title>sourcefile~util_resize_pl.f90&#45;&gt;sourcefile~module_swiftestalloc.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M764.31,-1620.63C756.3,-1586.81 729.28,-1492.19 669,-1445 664.92,-1441.81 660.43,-1439.09 655.7,-1436.78"/>
+<polygon fill="#000000" stroke="#000000" points="656.93,-1433.5 646.36,-1432.82 654.2,-1439.95 656.93,-1433.5"/>
+</g>
+<!-- sourcefile~util_resize_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge145" class="edge">
+<title>sourcefile~util_resize_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M765.34,-1620.79C757.37,-1564.02 721.31,-1326.64 669,-1277 640.45,-1249.91 613.86,-1281.79 582.5,-1258"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M580.5,-1258C560.65,-1242.94 498.26,-1245.56 450.13,-1250.3"/>
+<polygon fill="#000000" stroke="#000000" points="449.69,-1246.83 440.1,-1251.34 450.41,-1253.79 449.69,-1246.83"/>
+</g>
+<!-- sourcefile~module_helio.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge46" class="edge">
+<title>sourcefile~module_helio.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M208.92,-1082.87C189.66,-1006.9 85.57,-596.5 60.12,-496.15"/>
+<polygon fill="#000000" stroke="#000000" points="63.45,-495.04 57.6,-486.2 56.66,-496.76 63.45,-495.04"/>
+</g>
+<!-- sourcefile~symba_casemerge.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node49" class="node">
+<title>sourcefile~symba_casemerge.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node49"><a xlink:href=".././sourcefile/symba_casemerge.f90.html" xlink:title="symba_casemerge.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="642,-1478 521,-1478 521,-1454 642,-1454 642,-1478"/>
+<text text-anchor="middle" x="581.5" y="-1463.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_casemerge.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_casemerge.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge47" class="edge">
+<title>sourcefile~symba_casemerge.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M520.95,-1471.18C510.89,-1474.48 501.34,-1479.48 494,-1487 441.55,-1540.69 507.73,-1595.78 458,-1652 436.62,-1676.16 421.12,-1669.63 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_casemerge.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge100" class="edge">
+<title>sourcefile~symba_casemerge.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M520.73,-1456.89C511.36,-1453.97 502.11,-1450.1 494,-1445 472.61,-1431.54 479.17,-1414.8 458,-1401 431.54,-1383.74 417.06,-1397.45 389.5,-1382"/>
+</g>
+<!-- sourcefile~symba_casemerge.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge146" class="edge">
+<title>sourcefile~symba_casemerge.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M520.88,-1459C511.18,-1455.85 501.77,-1451.36 494,-1445 464.76,-1421.08 476.02,-1401.2 458,-1368 440.63,-1335.99 417.84,-1300.48 403.43,-1278.69"/>
+<polygon fill="#000000" stroke="#000000" points="406.26,-1276.63 397.8,-1270.25 400.43,-1280.51 406.26,-1276.63"/>
+</g>
+<!-- sourcefile~symba_rearray.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node50" class="node">
+<title>sourcefile~symba_rearray.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node50"><a xlink:href=".././sourcefile/symba_rearray.f90.html" xlink:title="symba_rearray.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="818.5,-282 717.5,-282 717.5,-258 818.5,-258 818.5,-282"/>
+<text text-anchor="middle" x="768" y="-267.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_rearray.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_rearray.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge49" class="edge">
+<title>sourcefile~symba_rearray.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M717.18,-272.76C678.1,-276.86 623.62,-287 582.5,-312"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M580.5,-312C546.87,-332.45 523.89,-305.4 494,-331 396.59,-414.43 512.85,-564.85 389.5,-600"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M212,-766C183.74,-751.41 165.99,-768.98 143,-747 70.37,-677.55 57.25,-548.07 54.95,-496.26"/>
+<polygon fill="#000000" stroke="#000000" points="58.45,-496.04 54.6,-486.17 51.45,-496.28 58.45,-496.04"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.5,-600C357.12,-608.66 341.38,-596.7 319,-619 277.14,-660.71 324.9,-705.33 283,-747 260.45,-769.43 242.26,-780.59 214,-766"/>
+</g>
+<!-- sourcefile~symba_rearray.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge101" class="edge">
+<title>sourcefile~symba_rearray.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.5,-932C332.43,-984.12 267.19,-1045.24 234.64,-1075.7"/>
+<polygon fill="#000000" stroke="#000000" points="232,-1073.38 227.09,-1082.76 236.78,-1078.49 232,-1073.38"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M717.28,-281.75C712.74,-284.26 708.54,-287.31 705,-291 665.32,-332.46 710.95,-375.84 669,-415 610.82,-469.31 546.33,-393.03 494,-453 426.58,-530.25 523.2,-833.87 458,-913 437.91,-937.38 412.45,-910.28 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_rearray.f90&#45;&gt;sourcefile~module_swiftestalloc.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge116" class="edge">
+<title>sourcefile~symba_rearray.f90&#45;&gt;sourcefile~module_swiftestalloc.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M717.45,-280.21C712.64,-283 708.32,-286.53 705,-291 631.34,-390.28 746.97,-1307.07 669,-1403 665.19,-1407.69 660.53,-1411.43 655.36,-1414.41"/>
+<polygon fill="#000000" stroke="#000000" points="653.79,-1411.29 646.26,-1418.74 656.79,-1417.61 653.79,-1411.29"/>
+</g>
+<!-- sourcefile~symba_rearray.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge148" class="edge">
+<title>sourcefile~symba_rearray.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M717.22,-280.43C712.51,-283.18 708.28,-286.64 705,-291 652.31,-361.04 725.55,-1012.04 669,-1079 617.65,-1139.81 560.86,-1073.82 494,-1117 447.58,-1146.98 414.48,-1205.25 399.13,-1236.68"/>
+<polygon fill="#000000" stroke="#000000" points="395.89,-1235.34 394.77,-1245.87 402.22,-1238.33 395.89,-1235.34"/>
+</g>
+<!-- sourcefile~helio_drift.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node51" class="node">
+<title>sourcefile~helio_drift.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node51"><a xlink:href=".././sourcefile/helio_drift.f90.html" xlink:title="helio_drift.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="251.5,-234 174.5,-234 174.5,-210 251.5,-210 251.5,-234"/>
+<text text-anchor="middle" x="213" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_drift.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_drift.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge50" class="edge">
+<title>sourcefile~helio_drift.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M174.42,-226.94C163.2,-230.01 151.61,-234.98 143,-243 81.18,-300.62 62.11,-406.14 56.59,-451.88"/>
+<polygon fill="#000000" stroke="#000000" points="53.1,-451.59 55.49,-461.92 60.06,-452.36 53.1,-451.59"/>
+</g>
+<!-- sourcefile~io_write_frame.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node52" class="node">
+<title>sourcefile~io_write_frame.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node52"><a xlink:href=".././sourcefile/io_write_frame.f90.html" xlink:title="io_write_frame.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="263.5,-192 162.5,-192 162.5,-168 263.5,-168 263.5,-192"/>
+<text text-anchor="middle" x="213" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_write_frame.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~io_write_frame.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge51" class="edge">
+<title>sourcefile~io_write_frame.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M162.37,-188.68C155.22,-191.65 148.45,-195.65 143,-201 71.3,-271.42 57.65,-400.34 55.08,-451.87"/>
+<polygon fill="#000000" stroke="#000000" points="51.58,-451.77 54.67,-461.91 58.57,-452.05 51.58,-451.77"/>
+</g>
+<!-- sourcefile~symba_merge_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node53" class="node">
+<title>sourcefile~symba_merge_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node53"><a xlink:href=".././sourcefile/symba_merge_pl.f90.html" xlink:title="symba_merge_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="638,-738 525,-738 525,-714 638,-714 638,-738"/>
+<text text-anchor="middle" x="581.5" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_merge_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_merge_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge52" class="edge">
+<title>sourcefile~symba_merge_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M524.7,-720.5C513.6,-717.31 502.7,-712.42 494,-705 462.48,-678.11 489.08,-646.4 458,-619 434.3,-598.11 419.88,-591.34 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_merge_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge102" class="edge">
+<title>sourcefile~symba_merge_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M524.96,-729.95C513.45,-733.19 502.31,-738.48 494,-747 441.28,-801.03 509.84,-858.12 458,-913 436.31,-935.97 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_merge_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge149" class="edge">
+<title>sourcefile~symba_merge_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M524.74,-729.74C513.24,-732.99 502.16,-738.34 494,-747 432.35,-812.41 475.64,-857.87 458,-946 436.15,-1055.17 406.44,-1185 394.64,-1235.94"/>
+<polygon fill="#000000" stroke="#000000" points="391.19,-1235.31 392.34,-1245.84 398.01,-1236.89 391.19,-1235.31"/>
+</g>
+<!-- sourcefile~symba_casesupercatastrophic.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node54" class="node">
+<title>sourcefile~symba_casesupercatastrophic.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node54"><a xlink:href=".././sourcefile/symba_casesupercatastrophic.f90.html" xlink:title="symba_casesupercatastrophic.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="669,-696 494,-696 494,-672 669,-672 669,-696"/>
+<text text-anchor="middle" x="581.5" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_casesupercatastrophic.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_casesupercatastrophic.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge53" class="edge">
+<title>sourcefile~symba_casesupercatastrophic.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M512.18,-671.93C505.8,-669.48 499.62,-666.54 494,-663 472.61,-649.54 479.17,-632.8 458,-619 431.54,-601.74 419.88,-591.34 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_casesupercatastrophic.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge103" class="edge">
+<title>sourcefile~symba_casesupercatastrophic.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M505.08,-696.04C501.02,-698.54 497.27,-701.5 494,-705 429.91,-773.52 520.97,-843.45 458,-913 436.79,-936.42 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_casesupercatastrophic.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge150" class="edge">
+<title>sourcefile~symba_casesupercatastrophic.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M504.6,-696.2C500.71,-698.67 497.13,-701.58 494,-705 457.47,-744.97 467.81,-892.75 458,-946 437.83,-1055.5 407.16,-1185.14 394.87,-1235.99"/>
+<polygon fill="#000000" stroke="#000000" points="391.43,-1235.33 392.47,-1245.87 398.23,-1236.98 391.43,-1235.33"/>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge54" class="edge">
+<title>sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M516.74,-1430.34C508.18,-1433.64 500.23,-1438.34 494,-1445 430.18,-1513.17 518.37,-1580.76 458,-1652 437.14,-1676.61 421.12,-1669.63 389.5,-1676"/>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge104" class="edge">
+<title>sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M517.12,-1411.96C465.98,-1401.93 400.75,-1388.31 389.5,-1382"/>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge151" class="edge">
+<title>sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M516.86,-1414.11C508.78,-1411.29 500.92,-1407.66 494,-1403 469.66,-1386.62 424.26,-1315.32 402.19,-1279.18"/>
+<polygon fill="#000000" stroke="#000000" points="405.04,-1277.13 396.87,-1270.39 399.06,-1280.76 405.04,-1277.13"/>
+</g>
+<!-- sourcefile~helio_getacch_int_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node56" class="node">
+<title>sourcefile~helio_getacch_int_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node56"><a xlink:href=".././sourcefile/helio_getacch_int_tp.f90.html" xlink:title="helio_getacch_int_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="453,-652 324,-652 324,-628 453,-628 453,-652"/>
+<text text-anchor="middle" x="388.5" y="-637.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_getacch_int_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_getacch_int_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge55" class="edge">
+<title>sourcefile~helio_getacch_int_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M332.04,-652.14C327.32,-654.57 322.87,-657.49 319,-661 288.29,-688.81 314.11,-719.63 283,-747 259.12,-768.01 242.26,-780.59 214,-766"/>
+</g>
+<!-- sourcefile~helio_getacch_int_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge105" class="edge">
+<title>sourcefile~helio_getacch_int_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M330.45,-652.07C326.23,-654.53 322.33,-657.47 319,-661 304.36,-676.54 237.14,-986.85 218.69,-1072.99"/>
+<polygon fill="#000000" stroke="#000000" points="215.22,-1072.47 216.56,-1082.98 222.07,-1073.93 215.22,-1072.47"/>
+</g>
+<!-- sourcefile~coord_vh2vb_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node57" class="node">
+<title>sourcefile~coord_vh2vb_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node57"><a xlink:href=".././sourcefile/coord_vh2vb_tp.f90.html" xlink:title="coord_vh2vb_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="266.5,-150 159.5,-150 159.5,-126 266.5,-126 266.5,-150"/>
+<text text-anchor="middle" x="213" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">coord_vh2vb_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~coord_vh2vb_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge56" class="edge">
+<title>sourcefile~coord_vh2vb_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M159.4,-147.73C153.32,-150.58 147.64,-154.26 143,-159 61.43,-242.35 53.77,-394.62 53.94,-451.65"/>
+<polygon fill="#000000" stroke="#000000" points="50.44,-451.78 54.06,-461.73 57.44,-451.69 50.44,-451.78"/>
+</g>
+<!-- sourcefile~symba_peri.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node58" class="node">
+<title>sourcefile~symba_peri.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node58"><a xlink:href=".././sourcefile/symba_peri.f90.html" xlink:title="symba_peri.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="624.5,-612 538.5,-612 538.5,-588 624.5,-588 624.5,-612"/>
+<text text-anchor="middle" x="581.5" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_peri.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_peri.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge57" class="edge">
+<title>sourcefile~symba_peri.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.23,-593.47C498.91,-588.9 439.09,-585.87 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_peri.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge106" class="edge">
+<title>sourcefile~symba_peri.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.33,-600.44C522.23,-602.85 505.1,-608.54 494,-621 407.03,-718.64 543.38,-813.96 458,-913 437.37,-936.93 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_peri.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge152" class="edge">
+<title>sourcefile~symba_peri.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.25,-600.38C522.14,-602.77 505.02,-608.47 494,-621 446.01,-675.56 469.81,-874.3 458,-946 439.91,-1055.86 408.06,-1185.3 395.16,-1236.04"/>
+<polygon fill="#000000" stroke="#000000" points="391.73,-1235.34 392.64,-1245.9 398.51,-1237.08 391.73,-1235.34"/>
+</g>
+<!-- sourcefile~symba_helio_getacch.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node59" class="node">
+<title>sourcefile~symba_helio_getacch.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node59"><a xlink:href=".././sourcefile/symba_helio_getacch.f90.html" xlink:title="symba_helio_getacch.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="648.5,-570 514.5,-570 514.5,-546 648.5,-546 648.5,-570"/>
+<text text-anchor="middle" x="581.5" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_helio_getacch.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_helio_getacch.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge58" class="edge">
+<title>sourcefile~symba_helio_getacch.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M516.35,-570.07C479.04,-577.59 431.29,-588.09 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_helio_getacch.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge108" class="edge">
+<title>sourcefile~symba_helio_getacch.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M514.2,-564.87C506.53,-568.16 499.5,-572.73 494,-579 395.55,-691.25 554.62,-799.17 458,-913 437.56,-937.09 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_helio_getacch.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge153" class="edge">
+<title>sourcefile~symba_helio_getacch.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M514.14,-564.82C506.48,-568.12 499.47,-572.7 494,-579 440.26,-640.87 470.81,-865.06 458,-946 440.6,-1055.97 408.36,-1185.35 395.26,-1236.05"/>
+<polygon fill="#000000" stroke="#000000" points="391.83,-1235.35 392.7,-1245.91 398.6,-1237.11 391.83,-1235.35"/>
+</g>
+<!-- sourcefile~discard_peri.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node60" class="node">
+<title>sourcefile~discard_peri.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node60"><a xlink:href=".././sourcefile/discard_peri.f90.html" xlink:title="discard_peri.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="257.5,-108 168.5,-108 168.5,-84 257.5,-84 257.5,-108"/>
+<text text-anchor="middle" x="213" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">discard_peri.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~discard_peri.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge59" class="edge">
+<title>sourcefile~discard_peri.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M168.42,-101.94C158.99,-105.08 149.81,-109.82 143,-117 96.06,-166.46 65.85,-381.87 57.12,-451.91"/>
+<polygon fill="#000000" stroke="#000000" points="53.64,-451.5 55.9,-461.86 60.59,-452.35 53.64,-451.5"/>
+</g>
+<!-- sourcefile~helio_lindrift_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node61" class="node">
+<title>sourcefile~helio_lindrift_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node61"><a xlink:href=".././sourcefile/helio_lindrift_tp.f90.html" xlink:title="helio_lindrift_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="633,-364 530,-364 530,-340 633,-340 633,-364"/>
+<text text-anchor="middle" x="581.5" y="-349.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_lindrift_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_lindrift_tp.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge60" class="edge">
+<title>sourcefile~helio_lindrift_tp.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M529.85,-356.42C517.08,-359.53 504.14,-364.65 494,-373 408.25,-443.59 496.31,-569.56 389.5,-600"/>
+</g>
+<!-- sourcefile~helio_lindrift_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge154" class="edge">
+<title>sourcefile~helio_lindrift_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M529.83,-353.59C516.28,-356.58 502.94,-362.34 494,-373 453.02,-421.89 466.87,-882.83 458,-946 442.53,-1056.26 409.19,-1185.47 395.53,-1236.1"/>
+<polygon fill="#000000" stroke="#000000" points="392.1,-1235.36 392.85,-1245.93 398.86,-1237.2 392.1,-1235.36"/>
+</g>
+<!-- sourcefile~symba_kick.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node62" class="node">
+<title>sourcefile~symba_kick.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node62"><a xlink:href=".././sourcefile/symba_kick.f90.html" xlink:title="symba_kick.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="624.5,-528 538.5,-528 538.5,-504 624.5,-504 624.5,-528"/>
+<text text-anchor="middle" x="581.5" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_kick.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_kick.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge61" class="edge">
+<title>sourcefile~symba_kick.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.33,-523.54C523.96,-526.81 508.01,-531.24 494,-537 443.85,-557.64 441.66,-585.14 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_kick.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge109" class="edge">
+<title>sourcefile~symba_kick.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.16,-516.29C522.03,-518.68 504.93,-524.39 494,-537 439.03,-600.43 511.94,-848.68 458,-913 437.7,-937.21 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_kick.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge155" class="edge">
+<title>sourcefile~symba_kick.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.11,-516.25C521.98,-518.63 504.88,-524.35 494,-537 434.51,-606.18 471.81,-855.81 458,-946 441.15,-1056.06 408.6,-1185.39 395.34,-1236.07"/>
+<polygon fill="#000000" stroke="#000000" points="391.9,-1235.35 392.74,-1245.91 398.67,-1237.14 391.9,-1235.35"/>
+</g>
+<!-- sourcefile~coord_vb2vh.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node63" class="node">
+<title>sourcefile~coord_vb2vh.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node63"><a xlink:href=".././sourcefile/coord_vb2vh.f90.html" xlink:title="coord_vb2vh.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="259,-66 167,-66 167,-42 259,-42 259,-66"/>
+<text text-anchor="middle" x="213" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">coord_vb2vh.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~coord_vb2vh.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge62" class="edge">
+<title>sourcefile~coord_vb2vh.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M166.86,-60.31C157.94,-63.45 149.38,-68.11 143,-75 91.08,-131.09 63.87,-375.36 56.55,-451.35"/>
+<polygon fill="#000000" stroke="#000000" points="53.03,-451.39 55.58,-461.68 60,-452.05 53.03,-451.39"/>
+</g>
+<!-- sourcefile~symba_reorder_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node64" class="node">
+<title>sourcefile~symba_reorder_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node64"><a xlink:href=".././sourcefile/symba_reorder_pl.f90.html" xlink:title="symba_reorder_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="640.5,-1814 522.5,-1814 522.5,-1790 640.5,-1790 640.5,-1814"/>
+<text text-anchor="middle" x="581.5" y="-1799.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_reorder_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_reorder_pl.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge63" class="edge">
+<title>sourcefile~symba_reorder_pl.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.06,-1792.47C512.33,-1789.59 502.62,-1785.85 494,-1781 436.63,-1748.69 454.04,-1662.99 389.5,-1676"/>
+</g>
+<!-- sourcefile~symba_reorder_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge110" class="edge">
+<title>sourcefile~symba_reorder_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.31,-1796.62C511.89,-1793.37 501.86,-1788.43 494,-1781 453.86,-1743.03 496.22,-1701.91 458,-1662 435.69,-1638.7 409.32,-1663.46 389.5,-1638"/>
+</g>
+<!-- sourcefile~symba_reorder_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge156" class="edge">
+<title>sourcefile~symba_reorder_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.36,-1798.27C511.54,-1794.94 501.35,-1789.56 494,-1781 433.96,-1711.12 487.15,-1455.39 458,-1368 446.55,-1333.67 422.45,-1299.06 406.11,-1278.07"/>
+<polygon fill="#000000" stroke="#000000" points="408.82,-1275.85 399.86,-1270.21 403.34,-1280.21 408.82,-1275.85"/>
+</g>
+<!-- sourcefile~obl_pot.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node65" class="node">
+<title>sourcefile~obl_pot.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node65"><a xlink:href=".././sourcefile/obl_pot.f90.html" xlink:title="obl_pot.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="246,-24 180,-24 180,0 246,0 246,-24"/>
+<text text-anchor="middle" x="213" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">obl_pot.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~obl_pot.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge64" class="edge">
+<title>sourcefile~obl_pot.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M179.65,-14.67C166.55,-17.39 152.34,-22.71 143,-33 85.88,-95.98 61.9,-370.9 56.01,-451.63"/>
+<polygon fill="#000000" stroke="#000000" points="52.51,-451.47 55.3,-461.69 59.5,-451.97 52.51,-451.47"/>
+</g>
+<!-- sourcefile~symba_casehitandrun.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node66" class="node">
+<title>sourcefile~symba_casehitandrun.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node66"><a xlink:href=".././sourcefile/symba_casehitandrun.f90.html" xlink:title="symba_casehitandrun.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="649.5,-654 513.5,-654 513.5,-630 649.5,-630 649.5,-654"/>
+<text text-anchor="middle" x="581.5" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_casehitandrun.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_casehitandrun.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge65" class="edge">
+<title>sourcefile~symba_casehitandrun.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M531.22,-629.95C476.95,-616.86 396.38,-598.04 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_casehitandrun.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge111" class="edge">
+<title>sourcefile~symba_casehitandrun.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M513.13,-649.61C505.92,-652.83 499.3,-657.17 494,-663 418.49,-746.06 532.16,-828.72 458,-913 437.13,-936.72 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_casehitandrun.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge157" class="edge">
+<title>sourcefile~symba_casehitandrun.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M513.46,-649.34C506.11,-652.59 499.36,-657.01 494,-663 451.74,-710.26 468.81,-883.53 458,-946 439.02,-1055.71 407.68,-1185.24 395.04,-1236.02"/>
+<polygon fill="#000000" stroke="#000000" points="391.6,-1235.34 392.57,-1245.89 398.39,-1237.03 391.6,-1235.34"/>
+</g>
+<!-- sourcefile~symba_step_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node67" class="node">
+<title>sourcefile~symba_step_helio.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node67"><a xlink:href=".././sourcefile/symba_step_helio.f90.html" xlink:title="symba_step_helio.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="640,-486 523,-486 523,-462 640,-462 640,-486"/>
+<text text-anchor="middle" x="581.5" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_step_helio.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_step_helio.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge48" class="edge">
+<title>sourcefile~symba_step_helio.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.97,-483.26C512.94,-486.17 502.89,-489.99 494,-495 436.63,-527.31 452.82,-581.96 389.5,-600"/>
+</g>
+<!-- sourcefile~symba_step_helio.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge112" class="edge">
+<title>sourcefile~symba_step_helio.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.8,-477.59C511.82,-480.91 501.45,-486.32 494,-495 433.28,-565.75 517.57,-841.28 458,-913 437.81,-937.3 412.45,-910.29 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_step_helio.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge159" class="edge">
+<title>sourcefile~symba_step_helio.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M522.76,-477.56C511.78,-480.87 501.42,-486.3 494,-495 461.38,-533.25 465.41,-896.28 458,-946 441.59,-1056.12 408.79,-1185.41 395.4,-1236.08"/>
+<polygon fill="#000000" stroke="#000000" points="391.97,-1235.36 392.78,-1245.92 398.73,-1237.16 391.97,-1235.36"/>
+</g>
+<!-- sourcefile~symba_merge_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node68" class="node">
+<title>sourcefile~symba_merge_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node68"><a xlink:href=".././sourcefile/symba_merge_tp.f90.html" xlink:title="symba_merge_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="638.5,-1310 524.5,-1310 524.5,-1286 638.5,-1286 638.5,-1310"/>
+<text text-anchor="middle" x="581.5" y="-1295.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_merge_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_merge_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge94" class="edge">
+<title>sourcefile~symba_merge_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.5,-1382C282.99,-1323.41 234.39,-1173.57 219.35,-1117.04"/>
+<polygon fill="#000000" stroke="#000000" points="222.65,-1115.84 216.78,-1107.03 215.87,-1117.58 222.65,-1115.84"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M524.33,-1309C514.06,-1311.74 503.58,-1315.06 494,-1319 443.85,-1339.64 436.8,-1408.52 389.5,-1382"/>
+</g>
+<!-- sourcefile~symba_merge_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge141" class="edge">
+<title>sourcefile~symba_merge_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M524.48,-1286.27C501.18,-1281.39 474.06,-1275.71 450.27,-1270.73"/>
+<polygon fill="#000000" stroke="#000000" points="450.8,-1267.26 440.3,-1268.64 449.37,-1274.11 450.8,-1267.26"/>
+</g>
+<!-- sourcefile~symba_discard_merge_pl.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node69" class="node">
+<title>sourcefile~symba_discard_merge_pl.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node69"><a xlink:href=".././sourcefile/symba_discard_merge_pl.f90.html" xlink:title="symba_discard_merge_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="658.5,-1070 504.5,-1070 504.5,-1046 658.5,-1046 658.5,-1070"/>
+<text text-anchor="middle" x="581.5" y="-1055.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard_merge_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_discard_merge_pl.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge81" class="edge">
+<title>sourcefile~symba_discard_merge_pl.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M514.33,-1045.99C507.25,-1043.53 500.33,-1040.56 494,-1037 436.63,-1004.69 437.33,-886.75 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_discard_merge_pl.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge127" class="edge">
+<title>sourcefile~symba_discard_merge_pl.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M519.54,-1070.05C510.41,-1073.58 501.55,-1078.13 494,-1084 441.85,-1124.56 410.03,-1199.04 396.74,-1236"/>
+<polygon fill="#000000" stroke="#000000" points="393.32,-1235.18 393.34,-1245.78 399.93,-1237.48 393.32,-1235.18"/>
+</g>
+<!-- sourcefile~helio_getacch_int.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node70" class="node">
+<title>sourcefile~helio_getacch_int.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node70"><a xlink:href=".././sourcefile/helio_getacch_int.f90.html" xlink:title="helio_getacch_int.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="445.5,-1602 331.5,-1602 331.5,-1578 445.5,-1578 445.5,-1602"/>
+<text text-anchor="middle" x="388.5" y="-1587.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_getacch_int.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_getacch_int.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge82" class="edge">
+<title>sourcefile~helio_getacch_int.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M337.66,-1577.93C330.63,-1574.41 324.08,-1569.86 319,-1564 259.18,-1494.98 224.88,-1200.99 216.2,-1117.31"/>
+<polygon fill="#000000" stroke="#000000" points="219.66,-1116.74 215.17,-1107.14 212.7,-1117.44 219.66,-1116.74"/>
+</g>
+<!-- sourcefile~symba_helio_getacch_int.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node71" class="node">
+<title>sourcefile~symba_helio_getacch_int.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node71"><a xlink:href=".././sourcefile/symba_helio_getacch_int.f90.html" xlink:title="symba_helio_getacch_int.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="657,-1028 506,-1028 506,-1004 657,-1004 657,-1028"/>
+<text text-anchor="middle" x="581.5" y="-1013.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_helio_getacch_int.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_helio_getacch_int.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge96" class="edge">
+<title>sourcefile~symba_helio_getacch_int.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M520.65,-1004C511.57,-1001.45 502.43,-998.47 494,-995 443.85,-974.36 428.89,-894.73 389.5,-932"/>
+</g>
+<!-- sourcefile~symba_helio_getacch_int.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge143" class="edge">
+<title>sourcefile~symba_helio_getacch_int.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M508.21,-1028.09C503.12,-1030.55 498.31,-1033.49 494,-1037 429.54,-1089.51 402.54,-1191.07 393.42,-1235.86"/>
+<polygon fill="#000000" stroke="#000000" points="389.93,-1235.48 391.47,-1245.96 396.8,-1236.8 389.93,-1235.48"/>
+</g>
+<!-- sourcefile~module_symba.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge107" class="edge">
+<title>sourcefile~module_symba.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.46,-1245.75C344.57,-1217.66 270.9,-1148.45 234.72,-1114.47"/>
+<polygon fill="#000000" stroke="#000000" points="236.88,-1111.69 227.19,-1107.39 232.08,-1116.79 236.88,-1111.69"/>
+</g>
+<!-- sourcefile~helio_user_getacch_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node73" class="node">
+<title>sourcefile~helio_user_getacch_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node73"><a xlink:href=".././sourcefile/helio_user_getacch_tp.f90.html" xlink:title="helio_user_getacch_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="458,-1522 319,-1522 319,-1498 458,-1498 458,-1522"/>
+<text text-anchor="middle" x="388.5" y="-1507.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_user_getacch_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_user_getacch_tp.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge74" class="edge">
+<title>sourcefile~helio_user_getacch_tp.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M338.23,-1497.91C331.04,-1494.39 324.29,-1489.85 319,-1484 220.45,-1375.16 212.92,-1183.29 213.4,-1117.71"/>
+<polygon fill="#000000" stroke="#000000" points="216.91,-1117.36 213.56,-1107.31 209.91,-1117.26 216.91,-1117.36"/>
+</g>
+<!-- sourcefile~helio_user_getacch.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node74" class="node">
+<title>sourcefile~helio_user_getacch.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node74"><a xlink:href=".././sourcefile/helio_user_getacch.f90.html" xlink:title="helio_user_getacch.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="450.5,-1434 326.5,-1434 326.5,-1410 450.5,-1410 450.5,-1434"/>
+<text text-anchor="middle" x="388.5" y="-1419.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_user_getacch.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_user_getacch.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge73" class="edge">
+<title>sourcefile~helio_user_getacch.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M339.28,-1409.91C331.8,-1406.38 324.68,-1401.83 319,-1396 240.27,-1315.11 220.34,-1172.06 215.49,-1117.24"/>
+<polygon fill="#000000" stroke="#000000" points="218.98,-1116.9 214.69,-1107.21 212,-1117.46 218.98,-1116.9"/>
+</g>
+<!-- sourcefile~symba_user_getacch.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node75" class="node">
+<title>sourcefile~symba_user_getacch.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node75"><a xlink:href=".././sourcefile/symba_user_getacch.f90.html" xlink:title="symba_user_getacch.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="648,-1150 515,-1150 515,-1126 648,-1126 648,-1150"/>
+<text text-anchor="middle" x="581.5" y="-1135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_user_getacch.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_user_getacch.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge158" class="edge">
+<title>sourcefile~symba_user_getacch.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M526.84,-1150.11C515.61,-1153.74 504.11,-1158.31 494,-1164 458.92,-1183.73 425.67,-1217.05 406.45,-1238.27"/>
+<polygon fill="#000000" stroke="#000000" points="403.82,-1235.95 399.79,-1245.75 409.05,-1240.6 403.82,-1235.95"/>
+</g>
+<!-- sourcefile~symba_user_getacch_tp.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_node76" class="node">
+<title>sourcefile~symba_user_getacch_tp.f90</title>
+<g id="a_sourcefile~~module_swiftest.f90~~AfferentGraph_node76"><a xlink:href=".././sourcefile/symba_user_getacch_tp.f90.html" xlink:title="symba_user_getacch_tp.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="655.5,-1230 507.5,-1230 507.5,-1206 655.5,-1206 655.5,-1230"/>
+<text text-anchor="middle" x="581.5" y="-1215.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_user_getacch_tp.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_user_getacch_tp.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~module_swiftest.f90~~AfferentGraph_edge147" class="edge">
+<title>sourcefile~symba_user_getacch_tp.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M523.19,-1230C500.12,-1234.83 473.48,-1240.41 450.09,-1245.31"/>
+<polygon fill="#000000" stroke="#000000" points="449.35,-1241.89 440.28,-1247.37 450.78,-1248.74 449.35,-1241.89"/>
+</g>
+</g>
+</svg>
+</div><script>var pansourcefilemodule_swiftestf90AfferentGraph = svgPanZoom('#sourcefilemodule_swiftestf90AfferentGraph', {zoomEnabled: true,controlIconsEnabled: true, fit: true, center: true,}); </script><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="190pt" height="32pt"
+ viewBox="0.00 0.00 190.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 186,-28 186,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="67,-24 0,-24 0,0 67,0 67,-24"/>
+<text text-anchor="middle" x="33.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="182,-24 85,-24 85,0 182,0 182,-24"/>
+<text text-anchor="middle" x="133.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a file to a file which it depends on. A file
+    is dependent upon another if the latter must be compiled before the former
+    can be.
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+      
+      <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#mods-1">Modules</a></h3></div>
+  <div id="mods-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/module_swiftest.html">module_swiftest</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/module_swiftest.f90.html#src">module_swiftest.f90</a>
+  </div>
+</div>
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    <section>
+      <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl"><pre><span></span><a name="ln-1"></a>                               <span class="c">!**********************************************************************************************************************************</span>
+<a name="ln-2"></a><span class="c">!</span>
+<a name="ln-3"></a><span class="c">!  Unit Name   : module_swiftest</span>
+<a name="ln-4"></a><span class="c">!  Unit Type   : module</span>
+<a name="ln-5"></a><span class="c">!  Project     : SWIFTEST</span>
+<a name="ln-6"></a><span class="c">!  Package     : module</span>
+<a name="ln-7"></a><span class="c">!  Language    : Fortran 2003 </span>
+<a name="ln-8"></a><span class="c">!</span>
+<a name="ln-9"></a><span class="c">!  Description : Definition of data and structures generic to all integrators</span>
+<a name="ln-10"></a><span class="c">!</span>
+<a name="ln-11"></a><span class="c">!  Input</span>
+<a name="ln-12"></a><span class="c">!    Arguments : N/A</span>
+<a name="ln-13"></a><span class="c">!    Terminal  : N/A</span>
+<a name="ln-14"></a><span class="c">!    File      : N/A</span>
+<a name="ln-15"></a><span class="c">!</span>
+<a name="ln-16"></a><span class="c">!  Output</span>
+<a name="ln-17"></a><span class="c">!    Arguments : N/A</span>
+<a name="ln-18"></a><span class="c">!    Terminal  : N/A</span>
+<a name="ln-19"></a><span class="c">!    File      : N/A</span>
+<a name="ln-20"></a><span class="c">!</span>
+<a name="ln-21"></a><span class="c">!  Invocation  : N/A</span>
+<a name="ln-22"></a><span class="c">!</span>
+<a name="ln-23"></a><span class="c">!  Notes       : </span>
+<a name="ln-24"></a><span class="c">!</span>
+<a name="ln-25"></a><span class="c">!**********************************************************************************************************************************</span>
+<a name="ln-26"></a><span class="c">!</span>
+<a name="ln-27"></a><span class="c">!  Author(s)   : David A. Minton</span>
+<a name="ln-28"></a><span class="c">!</span>
+<a name="ln-29"></a><span class="c">!**********************************************************************************************************************************</span>
+<a name="ln-30"></a><span class="k">module </span><span class="n">module_swiftest</span>
+<a name="ln-31"></a>
+<a name="ln-32"></a>   <span class="k">use </span><span class="n">module_parameters</span> 
+<a name="ln-33"></a>   <span class="k">implicit none</span>
+<a name="ln-34"></a>
+<a name="ln-35"></a>
+<a name="ln-36"></a>   
+<a name="ln-37"></a>   <span class="c">!integer(I4B), parameter :: NENMAX = 32767</span>
+<a name="ln-38"></a>   <span class="c">!integer(I4B), parameter :: NTENC = 3</span>
+<a name="ln-39"></a>   <span class="c">!real(DP), parameter     :: RHSCALE = 6.5_DP</span>
+<a name="ln-40"></a>   <span class="c">!real(DP), parameter     :: RSHELL = 0.48075_DP</span>
+<a name="ln-41"></a>
+<a name="ln-42"></a>   <span class="k">type </span><span class="n">swiftest_pl</span>
+<a name="ln-43"></a>       <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">name</span>     <span class="c">! external identifier (hash)</span>
+<a name="ln-44"></a>       <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">status</span> <span class="c">! status</span>
+<a name="ln-45"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">mass</span>   <span class="c">! mass</span>
+<a name="ln-46"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">radius</span> <span class="c">! radius</span>
+<a name="ln-47"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">rhill</span>  <span class="c">! hill&#39;s sphere radius</span>
+<a name="ln-48"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:,:),</span>   <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">xh</span>     <span class="c">! heliocentric position</span>
+<a name="ln-49"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:,:),</span>   <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">vh</span>     <span class="c">! heliocentric velocity</span>
+<a name="ln-50"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:,:),</span>   <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">xb</span>     <span class="c">! barycentric position</span>
+<a name="ln-51"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:,:),</span>   <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">vb</span>     <span class="c">! barycentric velocity</span>
+<a name="ln-52"></a>   <span class="k">end type </span><span class="n">swiftest_pl</span>
+<a name="ln-53"></a>
+<a name="ln-54"></a>   <span class="k">type </span><span class="n">swiftest_tp</span>
+<a name="ln-55"></a>       <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">name</span>     <span class="c">! external identifier (hash)</span>
+<a name="ln-56"></a>       <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">status</span> <span class="c">! status</span>
+<a name="ln-57"></a>       <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">isperi</span> <span class="c">! perihelion passage flag</span>
+<a name="ln-58"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">peri</span>   <span class="c">! perihelion distance</span>
+<a name="ln-59"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:),</span>     <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">atp</span>    <span class="c">! semimajor axis following perihelion passage</span>
+<a name="ln-60"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:,:),</span>   <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">xh</span>     <span class="c">! heliocentric position</span>
+<a name="ln-61"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:,:),</span>   <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">vh</span>     <span class="c">! heliocentric velocity</span>
+<a name="ln-62"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:,:),</span>   <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">xb</span>     <span class="c">! barycentric position</span>
+<a name="ln-63"></a>       <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(:,:),</span>   <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">vb</span>     <span class="c">! barycentric velocity</span>
+<a name="ln-64"></a>   <span class="k">end type </span><span class="n">swiftest_tp</span>
+<a name="ln-65"></a>
+<a name="ln-66"></a><span class="k">end module </span><span class="n">module_swiftest</span>
+</pre></div>
+
+    </section>
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2020 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>

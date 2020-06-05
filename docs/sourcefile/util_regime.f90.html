@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>util_regime.f90 &ndash; swiftest</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../lists/programs.html">Programs</a></li>
+        
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/programs.html">Programs</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>util_regime.f90
+    <small>Source File</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 1.3% of total for source files.">105 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/util_regime.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+  
+     <li class="active">util_regime.f90</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#subs-0">Subroutines</a></h3></div>
+  <div class="list-group">
+    <div id="subs-0" class="panel-collapse collapse">
+      
+      <a class="list-group-item" href="../proc/util_regime.html">util_regime</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/util_regime.f90.html#src">util_regime.f90</a>
+  </div>
+</div>
+
+
+
+</div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      <hr>
+<p>Unit Name   : util_regime
+  Unit Type   : subroutine
+  Project     : Swiftest
+  Package     : util
+  Language    : Fortran 90/95</p>
+<p>Description : Index input real array into ascending numerical order using Quicksort algorithm</p>
+<p>Input
+    Arguments : arr   : array to index
+    Terminal  : none
+    File      : none</p>
+<p>Output
+    Arguments : index : index table for sorted array
+    Terminal  : error message
+    File      : none</p>
+<p>Invocation  : CALL util_regime(symba_plA, index1, index2)</p>
+<p>Notes       : Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,
+                Vetterling, and Flannery, 2nd ed., pp. 1173-4</p>
+<hr>
+<hr>
+<p>Author(s)   : C.Wishard and J.Pouplin</p>
+<p>Revision Control System (RCS) Information</p>
+<p>Source File : $RCSfile$
+  Full Path   : $Source$
+  Revision    : $Revision$
+  Date        : $Date$
+  Programmer  : $Author$
+  Locked By   : $Locker$
+  State       : $State$</p>
+<p>Modification History:</p>
+<p>$Log$</p>
+<hr>
+      <br>
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">This file depends on</h3>
+      </div>
+      <div class="panel-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: sourcefile~~util_regime.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefileutil_regimef90EfferentGraph" width="641pt" height="173pt"
+ viewBox="0.00 0.00 641.00 173.47" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~util_regime.f90~~EfferentGraph" class="graph" transform="scale(0.77 0.77) rotate(0) translate(4 220.88)">
+<title>sourcefile~~util_regime.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-220.88 827,-220.88 827,4 -4,4"/>
+<!-- sourcefile~util_regime.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~util_regime.f90</title>
+<polygon fill="none" stroke="black" points="823,-99.92 740,-99.92 740,-75.92 823,-75.92 823,-99.92"/>
+<text text-anchor="middle" x="781.5" y="-85.52" font-family="Helvetica,sans-Serif" font-size="10.50">util_regime.f90</text>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~module_swiftestalloc.f90</title>
+<g id="a_sourcefile~~util_regime.f90~~EfferentGraph_node2"><a xlink:href=".././sourcefile/module_swiftestalloc.f90.html" xlink:title="module_swiftestalloc.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="704,-59.92 575,-59.92 575,-35.92 704,-35.92 704,-59.92"/>
+<text text-anchor="middle" x="639.5" y="-45.52" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_swiftestalloc.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_swiftestalloc.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_swiftestalloc.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M739.63,-76.25C724.93,-72.05 708.15,-67.25 692.62,-62.82"/>
+<polygon fill="#000000" stroke="#000000" points="693.21,-59.35 682.64,-59.96 691.29,-66.08 693.21,-59.35"/>
+</g>
+<!-- sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~module_parameters.f90</title>
+<g id="a_sourcefile~~util_regime.f90~~EfferentGraph_node3"><a xlink:href=".././sourcefile/module_parameters.f90.html" xlink:title="module_parameters.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="127,-60.92 0,-60.92 0,-36.92 127,-36.92 127,-60.92"/>
+<text text-anchor="middle" x="63.5" y="-46.52" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_parameters.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_parameters.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M638.5,-208.92C514.86,-236.85 480.39,-179.27 354,-188.92"/>
+</g>
+<!-- sourcefile~module_nrutil.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_node4" class="node">
+<title>sourcefile~module_nrutil.f90</title>
+<g id="a_sourcefile~~util_regime.f90~~EfferentGraph_node4"><a xlink:href=".././sourcefile/module_nrutil.f90.html" xlink:title="module_nrutil.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="535,-180.92 440,-180.92 440,-156.92 535,-156.92 535,-180.92"/>
+<text text-anchor="middle" x="487.5" y="-166.52" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_nrutil.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_nrutil.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_nrutil.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M638.5,-208.92C596.51,-218.41 548.53,-200.49 518.38,-185.67"/>
+<polygon fill="#000000" stroke="#000000" points="519.74,-182.43 509.24,-181 516.56,-188.67 519.74,-182.43"/>
+</g>
+<!-- sourcefile~module_interfaces.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_node5" class="node">
+<title>sourcefile~module_interfaces.f90</title>
+<g id="a_sourcefile~~util_regime.f90~~EfferentGraph_node5"><a xlink:href=".././sourcefile/module_interfaces.f90.html" xlink:title="module_interfaces.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="698.5,-139.92 580.5,-139.92 580.5,-115.92 698.5,-115.92 698.5,-139.92"/>
+<text text-anchor="middle" x="639.5" y="-125.52" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_interfaces.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_interfaces.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge4" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_interfaces.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M739.63,-99.6C724.93,-103.8 708.15,-108.6 692.62,-113.03"/>
+<polygon fill="#000000" stroke="#000000" points="691.29,-109.77 682.64,-115.89 693.21,-116.5 691.29,-109.77"/>
+</g>
+<!-- sourcefile~module_symba.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_node6" class="node">
+<title>sourcefile~module_symba.f90</title>
+<g id="a_sourcefile~~util_regime.f90~~EfferentGraph_node6"><a xlink:href=".././sourcefile/module_symba.f90.html" xlink:title="module_symba.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="539,-138.92 436,-138.92 436,-114.92 539,-114.92 539,-138.92"/>
+<text text-anchor="middle" x="487.5" y="-124.52" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_symba.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge5" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M638.5,-208.92C587.9,-220.35 585.2,-171.51 539,-147.92 535.72,-146.25 532.28,-144.6 528.79,-143.01"/>
+<polygon fill="#000000" stroke="#000000" points="530.12,-139.77 519.56,-138.94 527.3,-146.18 530.12,-139.77"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M772.61,-100.31C753.87,-128.22 703.49,-194.7 640.5,-208.92"/>
+</g>
+<!-- sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_node7" class="node">
+<title>sourcefile~module_swiftest.f90</title>
+<g id="a_sourcefile~~util_regime.f90~~EfferentGraph_node7"><a xlink:href=".././sourcefile/module_swiftest.f90.html" xlink:title="module_swiftest.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="270,-60.92 163,-60.92 163,-36.92 270,-36.92 270,-60.92"/>
+<text text-anchor="middle" x="216.5" y="-46.52" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_swiftest.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge6" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M770.34,-75.91C756.92,-61.07 731.74,-36.63 704,-26.92 553.24,25.83 360.05,-11.26 269.15,-34.32"/>
+<polygon fill="#000000" stroke="#000000" points="268.18,-30.96 259.37,-36.85 269.93,-37.73 268.18,-30.96"/>
+</g>
+<!-- sourcefile~module_helio.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_node8" class="node">
+<title>sourcefile~module_helio.f90</title>
+<g id="a_sourcefile~~util_regime.f90~~EfferentGraph_node8"><a xlink:href=".././sourcefile/module_helio.f90.html" xlink:title="module_helio.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="400,-100.92 306,-100.92 306,-76.92 400,-76.92 400,-100.92"/>
+<text text-anchor="middle" x="353" y="-86.52" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_helio.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_regime.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge7" class="edge">
+<title>sourcefile~util_regime.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M739.99,-88.02C663.56,-88.2 497.94,-88.59 410.58,-88.79"/>
+<polygon fill="#000000" stroke="#000000" points="410.32,-85.29 400.32,-88.82 410.33,-92.29 410.32,-85.29"/>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge8" class="edge">
+<title>sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_parameters.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M486.5,-48.92C427.79,-53.46 412.73,-53.2 354,-48.92"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M352,-48.92C314.48,-46.19 307.33,-32.63 270,-27.92 222.82,-21.98 210.29,-22.94 163,-27.92 149.42,-29.36 134.96,-31.87 121.42,-34.67"/>
+<polygon fill="#000000" stroke="#000000" points="120.31,-31.33 111.27,-36.85 121.79,-38.17 120.31,-31.33"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M574.92,-46.37C548.2,-46.23 516.8,-46.74 488.5,-48.92"/>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_symba.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge9" class="edge">
+<title>sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_symba.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M615.39,-60.09C589.99,-73.47 549.02,-95.05 520.53,-110.05"/>
+<polygon fill="#000000" stroke="#000000" points="518.61,-107.11 511.39,-114.87 521.87,-113.31 518.61,-107.11"/>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge11" class="edge">
+<title>sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M352,-48.92C328.67,-47.22 303.01,-46.85 280.41,-47.03"/>
+<polygon fill="#000000" stroke="#000000" points="280.22,-43.54 270.26,-47.15 280.3,-50.54 280.22,-43.54"/>
+</g>
+<!-- sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge10" class="edge">
+<title>sourcefile~module_swiftestalloc.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M486.5,-48.92C453.15,-51.5 416.89,-63.1 390.74,-73.15"/>
+<polygon fill="#000000" stroke="#000000" points="389.26,-69.98 381.25,-76.91 391.83,-76.49 389.26,-69.98"/>
+</g>
+<!-- sourcefile~module_nrutil.f90&#45;&gt;sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge12" class="edge">
+<title>sourcefile~module_nrutil.f90&#45;&gt;sourcefile~module_parameters.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M439.78,-177.69C414.49,-182 382.65,-186.74 354,-188.92"/>
+</g>
+<!-- sourcefile~module_symba.f90&#45;&gt;sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge13" class="edge">
+<title>sourcefile~module_symba.f90&#45;&gt;sourcefile~module_parameters.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M456.44,-139.02C449.68,-141.85 442.56,-144.92 436,-147.92 398.94,-164.87 394.63,-185.82 354,-188.92"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M352,-188.92C292.4,-193.48 276.15,-200.51 217.5,-188.92"/>
+</g>
+<!-- sourcefile~module_symba.f90&#45;&gt;sourcefile~module_helio.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge14" class="edge">
+<title>sourcefile~module_symba.f90&#45;&gt;sourcefile~module_helio.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M444.58,-114.9C432.25,-111.37 418.62,-107.46 405.76,-103.77"/>
+<polygon fill="#000000" stroke="#000000" points="406.68,-100.39 396.11,-101 404.75,-107.12 406.68,-100.39"/>
+</g>
+<!-- sourcefile~module_swiftest.f90&#45;&gt;sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge15" class="edge">
+<title>sourcefile~module_swiftest.f90&#45;&gt;sourcefile~module_parameters.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M162.69,-48.92C154.44,-48.92 145.78,-48.92 137.18,-48.92"/>
+<polygon fill="#000000" stroke="#000000" points="137.13,-45.42 127.13,-48.92 137.13,-52.42 137.13,-45.42"/>
+</g>
+<!-- sourcefile~module_helio.f90&#45;&gt;sourcefile~module_parameters.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge16" class="edge">
+<title>sourcefile~module_helio.f90&#45;&gt;sourcefile~module_parameters.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M215.5,-188.92C149.18,-175.83 98.45,-105.69 76.46,-69.93"/>
+<polygon fill="#000000" stroke="#000000" points="79.4,-68.02 71.26,-61.23 73.39,-71.61 79.4,-68.02"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M344.81,-101.05C326.57,-130.1 275.73,-200.42 217.5,-188.92"/>
+</g>
+<!-- sourcefile~module_helio.f90&#45;&gt;sourcefile~module_swiftest.f90 -->
+<g id="sourcefile~~util_regime.f90~~EfferentGraph_edge17" class="edge">
+<title>sourcefile~module_helio.f90&#45;&gt;sourcefile~module_swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M311.65,-76.92C297.94,-72.85 282.45,-68.24 268.05,-63.96"/>
+<polygon fill="#000000" stroke="#000000" points="268.87,-60.55 258.29,-61.06 266.88,-67.26 268.87,-60.55"/>
+</g>
+</g>
+</svg>
+</div><script>var pansourcefileutil_regimef90EfferentGraph = svgPanZoom('#sourcefileutil_regimef90EfferentGraph', {zoomEnabled: true,controlIconsEnabled: true, fit: true, center: true,}); </script><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="190pt" height="32pt"
+ viewBox="0.00 0.00 190.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 186,-28 186,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="67,-24 0,-24 0,0 67,0 67,-24"/>
+<text text-anchor="middle" x="33.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="182,-24 85,-24 85,0 182,0 182,-24"/>
+<text text-anchor="middle" x="133.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a file to a file which it depends on. A file
+    is dependent upon another if the latter must be compiled before the former
+    can be.
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+    
+      
+      <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#subs-1">Subroutines</a></h3></div>
+  <div class="list-group">
+    <div id="subs-1" class="panel-collapse collapse">
+      
+      <a class="list-group-item" href="../proc/util_regime.html">util_regime</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/util_regime.f90.html#src">util_regime.f90</a>
+  </div>
+</div>
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    <section>
+      <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl"><pre><span></span><a name="ln-1"></a><span class="c">!**********************************************************************************************************************************</span>
+<a name="ln-2"></a><span class="c">!</span>
+<a name="ln-3"></a><span class="c">!  Unit Name   : util_regime</span>
+<a name="ln-4"></a><span class="c">!  Unit Type   : subroutine</span>
+<a name="ln-5"></a><span class="c">!  Project     : Swiftest</span>
+<a name="ln-6"></a><span class="c">!  Package     : util</span>
+<a name="ln-7"></a><span class="c">!  Language    : Fortran 90/95</span>
+<a name="ln-8"></a><span class="c">!</span>
+<a name="ln-9"></a><span class="c">!  Description : Index input real array into ascending numerical order using Quicksort algorithm</span>
+<a name="ln-10"></a><span class="c">!</span>
+<a name="ln-11"></a><span class="c">!  Input</span>
+<a name="ln-12"></a><span class="c">!    Arguments : arr   : array to index</span>
+<a name="ln-13"></a><span class="c">!    Terminal  : none</span>
+<a name="ln-14"></a><span class="c">!    File      : none</span>
+<a name="ln-15"></a><span class="c">!</span>
+<a name="ln-16"></a><span class="c">!  Output</span>
+<a name="ln-17"></a><span class="c">!    Arguments : index : index table for sorted array</span>
+<a name="ln-18"></a><span class="c">!    Terminal  : error message</span>
+<a name="ln-19"></a><span class="c">!    File      : none</span>
+<a name="ln-20"></a><span class="c">!</span>
+<a name="ln-21"></a><span class="c">!  Invocation  : CALL util_regime(symba_plA, index1, index2)</span>
+<a name="ln-22"></a><span class="c">!</span>
+<a name="ln-23"></a><span class="c">!  Notes       : Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,</span>
+<a name="ln-24"></a><span class="c">!                Vetterling, and Flannery, 2nd ed., pp. 1173-4</span>
+<a name="ln-25"></a><span class="c">!</span>
+<a name="ln-26"></a><span class="c">!**********************************************************************************************************************************</span>
+<a name="ln-27"></a><span class="k">SUBROUTINE </span><span class="n">util_regime</span><span class="p">(</span><span class="n">symba_plA</span><span class="p">,</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">)</span>
+<a name="ln-28"></a>
+<a name="ln-29"></a><span class="c">! Modules</span>
+<a name="ln-30"></a>     <span class="k">USE </span><span class="n">module_parameters</span>
+<a name="ln-31"></a>     <span class="k">USE </span><span class="n">module_symba</span>
+<a name="ln-32"></a>     <span class="k">USE </span><span class="n">module_swiftest</span>
+<a name="ln-33"></a>     <span class="k">USE </span><span class="n">module_helio</span>
+<a name="ln-34"></a>     <span class="k">USE </span><span class="n">module_nrutil</span>
+<a name="ln-35"></a>     <span class="k">USE </span><span class="n">module_swiftestalloc</span>
+<a name="ln-36"></a>     <span class="k">USE </span><span class="n">module_interfaces</span><span class="p">,</span> <span class="n">EXCEPT_THIS_ONE</span> <span class="o">=&gt;</span> <span class="n">util_resize_pl</span>
+<a name="ln-37"></a>     <span class="k">IMPLICIT NONE</span>
+<a name="ln-38"></a>
+<a name="ln-39"></a><span class="c">! Arguments</span>
+<a name="ln-40"></a>     <span class="k">TYPE</span><span class="p">(</span><span class="n">symba_pl</span><span class="p">),</span> <span class="k">INTENT</span><span class="p">(</span><span class="n">INOUT</span><span class="p">)</span> <span class="kd">::</span> <span class="n">symba_plA</span>
+<a name="ln-41"></a>     <span class="kt">INTEGER</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">INTENT</span><span class="p">(</span><span class="n">IN</span><span class="p">)</span>      <span class="kd">::</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index2</span>
+<a name="ln-42"></a>
+<a name="ln-43"></a><span class="c">! Internals</span>
+<a name="ln-44"></a>     <span class="k">TYPE</span><span class="p">(</span><span class="n">symba_pl</span><span class="p">)</span>                <span class="kd">::</span> 
+<a name="ln-45"></a>     <span class="kt">REAL</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                      <span class="kd">::</span> <span class="n">GU</span><span class="p">,</span> <span class="n">m1</span><span class="p">,</span><span class="n">m2</span><span class="p">,</span><span class="n">rad1</span><span class="p">,</span><span class="n">rad2</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">mu</span><span class="p">,</span><span class="n">Vescp</span><span class="p">,</span><span class="n">V_pstar</span><span class="p">,</span> <span class="n">Rp</span><span class="p">,</span> <span class="n">mtot</span>
+<a name="ln-46"></a>     <span class="kt">REAL</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                      <span class="kd">::</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">QRD_pstar</span><span class="p">,</span> <span class="n">QR</span><span class="p">,</span> <span class="n">QR_supercat</span><span class="p">,</span> <span class="n">QRD_lr</span><span class="p">,</span> <span class="n">V_lr</span><span class="p">,</span> <span class="n">vimp</span><span class="p">,</span> <span class="n">bcrit</span>
+<a name="ln-47"></a>     <span class="kt">REAL</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                      <span class="kd">::</span> <span class="n">Vcr</span><span class="p">,</span> <span class="n">V_supercat</span><span class="p">,</span> <span class="n">Vescp</span><span class="p">,</span> <span class="n">Mlr</span><span class="p">,</span> <span class="n">Mint</span><span class="p">,</span> <span class="n">Lint</span><span class="p">,</span> <span class="nb">Aint</span><span class="p">,</span> <span class="n">fgamma</span><span class="p">,</span> <span class="n">theta</span>
+<a name="ln-48"></a>     <span class="kt">REAL</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                      <span class="kd">::</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span><span class="n">c3</span><span class="p">,</span><span class="n">c4</span><span class="p">,</span><span class="n">c5</span><span class="p">,</span> <span class="n">rho1</span><span class="p">,</span> <span class="n">rho2</span> 
+<a name="ln-49"></a>     <span class="kt">REAL</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">DIMENSION</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>     <span class="kd">::</span> <span class="n">xh1</span><span class="p">,</span><span class="n">xh2</span><span class="p">,</span><span class="n">vh1</span><span class="p">,</span><span class="n">vh2</span>
+<a name="ln-50"></a><span class="c">! Constants</span>
+<a name="ln-51"></a>     <span class="n">density1</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c">![kg/m3]</span>
+<a name="ln-52"></a>     <span class="n">G</span> <span class="o">=</span> <span class="mf">6.674e-11</span> <span class="c">!Gravitational constant [Nm2/kg2]</span>
+<a name="ln-53"></a>     <span class="n">c_star</span> <span class="o">=</span> <span class="mf">1.8</span><span class="c">!3.0 #3.0# #5#1.8 #1.8 #Measure of dissipation of energy within the target (Chambers frag.f90)</span>
+<a name="ln-54"></a>     <span class="n">mu_bar</span> <span class="o">=</span> <span class="mf">0.37</span><span class="c">!0.385#0.37#0.3333# 3.978 # 1/3 material parameter for hydrodynamic planet-size bodies (LS12)</span>
+<a name="ln-55"></a>     <span class="n">beta</span> <span class="o">=</span> <span class="mf">2.85</span> <span class="c">!slope of SFD for remnants from LS12 2.85</span>
+<a name="ln-56"></a>     <span class="n">N1</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c">!number of objects with mass equal to the largest remnant from LS12</span>
+<a name="ln-57"></a>     <span class="n">N2</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c">!number of objects with mass larger than second largest remnant from LS12</span>
+<a name="ln-58"></a>     <span class="n">N1g</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c">!number of objects with mass equal to the largest remnant from LS12 if Mp = Mtarg</span>
+<a name="ln-59"></a>     <span class="n">N2g</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c">!number of objects with mass larger than second largest remnant from LS12 if Mp = Mtarg</span>
+<a name="ln-60"></a>     <span class="n">c1</span> <span class="o">=</span> <span class="mf">2.43</span>
+<a name="ln-61"></a>     <span class="n">c2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.0408</span>
+<a name="ln-62"></a>     <span class="n">c3</span> <span class="o">=</span> <span class="mf">1.86</span>
+<a name="ln-63"></a>     <span class="n">c4</span> <span class="o">=</span> <span class="mf">1.08</span>
+<a name="ln-64"></a>     <span class="n">c5</span> <span class="o">=</span> <span class="mi">5</span><span class="o">/</span><span class="mi">2</span>
+<a name="ln-65"></a><span class="c">! Executable code</span>
+<a name="ln-66"></a>     <span class="n">GU</span> <span class="o">=</span> <span class="n">GC</span> <span class="o">*</span> 
+<a name="ln-67"></a>     <span class="n">m1</span> <span class="o">=</span> <span class="n">symba_pl</span><span class="p">%</span><span class="n">helio</span><span class="p">%</span><span class="n">swiftest</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">index1</span><span class="p">)</span><span class="o">/</span><span class="n">GU</span>
+<a name="ln-68"></a>     <span class="n">m2</span> <span class="o">=</span> <span class="n">symba_pl</span><span class="p">%</span><span class="n">helio</span><span class="p">%</span><span class="n">swiftest</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">index2</span><span class="p">)</span><span class="o">/</span><span class="n">GU</span>
+<a name="ln-69"></a>     <span class="n">xh1</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">symba_pl</span><span class="p">%</span><span class="n">helio</span><span class="p">%</span><span class="n">swiftest</span><span class="p">%</span><span class="n">xh</span><span class="p">(:,</span><span class="n">index1</span><span class="p">)</span>
+<a name="ln-70"></a>     <span class="n">xh2</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">symba_pl</span><span class="p">%</span><span class="n">helio</span><span class="p">%</span><span class="n">swiftest</span><span class="p">%</span><span class="n">xh</span><span class="p">(:,</span><span class="n">index2</span><span class="p">)</span>
+<a name="ln-71"></a>     <span class="n">vh1</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">symba_pl</span><span class="p">%</span><span class="n">helio</span><span class="p">%</span><span class="n">swiftest</span><span class="p">%</span><span class="n">vh</span><span class="p">(:,</span><span class="n">index1</span><span class="p">)</span>
+<a name="ln-72"></a>     <span class="n">vh2</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">symba_pl</span><span class="p">%</span><span class="n">helio</span><span class="p">%</span><span class="n">swiftest</span><span class="p">%</span><span class="n">vh</span><span class="p">(:,</span><span class="n">index2</span><span class="p">)</span>
+<a name="ln-73"></a>     <span class="n">vimp</span> <span class="o">=</span> <span class="nb">NORM2</span><span class="p">(</span><span class="n">vh2</span><span class="p">(:)</span> <span class="o">-</span> <span class="n">vh1</span><span class="p">(:))</span>
+<a name="ln-74"></a>     <span class="n">rad1</span> <span class="o">=</span> <span class="n">symba_pl</span><span class="p">%</span><span class="n">helio</span><span class="p">%</span><span class="n">swiftest</span><span class="p">%</span><span class="n">radius</span><span class="p">(</span><span class="n">index1</span><span class="p">)</span>
+<a name="ln-75"></a>     <span class="n">rad2</span> <span class="o">=</span> <span class="n">symba_pl</span><span class="p">%</span><span class="n">helio</span><span class="p">%</span><span class="n">swiftest</span><span class="p">%</span><span class="n">radius</span><span class="p">(</span><span class="n">index2</span><span class="p">)</span>
+<a name="ln-76"></a>     <span class="n">b</span> <span class="o">=</span> 
+<a name="ln-77"></a>     <span class="n">l</span> <span class="o">=</span> <span class="p">(</span><span class="n">rad1</span> <span class="o">+</span> <span class="n">rad2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">b</span><span class="p">)</span>
+<a name="ln-78"></a>     <span class="k">IF</span> <span class="p">(</span><span class="n">l</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">*</span><span class="n">rad2</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-79"></a><span class="k">          </span><span class="n">alpha</span> <span class="o">=</span> <span class="p">(</span><span class="n">l</span><span class="o">**</span><span class="mf">2.0_DP</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">rad2</span><span class="o">-</span><span class="n">l</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="n">rad2</span><span class="o">**</span><span class="mf">3.0_DP</span><span class="p">))</span>
+<a name="ln-80"></a>     <span class="k">ELSE</span>
+<a name="ln-81"></a><span class="k">          </span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.0_DP</span>
+<a name="ln-82"></a>     <span class="k">END IF </span>
+<a name="ln-83"></a>
+<a name="ln-84"></a><span class="k">     </span><span class="n">mtot</span> <span class="o">=</span> <span class="n">m1</span> <span class="o">+</span> <span class="n">m2</span> 
+<a name="ln-85"></a>     <span class="n">Rp</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">m1</span><span class="o">+</span><span class="n">alpha</span><span class="o">*</span><span class="n">m2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">4.0_DP</span> <span class="o">*</span> <span class="n">PI</span> <span class="o">*</span> <span class="n">rho1</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">1.0_DP</span><span class="o">/</span><span class="mf">3.0_DP</span><span class="p">))</span>
+<a name="ln-86"></a>     
+<a name="ln-87"></a>     <span class="n">Vescp</span> <span class="o">=</span> <span class="nb">SQRT</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">GU</span><span class="o">*</span><span class="n">mtot</span><span class="o">/</span><span class="p">(</span><span class="n">rad1</span><span class="o">+</span><span class="n">rad2</span><span class="p">))</span>
+<a name="ln-88"></a>     <span class="n">QRD_pstar</span> <span class="o">=</span> 
+<a name="ln-89"></a>     <span class="n">V_pstar</span> <span class="o">=</span> 
+<a name="ln-90"></a>     <span class="n">mu</span> <span class="o">=</span> <span class="p">(</span><span class="n">m1</span><span class="o">*</span><span class="n">m2</span><span class="p">)</span><span class="o">/</span><span class="n">mtot</span>
+<a name="ln-91"></a>     <span class="n">QR</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">mu</span><span class="o">*</span><span class="p">(</span><span class="n">vimp</span><span class="o">**</span><span class="mf">2.0_DP</span><span class="p">)</span><span class="o">/</span><span class="n">mtot</span>
+<a name="ln-92"></a>     <span class="n">Mlr</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0_DP</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">QR</span> <span class="o">/</span> <span class="n">QRD_pstar</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">mtot</span><span class="p">)</span>  <span class="c">! [kg] #(Eq 5)</span>
+<a name="ln-93"></a>     <span class="n">Phi</span> <span class="o">=</span> <span class="mf">2.</span><span class="n">o_DP</span> <span class="o">*</span> <span class="nb">ACOS</span><span class="p">((</span><span class="n">l</span> <span class="o">-</span> <span class="n">Rp</span><span class="p">)</span> <span class="o">/</span> <span class="n">Rp</span><span class="p">)</span>
+<a name="ln-94"></a>     <span class="nb">Aint</span> <span class="o">=</span> <span class="p">(</span><span class="n">Rp</span> <span class="o">**</span> <span class="mf">2.0_DP</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">PI</span> <span class="o">-</span> <span class="p">(</span><span class="n">Phi</span> <span class="o">-</span> <span class="nb">sin</span><span class="p">(</span><span class="n">Phi</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0_DP</span><span class="p">)</span>
+<a name="ln-95"></a>     <span class="n">Lint</span> <span class="o">=</span> <span class="mf">2.0_DP</span> <span class="o">*</span> <span class="p">(</span><span class="n">Rtarg</span> <span class="o">**</span> <span class="mf">2.0_DP</span> <span class="o">-</span> <span class="p">(</span><span class="n">Rtarg</span> <span class="o">-</span> <span class="n">l</span> <span class="o">/</span> <span class="mf">2.0_DP</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0_DP</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.0_DP</span><span class="o">/</span><span class="mf">2.0_DP</span><span class="p">)</span>
+<a name="ln-96"></a>     <span class="n">Mint</span> <span class="o">=</span> <span class="nb">Aint</span> <span class="o">*</span> <span class="n">Lint</span>  <span class="err">#</span> <span class="p">[</span><span class="n">kg</span><span class="p">]</span>
+<a name="ln-97"></a>     <span class="n">V_lr</span> <span class="o">=</span> <span class="n">calc_erosion</span><span class="p">(</span><span class="n">Mtarg</span><span class="p">,</span> <span class="n">Mp</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+<a name="ln-98"></a>     <span class="n">QRD_lr</span><span class="p">,</span> <span class="n">V_lr</span> <span class="o">=</span> <span class="n">calc_QRD_lr</span><span class="p">(</span><span class="n">Mp</span><span class="p">,</span> <span class="n">Mtarg</span><span class="p">,</span> <span class="n">Mint</span><span class="p">)</span>
+<a name="ln-99"></a>     <span class="n">QR_supercat</span> <span class="o">=</span> <span class="mf">1.8_DP</span> <span class="o">*</span> <span class="n">QRD_pstar</span>
+<a name="ln-100"></a>     <span class="n">V_supercat</span> <span class="o">=</span> <span class="p">((</span><span class="n">QR_supercat</span> <span class="o">*</span> <span class="n">mtot</span><span class="p">)</span><span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">mu</span><span class="p">))</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.0_DP</span> <span class="o">/</span> <span class="mf">2.0_DP</span><span class="p">)</span>
+<a name="ln-101"></a>     <span class="n">fgamma</span> <span class="o">=</span> <span class="p">(</span><span class="n">m1</span> <span class="o">-</span> <span class="n">m2</span><span class="p">)</span> <span class="o">/</span> <span class="n">mtot</span>
+<a name="ln-102"></a>     <span class="n">theta</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">b</span>
+<a name="ln-103"></a>     <span class="n">Vcr</span> <span class="o">=</span> <span class="n">Vescp</span> <span class="o">*</span> <span class="p">(</span><span class="n">c1</span> <span class="o">*</span> <span class="n">fgamma</span> <span class="o">*</span> <span class="n">theta</span> <span class="o">**</span> <span class="n">c5</span> <span class="o">+</span> <span class="n">c2</span> <span class="o">*</span> <span class="n">fgamma</span> <span class="o">+</span> <span class="n">c3</span> <span class="o">*</span> <span class="n">theta</span> <span class="o">**</span> <span class="n">c5</span> <span class="o">+</span> <span class="n">c4</span><span class="p">)</span>
+<a name="ln-104"></a>     <span class="n">bcrit</span> <span class="o">=</span> <span class="n">rad1</span><span class="o">/</span><span class="p">(</span><span class="n">rad1</span><span class="o">+</span><span class="n">rad2</span><span class="p">)</span>
+<a name="ln-105"></a>
+<a name="ln-106"></a>     <span class="k">IF</span><span class="p">(</span> <span class="n">Vi</span> <span class="o">&lt;</span> <span class="n">Vescp</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-107"></a><span class="k">          WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime perfect merging regime&quot;</span>
+<a name="ln-108"></a>     <span class="k">ELSE IF</span> <span class="p">(</span><span class="n">b</span> <span class="o">&lt;</span> <span class="n">bcrit</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-109"></a><span class="k">          WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime non grazing&quot;</span>
+<a name="ln-110"></a>          <span class="k">IF</span> <span class="p">(</span><span class="n">Vi</span> <span class="o">&lt;</span> <span class="n">V_lr</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-111"></a><span class="k">               WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime partial accretion regime&quot;</span>
+<a name="ln-112"></a>          <span class="k">ELSE IF</span> <span class="p">(</span><span class="n">vimp</span> <span class="o">&gt;</span> <span class="n">V_lr</span> <span class="p">.</span><span class="nb">AND</span><span class="p">.</span> <span class="n">Vi</span> <span class="o">&lt;</span> <span class="n">V_supercat</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-113"></a><span class="k">               IF</span> <span class="p">(</span><span class="n">m2</span> <span class="o">&lt;</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">m1</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-114"></a><span class="k">                    WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime cratering&quot;</span>
+<a name="ln-115"></a>               <span class="k">ELSE </span>
+<a name="ln-116"></a><span class="k">                    WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime disruption&quot;</span>
+<a name="ln-117"></a>               <span class="k">END IF</span>
+<a name="ln-118"></a><span class="k">          ELSE IF</span> <span class="p">(</span><span class="n">Vi</span> <span class="o">&gt;</span> <span class="n">V_supercat</span><span class="p">)</span> <span class="k">THEN </span>
+<a name="ln-119"></a><span class="k">               WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime supercatastrophic&quot;</span>
+<a name="ln-120"></a>          <span class="k">ELSE </span>
+<a name="ln-121"></a><span class="k">               WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;error&quot;</span>
+<a name="ln-122"></a>          <span class="k">END IF</span>
+<a name="ln-123"></a><span class="k">    ELSE IF</span>  <span class="p">(</span><span class="n">b</span> <span class="o">&gt;</span> <span class="n">bcrit</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-124"></a><span class="k">          WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime grazing&quot;</span>
+<a name="ln-125"></a>          <span class="k">IF</span> <span class="p">(</span><span class="n">vimp</span> <span class="o">&lt;</span> <span class="n">V_lr</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-126"></a><span class="k">               IF</span> <span class="p">(</span><span class="n">Vi</span> <span class="o">&lt;</span> <span class="n">Vcr</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-127"></a><span class="k">                    WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime graze and merge&quot;</span>
+<a name="ln-128"></a>               <span class="k">ELSE</span>
+<a name="ln-129"></a><span class="k">                    WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime hit and run&quot;</span>
+<a name="ln-130"></a>               <span class="k">END IF</span>
+<a name="ln-131"></a><span class="k">               </span>
+<a name="ln-132"></a><span class="k">          ELSE IF</span> <span class="p">(</span><span class="n">vimp</span> <span class="o">&gt;</span> <span class="n">V_lr</span> <span class="p">.</span><span class="nb">AND</span><span class="p">.</span> <span class="n">Vi</span> <span class="o">&lt;</span> <span class="n">V_supercat</span><span class="p">)</span> <span class="k">THEN</span>
+<a name="ln-133"></a><span class="k">               IF</span> <span class="p">(</span><span class="n">m2</span> <span class="o">&lt;</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">m1</span><span class="p">)</span> <span class="k">THEN </span>
+<a name="ln-134"></a><span class="k">                    WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime cratering&quot;</span>
+<a name="ln-135"></a>               <span class="k">ELSE</span>
+<a name="ln-136"></a><span class="k">                    WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime disruption&quot;</span>
+<a name="ln-137"></a>               <span class="k">END IF </span>
+<a name="ln-138"></a><span class="k">          ELSE IF</span> <span class="p">(</span><span class="n">vimp</span> <span class="o">&gt;</span> <span class="n">V_supercat</span><span class="p">)</span> <span class="k">THEN </span>
+<a name="ln-139"></a><span class="k">               WRITE</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;regime supercatastrophic&quot;</span>
+<a name="ln-140"></a>          <span class="k">END IF </span>
+<a name="ln-141"></a><span class="k">     END IF </span>
+<a name="ln-142"></a>
+<a name="ln-143"></a><span class="k">     RETURN</span>
+<a name="ln-144"></a>
+<a name="ln-145"></a><span class="k">END SUBROUTINE </span><span class="n">util_regime</span>
+<a name="ln-146"></a><span class="c">!**********************************************************************************************************************************</span>
+<a name="ln-147"></a><span class="c">!</span>
+<a name="ln-148"></a><span class="c">!  Author(s)   : C.Wishard and J.Pouplin</span>
+<a name="ln-149"></a><span class="c">!</span>
+<a name="ln-150"></a><span class="c">!  Revision Control System (RCS) Information</span>
+<a name="ln-151"></a><span class="c">!</span>
+<a name="ln-152"></a><span class="c">!  Source File : $RCSfile$</span>
+<a name="ln-153"></a><span class="c">!  Full Path   : $Source$</span>
+<a name="ln-154"></a><span class="c">!  Revision    : $Revision$</span>
+<a name="ln-155"></a><span class="c">!  Date        : $Date$</span>
+<a name="ln-156"></a><span class="c">!  Programmer  : $Author$</span>
+<a name="ln-157"></a><span class="c">!  Locked By   : $Locker$</span>
+<a name="ln-158"></a><span class="c">!  State       : $State$</span>
+<a name="ln-159"></a><span class="c">!</span>
+<a name="ln-160"></a><span class="c">!  Modification History:</span>
+<a name="ln-161"></a><span class="c">!</span>
+<a name="ln-162"></a><span class="c">!  $Log$</span>
+<a name="ln-163"></a><span class="c">!**********************************************************************************************************************************</span>
+</pre></div>
+
+    </section>
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2020 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>

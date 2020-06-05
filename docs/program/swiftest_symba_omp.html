@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>swiftest_symba_omp &ndash; swiftest</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../lists/programs.html">Programs</a></li>
+        
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/programs.html">Programs</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>swiftest_symba_omp
+    <small>Program</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title="80.1% of total for programs.">213 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/swifter_symba_omp.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+     <li><a href='../sourcefile/swifter_symba_omp.f90.html'>swifter_symba_omp.f90</a></li>
+    
+  
+     <li class="active">swiftest_symba_omp</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-0">Variables</a></h3></div>
+  <div id="vars-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-feature~13">feature</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nplmax~42">nplmax</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-ntpmax~32">ntpmax</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-istep_out~5">istep_out</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-istep_dump~5">istep_dump</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-t0~3">t0</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-tstop~5">tstop</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-dt~76">dt</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-j2rp2~38">j2rp2</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-j4rp4~38">j4rp4</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-rmin~15">rmin</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-rmax~15">rmax</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-rmaxu~15">rmaxu</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-qmin~15">qmin</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-qmin_alo~15">qmin_alo</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-qmin_ahi~15">qmin_ahi</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-qmin_coord~19">qmin_coord</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-encounter_file~25">encounter_file</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-inplfile~7">inplfile</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-intpfile~7">intpfile</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-in_type~11">in_type</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-outfile~7">outfile</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-out_type~35">out_type</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-out_form~7">out_form</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-out_stat~9">out_stat</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-lfirst~14">lfirst</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-lfrag_add">lfrag_add</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-npl~110">npl</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-ntp~82">ntp</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-ntp0">ntp0</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nsppl~5">nsppl</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nsptp~5">nsptp</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-iout">iout</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-idump">idump</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-iloop">iloop</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nplplenc~28">nplplenc</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-npltpenc~20">npltpenc</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nmergeadd~26">nmergeadd</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nmergesub~21">nmergesub</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-fragmax~17">fragmax</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-t~86">t</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-tfrac">tfrac</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-tbase">tbase</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-mtiny~9">mtiny</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-ke~3">ke</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-pe~3">pe</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-te~3">te</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-eoffset~23">eoffset</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-htot~3">htot</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-inparfile~3">inparfile</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-symba_pla~59">symba_plA</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-symba_tpa~36">symba_tpA</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-discard_tpa~5">discard_tpA</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-discard_pla~5">discard_plA</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-plplenc_list~29">plplenc_list</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-pltpenc_list~21">pltpenc_list</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-mergeadd_list~27">mergeadd_list</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-mergesub_list~23">mergesub_list</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-egyiu">egyiu</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-start">start</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-finish">finish</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    
+  
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+      
+      <li class="list-group-item">
+  <ul class="list-inline">
+    
+    <li><a href='../module/module_parameters.html'>module_parameters</a></li>
+    
+    <li><a href='../module/module_swiftest.html'>module_swiftest</a></li>
+    
+    <li><a href='../module/module_symba.html'>module_symba</a></li>
+    
+    <li><a href='../module/module_interfaces.html'>module_interfaces</a></li>
+    
+    <li><a href='../module/module_swiftestalloc.html'>module_swiftestalloc</a></li>
+    
+  </ul>
+      </li>
+      
+      
+      
+      <li class="list-group-item">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: program~~swiftest_symba_omp~~UsesGraph Pages: 1 -->
+<svg id="programswiftest_symba_ompUsesGraph" width="641pt" height="223pt"
+ viewBox="0.00 0.00 641.00 223.42" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="program~~swiftest_symba_omp~~UsesGraph" class="graph" transform="scale(0.95 0.95) rotate(0) translate(4 230.58)">
+<title>program~~swiftest_symba_omp~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-230.58 669,-230.58 669,4 -4,4"/>
+<!-- program~swiftest_symba_omp -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_node1" class="node">
+<title>program~swiftest_symba_omp</title>
+<polygon fill="none" stroke="black" points="665,-166.58 553,-166.58 553,-142.58 665,-142.58 665,-166.58"/>
+<text text-anchor="middle" x="609" y="-152.18" font-family="Helvetica,sans-Serif" font-size="10.50">swiftest_symba_omp</text>
+</g>
+<!-- module~module_interfaces -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_node2" class="node">
+<title>module~module_interfaces</title>
+<g id="a_program~~swiftest_symba_omp~~UsesGraph_node2"><a xlink:href=".././module/module_interfaces.html" xlink:title="module_interfaces">
+<polygon fill="#337ab7" stroke="#337ab7" points="517,-226.58 417,-226.58 417,-202.58 517,-202.58 517,-226.58"/>
+<text text-anchor="middle" x="467" y="-212.18" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_interfaces</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;module~module_interfaces -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge1" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;module~module_interfaces</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M579.67,-166.72C558.32,-175.87 528.84,-188.5 505.53,-198.49"/>
+<polygon fill="#000000" stroke="#000000" points="504.1,-195.3 496.29,-202.45 506.86,-201.73 504.1,-195.3"/>
+</g>
+<!-- module~module_swiftest -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_node3" class="node">
+<title>module~module_swiftest</title>
+<g id="a_program~~swiftest_symba_omp~~UsesGraph_node3"><a xlink:href=".././module/module_swiftest.html" xlink:title="module_swiftest">
+<polygon fill="#337ab7" stroke="#337ab7" points="234,-146.58 145,-146.58 145,-122.58 234,-122.58 234,-146.58"/>
+<text text-anchor="middle" x="189.5" y="-132.18" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_swiftest</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;module~module_swiftest -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge2" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;module~module_swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M552.98,-159.17C485.86,-163.75 369.07,-168.44 270,-155.58 259.49,-154.21 248.38,-151.87 237.92,-149.24"/>
+<polygon fill="#000000" stroke="#000000" points="238.68,-145.82 228.11,-146.64 236.89,-152.58 238.68,-145.82"/>
+</g>
+<!-- module~module_symba -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_node4" class="node">
+<title>module~module_symba</title>
+<g id="a_program~~swiftest_symba_omp~~UsesGraph_node4"><a xlink:href=".././module/module_symba.html" xlink:title="module_symba">
+<polygon fill="#337ab7" stroke="#337ab7" points="509.5,-146.58 424.5,-146.58 424.5,-122.58 509.5,-122.58 509.5,-146.58"/>
+<text text-anchor="middle" x="467" y="-132.18" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_symba</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;module~module_symba -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge3" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;module~module_symba</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M552.67,-146.67C541.78,-145.12 530.39,-143.49 519.63,-141.95"/>
+<polygon fill="#000000" stroke="#000000" points="519.94,-138.46 509.54,-140.51 518.95,-145.39 519.94,-138.46"/>
+</g>
+<!-- module~module_swiftestalloc -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_node5" class="node">
+<title>module~module_swiftestalloc</title>
+<g id="a_program~~swiftest_symba_omp~~UsesGraph_node5"><a xlink:href=".././module/module_swiftestalloc.html" xlink:title="module_swiftestalloc">
+<polygon fill="#337ab7" stroke="#337ab7" points="381,-66.58 270,-66.58 270,-42.58 381,-42.58 381,-66.58"/>
+<text text-anchor="middle" x="325.5" y="-52.18" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_swiftestalloc</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;module~module_swiftestalloc -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge4" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;module~module_swiftestalloc</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M466,-14.58C447.08,-8.33 398.31,-25.06 363.78,-38.77"/>
+<polygon fill="#000000" stroke="#000000" points="362.42,-35.55 354.46,-42.53 365.04,-42.04 362.42,-35.55"/>
+</g>
+<!-- module~module_parameters -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_node6" class="node">
+<title>module~module_parameters</title>
+<g id="a_program~~swiftest_symba_omp~~UsesGraph_node6"><a xlink:href=".././module/module_parameters.html" xlink:title="module_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="109,-126.58 0,-126.58 0,-102.58 109,-102.58 109,-126.58"/>
+<text text-anchor="middle" x="54.5" y="-112.18" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_parameters</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;module~module_parameters -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge5" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;module~module_parameters</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M601.26,-142.32C583.95,-112.41 534.58,-36.56 468,-14.58"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M466,-14.58C382.89,12.87 351.42,-1.48 270,-33.58 228.57,-49.91 234.59,-88.31 190.5,-94.58"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M188.5,-94.58C165.94,-97.72 141.26,-101.37 119.35,-104.69"/>
+<polygon fill="#000000" stroke="#000000" points="118.53,-101.27 109.17,-106.24 119.59,-108.19 118.53,-101.27"/>
+</g>
+<!-- module~module_swiftest&#45;&gt;module~module_parameters -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge6" class="edge">
+<title>module~module_swiftest&#45;&gt;module~module_parameters</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M144.95,-128.03C136.78,-126.8 128.09,-125.49 119.45,-124.19"/>
+<polygon fill="#000000" stroke="#000000" points="119.78,-120.7 109.37,-122.68 118.74,-127.63 119.78,-120.7"/>
+</g>
+<!-- module~module_symba&#45;&gt;module~module_parameters -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge8" class="edge">
+<title>module~module_symba&#45;&gt;module~module_parameters</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M429.45,-122.47C376.68,-106.53 276.09,-81.94 190.5,-94.58"/>
+</g>
+<!-- module~module_helio -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_node7" class="node">
+<title>module~module_helio</title>
+<g id="a_program~~swiftest_symba_omp~~UsesGraph_node7"><a xlink:href=".././module/module_helio.html" xlink:title="module_helio">
+<polygon fill="#337ab7" stroke="#337ab7" points="363.5,-146.58 287.5,-146.58 287.5,-122.58 363.5,-122.58 363.5,-146.58"/>
+<text text-anchor="middle" x="325.5" y="-132.18" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_helio</text>
+</a>
+</g>
+</g>
+<!-- module~module_symba&#45;&gt;module~module_helio -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge7" class="edge">
+<title>module~module_symba&#45;&gt;module~module_helio</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M424.15,-134.58C408.35,-134.58 390.26,-134.58 373.98,-134.58"/>
+<polygon fill="#000000" stroke="#000000" points="373.59,-131.08 363.59,-134.58 373.59,-138.08 373.59,-131.08"/>
+</g>
+<!-- module~module_swiftestalloc&#45;&gt;module~module_parameters -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge9" class="edge">
+<title>module~module_swiftestalloc&#45;&gt;module~module_parameters</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M293.4,-66.64C266.61,-76.35 226.65,-89.24 190.5,-94.58"/>
+</g>
+<!-- module~module_helio&#45;&gt;module~module_swiftest -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge10" class="edge">
+<title>module~module_helio&#45;&gt;module~module_swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M287.17,-134.58C273.96,-134.58 258.82,-134.58 244.51,-134.58"/>
+<polygon fill="#000000" stroke="#000000" points="244.27,-131.08 234.27,-134.58 244.27,-138.08 244.27,-131.08"/>
+</g>
+<!-- module~module_helio&#45;&gt;module~module_parameters -->
+<g id="program~~swiftest_symba_omp~~UsesGraph_edge11" class="edge">
+<title>module~module_helio&#45;&gt;module~module_parameters</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M294.74,-122.48C261.77,-109.65 210.62,-91.61 190.5,-94.58"/>
+</g>
+</g>
+</svg>
+</div><script>var panprogramswiftest_symba_ompUsesGraph = svgPanZoom('#programswiftest_symba_ompUsesGraph', {zoomEnabled: true,controlIconsEnabled: true, fit: true, center: true,}); </script><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="490pt" height="32pt"
+ viewBox="0.00 0.00 489.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 485.5,-28 485.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="139.5,-24 72.5,-24 72.5,0 139.5,0 139.5,-24"/>
+<text text-anchor="middle" x="106" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="222,-24 158,-24 158,0 222,0 222,-24"/>
+<text text-anchor="middle" x="190" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="294,-24 240,-24 240,0 294,0 294,-24"/>
+<text text-anchor="middle" x="267" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="366,-24 312,-24 312,0 366,0 366,-24"/>
+<text text-anchor="middle" x="339" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="481.5,-24 384.5,-24 384.5,0 481.5,0 481.5,-24"/>
+<text text-anchor="middle" x="433" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a submodule to the (sub)module which it is
+    descended from. Dashed arrows point from a module or program unit to 
+    modules which it uses.
+    </p>
+    </div></div></div></div>
+      </li>
+      
+      </ul>
+    </div>
+    
+
+    
+    
+    <br>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Calls</h3>
+      </div>
+      <div class="panel-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: program~~swiftest_symba_omp~~CallsGraph Pages: 1 -->
+<svg id="programswiftest_symba_ompCallsGraph" width="588pt" height="1250pt"
+ viewBox="0.00 0.00 588.00 1250.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="program~~swiftest_symba_omp~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 1246)">
+<title>program~~swiftest_symba_omp~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1246 584,-1246 584,4 -4,4"/>
+<!-- program~swiftest_symba_omp -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node1" class="node">
+<title>program~swiftest_symba_omp</title>
+<polygon fill="none" stroke="black" points="112,-633 0,-633 0,-609 112,-609 112,-633"/>
+<text text-anchor="middle" x="56" y="-618.6" font-family="Helvetica,sans-Serif" font-size="10.50">swiftest_symba_omp</text>
+</g>
+<!-- proc~symba_pl_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node2" class="node">
+<title>proc~symba_pl_deallocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node2"><a xlink:href=".././proc/symba_pl_deallocate.html" xlink:title="symba_pl_deallocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="274,-1242 161,-1242 161,-1218 274,-1218 274,-1242"/>
+<text text-anchor="middle" x="217.5" y="-1227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pl_deallocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_pl_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge1" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_pl_deallocate</title>
+<path fill="none" stroke="#000000" d="M57.18,-633.15C58.56,-709.09 69.58,-1118.4 148,-1209 149.34,-1210.55 150.8,-1211.99 152.34,-1213.33"/>
+<polygon fill="#000000" stroke="#000000" points="150.53,-1216.33 160.74,-1219.16 154.53,-1210.58 150.53,-1216.33"/>
+</g>
+<!-- interface~symba_reorder_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node3" class="node">
+<title>interface~symba_reorder_pl</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node3"><a xlink:href=".././interface/symba_reorder_pl.html" xlink:title="symba_reorder_pl">
+<polygon fill="#a7506f" stroke="#a7506f" points="267.5,-1200 167.5,-1200 167.5,-1176 267.5,-1176 267.5,-1200"/>
+<text text-anchor="middle" x="217.5" y="-1185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_reorder_pl</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~symba_reorder_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge2" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~symba_reorder_pl</title>
+<path fill="none" stroke="#000000" d="M57.34,-633.22C59.62,-706.12 74.88,-1083.5 148,-1167 150.9,-1170.32 154.32,-1173.12 158.04,-1175.48"/>
+<polygon fill="#000000" stroke="#000000" points="156.72,-1178.74 167.21,-1180.24 159.95,-1172.53 156.72,-1178.74"/>
+</g>
+<!-- interface~io_getn -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node4" class="node">
+<title>interface~io_getn</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node4"><a xlink:href=".././interface/io_getn.html" xlink:title="io_getn">
+<polygon fill="#a7506f" stroke="#a7506f" points="244.5,-1158 190.5,-1158 190.5,-1134 244.5,-1134 244.5,-1158"/>
+<text text-anchor="middle" x="217.5" y="-1143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_getn</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~io_getn -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge3" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~io_getn</title>
+<path fill="none" stroke="#000000" d="M57.52,-633.17C60.76,-702.64 80.12,-1048.53 148,-1125 156.18,-1134.21 168.27,-1139.44 180.03,-1142.38"/>
+<polygon fill="#000000" stroke="#000000" points="179.68,-1145.88 190.18,-1144.43 181.07,-1139.02 179.68,-1145.88"/>
+</g>
+<!-- proc~symba_pltpenc_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node5" class="node">
+<title>proc~symba_pltpenc_deallocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node5"><a xlink:href=".././proc/symba_pltpenc_deallocate.html" xlink:title="symba_pltpenc_deallocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="287,-1116 148,-1116 148,-1092 287,-1092 287,-1116"/>
+<text text-anchor="middle" x="217.5" y="-1101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pltpenc_deallocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_pltpenc_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge4" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_pltpenc_deallocate</title>
+<path fill="none" stroke="#000000" d="M57.73,-633.01C61.96,-698.65 85.31,-1013.49 148,-1083 148.89,-1083.99 149.83,-1084.93 150.8,-1085.83"/>
+<polygon fill="#000000" stroke="#000000" points="148.85,-1088.74 158.97,-1091.89 153.02,-1083.12 148.85,-1088.74"/>
+</g>
+<!-- interface~io_init_tp -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node6" class="node">
+<title>interface~io_init_tp</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node6"><a xlink:href=".././interface/io_init_tp.html" xlink:title="io_init_tp">
+<polygon fill="#a7506f" stroke="#a7506f" points="245,-1074 190,-1074 190,-1050 245,-1050 245,-1074"/>
+<text text-anchor="middle" x="217.5" y="-1059.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_init_tp</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~io_init_tp -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge5" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~io_init_tp</title>
+<path fill="none" stroke="#000000" d="M58,-633.13C63.35,-695.4 90.57,-978.52 148,-1041 156.27,-1050 168.28,-1055.18 179.94,-1058.15"/>
+<polygon fill="#000000" stroke="#000000" points="179.49,-1061.63 189.99,-1060.24 180.91,-1054.78 179.49,-1061.63"/>
+</g>
+<!-- proc~symba_merger_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node7" class="node">
+<title>proc~symba_merger_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node7"><a xlink:href=".././proc/symba_merger_allocate.html" xlink:title="symba_merger_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="281,-1032 154,-1032 154,-1008 281,-1008 281,-1032"/>
+<text text-anchor="middle" x="217.5" y="-1017.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_merger_allocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_merger_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge6" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_merger_allocate</title>
+<path fill="none" stroke="#000000" d="M58.3,-633.07C64.83,-691.38 95.74,-943.44 148,-999 149.04,-1000.1 150.13,-1001.15 151.28,-1002.14"/>
+<polygon fill="#000000" stroke="#000000" points="149.27,-1005.01 159.45,-1007.93 153.31,-999.29 149.27,-1005.01"/>
+</g>
+<!-- interface~io_init_param -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node8" class="node">
+<title>interface~io_init_param</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node8"><a xlink:href=".././interface/io_init_param.html" xlink:title="io_init_param">
+<polygon fill="#a7506f" stroke="#a7506f" points="256,-990 179,-990 179,-966 256,-966 256,-990"/>
+<text text-anchor="middle" x="217.5" y="-975.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_init_param</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~io_init_param -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge7" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~io_init_param</title>
+<path fill="none" stroke="#000000" d="M56.42,-633.07C54.79,-681.17 55.34,-861.23 148,-957 153.78,-962.97 161.21,-967.26 169.04,-970.33"/>
+<polygon fill="#000000" stroke="#000000" points="168.1,-973.71 178.69,-973.51 170.29,-967.06 168.1,-973.71"/>
+</g>
+<!-- interface~io_discard_write_symba -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node9" class="node">
+<title>interface~io_discard_write_symba</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node9"><a xlink:href=".././interface/io_discard_write_symba.html" xlink:title="io_discard_write_symba">
+<polygon fill="#a7506f" stroke="#a7506f" points="281,-948 154,-948 154,-924 281,-924 281,-948"/>
+<text text-anchor="middle" x="217.5" y="-933.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_discard_write_symba</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~io_discard_write_symba -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge8" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~io_discard_write_symba</title>
+<path fill="none" stroke="#000000" d="M56.97,-633.07C57.53,-677.38 65.53,-832.75 148,-915 149.1,-916.1 150.26,-917.14 151.46,-918.13"/>
+<polygon fill="#000000" stroke="#000000" points="149.77,-921.2 160.02,-923.88 153.68,-915.4 149.77,-921.2"/>
+</g>
+<!-- proc~symba_plplenc_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node10" class="node">
+<title>proc~symba_plplenc_deallocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node10"><a xlink:href=".././proc/symba_plplenc_deallocate.html" xlink:title="symba_plplenc_deallocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="287,-906 148,-906 148,-882 287,-882 287,-906"/>
+<text text-anchor="middle" x="217.5" y="-891.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_plplenc_deallocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_plplenc_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge9" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_plplenc_deallocate</title>
+<path fill="none" stroke="#000000" d="M57.68,-633.01C60.61,-673.17 75.57,-804.04 148,-873 149.27,-874.21 150.61,-875.35 152,-876.42"/>
+<polygon fill="#000000" stroke="#000000" points="150.22,-879.44 160.52,-881.88 153.99,-873.54 150.22,-879.44"/>
+</g>
+<!-- interface~io_dump_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node11" class="node">
+<title>interface~io_dump_pl</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node11"><a xlink:href=".././interface/io_dump_pl.html" xlink:title="io_dump_pl">
+<polygon fill="#a7506f" stroke="#a7506f" points="251.5,-864 183.5,-864 183.5,-840 251.5,-840 251.5,-864"/>
+<text text-anchor="middle" x="217.5" y="-849.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_dump_pl</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~io_dump_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge10" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~io_dump_pl</title>
+<path fill="none" stroke="#000000" d="M58.65,-633C64.21,-668.69 85.51,-775.11 148,-831 155.15,-837.39 164.21,-841.84 173.37,-844.93"/>
+<polygon fill="#000000" stroke="#000000" points="172.7,-848.38 183.28,-847.79 174.64,-841.66 172.7,-848.38"/>
+</g>
+<!-- proc~symba_tp_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node12" class="node">
+<title>proc~symba_tp_deallocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node12"><a xlink:href=".././proc/symba_tp_deallocate.html" xlink:title="symba_tp_deallocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="274.5,-822 160.5,-822 160.5,-798 274.5,-798 274.5,-822"/>
+<text text-anchor="middle" x="217.5" y="-807.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_tp_deallocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_tp_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge11" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_tp_deallocate</title>
+<path fill="none" stroke="#000000" d="M60.13,-633.22C68.68,-664.11 95.38,-745.93 148,-789 149.76,-790.44 151.62,-791.78 153.55,-793.03"/>
+<polygon fill="#000000" stroke="#000000" points="151.99,-796.17 162.43,-797.94 155.38,-790.04 151.99,-796.17"/>
+</g>
+<!-- proc~symba_pltpenc_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node13" class="node">
+<title>proc~symba_pltpenc_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node13"><a xlink:href=".././proc/symba_pltpenc_allocate.html" xlink:title="symba_pltpenc_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="281,-780 154,-780 154,-756 281,-756 281,-780"/>
+<text text-anchor="middle" x="217.5" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pltpenc_allocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_pltpenc_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge12" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_pltpenc_allocate</title>
+<path fill="none" stroke="#000000" d="M62.39,-633.06C74.19,-658.12 104.78,-716.05 148,-747 150.25,-748.61 152.62,-750.09 155.08,-751.47"/>
+<polygon fill="#000000" stroke="#000000" points="153.77,-754.73 164.29,-755.97 156.84,-748.44 153.77,-754.73"/>
+</g>
+<!-- proc~symba_merger_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node14" class="node">
+<title>proc~symba_merger_deallocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node14"><a xlink:href=".././proc/symba_merger_deallocate.html" xlink:title="symba_merger_deallocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="287,-738 148,-738 148,-714 287,-714 287,-738"/>
+<text text-anchor="middle" x="217.5" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_merger_deallocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_merger_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge13" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_merger_deallocate</title>
+<path fill="none" stroke="#000000" d="M66.91,-633.11C82.39,-651.27 114.07,-685.51 148,-705 151.21,-706.84 154.6,-708.54 158.08,-710.1"/>
+<polygon fill="#000000" stroke="#000000" points="156.88,-713.39 167.46,-713.93 159.52,-706.91 156.88,-713.39"/>
+</g>
+<!-- interface~symba_energy -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node15" class="node">
+<title>interface~symba_energy</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node15"><a xlink:href=".././interface/symba_energy.html" xlink:title="symba_energy">
+<polygon fill="#a7506f" stroke="#a7506f" points="259,-696 176,-696 176,-672 259,-672 259,-696"/>
+<text text-anchor="middle" x="217.5" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_energy</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~symba_energy -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge14" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~symba_energy</title>
+<path fill="none" stroke="#000000" d="M80.95,-633.13C99.09,-642.06 124.76,-654.12 148,-663 153.87,-665.24 160.09,-667.42 166.3,-669.47"/>
+<polygon fill="#000000" stroke="#000000" points="165.4,-672.85 175.99,-672.57 167.53,-666.19 165.4,-672.85"/>
+</g>
+<!-- interface~symba_discard_tp -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node16" class="node">
+<title>interface~symba_discard_tp</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node16"><a xlink:href=".././interface/symba_discard_tp.html" xlink:title="symba_discard_tp">
+<polygon fill="#a7506f" stroke="#a7506f" points="267.5,-654 167.5,-654 167.5,-630 267.5,-630 267.5,-654"/>
+<text text-anchor="middle" x="217.5" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard_tp</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~symba_discard_tp -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge15" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~symba_discard_tp</title>
+<path fill="none" stroke="#000000" d="M112.34,-628.29C126.89,-630.2 142.63,-632.27 157.37,-634.22"/>
+<polygon fill="#000000" stroke="#000000" points="157.02,-637.7 167.39,-635.53 157.93,-630.76 157.02,-637.7"/>
+</g>
+<!-- interface~symba_discard_merge_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node17" class="node">
+<title>interface~symba_discard_merge_pl</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node17"><a xlink:href=".././interface/symba_discard_merge_pl.html" xlink:title="symba_discard_merge_pl">
+<polygon fill="#a7506f" stroke="#a7506f" points="285.5,-612 149.5,-612 149.5,-588 285.5,-588 285.5,-612"/>
+<text text-anchor="middle" x="217.5" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard_merge_pl</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~symba_discard_merge_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge16" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~symba_discard_merge_pl</title>
+<path fill="none" stroke="#000000" d="M112.34,-613.71C121.13,-612.56 130.35,-611.34 139.53,-610.13"/>
+<polygon fill="#000000" stroke="#000000" points="139.99,-613.6 149.44,-608.83 139.07,-606.66 139.99,-613.6"/>
+</g>
+<!-- interface~io_write_frame -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node18" class="node">
+<title>interface~io_write_frame</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node18"><a xlink:href=".././interface/io_write_frame.html" xlink:title="io_write_frame">
+<polygon fill="#a7506f" stroke="#a7506f" points="259,-570 176,-570 176,-546 259,-546 259,-570"/>
+<text text-anchor="middle" x="217.5" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_write_frame</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~io_write_frame -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge18" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~io_write_frame</title>
+<path fill="none" stroke="#000000" d="M80.95,-608.87C99.09,-599.94 124.76,-587.88 148,-579 153.87,-576.76 160.09,-574.58 166.3,-572.53"/>
+<polygon fill="#000000" stroke="#000000" points="167.53,-575.81 175.99,-569.43 165.4,-569.15 167.53,-575.81"/>
+</g>
+<!-- interface~io_init_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node19" class="node">
+<title>interface~io_init_pl</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node19"><a xlink:href=".././interface/io_init_pl.html" xlink:title="io_init_pl">
+<polygon fill="#a7506f" stroke="#a7506f" points="245,-528 190,-528 190,-504 245,-504 245,-528"/>
+<text text-anchor="middle" x="217.5" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_init_pl</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~io_init_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge19" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~io_init_pl</title>
+<path fill="none" stroke="#000000" d="M66.91,-608.89C82.39,-590.73 114.07,-556.49 148,-537 157.73,-531.41 169.1,-527.16 179.75,-523.99"/>
+<polygon fill="#000000" stroke="#000000" points="180.95,-527.29 189.67,-521.27 179.1,-520.54 180.95,-527.29"/>
+</g>
+<!-- 7 -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node20" class="node">
+<title>7</title>
+<polygon fill="#777777" stroke="#777777" points="244.5,-486 190.5,-486 190.5,-462 244.5,-462 244.5,-486"/>
+<text text-anchor="middle" x="217.5" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">7</text>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;7 -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge20" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;7</title>
+<path fill="none" stroke="#000000" d="M62.39,-608.94C74.19,-583.88 104.78,-525.95 148,-495 157.52,-488.18 169.31,-483.54 180.41,-480.39"/>
+<polygon fill="#000000" stroke="#000000" points="181.47,-483.73 190.32,-477.9 179.77,-476.94 181.47,-483.73"/>
+</g>
+<!-- interface~util_version -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node21" class="node">
+<title>interface~util_version</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node21"><a xlink:href=".././interface/util_version.html" xlink:title="util_version">
+<polygon fill="#a7506f" stroke="#a7506f" points="251,-444 184,-444 184,-420 251,-420 251,-444"/>
+<text text-anchor="middle" x="217.5" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_version</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~util_version -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge29" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~util_version</title>
+<path fill="none" stroke="#000000" d="M60.13,-608.78C68.68,-577.89 95.38,-496.07 148,-453 155.42,-446.92 164.59,-442.6 173.77,-439.53"/>
+<polygon fill="#000000" stroke="#000000" points="175.04,-442.81 183.67,-436.67 173.09,-436.09 175.04,-442.81"/>
+</g>
+<!-- interface~python_io_write_frame_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node22" class="node">
+<title>interface~python_io_write_frame_pl</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node22"><a xlink:href=".././interface/python_io_write_frame_pl.html" xlink:title="python_io_write_frame_pl">
+<polygon fill="#a7506f" stroke="#a7506f" points="285.5,-402 149.5,-402 149.5,-378 285.5,-378 285.5,-402"/>
+<text text-anchor="middle" x="217.5" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">python_io_write_frame_pl</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~python_io_write_frame_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge21" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~python_io_write_frame_pl</title>
+<path fill="none" stroke="#000000" d="M58.65,-609C64.21,-573.31 85.51,-466.89 148,-411 149.5,-409.66 151.07,-408.41 152.72,-407.24"/>
+<polygon fill="#000000" stroke="#000000" points="154.65,-410.16 161.43,-402.02 151.05,-404.16 154.65,-410.16"/>
+</g>
+<!-- interface~util_valid -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node23" class="node">
+<title>interface~util_valid</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node23"><a xlink:href=".././interface/util_valid.html" xlink:title="util_valid">
+<polygon fill="#a7506f" stroke="#a7506f" points="244.5,-360 190.5,-360 190.5,-336 244.5,-336 244.5,-360"/>
+<text text-anchor="middle" x="217.5" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_valid</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~util_valid -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge22" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~util_valid</title>
+<path fill="none" stroke="#000000" d="M57.68,-608.99C60.61,-568.83 75.57,-437.96 148,-369 156.78,-360.64 168.8,-355.6 180.32,-352.57"/>
+<polygon fill="#000000" stroke="#000000" points="181.22,-355.96 190.23,-350.39 179.71,-349.12 181.22,-355.96"/>
+</g>
+<!-- interface~symba_step -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node24" class="node">
+<title>interface~symba_step</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node24"><a xlink:href=".././interface/symba_step.html" xlink:title="symba_step">
+<polygon fill="#a7506f" stroke="#a7506f" points="252.5,-318 182.5,-318 182.5,-294 252.5,-294 252.5,-318"/>
+<text text-anchor="middle" x="217.5" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_step</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~symba_step -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge23" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~symba_step</title>
+<path fill="none" stroke="#000000" d="M56.97,-608.93C57.53,-564.62 65.53,-409.25 148,-327 154.73,-320.29 163.54,-315.72 172.59,-312.6"/>
+<polygon fill="#000000" stroke="#000000" points="173.78,-315.9 182.42,-309.76 171.84,-309.17 173.78,-315.9"/>
+</g>
+<!-- proc~symba_tp_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node25" class="node">
+<title>proc~symba_tp_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node25"><a xlink:href=".././proc/symba_tp_allocate.html" xlink:title="symba_tp_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="268.5,-276 166.5,-276 166.5,-252 268.5,-252 268.5,-276"/>
+<text text-anchor="middle" x="217.5" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_tp_allocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_tp_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge24" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_tp_allocate</title>
+<path fill="none" stroke="#000000" d="M56.42,-608.93C54.79,-560.83 55.34,-380.77 148,-285 150.79,-282.12 153.97,-279.62 157.38,-277.47"/>
+<polygon fill="#000000" stroke="#000000" points="159.07,-280.54 166.3,-272.8 155.82,-274.34 159.07,-280.54"/>
+</g>
+<!-- proc~symba_pl_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node26" class="node">
+<title>proc~symba_pl_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node26"><a xlink:href=".././proc/symba_pl_allocate.html" xlink:title="symba_pl_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="268,-234 167,-234 167,-210 268,-210 268,-234"/>
+<text text-anchor="middle" x="217.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pl_allocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_pl_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge30" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_pl_allocate</title>
+<path fill="none" stroke="#000000" d="M58.3,-608.93C64.83,-550.62 95.74,-298.56 148,-243 150.92,-239.89 154.3,-237.24 157.94,-234.98"/>
+<polygon fill="#000000" stroke="#000000" points="159.58,-238.07 166.86,-230.37 156.37,-231.85 159.58,-238.07"/>
+</g>
+<!-- proc~symba_plplenc_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node27" class="node">
+<title>proc~symba_plplenc_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node27"><a xlink:href=".././proc/symba_plplenc_allocate.html" xlink:title="symba_plplenc_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="281,-192 154,-192 154,-168 281,-168 281,-192"/>
+<text text-anchor="middle" x="217.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_plplenc_allocate</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;proc~symba_plplenc_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge25" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;proc~symba_plplenc_allocate</title>
+<path fill="none" stroke="#000000" d="M58,-608.87C63.35,-546.6 90.57,-263.48 148,-201 148.9,-200.02 149.84,-199.09 150.83,-198.2"/>
+<polygon fill="#000000" stroke="#000000" points="153.04,-200.91 159.04,-192.18 148.9,-195.27 153.04,-200.91"/>
+</g>
+<!-- interface~symba_rearray -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node28" class="node">
+<title>interface~symba_rearray</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node28"><a xlink:href=".././interface/symba_rearray.html" xlink:title="symba_rearray">
+<polygon fill="#a7506f" stroke="#a7506f" points="260,-150 175,-150 175,-126 260,-126 260,-150"/>
+<text text-anchor="middle" x="217.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_rearray</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~symba_rearray -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge27" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~symba_rearray</title>
+<path fill="none" stroke="#000000" d="M57.73,-608.99C61.96,-543.35 85.31,-228.51 148,-159 152.7,-153.79 158.66,-149.85 165.09,-146.88"/>
+<polygon fill="#000000" stroke="#000000" points="166.67,-150.03 174.76,-143.19 164.17,-143.49 166.67,-150.03"/>
+</g>
+<!-- interface~symba_discard_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node29" class="node">
+<title>interface~symba_discard_pl</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node29"><a xlink:href=".././interface/symba_discard_pl.html" xlink:title="symba_discard_pl">
+<polygon fill="#a7506f" stroke="#a7506f" points="267,-108 168,-108 168,-84 267,-84 267,-108"/>
+<text text-anchor="middle" x="217.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard_pl</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~symba_discard_pl -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge28" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~symba_discard_pl</title>
+<path fill="none" stroke="#000000" d="M57.52,-608.83C60.76,-539.36 80.12,-193.47 148,-117 151.1,-113.5 154.77,-110.58 158.77,-108.14"/>
+<polygon fill="#000000" stroke="#000000" points="160.6,-111.14 167.97,-103.53 157.46,-104.88 160.6,-111.14"/>
+</g>
+<!-- interface~util_exit -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node30" class="node">
+<title>interface~util_exit</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node30"><a xlink:href=".././interface/util_exit.html" xlink:title="util_exit">
+<polygon fill="#a7506f" stroke="#a7506f" points="244.5,-66 190.5,-66 190.5,-42 244.5,-42 244.5,-66"/>
+<text text-anchor="middle" x="217.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~util_exit -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge26" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~util_exit</title>
+<path fill="none" stroke="#000000" d="M57.34,-608.78C59.62,-535.88 74.88,-158.5 148,-75 156.26,-65.57 168.63,-60.31 180.6,-57.4"/>
+<polygon fill="#000000" stroke="#000000" points="181.32,-60.82 190.46,-55.46 179.97,-53.95 181.32,-60.82"/>
+</g>
+<!-- interface~io_dump_param -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node31" class="node">
+<title>interface~io_dump_param</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node31"><a xlink:href=".././interface/io_dump_param.html" xlink:title="io_dump_param">
+<polygon fill="#a7506f" stroke="#a7506f" points="263,-24 172,-24 172,0 263,0 263,-24"/>
+<text text-anchor="middle" x="217.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_dump_param</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_symba_omp&#45;&gt;interface~io_dump_param -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge17" class="edge">
+<title>program~swiftest_symba_omp&#45;&gt;interface~io_dump_param</title>
+<path fill="none" stroke="#000000" d="M57.18,-608.85C58.56,-532.91 69.58,-123.6 148,-33 151.96,-28.42 156.9,-24.82 162.29,-22"/>
+<polygon fill="#000000" stroke="#000000" points="163.9,-25.12 171.7,-17.95 161.13,-18.69 163.9,-25.12"/>
+</g>
+<!-- proc~helio_pl_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node32" class="node">
+<title>proc~helio_pl_deallocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node32"><a xlink:href=".././proc/helio_pl_deallocate.html" xlink:title="helio_pl_deallocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="427,-1242 323,-1242 323,-1218 427,-1218 427,-1242"/>
+<text text-anchor="middle" x="375" y="-1227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_pl_deallocate</text>
+</a>
+</g>
+</g>
+<!-- proc~symba_pl_deallocate&#45;&gt;proc~helio_pl_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge31" class="edge">
+<title>proc~symba_pl_deallocate&#45;&gt;proc~helio_pl_deallocate</title>
+<path fill="none" stroke="#000000" d="M274.2,-1230C286.71,-1230 300.06,-1230 312.79,-1230"/>
+<polygon fill="#000000" stroke="#000000" points="312.83,-1233.5 322.83,-1230 312.83,-1226.5 312.83,-1233.5"/>
+</g>
+<!-- proc~helio_tp_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node33" class="node">
+<title>proc~helio_tp_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node33"><a xlink:href=".././proc/helio_tp_allocate.html" xlink:title="helio_tp_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="421.5,-276 328.5,-276 328.5,-252 421.5,-252 421.5,-276"/>
+<text text-anchor="middle" x="375" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_tp_allocate</text>
+</a>
+</g>
+</g>
+<!-- proc~symba_tp_allocate&#45;&gt;proc~helio_tp_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge32" class="edge">
+<title>proc~symba_tp_allocate&#45;&gt;proc~helio_tp_allocate</title>
+<path fill="none" stroke="#000000" d="M268.56,-264C284.29,-264 301.76,-264 317.88,-264"/>
+<polygon fill="#000000" stroke="#000000" points="318.25,-267.5 328.25,-264 318.25,-260.5 318.25,-267.5"/>
+</g>
+<!-- proc~helio_pl_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node34" class="node">
+<title>proc~helio_pl_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node34"><a xlink:href=".././proc/helio_pl_allocate.html" xlink:title="helio_pl_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="421,-234 329,-234 329,-210 421,-210 421,-234"/>
+<text text-anchor="middle" x="375" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_pl_allocate</text>
+</a>
+</g>
+</g>
+<!-- proc~symba_pl_allocate&#45;&gt;proc~helio_pl_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge33" class="edge">
+<title>proc~symba_pl_allocate&#45;&gt;proc~helio_pl_allocate</title>
+<path fill="none" stroke="#000000" d="M268.13,-222C284.25,-222 302.23,-222 318.74,-222"/>
+<polygon fill="#000000" stroke="#000000" points="318.79,-225.5 328.79,-222 318.79,-218.5 318.79,-225.5"/>
+</g>
+<!-- proc~swiftest_pl_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node37" class="node">
+<title>proc~swiftest_pl_deallocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node37"><a xlink:href=".././proc/swiftest_pl_deallocate.html" xlink:title="swiftest_pl_deallocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="580,-1242 463,-1242 463,-1218 580,-1218 580,-1242"/>
+<text text-anchor="middle" x="521.5" y="-1227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_pl_deallocate</text>
+</a>
+</g>
+</g>
+<!-- proc~helio_pl_deallocate&#45;&gt;proc~swiftest_pl_deallocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge34" class="edge">
+<title>proc~helio_pl_deallocate&#45;&gt;proc~swiftest_pl_deallocate</title>
+<path fill="none" stroke="#000000" d="M427.35,-1230C435.63,-1230 444.31,-1230 452.9,-1230"/>
+<polygon fill="#000000" stroke="#000000" points="452.92,-1233.5 462.92,-1230 452.92,-1226.5 452.92,-1233.5"/>
+</g>
+<!-- proc~swiftest_tp_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node36" class="node">
+<title>proc~swiftest_tp_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node36"><a xlink:href=".././proc/swiftest_tp_allocate.html" xlink:title="swiftest_tp_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="574.5,-276 468.5,-276 468.5,-252 574.5,-252 574.5,-276"/>
+<text text-anchor="middle" x="521.5" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_tp_allocate</text>
+</a>
+</g>
+</g>
+<!-- proc~helio_tp_allocate&#45;&gt;proc~swiftest_tp_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge35" class="edge">
+<title>proc~helio_tp_allocate&#45;&gt;proc~swiftest_tp_allocate</title>
+<path fill="none" stroke="#000000" d="M421.72,-264C433.28,-264 445.9,-264 458.13,-264"/>
+<polygon fill="#000000" stroke="#000000" points="458.28,-267.5 468.28,-264 458.28,-260.5 458.28,-267.5"/>
+</g>
+<!-- proc~swiftest_pl_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_node35" class="node">
+<title>proc~swiftest_pl_allocate</title>
+<g id="a_program~~swiftest_symba_omp~~CallsGraph_node35"><a xlink:href=".././proc/swiftest_pl_allocate.html" xlink:title="swiftest_pl_allocate">
+<polygon fill="#d9534f" stroke="#d9534f" points="574,-234 469,-234 469,-210 574,-210 574,-234"/>
+<text text-anchor="middle" x="521.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_pl_allocate</text>
+</a>
+</g>
+</g>
+<!-- proc~helio_pl_allocate&#45;&gt;proc~swiftest_pl_allocate -->
+<g id="program~~swiftest_symba_omp~~CallsGraph_edge36" class="edge">
+<title>proc~helio_pl_allocate&#45;&gt;proc~swiftest_pl_allocate</title>
+<path fill="none" stroke="#000000" d="M421.32,-222C433.09,-222 445.97,-222 458.44,-222"/>
+<polygon fill="#000000" stroke="#000000" points="458.78,-225.5 468.78,-222 458.78,-218.5 458.78,-225.5"/>
+</g>
+</g>
+</svg>
+</div><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (20200408.0750)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="560pt" height="32pt"
+ viewBox="0.00 0.00 559.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 555.5,-28 555.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="64,-24 0,-24 0,0 64,0 64,-24"/>
+<text text-anchor="middle" x="32" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="136,-24 82,-24 82,0 136,0 136,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="209.5,-24 154.5,-24 154.5,0 209.5,0 209.5,-24"/>
+<text text-anchor="middle" x="182" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node4" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="364,-24 228,-24 228,0 364,0 364,-24"/>
+<text text-anchor="middle" x="296" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="436,-24 382,-24 382,0 436,0 436,-24"/>
+<text text-anchor="middle" x="409" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="551.5,-24 454.5,-24 454.5,0 551.5,0 551.5,-24"/>
+<text text-anchor="middle" x="503" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a procedure to one which it calls. Dashed 
+    arrows point from an interface to procedures which implement that interface.
+    This could include the module procedures in a generic interface or the
+    implementation in a submodule of an interface in a parent module.
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+     
+    <br>
+
+     <section class="visible-xs visible-sm hidden-md">
+       
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-1">Variables</a></h3></div>
+  <div id="vars-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-feature~13">feature</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nplmax~42">nplmax</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-ntpmax~32">ntpmax</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-istep_out~5">istep_out</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-istep_dump~5">istep_dump</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-t0~3">t0</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-tstop~5">tstop</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-dt~76">dt</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-j2rp2~38">j2rp2</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-j4rp4~38">j4rp4</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-rmin~15">rmin</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-rmax~15">rmax</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-rmaxu~15">rmaxu</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-qmin~15">qmin</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-qmin_alo~15">qmin_alo</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-qmin_ahi~15">qmin_ahi</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-qmin_coord~19">qmin_coord</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-encounter_file~25">encounter_file</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-inplfile~7">inplfile</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-intpfile~7">intpfile</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-in_type~11">in_type</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-outfile~7">outfile</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-out_type~35">out_type</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-out_form~7">out_form</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-out_stat~9">out_stat</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-lfirst~14">lfirst</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-lfrag_add">lfrag_add</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-npl~110">npl</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-ntp~82">ntp</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-ntp0">ntp0</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nsppl~5">nsppl</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nsptp~5">nsptp</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-iout">iout</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-idump">idump</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-iloop">iloop</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nplplenc~28">nplplenc</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-npltpenc~20">npltpenc</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nmergeadd~26">nmergeadd</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-nmergesub~21">nmergesub</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-fragmax~17">fragmax</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-t~86">t</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-tfrac">tfrac</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-tbase">tbase</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-mtiny~9">mtiny</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-ke~3">ke</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-pe~3">pe</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-te~3">te</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-eoffset~23">eoffset</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-htot~3">htot</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-inparfile~3">inparfile</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-symba_pla~59">symba_plA</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-symba_tpa~36">symba_tpA</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-discard_tpa~5">discard_tpA</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-discard_pla~5">discard_plA</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-plplenc_list~29">plplenc_list</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-pltpenc_list~21">pltpenc_list</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-mergeadd_list~27">mergeadd_list</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-mergesub_list~23">mergesub_list</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-egyiu">egyiu</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-start">start</a>
+      
+      <a class="list-group-item" href="../program/swiftest_symba_omp.html#variable-finish">finish</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     </section>
+     <br class="visible-xs visible-sm hidden-md">
+
+     
+
+    
+    <section>
+    <h2>Variables</h2>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-feature~13"></span>type(<a href='../type/feature_list.html'>feature_list</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>feature</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nplmax~42"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>nplmax</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ntpmax~32"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>ntpmax</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-istep_out~5"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>istep_out</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-istep_dump~5"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>istep_dump</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t0~3"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>t0</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tstop~5"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>tstop</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dt~76"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-j2rp2~38"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>j2rp2</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-j4rp4~38"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>j4rp4</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rmin~15"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>rmin</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rmax~15"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>rmax</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rmaxu~15"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>rmaxu</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qmin~15"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>qmin</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qmin_alo~15"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>qmin_alo</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qmin_ahi~15"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>qmin_ahi</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qmin_coord~19"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>qmin_coord</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-encounter_file~25"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>encounter_file</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-inplfile~7"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>inplfile</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-intpfile~7"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>intpfile</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-in_type~11"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>in_type</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-outfile~7"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>outfile</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-out_type~35"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>out_type</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-out_form~7"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>out_form</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-out_stat~9"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>out_stat</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lfirst~14"></span>logical(kind=LGT)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>lfirst</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lfrag_add"></span>logical(kind=LGT)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>lfrag_add</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-npl~110"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>npl</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ntp~82"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>ntp</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ntp0"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>ntp0</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nsppl~5"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>nsppl</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nsptp~5"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>nsptp</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-iout"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>iout</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-idump"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>idump</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-iloop"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>iloop</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nplplenc~28"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>nplplenc</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-npltpenc~20"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>npltpenc</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nmergeadd~26"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>nmergeadd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nmergesub~21"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>nmergesub</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-fragmax~17"></span>integer(kind=I4B)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>fragmax</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t~86"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tfrac"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>tfrac</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tbase"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>tbase</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mtiny~9"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>mtiny</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ke~3"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>ke</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-pe~3"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>pe</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-te~3"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>te</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-eoffset~23"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>eoffset</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-htot~3"></span>real(kind=DP),</td>
+  
+  
+  <td>DIMENSION(NDIM)</td><td>::</td>
+  <td><strong>htot</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-inparfile~3"></span>character(len=STRMAX)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>inparfile</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-symba_pla~59"></span>type(<a href='../type/symba_pl.html'>symba_pl</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>symba_plA</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-symba_tpa~36"></span>type(<a href='../type/symba_tp.html'>symba_tp</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>symba_tpA</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-discard_tpa~5"></span>type(<a href='../type/swiftest_tp.html'>swiftest_tp</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>discard_tpA</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-discard_pla~5"></span>type(<a href='../type/swiftest_pl.html'>swiftest_pl</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>discard_plA</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-plplenc_list~29"></span>type(<a href='../type/symba_plplenc.html'>symba_plplenc</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>plplenc_list</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-pltpenc_list~21"></span>type(<a href='../type/symba_pltpenc.html'>symba_pltpenc</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>pltpenc_list</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mergeadd_list~27"></span>type(<a href='../type/symba_merger.html'>symba_merger</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>mergeadd_list</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mergesub_list~23"></span>type(<a href='../type/symba_merger.html'>symba_merger</a>)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>mergesub_list</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-egyiu"></span>integer(kind=I4B),</td>
+  
+  
+  <td>parameter</td><td>::</td>
+  <td><strong>egyiu</strong></td><td> =</td><td>72</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-start"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>start</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-finish"></span>real(kind=DP)</td>
+  
+  
+  <td></td><td>::</td>
+  <td><strong>finish</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    </section>
+    <br>
+    
+    
+    
+    
+    
+    
+    
+
+    
+    
+    
+
+
+    
+    
+    
+    
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2020 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>
