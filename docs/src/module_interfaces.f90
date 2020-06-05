@@ -1525,6 +1525,17 @@ MODULE module_interfaces
          END FUNCTION
       END INTERFACE
 
+     INTERFACE
+         SUBROUTINE util_regime(symba_plA, index1, index2)
+         USE module_parameters
+         USE module_swiftest
+         USE module_symba
+         IMPLICIT NONE
+         TYPE(symba_pl), INTENT(INOUT) :: symba_plA
+         INTEGER(I4B), INTENT(IN)      :: index1, index2
+         END SUBROUTINE util_regime
+     END INTERFACE
+
 END MODULE module_interfaces
 !**********************************************************************************************************************************
 !
