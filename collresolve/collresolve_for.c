@@ -57,9 +57,9 @@ int collresolve_resolve_( int* model, double* m1, double* m2, double* r1, double
 	double* mres, double* rres, double* pres, double* vres
 ) {
 	struct collresolve_conf* conf = collresolve_conf_new();
-	collresolve_conf_unit_merc( conf );
+	collresolve_conf_unit_si( conf );
 	collresolve_conf_model( conf, *model );
-	collresolve_conf_sep_after( conf, 1.25 ); /* There's a factor 1.2 hardcoded in Mercury. */
+	/**collresolve_conf_sep_after( conf, 1.25 ); /* There's a factor 1.2 hardcoded in Mercury. */
 
 	struct collresolve_body big, small;
 	big.mass = *m1;
