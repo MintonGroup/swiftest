@@ -1,195 +1,174 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : module_parameters
-!  Unit Type   : module
-!  Project     : SWIFTEST
-!  Package     : module
-!  Language    : Fortran 90/95
-!
-!  Description : Definition of global parameters
-!
-!  Input
-!    Arguments : N/A
-!    Terminal  : N/A
-!    File      : N/A
-!
-!  Output
-!    Arguments : N/A
-!    Terminal  : N/A
-!    File      : N/A
-!
-!  Invocation  : N/A
-!
-!  Notes       : 
-!
-!**********************************************************************************************************************************
-MODULE module_parameters
+module module_parameters
+   !! graph: false
+   !! Basic parameters, definitions, and global type definitions used throughout the swiftest project
+   implicit none
 
-     IMPLICIT NONE
+   integer, parameter :: I4B = SELECTED_INT_KIND(9)
+      !! Symbolic name for kind types of 4-byte integers
+   integer, parameter :: I2B = SELECTED_INT_KIND(4)
+      !! Symbolic name for kind types of 2-byte integers
+   integer, parameter :: I1B = SELECTED_INT_KIND(2)
+      !! Symbolic name for kind types of 1-byte integers
 
-! Symbolic names for kind types of 4-, 2-, and 1-byte integers:
-     INTEGER, PARAMETER :: I4B = SELECTED_INT_KIND(9)
-     INTEGER, PARAMETER :: I2B = SELECTED_INT_KIND(4)
-     INTEGER, PARAMETER :: I1B = SELECTED_INT_KIND(2)
+   integer, parameter :: SP = KIND(1.0)
+      !! Symbolic name for kind types of single-precision reals
+   integer, parameter :: DP = KIND(1.0D0)
+      !! Symbolic name for kind types of double-precision reals
 
-! Symbolic names for kind types of single- and double-precision reals:
-     INTEGER, PARAMETER :: SP = KIND(1.0)
-     INTEGER, PARAMETER :: DP = KIND(1.0D0)
+   integer, parameter :: LGT = KIND(.TRUE.)
+      !! Symbolic name for kind type of default logical
 
-! Symbolic name for kind type of default logical:
-     INTEGER, PARAMETER :: LGT = KIND(.TRUE.)
+   real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP
+      !! Definition of /(\pi / 2\)
+   real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP
+      !! Definition of /(\pi\)
+   real(DP), parameter :: PI3BY2 = 4.712388980384689857693965074919254326296_DP
+      !! Definition of /(3 \pi / 2\)
+   real(DP), parameter :: TWOPI  = 6.283185307179586476925286766559005768394_DP
+      !! Definition of /(2\pi)
+   real(DP), parameter :: DEGRAD = 180.0_DP/PI
+      !! Definition of conversion factor from degrees to radians
 
-! Frequently used mathematical constants (with precision to spare):
-     REAL(DP), PARAMETER :: PIBY2  = 1.570796326794896619231321691639751442099_DP
-     REAL(DP), PARAMETER :: PI     = 3.141592653589793238462643383279502884197_DP
-     REAL(DP), PARAMETER :: PI3BY2 = 4.712388980384689857693965074919254326296_DP
-     REAL(DP), PARAMETER :: TWOPI  = 6.283185307179586476925286766559005768394_DP
-     REAL(DP), PARAMETER :: DEGRAD = 180.0_DP/PI
+   integer(I4B), parameter :: LOWERCASE_BEGIN  = IACHAR('a')
+      !! ASCII character set parameter for lower to upper conversion - start of lowercase
+   integer(I4B), parameter :: LOWERCASE_END    = IACHAR('z')
+      !! ASCII character set parameter for lower to upper conversion - end of lowercase
+   integer(I4B), parameter :: UPPERCASE_OFFSET = IACHAR('A') - IACHAR('a')
+      !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
 
-! ASCII character set parameters:
-     INTEGER(I4B), PARAMETER :: LOWERCASE_BEGIN  = IACHAR('a')
-     INTEGER(I4B), PARAMETER :: LOWERCASE_END    = IACHAR('z')
-     INTEGER(I4B), PARAMETER :: UPPERCASE_OFFSET = IACHAR('A') - IACHAR('a')
+   real(SP), parameter :: VERSION_NUMBER = 1.0_SP
+      !! swiftest version
 
-! SWIFTEST version:
-     REAL(SP), PARAMETER :: VERSION_NUMBER = 1.0_SP
+   integer(I4B), parameter  :: SWIFTEST = 1
+      !! Symbolic name for swiftest types
+   !NTEGER(I4B), parameter  :: BS       = 2
+   !integer(I4B), parameter :: HELIO    = 3
+   !integer(I4B), parameter :: RA15     = 4
+   !integer(I4B), parameter :: TU4      = 5
+   !integer(I4B), parameter :: WHM      = 6
+   !integer(I4B), parameter :: RMVS     = 7
+   integer(I4B), parameter  :: SYMBA    = 8
+      !! Symbolic names for SyMBA structure type
 
-! Symbolic names for structure types
-     INTEGER(I4B), PARAMETER  :: SWIFTEST = 1
-     !NTEGER(I4B), PARAMETER  :: BS       = 2
-     !INTEGER(I4B), PARAMETER :: HELIO    = 3
-     !INTEGER(I4B), PARAMETER :: RA15     = 4
-     !INTEGER(I4B), PARAMETER :: TU4      = 5
-     !INTEGER(I4B), PARAMETER :: WHM      = 6
-     !INTEGER(I4B), PARAMETER :: RMVS     = 7
-     INTEGER(I4B), PARAMETER  :: SYMBA    = 8
+   integer(I4B), parameter :: STRMAX = 128
+      !! Maximum size of character strings
 
-! Maximum array sizes:
-     INTEGER(I4B), PARAMETER :: STRMAX = 128
+   CHARACTER(*), parameter :: REAL4_TYPE = "REAL4"
+      !! Symbolic name for binary output file type real4
+   CHARACTER(*), parameter :: REAL8_TYPE = "REAL8"
+      !! Symbolic name for binary output file type real8
+   CHARACTER(*), parameter :: XDR4_TYPE  = "XDR4"
+      !! Symbolic name for binary output file type XDR4
+   CHARACTER(*), parameter :: XDR8_TYPE  = "XDR8"
+      !! Symbolic name for binary output file type XDR8
 
-! Symbolic names for binary output file types
-     CHARACTER(*), PARAMETER :: REAL4_TYPE = "REAL4"
-     CHARACTER(*), PARAMETER :: REAL8_TYPE = "REAL8"
-     CHARACTER(*), PARAMETER :: XDR4_TYPE  = "XDR4"
-     CHARACTER(*), PARAMETER :: XDR8_TYPE  = "XDR8"
+   integer(I4B), parameter :: EL   = 1
+      !! Symbolic name for binary output file contents for orbital element type
+   integer(I4B), parameter :: XV   = 2
+      !! Symbolic name for binary output file contents for cartesian position and velocity type
+   integer(I4B), parameter :: FILT = 3
+      !! Symbolic name for binary output file contents for filtered type
 
-! Symbolic names for binary output file contents
-     INTEGER(I4B), PARAMETER :: EL   = 1
-     INTEGER(I4B), PARAMETER :: XV   = 2
-     INTEGER(I4B), PARAMETER :: FILT = 3
+   ! OPENMP code added by D. Minton
+   ! OpenMP Parameters
+   integer(I4B), save :: nthreads = 1
+      !! Number of OpenMP threads
+   integer(I4B), parameter :: NTHERSHOLD = 1000
+      !! Threshold value for OpenMP loop parallelization
 
-! OPENMP code added by D. Minton
-! OpenMP Parameters
-     INTEGER(I4B), SAVE :: nthreads = 1
-     INTEGER(I4B), PARAMETER :: NTHERSHOLD = 1000
+   integer(I4B), parameter :: SUCCESS =  0
+      !! Symbolic name for function return/flag code for success
+   integer(I4B), parameter :: FAILURE = -1
+      !! Symbolic name for function return/flag code for failure
 
-! Symbolic names for function return/flag codes:
-     INTEGER(I4B), PARAMETER :: SUCCESS =  0
-     INTEGER(I4B), PARAMETER :: FAILURE = -1
+   integer(I4B), parameter :: ELLIPSE   = -1
+     !! Symbolic names for orbit types - ellipse
+   integer(I4B), parameter :: PARABOLA  =  0
+     !! Symbolic names for orbit types - parabola
+   integer(I4B), parameter :: HYPERBOLA =  1
+     !! Symbolic names for orbit types - hyperbola
 
-! Symbolic names for orbit types:
-     INTEGER(I4B), PARAMETER :: ELLIPSE   = -1
-     INTEGER(I4B), PARAMETER :: PARABOLA  =  0
-     INTEGER(I4B), PARAMETER :: HYPERBOLA =  1
+   !> Symbolic names for body/particle status codes:
+   integer(I4B), parameter :: ACTIVE             =  0
+   integer(I4B), parameter :: INACTIVE           =  1
+   integer(I4B), parameter :: DISCARDED_RMAX     = -1
+   integer(I4B), parameter :: DISCARDED_RMIN     = -2
+   integer(I4B), parameter :: DISCARDED_RMAXU    = -3
+   integer(I4B), parameter :: DISCARDED_PERI     = -4
+   integer(I4B), parameter :: DISCARDED_PLR      = -5
+   integer(I4B), parameter :: DISCARDED_PLQ      = -6
+   integer(I4B), parameter :: DISCARDED_DRIFTERR = -7
+   integer(I4B), parameter :: MERGED             = -8
+   integer(I4B), parameter :: DISRUPTION         = -9
+   integer(I4B), parameter :: SUPERCATASTROPHIC  = -10
+   integer(I4B), parameter :: GRAZE_AND_MERGE    = -11
+   integer(I4B), parameter :: HIT_AND_RUN        = -12
 
-! Symbolic names for body/particle status codes:
-     INTEGER(I4B), PARAMETER :: ACTIVE             =  0
-     INTEGER(I4B), PARAMETER :: INACTIVE           =  1
-     INTEGER(I4B), PARAMETER :: DISCARDED_RMAX     = -1
-     INTEGER(I4B), PARAMETER :: DISCARDED_RMIN     = -2
-     INTEGER(I4B), PARAMETER :: DISCARDED_RMAXU    = -3
-     INTEGER(I4B), PARAMETER :: DISCARDED_PERI     = -4
-     INTEGER(I4B), PARAMETER :: DISCARDED_PLR      = -5
-     INTEGER(I4B), PARAMETER :: DISCARDED_PLQ      = -6
-     INTEGER(I4B), PARAMETER :: DISCARDED_DRIFTERR = -7
-     INTEGER(I4B), PARAMETER :: MERGED             = -8
-     INTEGER(I4B), PARAMETER :: DISRUPTION         = -9
-     INTEGER(I4B), PARAMETER :: SUPERCATASTROPHIC  = -10
-     INTEGER(I4B), PARAMETER :: GRAZE_AND_MERGE    = -11
-     INTEGER(I4B), PARAMETER :: HIT_AND_RUN        = -12
+   !>Symbolic names for collisional outcomes from collresolve_resolve:
+   integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
+   integer(I4B), parameter :: COLLRESOLVE_REGIME_DISRUPTION         =  2
+   integer(I4B), parameter :: COLLRESOLVE_REGIME_SUPERCATASTROPHIC  =  3
+   integer(I4B), parameter :: COLLRESOLVE_REGIME_GRAZE_AND_MERGE    =  4
+   integer(I4B), parameter :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
 
-!Symbolic names for collisional outcomes from collresolve_resolve:
-     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_MERGE              =  1
-     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_DISRUPTION         =  2
-     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_SUPERCATASTROPHIC  =  3
-     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_GRAZE_AND_MERGE    =  4
-     INTEGER(I4B), PARAMETER :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
+   !> String labels for body/particle addition/subtraction in discard file
+   CHARACTER(*), parameter :: ADD = "+1"
+   CHARACTER(*), parameter :: SUB = "-1"
 
-! String labels for body/particle addition/subtraction in discard file
-     CHARACTER(*), PARAMETER :: ADD = "+1"
-     CHARACTER(*), PARAMETER :: SUB = "-1"
-
-! Standard file names
-     CHARACTER(*), PARAMETER :: DISCARD_FILE = "discard.out"
-     CHARACTER(*), DIMENSION(2), PARAMETER :: DUMP_PARAM_FILE = (/ "dump_param1.dat", "dump_param2.dat" /)
-     CHARACTER(*), DIMENSION(2), PARAMETER :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
-     CHARACTER(*), DIMENSION(2), PARAMETER :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
-     CHARACTER(*), PARAMETER :: ENERGY_FILE = "energy.out"
-     CHARACTER(*), PARAMETER :: pl_outfile = "pl_out.dat"
-     CHARACTER(*), PARAMETER :: tp_outfile = "tp_out.dat"
+   !> Standard file names
+   CHARACTER(*), parameter :: DISCARD_FILE = "discard.out"
+   CHARACTER(*), dimension(2), parameter :: DUMP_PARAM_FILE = (/ "dump_param1.dat", "dump_param2.dat" /)
+   CHARACTER(*), dimension(2), parameter :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
+   CHARACTER(*), dimension(2), parameter :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
+   CHARACTER(*), parameter :: ENERGY_FILE = "energy.out"
+   CHARACTER(*), parameter :: pl_outfile = "pl_out.dat"
+   CHARACTER(*), parameter :: tp_outfile = "tp_out.dat"
 
 
-! Integration control parameters:
-     REAL(DP),     PARAMETER :: E2MAX    = 0.36_DP
-     REAL(DP),     PARAMETER :: DM2MAX   = 0.16_DP
-     REAL(DP),     PARAMETER :: E2DM2MAX = 0.0016_DP
-     REAL(DP),     PARAMETER :: DANBYB   = 1.0E-13_DP
-     INTEGER(I2B), PARAMETER :: NLAG1    = 50
-     INTEGER(I2B), PARAMETER :: NLAG2    = 400
+   !> Integration control parameters:
+   real(DP),     parameter :: E2MAX    = 0.36_DP
+   real(DP),     parameter :: DM2MAX   = 0.16_DP
+   real(DP),     parameter :: E2DM2MAX = 0.0016_DP
+   real(DP),     parameter :: DANBYB   = 1.0E-13_DP
+   integer(I2B), parameter :: NLAG1    = 50
+   integer(I2B), parameter :: NLAG2    = 400
 
-! Miscellaneous constants:
-     INTEGER(I4B), PARAMETER :: NDIM    = 3
-     INTEGER(I4B), PARAMETER :: NDIM2   = 2*NDIM
-     INTEGER(I4B), PARAMETER :: LOOPMAX = 2147483647     ! 2**31 - 1
-     REAL(DP),     PARAMETER :: TINY    = 4.0E-15_DP
+   !> Miscellaneous constants:
+   integer(I4B), parameter :: NDIM    = 3
+   integer(I4B), parameter :: NDIM2   = 2*NDIM
+   integer(I4B), parameter :: LOOPMAX = 2147483647     ! 2**31 - 1
+   real(DP),     parameter :: TINY    = 4.0E-15_DP
 
-! Added by D. Minton
-! Unit conversion definitions. The user supplies these definitions in param.in.
-     REAL(DP), SAVE       :: MU2GM = -1.0_DP          ! Converts mass units to grams
-     REAL(DP), SAVE       :: TU2S  = -1.0_DP          ! Converts time units to seconds
-     REAL(DP), SAVE       :: DU2CM = -1.0_DP          ! Converts distance unit to centimeters
-     REAL(DP), PARAMETER  :: GC    = 6.6743E-8_DP      ! Universal gravitational constant in cgs units (from NIST in 2019)
+   ! Added by D. Minton
+   !> Unit conversion definitions. The user supplies these definitions in param.in.
+   real(DP), save       :: MU2GM = -1.0_DP          ! Converts mass units to grams
+   real(DP), save       :: TU2S  = -1.0_DP          ! Converts time units to seconds
+   real(DP), save       :: DU2CM = -1.0_DP          ! Converts distance unit to centimeters
+   real(DP), parameter  :: GC    = 6.6743E-8_DP      ! Universal gravitational constant in cgs units (from NIST in 2019)
 
-! Added by Carlisle Wishard and Jennifer Pouplin 
-     LOGICAL,  SAVE       :: ldiscard = .false. ! If true, then proceed to discard spilled pl and complete discard.out file.
-     LOGICAL,  SAVE       :: ldiscard_tp = .false. ! If true, then proceed to discard spilled tp 
+   !> Added by Carlisle Wishard and Jennifer Pouplin 
+   logical,  save       :: ldiscard = .false. ! If true, then proceed to discard spilled pl and complete discard.out file.
+   logical,  save       :: ldiscard_tp = .false. ! If true, then proceed to discard spilled tp 
 
-    type feature_list !Logical flags to turn on or off various features of the code
-        logical :: lextra_force = .false. ! User defined force function turned on
-        logical :: lbig_discard = .false. ! Save big bodies on every discard
-        logical :: lrhill_present = .false. ! Hill's radius is in input file
-        logical :: lclose = .false. ! Turn on close encounters
-        logical :: lfragmentation = .false. ! Do fragmentation modeling instead of simple merger.
-        logical :: lpython = .false. ! Output binary data in Python-friendly format
-        logical :: lenergy = .false. ! Track the total energy of the system
-        logical :: lrotation  = .false. ! Include rotation states of big bodies
-        logical :: ltides     = .false. ! Include tidal dissipation 
-        logical :: lringmoons = .false. ! Turn on the ringmoons code 
-        logical :: lpredprey  = .false. ! Turn on the predator/prey model for seed growth in ringmoons (experimental)
+   !>Logical flags to turn on or off various features of the code
+   type feature_list
+     logical :: lextra_force = .false. ! User defined force function turned on
+     logical :: lbig_discard = .false. ! Save big bodies on every discard
+     logical :: lrhill_present = .false. ! Hill's radius is in input file
+     logical :: lclose = .false. ! Turn on close encounters
+     logical :: lfragmentation = .false. ! Do fragmentation modeling instead of simple merger.
+     logical :: lpython = .false. ! Output binary data in Python-friendly format
+     logical :: lenergy = .false. ! Track the total energy of the system
+     logical :: lrotation  = .false. ! Include rotation states of big bodies
+     logical :: ltides     = .false. ! Include tidal dissipation 
+     logical :: lringmoons = .false. ! Turn on the ringmoons code 
+     logical :: lpredprey  = .false. ! Turn on the predator/prey model for seed growth in ringmoons (experimental)
 
-        ! Future features not implemented or in development
-        logical :: lgr = .false. ! Turn on GR
-        logical :: lyarkosvsky = .false. ! Turn on Yarkovsky effect
-        logical :: lyorp = .false. ! Turn on YORP effect
-    end type feature_list   
+     ! Future features not implemented or in development
+     logical :: lgr = .false. ! Turn on GR
+     logical :: lyarkosvsky = .false. ! Turn on Yarkovsky effect
+     logical :: lyorp = .false. ! Turn on YORP effect
+   end type feature_list   
 
 
-END MODULE module_parameters
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+END module module_parameters
