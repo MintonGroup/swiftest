@@ -53,7 +53,8 @@ SWIFTER_MODULES = module_parameters.f90 \
 		  module_symba.f90 \
 		  module_fxdr.f90 \
 		  module_swiftestalloc.f90 \
-        module_interfaces.f90
+        module_interfaces.f90 \
+        ../io/io.f90 
 
 include Makefile.Defines
 
