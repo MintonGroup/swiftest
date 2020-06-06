@@ -34,8 +34,8 @@ SUBROUTINE symba_user_getacch_tp(t, ntp, symba_tpA)
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN) 		:: ntp
-     REAL(DP), INTENT(IN)     		:: t
+     INTEGER(I4B), INTENT(IN)       :: ntp
+     REAL(DP), INTENT(IN)           :: t
      TYPE(symba_tp), INTENT(INOUT)  :: symba_tpA
 
 ! Internals

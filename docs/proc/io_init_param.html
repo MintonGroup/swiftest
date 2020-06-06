@@ -130,7 +130,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 5.1% of total for procedures.">397 statements</a>
+    title=" 5.7% of total for procedures.">447 statements</a>
      </li> 
      
      
@@ -336,6 +336,8 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
 
 
     
+    <p>Define the maximum number of threads</p>
+    
 
     <h3>Arguments</h3>
     
@@ -370,7 +372,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-nplmax~7"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-nplmax~8"></span>integer(kind=I4B),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -385,7 +387,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-ntpmax~5"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-ntpmax~6"></span>integer(kind=I4B),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -400,7 +402,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-t0"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-t0~2"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -415,7 +417,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-tstop~2"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-tstop~3"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -430,7 +432,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-dt~13"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-dt~14"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -445,7 +447,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-inplfile~3"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-inplfile~4"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -460,7 +462,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-intpfile~3"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-intpfile~4"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -475,7 +477,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-in_type~5"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-in_type~6"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -490,7 +492,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-istep_out~2"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-istep_out~3"></span>integer(kind=I4B),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -505,7 +507,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-outfile~2"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-outfile~3"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -520,7 +522,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-out_type~6"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-out_type~7"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -535,7 +537,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-out_form~2"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-out_form~3"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -550,7 +552,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-out_stat~3"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-out_stat~4"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -565,7 +567,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-istep_dump~2"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-istep_dump~3"></span>integer(kind=I4B),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -580,7 +582,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-j2rp2~9"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-j2rp2~10"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -595,7 +597,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-j4rp4~9"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-j4rp4~10"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -610,7 +612,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-rmin~4"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-rmin~5"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -625,7 +627,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-rmax~4"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-rmax~5"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -640,7 +642,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-rmaxu~4"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-rmaxu~5"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -655,7 +657,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-qmin~4"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-qmin~5"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -670,7 +672,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-qmin_coord~5"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-qmin_coord~6"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -685,7 +687,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-qmin_alo~4"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-qmin_alo~5"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -700,7 +702,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-qmin_ahi~4"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-qmin_ahi~5"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -715,7 +717,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-encounter_file~4"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-encounter_file~5"></span>character(len=*),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -730,7 +732,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-mtiny~2"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-mtiny~3"></span>real(kind=DP),</td>
   <td>intent(out),</td>
   <td>optional</td>
   
@@ -745,7 +747,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-feature~2"></span>type(<a href='../type/feature_list.html'>feature_list</a>),</td>
+  <td><span class="anchor" id="variable-feature~3"></span>type(<a href='../type/feature_list.html'>feature_list</a>),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -760,7 +762,7 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
   
 <tr>
   
-  <td><span class="anchor" id="variable-ring_outfile~2"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-ring_outfile~3"></span>character(len=*),</td>
   <td>intent(out),</td>
   <td>optional</td>
   
@@ -800,63 +802,63 @@ subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, int
 <polygon fill="none" stroke="black" points="77,-87 0,-87 0,-63 77,-63 77,-87"/>
 <text text-anchor="middle" x="38.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50">io_init_param</text>
 </g>
-<!-- interface~util_exit -->
-<g id="proc~~io_init_param~~CallsGraph_node2" class="node">
-<title>interface~util_exit</title>
-<g id="a_proc~~io_init_param~~CallsGraph_node2"><a xlink:href=".././interface/util_exit.html" xlink:title="util_exit">
-<polygon fill="#a7506f" stroke="#a7506f" points="177,-150 123,-150 123,-126 177,-126 177,-150"/>
-<text text-anchor="middle" x="150" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
-</a>
-</g>
-</g>
-<!-- proc~io_init_param&#45;&gt;interface~util_exit -->
-<g id="proc~~io_init_param~~CallsGraph_edge1" class="edge">
-<title>proc~io_init_param&#45;&gt;interface~util_exit</title>
-<path fill="none" stroke="#000000" d="M60.61,-87.15C77.2,-96.69 100.51,-110.1 119.03,-120.76"/>
-<polygon fill="#000000" stroke="#000000" points="117.54,-123.94 127.95,-125.89 121.03,-117.87 117.54,-123.94"/>
-</g>
-<!-- interface~io_get_token -->
-<g id="proc~~io_init_param~~CallsGraph_node3" class="node">
-<title>interface~io_get_token</title>
-<g id="a_proc~~io_init_param~~CallsGraph_node3"><a xlink:href=".././interface/io_get_token.html" xlink:title="io_get_token">
-<polygon fill="#a7506f" stroke="#a7506f" points="187,-108 113,-108 113,-84 187,-84 187,-108"/>
-<text text-anchor="middle" x="150" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_get_token</text>
-</a>
-</g>
-</g>
-<!-- proc~io_init_param&#45;&gt;interface~io_get_token -->
-<g id="proc~~io_init_param~~CallsGraph_edge4" class="edge">
-<title>proc~io_init_param&#45;&gt;interface~io_get_token</title>
-<path fill="none" stroke="#000000" d="M77.18,-82.23C85.45,-83.81 94.3,-85.51 102.86,-87.15"/>
-<polygon fill="#000000" stroke="#000000" points="102.25,-90.6 112.73,-89.04 103.56,-83.72 102.25,-90.6"/>
-</g>
-<!-- interface~io_open -->
-<g id="proc~~io_init_param~~CallsGraph_node4" class="node">
-<title>interface~io_open</title>
-<g id="a_proc~~io_init_param~~CallsGraph_node4"><a xlink:href=".././interface/io_open.html" xlink:title="io_open">
-<polygon fill="#a7506f" stroke="#a7506f" points="177,-66 123,-66 123,-42 177,-42 177,-66"/>
-<text text-anchor="middle" x="150" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_open</text>
-</a>
-</g>
-</g>
-<!-- proc~io_init_param&#45;&gt;interface~io_open -->
-<g id="proc~~io_init_param~~CallsGraph_edge3" class="edge">
-<title>proc~io_init_param&#45;&gt;interface~io_open</title>
-<path fill="none" stroke="#000000" d="M77.18,-67.77C88.74,-65.56 101.42,-63.12 112.88,-60.93"/>
-<polygon fill="#000000" stroke="#000000" points="113.81,-64.31 122.98,-58.99 112.5,-57.44 113.81,-64.31"/>
-</g>
 <!-- interface~util_toupper -->
-<g id="proc~~io_init_param~~CallsGraph_node5" class="node">
+<g id="proc~~io_init_param~~CallsGraph_node2" class="node">
 <title>interface~util_toupper</title>
-<g id="a_proc~~io_init_param~~CallsGraph_node5"><a xlink:href=".././interface/util_toupper.html" xlink:title="util_toupper">
-<polygon fill="#a7506f" stroke="#a7506f" points="184.5,-24 115.5,-24 115.5,0 184.5,0 184.5,-24"/>
-<text text-anchor="middle" x="150" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_toupper</text>
+<g id="a_proc~~io_init_param~~CallsGraph_node2"><a xlink:href=".././interface/util_toupper.html" xlink:title="util_toupper">
+<polygon fill="#a7506f" stroke="#a7506f" points="184.5,-150 115.5,-150 115.5,-126 184.5,-126 184.5,-150"/>
+<text text-anchor="middle" x="150" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_toupper</text>
 </a>
 </g>
 </g>
 <!-- proc~io_init_param&#45;&gt;interface~util_toupper -->
-<g id="proc~~io_init_param~~CallsGraph_edge2" class="edge">
+<g id="proc~~io_init_param~~CallsGraph_edge1" class="edge">
 <title>proc~io_init_param&#45;&gt;interface~util_toupper</title>
+<path fill="none" stroke="#000000" d="M60.61,-87.15C77.2,-96.69 100.51,-110.1 119.03,-120.76"/>
+<polygon fill="#000000" stroke="#000000" points="117.54,-123.94 127.95,-125.89 121.03,-117.87 117.54,-123.94"/>
+</g>
+<!-- interface~io_open -->
+<g id="proc~~io_init_param~~CallsGraph_node3" class="node">
+<title>interface~io_open</title>
+<g id="a_proc~~io_init_param~~CallsGraph_node3"><a xlink:href=".././interface/io_open.html" xlink:title="io_open">
+<polygon fill="#a7506f" stroke="#a7506f" points="177,-108 123,-108 123,-84 177,-84 177,-108"/>
+<text text-anchor="middle" x="150" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_open</text>
+</a>
+</g>
+</g>
+<!-- proc~io_init_param&#45;&gt;interface~io_open -->
+<g id="proc~~io_init_param~~CallsGraph_edge4" class="edge">
+<title>proc~io_init_param&#45;&gt;interface~io_open</title>
+<path fill="none" stroke="#000000" d="M77.18,-82.23C88.74,-84.44 101.42,-86.88 112.88,-89.07"/>
+<polygon fill="#000000" stroke="#000000" points="112.5,-92.56 122.98,-91.01 113.81,-85.69 112.5,-92.56"/>
+</g>
+<!-- interface~util_exit -->
+<g id="proc~~io_init_param~~CallsGraph_node4" class="node">
+<title>interface~util_exit</title>
+<g id="a_proc~~io_init_param~~CallsGraph_node4"><a xlink:href=".././interface/util_exit.html" xlink:title="util_exit">
+<polygon fill="#a7506f" stroke="#a7506f" points="177,-66 123,-66 123,-42 177,-42 177,-66"/>
+<text text-anchor="middle" x="150" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
+</a>
+</g>
+</g>
+<!-- proc~io_init_param&#45;&gt;interface~util_exit -->
+<g id="proc~~io_init_param~~CallsGraph_edge3" class="edge">
+<title>proc~io_init_param&#45;&gt;interface~util_exit</title>
+<path fill="none" stroke="#000000" d="M77.18,-67.77C88.74,-65.56 101.42,-63.12 112.88,-60.93"/>
+<polygon fill="#000000" stroke="#000000" points="113.81,-64.31 122.98,-58.99 112.5,-57.44 113.81,-64.31"/>
+</g>
+<!-- interface~io_get_token -->
+<g id="proc~~io_init_param~~CallsGraph_node5" class="node">
+<title>interface~io_get_token</title>
+<g id="a_proc~~io_init_param~~CallsGraph_node5"><a xlink:href=".././interface/io_get_token.html" xlink:title="io_get_token">
+<polygon fill="#a7506f" stroke="#a7506f" points="187,-24 113,-24 113,0 187,0 187,-24"/>
+<text text-anchor="middle" x="150" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_get_token</text>
+</a>
+</g>
+</g>
+<!-- proc~io_init_param&#45;&gt;interface~io_get_token -->
+<g id="proc~~io_init_param~~CallsGraph_edge2" class="edge">
+<title>proc~io_init_param&#45;&gt;interface~io_get_token</title>
 <path fill="none" stroke="#000000" d="M60.61,-62.85C77.2,-53.31 100.51,-39.9 119.03,-29.24"/>
 <polygon fill="#000000" stroke="#000000" points="121.03,-32.13 127.95,-24.11 117.54,-26.06 121.03,-32.13"/>
 </g>

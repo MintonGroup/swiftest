@@ -507,7 +507,7 @@ function io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, en
   
 <tr>
   
-  <td><span class="anchor" id="variable-encounter_file~2"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-encounter_file~3"></span>character(len=*),</td>
   <td>intent(in)</td>
   <td></td>
   
@@ -522,7 +522,7 @@ function io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, en
   
 <tr>
   
-  <td><span class="anchor" id="variable-out_type~4"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-out_type~5"></span>character(len=*),</td>
   <td>intent(in)</td>
   <td></td>
   
@@ -601,63 +601,63 @@ function io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, en
 <path fill="none" stroke="#000000" d="M76.22,-129.15C95.1,-138.82 121.75,-152.47 142.69,-163.19"/>
 <polygon fill="#000000" stroke="#000000" points="141.36,-166.45 151.86,-167.89 144.55,-160.22 141.36,-166.45"/>
 </g>
-<!-- interface~util_exit -->
-<g id="proc~~io_read_encounter~~CallsGraph_node4" class="node">
-<title>interface~util_exit</title>
-<g id="a_proc~~io_read_encounter~~CallsGraph_node4"><a xlink:href=".././interface/util_exit.html" xlink:title="util_exit">
-<polygon fill="#a7506f" stroke="#a7506f" points="203.5,-150 149.5,-150 149.5,-126 203.5,-126 203.5,-150"/>
-<text text-anchor="middle" x="176.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
-</a>
-</g>
-</g>
-<!-- proc~io_read_encounter&#45;&gt;interface~util_exit -->
-<g id="proc~~io_read_encounter~~CallsGraph_edge3" class="edge">
-<title>proc~io_read_encounter&#45;&gt;interface~util_exit</title>
-<path fill="none" stroke="#000000" d="M103.24,-125.66C115.4,-127.74 128.14,-129.91 139.47,-131.85"/>
-<polygon fill="#000000" stroke="#000000" points="138.99,-135.32 149.43,-133.55 140.17,-128.42 138.99,-135.32"/>
-</g>
 <!-- interface~io_open_fxdr -->
-<g id="proc~~io_read_encounter~~CallsGraph_node5" class="node">
+<g id="proc~~io_read_encounter~~CallsGraph_node4" class="node">
 <title>interface~io_open_fxdr</title>
-<g id="a_proc~~io_read_encounter~~CallsGraph_node5"><a xlink:href=".././interface/io_open_fxdr.html" xlink:title="io_open_fxdr">
-<polygon fill="#a7506f" stroke="#a7506f" points="214,-108 139,-108 139,-84 214,-84 214,-108"/>
-<text text-anchor="middle" x="176.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_open_fxdr</text>
+<g id="a_proc~~io_read_encounter~~CallsGraph_node4"><a xlink:href=".././interface/io_open_fxdr.html" xlink:title="io_open_fxdr">
+<polygon fill="#a7506f" stroke="#a7506f" points="214,-150 139,-150 139,-126 214,-126 214,-150"/>
+<text text-anchor="middle" x="176.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_open_fxdr</text>
 </a>
 </g>
 </g>
 <!-- proc~io_read_encounter&#45;&gt;interface~io_open_fxdr -->
-<g id="proc~~io_read_encounter~~CallsGraph_edge4" class="edge">
+<g id="proc~~io_read_encounter~~CallsGraph_edge3" class="edge">
 <title>proc~io_read_encounter&#45;&gt;interface~io_open_fxdr</title>
-<path fill="none" stroke="#000000" d="M103.24,-108.34C111.71,-106.89 120.46,-105.4 128.82,-103.97"/>
-<polygon fill="#000000" stroke="#000000" points="129.51,-107.4 138.78,-102.27 128.33,-100.5 129.51,-107.4"/>
+<path fill="none" stroke="#000000" d="M103.24,-125.66C111.71,-127.11 120.46,-128.6 128.82,-130.03"/>
+<polygon fill="#000000" stroke="#000000" points="128.33,-133.5 138.78,-131.73 129.51,-126.6 128.33,-133.5"/>
 </g>
 <!-- interface~ixdrclose -->
-<g id="proc~~io_read_encounter~~CallsGraph_node6" class="node">
+<g id="proc~~io_read_encounter~~CallsGraph_node5" class="node">
 <title>interface~ixdrclose</title>
-<g id="a_proc~~io_read_encounter~~CallsGraph_node6"><a xlink:href=".././interface/ixdrclose.html" xlink:title="ixdrclose">
-<polygon fill="#a7506f" stroke="#a7506f" points="204,-66 149,-66 149,-42 204,-42 204,-66"/>
-<text text-anchor="middle" x="176.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ixdrclose</text>
+<g id="a_proc~~io_read_encounter~~CallsGraph_node5"><a xlink:href=".././interface/ixdrclose.html" xlink:title="ixdrclose">
+<polygon fill="#a7506f" stroke="#a7506f" points="204,-108 149,-108 149,-84 204,-84 204,-108"/>
+<text text-anchor="middle" x="176.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ixdrclose</text>
 </a>
 </g>
 </g>
 <!-- proc~io_read_encounter&#45;&gt;interface~ixdrclose -->
-<g id="proc~~io_read_encounter~~CallsGraph_edge5" class="edge">
+<g id="proc~~io_read_encounter~~CallsGraph_edge4" class="edge">
 <title>proc~io_read_encounter&#45;&gt;interface~ixdrclose</title>
-<path fill="none" stroke="#000000" d="M76.22,-104.85C95.1,-95.18 121.75,-81.53 142.69,-70.81"/>
-<polygon fill="#000000" stroke="#000000" points="144.55,-73.78 151.86,-66.11 141.36,-67.55 144.55,-73.78"/>
+<path fill="none" stroke="#000000" d="M103.24,-108.34C115.07,-106.32 127.46,-104.2 138.56,-102.31"/>
+<polygon fill="#000000" stroke="#000000" points="139.49,-105.7 148.76,-100.57 138.31,-98.8 139.49,-105.7"/>
 </g>
 <!-- interface~io_open -->
-<g id="proc~~io_read_encounter~~CallsGraph_node7" class="node">
+<g id="proc~~io_read_encounter~~CallsGraph_node6" class="node">
 <title>interface~io_open</title>
-<g id="a_proc~~io_read_encounter~~CallsGraph_node7"><a xlink:href=".././interface/io_open.html" xlink:title="io_open">
-<polygon fill="#a7506f" stroke="#a7506f" points="203.5,-24 149.5,-24 149.5,0 203.5,0 203.5,-24"/>
-<text text-anchor="middle" x="176.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_open</text>
+<g id="a_proc~~io_read_encounter~~CallsGraph_node6"><a xlink:href=".././interface/io_open.html" xlink:title="io_open">
+<polygon fill="#a7506f" stroke="#a7506f" points="203.5,-66 149.5,-66 149.5,-42 203.5,-42 203.5,-66"/>
+<text text-anchor="middle" x="176.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_open</text>
 </a>
 </g>
 </g>
 <!-- proc~io_read_encounter&#45;&gt;interface~io_open -->
-<g id="proc~~io_read_encounter~~CallsGraph_edge6" class="edge">
+<g id="proc~~io_read_encounter~~CallsGraph_edge5" class="edge">
 <title>proc~io_read_encounter&#45;&gt;interface~io_open</title>
+<path fill="none" stroke="#000000" d="M76.22,-104.85C95.1,-95.18 121.75,-81.53 142.69,-70.81"/>
+<polygon fill="#000000" stroke="#000000" points="144.55,-73.78 151.86,-66.11 141.36,-67.55 144.55,-73.78"/>
+</g>
+<!-- interface~util_exit -->
+<g id="proc~~io_read_encounter~~CallsGraph_node7" class="node">
+<title>interface~util_exit</title>
+<g id="a_proc~~io_read_encounter~~CallsGraph_node7"><a xlink:href=".././interface/util_exit.html" xlink:title="util_exit">
+<polygon fill="#a7506f" stroke="#a7506f" points="203.5,-24 149.5,-24 149.5,0 203.5,0 203.5,-24"/>
+<text text-anchor="middle" x="176.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
+</a>
+</g>
+</g>
+<!-- proc~io_read_encounter&#45;&gt;interface~util_exit -->
+<g id="proc~~io_read_encounter~~CallsGraph_edge6" class="edge">
+<title>proc~io_read_encounter&#45;&gt;interface~util_exit</title>
 <path fill="none" stroke="#000000" d="M63.15,-104.9C78.72,-87.65 109.09,-55.57 139,-33 140.58,-31.81 142.22,-30.64 143.91,-29.49"/>
 <polygon fill="#000000" stroke="#000000" points="145.97,-32.34 152.55,-24.04 142.23,-26.42 145.97,-32.34"/>
 </g>

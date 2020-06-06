@@ -1526,13 +1526,15 @@ MODULE module_interfaces
       END INTERFACE
 
      INTERFACE
-         SUBROUTINE util_regime(symba_plA, index1, index2)
+         SUBROUTINE util_regime(symba_plA, index1, index2, regime, Mlr, Mslr)
          USE module_parameters
          USE module_swiftest
          USE module_symba
          IMPLICIT NONE
          TYPE(symba_pl), INTENT(INOUT) :: symba_plA
          INTEGER(I4B), INTENT(IN)      :: index1, index2
+         INTEGER(I4B), INTENT(OUT)     :: regime
+         REAL(DP), INTENT(OUT)         :: Mlr, Mslr
          END SUBROUTINE util_regime
      END INTERFACE
 

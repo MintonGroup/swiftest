@@ -130,7 +130,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 4.7% of total for modules and submodules.">95 statements</a>
+    title=" 5.1% of total for modules and submodules.">127 statements</a>
      </li> 
      
      
@@ -209,9 +209,9 @@
       
       <a class="list-group-item" href="../module/module_parameters.html#variable-strmax">STRMAX</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-real4_type">real4_TYPE</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-real4_type">REAL4_TYPE</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-real8_type">real8_TYPE</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-real8_type">REAL8_TYPE</a>
       
       <a class="list-group-item" href="../module/module_parameters.html#variable-xdr4_type">XDR4_TYPE</a>
       
@@ -313,11 +313,11 @@
       
       <a class="list-group-item" href="../module/module_parameters.html#variable-tiny">TINY</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-mu2gm">MU2GM</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-mu2gm~2">MU2GM</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-tu2s">TU2S</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-tu2s~2">TU2S</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-du2cm">DU2CM</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-du2cm~2">DU2CM</a>
       
       <a class="list-group-item" href="../module/module_parameters.html#variable-gc">GC</a>
       
@@ -346,6 +346,8 @@
       
       <a class="list-group-item" href="../module/module_parameters.html#type-feature_list">feature_list</a>
       
+      <a class="list-group-item" href="../module/module_parameters.html#type-input_parameters">input_parameters</a>
+      
     </div>
   </div>
 </div>
@@ -366,7 +368,8 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <p>Basic parameters, definitions, and global type definitions used throughout the swiftest project</p>
+    <p>Basic parameters, definitions, and global type definitions used throughout the swiftest project
+List of parameters that are input by the user in the param.in file</p>
       
     
   
@@ -424,9 +427,9 @@
       
       <a class="list-group-item" href="../module/module_parameters.html#variable-strmax">STRMAX</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-real4_type">real4_TYPE</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-real4_type">REAL4_TYPE</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-real8_type">real8_TYPE</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-real8_type">REAL8_TYPE</a>
       
       <a class="list-group-item" href="../module/module_parameters.html#variable-xdr4_type">XDR4_TYPE</a>
       
@@ -528,11 +531,11 @@
       
       <a class="list-group-item" href="../module/module_parameters.html#variable-tiny">TINY</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-mu2gm">MU2GM</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-mu2gm~2">MU2GM</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-tu2s">TU2S</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-tu2s~2">TU2S</a>
       
-      <a class="list-group-item" href="../module/module_parameters.html#variable-du2cm">DU2CM</a>
+      <a class="list-group-item" href="../module/module_parameters.html#variable-du2cm~2">DU2CM</a>
       
       <a class="list-group-item" href="../module/module_parameters.html#variable-gc">GC</a>
       
@@ -560,6 +563,8 @@
     <div class="list-group">
       
       <a class="list-group-item" href="../module/module_parameters.html#type-feature_list">feature_list</a>
+      
+      <a class="list-group-item" href="../module/module_parameters.html#type-input_parameters">input_parameters</a>
       
     </div>
   </div>
@@ -856,7 +861,7 @@
   
   <td>public,</td>
   <td>parameter</td><td>::</td>
-  <td><strong>real4_TYPE</strong></td><td> =</td><td>"real4"</td><td><p>Symbolic name for binary output file type real4</p></td>
+  <td><strong>REAL4_TYPE</strong></td><td> =</td><td>"REAL4"</td><td><p>Symbolic name for binary output file type real4</p></td>
   
 </tr>
 
@@ -870,7 +875,7 @@
   
   <td>public,</td>
   <td>parameter</td><td>::</td>
-  <td><strong>real8_TYPE</strong></td><td> =</td><td>"real8"</td><td><p>Symbolic name for binary output file type real8</p></td>
+  <td><strong>REAL8_TYPE</strong></td><td> =</td><td>"REAL8"</td><td><p>Symbolic name for binary output file type real8</p></td>
   
 </tr>
 
@@ -1528,7 +1533,8 @@
   
   <td>public,</td>
   <td>parameter</td><td>::</td>
-  <td><strong>NDIM</strong></td><td> =</td><td>3</td><td><p>Miscellaneous constants:</p></td>
+  <td><strong>NDIM</strong></td><td> =</td><td>3</td><td><p>Miscellaneous constants:
+ Number of dimensions in our reality</p></td>
   
 </tr>
 
@@ -1542,7 +1548,7 @@
   
   <td>public,</td>
   <td>parameter</td><td>::</td>
-  <td><strong>NDIM2</strong></td><td> =</td><td>2*NDIM</td><td></td>
+  <td><strong>NDIM2</strong></td><td> =</td><td>2*NDIM</td><td><p>2x the number of dimensions</p></td>
   
 </tr>
 
@@ -1556,7 +1562,7 @@
   
   <td>public,</td>
   <td>parameter</td><td>::</td>
-  <td><strong>LOOPMAX</strong></td><td> =</td><td>2147483647</td><td></td>
+  <td><strong>LOOPMAX</strong></td><td> =</td><td>2147483647</td><td><p>Maximum loop limit /(2^{31} - 1)</p></td>
   
 </tr>
 
@@ -1580,25 +1586,11 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-mu2gm"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-mu2gm~2"></span>real(kind=DP),</td>
   
-  <td>public,</td>
-  <td>save</td><td>::</td>
-  <td><strong>MU2GM</strong></td><td> =</td><td>-1.0_DP</td><td><p>Unit conversion definitions. The user supplies these definitions in param.in.</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-tu2s"></span>real(kind=DP),</td>
-  
-  <td>public,</td>
-  <td>save</td><td>::</td>
-  <td><strong>TU2S</strong></td><td> =</td><td>-1.0_DP</td><td></td>
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>MU2GM</strong></td><td> =</td><td>-1.0_DP</td><td><p>Converts mass units to grams</p></td>
   
 </tr>
 
@@ -1608,11 +1600,25 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-du2cm"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-tu2s~2"></span>real(kind=DP),</td>
   
-  <td>public,</td>
-  <td>save</td><td>::</td>
-  <td><strong>DU2CM</strong></td><td> =</td><td>-1.0_DP</td><td></td>
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>TU2S</strong></td><td> =</td><td>-1.0_DP</td><td><p>Converts time units to seconds</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-du2cm~2"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>DU2CM</strong></td><td> =</td><td>-1.0_DP</td><td><p>Converts distance unit to centimeters</p></td>
   
 </tr>
 
@@ -1626,7 +1632,7 @@
   
   <td>public,</td>
   <td>parameter</td><td>::</td>
-  <td><strong>GC</strong></td><td> =</td><td>6.6743E-8_DP</td><td></td>
+  <td><strong>GC</strong></td><td> =</td><td>6.6743E-8_DP</td><td><p>Universal gravitational constant in cgs units (from NIST in 2019)</p></td>
   
 </tr>
 
@@ -1640,7 +1646,8 @@
   
   <td>public,</td>
   <td>save</td><td>::</td>
-  <td><strong>ldiscard</strong></td><td> =</td><td>.false.</td><td><p>Added by Carlisle Wishard and Jennifer Pouplin </p></td>
+  <td><strong>ldiscard</strong></td><td> =</td><td>.false.</td><td><p>Added by Carlisle Wishard and Jennifer Pouplin 
+ If true, then proceed to discard spilled pl and complete discard.out file.</p></td>
   
 </tr>
 
@@ -1654,7 +1661,7 @@
   
   <td>public,</td>
   <td>save</td><td>::</td>
-  <td><strong>ldiscard_tp</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>ldiscard_tp</strong></td><td> =</td><td>.false.</td><td><p>If true, then proceed to discard spilled tp </p></td>
   
 </tr>
 
@@ -1707,7 +1714,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lextra_force</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lextra_force</strong></td><td> =</td><td>.false.</td><td><p>User defined force function turned on</p></td>
   
 </tr>
 
@@ -1721,7 +1728,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lbig_discard</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lbig_discard</strong></td><td> =</td><td>.false.</td><td><p>Save big bodies on every discard</p></td>
   
 </tr>
 
@@ -1735,7 +1742,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lrhill_present</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lrhill_present</strong></td><td> =</td><td>.false.</td><td><p>Hill's radius is in input file</p></td>
   
 </tr>
 
@@ -1749,7 +1756,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lclose</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lclose</strong></td><td> =</td><td>.false.</td><td><p>Turn on close encounters</p></td>
   
 </tr>
 
@@ -1763,7 +1770,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lfragmentation</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lfragmentation</strong></td><td> =</td><td>.false.</td><td><p>Do fragmentation modeling instead of simple merger.</p></td>
   
 </tr>
 
@@ -1777,7 +1784,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lpython</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lpython</strong></td><td> =</td><td>.false.</td><td><p>Output binary data in Python-friendly format</p></td>
   
 </tr>
 
@@ -1791,7 +1798,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lenergy</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lenergy</strong></td><td> =</td><td>.false.</td><td><p>Track the total energy of the system</p></td>
   
 </tr>
 
@@ -1805,7 +1812,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lrotation</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lrotation</strong></td><td> =</td><td>.false.</td><td><p>Include rotation states of big bodies</p></td>
   
 </tr>
 
@@ -1819,7 +1826,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>ltides</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>ltides</strong></td><td> =</td><td>.false.</td><td><p>Include tidal dissipation </p></td>
   
 </tr>
 
@@ -1833,7 +1840,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lringmoons</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lringmoons</strong></td><td> =</td><td>.false.</td><td><p>Turn on the ringmoons code </p></td>
   
 </tr>
 
@@ -1847,7 +1854,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lpredprey</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lpredprey</strong></td><td> =</td><td>.false.</td><td><p>Turn on the predator/prey model for seed growth in ringmoons (experimental)</p></td>
   
 </tr>
 
@@ -1861,7 +1868,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lgr</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lgr</strong></td><td> =</td><td>.false.</td><td><p>Turn on GR</p></td>
   
 </tr>
 
@@ -1875,7 +1882,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lyarkosvsky</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lyarkosvsky</strong></td><td> =</td><td>.false.</td><td><p>Turn on Yarkovsky effect</p></td>
   
 </tr>
 
@@ -1889,7 +1896,460 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lyorp</strong></td><td> =</td><td>.false.</td><td></td>
+  <td><strong>lyorp</strong></td><td> =</td><td>.false.</td><td><p>Turn on YORP effect</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-input_parameters"></span><h3>type, public :: <a href='../type/input_parameters.html'>input_parameters</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>User defined input parameters that are read in from param.in</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-feature"></span>type(<a href='../type/feature_list.html'>feature_list</a>),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>feature</strong></td><td></td><td></td><td><p>collection of logical flags for various features</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nplmax"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>nplmax</strong></td><td> =</td><td>-1</td><td><p>maximum allowed number of planets</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ntpmax"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ntpmax</strong></td><td> =</td><td>-1</td><td><p>maximum allowed number of test particles</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-t0"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>t0</strong></td><td> =</td><td>0.0_DP</td><td><p>integration start time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tstop"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>tstop</strong></td><td> =</td><td>0.0_DP</td><td><p>integration stop time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dt"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td> =</td><td>0.0_DP</td><td><p>time step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-inplfile"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>inplfile</strong></td><td> =</td><td>''</td><td><p>name of input file for planets</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-intpfile"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>intpfile</strong></td><td> =</td><td>''</td><td><p>name of input file for test particles</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-in_type"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>in_type</strong></td><td> =</td><td>'ASCII'</td><td><p>format of input data files</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-istep_out"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>istep_out</strong></td><td> =</td><td>-1</td><td><p>number of time steps between binary outputs</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-outfile"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>outfile</strong></td><td> =</td><td>''</td><td><p>name of output binary file</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-out_type"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>out_type</strong></td><td> =</td><td>XDR4_TYPE</td><td><p>binary format of output file</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-out_form"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>out_form</strong></td><td> =</td><td>'XV'</td><td><p>data to write to output file</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-out_stat"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>out_stat</strong></td><td> =</td><td>'NEW'</td><td><p>open status for output binary file</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-istep_dump"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>istep_dump</strong></td><td> =</td><td>-1</td><td><p>number of time steps between dumps</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-j2rp2"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>j2rp2</strong></td><td> =</td><td>0.0_DP</td><td><p>J2 * R**2 for the Sun</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-j4rp4"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>j4rp4</strong></td><td> =</td><td>0.0_DP</td><td><p>J4 * R**4 for the Sun</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rmin"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>rmin</strong></td><td> =</td><td>-1.0_DP</td><td><p>minimum heliocentric radius for test particle</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rmax"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>rmax</strong></td><td> =</td><td>-1.0_DP</td><td><p>maximum heliocentric radius for test particle</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rmaxu"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>rmaxu</strong></td><td> =</td><td>-1.0_DP</td><td><p>maximum unbound heliocentric radius for test particle</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qmin"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>qmin</strong></td><td> =</td><td>-1.0_DP</td><td><p>minimum pericenter distance for test particle</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qmin_coord"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>qmin_coord</strong></td><td> =</td><td>'HELIO'</td><td><p>coordinate frame to use for qmin</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qmin_alo"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>qmin_alo</strong></td><td> =</td><td>-1.0_DP</td><td><p>minimum semimajor axis for qmin</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-qmin_ahi"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>qmin_ahi</strong></td><td> =</td><td>-1.0_DP</td><td><p>maximum semimajor axis for qmin</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-encounter_file"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>encounter_file</strong></td><td> =</td><td>''</td><td><p>name of output file for encounters</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mtiny"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>mtiny</strong></td><td> =</td><td>0.0_DP</td><td><p>smallest mass that is fully gravitating</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ring_outfile"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ring_outfile</strong></td><td> =</td><td>''</td><td><p>name of output file in ring moons</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mu2gm"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>MU2GM</strong></td><td> =</td><td>-1.0_DP</td><td><p>Converts mass units to grams</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tu2s"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>TU2S</strong></td><td> =</td><td>-1.0_DP</td><td><p>Converts time units to seconds</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-du2cm"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>DU2CM</strong></td><td> =</td><td>-1.0_DP</td><td><p>Converts distance unit to centimeters</p></td>
   
 </tr>
 

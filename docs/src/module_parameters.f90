@@ -41,7 +41,7 @@ module module_parameters
 
    integer(I4B), parameter  :: SWIFTEST = 1
       !! Symbolic name for swiftest types
-   !NTEGER(I4B), parameter  :: BS       = 2
+   !integer(I4B), parameter  :: BS       = 2
    !integer(I4B), parameter :: HELIO    = 3
    !integer(I4B), parameter :: RA15     = 4
    !integer(I4B), parameter :: TU4      = 5
@@ -53,9 +53,9 @@ module module_parameters
    integer(I4B), parameter :: STRMAX = 128
       !! Maximum size of character strings
 
-   CHARACTER(*), parameter :: real4_TYPE = "real4"
+   CHARACTER(*), parameter :: REAL4_TYPE = "REAL4"
       !! Symbolic name for binary output file type real4
-   CHARACTER(*), parameter :: real8_TYPE = "real8"
+   CHARACTER(*), parameter :: REAL8_TYPE = "REAL8"
       !! Symbolic name for binary output file type real8
    CHARACTER(*), parameter :: XDR4_TYPE  = "XDR4"
       !! Symbolic name for binary output file type XDR4
@@ -126,7 +126,7 @@ module module_parameters
 
 
    !> Integration control parameters:
-   real(DP),     parameter :: E2MAX    = 0.36_DP
+   real(DP),     parameter :: E2MAX    = 0.36_DP      
    real(DP),     parameter :: DM2MAX   = 0.16_DP
    real(DP),     parameter :: E2DM2MAX = 0.0016_DP
    real(DP),     parameter :: DANBYB   = 1.0E-13_DP
@@ -134,41 +134,76 @@ module module_parameters
    integer(I2B), parameter :: NLAG2    = 400
 
    !> Miscellaneous constants:
-   integer(I4B), parameter :: NDIM    = 3
-   integer(I4B), parameter :: NDIM2   = 2*NDIM
-   integer(I4B), parameter :: LOOPMAX = 2147483647     ! 2**31 - 1
+   integer(I4B), parameter :: NDIM    = 3          !! Number of dimensions in our reality
+   integer(I4B), parameter :: NDIM2   = 2*NDIM     !! 2x the number of dimensions
+   integer(I4B), parameter :: LOOPMAX = 2147483647 !! Maximum loop limit /(2^{31} - 1\)
    real(DP),     parameter :: TINY    = 4.0E-15_DP
 
    ! Added by D. Minton
-   !> Unit conversion definitions. The user supplies these definitions in param.in.
-   real(DP), save       :: MU2GM = -1.0_DP          ! Converts mass units to grams
-   real(DP), save       :: TU2S  = -1.0_DP          ! Converts time units to seconds
-   real(DP), save       :: DU2CM = -1.0_DP          ! Converts distance unit to centimeters
-   real(DP), parameter  :: GC    = 6.6743E-8_DP      ! Universal gravitational constant in cgs units (from NIST in 2019)
+      real(DP)             :: MU2GM = -1.0_DP      !! Converts mass units to grams
+      real(DP)             :: TU2S  = -1.0_DP      !! Converts time units to seconds
+      real(DP)             :: DU2CM = -1.0_DP      !! Converts distance unit to centimeters
+   real(DP), parameter  :: GC    = 6.6743E-8_DP     !! Universal gravitational constant in cgs units (from NIST in 2019)
 
    !> Added by Carlisle Wishard and Jennifer Pouplin 
-   logical,  save       :: ldiscard = .false. ! If true, then proceed to discard spilled pl and complete discard.out file.
-   logical,  save       :: ldiscard_tp = .false. ! If true, then proceed to discard spilled tp 
+   logical,  save       :: ldiscard = .false.    !! If true, then proceed to discard spilled pl and complete discard.out file.
+   logical,  save       :: ldiscard_tp = .false. !! If true, then proceed to discard spilled tp 
 
    !>Logical flags to turn on or off various features of the code
    type feature_list
-     logical :: lextra_force = .false. ! User defined force function turned on
-     logical :: lbig_discard = .false. ! Save big bodies on every discard
-     logical :: lrhill_present = .false. ! Hill's radius is in input file
-     logical :: lclose = .false. ! Turn on close encounters
-     logical :: lfragmentation = .false. ! Do fragmentation modeling instead of simple merger.
-     logical :: lpython = .false. ! Output binary data in Python-friendly format
-     logical :: lenergy = .false. ! Track the total energy of the system
-     logical :: lrotation  = .false. ! Include rotation states of big bodies
-     logical :: ltides     = .false. ! Include tidal dissipation 
-     logical :: lringmoons = .false. ! Turn on the ringmoons code 
-     logical :: lpredprey  = .false. ! Turn on the predator/prey model for seed growth in ringmoons (experimental)
+     logical :: lextra_force = .false.       !! User defined force function turned on
+     logical :: lbig_discard = .false.       !! Save big bodies on every discard
+     logical :: lrhill_present = .false.     !! Hill's radius is in input file
+     logical :: lclose = .false.             !! Turn on close encounters
+     logical :: lfragmentation = .false.     !! Do fragmentation modeling instead of simple merger.
+     logical :: lpython = .false.            !! Output binary data in Python-friendly format
+     logical :: lenergy = .false.            !! Track the total energy of the system
+     logical :: lrotation  = .false.         !! Include rotation states of big bodies
+     logical :: ltides     = .false.         !! Include tidal dissipation 
+     logical :: lringmoons = .false.         !! Turn on the ringmoons code 
+     logical :: lpredprey  = .false.         !! Turn on the predator/prey model for seed growth in ringmoons (experimental)
 
      ! Future features not implemented or in development
-     logical :: lgr = .false. ! Turn on GR
-     logical :: lyarkosvsky = .false. ! Turn on Yarkovsky effect
-     logical :: lyorp = .false. ! Turn on YORP effect
+     logical :: lgr = .false.                !! Turn on GR
+     logical :: lyarkosvsky = .false.        !! Turn on Yarkovsky effect
+     logical :: lyorp = .false.              !! Turn on YORP effect
    end type feature_list   
+
+   !> User defined input parameters that are read in from param.in
+   type input_parameters
+      type(feature_list)   :: feature              !! collection of logical flags for various features
+      integer(I4B)         :: nplmax = -1          !! maximum allowed number of planets
+      integer(I4B)         :: ntpmax = -1          !! maximum allowed number of test particles
+      real(DP)             :: t0 = 0.0_DP          !! integration start time
+      real(DP)             :: tstop = 0.0_DP       !! integration stop time
+      real(DP)             :: dt = 0.0_DP          !! time step
+      character(STRMAX)    :: inplfile = ''        !! name of input file for planets
+      character(STRMAX)    :: intpfile = ''        !! name of input file for test particles
+      character(STRMAX)    :: in_type = 'ASCII'    !! format of input data files
+      integer(I4B)         :: istep_out = -1       !! number of time steps between binary outputs
+      character(STRMAX)    :: outfile = ''         !! name of output binary file
+      character(STRMAX)    :: out_type = XDR4_TYPE !! binary format of output file
+      character(STRMAX)    :: out_form = 'XV'      !! data to write to output file
+      character(STRMAX)    :: out_stat = 'NEW'     !! open status for output binary file
+      integer(I4B)         :: istep_dump = -1      !! number of time steps between dumps
+      real(DP)             :: j2rp2 = 0.0_DP       !! J2 * R**2 for the Sun
+      real(DP)             :: j4rp4 = 0.0_DP       !! J4 * R**4 for the Sun
+      real(DP)             :: rmin = -1.0_DP       !! minimum heliocentric radius for test particle
+      real(DP)             :: rmax = -1.0_DP       !! maximum heliocentric radius for test particle
+      real(DP)             :: rmaxu = -1.0_DP      !! maximum unbound heliocentric radius for test particle
+      real(DP)             :: qmin = -1.0_DP       !! minimum pericenter distance for test particle
+      character(STRMAX)    :: qmin_coord = 'HELIO' !! coordinate frame to use for qmin
+      real(DP)             :: qmin_alo = -1.0_DP   !! minimum semimajor axis for qmin
+      real(DP)             :: qmin_ahi = -1.0_DP   !! maximum semimajor axis for qmin
+      character(STRMAX)    :: encounter_file = ''  !! name of output file for encounters
+      real(DP)             :: mtiny = 0.0_DP       !! smallest mass that is fully gravitating
+      character(STRMAX)    :: ring_outfile = ''    !! name of output file in ring moons
+      real(DP)             :: MU2GM = -1.0_DP      !! Converts mass units to grams
+      real(DP)             :: TU2S  = -1.0_DP      !! Converts time units to seconds
+      real(DP)             :: DU2CM = -1.0_DP      !! Converts distance unit to centimeters
+   end type input_parameters
+   !!List of parameters that are input by the user in the param.in file
+
 
 
 END module module_parameters

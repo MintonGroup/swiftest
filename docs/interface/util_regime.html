@@ -132,7 +132,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 0.1% of total for procedures.">10 statements</a>
+    title=" 0.2% of total for procedures.">12 statements</a>
      </li> 
      
      
@@ -203,7 +203,7 @@
     
       <h2>interface <br>
       
-public subroutine util_regime(symba_plA, index1, index2)
+public subroutine util_regime(symba_plA, index1, index2, regime, Mlr, Mslr)
     
     
    
@@ -232,7 +232,7 @@ public subroutine util_regime(symba_plA, index1, index2)
   
 <tr>
   
-  <td><span class="anchor" id="variable-symba_pla~57"></span>type(symba_pl),</td>
+  <td><span class="anchor" id="variable-symba_pla~56"></span>type(symba_pl),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -247,7 +247,7 @@ public subroutine util_regime(symba_plA, index1, index2)
   
 <tr>
   
-  <td><span class="anchor" id="variable-index1~3"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-index1~2"></span>integer(kind=I4B),</td>
   <td>intent(in)</td>
   <td></td>
   
@@ -262,12 +262,57 @@ public subroutine util_regime(symba_plA, index1, index2)
   
 <tr>
   
-  <td><span class="anchor" id="variable-index2~3"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-index2~2"></span>integer(kind=I4B),</td>
   <td>intent(in)</td>
   <td></td>
   
   <td></td><td>::</td>
   <td><strong>index2</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-regime~3"></span>integer(kind=I4B),</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>regime</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mlr"></span>real(kind=DP),</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>Mlr</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mslr"></span>real(kind=DP),</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>Mslr</strong></td><td></td>
   
 </tr>
 
