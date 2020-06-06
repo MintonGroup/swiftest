@@ -1,89 +1,41 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : io_get_token
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : io
-!  Language    : Fortran 90/95
-!
-!  Description : Return the next token from a character buffer
-!
-!  Input
-!    Arguments : buffer  : input character buffer
-!                ilength : buffer length
-!                ifirst  : index in character buffer to begin token search
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : ifirst  : index in character buffer to begin token search (returned as index of first character of found token)
-!                ilast   : index in character buffer of last character of token
-!                ierr    : error status (0 = OK, -1 = NO TOKEN FOUND)
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL io_get_token(buffer, ilength, ifirst, ilast, ierr)
-!
-!  Notes       : Here a token is defined as any set of contiguous non-blank characters not beginning with or containing "!"
-!                If "!" is present, any remaining part of the buffer including the "!" is ignored
-!
-!**********************************************************************************************************************************
-SUBROUTINE io_get_token(buffer, ilength, ifirst, ilast, ierr)
+submodule(io) s_io_get_token
+contains
+   module procedure io_get_token
+   !! author: David A. Minton
+   !!
+   !! Retrieves a character token from an input string. Here a token is defined as any set of contiguous non-blank characters not 
+   !! beginning with or containing "!". If "!" is present, any remaining part of the buffer including the "!" is ignored
+   !!
+   !! Adapted from Swifter
+   !! Original author David E. Kaufmann
+   implicit none
 
-! Modules
-     USE module_parameters
-     USE module_interfaces, EXCEPT_THIS_ONE => io_get_token
-     IMPLICIT NONE
+   integer(I4B) :: i
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)    :: ilength
-     INTEGER(I4B), INTENT(INOUT) :: ifirst
-     INTEGER(I4B), INTENT(OUT)   :: ilast, ierr
-     CHARACTER(*), INTENT(IN)    :: buffer
+   if (ifirst > ilength) then
+       ilast = ifirst
+       ierr = -1
+       return
+   end if
+   do i = ifirst, ilength
+       if (buffer(i:i) /= " ") exit
+   end do
+   if ((i > ilength) .or. (buffer(i:i) == "!")) then
+       ifirst = i
+       ilast = i
+       ierr = -1
+       return
+   end if
+   ifirst = i
+   do i = ifirst, ilength
+       if ((buffer(i:i) == " ") .or. (buffer(i:i) == "!")) exit
+   end do
+   ilast = i - 1
+   ierr = 0
 
-! Internals
-     INTEGER(I4B) :: i
+   token = buffer(ifirst:ilast)
 
-! Executable code
-     IF (ifirst > ilength) THEN
-          ilast = ifirst
-          ierr = -1
-          RETURN
-     END IF
-     DO i = ifirst, ilength
-          IF (buffer(i:i) /= " ") EXIT
-     END DO
-     IF ((i > ilength) .OR. (buffer(i:i) == "!")) THEN
-          ifirst = i
-          ilast = i
-          ierr = -1
-          RETURN
-     END IF
-     ifirst = i
-     DO i = ifirst, ilength
-          IF ((buffer(i:i) == " ") .OR. (buffer(i:i) == "!")) EXIT
-     END DO
-     ilast = i - 1
-     ierr = 0
+   return
 
-     RETURN
-
-END SUBROUTINE io_get_token
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure io_get_token
+end submodule s_io_get_token

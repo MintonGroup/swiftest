@@ -43,21 +43,21 @@ program swiftest_symba
    character(strmax) :: out_stat       ! open status for output binary file
 
    ! Internals
-   logical(lgt)                                               :: lfirst, lfrag_add
-   integer(I4B)                                               :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
-   integer(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
-   real(DP)                                                   :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
-   real(DP), dimension(ndim)                                  :: htot
-   character(strmax)                                          :: inparfile
-   type(symba_pl)                                             :: symba_pla
-   type(symba_tp)                                             :: symba_tpa
-   type(swiftest_tp)                                          :: discard_tpa
-   type(swiftest_pl)                                          :: discard_pla
-   type(symba_plplenc)                                        :: plplenc_list
-   type(symba_pltpenc)                                        :: pltpenc_list
-   type(symba_merger)                                         :: mergeadd_list, mergesub_list
-   integer(I4B), parameter                                    :: egyiu = 72
-   real(DP) :: start, finish
+   logical                       :: lfirst, lfrag_add
+   integer(I4B)                  :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
+   integer(I4B)                  :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
+   real(DP)                      :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
+   real(DP), dimension(ndim)     :: htot
+   character(strmax)             :: inparfile
+   type(symba_pl)                :: symba_pla
+   type(symba_tp)                :: symba_tpa
+   type(swiftest_tp)             :: discard_tpa
+   type(swiftest_pl)             :: discard_pla
+   type(symba_plplenc)           :: plplenc_list
+   type(symba_pltpenc)           :: pltpenc_list
+   type(symba_merger)            :: mergeadd_list, mergesub_list
+   integer(I4B), parameter       :: egyiu = 72
+   real(DP)                      :: start, finish
 
    ! Executable code
    call cpu_time(start)
@@ -69,6 +69,7 @@ program swiftest_symba
    inparfile = trim(adjustl(inparfile))
    ! read in the param.in file and get simulation parameters
    param = io_read_param_in(inparfile)
+
    ! temporary until the conversion to the derived type argument list is complete
    nplmax = param%nplmax
    ntpmax = param%ntpmax

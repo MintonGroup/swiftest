@@ -512,34 +512,6 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_get_token(buffer, ilength, ifirst, ilast, ierr)
-               USE module_parameters
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)    :: ilength
-               INTEGER(I4B), INTENT(INOUT) :: ifirst
-               INTEGER(I4B), INTENT(OUT)   :: ilast, ierr
-               CHARACTER(*), INTENT(IN)    :: buffer
-          END SUBROUTINE io_get_token
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
-               out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
-               qmin_ahi, encounter_file, mtiny, feature, ring_outfile)
-               USE module_parameters
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
-               REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN)  :: inparfile
-               CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, &
-                                            out_stat
-              REAl(DP), INTENT(OUT), OPTIONAL :: mtiny 
-              TYPE(feature_list), INTENT(OUT) :: feature
-              CHARACTER(*), INTENT(OUT), OPTIONAL :: ring_outfile
-          END SUBROUTINE io_init_param
-     END INTERFACE
-
-     INTERFACE
           SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
                USE module_parameters
                USE module_swiftest
