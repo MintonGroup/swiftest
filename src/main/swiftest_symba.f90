@@ -1,11 +1,11 @@
 !**********************************************************************************************************************************
 !
-!                adapted from hal levison and martin duncan's swift program swift_symba5.f
+!                Adapted from Hal Levison and Martin Duncan's SWIFT program swift_symba5.f
 !
 !**********************************************************************************************************************************
 program swiftest_symba
 
-   ! modules
+   ! Modules
    use io
    use module_parameters
    use module_swiftest
@@ -14,7 +14,7 @@ program swiftest_symba
    use module_swiftestalloc
    implicit none
 
-   ! arguments
+   ! Arguments
    type(input_parameters)  :: param    ! derived type containing user-defined parameters
    type(feature_list) :: feature       ! temporary until the parameter derived type conversion is complete
    integer(I4B)      :: nplmax         ! maximum number of planets
@@ -42,7 +42,7 @@ program swiftest_symba
    character(strmax) :: out_form       ! data to write to output file
    character(strmax) :: out_stat       ! open status for output binary file
 
-   ! internals
+   ! Internals
    logical(lgt)                                               :: lfirst, lfrag_add
    integer(I4B)                                               :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
    integer(I4B)                                               :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
@@ -59,10 +59,10 @@ program swiftest_symba
    integer(I4B), parameter                                    :: egyiu = 72
    real(DP) :: start, finish
 
-   ! executable code
+   ! Executable code
    call cpu_time(start)
    call util_version
-   nthreads = 1                        ! in the *serial* case
+   nthreads = 1                        
    write(*, 100, advance = "no") "enter name of parameter data file: "
    read(*, 100) inparfile
    100 format(a)
