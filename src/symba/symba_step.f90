@@ -66,7 +66,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      encounter_file, out_type, fragmax, feature)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_helio
      USE module_symba

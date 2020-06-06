@@ -25,7 +25,7 @@
 !**********************************************************************************************************************************
 MODULE module_symba
 
-     USE module_parameters
+     USE swiftest
      USE module_helio
      IMPLICIT NONE
 

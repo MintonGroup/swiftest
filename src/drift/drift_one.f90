@@ -31,7 +31,7 @@
 SUBROUTINE drift_one(mu, x, v, dt, iflag)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => drift_one
      IMPLICIT NONE
 

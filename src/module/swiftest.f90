@@ -1,6 +1,10 @@
-module module_parameters
+module swiftest
+   !! author: David A. Minton
    !! graph: false
-   !! Basic parameters, definitions, and global type definitions used throughout the swiftest project
+   !!
+   !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
+   !! Adapted from Swifter module_parameters and module_swifter
+   !! Original author David E. Kaufmann
    implicit none
 
    integer, parameter :: I4B = SELECTED_INT_KIND(9)
@@ -39,16 +43,15 @@ module module_parameters
    real(SP), parameter :: VERSION_NUMBER = 1.0_SP
       !! swiftest version
 
-   integer(I4B), parameter  :: SWIFTEST = 1
-      !! Symbolic name for swiftest types
+   !> Symbolic name for swiftest types
+   !integer(I4B), parameter  :: SWIFTEST = 1
    !integer(I4B), parameter  :: BS       = 2
    !integer(I4B), parameter :: HELIO    = 3
    !integer(I4B), parameter :: RA15     = 4
    !integer(I4B), parameter :: TU4      = 5
    !integer(I4B), parameter :: WHM      = 6
    !integer(I4B), parameter :: RMVS     = 7
-   integer(I4B), parameter  :: SYMBA    = 8
-      !! Symbolic names for SyMBA structure type
+   !integer(I4B), parameter  :: SYMBA    = 8
 
    integer(I4B), parameter :: STRMAX = 128
       !! Maximum size of character strings
@@ -205,5 +208,4 @@ module module_parameters
    !!List of parameters that are input by the user in the param.in file
 
 
-
-END module module_parameters
+END module swiftest

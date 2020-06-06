@@ -31,7 +31,7 @@
 SUBROUTINE discard_pl(t, dt, npl, ntp, swiftest_plA, swiftest_tpA)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => discard_pl
      IMPLICIT NONE

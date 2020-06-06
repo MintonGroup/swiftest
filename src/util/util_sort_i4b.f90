@@ -27,7 +27,7 @@
 SUBROUTINE util_sort_i4b(arr)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => util_sort_i4b
      IMPLICIT NONE
 

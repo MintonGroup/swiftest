@@ -27,7 +27,7 @@
 SUBROUTINE helio_getacch_int(npl, helio_plA)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_helio
      USE module_interfaces, EXCEPT_THIS_ONE => helio_getacch_int
      IMPLICIT NONE

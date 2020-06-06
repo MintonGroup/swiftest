@@ -47,7 +47,7 @@ SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, dt, rmin, rm
      qmin_alo, qmin_ahi, lclose, lrhill_present)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_helio
      USE module_symba

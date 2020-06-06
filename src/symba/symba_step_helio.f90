@@ -41,7 +41,7 @@
 SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_helio
      USE module_symba

@@ -29,7 +29,7 @@
 SUBROUTINE helio_lindrift(npl, swiftest_plA, dt, pt)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => helio_lindrift

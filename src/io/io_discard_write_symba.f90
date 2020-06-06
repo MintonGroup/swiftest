@@ -41,7 +41,7 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, s
      discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => io_discard_write_symba

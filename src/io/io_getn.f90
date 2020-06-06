@@ -34,7 +34,7 @@
 SUBROUTINE io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_getn
      IMPLICIT NONE

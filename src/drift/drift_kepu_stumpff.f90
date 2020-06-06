@@ -31,7 +31,7 @@
 SUBROUTINE drift_kepu_stumpff(x, c0, c1, c2, c3)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => drift_kepu_stumpff
      IMPLICIT NONE
 

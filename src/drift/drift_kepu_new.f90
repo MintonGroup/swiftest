@@ -38,7 +38,7 @@
 SUBROUTINE drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => drift_kepu_new
      IMPLICIT NONE
 

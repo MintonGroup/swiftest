@@ -47,7 +47,7 @@ SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, rmin, rmax, rmaxu, q
      qmin_ahi, j2rp2, j4rp4, eoffset)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_helio
      USE module_symba

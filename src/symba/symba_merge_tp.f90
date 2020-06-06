@@ -33,7 +33,7 @@
 SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swifter
      USE module_helio
      USE module_symba

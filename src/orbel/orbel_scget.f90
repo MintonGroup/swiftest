@@ -29,7 +29,7 @@
 SUBROUTINE orbel_scget(angle, sx, cx)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => orbel_scget
      IMPLICIT NONE
 

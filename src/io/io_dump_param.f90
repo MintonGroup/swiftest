@@ -57,7 +57,7 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
      mtiny, feature, ring_outfile)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => io_dump_param
      IMPLICIT NONE
 

@@ -34,7 +34,7 @@
 SUBROUTINE util_peri(lfirst, ntp, swiftest_tpA, mu, msys, qmin_coord)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => util_peri
      IMPLICIT NONE

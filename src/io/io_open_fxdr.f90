@@ -29,7 +29,7 @@
 SUBROUTINE io_open_fxdr(fname, fopenstat, lflag, iu, ierr)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_open_fxdr
      IMPLICIT NONE

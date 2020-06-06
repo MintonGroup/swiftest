@@ -25,7 +25,7 @@
 !**********************************************************************************************************************************
 MODULE module_helio
 
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      IMPLICIT NONE
 

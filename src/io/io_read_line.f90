@@ -40,7 +40,7 @@
 FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_read_line
      IMPLICIT NONE

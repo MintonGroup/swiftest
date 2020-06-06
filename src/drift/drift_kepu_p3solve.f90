@@ -33,7 +33,7 @@
 SUBROUTINE drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => drift_kepu_p3solve
      IMPLICIT NONE
 

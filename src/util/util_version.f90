@@ -26,7 +26,7 @@
 SUBROUTINE util_version
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => util_version
      IMPLICIT NONE
 

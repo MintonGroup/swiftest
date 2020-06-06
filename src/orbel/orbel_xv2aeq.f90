@@ -30,7 +30,7 @@
 SUBROUTINE orbel_xv2aeq(x, v, mu, a, e, q)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => orbel_xv2aeq
      IMPLICIT NONE
 
