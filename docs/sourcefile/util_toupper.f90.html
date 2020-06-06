@@ -422,15 +422,15 @@
 <a name="ln-34"></a>     <span class="kt">CHARACTER</span><span class="p">(</span><span class="o">*</span><span class="p">),</span> <span class="k">INTENT</span><span class="p">(</span><span class="n">INOUT</span><span class="p">)</span> <span class="kd">::</span> <span class="n">string</span>
 <a name="ln-35"></a>
 <a name="ln-36"></a><span class="c">! Internals</span>
-<a name="ln-37"></a>     <span class="kt">INTEGER</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span> <span class="kd">::</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="nb">index</span>
+<a name="ln-37"></a>     <span class="kt">INTEGER</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span> <span class="kd">::</span> <span class="n">i</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">idx</span>
 <a name="ln-38"></a>
 <a name="ln-39"></a><span class="c">! Executable code</span>
 <a name="ln-40"></a>     <span class="n">length</span> <span class="o">=</span> <span class="nb">LEN</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
 <a name="ln-41"></a>     <span class="k">DO </span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">length</span>
-<a name="ln-42"></a>          <span class="nb">index</span> <span class="o">=</span> <span class="nb">IACHAR</span><span class="p">(</span><span class="n">string</span><span class="p">(</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="p">))</span>
-<a name="ln-43"></a>          <span class="k">IF</span> <span class="p">((</span><span class="nb">index</span> <span class="o">&gt;=</span> <span class="n">LOWERCASE_BEGIN</span><span class="p">)</span> <span class="p">.</span><span class="nb">AND</span><span class="p">.</span> <span class="p">(</span><span class="nb">index</span> <span class="o">&lt;=</span> <span class="n">LOWERCASE_END</span><span class="p">))</span> <span class="k">THEN</span>
-<a name="ln-44"></a><span class="k">               </span><span class="nb">index</span> <span class="o">=</span> <span class="nb">index</span> <span class="o">+</span> <span class="n">UPPERCASE_OFFSET</span>
-<a name="ln-45"></a>               <span class="n">string</span><span class="p">(</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="nb">ACHAR</span><span class="p">(</span><span class="nb">index</span><span class="p">)</span>
+<a name="ln-42"></a>          <span class="n">idx</span> <span class="o">=</span> <span class="nb">IACHAR</span><span class="p">(</span><span class="n">string</span><span class="p">(</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="p">))</span>
+<a name="ln-43"></a>          <span class="k">IF</span> <span class="p">((</span><span class="n">idx</span> <span class="o">&gt;=</span> <span class="n">LOWERCASE_BEGIN</span><span class="p">)</span> <span class="p">.</span><span class="nb">AND</span><span class="p">.</span> <span class="p">(</span><span class="n">idx</span> <span class="o">&lt;=</span> <span class="n">LOWERCASE_END</span><span class="p">))</span> <span class="k">THEN</span>
+<a name="ln-44"></a><span class="k">               </span><span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">UPPERCASE_OFFSET</span>
+<a name="ln-45"></a>               <span class="n">string</span><span class="p">(</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="nb">ACHAR</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
 <a name="ln-46"></a>          <span class="k">END IF</span>
 <a name="ln-47"></a><span class="k">     END DO</span>
 <a name="ln-48"></a>

@@ -28,9 +28,12 @@ PROGRAM tool_encounter_read
 ! Modules
      USE module_parameters
      USE module_interfaces
+   use io
      IMPLICIT NONE
 
 ! Arguments
+   type(input_parameters)  :: param    ! derived type containing user-defined parameters
+   type(feature_list) :: feature       ! temporary until the parameter derived type conversion is complete
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
@@ -56,7 +59,6 @@ PROGRAM tool_encounter_read
      CHARACTER(STRMAX) :: out_type       ! Binary format of output file
      CHARACTER(STRMAX) :: out_form       ! Data to write to output file
      CHARACTER(STRMAX) :: out_stat       ! Open status for output binary file
-     TYPE(feature_list):: feature        ! Derived type containing logical flags to turn on or off various features of the code
 
 ! Internals
      INTEGER(I4B)              :: i,ierr,id1,id2
@@ -70,9 +72,36 @@ PROGRAM tool_encounter_read
      READ(*,100)inparfile
  100 FORMAT(A)
      inparfile=TRIM(ADJUSTL(inparfile))
-     CALL io_init_param(inparfile,nplmax,ntpmax,t0,tstop,dt,inplfile,intpfile,in_type,istep_out,outfile,out_type,out_form,        &
-          out_stat,istep_dump,j2rp2,j4rp4,rmin,rmax,rmaxu,qmin,qmin_coord,qmin_alo,qmin_ahi,encounter_file,   &
-          mtiny, feature)
+   param = io_read_param_in(inparfile)
+
+   ! temporary until the conversion to the derived type argument list is complete
+   nplmax = param%nplmax
+   ntpmax = param%ntpmax
+   t0 = param%t0
+   tstop = param%tstop
+   dt = param%dt
+   inplfile = param%inplfile
+   intpfile = param%intpfile
+   in_type = param%in_type
+   istep_out = param%istep_out
+   outfile = param%outfile
+   out_type = param%out_type
+   out_form = param%out_form
+   out_stat = param%out_stat
+   istep_dump = param%istep_dump
+   j2rp2 = param%j2rp2
+   j4rp4 = param%j4rp4
+   rmin = param%rmin
+   rmax = param%rmax
+   rmaxu = param%rmaxu
+   qmin = param%qmin
+   qmin_coord = param%qmin_coord
+   qmin_alo = param%qmin_alo
+   qmin_ahi = param%qmin_ahi
+   encounter_file = param%encounter_file
+   mtiny = param%mtiny
+   feature = param%feature
+   !^^^^^^^^^^^^^^^^^^^^^^^^^
      ierr=0
      i=0
      DO

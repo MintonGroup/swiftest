@@ -211,7 +211,7 @@
       <hr>
 <p>Unit Name   : io_open
   Unit Type   : subroutine
-  Project     : Swiftest
+  Project     : Swifter
   Package     : io
   Language    : Fortran 90/95</p>
 <p>Description : Open a file</p>
@@ -227,10 +227,11 @@
     Terminal  : none
     File      : none</p>
 <p>Invocation  : CALL io_open(iu, fname, fopenstat, fmt, ierr)</p>
-<p>Notes       : Adapted from Hal Levison's Swift routine io_open.F</p>
+<p>Notes       : Adapted from Hal Levison's Swift routine io_open.F
+                David A. Minton: This subroutine is a classic example of the "inner-platform effect" and should be removed.</p>
 <hr>
 <hr>
-<p>Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin &amp; Carlisle Wishard)</p>
+<p>Author(s)   : David E. Kaufmann</p>
 <p>Revision Control System (RCS) Information</p>
 <p>Source File : $RCSfile$
   Full Path   : $Source$
@@ -393,7 +394,7 @@
 <a name="ln-2"></a><span class="c">!</span>
 <a name="ln-3"></a><span class="c">!  Unit Name   : io_open</span>
 <a name="ln-4"></a><span class="c">!  Unit Type   : subroutine</span>
-<a name="ln-5"></a><span class="c">!  Project     : Swiftest</span>
+<a name="ln-5"></a><span class="c">!  Project     : Swifter</span>
 <a name="ln-6"></a><span class="c">!  Package     : io</span>
 <a name="ln-7"></a><span class="c">!  Language    : Fortran 90/95</span>
 <a name="ln-8"></a><span class="c">!</span>
@@ -415,7 +416,7 @@
 <a name="ln-24"></a><span class="c">!  Invocation  : CALL io_open(iu, fname, fopenstat, fmt, ierr)</span>
 <a name="ln-25"></a><span class="c">!</span>
 <a name="ln-26"></a><span class="c">!  Notes       : Adapted from Hal Levison&#39;s Swift routine io_open.F</span>
-<a name="ln-27"></a><span class="c">!</span>
+<a name="ln-27"></a><span class="c">!                David A. Minton: This subroutine is a classic example of the &quot;inner-platform effect&quot; and should be removed.</span>
 <a name="ln-28"></a><span class="c">!**********************************************************************************************************************************</span>
 <a name="ln-29"></a><span class="k">SUBROUTINE </span><span class="n">io_open</span><span class="p">(</span><span class="n">iu</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">fopenstat</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">ierr</span><span class="p">)</span>
 <a name="ln-30"></a>
@@ -446,7 +447,7 @@
 <a name="ln-55"></a><span class="k">END SUBROUTINE </span><span class="n">io_open</span>
 <a name="ln-56"></a><span class="c">!**********************************************************************************************************************************</span>
 <a name="ln-57"></a><span class="c">!</span>
-<a name="ln-58"></a><span class="c">!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin &amp; Carlisle Wishard)</span>
+<a name="ln-58"></a><span class="c">!  Author(s)   : David E. Kaufmann</span>
 <a name="ln-59"></a><span class="c">!</span>
 <a name="ln-60"></a><span class="c">!  Revision Control System (RCS) Information</span>
 <a name="ln-61"></a><span class="c">!</span>

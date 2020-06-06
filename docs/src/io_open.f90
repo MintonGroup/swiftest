@@ -2,7 +2,7 @@
 !
 !  Unit Name   : io_open
 !  Unit Type   : subroutine
-!  Project     : Swiftest
+!  Project     : Swifter
 !  Package     : io
 !  Language    : Fortran 90/95
 !
@@ -24,7 +24,7 @@
 !  Invocation  : CALL io_open(iu, fname, fopenstat, fmt, ierr)
 !
 !  Notes       : Adapted from Hal Levison's Swift routine io_open.F
-!
+!                David A. Minton: This subroutine is a classic example of the "inner-platform effect" and should be removed.
 !**********************************************************************************************************************************
 SUBROUTINE io_open(iu, fname, fopenstat, fmt, ierr)
 
@@ -55,7 +55,7 @@ SUBROUTINE io_open(iu, fname, fopenstat, fmt, ierr)
 END SUBROUTINE io_open
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
+!  Author(s)   : David E. Kaufmann
 !
 !  Revision Control System (RCS) Information
 !
