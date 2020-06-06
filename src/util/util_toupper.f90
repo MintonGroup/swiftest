@@ -34,15 +34,15 @@ SUBROUTINE util_toupper(string)
      CHARACTER(*), INTENT(INOUT) :: string
 
 ! Internals
-     INTEGER(I4B) :: i, length, index
+     INTEGER(I4B) :: i, length, idx
 
 ! Executable code
      length = LEN(string)
      DO i = 1, length
-          index = IACHAR(string(i:i))
-          IF ((index >= LOWERCASE_BEGIN) .AND. (index <= LOWERCASE_END)) THEN
-               index = index + UPPERCASE_OFFSET
-               string(i:i) = ACHAR(index)
+          idx = IACHAR(string(i:i))
+          IF ((idx >= LOWERCASE_BEGIN) .AND. (idx <= LOWERCASE_END)) THEN
+               idx = idx + UPPERCASE_OFFSET
+               string(i:i) = ACHAR(idx)
           END IF
      END DO
 
