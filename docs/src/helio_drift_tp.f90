@@ -27,7 +27,7 @@
 SUBROUTINE helio_drift_tp(ntp, swiftest_tpA, mu, dt)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => helio_drift_tp
      IMPLICIT NONE

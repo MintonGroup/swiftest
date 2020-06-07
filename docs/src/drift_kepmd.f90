@@ -33,7 +33,7 @@
 SUBROUTINE drift_kepmd(dm, es, ec, x, s, c)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => drift_kepmd
      IMPLICIT NONE
 

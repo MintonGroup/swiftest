@@ -1,14 +1,12 @@
 submodule (io) s_io_read_param_in
 contains
    module procedure io_read_param_in
-   !! author: David A. Minton
+   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Read in parameters for the integration
-   !! beginning with or containing "!". If "!" is present, any remaining part of the buffer including the "!" is ignored
    !!
-   !! Adapted from Swifter io_init_param
-   !! Original author David E. Kaufmann   
-
+   !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
+   !! Adapted from Martin Duncan's Swift routine io_init_param.f
    !$ use omp_lib
    implicit none
 

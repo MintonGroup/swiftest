@@ -34,7 +34,7 @@
 SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_hdr
      IMPLICIT NONE

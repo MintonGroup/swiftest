@@ -31,7 +31,7 @@
 SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_dump_tp

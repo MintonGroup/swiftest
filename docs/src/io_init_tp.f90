@@ -31,7 +31,7 @@
 SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_symba
      USE module_helio
      USE module_swiftest

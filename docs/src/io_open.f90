@@ -29,7 +29,7 @@
 SUBROUTINE io_open(iu, fname, fopenstat, fmt, ierr)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => io_open
      IMPLICIT NONE
 

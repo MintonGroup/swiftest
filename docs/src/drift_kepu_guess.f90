@@ -30,7 +30,7 @@
 SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => drift_kepu_guess
      IMPLICIT NONE
 
