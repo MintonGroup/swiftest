@@ -43,6 +43,8 @@ MODULE module_swiftestalloc
             INTEGER(I4B), INTENT(IN)            :: npl
             TYPE(swiftest_pl), INTENT(INOUT)    :: swiftest_plA
 
+
+            if (npl <= 0) return
             ALLOCATE(swiftest_plA%name(npl))
             ALLOCATE(swiftest_plA%status(npl))
             ALLOCATE(swiftest_plA%mass(npl))
@@ -65,6 +67,7 @@ MODULE module_swiftestalloc
             INTEGER(I4B), INTENT(IN)            :: npl
             TYPE(helio_pl), INTENT(INOUT)        :: helio_plA
 
+            if (npl <= 0) return
             ALLOCATE(helio_plA%ah(NDIM,npl))
              ALLOCATE(helio_plA%ahi(NDIM,npl))
              CALL swiftest_pl_allocate(helio_plA%swiftest,npl)
@@ -80,6 +83,8 @@ MODULE module_swiftestalloc
             ! Arguments
             INTEGER(I4B), INTENT(IN)            :: npl
             TYPE(symba_pl), INTENT(INOUT)        :: symba_plA
+
+            if (npl <= 0) return
             ALLOCATE(symba_plA%lmerged(npl))
             ALLOCATE(symba_plA%nplenc(npl))
             ALLOCATE(symba_plA%ntpenc(npl))
@@ -104,6 +109,7 @@ MODULE module_swiftestalloc
             INTEGER(I4B), INTENT(IN)                :: nplplenc
             TYPE(symba_plplenc), INTENT(INOUT)        :: plplenc_list
 
+            if (nplplenc <= 0) return
             ALLOCATE(plplenc_list%lvdotr(nplplenc))
             ALLOCATE(plplenc_list%status(nplplenc))
             ALLOCATE(plplenc_list%level(nplplenc))
@@ -123,6 +129,7 @@ MODULE module_swiftestalloc
             INTEGER(I4B), INTENT(IN)                :: nmergeadd
             TYPE(symba_merger), INTENT(INOUT)        :: mergeadd_list
 
+            if (nmergeadd <= 0) return
             ALLOCATE(mergeadd_list%name(nmergeadd))
             ALLOCATE(mergeadd_list%index_ps(nmergeadd))
             ALLOCATE(mergeadd_list%status(nmergeadd))
@@ -143,6 +150,7 @@ MODULE module_swiftestalloc
             INTEGER(I4B), INTENT(IN)            :: ntp
             TYPE(swiftest_tp), INTENT(INOUT)    :: swiftest_tpA
 
+            if (ntp <= 0) return
             ALLOCATE(swiftest_tpA%name(ntp))
              ALLOCATE(swiftest_tpA%status(ntp))
              ALLOCATE(swiftest_tpA%peri(ntp))
@@ -165,9 +173,10 @@ MODULE module_swiftestalloc
             INTEGER(I4B), INTENT(IN)            :: ntp
             TYPE(helio_tp), INTENT(INOUT)        :: helio_tpA
 
+            if (ntp <= 0) return
             ALLOCATE(helio_tpA%ah(NDIM,ntp))
-             ALLOCATE(helio_tpA%ahi(NDIM,ntp))
-             CALL swiftest_tp_allocate(helio_tpA%swiftest,ntp)
+            ALLOCATE(helio_tpA%ahi(NDIM,ntp))
+            CALL swiftest_tp_allocate(helio_tpA%swiftest,ntp)
 
             return
         END SUBROUTINE helio_tp_allocate
@@ -181,6 +190,8 @@ MODULE module_swiftestalloc
             ! Arguments
             INTEGER(I4B), INTENT(IN)            :: ntp
             TYPE(symba_tp), INTENT(INOUT)        :: symba_tpA
+            
+            if (ntp <= 0) return
 
             ALLOCATE(symba_tpA%nplenc(ntp))
             ALLOCATE(symba_tpA%levelg(ntp))
@@ -197,6 +208,8 @@ MODULE module_swiftestalloc
             ! Arguments
             INTEGER(I4B), INTENT(IN)                :: npltpenc
             TYPE(symba_pltpenc), INTENT(INOUT)        :: pltpenc_list
+
+            if (npltpenc <= 0) return
 
             ALLOCATE(pltpenc_list%lvdotr(npltpenc))
             ALLOCATE(pltpenc_list%status(npltpenc))
