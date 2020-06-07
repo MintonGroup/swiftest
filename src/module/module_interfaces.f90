@@ -501,17 +501,6 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
-               USE swiftest
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(INOUT) :: nplmax, ntpmax
-               INTEGER(I4B), INTENT(OUT)   :: npl, ntp
-               CHARACTER(*), INTENT(IN)    :: inplfile, intpfile, in_type
-          END SUBROUTINE io_getn
-     END INTERFACE
-
-     INTERFACE
           SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
                USE swiftest
                USE module_swiftest

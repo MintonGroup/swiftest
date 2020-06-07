@@ -19,17 +19,21 @@ module io
          character(len=len(buffer))       :: token          !! Returned token string
       end function io_get_token
 
+      module subroutine io_getn(param,swiftest_plA,swiftest_tpA)
+         type(input_parameters),intent(inout) :: param      !! Input collection of user-defined parameters
+         type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store number of massive bodies
+         type(swiftest_tp), intent(inout)  :: swiftest_tpA  !! Swiftest data structure to store number of test partifles
+      end subroutine io_getn
+
       module function io_read_param_in(inparfile) result(param)
-         character(*), intent(in)          :: inparfile     !! Parameter input file name (typically param.in)
-         type(input_parameters) :: param                    !! Output collection of user-defined parameters
+         character(*), intent(in)         :: inparfile     !! Parameter input file name (typically param.in)
+         type(input_parameters)           :: param         !! Output collection of user-defined parameters
       end function io_read_param_in
 
-      module function io_read_pl_in(param,npl,swiftest_plA) result(ierr)
-         type(input_parameters),intent(in) :: param         !! Output collection of user-defined parameters
-         integer(I4B), intent(in)          :: npl           !! Number of massive bodies
+      module subroutine io_read_pl_in(param,swiftest_plA) 
+         type(input_parameters),intent(in) :: param         !! Input collection of user-defined parameters
          type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store massive body initial conditions
-         integer(I4B)                      :: ierr          !! Error code
-      end function io_read_pl_in
+      end subroutine io_read_pl_in
          
    end interface
 

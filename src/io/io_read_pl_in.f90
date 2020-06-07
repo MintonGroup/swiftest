@@ -8,15 +8,10 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine io_init_pl.f90
    !! Adapted from Martin Duncan's Swift routine io_init_pl.f
    use swiftest
-   use module_symba
-   !use module_helio
-   !use module_swiftest
-   !use module_fxdr
-   !use module_interfaces
    implicit none
 
    integer(I4B), parameter          :: LUN = 7              !! Unit number of input file
-   integer(I4B)                     :: i, iu, inpl
+   integer(I4B)                     :: i, iu, inpl, ierr
 
    ierr = 0
    open(unit = LUN, file = param%inplfile, status = 'old', iostat = ierr)
@@ -45,7 +40,7 @@ contains
       end if
    end do
    swiftest_plA%status(1) = active
-   do i = 2, npl
+   do i = 2, swiftest_plA%npl
       if (param%feature%lrhill_present) then
          read(LUN, *, iostat = ierr) swiftest_plA%name(i), swiftest_plA%mass(i), swiftest_plA%rhill(i)
       else
@@ -67,7 +62,9 @@ contains
    close(unit = LUN)
    if (ierr /= 0 ) then
       write(*,*) 'Error reading in massive body initial conditions from ',trim(adjustl(param%inplfile))
+      call util_exit(FAILURE)
    end if
+
    return
    end procedure io_read_pl_in
 
