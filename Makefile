@@ -45,7 +45,7 @@
 #
 #******************************************************************************
 
-SWIFTER_MODULES = module_parameters.f90 \
+SWIFTER_MODULES = swiftest.f90 \
 		  module_swiftest.f90 \
 		  module_swifter.f90 \
 		  module_helio.f90 \
