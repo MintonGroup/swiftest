@@ -37,7 +37,7 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
      array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_helio
      USE module_symba

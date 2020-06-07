@@ -27,7 +27,7 @@
 SUBROUTINE util_index(arr, index)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_nrutil
      USE module_interfaces, EXCEPT_THIS_ONE => util_index
      IMPLICIT NONE

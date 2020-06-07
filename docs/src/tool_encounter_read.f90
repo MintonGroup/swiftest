@@ -26,7 +26,7 @@
 PROGRAM tool_encounter_read
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces
    use io
      IMPLICIT NONE

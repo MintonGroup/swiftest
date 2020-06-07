@@ -33,7 +33,7 @@
 subroutine python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
 
    ! modules
-   use module_parameters
+   use swiftest
    use module_swiftest
    use module_helio
    use module_symba

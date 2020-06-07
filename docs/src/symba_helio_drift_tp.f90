@@ -30,7 +30,7 @@
 SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_helio
      USE module_symba

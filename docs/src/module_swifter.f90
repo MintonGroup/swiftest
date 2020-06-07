@@ -25,7 +25,7 @@
 !**********************************************************************************************************************************
 MODULE module_swifter
 
-     USE module_parameters
+     USE swiftest
      IMPLICIT NONE
 
      ! Added by D. Minton

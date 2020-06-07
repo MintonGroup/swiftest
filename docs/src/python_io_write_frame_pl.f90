@@ -32,7 +32,7 @@
 subroutine python_io_write_frame_pl(t, symba_plA, npl, out_stat)
 
    ! modules
-   use module_parameters
+   use swiftest
    use module_swiftest
    use module_helio
    use module_symba

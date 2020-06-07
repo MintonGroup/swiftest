@@ -29,13 +29,13 @@
 !**********************************************************************************************************************************
 MODULE module_swiftestalloc
 
-    USE module_parameters
+    USE swiftest
     IMPLICIT NONE
 
     CONTAINS 
 
         SUBROUTINE swiftest_pl_allocate(swiftest_plA, npl)
-            USE module_parameters
+            USE swiftest
             USE module_swiftest
             IMPLICIT NONE
 
@@ -57,7 +57,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE helio_pl_allocate(helio_plA, npl)
-            USE module_parameters
+            USE swiftest
             USE module_helio
             IMPLICIT NONE
 
@@ -73,7 +73,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE symba_pl_allocate(symba_plA, npl)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -96,7 +96,7 @@ MODULE module_swiftestalloc
         END SUBROUTINE symba_pl_allocate
 
         SUBROUTINE symba_plplenc_allocate(plplenc_list, nplplenc)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -115,7 +115,7 @@ MODULE module_swiftestalloc
         END SUBROUTINE symba_plplenc_allocate
 
         SUBROUTINE symba_merger_allocate(mergeadd_list, nmergeadd)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -135,7 +135,7 @@ MODULE module_swiftestalloc
         END SUBROUTINE symba_merger_allocate
 
         SUBROUTINE swiftest_tp_allocate(swiftest_tpA, ntp)
-            USE module_parameters
+            USE swiftest
             USE module_swiftest
             IMPLICIT NONE
 
@@ -157,7 +157,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE helio_tp_allocate(helio_tpA, ntp)
-            USE module_parameters
+            USE swiftest
             USE module_helio
             IMPLICIT NONE
 
@@ -174,7 +174,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE symba_tp_allocate(symba_tpA, ntp)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -190,7 +190,7 @@ MODULE module_swiftestalloc
         END SUBROUTINE symba_tp_allocate
 
         SUBROUTINE symba_pltpenc_allocate(pltpenc_list, npltpenc)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -210,7 +210,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE swiftest_pl_deallocate(swiftest_plA)
-            USE module_parameters
+            USE swiftest
             USE module_swiftest
             IMPLICIT NONE
 
@@ -231,7 +231,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE helio_pl_deallocate(helio_plA)
-            USE module_parameters
+            USE swiftest
             USE module_helio
             IMPLICIT NONE
 
@@ -246,7 +246,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE symba_pl_deallocate(symba_plA)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -269,7 +269,7 @@ MODULE module_swiftestalloc
         END SUBROUTINE symba_pl_deallocate
 
         SUBROUTINE symba_plplenc_deallocate(plplenc_list)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -287,7 +287,7 @@ MODULE module_swiftestalloc
         END SUBROUTINE symba_plplenc_deallocate
 
         SUBROUTINE symba_merger_deallocate(mergeadd_list)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -306,7 +306,7 @@ MODULE module_swiftestalloc
         END SUBROUTINE symba_merger_deallocate
 
         SUBROUTINE swiftest_tp_deallocate(swiftest_tpA)
-            USE module_parameters
+            USE swiftest
             USE module_swiftest
             IMPLICIT NONE
 
@@ -327,7 +327,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE helio_tp_deallocate(helio_tpA)
-            USE module_parameters
+            USE swiftest
             USE module_helio
             IMPLICIT NONE
 
@@ -342,7 +342,7 @@ MODULE module_swiftestalloc
 
 
         SUBROUTINE symba_tp_deallocate(symba_tpA)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 
@@ -357,7 +357,7 @@ MODULE module_swiftestalloc
         END SUBROUTINE symba_tp_deallocate
 
         SUBROUTINE symba_pltpenc_deallocate(pltpenc_list)
-            USE module_parameters
+            USE swiftest
             USE module_symba
             IMPLICIT NONE
 

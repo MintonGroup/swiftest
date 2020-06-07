@@ -27,7 +27,7 @@
 SUBROUTINE symba_reorder_pl(npl, symba_plA)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_swiftest
      USE module_helio
      USE module_symba

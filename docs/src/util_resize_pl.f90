@@ -27,7 +27,7 @@
 SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_symba
      USE module_swiftest
      USE module_helio

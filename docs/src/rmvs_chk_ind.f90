@@ -29,7 +29,7 @@
 SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => rmvs_chk_ind
      IMPLICIT NONE
 
