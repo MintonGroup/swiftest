@@ -111,8 +111,6 @@ program swiftest_symba
    !Temporary until the argument lists get fixed
    npl = symba_plA%helio%swiftest%npl
    ntp = symba_tpA%helio%swiftest%ntp
-   write(*,*) 'npl = ',npl
-   write(*,*) 'ntp = ',ntp
 
    ! create arrays of data structures big enough to store the number of bodies we are adding
    call symba_pl_allocate(symba_plA,npl)
