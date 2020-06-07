@@ -58,7 +58,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
 
 ! Executable code
 
-    IF (ldiscard .eqv. .TRUE.) THEN 
+    IF (ldiscard) THEN 
         nsppl = 0
         nkpl = 0
         discard_l_pl(1:npl) = (symba_plA%helio%swiftest%status(1:npl) /= ACTIVE) 
@@ -167,10 +167,11 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
             symba_plA%helio%ah(2,1:nkpl) = PACK(symba_plA%helio%ah(2,1:npl), .NOT. discard_l_pl)
             symba_plA%helio%ah(3,1:nkpl) = PACK(symba_plA%helio%ah(3,1:npl), .NOT. discard_l_pl)
             npl = nkpl
+            symba_plA%helio%swiftest%npl = npl
         END IF
     END IF 
 
-    IF (ldiscard_tp .eqv. .TRUE.) THEN 
+    IF (ldiscard_tp) THEN 
         nktp = 0
         nsptp = 0  
 
@@ -219,6 +220,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         symba_tpA%helio%ah(2,1:nktp) = PACK(symba_tpA%helio%ah(2,1:ntp), .NOT. discard_l_tp)
         symba_tpA%helio%ah(3,1:nktp) = PACK(symba_tpA%helio%ah(3,1:ntp), .NOT. discard_l_tp)
         ntp = nktp
+        symba_tpA%helio%swiftest%ntp = ntp
     END IF 
 
 END SUBROUTINE symba_rearray
