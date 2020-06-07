@@ -38,10 +38,11 @@ contains
       read(LUN, 100, IOSTAT = ierr, end = 1) line
       line_trim = trim(adjustl(line))
       ilength = len(line_trim)
-      if ((ilength /= 0) .and. (line_trim(1:1) /= "!")) then
+      if ((ilength /= 0)) then 
          ifirst = 1
          ! Read the pair of tokens. The first one is the parameter name, the second is the value.
          param_name = io_get_token(line_trim, ifirst, ilast, ierr)
+         if (param_name == '') cycle ! No parameter name (usually because this line is commented out)
          call util_toupper(param_name)
          ifirst = ilast + 1
          param_value = io_get_token(line_trim, ifirst, ilast, ierr)
