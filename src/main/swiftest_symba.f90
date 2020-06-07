@@ -229,38 +229,45 @@ program swiftest_symba
             idump = istep_dump
          end if
       end if
-      plplenc_list%lvdotr(:) = .false.
-      plplenc_list%status(:) = 0
-      plplenc_list%level(:) = 0
-      plplenc_list%index1(:) = 0
-      plplenc_list%index2(:) = 0
-      plplenc_list%enc_child(:) = 0 
-      plplenc_list%enc_parent(:) = 0
+      if (allocated(plplenc_list%status)) then
+         plplenc_list%status(:) = 0
+         plplenc_list%lvdotr(:) = .false.
+         plplenc_list%level(:) = 0
+         plplenc_list%index1(:) = 0
+         plplenc_list%index2(:) = 0
+         plplenc_list%enc_child(:) = 0 
+         plplenc_list%enc_parent(:) = 0
+      end if
 
-      pltpenc_list%lvdotr(:) = .false.
-      pltpenc_list%status(:) = 0
-      pltpenc_list%level(:) = 0
-      pltpenc_list%indexpl(:) = 0
-      pltpenc_list%indextp(:) = 0
+      if (allocated(pltpenc_list%status)) then
+         pltpenc_list%status(:) = 0
+         pltpenc_list%lvdotr(:) = .false.
+         pltpenc_list%level(:) = 0
+         pltpenc_list%indexpl(:) = 0
+         pltpenc_list%indextp(:) = 0
+      end if
 
-      mergeadd_list%name(:) = 0
-      mergeadd_list%index_ps(:) = 0
-      mergeadd_list%status(:) = 0
-      mergeadd_list%ncomp(:) = 0
-      mergeadd_list%xh(:,:) = 0
-      mergeadd_list%vh(:,:) = 0
-      mergeadd_list%mass(:) = 0
-      mergeadd_list%radius(:) = 0
+      if (allocated(mergeadd_list%name)) then
+         mergeadd_list%name(:) = 0
+         mergeadd_list%index_ps(:) = 0
+         mergeadd_list%status(:) = 0
+         mergeadd_list%ncomp(:) = 0
+         mergeadd_list%xh(:,:) = 0
+         mergeadd_list%vh(:,:) = 0
+         mergeadd_list%mass(:) = 0
+         mergeadd_list%radius(:) = 0
+      end if
 
-      mergesub_list%name(:) = 0
-      mergesub_list%index_ps(:) = 0
-      mergesub_list%status(:) = 0
-      mergesub_list%ncomp(:) = 0
-      mergesub_list%xh(:,:) = 0
-      mergesub_list%vh(:,:) = 0
-      mergesub_list%mass(:) = 0
-      mergesub_list%radius(:) = 0
-
+      if (allocated(mergesub_list%name)) then
+         mergesub_list%name(:) = 0
+         mergesub_list%index_ps(:) = 0
+         mergesub_list%status(:) = 0
+         mergesub_list%ncomp(:) = 0
+         mergesub_list%xh(:,:) = 0
+         mergesub_list%vh(:,:) = 0
+         mergesub_list%mass(:) = 0
+         mergesub_list%radius(:) = 0
+      end if
 
       if (allocated(discard_plA%name)) call swiftest_pl_deallocate(discard_plA)
       if (allocated(discard_tpA%name)) call swiftest_tp_deallocate(discard_tpA)
