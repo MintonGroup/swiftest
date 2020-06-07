@@ -65,7 +65,7 @@ program swiftest_symba
    call cpu_time(start)
    call util_version
    nthreads = 1                        
-   write(*, 100, advance = "no") "enter name of parameter data file: "
+   write(*, 100, advance = "no") "Enter name of parameter data file: "
    read(*, 100) inparfile
    100 format(a)
    inparfile = trim(adjustl(inparfile))
