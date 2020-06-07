@@ -18,7 +18,7 @@ contains
    integer(I4B)            :: ierr = 0                !! Input error code
    integer(I4B)            :: ilength, ifirst, ilast  !! Variables used to parse input file
    character(STRMAX)       :: line                    !! Line of the input file
-   character(STRMAX)       :: param_name, param_value !! Input file tokens
+   character (len=:), allocatable :: line_trim,param_name, param_value
 
    ! Executable code
 
@@ -36,15 +36,15 @@ contains
    ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
    do
       read(LUN, 100, IOSTAT = ierr, end = 1) line
-      line = adjustl(line)
-      ilength = len_trim(line)
-      if ((ilength /= 0) .and. (line(1:1) /= "!")) then
+      line_trim = trim(adjustl(line))
+      ilength = len(line_trim)
+      if ((ilength /= 0) .and. (line_trim(1:1) /= "!")) then
          ifirst = 1
          ! Read the pair of tokens. The first one is the parameter name, the second is the value.
-         param_name = io_get_token(line, ilength, ifirst, ilast, ierr)
+         param_name = io_get_token(line_trim, ifirst, ilast, ierr)
          call util_toupper(param_name)
          ifirst = ilast + 1
-         param_value = io_get_token(line, ilength, ifirst, ilast, ierr)
+         param_value = io_get_token(line_trim, ifirst, ilast, ierr)
          select case (param_name)
          case ("NPLMAX")
             read(param_value, *) param%nplmax
@@ -102,7 +102,7 @@ contains
          case ("CHK_QMIN_RANGE")
             read(param_value, *) param%qmin_alo
             ifirst = ilast + 1
-            param_value = io_get_token(line, ilength, ifirst, ilast, ierr)
+            param_value = io_get_token(line, ifirst, ilast, ierr)
             read(param_value, *) param%qmin_ahi
          case ("ENC_OUT")
             param%encounter_file = param_value

@@ -10,25 +10,29 @@ contains
    !! Original author David E. Kaufmann
    implicit none
 
-   integer(I4B) :: i
+   integer(I4B) :: i,ilength
+
+   ilength = len(buffer)
 
    if (ifirst > ilength) then
        ilast = ifirst
-       ierr = -1
+       ierr = -1 !! Bad input
+       token = ''
        return
    end if
    do i = ifirst, ilength
-       if (buffer(i:i) /= " ") exit
+       if (buffer(i:i) /= ' ') exit
    end do
-   if ((i > ilength) .or. (buffer(i:i) == "!")) then
+   if ((i > ilength) .or. (buffer(i:i) == '!')) then
        ifirst = i
        ilast = i
-       ierr = -1
+       ierr = -2 !! No valid token
+       token = ''
        return
    end if
    ifirst = i
    do i = ifirst, ilength
-       if ((buffer(i:i) == " ") .or. (buffer(i:i) == "!")) exit
+       if ((buffer(i:i) == ' ') .or. (buffer(i:i) == '!')) exit
    end do
    ilast = i - 1
    ierr = 0

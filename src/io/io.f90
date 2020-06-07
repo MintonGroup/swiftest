@@ -10,13 +10,12 @@ module io
 
    interface
 
-      module function io_get_token(buffer, ilength, ifirst, ilast, ierr) result(token)
+      module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
          character(len=*), intent(in)     :: buffer         !! Input string buffer
-         integer(I4B), intent(in)         :: ilength        !! Length of input buffer string
          integer(I4B), intent(inout)      :: ifirst         !! Index of the buffer at which to start the search for a token
          integer(I4B), intent(out)        :: ilast          !! Index of the buffer at the end of the returned token
          integer(I4B), intent(out)        :: ierr           !! Error code
-         character(len=len(buffer))       :: token          !! Returned token string
+         character(len=:),allocatable     :: token          !! Returned token string
       end function io_get_token
 
       module subroutine io_getn(param,swiftest_plA,swiftest_tpA)
