@@ -204,16 +204,16 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           !m1_cgs = (m1 / GU) * MU2GM 
           !m2_cgs = (m2 / GU) * MU2GM
 
-          m1_si = (m1 * MU2KG) / GC 
-          m2_si = (m2 * MU2KG) / GC
+          m1_si = (m1 / GU) * MU2KG 
+          m2_si = (m2 / GU) * MU2KG
           rad1_si = rad1 * DU2M
           rad2_si = rad2 * DU2M
           x1_si(:) = x1(:) * DU2M
           x2_si(:) = x2(:) * DU2M
           v1_si(:) = v1(:) * DU2M / TU2S
           v2_si(:) = v2(:) * DU2M / TU2S
-          den1_si = den1 * MU2KG / (DU2M ** 3.0_DP)
-          den2_si = den2 * MU2KG / (DU2M ** 3.0_DP)
+          den1_si = (den1 / GU) * MU2KG)) / (DU2M ** 3.0_DP)
+          den2_si = (den2 / GU) * MU2KG)) / (DU2M ** 3.0_DP)
 
           !MSUN = 1.989e33 !Msun in cgs
           !AU2CM = 1.496e+13 !AU in cgs
@@ -301,6 +301,18 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           mtot = m1_si + m2_si
           dentot = (m1_si *den1 +m2_si*den2 )/ mtot
 
+          WRITE(*,*) "mtarg: ", mtarg
+          WRITE(*,*) "mproj: ", mproj
+          WRITE(*,*) "rtarg: ", rtarg
+          WRITE(*,*) "rproj: ", rproj
+          WRITE(*,*) "xtarg: ", xtarg
+          WRITE(*,*) "xproj: ", xproj
+          WRITE(*,*) "vtarg: ", vtarg
+          WRITE(*,*) "vproj: ", vproj
+          WRITE(*,*) "itarg: ", itarg
+          WRITE(*,*) "iproj: ", iproj
+
+
           CALL util_regime(symba_plA, mtarg, mproj, rtarg, rproj, xtarg, xproj, vtarg, vproj, itarg, iproj, regime, Mlr, Mslr)
           WRITE(*,*) "Mlr :", Mlr, "Mslr: ", Mslr
           !WRITE(*,*) "After collresolve_resolve"
@@ -322,7 +334,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           rres(3) = (3.0_DP * mres(2)  / (4.0_DP * PI * dentot)) *(1.0_DP/3.0_DP)
           !rres(:) = rres(:)*AU2CM/DU2CM
 
-          mres(:) = mres(:) / MU2KG
+          mres(:) = (mres(:) / MU2KG) * GU
           rres(:) = rres(:) / DU2M
 
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
