@@ -171,6 +171,7 @@ SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Msl
           END IF 
      END IF 
 
+    RETURN 
 ! Functions
 contains
 function calc_erosion(Mtarg,Mp,alpha) result(ans)
@@ -256,7 +257,6 @@ function calc_b(Mp_pos, Mp_vel, Mp_r, Mtarg_pos, Mtarg_vel, Mtarg_r) result(b)
 end function calc_b
 
 
-     RETURN
 
 END SUBROUTINE util_regime
 !**********************************************************************************************************************************
