@@ -43,7 +43,7 @@ SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Msl
      REAL(DP), INTENT(OUT)         :: Mlr, Mslr, mbig, msmall
 
 ! Internals
-     REAL(DP)                      :: m1,m2,rad1,rad2,b,l,mu,Vescp,V_pstar, Rp, mtot
+     REAL(DP)                      :: m1,m2,rad1,rad2,b,l,mu,Vescp,V_pstar, Rp, mtot, RC1
      REAL(DP)                      :: alpha, QRD_pstar, QR, QR_supercat, QRD_lr, V_lr, vimp, bcrit
      REAL(DP)                      :: Vcr, V_supercat, Mint, Lint, Aint, fgamma, theta, rtarg, n2g, n2, phi
      REAL(DP)                      :: c1, c2,c3,c4,c5, rho1, rho2, beta, c_star, density1, g, mp, mtarg, mu_bar, n1, n1g
