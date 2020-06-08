@@ -18,12 +18,11 @@
 #                (3) lib     : builds entire Swifter library
 #                (4) libdir  : compiles local directory source and adds the
 #                              resulting objects to the Swifter library
-#                (5) fxdr    : builds FXDR library by invoking its makefile
-#                (6) drivers : builds Swifter drivers
-#                (7) tools   : builds Swifter tools
-#                (8) bin     : compiles local directory source and installs
+#                (5) drivers : builds Swifter drivers
+#                (6) tools   : builds Swifter tools
+#                (7) bin     : compiles local directory source and installs
 #                              resulting executables to $(SWIFTER_HOME)/bin
-#                (9) clean   : removes all soft links to Makefile and
+#                (8) clean   : removes all soft links to Makefile and
 #                              Makefile.Defines from subdirectories of
 #                              $(SWIFTER_HOME), removes the entire contents
 #                              of $(SWIFTER_HOME)/lib and $(SWIFTER_HOME)/bin,
@@ -37,7 +36,7 @@
 #    Terminal  : status messages
 #    File      : none
 #
-#  Invocation  : make [all|mod|lib|libdir|fxdr|drivers|tools|bin|clean]
+#  Invocation  : make [all|mod|lib|libdir|drivers|tools|bin|clean]
 #
 #  Notes       : The use of the above arguments as phony targets inside the
 #                makefile precludes their use as base names of Swifter drivers
@@ -51,7 +50,6 @@ SWIFTER_MODULES = swiftest.f90 \
 		  module_helio.f90 \
         module_nrutil.f90 \
 		  module_symba.f90 \
-		  module_fxdr.f90 \
 		  module_swiftestalloc.f90 \
         module_interfaces.f90 \
         ../io/io.f90 
@@ -60,11 +58,11 @@ include Makefile.Defines
 
 MODULES         = $(SWIFTER_MODULES) $(USER_MODULES)
 
-.PHONY : all mod lib libdir fxdr collresolve drivers tools bin clean force 
+.PHONY : all mod lib libdir collresolve drivers tools bin clean force 
 
 % : %.f90 force
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include $< -o $@ \
-	  -L$(SWIFTER_HOME)/lib -lswifter -lfxdr -lcollresolve
+	  -L$(SWIFTER_HOME)/lib -lswifter -lcollresolve
 	$(INSTALL_PROGRAM) $@ $(SWIFTER_HOME)/bin
 	rm -f $@
 
@@ -72,7 +70,6 @@ all:
 	cd $(SWIFTER_HOME); \
 	  make mod; \
 	  make lib; \
-	  make fxdr; \
 	  make collresolve; \
 	  make drivers; \
 	  make tools
@@ -144,16 +141,6 @@ libdir:
 	$(AR) rv $(SWIFTER_HOME)/lib/libswifter.a *.o
 	rm -f *.o
 
-fxdr:
-	cd $(SWIFTER_HOME)/src/fxdr; \
-	  rm -f Makefile.Defines; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-     chmod -w test_read_only.xdr ; \
-	  make -f Makefile.fxdr; \
-	  make -f Makefile.fxdr test; \
-	  make -f Makefile.fxdr install; \
-	  make -f Makefile.fxdr clean
-
 collresolve:
 	cd $(COLLRESOLVE_HOME); \
 	  autoreconf --install;\
@@ -191,13 +178,12 @@ clean:
 	cd $(SWIFTER_HOME)/src/rmvs;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/src/symba;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/fxdr;    rm -f Makefile.Defines  *.gc*
 	cd $(SWIFTER_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/src/tool;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTER_HOME)/bin;     rm -f swifter_*
 	cd $(SWIFTER_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTER_HOME)/lib;     rm -f lib*
-	cd $(SWIFTER_HOME)/include; rm -f *.mod fxdr.inc collresolve.h
+	cd $(SWIFTER_HOME)/include; rm -f *.mod collresolve.h
 	cd $(COLLRESOLVE_HOME); rm -rf autom4te.cache aux Makefile stamp-h1 configure config.status config.h config.log aclocal.m4 lib* *.in *.o *.lo cambioni2019/*.o cambioni2019/*.lo
 
 
