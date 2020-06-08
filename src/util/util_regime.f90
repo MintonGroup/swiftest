@@ -95,12 +95,17 @@ SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1
 
      ans(:) = calc_erosion(m1, m2, alpha)
      QRD_pstar = ans(1)
+     Write(*,*) "QRD_pstar", QRD_pstar
+
      V_pstar = ans(2)
      V_lr = ans(3)
+     Write(*,*) "V_lr", V_lr 
 
      mu = (m1*m2)/mtot
      QR = 0.5*mu*(vimp**2.0_DP)/mtot
+     Write(*,*) "QR", QR
      Mlr = (1.0_DP - 0.5 * QR / QRD_pstar) * (mtot)  ! [kg] #(Eq 5)
+     Write(*,*) "Mlr", Mlr 
      Phi = 2.0_DP * ACOS((l - Rp) / Rp)
      Aint = (Rp ** 2.0_DP) * (PI - (Phi - sin(Phi)) / 2.0_DP)
      Lint = 2.0_DP * (Rtarg ** 2.0_DP - (Rtarg - l / 2.0_DP) ** 2.0_DP) ** (1.0_DP/2.0_DP)
