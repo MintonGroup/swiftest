@@ -288,9 +288,9 @@ program swiftest_symba
    call symba_merger_deallocate(mergeadd_list)
    call symba_merger_deallocate(mergesub_list)
    call symba_plplenc_deallocate(plplenc_list)
-   call symba_pltpenc_deallocate(pltpenc_list)
    if (ntp > 0) then
       call symba_tp_deallocate(symba_tpA)
+      call symba_pltpenc_deallocate(pltpenc_list)
    end if
    call cpu_time(finish)
    write(*,*) 'Time: ', finish - start
