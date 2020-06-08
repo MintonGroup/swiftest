@@ -27,7 +27,7 @@
 SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Mslr)
 
 ! Modules
-     USE module_parameters
+     USE swiftest
      USE module_symba
      USE module_swiftest
      USE module_helio
