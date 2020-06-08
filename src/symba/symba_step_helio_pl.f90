@@ -53,8 +53,8 @@ SUBROUTINE symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio
      LOGICAL(LGT), INTENT(INOUT)                  :: lfirst
      INTEGER(I4B), INTENT(IN)                     :: npl, nplm, nplmax
      REAL(DP), INTENT(IN)                         :: t, j2rp2, j4rp4, dt
-     REAL(DP), DIMENSION(NDIM, nplm), INTENT(OUT) :: xbeg, xend
-     REAL(DP), DIMENSION(NDIM), INTENT(OUT)       :: ptb, pte
+     REAL(DP), DIMENSION(:,:), INTENT(OUT)        :: xbeg, xend
+     REAL(DP), DIMENSION(:), INTENT(OUT)          :: ptb, pte
      TYPE(helio_pl), INTENT(INOUT)                :: helio_plA
 
 ! Internals
@@ -63,6 +63,8 @@ SUBROUTINE symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio
      REAL(DP)                  :: dth, msys
 
 ! Executable code
+
+  
      dth = 0.5_DP*dt
      lflag = lfirst
      IF (lfirst) THEN

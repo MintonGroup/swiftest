@@ -398,8 +398,8 @@ MODULE module_interfaces
                LOGICAL(LGT), INTENT(INOUT)                 :: lfirst
                INTEGER(I4B), INTENT(IN)                    :: npl, nplmax
                REAL(DP), INTENT(IN)                        :: t, j2rp2, j4rp4, dt
-               REAL(DP), DIMENSION(NDIM), INTENT(OUT)      :: ptb, pte
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(OUT) :: xbeg,xend
+               REAL(DP), DIMENSION(:), INTENT(OUT)         :: ptb, pte
+               REAL(DP), DIMENSION(:,:), INTENT(OUT)       :: xbeg,xend
                TYPE(helio_pl), INTENT(INOUT)               :: helio_plA
           END SUBROUTINE helio_step_pl
      END INTERFACE
@@ -415,8 +415,8 @@ MODULE module_interfaces
                LOGICAL(LGT), INTENT(INOUT)                :: lfirsttp
                INTEGER(I4B), INTENT(IN)                   :: npl, nplmax, ntp, ntpmax
                REAL(DP), INTENT(IN)                       :: t, j2rp2, j4rp4, dt
-               REAL(DP), DIMENSION(NDIM), INTENT(IN)      :: ptb, pte
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xbeg, xend
+               REAL(DP), DIMENSION(:), INTENT(IN)         :: ptb, pte
+               REAL(DP), DIMENSION(:,:), INTENT(IN)       :: xbeg, xend
                TYPE(helio_pl), INTENT(INOUT)              :: helio_plA
                TYPE(helio_tp), INTENT(INOUT)              :: helio_tpA
           END SUBROUTINE helio_step_tp
@@ -481,7 +481,7 @@ MODULE module_interfaces
           SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
                USE swiftest
                USE module_swiftest
-               USE module_fxdr
+               !USE module_fxdr
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)        :: lclose, lrhill_present
                INTEGER(I4B), INTENT(IN)        :: npl
@@ -559,7 +559,7 @@ MODULE module_interfaces
                INTEGER(I4B)                           :: io_read_encounter
                INTEGER(I4B), INTENT(OUT)              :: name1, name2
                REAL(DP), INTENT(OUT)                  :: t, mass1, mass2
-               REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: xh1, xh2, vh1, vh2
+               REAL(DP), DIMENSION(:), INTENT(OUT)    :: xh1, xh2, vh1, vh2
                CHARACTER(*), INTENT(IN)               :: encounter_file,out_type
           END FUNCTION io_read_encounter
      END INTERFACE
@@ -595,11 +595,11 @@ MODULE module_interfaces
           SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
                xh1, xh2, vh1, vh2, encounter_file, out_type)
                USE swiftest
-               USE module_fxdr
+               !USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)              :: name1, name2
                REAL(DP), INTENT(IN)                  :: t, mass1, mass2, radius1, radius2
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xh1, xh2, vh1, vh2
+               REAL(DP), DIMENSION(:), INTENT(IN)    :: xh1, xh2, vh1, vh2
                CHARACTER(*), INTENT(IN)              :: encounter_file, out_type
           END SUBROUTINE io_write_encounter
      END INTERFACE
@@ -609,7 +609,7 @@ MODULE module_interfaces
                out_type, out_form, out_stat)
                USE swiftest
                USE module_swiftest
-               USE module_fxdr
+               !USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl, ntp
                REAL(DP), INTENT(IN)      :: t
@@ -622,7 +622,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
                USE swiftest
-               USE module_fxdr
+               !USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN) :: iu, npl, ntp, iout_form
                REAL(DP), INTENT(IN)     :: t
@@ -633,7 +633,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                USE swiftest
-               USE module_fxdr
+               !USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)       :: iu, name
                REAL(DP), INTENT(IN)           :: d1, d2, d3, d4, d5, d6
@@ -649,9 +649,9 @@ MODULE module_interfaces
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                    :: npl
                REAL(DP), INTENT(IN)                        :: j2rp2, j4rp4
-               REAL(DP), DIMENSION(npl), INTENT(IN)        :: irh
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)  :: xh
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(OUT) :: aobl
+               REAL(DP), DIMENSION(:), INTENT(IN)        :: irh
+               REAL(DP), DIMENSION(:,:), INTENT(IN)  :: xh
+               REAL(DP), DIMENSION(:,:), INTENT(OUT) :: aobl
                TYPE(swiftest_pl), INTENT(INOUT)            :: swiftest_plA
           END SUBROUTINE obl_acc
      END INTERFACE
@@ -662,9 +662,9 @@ MODULE module_interfaces
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                    :: ntp
                REAL(DP), INTENT(IN)                        :: j2rp2, j4rp4, msun
-               REAL(DP), DIMENSION(ntp), INTENT(IN)        :: irht
-               REAL(DP), DIMENSION(NDIM, ntp), INTENT(IN)  :: xht
-               REAL(DP), DIMENSION(NDIM, ntp), INTENT(OUT) :: aoblt
+               REAL(DP), DIMENSION(:), INTENT(IN)        :: irht
+               REAL(DP), DIMENSION(:, :), INTENT(IN)  :: xht
+               REAL(DP), DIMENSION(:, :), INTENT(OUT) :: aoblt
           END SUBROUTINE obl_acc_tp
      END INTERFACE
 
@@ -676,8 +676,8 @@ MODULE module_interfaces
                INTEGER(I4B), INTENT(IN)                   :: npl
                REAL(DP), INTENT(IN)                       :: j2rp2, j4rp4
                REAL(DP), INTENT(OUT)                      :: oblpot
-               REAL(DP), DIMENSION(npl), INTENT(IN)       :: irh
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
+               REAL(DP), DIMENSION(:), INTENT(IN)       :: irh
+               REAL(DP), DIMENSION(:, :), INTENT(IN) :: xh
                TYPE(swiftest_pl), INTENT(INOUT)           :: swiftest_plA
           END SUBROUTINE obl_pot
      END INTERFACE
@@ -1278,8 +1278,8 @@ MODULE module_interfaces
                LOGICAL(LGT), INTENT(INOUT)                  :: lfirst
                INTEGER(I4B), INTENT(IN)                     :: npl, nplm, nplmax
                REAL(DP), INTENT(IN)                         :: t, j2rp2, j4rp4, dt
-               REAL(DP), DIMENSION(NDIM, nplm), INTENT(OUT) :: xbeg, xend
-               REAL(DP), DIMENSION(NDIM), INTENT(OUT)       :: ptb, pte
+               REAL(DP), DIMENSION(:,:), INTENT(OUT)        :: xbeg, xend
+               REAL(DP), DIMENSION(:), INTENT(OUT)          :: ptb, pte
                TYPE(helio_pl), INTENT(INOUT)                :: helio_plA
           END SUBROUTINE symba_step_helio_pl
      END INTERFACE

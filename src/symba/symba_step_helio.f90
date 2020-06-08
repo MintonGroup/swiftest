@@ -60,13 +60,13 @@ SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntp
      LOGICAL(LGT)                                   :: lfirsttp
      LOGICAL(LGT), SAVE                             :: lmalloc = .TRUE.
      REAL(DP), DIMENSION(NDIM)                      :: ptb, pte
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE   :: xbeg, xend
+     REAL(DP), DIMENSION(NDIM, nplm)                :: xbeg, xend
 
 ! Executable code
-     IF (lmalloc) THEN
-          ALLOCATE(xbeg(NDIM, nplmax), xend(NDIM, nplmax))
-          lmalloc = .FALSE.
-     END IF
+     !IF (lmalloc) THEN
+     !    ALLOCATE(xbeg(NDIM, nplmax), xend(NDIM, nplmax))
+     !    lmalloc = .FALSE.
+     !ND IF
      lfirsttp = lfirst
      CALL symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
      IF (ntp > 0) CALL helio_step_tp(lfirsttp, lextra_force, t, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4,  &

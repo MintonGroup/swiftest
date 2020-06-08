@@ -41,9 +41,9 @@ SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
 ! Arguments
      INTEGER(I4B), INTENT(IN)                     :: npl
      REAL(DP), INTENT(IN)                         :: j2rp2, j4rp4
-     REAL(DP), DIMENSION(npl), INTENT(IN)         :: irh
-     REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)   :: xh
-     REAL(DP), DIMENSION(NDIM, npl), INTENT(OUT)  :: aobl
+     REAL(DP), DIMENSION(:), INTENT(IN)         :: irh
+     REAL(DP), DIMENSION(:,:), INTENT(IN)   :: xh
+     REAL(DP), DIMENSION(:,:), INTENT(OUT)  :: aobl
      TYPE(swiftest_pl), INTENT(INOUT)             :: swiftest_plA
 
 ! Internals

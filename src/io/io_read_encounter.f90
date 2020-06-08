@@ -46,7 +46,7 @@ FUNCTION io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, en
      INTEGER(I4B)                           :: io_read_encounter
      INTEGER(I4B), INTENT(OUT)              :: name1, name2
      REAL(DP), INTENT(OUT)                  :: t, mass1, mass2
-     REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: xh1, xh2, vh1, vh2
+     REAL(DP), DIMENSION(:), INTENT(OUT)    :: xh1, xh2, vh1, vh2
      CHARACTER(*), INTENT(IN)               :: encounter_file, out_type
 
 ! Internals

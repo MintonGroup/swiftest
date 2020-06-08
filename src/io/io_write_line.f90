@@ -40,7 +40,7 @@ SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIU
 
 ! Modules
      USE swiftest
-     USE module_fxdr
+     !USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_line
      IMPLICIT NONE
 
@@ -72,7 +72,7 @@ SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIU
           sradius = RADIUS
      END IF
      SELECT CASE (out_type)
-          CASE (REAL4_TYPE)
+          CASE (REAL4_TYPE, XDR4_TYPE)
                IF (lmass) THEN
                     WRITE(iu, IOSTAT = ierr) name, smass, sradius, svec
                ELSE
@@ -83,7 +83,7 @@ SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIU
                     WRITE(*, *) "   Unable to write binary file record"
                     CALL util_exit(FAILURE)
                END IF
-          CASE (REAL8_TYPE)
+          CASE (REAL8_TYPE, XDR8_TYPE)
                IF (lmass) THEN
                     WRITE(iu, IOSTAT = ierr) name, MASS, RADIUS, dvec
                ELSE
@@ -94,60 +94,60 @@ SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIU
                     WRITE(*, *) "   Unable to write binary file record"
                     CALL util_exit(FAILURE)
                END IF
-          CASE (XDR4_TYPE)
-               ierr = ixdrint(iu, name)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTEST Error:"
-                    WRITE(*, *) "   Unable to write binary file record"
-                    CALL util_exit(FAILURE)
-               END IF
-               IF (lmass) THEN
-                    ierr = ixdrreal(iu, smass)
-                    IF (ierr < 0) THEN
-                         WRITE(*, *) "SWIFTEST Error:"
-                         WRITE(*, *) "   Unable to write binary file record"
-                         CALL util_exit(FAILURE)
-                    END IF
-                    ierr = ixdrreal(iu, sradius)
-                    IF (ierr < 0) THEN
-                         WRITE(*, *) "SWIFTEST Error:"
-                         WRITE(*, *) "   Unable to write binary file record"
-                         CALL util_exit(FAILURE)
-                    END IF
-               END IF
-               ierr = ixdrrmat(iu, 6, svec)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTEST Error:"
-                    WRITE(*, *) "   Unable to write binary file record"
-                    CALL util_exit(FAILURE)
-               END IF
-          CASE (XDR8_TYPE)
-               ierr = ixdrint(iu, name)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTEST Error:"
-                    WRITE(*, *) "   Unable to write binary file record"
-                    CALL util_exit(FAILURE)
-               END IF
-               IF (lmass) THEN
-                    ierr = ixdrdouble(iu, MASS)
-                    IF (ierr < 0) THEN
-                         WRITE(*, *) "SWIFTEST Error:"
-                         WRITE(*, *) "   Unable to write binary file record"
-                         CALL util_exit(FAILURE)
-                    END IF
-                    ierr = ixdrdouble(iu, RADIUS)
-                    IF (ierr < 0) THEN
-                         WRITE(*, *) "SWIFTEST Error:"
-                         WRITE(*, *) "   Unable to write binary file record"
-                         CALL util_exit(FAILURE)
-                    END IF
-               END IF
-               ierr = ixdrdmat(iu, 6, dvec)
-               IF (ierr < 0) THEN
-                    WRITE(*, *) "SWIFTEST Error:"
-                    WRITE(*, *) "   Unable to write binary file record"
-                    CALL util_exit(FAILURE)
-               END IF
+          !CASE (XDR4_TYPE)
+          !     ierr = ixdrint(iu, name)
+          !     IF (ierr < 0) THEN
+          !          WRITE(*, *) "SWIFTEST Error:"
+          !          WRITE(*, *) "   Unable to write binary file record"
+          !          CALL util_exit(FAILURE)
+          !     END IF
+          !     IF (lmass) THEN
+          !          ierr = ixdrreal(iu, smass)
+          !          IF (ierr < 0) THEN
+          !               WRITE(*, *) "SWIFTEST Error:"
+          !               WRITE(*, *) "   Unable to write binary file record"
+          !               CALL util_exit(FAILURE)
+          !          END IF
+          !          ierr = ixdrreal(iu, sradius)
+          !          IF (ierr < 0) THEN
+          !               WRITE(*, *) "SWIFTEST Error:"
+          !               WRITE(*, *) "   Unable to write binary file record"
+          !               CALL util_exit(FAILURE)
+          !          END IF
+          !     END IF
+          !     ierr = ixdrrmat(iu, 6, svec)
+          !     IF (ierr < 0) THEN
+          !          WRITE(*, *) "SWIFTEST Error:"
+          !          WRITE(*, *) "   Unable to write binary file record"
+          !          CALL util_exit(FAILURE)
+          !     END IF
+          !CASE (XDR8_TYPE)
+          !     ierr = ixdrint(iu, name)
+          !     IF (ierr < 0) THEN
+          !          WRITE(*, *) "SWIFTEST Error:"
+          !          WRITE(*, *) "   Unable to write binary file record"
+          !          CALL util_exit(FAILURE)
+          !     END IF
+          !     IF (lmass) THEN
+          !          ierr = ixdrdouble(iu, MASS)
+          !          IF (ierr < 0) THEN
+          !               WRITE(*, *) "SWIFTEST Error:"
+          !               WRITE(*, *) "   Unable to write binary file record"
+          !               CALL util_exit(FAILURE)
+          !          END IF
+          !          ierr = ixdrdouble(iu, RADIUS)
+          !          IF (ierr < 0) THEN
+          !               WRITE(*, *) "SWIFTEST Error:"
+          !               WRITE(*, *) "   Unable to write binary file record"
+          !               CALL util_exit(FAILURE)
+          !          END IF
+          !     END IF
+          !     ierr = ixdrdmat(iu, 6, dvec)
+          !     IF (ierr < 0) THEN
+          !          WRITE(*, *) "SWIFTEST Error:"
+          !          WRITE(*, *) "   Unable to write binary file record"
+          !          CALL util_exit(FAILURE)
+          !     END IF
      END SELECT
 
      RETURN

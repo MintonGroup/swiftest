@@ -38,7 +38,7 @@ SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_
 ! Modules
      USE swiftest
      USE module_swiftest
-     USE module_fxdr
+     !USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_frame
      IMPLICIT NONE
 
@@ -59,37 +59,37 @@ SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_
      REAL(DP), DIMENSION(NDIM) :: xtmp, vtmp
 
 ! Executable code
-     lxdr = ((out_type == XDR4_TYPE) .OR. (out_type == XDR8_TYPE))
+     !lxdr = ((out_type == XDR4_TYPE) .OR. (out_type == XDR8_TYPE))
      IF (lfirst) THEN
           IF (out_stat == "APPEND") THEN
-               IF (lxdr) THEN
-                    CALL io_open_fxdr(outfile, "A", .TRUE., iu, ierr)
-               ELSE
+               !IF (lxdr) THEN
+               !     CALL io_open_fxdr(outfile, "A", .TRUE., iu, ierr)
+               !ELSE
                     CALL io_open(iu, outfile, out_stat, "UNFORMATTED", ierr)
-               END IF
+               !END IF
           ELSE IF (out_stat == "NEW") THEN
-               IF (lxdr) THEN
-                    CALL io_open_fxdr(outfile, "R", .TRUE., iu, ierr)
-                    IF (ierr == 0) THEN
-                         WRITE(*, *) "SWIFTEST Error:"
-                         WRITE(*, *) "   Binary output file already exists"
-                         CALL util_exit(FAILURE)
-                    END IF
-                    CALL io_open_fxdr(outfile, "W", .TRUE., iu, ierr)
-               ELSE
+               !IF (lxdr) THEN
+               !     CALL io_open_fxdr(outfile, "R", .TRUE., iu, ierr)
+               !     IF (ierr == 0) THEN
+               !          WRITE(*, *) "SWIFTEST Error:"
+               !          WRITE(*, *) "   Binary output file already exists"
+               !          CALL util_exit(FAILURE)
+               !     END IF
+               !     CALL io_open_fxdr(outfile, "W", .TRUE., iu, ierr)
+               !ELSE
                     CALL io_open(iu, outfile, out_stat, "UNFORMATTED", ierr)
                     IF (ierr /= 0) THEN
                          WRITE(*, *) "SWIFTEST Error:"
                          WRITE(*, *) "   Binary output file already exists"
                          CALL util_exit(FAILURE)
                     END IF
-               END IF
+               !END IF
           ELSE
-               IF (lxdr) THEN
-                    CALL io_open_fxdr(outfile, "W", .TRUE., iu, ierr)
-               ELSE
+               !IF (lxdr) THEN
+               !     CALL io_open_fxdr(outfile, "W", .TRUE., iu, ierr)
+               !ELSE
                     CALL io_open(iu, outfile, "REPLACE", "UNFORMATTED", ierr)
-               END IF
+               !END IF
           END IF
           IF (ierr /= 0) THEN
                WRITE(*, *) "SWIFTEST Error:"
@@ -106,11 +106,11 @@ SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_
           END SELECT
           lfirst = .FALSE.
      ELSE
-          IF (lxdr) THEN
-               CALL io_open_fxdr(outfile, "A", .TRUE., iu, ierr)
-          ELSE
+          !IF (lxdr) THEN
+          !     CALL io_open_fxdr(outfile, "A", .TRUE., iu, ierr)
+          !ELSE
                CALL io_open(iu, outfile, "APPEND", "UNFORMATTED", ierr)
-          END IF
+          !END IF
           IF (ierr /= 0) THEN
                WRITE(*, *) "SWIFTEST Error:"
                WRITE(*, *) "   Unable to open binary output file for append"
@@ -150,11 +150,11 @@ SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_
           CASE (FILT)
 ! DEK - add code here to handle the case for an OUT_FORM = FILT
      END SELECT
-     IF (lxdr) THEN
-          ierr = ixdrclose(iu)
-     ELSE
+     !IF (lxdr) THEN
+     !     ierr = ixdrclose(iu)
+     !ELSE
           CLOSE(UNIT = iu, IOSTAT = ierr)
-     END IF
+     !END IF
      IF (ierr /= 0) THEN
           WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Unable to close binary output file"

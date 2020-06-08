@@ -40,9 +40,9 @@ SUBROUTINE obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, msun)
 ! Arguments
      INTEGER(I4B), INTENT(IN)                    :: ntp
      REAL(DP), INTENT(IN)                        :: j2rp2, j4rp4, msun
-     REAL(DP), DIMENSION(ntp), INTENT(IN)        :: irht
-     REAL(DP), DIMENSION(NDIM, ntp), INTENT(IN)  :: xht
-     REAL(DP), DIMENSION(NDIM, ntp), INTENT(OUT) :: aoblt
+     REAL(DP), DIMENSION(:), INTENT(IN)        :: irht
+     REAL(DP), DIMENSION(:, :), INTENT(IN)  :: xht
+     REAL(DP), DIMENSION(:, :), INTENT(OUT) :: aoblt
 
 ! Internals
      INTEGER(I4B) :: i

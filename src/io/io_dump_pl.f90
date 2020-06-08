@@ -38,7 +38,7 @@ SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
 ! Modules
      USE swiftest
      USE module_swiftest
-     USE module_fxdr
+     !USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_dump_pl
      IMPLICIT NONE
 
@@ -50,28 +50,41 @@ SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
 ! Internals
      INTEGER(I4B)                     :: i, iu, ierr
      INTEGER(I4B), SAVE               :: idx = 1
+   integer(I4B),parameter             :: LUN = 7
 
 ! Executable code
-     CALL io_open_fxdr(DUMP_PL_FILE(idx), "W", .TRUE., iu, ierr)
+     !CALL io_open_fxdr(DUMP_PL_FILE(idx), "W", .TRUE., iu, ierr)
+     !CALL io_open(iu, outfile, " "UNFORMATTED", ierr)
+   open(unit = LUN, file = DUMP_PL_FILE(idx), form = "UNFORMATTED", status = 'REPLACE', iostat = ierr)
      IF (ierr /= 0) THEN
           WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Unable to open binary dump file ", TRIM(DUMP_PL_FILE(idx))
           CALL util_exit(FAILURE)
      END IF
-     ierr = ixdrint(iu, npl)
-     ierr = ixdrint(iu, swiftest_plA%name(1))
-     ierr = ixdrdouble(iu, swiftest_plA%mass(1))
-     ierr = ixdrdmat(iu, NDIM, swiftest_plA%xh(:,1))
-     ierr = ixdrdmat(iu, NDIM, swiftest_plA%vh(:,1))
+   write(LUN) npl
+   write(LUN) swiftest_plA%name(1)
+   write(LUN) swiftest_plA%mass(1)
+   write(LUN) swiftest_plA%xh(:,1)
+   write(LUN) swiftest_plA%vh(:,1)
+     !ierr = ixdrint(LUN, npl)
+     !ierr = ixdrint(LUN, swiftest_plA%name(1))
+     !ierr = ixdrdouble(LUN, swiftest_plA%mass(1))
+     !ierr = ixdrdmat(LUN, NDIM, swiftest_plA%xh(:,1))
+     !ierr = ixdrdmat(LUN, NDIM, swiftest_plA%vh(:,1))
      DO i = 2, npl
-          ierr = ixdrint(iu, swiftest_plA%name(i))
-          ierr = ixdrdouble(iu, swiftest_plA%mass(i))
-          IF (lrhill_present) ierr = ixdrdouble(iu, swiftest_plA%rhill(i))
-          IF (lclose) ierr = ixdrdouble(iu, swiftest_plA%radius(i))
-          ierr = ixdrdmat(iu, NDIM, swiftest_plA%xh(:,i))
-          ierr = ixdrdmat(iu, NDIM, swiftest_plA%vh(:,i))
+          !ierr = ixdrint(LUN, swiftest_plA%name(i))
+          !ierr = ixdrdouble(LUN, swiftest_plA%mass(i))
+         write(LUN) swiftest_plA%name(i)
+         write(LUN) swiftest_plA%mass(i)
+          IF (lrhill_present) write(LUN) swiftest_plA%rhill(i) !ierr = ixdrdouble(LUN, swiftest_plA%rhill(i))
+          IF (lclose) write(LUN) swiftest_plA%radius(i) !ierr = ixdrdouble(LUN, swiftest_plA%radLUNs(i))
+         write(LUN) swiftest_plA%xh(:,i)
+         write(LUN) swiftest_plA%vh(:,i)
+          !ierr = ixdrdmat(LUN, NDIM, swiftest_plA%xh(:,i))
+          !ierr = ixdrdmat(LUN, NDIM, swiftest_plA%vh(:,i))
      END DO
-     ierr = ixdrclose(iu)
+   close(LUN)
+     !ierr = ixdrclose(LUN)
      idx = idx + 1
      IF (idx > 2) idx = 1
 

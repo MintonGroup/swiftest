@@ -44,8 +44,8 @@ SUBROUTINE obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
      INTEGER(I4B), INTENT(IN)                   :: npl
      REAL(DP), INTENT(IN)                       :: j2rp2, j4rp4
      REAL(DP), INTENT(OUT)                      :: oblpot
-     REAL(DP), DIMENSION(npl), INTENT(IN)       :: irh
-     REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
+     REAL(DP), DIMENSION(:), INTENT(IN)         :: irh
+     REAL(DP), DIMENSION(:, :), INTENT(IN)      :: xh
      TYPE(swiftest_pl), INTENT(INOUT)           :: swiftest_plA
 
 ! Internals
