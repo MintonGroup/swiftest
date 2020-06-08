@@ -65,89 +65,6 @@ SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Msl
      c4 = 1.08
      c5 = 5.0_DP/2.0_DP
 
-! Functions
-
-function calc_erosion(Mtarg,Mp,alpha) result(ans)
-   implicit none
-   real(DP),intent(in) :: Mtarg, Mp, alpha
-   real(DP) :: QRD_star1, V_star1, RC1, mu_alpha, mu, QRD_star, mu_bar, V_star, QRD_pstar, V_pstar, QR, Verosion, G
-   real(DP), DIMENSION(3) :: ans
-   mu_bar = 0.37
-   G = 6.674e-11
-   ! calc RC1
-   RC1 = (3.0_DP * (Mp + Mtarg)) /  ((4.0_DP * PI * density1) ** (1.0_DP / 3.0_DP))  ! [m]
-   ! calc mu, mu_alpha
-   mu = (Mtarg * Mp) / (Mtarg + Mp)  ! [kg]
-   mu_alpha = (Mtarg * alpha * Mp) / (Mtarg + alpha * Mp)  ! [kg]
-   ! calc QRD_star1, V_star1
-   QRD_star1 = (c_star * 4.0_CP * PI * density1 * G * (RC1 ** 2.0_DP)) / 5.0_DP
-   V_star1 = ((2.0_DP * QRD_star1 * (Mtarg + Mp)) /  mu) ** (1.0_DP / 2.0_DP)
-   ! calc QRD_star, V_star
-   QRD_star = QRD_star1 * (((Mp / Mtarg + 1.0_DP) ** 2.0_DP) / (4.0_DP * Mp / Mtarg)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP)  !(Eq 23)
-   V_star = V_star1 * (((Mp / Mtarg + 1.0_DP) ** 2.0_DP) / (4.0_DP * Mp / Mtarg)) ** (1.0_DP / (3.0_DP * mu_bar))  ! (Eq 22)
-   ! calc QRD_pstar, V_pstar
-   QRD_pstar = ((mu / mu_alpha) ** (2.0_DP - 3.0_DP * mu_bar / 2.0_DP)) * QRD_star  ! (Eq 15)
-   V_pstar = (2.0_DP * QRD_pstar * (Mtarg + Mp) / mu) ** (1.0_DP / 2.0_DP)  ! (Eq 16)
-   ! calc QR, Verosion
-   QR = 2.0_DP * ((1.0_DP - Mtarg) / (Mtarg + Mp)) * QRD_pstar
-   Verosion = ((2.0_DP * QR * (Mtarg + Mp)) / (Mtarg * Mp / (Mtarg + Mp))) ** (1.0_DP / 2.0_DP)
-
-   ans(1) = QRD_pstar
-   ans(2) = V_pstar
-   ans(3) = Verosion
-   return
-end function calc_erosion
-
-function calc_QRD_lr(Mp,Mtarg,Mint) result(ans)
-   implicit none
-   real(DP),intent(in) :: Mp, Mtarg, Mint
-   real(DP) :: ans, Mtlr, mu, gammalr, QRD_star1, c_star, G, V_star1, QRD_lr, mu_bar, QR, V_lr
-   c_star = 1.8
-   G = 6.674e-11
-   mu_bar = 0.37
-   ! calc Mtlr, RC1, mu, gammalr
-   Mtlr =  Mint + Mp
-   RC1 = ((3.0_DP * Mtlr) / (4.0_DP * PI * density1)) ** (1.0_DP / 3.0_DP) ! [m]
-   mu = (Mint * Mp) / (Mint + Mp) ! [kg]
-   gammalr = Mint / Mp
-   ! calc QRD_star1, V_star1
-   QRD_star1 = (c_star * 4.0_DP * PI * density1 * G * (RC1 ** 2.0_DP)) / 5.0_DP
-   V_star1 = ((2.0_DP * QRD_star1 * (Mint + Mp)) / mu) ** (1.0_DP / 2.0_DP)
-   ! calc QRD_lr, QR, V_lr
-   QRD_lr = QRD_star1 * (((gammalr + 1.0_DP) ** 2.0_DP) / (4.0_DP * gammalr)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP) !(Eq 52)
-   QR = 2.0_DP * (1.0_DP - (Mint / Mtlr)) * QRD_lr
-   V_lr = ((2.0_DP * QR * Mtlr) / mu) ** (1.0_DP / 2.0_DP)     !(Eq 54)
-
-   ans = V_lr
-   return
-end function calc_erosion
-
-function calc_b(Mp_pos, Mp_vel, Mp_r, Mtarg_pos, Mtarg_vel, Mtarg_r) result(b)
-   implicit none
-   real(DP), intent(in), DIMENSION(3) :: Mp_pos, Mp_vel, Mtarg_pos, Mtarg_vel
-   real(DP), intent(in) :: Mp_r, Mtarg_r
-   real(DP) :: ans, h_sq, b, dvel_sq
-   real(DP), DIMENSION(3) :: dpos, dvel, h
-
-   dpos(1) = mtarg_pos(1) - mp_pos(1)
-   dpos(2) = mtarg_pos(2) - mp_pos(2)
-   dpos(3) = mtarg_pos(3) - mp_pos(3)
-
-   dvel(1) = mtarg_vel(1) - mp_vel(1)
-   dvel(2) = mtarg_vel(2) - mp_vel(2)
-   dvel(3) = mtarg_vel(3) - mp_vel(3)
-
-   h(1) = (dpos(2) * dvel(3)) - (dpos(3) * dvel(2))
-   h(2) = (dpos(3) * dvel(1)) - (dpos(1) * dvel(3))
-   h(3) = (dpos(1) * dvel(2)) - (dpos(2) * dvel(1))
-
-   h_sq = (h(1) * h(1)) + (h(2) * h(2)) + (h(3) * h(3))
-   dvel_sq = (dvel(1) * dvel(1)) + (dvel(2) * dvel(2)) + (dvel(3) * dvel(3))
-
-   b = (h_sq / (((Mp_r + Mtarg_r) ** 2.0_DP) * dvel_sq)) ** (1.0_DP / 2.0_DP)
-
-   return
-end function calc_b
 
 
 ! Executable code
@@ -253,6 +170,91 @@ end function calc_b
                regime = SUPERCATASTROPHIC
           END IF 
      END IF 
+
+! Functions
+contains
+function calc_erosion(Mtarg,Mp,alpha) result(ans)
+   implicit none
+   real(DP),intent(in) :: Mtarg, Mp, alpha
+   real(DP) :: QRD_star1, V_star1, RC1, mu_alpha, mu, QRD_star, mu_bar, V_star, QRD_pstar, V_pstar, QR, Verosion, G
+   real(DP), DIMENSION(3) :: ans
+   mu_bar = 0.37
+   G = 6.674e-11
+   ! calc RC1
+   RC1 = (3.0_DP * (Mp + Mtarg)) /  ((4.0_DP * PI * density1) ** (1.0_DP / 3.0_DP))  ! [m]
+   ! calc mu, mu_alpha
+   mu = (Mtarg * Mp) / (Mtarg + Mp)  ! [kg]
+   mu_alpha = (Mtarg * alpha * Mp) / (Mtarg + alpha * Mp)  ! [kg]
+   ! calc QRD_star1, V_star1
+   QRD_star1 = (c_star * 4.0_DP * PI * density1 * G * (RC1 ** 2.0_DP)) / 5.0_DP
+   V_star1 = ((2.0_DP * QRD_star1 * (Mtarg + Mp)) /  mu) ** (1.0_DP / 2.0_DP)
+   ! calc QRD_star, V_star
+   QRD_star = QRD_star1 * (((Mp / Mtarg + 1.0_DP) ** 2.0_DP) / (4.0_DP * Mp / Mtarg)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP)  !(Eq 23)
+   V_star = V_star1 * (((Mp / Mtarg + 1.0_DP) ** 2.0_DP) / (4.0_DP * Mp / Mtarg)) ** (1.0_DP / (3.0_DP * mu_bar))  ! (Eq 22)
+   ! calc QRD_pstar, V_pstar
+   QRD_pstar = ((mu / mu_alpha) ** (2.0_DP - 3.0_DP * mu_bar / 2.0_DP)) * QRD_star  ! (Eq 15)
+   V_pstar = (2.0_DP * QRD_pstar * (Mtarg + Mp) / mu) ** (1.0_DP / 2.0_DP)  ! (Eq 16)
+   ! calc QR, Verosion
+   QR = 2.0_DP * ((1.0_DP - Mtarg) / (Mtarg + Mp)) * QRD_pstar
+   Verosion = ((2.0_DP * QR * (Mtarg + Mp)) / (Mtarg * Mp / (Mtarg + Mp))) ** (1.0_DP / 2.0_DP)
+
+   ans(1) = QRD_pstar
+   ans(2) = V_pstar
+   ans(3) = Verosion
+   return
+end function calc_erosion
+
+function calc_QRD_lr(Mp,Mtarg,Mint) result(ans)
+   implicit none
+   real(DP),intent(in) :: Mp, Mtarg, Mint
+   real(DP) :: ans, Mtlr, mu, gammalr, QRD_star1, c_star, G, V_star1, QRD_lr, mu_bar, QR, V_lr
+   c_star = 1.8
+   G = 6.674e-11
+   mu_bar = 0.37
+   ! calc Mtlr, RC1, mu, gammalr
+   Mtlr =  Mint + Mp
+   RC1 = ((3.0_DP * Mtlr) / (4.0_DP * PI * density1)) ** (1.0_DP / 3.0_DP) ! [m]
+   mu = (Mint * Mp) / (Mint + Mp) ! [kg]
+   gammalr = Mint / Mp
+   ! calc QRD_star1, V_star1
+   QRD_star1 = (c_star * 4.0_DP * PI * density1 * G * (RC1 ** 2.0_DP)) / 5.0_DP
+   V_star1 = ((2.0_DP * QRD_star1 * (Mint + Mp)) / mu) ** (1.0_DP / 2.0_DP)
+   ! calc QRD_lr, QR, V_lr
+   QRD_lr = QRD_star1 * (((gammalr + 1.0_DP) ** 2.0_DP) / (4.0_DP * gammalr)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP) !(Eq 52)
+   QR = 2.0_DP * (1.0_DP - (Mint / Mtlr)) * QRD_lr
+   V_lr = ((2.0_DP * QR * Mtlr) / mu) ** (1.0_DP / 2.0_DP)     !(Eq 54)
+
+   ans = V_lr
+   return
+end function calc_QRD_lr
+
+function calc_b(Mp_pos, Mp_vel, Mp_r, Mtarg_pos, Mtarg_vel, Mtarg_r) result(b)
+   implicit none
+   real(DP), intent(in), DIMENSION(3) :: Mp_pos, Mp_vel, Mtarg_pos, Mtarg_vel
+   real(DP), intent(in) :: Mp_r, Mtarg_r
+   real(DP) :: ans, h_sq, b, dvel_sq
+   real(DP), DIMENSION(3) :: dpos, dvel, h
+
+   dpos(1) = mtarg_pos(1) - mp_pos(1)
+   dpos(2) = mtarg_pos(2) - mp_pos(2)
+   dpos(3) = mtarg_pos(3) - mp_pos(3)
+
+   dvel(1) = mtarg_vel(1) - mp_vel(1)
+   dvel(2) = mtarg_vel(2) - mp_vel(2)
+   dvel(3) = mtarg_vel(3) - mp_vel(3)
+
+   h(1) = (dpos(2) * dvel(3)) - (dpos(3) * dvel(2))
+   h(2) = (dpos(3) * dvel(1)) - (dpos(1) * dvel(3))
+   h(3) = (dpos(1) * dvel(2)) - (dpos(2) * dvel(1))
+
+   h_sq = (h(1) * h(1)) + (h(2) * h(2)) + (h(3) * h(3))
+   dvel_sq = (dvel(1) * dvel(1)) + (dvel(2) * dvel(2)) + (dvel(3) * dvel(3))
+
+   b = (h_sq / (((Mp_r + Mtarg_r) ** 2.0_DP) * dvel_sq)) ** (1.0_DP / 2.0_DP)
+
+   return
+end function calc_b
+
 
      RETURN
 

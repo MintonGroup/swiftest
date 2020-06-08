@@ -60,14 +60,14 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Internals
  
-     INTEGER(I4B)                   :: model, nres, i
+     INTEGER(I4B)                   :: model, nres, i, itarg, iproj
      REAL(DP), DIMENSION(3)         :: mres, rres
      REAL(DP), DIMENSION(NDIM, 3)   :: pres, vres
      INTEGER(I4B)                   :: regime, indexbig, indexsmall  
      INTEGER(I4B)                   :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
      INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
-     REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild, mbig, msmall
+     REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild
      REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
      REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs, x1_au, x2_au, v1_auy, v2_auy
@@ -252,18 +252,14 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           !regime = collresolve_resolve(model,m1_si,m2_si,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres,mres,rres,pres,vres)
 
           IF (m1 > m2) THEN 
-               mbig = m1
-               msmall = m2
-               indexbig = index_big1
-               indexsmall = index_big2
-          ELSE 
-               mbig = m2
-               msmall = m1
-               indexbig = index_big2
-               indexsmall = index_big1
+               itarg = index1
+               iproj = index2
+          ELSE
+               itarg = index2
+               iproj = index1
           END IF
 
-          CALL util_regime(symba_plA, mbig, msmall, indexbig, indexsmall, regime, Mlr, Mslr)
+          CALL util_regime(symba_plA, itarg, iproj, regime, Mlr, Mslr)
           WRITE(*,*) "Mlr :", Mlr, "Mslr: ", Mslr
           !WRITE(*,*) "After collresolve_resolve"
 
