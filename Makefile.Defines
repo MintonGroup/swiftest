@@ -2,7 +2,7 @@
 #
 #  Unit Name   : Makefile.Defines
 #  Unit Type   : makefile
-#  Project     : SWIFTER
+#  Project     : SWIFTEST
 #  Package     : N/A
 #  Language    : GNU makefile syntax
 #
@@ -37,7 +37,7 @@ INSTALL_DATA    = $(INSTALL) -m 644
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 # Swifter definitions
 
-SWIFTER_HOME    = $(ROOT_DIR)
+SWIFTEST_HOME    = $(ROOT_DIR)
 USER_MODULES    =
 COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
@@ -69,32 +69,3 @@ CFLAGS          = -O3 -w -m64 -std=c99
 
 64_BIT_REALS    = -r8
 
-# FXDR Makefile compatibility - DO NOT ALTER
-
-F77CMD          = $(FORTRAN)
-F77OPTS         = $(FFLAGS)
-CCCMD           = $(CC)
-CCOPTS          = $(CFLAGS)
-
-#******************************************************************************
-#
-#  Author(s)   : David E. Kaufmann
-#
-#  Revision Control System (RCS) Information
-#
-#  Source File : $RCSfile: Makefile.Defines,v $
-#  Full Path   : $Source: /d1/kaufmann/development/RCS/Makefile.Defines,v $
-#  Revision    : $Revision: 0.1 $
-#  Date        : $Date: 2003/04/15 22:56:57 $
-#  Programmer  : $Author: kaufmann $
-#  Locked By   : $Locker:  $
-#  State       : $State: Exp $
-#
-#  Modification History:
-#
-#  $Log: Makefile.Defines,v $
-#  Revision 0.1  2003/04/15 22:56:57  kaufmann
-#  Initial implementation
-#
-#
-#******************************************************************************

@@ -2,7 +2,7 @@
 #
 #  Unit Name   : Makefile
 #  Unit Type   : makefile
-#  Project     : SWIFTER
+#  Project     : SWIFTEST
 #  Package     : N/A
 #  Language    : GNU makefile syntax
 #
@@ -21,11 +21,11 @@
 #                (5) drivers : builds Swifter drivers
 #                (6) tools   : builds Swifter tools
 #                (7) bin     : compiles local directory source and installs
-#                              resulting executables to $(SWIFTER_HOME)/bin
+#                              resulting executables to $(SWIFTEST_HOME)/bin
 #                (8) clean   : removes all soft links to Makefile and
 #                              Makefile.Defines from subdirectories of
-#                              $(SWIFTER_HOME), removes the entire contents
-#                              of $(SWIFTER_HOME)/lib and $(SWIFTER_HOME)/bin,
+#                              $(SWIFTEST_HOME), removes the entire contents
+#                              of $(SWIFTEST_HOME)/lib and $(SWIFTEST_HOME)/bin,
 #                              and removes the include file installed by the
 #                              FXDR makefile
 #    Terminal  : none
@@ -44,30 +44,31 @@
 #
 #******************************************************************************
 
-SWIFTER_MODULES = swiftest.f90 \
-		  module_swiftest.f90 \
-		  module_swifter.f90 \
-		  module_helio.f90 \
-        module_nrutil.f90 \
-		  module_symba.f90 \
-		  module_swiftestalloc.f90 \
-        module_interfaces.f90 \
-        ../io/io.f90 
+SWIFTEST_MODULES = module/swiftest.f90 \
+		  module/module_swiftest.f90 \
+		  module/module_swifter.f90 \
+		  module/module_helio.f90 \
+        module/module_nrutil.f90 \
+		  module/module_symba.f90 \
+		  module/module_swiftestalloc.f90 \
+        module/module_interfaces.f90 \
+        io/io.f90 
 
 include Makefile.Defines
 
-MODULES         = $(SWIFTER_MODULES) $(USER_MODULES)
+MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES)
+
 
 .PHONY : all mod lib libdir collresolve drivers tools bin clean force 
 
 % : %.f90 force
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include $< -o $@ \
-	  -L$(SWIFTER_HOME)/lib -lswifter -lcollresolve
-	$(INSTALL_PROGRAM) $@ $(SWIFTER_HOME)/bin
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include $< -o $@ \
+	  -L$(SWIFTEST_HOME)/lib -lswifter -lcollresolve
+	$(INSTALL_PROGRAM) $@ $(SWIFTEST_HOME)/bin
 	rm -f $@
 
 all:
-	cd $(SWIFTER_HOME); \
+	cd $(SWIFTEST_HOME); \
 	  make mod; \
 	  make lib; \
 	  make collresolve; \
@@ -75,115 +76,112 @@ all:
 	  make tools
 
 mod:
-	cd $(SWIFTER_HOME)/src/module; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
-	  $(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include -c $(MODULES); \
-	  $(AR) rv $(SWIFTER_HOME)/lib/libswifter.a *.o; \
-	  $(INSTALL_DATA) *.mod $(SWIFTER_HOME)/include; \
-	  rm -f *.o *.mod
+	cd $(SWIFTEST_HOME)/src; \
+	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c $(MODULES); \
+	  $(AR) rv $(SWIFTEST_HOME)/lib/libswifter.a *.o; \
+	  $(INSTALL_DATA) *.mod *.smod $(SWIFTEST_HOME)/include; \
+	  rm -f *.o *.mod *.smod
 
 lib:
-	cd $(SWIFTER_HOME)/src/coord; \
+	cd $(SWIFTEST_HOME)/src/coord; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/discard; \
+	cd $(SWIFTEST_HOME)/src/discard; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/drift; \
+	cd $(SWIFTEST_HOME)/src/drift; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/helio; \
+	cd $(SWIFTEST_HOME)/src/helio; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/io; \
+	cd $(SWIFTEST_HOME)/src/io; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/obl; \
+	cd $(SWIFTEST_HOME)/src/obl; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/orbel; \
+	cd $(SWIFTEST_HOME)/src/orbel; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/rmvs; \
+	cd $(SWIFTEST_HOME)/src/rmvs; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/symba; \
+	cd $(SWIFTEST_HOME)/src/symba; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTER_HOME)/src/util; \
+	cd $(SWIFTEST_HOME)/src/util; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
 
 libdir:
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTER_HOME)/include -c *.f90
-	$(AR) rv $(SWIFTER_HOME)/lib/libswifter.a *.o
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90
+	$(AR) rv $(SWIFTEST_HOME)/lib/libswifter.a *.o
 	rm -f *.o
 
 collresolve:
 	cd $(COLLRESOLVE_HOME); \
 	  autoreconf --install;\
-	  ./configure --prefix=$(SWIFTER_HOME);\
+	  ./configure --prefix=$(SWIFTEST_HOME);\
 	  make; \
 	  make install
 
 
 drivers:
-	cd $(SWIFTER_HOME)/src/main; \
+	cd $(SWIFTEST_HOME)/src/main; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make bin
 
 tools:
-	cd $(SWIFTER_HOME)/src/tool; \
+	cd $(SWIFTEST_HOME)/src/tool; \
 	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTER_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTER_HOME)/Makefile .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make bin
 
 bin: *.f90
 	make $(basename $^)
 
 clean:
-	cd $(SWIFTER_HOME)/src/module;  rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/coord;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/helio;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/io;      rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/obl;     rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/orbel;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/rmvs;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/symba;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/src/tool;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTER_HOME)/bin;     rm -f swifter_*
-	cd $(SWIFTER_HOME)/bin;     rm -f tool_*
-	cd $(SWIFTER_HOME)/lib;     rm -f lib*
-	cd $(SWIFTER_HOME)/include; rm -f *.mod collresolve.h
+	cd $(SWIFTEST_HOME)/src/module;  rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/coord;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/helio;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/io;      rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/obl;     rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/orbel;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/rmvs;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/symba;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/tool;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/bin;     rm -f swifter_*
+	cd $(SWIFTEST_HOME)/bin;     rm -f tool_*
+	cd $(SWIFTEST_HOME)/lib;     rm -f lib*
+	cd $(SWIFTEST_HOME)/include; rm -f *.mod collresolve.h
 	cd $(COLLRESOLVE_HOME); rm -rf autom4te.cache aux Makefile stamp-h1 configure config.status config.h config.log aclocal.m4 lib* *.in *.o *.lo cambioni2019/*.o cambioni2019/*.lo
 
 
