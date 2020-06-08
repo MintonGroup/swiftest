@@ -212,8 +212,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           x2_si(:) = x2(:) * DU2M
           v1_si(:) = v1(:) * DU2M / TU2S
           v2_si(:) = v2(:) * DU2M / TU2S
-          den1_si = (den1 / GU) * MU2KG)) / (DU2M ** 3.0_DP)
-          den2_si = (den2 / GU) * MU2KG)) / (DU2M ** 3.0_DP)
+          den1_si = (den1 / GU) * MU2KG / (DU2M ** 3.0_DP)
+          den2_si = (den2 / GU) * MU2KG / (DU2M ** 3.0_DP)
 
           !MSUN = 1.989e33 !Msun in cgs
           !AU2CM = 1.496e+13 !AU in cgs
