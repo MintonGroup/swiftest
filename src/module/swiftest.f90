@@ -57,13 +57,13 @@ module swiftest
       !! Maximum size of character strings
 
    CHARACTER(*), parameter :: REAL4_TYPE = "REAL4"
-      !! Symbolic name for binary output file type real4
+      !! Symbolic name for binary output file type REAL4
    CHARACTER(*), parameter :: REAL8_TYPE = "REAL8"
-      !! Symbolic name for binary output file type real8
-   CHARACTER(*), parameter :: XDR4_TYPE  = "XDR4"
-      !! Symbolic name for binary output file type XDR4
-   CHARACTER(*), parameter :: XDR8_TYPE  = "XDR8"
-      !! Symbolic name for binary output file type XDR8
+      !! Symbolic name for binary output file type REAL8
+   CHARACTER(*), parameter :: SWIFTER_REAL4_TYPE  = "SWIFTER4"
+      !! Symbolic name for binary output file type for the old style Swifter REAL4
+   CHARACTER(*), parameter :: SWIFTER_REAL8_TYPE  = "SWIFTER8"
+      !! Symbolic name for binary output file type for the old style Swifter REAL8
 
    integer(I4B), parameter :: EL   = 1
       !! Symbolic name for binary output file contents for orbital element type
@@ -185,7 +185,7 @@ module swiftest
       character(STRMAX)    :: in_type = 'ASCII'    !! format of input data files
       integer(I4B)         :: istep_out = -1       !! number of time steps between binary outputs
       character(STRMAX)    :: outfile = ''         !! name of output binary file
-      character(STRMAX)    :: out_type = XDR4_TYPE !! binary format of output file
+      character(STRMAX)    :: out_type = REAL4_TYPE !! binary format of output file
       character(STRMAX)    :: out_form = 'XV'      !! data to write to output file
       character(STRMAX)    :: out_stat = 'NEW'     !! open status for output binary file
       integer(I4B)         :: istep_dump = -1      !! number of time steps between dumps

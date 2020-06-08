@@ -71,7 +71,7 @@ SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIU
           sradius = RADIUS
      END IF
      SELECT CASE (out_type)
-          CASE (REAL4_TYPE, XDR4_TYPE)
+          CASE (REAL4_TYPE, SWIFTER_REAL4_TYPE)
                IF (lmass) THEN
                     WRITE(iu, IOSTAT = ierr) name, smass, sradius, svec
                ELSE
@@ -82,7 +82,7 @@ SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIU
                     WRITE(*, *) "   Unable to write binary file record"
                     CALL util_exit(FAILURE)
                END IF
-          CASE (REAL8_TYPE, XDR8_TYPE)
+          CASE (REAL8_TYPE, SWIFTER_REAL8_TYPE)
                IF (lmass) THEN
                     WRITE(iu, IOSTAT = ierr) name, MASS, RADIUS, dvec
                ELSE

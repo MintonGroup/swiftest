@@ -58,7 +58,7 @@ SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, x
 
 ! Executable code
 
-     !lxdr = ((out_type == XDR4_TYPE) .OR. (out_type == XDR8_TYPE))
+     !lxdr = ((out_type == SWIFTER_REAL4_TYPE) .OR. (out_type == SWIFTER_REAL8_TYPE))
      !IF (lxdr) THEN
      !     CALL io_open_fxdr(encounter_file, "A", .TRUE., iu, ierr)
      !     IF ((ierr /= 0) .AND. lfirst) THEN
@@ -76,8 +76,8 @@ SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, x
      !          WRITE(*, *) "   Unable to write binary file record"
      !          CALL util_exit(FAILURE)
      !     END IF
-     !     CALL io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), XDR8_TYPE, MASS = mass1, RADIUS = radius1)
-     !     CALL io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), XDR8_TYPE, MASS = mass2, RADIUS = radius2)
+     !     CALL io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), SWIFTER_REAL8_TYPE, MASS = mass1, RADIUS = radius1)
+     !     CALL io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), SWIFTER_REAL8_TYPE, MASS = mass2, RADIUS = radius2)
      !     ierr = ixdrclose(iu)
      !ELSE
           CALL io_open(iu, encounter_file, "APPEND", "UNFORMATTED", ierr)

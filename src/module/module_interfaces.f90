@@ -499,20 +499,6 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
-               USE swiftest
-               USE module_swiftest
-               USE module_symba
-               USE module_helio
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)         :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)         :: npl
-               CHARACTER(*), INTENT(IN)         :: inplfile, in_type
-               TYPE(symba_pl), INTENT(INOUT)    :: symba_plA
-          END SUBROUTINE io_init_pl
-     END INTERFACE
-
-     INTERFACE
           SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
                USE swiftest
                USE module_swiftest
@@ -596,16 +582,6 @@ MODULE module_interfaces
                TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
                TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
           END SUBROUTINE io_write_frame
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
-               USE swiftest
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: iu, npl, ntp, iout_form
-               REAL(DP), INTENT(IN)     :: t
-               CHARACTER(*), INTENT(IN) :: out_type
-          END SUBROUTINE io_write_hdr
      END INTERFACE
 
      INTERFACE

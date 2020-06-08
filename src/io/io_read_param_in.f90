@@ -190,7 +190,7 @@ contains
       write(*,*) 'No valid planet file in input file'
       ierr = -1
    end if
-   if ((param%in_type /= XDR8_TYPE) .and. (param%in_type /= "ASCII")) then
+   if ((param%in_type /= SWIFTER_REAL8_TYPE) .and. (param%in_type /= "ASCII")) then
       write(*,*) 'Invalid input file type:',param%in_type
       ierr = -1
    end if
@@ -206,7 +206,7 @@ contains
    end if
    if (param%outfile /= "") then
       if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
-            (param%out_type /= XDR4_TYPE)  .and. (param%out_type /= XDR8_TYPE)) then
+            (param%out_type /= SWIFTER_REAL4_TYPE)  .and. (param%out_type /= SWIFTER_REAL8_TYPE)) then
          write(*,*) 'Invalid out_type: ',param%out_type
          ierr = -1
       end if

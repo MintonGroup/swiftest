@@ -97,7 +97,7 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
           WRITE(LUN, 100) "!TP_IN "
      END IF
      WRITE(LUN, 100, ADVANCE = "NO") "IN_TYPE "
-     WRITE(LUN, *) XDR8_TYPE
+     WRITE(LUN, *) SWIFTER_REAL8_TYPE
      IF (istep_out > 0) THEN
           WRITE(LUN, 100, ADVANCE = "NO") "ISTEP_OUT "
           WRITE(LUN, *) istep_out

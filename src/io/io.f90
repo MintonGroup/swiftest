@@ -4,9 +4,9 @@ module io
    !!
    !! Module containing all input/output subroutine interface blocks 
    use swiftest
+   use module_swiftest
    !> The following use statements are temporary until Swiftest module structure conversion is complete
    use module_interfaces 
-   use module_symba
 
    interface
 
@@ -33,6 +33,15 @@ module io
          type(input_parameters),intent(in) :: param         !! Input collection of user-defined parameters
          type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store massive body initial conditions
       end subroutine io_read_pl_in
+
+      module subroutine io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
+         integer(I4B), intent(in) :: iu            !! Output file unit number
+         integer(I4B), intent(in) :: npl           !! Number of massive bodies
+         integer(I4B), intent(in) :: ntp           !! Number of test particles
+         integer(I4B), intent(in) :: iout_form     !! Output format type (EL, XV, FILT - see swiftest module for symbolic name definitions)
+         real(DP), intent(in)     :: t             !! Current time of simulation
+         character(*), intent(in) :: out_type      !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
+      end subroutine io_write_hdr         
          
    end interface
 

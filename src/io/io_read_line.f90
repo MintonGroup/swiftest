@@ -70,7 +70,7 @@ FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
           END IF
      END IF
      SELECT CASE (out_type)
-          CASE (REAL4_TYPE, XDR4_TYPE)
+          CASE (REAL4_TYPE, SWIFTER_REAL4_TYPE)
                IF (lmass) THEN
                     READ(iu, IOSTAT = ierr) name, smass, sradius, svec
                ELSE
@@ -80,7 +80,7 @@ FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                IF (ierr /= 0) RETURN
                IF (lmass) MASS = smass
                d1 = svec(1); d2 = svec(2); d3 = svec(3); d4 = svec(4); d5 = svec(5); d6 = svec(6)
-          CASE (REAL8_TYPE, XDR8_TYPE)
+          CASE (REAL8_TYPE, SWIFTER_REAL8_TYPE)
                IF (lmass) THEN
                     READ(iu, IOSTAT = ierr) name, MASS, RADIUS, dvec
                ELSE
