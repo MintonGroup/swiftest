@@ -67,13 +67,13 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
      INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
-     REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild
+     REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild, dentarg, denproj, dentot
      REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
      REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs, x1_au, x2_au, v1_auy, v2_auy
      LOGICAL(LGT)                   :: lfrag_add, lmerge
      INTEGER(I4B), DIMENSION(npl)   :: array_index1_child, array_index2_child
-     REAL(DP)                       :: MSUN, K2, m1_msun, m2_msun, rad1_au, rad2_au, AU2CM, year, Mlr, Mslr
+     REAL(DP)                       :: MSUN, K2, m1_msun, m2_msun, rad1_au, rad2_au, AU2CM, year, Mlr, Mslr, mtarg, mproj
 
 
 ! Executable code
@@ -254,12 +254,22 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           IF (m1 > m2) THEN 
                itarg = index1
                iproj = index2
+               dentarg = den1
+               denproj = den2
+               mtarg = m1
+               mproj = m2
           ELSE
                itarg = index2
                iproj = index1
+               dentarg = den2
+               denproj = den1
+               mtarg = m2
+               mproj = m1
           END IF
+          mtot = m1 + m2
+          dentot = (m1 *den1 +m2*den2 )/ mtot
 
-          CALL util_regime(symba_plA, itarg, iproj, regime, Mlr, Mslr)
+          CALL util_regime(symba_plA, mtarg, mproj, itarg, iproj, regime, Mlr, Mslr)
           WRITE(*,*) "Mlr :", Mlr, "Mslr: ", Mslr
           !WRITE(*,*) "After collresolve_resolve"
 
@@ -272,8 +282,13 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
           !PROBLEM
 
-          mres(:) = mres(:)*GU*MSUN/MU2GM
-          rres(:) = rres(:)*AU2CM/DU2CM
+          mres(1) = Mlr
+          mres(2) = Mslr 
+          mres(3) = mtot - Mlr - Mslr
+          rres(1) = (3.0_DP * mres(1)  / (4.0_DP * PI * dentarg)) *(1.0_DP/3.0_DP)
+          rres(2) = (3.0_DP * mres(2)  / (4.0_DP * PI * denproj)) *(1.0_DP/3.0_DP)
+          rres(3) = (3.0_DP * mres(2)  / (4.0_DP * PI * dentot)) *(1.0_DP/3.0_DP)
+          !rres(:) = rres(:)*AU2CM/DU2CM
 
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
