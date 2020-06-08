@@ -36,9 +36,9 @@
 SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_type, out_form, out_stat)
 
 ! Modules
+     use io
      USE swiftest
      USE module_swiftest
-     !USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_frame
      IMPLICIT NONE
 

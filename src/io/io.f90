@@ -5,8 +5,6 @@ module io
    !! Module containing all input/output subroutine interface blocks 
    use swiftest
    use module_swiftest
-   !> The following use statements are temporary until Swiftest module structure conversion is complete
-   use module_interfaces 
 
    interface
 
