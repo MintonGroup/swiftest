@@ -69,8 +69,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
      REAL(DP)                       :: rad1, rad2, m1, m2, GU, den1, den2, denchild, dentarg, denproj, dentot
      REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
-     REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2
-     REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs, x1_au, x2_au, v1_auy, v2_auy
+     REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2, x1_si, x2_si, v1_si, v2_si, xproj, xtarg, vproj, vtarg
+     REAL(DP)                       :: den1_si, den2_si, rad1_si, rad2_si, rproj, rtarg
      LOGICAL(LGT)                   :: lfrag_add, lmerge
      INTEGER(I4B), DIMENSION(npl)   :: array_index1_child, array_index2_child
      REAL(DP)                       :: m1_msun, m2_msun, rad1_au, rad2_au, AU2CM, year, Mlr, Mslr, mtarg, mproj
@@ -204,8 +204,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           !m1_cgs = (m1 / GU) * MU2GM 
           !m2_cgs = (m2 / GU) * MU2GM
 
-          m1_si = m1 * MU2KG 
-          m2_si = m2 * MU2KG
+          m1_si = (m1 * MU2KG) / GC 
+          m2_si = (m2 * MU2KG) / GC
           rad1_si = rad1 * DU2M
           rad2_si = rad2 * DU2M
           x1_si(:) = x1(:) * DU2M
@@ -278,6 +278,12 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                denproj = den2_si
                mtarg = m1_si
                mproj = m2_si
+               rtarg = rad1_si
+               rproj = rad2_si
+               xtarg(:) = x1_si(:)
+               xproj(:) = x2_si(:)
+               vtarg(:) = v1_si(:)
+               vproj(:) = v2_si(:)
           ELSE
                itarg = index2
                iproj = index1
@@ -285,11 +291,17 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                denproj = den1_si
                mtarg = m2_si
                mproj = m1_si
+               rtarg = rad2_si
+               rproj = rad1_si
+               xtarg(:) = x2_si(:)
+               xproj(:) = x1_si(:)
+               vtarg(:) = v2_si(:)
+               vproj(:) = v1_si(:)
           END IF
           mtot = m1_si + m2_si
           dentot = (m1_si *den1 +m2_si*den2 )/ mtot
 
-          CALL util_regime(symba_plA, mtarg, mproj, itarg, iproj, regime, Mlr, Mslr)
+          CALL util_regime(symba_plA, mtarg, mproj, rtarg, rproj, xtarg, xproj, vtarg, vproj, itarg, iproj, regime, Mlr, Mslr)
           WRITE(*,*) "Mlr :", Mlr, "Mslr: ", Mslr
           !WRITE(*,*) "After collresolve_resolve"
 
