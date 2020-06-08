@@ -201,7 +201,7 @@ contains
       ierr = -1
    end if
    if ((param%istep_out > 0) .and. (param%outfile == "")) then
-      write(*,*) 'invalid outfile'
+      write(*,*) 'Invalid outfile'
       ierr = -1
    end if
    if (param%outfile /= "") then
@@ -210,7 +210,7 @@ contains
          write(*,*) 'Invalid out_type: ',param%out_type
          ierr = -1
       end if
-      if ((param%out_form /= "EL") .and. (param%out_form /= "XV") .and. (param%out_form /= "FILT")) then
+      if ((param%out_form /= "EL") .and. (param%out_form /= "XV")) then
          write(*,*) 'Invalid out_form: ',param%out_form
          ierr = -1
       end if

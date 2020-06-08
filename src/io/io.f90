@@ -32,6 +32,14 @@ module io
          type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store massive body initial conditions
       end subroutine io_read_pl_in
 
+      module subroutine io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, out_type, out_form, out_stat)
+         integer(I4B), intent(in)         :: npl, ntp
+         real(DP), intent(in)             :: t
+         character(*), intent(in)         :: outfile, out_type, out_form, out_stat
+         type(swiftest_pl), intent(inout) :: swiftest_plA
+         type(swiftest_tp), intent(inout) :: swiftest_tpA
+      end subroutine io_write_frame
+
       module subroutine io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
          integer(I4B), intent(in) :: iu            !! Output file unit number
          integer(I4B), intent(in) :: npl           !! Number of massive bodies

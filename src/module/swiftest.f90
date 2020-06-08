@@ -69,8 +69,6 @@ module swiftest
       !! Symbolic name for binary output file contents for orbital element type
    integer(I4B), parameter :: XV   = 2
       !! Symbolic name for binary output file contents for cartesian position and velocity type
-   integer(I4B), parameter :: FILT = 3
-      !! Symbolic name for binary output file contents for filtered type
 
    ! OPENMP code added by D. Minton
    ! OpenMP Parameters

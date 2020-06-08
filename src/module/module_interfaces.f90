@@ -571,20 +571,6 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, &
-               out_type, out_form, out_stat)
-               USE swiftest
-               USE module_swiftest
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: npl, ntp
-               REAL(DP), INTENT(IN)      :: t
-               CHARACTER(*), INTENT(IN)  :: outfile, out_type, out_form, out_stat
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-          END SUBROUTINE io_write_frame
-     END INTERFACE
-
-     INTERFACE
           SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                USE swiftest
                IMPLICIT NONE
