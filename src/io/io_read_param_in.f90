@@ -10,7 +10,6 @@ contains
    !$ use omp_lib
    implicit none
 
-   ! Internals
    integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
    logical                 :: t0_set = .false.        !! Is the initial time set in the input file?
    logical                 :: tstop_set = .false.     !! Is the final time set in the input file?
@@ -19,8 +18,6 @@ contains
    integer(I4B)            :: ilength, ifirst, ilast  !! Variables used to parse input file
    character(STRMAX)       :: line                    !! Line of the input file
    character (len=:), allocatable :: line_trim,param_name, param_value
-
-   ! Executable code
 
    ! Read in name of parameter file
    write(*, *) "Parameter data file is ", trim(adjustl(inparfile))
