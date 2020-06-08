@@ -143,10 +143,11 @@ module swiftest
    real(DP),     parameter :: TINY    = 4.0E-15_DP
 
    ! Added by D. Minton
-      real(DP)             :: MU2KG = -1.0_DP      !! Converts mass units to grams
-      real(DP)             :: TU2S  = -1.0_DP      !! Converts time units to seconds
-      real(DP)             :: DU2M = -1.0_DP      !! Converts distance unit to centimeters
-      real(DP), parameter  :: GC    = 6.6743E-11_DP     !! Universal gravitational constant in SI units
+      real(DP)             :: MU2KG = -1.0_DP       !! Converts mass units to grams
+      real(DP)             :: TU2S  = -1.0_DP       !! Converts time units to seconds
+      real(DP)             :: DU2M = -1.0_DP        !! Converts distance unit to centimeters
+      real(DP)             :: GU = 1.0_DP           !! Universal gravitational constant in user units
+      real(DP), parameter  :: GC    = 6.6743E-11_DP !! Universal gravitational constant in SI units
 
    !> Added by Carlisle Wishard and Jennifer Pouplin 
    logical,  save       :: ldiscard = .false.    !! If true, then proceed to discard spilled pl and complete discard.out file.
