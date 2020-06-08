@@ -24,7 +24,7 @@
 !                Vetterling, and Flannery, 2nd ed., pp. 1173-4
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Mslr)
+SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1, index2, regime, Mlr, Mslr)
 
 ! Modules
      USE swiftest
@@ -40,14 +40,14 @@ SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Msl
      TYPE(symba_pl), INTENT(INOUT) :: symba_plA
      INTEGER(I4B), INTENT(IN)      :: index1, index2
      INTEGER(I4B), INTENT(OUT)     :: regime
-     REAL(DP), INTENT(OUT)         :: Mlr, Mslr, mbig, msmall
+     REAL(DP), INTENT(OUT)         :: Mlr, Mslr, m1, m2, rad1, rad2
+     REAL(DP), DIMENSION(NDIM)     :: xh1, xh2, vh1, vh2
 
 ! Internals
-     REAL(DP)                      :: m1,m2,rad1,rad2,b,l,mu,Vescp,V_pstar, Rp, mtot, RC1
+     REAL(DP)                      :: b,l,mu,Vescp,V_pstar, Rp, mtot, RC1
      REAL(DP)                      :: alpha, QRD_pstar, QR, QR_supercat, QRD_lr, V_lr, vimp, bcrit
      REAL(DP)                      :: Vcr, V_supercat, Mint, Lint, Aint, fgamma, theta, rtarg, n2g, n2, phi
      REAL(DP)                      :: c1, c2,c3,c4,c5, rho1, rho2, beta, c_star, density1, g, mp, mtarg, mu_bar, n1, n1g
-     REAL(DP), DIMENSION(NDIM)     :: xh1,xh2,vh1,vh2
      REAL(DP), DIMENSION(3)        :: ans
 ! Constants
      density1 = 1000 ![kg/m3]
@@ -73,16 +73,13 @@ SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Msl
 ! shouldn't this be mass of index1 + index1 children?
      !m1 = symba_plA%helio%swiftest%mass(index1)/GC
      !m2 = symba_plA%helio%swiftest%mass(index2)/GC
-
-     m1 = mbig/GC
-     m2 = msmall/GC
-     xh1(:) = symba_plA%helio%swiftest%xh(:,index1)
-     xh2(:) = symba_plA%helio%swiftest%xh(:,index2)
-     vh1(:) = symba_plA%helio%swiftest%vh(:,index1)
-     vh2(:) = symba_plA%helio%swiftest%vh(:,index2)
-     vimp = NORM2(vh2(:) - vh1(:))
-     rad1 = symba_plA%helio%swiftest%radius(index1)
-     rad2 = symba_plA%helio%swiftest%radius(index2)
+     !xh1(:) = symba_plA%helio%swiftest%xh(:,index1)
+     !xh2(:) = symba_plA%helio%swiftest%xh(:,index2)
+     !vh1(:) = symba_plA%helio%swiftest%vh(:,index1)
+     !vh2(:) = symba_plA%helio%swiftest%vh(:,index2)
+     Vimp = NORM2(vh2(:) - vh1(:))
+     !rad1 = symba_plA%helio%swiftest%radius(index1)
+     !rad2 = symba_plA%helio%swiftest%radius(index2)
      b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
      l = (rad1 + rad2)*(1-b)
      IF (l < 2*rad2) THEN
