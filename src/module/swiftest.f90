@@ -143,10 +143,10 @@ module swiftest
    real(DP),     parameter :: TINY    = 4.0E-15_DP
 
    ! Added by D. Minton
-      real(DP)             :: MU2GM = -1.0_DP      !! Converts mass units to grams
+      real(DP)             :: MU2KG = -1.0_DP      !! Converts mass units to grams
       real(DP)             :: TU2S  = -1.0_DP      !! Converts time units to seconds
-      real(DP)             :: DU2CM = -1.0_DP      !! Converts distance unit to centimeters
-   real(DP), parameter  :: GC    = 6.6743E-8_DP     !! Universal gravitational constant in cgs units (from NIST in 2019)
+      real(DP)             :: DU2M = -1.0_DP      !! Converts distance unit to centimeters
+      real(DP), parameter  :: GC    = 6.6743E-11_DP     !! Universal gravitational constant in SI units
 
    !> Added by Carlisle Wishard and Jennifer Pouplin 
    logical,  save       :: ldiscard = .false.    !! If true, then proceed to discard spilled pl and complete discard.out file.
@@ -201,9 +201,9 @@ module swiftest
       character(STRMAX)    :: encounter_file = ''  !! name of output file for encounters
       real(DP)             :: mtiny = 0.0_DP       !! smallest mass that is fully gravitating
       character(STRMAX)    :: ring_outfile = ''    !! name of output file in ring moons
-      real(DP)             :: MU2GM = -1.0_DP      !! Converts mass units to grams
+      real(DP)             :: MU2KG = -1.0_DP      !! Converts mass units to grams
       real(DP)             :: TU2S  = -1.0_DP      !! Converts time units to seconds
-      real(DP)             :: DU2CM = -1.0_DP      !! Converts distance unit to centimeters
+      real(DP)             :: DU2M = -1.0_DP      !! Converts distance unit to centimeters
    end type input_parameters
    !!List of parameters that are input by the user in the param.in file
 

@@ -120,12 +120,12 @@ contains
          case ("FRAGMENTATION")
             call util_toupper(param_value)
             if (param_value == "YES" .or. param_value == "T") param%feature%lfragmentation = .true.
-         case ("MU2GM")
-            read(param_value, *) param%MU2GM
+         case ("MU2KG")
+            read(param_value, *) param%MU2KG
          case ("TU2S")
             read(param_value, *) param%TU2S
-         case ("DU2CM")
-            read(param_value, *) param%DU2CM
+         case ("DU2M")
+            read(param_value, *) param%DU2M
          case ("MTINY")
             read(param_value, *) param%mtiny
          case ("PYTHON")
@@ -240,20 +240,20 @@ contains
    end if
 
    ! Added by D. Minton
-   MU2GM = param%MU2GM
+   MU2KG = param%MU2KG
    TU2S  = param%TU2S 
-   DU2CM = param%DU2CM
+   DU2M = param%DU2M
    ! The fragmentation model requires the user to set the unit system explicitly.
    write(*,*) "FRAGMENTATION  = ",param%feature%lfragmentation
    if (param%feature%lfragmentation) then
-      write(*,*) "MU2GM          = ",MU2GM
+      write(*,*) "MU2KG          = ",MU2KG
       write(*,*) "TU2S           = ",TU2S 
-      write(*,*) "DU2CM          = ",DU2CM
-      if ((MU2GM < 0.0_DP) .or. (TU2S < 0.0_DP) .or. (DU2CM < 0.0_DP)) then
+      write(*,*) "DU2M          = ",DU2M
+      if ((MU2KG < 0.0_DP) .or. (TU2S < 0.0_DP) .or. (DU2M < 0.0_DP)) then
          write(*,*) 'Invalid unit conversion factor'
-         write(*,*) 'MU2GM: ',MU2GM
+         write(*,*) 'MU2KG: ',MU2KG
          write(*,*) 'TU2S: ',TU2S
-         write(*,*) 'DU2CM: ',DU2CM
+         write(*,*) 'DU2M: ',DU2M
          ierr = -1
       end if
    end if 

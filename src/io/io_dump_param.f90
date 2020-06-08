@@ -194,13 +194,13 @@ SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, 
      WRITE(LUN, 100, ADVANCE = "NO") "FRAGMENTATION  = "
      WRITE(LUN, *) feature%lfragmentation
      IF (feature%lfragmentation) THEN
-          WRITE(LUN, 100, ADVANCE = "NO") "MU2GM          = "
-          WRITE(LUN, *) MU2GM
+          WRITE(LUN, 100, ADVANCE = "NO") "MU2KG          = "
+          WRITE(LUN, *) MU2KG
           WRITE(LUN, 100, ADVANCE = "NO") "TU2S           = "
           WRITE(LUN, *) TU2S 
-          WRITE(LUN, 100, ADVANCE = "NO") "DU2CM          = "
-          WRITE(LUN, *) DU2CM
-          IF ((MU2GM < 0.0_DP) .OR. (TU2S < 0.0_DP) .OR. (DU2CM < 0.0_DP)) ierr = -1
+          WRITE(LUN, 100, ADVANCE = "NO") "DU2M          = "
+          WRITE(LUN, *) DU2M
+          IF ((MU2KG < 0.0_DP) .OR. (TU2S < 0.0_DP) .OR. (DU2M < 0.0_DP)) ierr = -1
      END IF 
 
 
