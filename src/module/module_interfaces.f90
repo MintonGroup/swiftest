@@ -481,7 +481,6 @@ MODULE module_interfaces
           SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
                USE swiftest
                USE module_swiftest
-               !USE module_fxdr
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)        :: lclose, lrhill_present
                INTEGER(I4B), INTENT(IN)        :: npl
@@ -493,7 +492,6 @@ MODULE module_interfaces
           SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
                USE swiftest
                USE module_swiftest
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)        :: ntp
                TYPE(swiftest_tp), INTENT(INOUT):: swiftest_tpA
@@ -506,7 +504,6 @@ MODULE module_interfaces
                USE module_swiftest
                USE module_symba
                USE module_helio
-               USE module_fxdr
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)         :: lclose, lrhill_present
                INTEGER(I4B), INTENT(IN)         :: npl
@@ -521,7 +518,6 @@ MODULE module_interfaces
                USE module_swiftest
                USE module_symba
                USE module_helio
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: ntp
                CHARACTER(*), INTENT(IN)         :: intpfile, in_type
@@ -540,21 +536,8 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE io_open_fxdr(fname, fopenstat, lflag, iu, ierr)
-               USE swiftest
-               USE module_fxdr
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)  :: lflag
-               INTEGER(I4B), INTENT(OUT) :: iu, ierr
-               CHARACTER(*), INTENT(IN)  :: fname
-               CHARACTER(1), INTENT(IN)  :: fopenstat
-          END SUBROUTINE io_open_fxdr
-     END INTERFACE
-
-     INTERFACE
           FUNCTION io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
                USE swiftest
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B)                           :: io_read_encounter
                INTEGER(I4B), INTENT(OUT)              :: name1, name2
@@ -567,7 +550,6 @@ MODULE module_interfaces
      INTERFACE
           FUNCTION io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
                USE swiftest
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B)               :: io_read_hdr
                INTEGER(I4B), INTENT(IN)   :: iu
@@ -580,7 +562,6 @@ MODULE module_interfaces
      INTERFACE
           FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                USE swiftest
-               USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B)                    :: io_read_line
                INTEGER(I4B), INTENT(IN)        :: iu
@@ -595,7 +576,6 @@ MODULE module_interfaces
           SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
                xh1, xh2, vh1, vh2, encounter_file, out_type)
                USE swiftest
-               !USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)              :: name1, name2
                REAL(DP), INTENT(IN)                  :: t, mass1, mass2, radius1, radius2
@@ -609,7 +589,6 @@ MODULE module_interfaces
                out_type, out_form, out_stat)
                USE swiftest
                USE module_swiftest
-               !USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl, ntp
                REAL(DP), INTENT(IN)      :: t
@@ -622,7 +601,6 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
                USE swiftest
-               !USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN) :: iu, npl, ntp, iout_form
                REAL(DP), INTENT(IN)     :: t
@@ -633,7 +611,6 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
                USE swiftest
-               !USE module_fxdr
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)       :: iu, name
                REAL(DP), INTENT(IN)           :: d1, d2, d3, d4, d5, d6

@@ -36,7 +36,6 @@ FUNCTION io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
 
 ! Modules
      USE swiftest
-     USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_read_hdr
      IMPLICIT NONE
 
@@ -54,35 +53,14 @@ FUNCTION io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
 
 ! Executable code
      SELECT CASE (out_type)
-          CASE (REAL4_TYPE)
+          CASE (REAL4_TYPE, XDR4_TYPE)
                READ(iu, IOSTAT = ierr) ttmp, npl, ntp, iout_form
                io_read_hdr = ierr
                IF (ierr /= 0) RETURN
                t = ttmp
-          CASE (REAL8_TYPE)
+          CASE (REAL8_TYPE, XDR8_TYPE)
                READ(iu, IOSTAT = ierr) t, npl, ntp, iout_form
                io_read_hdr = ierr
-          CASE (XDR4_TYPE)
-               ierr = ixdrreal(iu, ttmp)
-               io_read_hdr = ierr
-               IF (ierr /= 0) RETURN
-               t = ttmp
-               ierr = ixdrimat(iu, 3, nn)
-               io_read_hdr = ierr
-               IF (ierr /= 0) RETURN
-               npl = nn(1)
-               ntp = nn(2)
-               iout_form = nn(3)
-          CASE (XDR8_TYPE)
-               ierr = ixdrdouble(iu, t)
-               io_read_hdr = ierr
-               IF (ierr /= 0) RETURN
-               ierr = ixdrimat(iu, 3, nn)
-               io_read_hdr = ierr
-               IF (ierr /= 0) RETURN
-               npl = nn(1)
-               ntp = nn(2)
-               iout_form = nn(3)
      END SELECT
 
      RETURN

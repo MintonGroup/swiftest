@@ -33,7 +33,7 @@ SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
 ! Modules
      USE swiftest
      USE module_swiftest
-     USE module_fxdr
+     !USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_dump_tp
      IMPLICIT NONE
 
@@ -44,21 +44,23 @@ SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
 ! Internals
      INTEGER(I4B)                        :: i, iu, ierr
      INTEGER(I4B), SAVE                  :: idx = 1
+   integer(I4B), parameter                :: LUN = 7
 
 ! Executable code
-     CALL io_open_fxdr(DUMP_TP_FILE(idx), "W", .TRUE., iu, ierr)
+   open(unit = LUN, file = DUMP_TP_FILE(idx), form = "UNFORMATTED", status = 'REPLACE', iostat = ierr)
+
      IF (ierr /= 0) THEN
           WRITE(*, *) "SWIFTEST Error:"
           WRITE(*, *) "   Unable to open binary dump file ", TRIM(DUMP_TP_FILE(idx))
           CALL util_exit(FAILURE)
      END IF
-     ierr = ixdrint(iu, ntp)
+   write(LUN) ntp
      DO i = 1, ntp
-          ierr = ixdrint(iu, swiftest_tpA%name(i))
-          ierr = ixdrdmat(iu, NDIM, swiftest_tpA%xh(:,i))
-          ierr = ixdrdmat(iu, NDIM, swiftest_tpA%vh(:,i))
+         write(LUN) swiftest_tpA%name(i)
+         write(LUN) swiftest_tpA%xh(:,i)
+         write(LUN) swiftest_tpA%vh(:,i)
      END DO
-     ierr = ixdrclose(iu)
+   close(LUN)
      idx = idx + 1
      IF (idx > 2) idx = 1
 
