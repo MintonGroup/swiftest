@@ -1,392 +1,395 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : module_swiftestalloc
-!  Unit Type   : module
-!  Project     : SWIFTEST
-!  Package     : module
-!  Language    : Fortran 2003
-!
-!  Description : 
-!
-!  Input
-!    Arguments : N/A
-!    Terminal  : N/A
-!    File      : N/A
-!
-!  Output
-!    Arguments : N/A
-!    Terminal  : N/A
-!    File      : N/A
-!
-!  Invocation  : N/A
-!
-!  Notes       : 
-!
-!**********************************************************************************************************************************
-!
-!  Author(s)   : Jennifer Pouplin & Carlisle Wisahrd
-!
-!**********************************************************************************************************************************
-MODULE module_swiftestalloc
+module module_swiftestalloc
+   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   !!
+   !! Module containing subroutines that allocate and initialize the Swiftest data structures
+   !!
+   use swiftest
 
-    USE swiftest
-    IMPLICIT NONE
+   contains 
 
-    CONTAINS 
+   subroutine swiftest_pl_allocate(swiftest_plA, npl)
+      use module_swiftest
+      implicit none
 
-        SUBROUTINE swiftest_pl_allocate(swiftest_plA, npl)
-            USE swiftest
-            USE module_swiftest
-            IMPLICIT NONE
-
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)            :: npl
-            TYPE(swiftest_pl), INTENT(INOUT)    :: swiftest_plA
+      integer(I4B), intent(in)            :: npl
+      type(swiftest_pl), intent(inout)    :: swiftest_plA
 
 
-            if (npl <= 0) return
-            ALLOCATE(swiftest_plA%name(npl))
-            ALLOCATE(swiftest_plA%status(npl))
-            ALLOCATE(swiftest_plA%mass(npl))
-            ALLOCATE(swiftest_plA%radius(npl))
-            ALLOCATE(swiftest_plA%rhill(npl))
-            ALLOCATE(swiftest_plA%xh(NDIM,npl))
-            ALLOCATE(swiftest_plA%vh(NDIM,npl))
-            ALLOCATE(swiftest_plA%xb(NDIM,npl))
-            ALLOCATE(swiftest_plA%vb(NDIM,npl))
-            RETURN
-        END SUBROUTINE swiftest_pl_allocate
+      if (npl <= 0) return
+
+      allocate(swiftest_plA%name(npl))
+      allocate(swiftest_plA%status(npl))
+      allocate(swiftest_plA%mass(npl))
+      allocate(swiftest_plA%radius(npl))
+      allocate(swiftest_plA%rhill(npl))
+      allocate(swiftest_plA%xh(NDIM,npl))
+      allocate(swiftest_plA%vh(NDIM,npl))
+      allocate(swiftest_plA%xb(NDIM,npl))
+      allocate(swiftest_plA%vb(NDIM,npl))
+
+      swiftest_plA%name = 0
+      swiftest_plA%status = 0
+      swiftest_plA%mass = 0.0_DP
+      swiftest_plA%radius = 0.0_DP
+      swiftest_plA%rhill = 0.0_DP
+      swiftest_plA%xh = 0.0_DP
+      swiftest_plA%vh = 0.0_DP
+      swiftest_plA%xb = 0.0_DP
+      swiftest_plA%vb = 0.0_DP
+      return
+   end subroutine swiftest_pl_allocate
 
 
-        SUBROUTINE helio_pl_allocate(helio_plA, npl)
-            USE swiftest
-            USE module_helio
-            IMPLICIT NONE
+   subroutine helio_pl_allocate(helio_plA, npl)
+      use module_helio
+      implicit none
 
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)            :: npl
-            TYPE(helio_pl), INTENT(INOUT)        :: helio_plA
+      integer(I4B), intent(in)            :: npl
+      type(helio_pl), intent(inout)        :: helio_plA
 
-            if (npl <= 0) return
-            ALLOCATE(helio_plA%ah(NDIM,npl))
-             ALLOCATE(helio_plA%ahi(NDIM,npl))
-             CALL swiftest_pl_allocate(helio_plA%swiftest,npl)
-            return
-        END SUBROUTINE helio_pl_allocate
-
-
-        SUBROUTINE symba_pl_allocate(symba_plA, npl)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
-
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)            :: npl
-            TYPE(symba_pl), INTENT(INOUT)        :: symba_plA
-
-            if (npl <= 0) return
-            ALLOCATE(symba_plA%lmerged(npl))
-            ALLOCATE(symba_plA%nplenc(npl))
-            ALLOCATE(symba_plA%ntpenc(npl))
-            ALLOCATE(symba_plA%levelg(npl))
-            ALLOCATE(symba_plA%levelm(npl))
-            ALLOCATE(symba_plA%nchild(npl))
-            ALLOCATE(symba_plA%isperi(npl))
-            ALLOCATE(symba_plA%peri(npl))
-            ALLOCATE(symba_plA%atp(npl))
-            ALLOCATE(symba_plA%index_parent(npl))
-            ALLOCATE(symba_plA%index_child(npl,npl))
-            CALL helio_pl_allocate(symba_plA%helio,npl)
-            return
-        END SUBROUTINE symba_pl_allocate
-
-        SUBROUTINE symba_plplenc_allocate(plplenc_list, nplplenc)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
-
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)                :: nplplenc
-            TYPE(symba_plplenc), INTENT(INOUT)        :: plplenc_list
-
-            if (nplplenc <= 0) return
-            ALLOCATE(plplenc_list%lvdotr(nplplenc))
-            ALLOCATE(plplenc_list%status(nplplenc))
-            ALLOCATE(plplenc_list%level(nplplenc))
-            ALLOCATE(plplenc_list%index1(nplplenc))
-            ALLOCATE(plplenc_list%index2(nplplenc))
-            ALLOCATE(plplenc_list%enc_child(nplplenc))
-            ALLOCATE(plplenc_list%enc_parent(nplplenc))
-            return
-        END SUBROUTINE symba_plplenc_allocate
-
-        SUBROUTINE symba_merger_allocate(mergeadd_list, nmergeadd)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
-
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)                :: nmergeadd
-            TYPE(symba_merger), INTENT(INOUT)        :: mergeadd_list
-
-            if (nmergeadd <= 0) return
-            ALLOCATE(mergeadd_list%name(nmergeadd))
-            ALLOCATE(mergeadd_list%index_ps(nmergeadd))
-            ALLOCATE(mergeadd_list%status(nmergeadd))
-            ALLOCATE(mergeadd_list%ncomp(nmergeadd))
-            ALLOCATE(mergeadd_list%xh(NDIM,nmergeadd))
-            ALLOCATE(mergeadd_list%vh(NDIM,nmergeadd))
-            ALLOCATE(mergeadd_list%mass(nmergeadd))
-            ALLOCATE(mergeadd_list%radius(nmergeadd))
-            return
-        END SUBROUTINE symba_merger_allocate
-
-        SUBROUTINE swiftest_tp_allocate(swiftest_tpA, ntp)
-            USE swiftest
-            USE module_swiftest
-            IMPLICIT NONE
-
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)            :: ntp
-            TYPE(swiftest_tp), INTENT(INOUT)    :: swiftest_tpA
-
-            if (ntp <= 0) return
-            ALLOCATE(swiftest_tpA%name(ntp))
-             ALLOCATE(swiftest_tpA%status(ntp))
-             ALLOCATE(swiftest_tpA%peri(ntp))
-             ALLOCATE(swiftest_tpA%atp(ntp))
-             ALLOCATE(swiftest_tpA%isperi(ntp))
-             ALLOCATE(swiftest_tpA%xh(NDIM,ntp))
-             ALLOCATE(swiftest_tpA%vh(NDIM,ntp))
-             ALLOCATE(swiftest_tpA%xb(NDIM,ntp))
-             ALLOCATE(swiftest_tpA%vb(NDIM,ntp))
-            return
-        END SUBROUTINE swiftest_tp_allocate
+      if (npl <= 0) return
+      allocate(helio_plA%ah(NDIM,npl))
+      allocate(helio_plA%ahi(NDIM,npl))
+      helio_plA%ah = 0.0_DP
+      helio_plA%ahi = 0.0_DP
+      call swiftest_pl_allocate(helio_plA%swiftest,npl)
+      return
+   end subroutine helio_pl_allocate
 
 
-        SUBROUTINE helio_tp_allocate(helio_tpA, ntp)
-            USE swiftest
-            USE module_helio
-            IMPLICIT NONE
+   subroutine symba_pl_allocate(symba_plA, npl)
+      use module_symba
+      implicit none
 
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)            :: ntp
-            TYPE(helio_tp), INTENT(INOUT)        :: helio_tpA
+      integer(I4B), intent(in)            :: npl
+      type(symba_pl), intent(inout)        :: symba_plA
 
-            if (ntp <= 0) return
-            ALLOCATE(helio_tpA%ah(NDIM,ntp))
-            ALLOCATE(helio_tpA%ahi(NDIM,ntp))
-            CALL swiftest_tp_allocate(helio_tpA%swiftest,ntp)
+      if (npl <= 0) return
+      allocate(symba_plA%lmerged(npl))
+      allocate(symba_plA%nplenc(npl))
+      allocate(symba_plA%ntpenc(npl))
+      allocate(symba_plA%levelg(npl))
+      allocate(symba_plA%levelm(npl))
+      allocate(symba_plA%nchild(npl))
+      allocate(symba_plA%isperi(npl))
+      allocate(symba_plA%peri(npl))
+      allocate(symba_plA%atp(npl))
+      allocate(symba_plA%index_parent(npl))
+      allocate(symba_plA%index_child(npl,npl))
 
-            return
-        END SUBROUTINE helio_tp_allocate
+      symba_plA%lmerged = .false.
+      symba_plA%nplenc = 0
+      symba_plA%ntpenc = 0
+      symba_plA%levelg = 0
+      symba_plA%levelm = 0
+      symba_plA%nchild = 0
+      symba_plA%isperi = 0
+      symba_plA%peri = 0.0_DP
+      symba_plA%atp = 0.0_DP
+      symba_plA%index_parent = 1
+      symba_plA%index_child = 1
+      call helio_pl_allocate(symba_plA%helio,npl)
+      return
+   end subroutine symba_pl_allocate
+
+   subroutine symba_plplenc_allocate(plplenc_list, nplplenc)
+      use module_symba
+      implicit none
+
+      integer(I4B), intent(in)                :: nplplenc
+      type(symba_plplenc), intent(inout)        :: plplenc_list
+
+      if (nplplenc <= 0) return
+      allocate(plplenc_list%lvdotr(nplplenc))
+      allocate(plplenc_list%status(nplplenc))
+      allocate(plplenc_list%level(nplplenc))
+      allocate(plplenc_list%index1(nplplenc))
+      allocate(plplenc_list%index2(nplplenc))
+      allocate(plplenc_list%enc_child(nplplenc))
+      allocate(plplenc_list%enc_parent(nplplenc))
+
+      plplenc_list%lvdotr = .false.
+      plplenc_list%status = 0
+      plplenc_list%level = 1
+      plplenc_list%index1 = 1
+      plplenc_list%index2 = 1
+      plplenc_list%enc_child = 1
+      plplenc_list%enc_parent = 1
+      return
+   end subroutine symba_plplenc_allocate
+
+   subroutine symba_merger_allocate(mergeadd_list, nmergeadd)
+      use module_symba
+      implicit none
+
+      integer(I4B), intent(in)                :: nmergeadd
+      type(symba_merger), intent(inout)        :: mergeadd_list
+
+      if (nmergeadd <= 0) return
+      allocate(mergeadd_list%name(nmergeadd))
+      allocate(mergeadd_list%index_ps(nmergeadd))
+      allocate(mergeadd_list%status(nmergeadd))
+      allocate(mergeadd_list%ncomp(nmergeadd))
+      allocate(mergeadd_list%xh(NDIM,nmergeadd))
+      allocate(mergeadd_list%vh(NDIM,nmergeadd))
+      allocate(mergeadd_list%mass(nmergeadd))
+      allocate(mergeadd_list%radius(nmergeadd))
+
+      mergeadd_list%name = 0
+      mergeadd_list%index_ps = 1
+      mergeadd_list%status = 0
+      mergeadd_list%ncomp = 0
+      mergeadd_list%xh = 0.0_DP
+      mergeadd_list%vh = 0.0_DP
+      mergeadd_list%mass = 0.0_DP
+      mergeadd_list%radius = 0.0_DP
+
+      return
+   end subroutine symba_merger_allocate
+
+   subroutine swiftest_tp_allocate(swiftest_tpA, ntp)
+      use module_swiftest
+      implicit none
+
+      integer(I4B), intent(in)            :: ntp
+      type(swiftest_tp), intent(inout)    :: swiftest_tpA
+
+      if (ntp <= 0) return
+      allocate(swiftest_tpA%name(ntp))
+      allocate(swiftest_tpA%status(ntp))
+      allocate(swiftest_tpA%peri(ntp))
+      allocate(swiftest_tpA%atp(ntp))
+      allocate(swiftest_tpA%isperi(ntp))
+      allocate(swiftest_tpA%xh(NDIM,ntp))
+      allocate(swiftest_tpA%vh(NDIM,ntp))
+      allocate(swiftest_tpA%xb(NDIM,ntp))
+      allocate(swiftest_tpA%vb(NDIM,ntp))
+
+      swiftest_tpA%name = 0
+      swiftest_tpA%status = 0
+      swiftest_tpA%peri = 0.0_DP
+      swiftest_tpA%atp = 0.0_DP
+      swiftest_tpA%isperi = 0.0_DP
+      swiftest_tpA%xh = 0.0_DP
+      swiftest_tpA%vh = 0.0_DP
+      swiftest_tpA%xb = 0.0_DP
+      swiftest_tpA%vb = 0.0_DP
+      return
+   end subroutine swiftest_tp_allocate
 
 
-        SUBROUTINE symba_tp_allocate(symba_tpA, ntp)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
+   subroutine helio_tp_allocate(helio_tpA, ntp)
+      use module_helio
+      implicit none
 
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)            :: ntp
-            TYPE(symba_tp), INTENT(INOUT)        :: symba_tpA
-            
-            if (ntp <= 0) return
+      integer(I4B), intent(in)            :: ntp
+      type(helio_tp), intent(inout)       :: helio_tpA
 
-            ALLOCATE(symba_tpA%nplenc(ntp))
-            ALLOCATE(symba_tpA%levelg(ntp))
-            ALLOCATE(symba_tpA%levelm(ntp))
-            CALL helio_tp_allocate(symba_tpA%helio,ntp)
-            return
-        END SUBROUTINE symba_tp_allocate
+      if (ntp <= 0) return
+      allocate(helio_tpA%ah(NDIM,ntp))
+      allocate(helio_tpA%ahi(NDIM,ntp))
 
-        SUBROUTINE symba_pltpenc_allocate(pltpenc_list, npltpenc)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
+      helio_tpA%ah = 0.0_DP
+      helio_tpA%ahi = 0.0_DP
+      call swiftest_tp_allocate(helio_tpA%swiftest,ntp)
 
-            ! Arguments
-            INTEGER(I4B), INTENT(IN)                :: npltpenc
-            TYPE(symba_pltpenc), INTENT(INOUT)        :: pltpenc_list
+      return
+   end subroutine helio_tp_allocate
 
-            if (npltpenc <= 0) return
 
-            ALLOCATE(pltpenc_list%lvdotr(npltpenc))
-            ALLOCATE(pltpenc_list%status(npltpenc))
-            ALLOCATE(pltpenc_list%level(npltpenc))
-            ALLOCATE(pltpenc_list%indexpl(npltpenc))
-            ALLOCATE(pltpenc_list%indextp(npltpenc))
-            return
-        END SUBROUTINE symba_pltpenc_allocate
+   subroutine symba_tp_allocate(symba_tpA, ntp)
+      use module_symba
+      implicit none
+
+      integer(I4B), intent(in)            :: ntp
+      type(symba_tp), intent(inout)       :: symba_tpA
+
+      if (ntp <= 0) return
+
+      allocate(symba_tpA%nplenc(ntp))
+      allocate(symba_tpA%levelg(ntp))
+      allocate(symba_tpA%levelm(ntp))
+
+      symba_tpA%nplenc = 0
+      symba_tpA%levelg = 0
+      symba_tpA%levelm = 0
+      call helio_tp_allocate(symba_tpA%helio,ntp)
+      return
+   end subroutine symba_tp_allocate
+
+   subroutine symba_pltpenc_allocate(pltpenc_list, npltpenc)
+      use module_symba
+      implicit none
+
+      integer(I4B), intent(in)                :: npltpenc
+      type(symba_pltpenc), intent(inout)        :: pltpenc_list
+
+      if (npltpenc <= 0) return
+
+      allocate(pltpenc_list%lvdotr(npltpenc))
+      allocate(pltpenc_list%status(npltpenc))
+      allocate(pltpenc_list%level(npltpenc))
+      allocate(pltpenc_list%indexpl(npltpenc))
+      allocate(pltpenc_list%indextp(npltpenc))
+
+      pltpenc_list%lvdotr = .false.
+      pltpenc_list%status = 0
+      pltpenc_list%level = 0
+      pltpenc_list%indexpl = 1
+      pltpenc_list%indextp = 1
+      return
+   end subroutine symba_pltpenc_allocate
 
 !___________________________
 
 
-        SUBROUTINE swiftest_pl_deallocate(swiftest_plA)
-            USE swiftest
-            USE module_swiftest
-            IMPLICIT NONE
+   subroutine swiftest_pl_deallocate(swiftest_plA)
+      use module_swiftest
+      implicit none
 
-            ! Arguments
-            TYPE(swiftest_pl), INTENT(INOUT)    :: swiftest_plA
+      type(swiftest_pl), intent(inout)    :: swiftest_plA
 
-            DEALLOCATE(swiftest_plA%name)
-             DEALLOCATE(swiftest_plA%status)
-             DEALLOCATE(swiftest_plA%mass)
-             DEALLOCATE(swiftest_plA%radius)
-             DEALLOCATE(swiftest_plA%rhill)
-             DEALLOCATE(swiftest_plA%xh)
-             DEALLOCATE(swiftest_plA%vh)
-             DEALLOCATE(swiftest_plA%xb)
-             DEALLOCATE(swiftest_plA%vb)
-            return
-        END SUBROUTINE swiftest_pl_deallocate
+      deallocate(swiftest_plA%name)
+      deallocate(swiftest_plA%status)
+      deallocate(swiftest_plA%mass)
+      deallocate(swiftest_plA%radius)
+      deallocate(swiftest_plA%rhill)
+      deallocate(swiftest_plA%xh)
+      deallocate(swiftest_plA%vh)
+      deallocate(swiftest_plA%xb)
+      deallocate(swiftest_plA%vb)
+   return
+   end subroutine swiftest_pl_deallocate
 
 
-        SUBROUTINE helio_pl_deallocate(helio_plA)
-            USE swiftest
-            USE module_helio
-            IMPLICIT NONE
+   subroutine helio_pl_deallocate(helio_plA)
+      use module_helio
+      implicit none
 
-            ! Arguments
-            TYPE(helio_pl), INTENT(INOUT)        :: helio_plA
+      type(helio_pl), intent(inout)        :: helio_plA
 
-            DEALLOCATE(helio_plA%ah)
-             DEALLOCATE(helio_plA%ahi)
-             CALL swiftest_pl_deallocate(helio_plA%swiftest)
-            return
-        END SUBROUTINE helio_pl_deallocate
+      deallocate(helio_plA%ah)
+      deallocate(helio_plA%ahi)
+      call swiftest_pl_deallocate(helio_plA%swiftest)
+      return
+   end subroutine helio_pl_deallocate
 
 
-        SUBROUTINE symba_pl_deallocate(symba_plA)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
+   subroutine symba_pl_deallocate(symba_plA)
+      use module_symba
+      implicit none
 
-            ! Arguments
-            TYPE(symba_pl), INTENT(INOUT)        :: symba_plA
+      type(symba_pl), intent(inout)        :: symba_plA
 
-            DEALLOCATE(symba_plA%lmerged)
-            DEALLOCATE(symba_plA%nplenc)
-            DEALLOCATE(symba_plA%ntpenc)
-            DEALLOCATE(symba_plA%levelg)
-            DEALLOCATE(symba_plA%levelm)
-            DEALLOCATE(symba_plA%nchild)
-            DEALLOCATE(symba_plA%isperi)
-            DEALLOCATE(symba_plA%peri)
-            DEALLOCATE(symba_plA%atp)
-            DEALLOCATE(symba_plA%index_parent)
-            DEALLOCATE(symba_plA%index_child)
-            CALL helio_pl_deallocate(symba_plA%helio)
-            return
-        END SUBROUTINE symba_pl_deallocate
+      deallocate(symba_plA%lmerged)
+      deallocate(symba_plA%nplenc)
+      deallocate(symba_plA%ntpenc)
+      deallocate(symba_plA%levelg)
+      deallocate(symba_plA%levelm)
+      deallocate(symba_plA%nchild)
+      deallocate(symba_plA%isperi)
+      deallocate(symba_plA%peri)
+      deallocate(symba_plA%atp)
+      deallocate(symba_plA%index_parent)
+      deallocate(symba_plA%index_child)
+      call helio_pl_deallocate(symba_plA%helio)
+      return
+   end subroutine symba_pl_deallocate
 
-        SUBROUTINE symba_plplenc_deallocate(plplenc_list)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
+   subroutine symba_plplenc_deallocate(plplenc_list)
+      use module_symba
+      implicit none
 
-            ! Arguments
-            TYPE(symba_plplenc), INTENT(INOUT)        :: plplenc_list
+      type(symba_plplenc), intent(inout)        :: plplenc_list
 
-            DEALLOCATE(plplenc_list%lvdotr)
-            DEALLOCATE(plplenc_list%status)
-            DEALLOCATE(plplenc_list%level)
-            DEALLOCATE(plplenc_list%index1)
-            DEALLOCATE(plplenc_list%index2)
-            DEALLOCATE(plplenc_list%enc_child)
-            DEALLOCATE(plplenc_list%enc_parent)
-            return
-        END SUBROUTINE symba_plplenc_deallocate
+      deallocate(plplenc_list%lvdotr)
+      deallocate(plplenc_list%status)
+      deallocate(plplenc_list%level)
+      deallocate(plplenc_list%index1)
+      deallocate(plplenc_list%index2)
+      deallocate(plplenc_list%enc_child)
+      deallocate(plplenc_list%enc_parent)
+      return
+   end subroutine symba_plplenc_deallocate
 
-        SUBROUTINE symba_merger_deallocate(mergeadd_list)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
+   subroutine symba_merger_deallocate(mergeadd_list)
+      use module_symba
+      implicit none
 
-            ! Arguments
-            TYPE(symba_merger), INTENT(INOUT)        :: mergeadd_list
+      type(symba_merger), intent(inout)        :: mergeadd_list
 
-            DEALLOCATE(mergeadd_list%name)
-            DEALLOCATE(mergeadd_list%index_ps)
-            DEALLOCATE(mergeadd_list%status)
-            DEALLOCATE(mergeadd_list%ncomp)
-            DEALLOCATE(mergeadd_list%xh)
-            DEALLOCATE(mergeadd_list%vh)
-            DEALLOCATE(mergeadd_list%mass)
-            DEALLOCATE(mergeadd_list%radius)
-            return
-        END SUBROUTINE symba_merger_deallocate
+      deallocate(mergeadd_list%name)
+      deallocate(mergeadd_list%index_ps)
+      deallocate(mergeadd_list%status)
+      deallocate(mergeadd_list%ncomp)
+      deallocate(mergeadd_list%xh)
+      deallocate(mergeadd_list%vh)
+      deallocate(mergeadd_list%mass)
+      deallocate(mergeadd_list%radius)
+      return
+   end subroutine symba_merger_deallocate
 
-        SUBROUTINE swiftest_tp_deallocate(swiftest_tpA)
-            USE swiftest
-            USE module_swiftest
-            IMPLICIT NONE
+   subroutine swiftest_tp_deallocate(swiftest_tpA)
+      use module_swiftest
+      implicit none
 
-            ! Arguments
-            TYPE(swiftest_tp), INTENT(INOUT)    :: swiftest_tpA
+      type(swiftest_tp), intent(inout)    :: swiftest_tpA
 
-            DEALLOCATE(swiftest_tpA%name)
-             DEALLOCATE(swiftest_tpA%status)
-             DEALLOCATE(swiftest_tpA%peri)
-             DEALLOCATE(swiftest_tpA%atp)
-             DEALLOCATE(swiftest_tpA%isperi)
-             DEALLOCATE(swiftest_tpA%xh)
-             DEALLOCATE(swiftest_tpA%vh)
-             DEALLOCATE(swiftest_tpA%xb)
-             DEALLOCATE(swiftest_tpA%vb)
-            return
-        END SUBROUTINE swiftest_tp_deallocate
+      deallocate(swiftest_tpA%name)
+      deallocate(swiftest_tpA%status)
+      deallocate(swiftest_tpA%peri)
+      deallocate(swiftest_tpA%atp)
+      deallocate(swiftest_tpA%isperi)
+      deallocate(swiftest_tpA%xh)
+      deallocate(swiftest_tpA%vh)
+      deallocate(swiftest_tpA%xb)
+      deallocate(swiftest_tpA%vb)
+      return
+   end subroutine swiftest_tp_deallocate
 
 
-        SUBROUTINE helio_tp_deallocate(helio_tpA)
-            USE swiftest
-            USE module_helio
-            IMPLICIT NONE
+   subroutine helio_tp_deallocate(helio_tpA)
+      use module_helio
+      implicit none
 
-            ! Arguments
-            TYPE(helio_tp), INTENT(INOUT)        :: helio_tpA
+      type(helio_tp), intent(inout)        :: helio_tpA
 
-            DEALLOCATE(helio_tpA%ah)
-             DEALLOCATE(helio_tpA%ahi)
-             CALL swiftest_tp_deallocate(helio_tpA%swiftest)
-            return
-        END SUBROUTINE helio_tp_deallocate
+      deallocate(helio_tpA%ah)
+      deallocate(helio_tpA%ahi)
+      call swiftest_tp_deallocate(helio_tpA%swiftest)
+      return
+   end subroutine helio_tp_deallocate
 
 
-        SUBROUTINE symba_tp_deallocate(symba_tpA)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
+   subroutine symba_tp_deallocate(symba_tpA)
+      use module_symba
+      implicit none
 
-            ! Arguments
-            TYPE(symba_tp), INTENT(INOUT)        :: symba_tpA
+      type(symba_tp), intent(inout)        :: symba_tpA
 
-            DEALLOCATE(symba_tpA%nplenc)
-            DEALLOCATE(symba_tpA%levelg)
-            DEALLOCATE(symba_tpA%levelm)
-            
-            return
-        END SUBROUTINE symba_tp_deallocate
+      deallocate(symba_tpA%nplenc)
+      deallocate(symba_tpA%levelg)
+      deallocate(symba_tpA%levelm)
 
-        SUBROUTINE symba_pltpenc_deallocate(pltpenc_list)
-            USE swiftest
-            USE module_symba
-            IMPLICIT NONE
+      return
+   end subroutine symba_tp_deallocate
 
-            ! Arguments
-            TYPE(symba_pltpenc), INTENT(INOUT)        :: pltpenc_list
+   subroutine symba_pltpenc_deallocate(pltpenc_list)
+      use module_symba
+      implicit none
 
-            DEALLOCATE(pltpenc_list%lvdotr)
-            DEALLOCATE(pltpenc_list%status)
-            DEALLOCATE(pltpenc_list%level)
-            DEALLOCATE(pltpenc_list%indexpl)
-            DEALLOCATE(pltpenc_list%indextp)
-            return
-        END SUBROUTINE symba_pltpenc_deallocate
+      type(symba_pltpenc), intent(inout)        :: pltpenc_list
 
-        
-END MODULE module_swiftestalloc
+      deallocate(pltpenc_list%lvdotr)
+      deallocate(pltpenc_list%status)
+      deallocate(pltpenc_list%level)
+      deallocate(pltpenc_list%indexpl)
+      deallocate(pltpenc_list%indextp)
+      return
+   end subroutine symba_pltpenc_deallocate
+
+
+end module module_swiftestalloc
 
 
 
