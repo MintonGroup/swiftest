@@ -53,9 +53,11 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
 
 FORTRAN         = gfortran
-#FFLAGS          = -O3 
+#FFLAGS          = -O3 -fbacktrace -fbounds-check -fcheck=all
 #debug flags
-FFLAGS		= -Og -fimplicit-none -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace -g3 -Wall -Warray-bounds -Warray-temporaries -Wimplicit-interface -Wextra 
+FFLAGS		= -Og -fimplicit-none -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace -fsanitize=undefined -fsanitize=address -fsanitize=leak
+
+#-Wall -Warray-bounds -Warray-temporaries -Wimplicit-interface -Wextra 
 
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
