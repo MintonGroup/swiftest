@@ -1464,7 +1464,7 @@ MODULE module_interfaces
       END INTERFACE
 
      INTERFACE
-         SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Mslr)
+         SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1, index2, regime, Mlr, Mslr)
          USE swiftest
          USE module_swiftest
          USE module_symba
@@ -1472,7 +1472,8 @@ MODULE module_interfaces
          TYPE(symba_pl), INTENT(INOUT) :: symba_plA
          INTEGER(I4B), INTENT(IN)      :: index1, index2
          INTEGER(I4B), INTENT(OUT)     :: regime
-         REAL(DP), INTENT(OUT)         :: Mlr, Mslr, mbig, msmall
+         REAL(DP), INTENT(OUT)         :: Mlr, Mslr, m1, m2, rad1, rad2
+         REAL(DP), DIMENSION(NDIM)     :: xh1, xh2, vh1, vh2
          END SUBROUTINE util_regime
      END INTERFACE
 
