@@ -117,11 +117,10 @@ program swiftest_symba
    call symba_merger_allocate(mergeadd_list,10*npl) !DM: Why 10*npl?
    call symba_merger_allocate(mergesub_list,npl)
    call symba_plplenc_allocate(plplenc_list, 10*npl) !DM: See ^
-   call symba_pltpenc_allocate(pltpenc_list, ntp)
-
 
    if (ntp > 0) then
       call symba_tp_allocate(symba_tpA, ntpmax)
+      call symba_pltpenc_allocate(pltpenc_list, ntp)
    end if
 
    ! reads in initial conditions of all massive bodies from input file
