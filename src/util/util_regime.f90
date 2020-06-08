@@ -24,7 +24,7 @@
 !                Vetterling, and Flannery, 2nd ed., pp. 1173-4
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_regime(symba_plA, index1, index2, regime, Mlr, Mslr)
+SUBROUTINE util_regime(symba_plA, mbig, msmall, index1, index2, regime, Mlr, Mslr)
 
 ! Modules
      USE module_parameters
@@ -40,7 +40,7 @@ SUBROUTINE util_regime(symba_plA, index1, index2, regime, Mlr, Mslr)
      TYPE(symba_pl), INTENT(INOUT) :: symba_plA
      INTEGER(I4B), INTENT(IN)      :: index1, index2
      INTEGER(I4B), INTENT(OUT)     :: regime
-     REAL(DP), INTENT(OUT)         :: Mlr, Mslr
+     REAL(DP), INTENT(OUT)         :: Mlr, Mslr, mbig, msmall
 
 ! Internals
      REAL(DP)                      :: m1,m2,rad1,rad2,b,l,mu,Vescp,V_pstar, Rp, mtot
@@ -151,8 +151,14 @@ end function calc_b
 
 
 ! Executable code
-     m1 = symba_plA%helio%swiftest%mass(index1)/GC
-     m2 = symba_plA%helio%swiftest%mass(index2)/GC
+
+
+! shouldn't this be mass of index1 + index1 children?
+     !m1 = symba_plA%helio%swiftest%mass(index1)/GC
+     !m2 = symba_plA%helio%swiftest%mass(index2)/GC
+
+     m1 = mbig/GC
+     m2 = msmall/GC
      xh1(:) = symba_plA%helio%swiftest%xh(:,index1)
      xh2(:) = symba_plA%helio%swiftest%xh(:,index2)
      vh1(:) = symba_plA%helio%swiftest%vh(:,index1)
