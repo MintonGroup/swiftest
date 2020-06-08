@@ -73,7 +73,11 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      REAL(DP), DIMENSION(NDIM)      :: x1_cgs, x2_cgs, v1_cgs, v2_cgs, x1_au, x2_au, v1_auy, v2_auy
      LOGICAL(LGT)                   :: lfrag_add, lmerge
      INTEGER(I4B), DIMENSION(npl)   :: array_index1_child, array_index2_child
-     REAL(DP)                       :: MSUN, K2, m1_msun, m2_msun, rad1_au, rad2_au, AU2CM, year, Mlr, Mslr, mtarg, mproj
+     REAL(DP)                       :: m1_msun, m2_msun, rad1_au, rad2_au, AU2CM, year, Mlr, Mslr, mtarg, mproj
+     REAL(DP)                       :: K2 = 2.959122082855911e-4 ! in SI units
+     !REAL(DP)                       :: MSUN = 1.98847e30 ! in SI units
+     !REAL(DP)                       :: AU = 1.495978707e11 ! in SI units
+     !REAL(DP)                       :: year = 3.154e7 ! in SI units
 
 
 ! Executable code
@@ -196,37 +200,53 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           x2(:) = x2(:)/m2
           v2(:) = v2(:)/m2
 
-          GU = GC / (DU2CM**3 / (MU2GM * TU2S**2))
-          m1_cgs = (m1 / GU) * MU2GM 
-          m2_cgs = (m2 / GU) * MU2GM 
-          MSUN = 1.989e33 !Msun in cgs
-          AU2CM = 1.496e+13 !AU in cgs
-          m1_msun = m1_cgs / MSUN
-          m2_msun = m2_cgs / MSUN
-          K2 = 2.959122082855911e-4
-          rad1_cgs = (rad1) * DU2CM
-          rad2_cgs = (rad2) * DU2CM
-          rad1_au = rad1_cgs / AU2CM
-          rad2_au = rad2_cgs / AU2CM
-          x1_cgs(:) = x1(:) * DU2CM
-          x2_cgs(:) = x2(:) * DU2CM
-          x1_au(:) = x1_cgs(:) / AU2CM
-          x2_au(:) = x2_cgs(:) / AU2CM
+          !GU = GC / (DU2CM**3 / (MU2GM * TU2S**2))
+          !m1_cgs = (m1 / GU) * MU2GM 
+          !m2_cgs = (m2 / GU) * MU2GM
 
-          v1_cgs(:) = v1(:) * DU2CM / TU2S 
-          v2_cgs(:) = v2(:) * DU2CM / TU2S
+          m1_si = m1 * MU2KG 
+          m2_si = m2 * MU2KG
+          rad1_si = rad1 * DU2M
+          rad2_si = rad2 * DU2M
+          x1_si(:) = x1(:) * DU2M
+          x2_si(:) = x2(:) * DU2M
+          v1_si(:) = v1(:) * DU2M / TU2S
+          v2_si(:) = v2(:) * DU2M / TU2S
+          den1_si = den1 * MU2KG / (DU2M ** 3.0_DP)
+          den2_si = den2 * MU2KG / (DU2M ** 3.0_DP)
+
+          !MSUN = 1.989e33 !Msun in cgs
+          !AU2CM = 1.496e+13 !AU in cgs
+          !m1_msun = m1_si / MSUN
+          !m2_msun = m2_si / MSUN
+          !rad1_cgs = (rad1) * DU2CM
+          !rad2_cgs = (rad2) * DU2CM
+          !rad1_au = rad1_cgs / AU2CM
+          !rad2_au = rad2_cgs / AU2CM
+          !x1_cgs(:) = x1(:) * DU2CM
+          !x2_cgs(:) = x2(:) * DU2CM
+          !x1_au(:) = x1_cgs(:) / AU2CM
+          !x2_au(:) = x2_cgs(:) / AU2CM
+
+          !v1_cgs(:) = v1(:) * DU2CM / TU2S 
+          !v2_cgs(:) = v2(:) * DU2CM / TU2S
      
-          year = 3.154e7
-          v1_auy(:) = v1_cgs(:) / AU2CM * (year)
-          v2_auy(:) = v2_cgs(:) / AU2CM * (year)
+
+          !v1_auy(:) = v1_cgs(:) / AU2CM * (year)
+          !v2_auy(:) = v2_cgs(:) / AU2CM * (year)
 
           mres(:) = 0.0_DP
           rres(:) = 0.0_DP
           pres(:,:) = 0.0_DP
           vres(:,:) = 0.0_DP
 
-          m1_si = m1 / (GC * 1000.0_DP)
-          m2_si = m2 / (GC * 1000.0_DP)
+          !m1_si = m1 / (GC * 1000.0_DP)
+          !m2_si = m2 / (GC * 1000.0_DP)
+
+
+
+          !den1_si = (den1 / GU) * MU2GM
+          !den2_si = den2
 
           ! PROBLEM
           !WRITE(*,*) "model: ", model
@@ -251,23 +271,23 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
           !regime = collresolve_resolve(model,m1_si,m2_si,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres,mres,rres,pres,vres)
 
-          IF (m1 > m2) THEN 
+          IF (m1_si > m2_si) THEN 
                itarg = index1
                iproj = index2
-               dentarg = den1
-               denproj = den2
-               mtarg = m1
-               mproj = m2
+               dentarg = den1_si
+               denproj = den2_si
+               mtarg = m1_si
+               mproj = m2_si
           ELSE
                itarg = index2
                iproj = index1
-               dentarg = den2
-               denproj = den1
-               mtarg = m2
-               mproj = m1
+               dentarg = den2_si
+               denproj = den1_si
+               mtarg = m2_si
+               mproj = m1_si
           END IF
-          mtot = m1 + m2
-          dentot = (m1 *den1 +m2*den2 )/ mtot
+          mtot = m1_si + m2_si
+          dentot = (m1_si *den1 +m2_si*den2 )/ mtot
 
           CALL util_regime(symba_plA, mtarg, mproj, itarg, iproj, regime, Mlr, Mslr)
           WRITE(*,*) "Mlr :", Mlr, "Mslr: ", Mslr
@@ -289,6 +309,9 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           rres(2) = (3.0_DP * mres(2)  / (4.0_DP * PI * denproj)) *(1.0_DP/3.0_DP)
           rres(3) = (3.0_DP * mres(2)  / (4.0_DP * PI * dentot)) *(1.0_DP/3.0_DP)
           !rres(:) = rres(:)*AU2CM/DU2CM
+
+          mres(:) = mres(:) / MU2KG
+          rres(:) = rres(:) / DU2M
 
           CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
