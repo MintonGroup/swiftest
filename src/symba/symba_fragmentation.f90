@@ -200,10 +200,6 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           x2(:) = x2(:)/m2
           v2(:) = v2(:)/m2
 
-          !GU = GC / (DU2CM**3 / (MU2GM * TU2S**2))
-          !m1_cgs = (m1 / GU) * MU2GM 
-          !m2_cgs = (m2 / GU) * MU2GM
-
           m1_si = (m1 / GU) * MU2KG 
           m2_si = (m2 / GU) * MU2KG
           rad1_si = rad1 * DU2M
@@ -215,56 +211,13 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           den1_si = (den1 / GU) * MU2KG / (DU2M ** 3.0_DP)
           den2_si = (den2 / GU) * MU2KG / (DU2M ** 3.0_DP)
 
-          !MSUN = 1.989e33 !Msun in cgs
-          !AU2CM = 1.496e+13 !AU in cgs
-          !m1_msun = m1_si / MSUN
-          !m2_msun = m2_si / MSUN
-          !rad1_cgs = (rad1) * DU2CM
-          !rad2_cgs = (rad2) * DU2CM
-          !rad1_au = rad1_cgs / AU2CM
-          !rad2_au = rad2_cgs / AU2CM
-          !x1_cgs(:) = x1(:) * DU2CM
-          !x2_cgs(:) = x2(:) * DU2CM
-          !x1_au(:) = x1_cgs(:) / AU2CM
-          !x2_au(:) = x2_cgs(:) / AU2CM
-
-          !v1_cgs(:) = v1(:) * DU2CM / TU2S 
-          !v2_cgs(:) = v2(:) * DU2CM / TU2S
-     
-
-          !v1_auy(:) = v1_cgs(:) / AU2CM * (year)
-          !v2_auy(:) = v2_cgs(:) / AU2CM * (year)
 
           mres(:) = 0.0_DP
           rres(:) = 0.0_DP
           pres(:,:) = 0.0_DP
           vres(:,:) = 0.0_DP
 
-          !m1_si = m1 / (GC * 1000.0_DP)
-          !m2_si = m2 / (GC * 1000.0_DP)
 
-
-
-          !den1_si = (den1 / GU) * MU2GM
-          !den2_si = den2
-
-          ! PROBLEM
-          !WRITE(*,*) "model: ", model
-          !WRITE(*,*) "m1_msun: ", m1_msun
-          !WRITE(*,*) "m2_msun: ", m2_msun
-          !WRITE(*,*) "rad1_au: ", rad1_au
-          !WRITE(*,*) "rad2_au: ", rad2_au
-          !WRITE(*,*) "x1_au: ", x1_au
-          !WRITE(*,*) "x2_au: ", x2_au
-          !WRITE(*,*) "v1_auy: ", v1_auy
-          !WRITE(*,*) "v2_auy: ", v2_auy
-          !WRITE(*,*) "nres: ", nres 
-          !WRITE(*,*) "mres: ", mres(:) !THIS IS THE PROBLEM
-          !WRITE(*,*) "rres: ", rres(:)
-          !WRITE(*,*) "pres: ", pres(:,:)
-          !WRITE(*,*) "vres: ", vres(:,:)
-
-          !WRITE(*,*) "Before collresolve_resolve"
 
           !regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
                !nres,mres,rres,pres,vres)
@@ -300,6 +253,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           END IF
           mtot = m1_si + m2_si
           dentot = (m1_si *den1 +m2_si*den2 )/ mtot
+          Mcenter = symba_plA%helio%swiftest%mass(1) * MU2KG / GU
 
           WRITE(*,*) "mtarg: ", mtarg
           WRITE(*,*) "mproj: ", mproj
@@ -313,7 +267,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           WRITE(*,*) "iproj: ", iproj
 
 
-          CALL util_regime(symba_plA, mtarg, mproj, rtarg, rproj, xtarg, xproj, vtarg, vproj, regime, Mlr, Mslr)
+          CALL util_regime(Mcenter, mtarg, mproj, rtarg, rproj, xtarg, xproj, vtarg, vproj, dentarg, denproj, regime, Mlr, Mslr)
           WRITE(*,*) "Mlr :", Mlr, "Mslr: ", Mslr
           !WRITE(*,*) "After collresolve_resolve"
 

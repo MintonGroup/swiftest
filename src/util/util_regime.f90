@@ -24,7 +24,7 @@
 !                Vetterling, and Flannery, 2nd ed., pp. 1173-4
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_regime(symba_plA, Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, den2, regime, Mlr, Mslr)
+SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, den2, regime, Mlr, Mslr)
 
 ! Modules
      USE swiftest
@@ -37,10 +37,9 @@ SUBROUTINE util_regime(symba_plA, Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh
      IMPLICIT NONE
 
 ! Arguments
-     TYPE(symba_pl), INTENT(INOUT) :: symba_plA
-     INTEGER(I4B), INTENT(OUT)     :: regime
-     REAL(DP), INTENT(OUT)         :: Mcenter, Mlr, Mslr, m1, m2, rad1, rad2, den1, den2
-     REAL(DP), DIMENSION(NDIM)     :: xh1, xh2, vh1, vh2
+     INTEGER(I4B), INTENT(OUT)                 :: regime
+     REAL(DP), INTENT(INOUT)                   :: Mcenter, Mlr, Mslr, m1, m2, rad1, rad2, den1, den2
+     REAL(DP), DIMENSION(NDIM), INTENT(IN)     :: xh1, xh2, vh1, vh2
 
 ! Internals
      REAL(DP)                      :: b,l,mu,Vescp,V_pstar, Rp, mtot, RC1, Vhill, E, a1

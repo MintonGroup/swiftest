@@ -1427,15 +1427,17 @@ MODULE module_interfaces
       END INTERFACE
 
      INTERFACE
-         SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, regime, Mlr, Mslr)
-         USE swiftest
-         USE module_swiftest
-         USE module_symba
+         SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, den2, regime, Mlr, Mslr)
+          USE swiftest
+          USE module_symba
+          USE module_swiftest
+          USE module_helio
+          USE module_nrutil
+          USE module_swiftestalloc
          IMPLICIT NONE
-         TYPE(symba_pl), INTENT(INOUT) :: symba_plA
-         INTEGER(I4B), INTENT(OUT)     :: regime
-         REAL(DP), INTENT(OUT)         :: Mlr, Mslr, m1, m2, rad1, rad2
-         REAL(DP), DIMENSION(NDIM)     :: xh1, xh2, vh1, vh2
+          INTEGER(I4B), INTENT(OUT)                 :: regime
+          REAL(DP), INTENT(INOUT)                   :: Mcenter, Mlr, Mslr, m1, m2, rad1, rad2, den1, den2
+          REAL(DP), DIMENSION(NDIM), INTENT(IN)     :: xh1, xh2, vh1, vh2
          END SUBROUTINE util_regime
      END INTERFACE
 
