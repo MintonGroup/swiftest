@@ -179,10 +179,7 @@ end function calc_erosion
 function calc_QRD_lr(Mp,Mtarg,Mint) result(ans)
    implicit none
    real(DP),intent(in) :: Mp, Mtarg, Mint
-   real(DP) :: ans, Mtlr, mu, gammalr, QRD_star1, c_star, G, V_star1, QRD_lr, mu_bar, QR, verosion
-   c_star = 1.8
-   G = 6.674e-11
-   mu_bar = 0.37
+   real(DP) :: ans, Mtlr, mu, gammalr, QRD_star1, V_star1, QRD_lr, RC1, QR, verosion
    ! calc Mtlr, RC1, mu, gammalr
    Mtlr =  Mint + Mp
    RC1 = ((3.0_DP * Mtlr) / (4.0_DP * PI * density1)) ** (1.0_DP / 3.0_DP) ! [m]
