@@ -42,7 +42,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      REAL(DP), DIMENSION(NDIM), INTENT(IN)     :: xh1, xh2, vh1, vh2
 
 ! Internals
-     REAL(DP)                      :: b,l,mu,vescp,v_pstar, Rp, mtot, RC1, vhill, E, a1, Rp
+     REAL(DP)                      :: b,l,mu,vescp,v_pstar, Rp, mtot, RC1, vhill, E, a1
      REAL(DP)                      :: alpha, QRD_pstar, QR, QR_supercat, QRD_lr, verosion, vimp, bcrit
      REAL(DP)                      :: vcr, vsupercat, mint, Lint, Aint, fgamma, theta, N2g, N2, Phi
      REAL(DP)                      :: c1,c2,c3,c4,c5, crufu, beta,c_star, density1, G, mu_bar, N1, N1g
