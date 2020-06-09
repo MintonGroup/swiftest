@@ -83,7 +83,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       mtot = m1 + m2 
       Rp = (3*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
      !Calculate Vescp
-      vescp = SQRT(2*GC*mtot/(rad1+rad2))
+      vescp = SQRT(2*GC*(m1+alpha*m2)/(Rp))
      !Calculate Rhill
       Rhill = a1*(m1/3/(Mcenter+m1))**(1/3)
      !Calculate Vhill
