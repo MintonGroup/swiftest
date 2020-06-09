@@ -24,7 +24,7 @@
 !                Vetterling, and Flannery, 2nd ed., pp. 1173-4
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_regime(symba_plA, Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1, index2, den1, den2, regime, Mlr, Mslr)
+SUBROUTINE util_regime(symba_plA, Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, den2, regime, Mlr, Mslr)
 
 ! Modules
      USE swiftest
