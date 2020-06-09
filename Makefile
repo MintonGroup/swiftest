@@ -45,9 +45,9 @@
 #******************************************************************************
 
 SWIFTEST_MODULES =   module/module_globals.f90 \
+		     module/module_swiftest.f90 \
                      io/io.f90 \
                      module/swiftest.f90 \
-                     module/module_swiftest.f90 \
                      module/module_swifter.f90 \
                      module/module_helio.f90 \
                      module/module_nrutil.f90 \
