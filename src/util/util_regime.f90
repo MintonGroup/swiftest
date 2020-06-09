@@ -38,15 +38,16 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 
 ! Arguments
      INTEGER(I4B), INTENT(OUT)                 :: regime
-     REAL(DP), INTENT(INOUT)                   :: Mcenter, Mlr, Mslr, m1, m2, rad1, rad2, den1, den2
+     REAL(DP), INTENT(OUT)                     :: Mlr, Mslr 
+     REAL(DP), INTENT(IN)                      :: Mcenter, m1, m2, rad1, rad2, den1, den2  
      REAL(DP), DIMENSION(NDIM), INTENT(IN)     :: xh1, xh2, vh1, vh2
 
 ! Internals
-     REAL(DP)                      :: b,l,mu,Vescp,V_pstar, Rp, mtot, RC1
-     REAL(DP)                      :: alpha, QRD_pstar, QR, QR_supercat, QRD_lr, V_lr, vimp, bcrit
-     REAL(DP)                      :: Vcr, V_supercat, Mint, Lint, Aint, fgamma, theta, rtarg, phi
-     REAL(DP)                      :: mp, mtarg
-     REAL(DP), DIMENSION(3)        :: ans
+     REAL(DP)                      :: alpha, Aint,b,bcrit,fgamma,l,Lint, mu, phi, theta
+     REAL(DP)                      :: QRD_pstar, QR, QR_supercat, QRD_lr
+     REAL(DP)                      :: vcr, verosion, vescp, vhill, vimp, vsupercat
+     REAL(DP)                      :: mint, mtot
+     REAL(DP)                      :: Rp, Rhill, a1, E
 ! Constants
      INTEGER(I4B)                  :: N1 = 1  !number of objects with mass equal to the largest remnant from LS12
      INTEGER(I4B)                  :: N2 = 2  !number of objects with mass larger than second largest remnant from LS12
@@ -57,12 +58,12 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      REAL(DP)                      :: c_star = 1.8_DP !3.0 #3.0# #5#1.8 #1.8 #Measure of dissipation of energy within the target (Chambers frag.f90)
      REAL(DP)                      :: mu_bar = 0.37_DP !0.385#0.37#0.3333# 3.978 # 1/3 material parameter for hydrodynamic planet-size bodies (LS12)
      REAL(DP)                      :: beta = 2.85_DP !slope of SFD for remnants from LS12 2.85
-     REAL(DP)                      :: c1 = 2.43_DP
-     REAL(DP)                      :: c2 = -0.0408_DP
-     REAL(DP)                      :: c3 = 1.86_DP
-     REAL(DP)                      :: c4 = 1.08_DP
-     REAL(DP)                      :: c5 = 2.5_DP
-     REAL(DP)                      :: rho1 = 2500.0_DP ! Taking a wild guess and assuming it should be SI
+     REAL(DP)                      :: c1 = 2.43_DP !Ls12 constants
+     REAL(DP)                      :: c2 = -0.0408_DP !Ls12 constants
+     REAL(DP)                      :: c3 = 1.86_DP !Ls12 constants
+     REAL(DP)                      :: c4 = 1.08_DP !Ls12 constants
+     REAL(DP)                      :: c5 = 2.5_DP !Ls12 constants
+     REAL(DP)                      :: crufu = (2.0_DP-3.0_DP*0.36_DP) ! central potential variable from Rufu et al. 2019
 
 ! Executable code
 
@@ -144,7 +145,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
           regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
         END IF 
       ELSE IF (vimp > vsupercat) THEN 
-        Mlr = Mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
+        Mlr = mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
         Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
         regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC ! supercatastrophic
       ELSE 
