@@ -75,14 +75,32 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
           alpha = 1.0_DP
      END IF 
 
-     mtot = m1 + m2 
-     
-     Rp = (3*(m1+alpha*m2)/(4.0_DP * PI * rho1)**(1.0_DP/3.0_DP))
-     
-     Vescp = SQRT(2*GC*mtot/(rad1+rad2))
-
-     ans(:) = calc_erosion(m1, m2, alpha)
-     QRD_pstar = ans(1)
+! shouldn't this be mass of index1 + index1 children?
+      Vimp = NORM2(vh2(:) - vh1(:))
+      b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
+      l = (rad1 + rad2)*(1-b)
+      E = (NORM2(vh1)**2)/2 - G*Mcenter/NORM2(xh1)
+      a1 = - G*M_Planet/2/E
+      mu = (m1*m2)/mtot
+      IF (l < 2*rad2) THEN
+           alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
+      ELSE
+           alpha = 1.0_DP
+      END IF 
+      mtot = m1 + m2 
+      Rp = (3*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
+     !Calculate Vescp
+      vescp = SQRT(2*GC*(m1+alpha*m2)/(Rp))
+     !Calculate Rhill
+      Rhill = a1*(m1/3/(Mcenter+m1))**(1/3)
+     !Calculate Vhill
+      if ((rad2 + rad1) < Rhill) then 
+        vhill = sqrt(2 * G * m1 * ((Rhill ** 2 - Rhill * (rad1 + rad2)) / (Rhill ** 2 - 0.5 * (rad1+rad2) ** 2)) / ri)
+      else
+        vhill = vesc_p
+      end if 
+     !Calculate QR_pstar
+      QRD_pstar = calc_erosion(m1, m2, alpha)*(vhill/vesc_p)**crufu !rufu et al. eq (3)
      Write(*,*) "QRD_pstar", QRD_pstar
      !Calculate verosion
       QR_erosion = 2.0_DP * ((1.0_DP - m1) / mtot) * QRD_pstar
