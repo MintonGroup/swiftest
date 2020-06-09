@@ -68,14 +68,12 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 ! Executable code
 
       vimp = NORM2(vh2(:) - vh1(:))
-      WRITE(*,*) "vimp = ", vimp 
       b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
-      l = (rad1 + rad2)*(1-b)
-      E = (NORM2(vh1)**2.0_DP)/2.0_DP - G*Mcenter/NORM2(xh1)
+      l = (rad1 + rad2)*(1.0_DP-b)
+      E = ((NORM2(vh1)**2.0_DP)/2.0_DP) - (G*Mcenter/NORM2(xh1))
       a1 = - G*Mcenter/2.0_DP/E
       mtot = m1 + m2 
       mu = (m1*m2)/mtot
-      WRITE(*,*) "mu = ", mu
       IF (l < 2*rad2) THEN
             !Calculate mint
             Phi = 2.0_DP * ACOS((l - rad2) / rad2)
@@ -103,17 +101,13 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       Write(*,*) "vhill = ", vhill
      !Calculate QR_pstar
       QRD_pstar = calc_erosion(m1, m2, alpha)*(vhill/vescp)**crufu !rufu et al. eq (3)
-     Write(*,*) "QRD_pstar", QRD_pstar
      !Calculate verosion
       QR_erosion = 2.0_DP * (1.0_DP - m1 / mtot) * QRD_pstar
       Write(*,*) "QR_erosion", QR_erosion 
       verosion = (2.0_DP * QR_erosion * mtot / mu)** (1.0_DP / 2.0_DP)
-     Write(*,*) "verosion", verosion 
       QR = mu*(vimp**2.0_DP)/mtot/2.0_DP
-     Write(*,*) "QR", QR
      !Calculate Mass largest remnant Mlr 
       Mlr = (1.0_DP - QR / QRD_pstar / 2.0_DP) * (mtot)  ! [kg] #(Eq 5)
-     Write(*,*) "Mlr", Mlr 
      !Calculate vsupercat
       QR_supercat = 1.8_DP * QRD_pstar
       vsupercat = ( 2.0_DP * QR_supercat * mtot / mu ) ** (1.0_DP / 2.0_DP)
