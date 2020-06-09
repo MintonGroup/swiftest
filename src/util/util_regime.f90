@@ -42,58 +42,47 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      REAL(DP), DIMENSION(NDIM), INTENT(IN)     :: xh1, xh2, vh1, vh2
 
 ! Internals
-     REAL(DP)                      :: b,l,mu,vescp,v_pstar, Rp, mtot, RC1, vhill, E, a1, Rp
-     REAL(DP)                      :: alpha, QRD_pstar, QR, QR_supercat, QRD_lr, verosion, vimp, bcrit
-     REAL(DP)                      :: vcr, vsupercat, mint, Lint, Aint, fgamma, theta, N2g, N2, Phi
-     REAL(DP)                      :: c1,c2,c3,c4,c5, crufu, beta,c_star, density1, G, mu_bar, N1, N1g
+     REAL(DP)                      :: b,l,mu,Vescp,V_pstar, Rp, mtot, RC1
+     REAL(DP)                      :: alpha, QRD_pstar, QR, QR_supercat, QRD_lr, V_lr, vimp, bcrit
+     REAL(DP)                      :: Vcr, V_supercat, Mint, Lint, Aint, fgamma, theta, rtarg, phi
+     REAL(DP)                      :: mp, mtarg
+     REAL(DP), DIMENSION(3)        :: ans
 ! Constants
-     density1 = 1000 ![kg/m3]
-     G = 6.674e-11 !Gravitational constant [Nm2/kg2]
-     c_star = 1.8!3.0 #3.0# #5#1.8 #1.8 #Measure of dissipation of energy within the target (Chambers frag.f90)
-     mu_bar = 0.37!0.385#0.37#0.3333# 3.978 # 1/3 material parameter for hydrodynamic planet-size bodies (LS12)
-     beta = 2.85 !slope of SFD for remnants from LS12 2.85
-     N1 = 1  !number of objects with mass equal to the largest remnant from LS12
-     N2 = 2  !number of objects with mass larger than second largest remnant from LS12
-     N1g = 2  !number of objects with mass equal to the largest remnant from LS12 if Mp = Mtarg
-     N2g = 4  !number of objects with mass larger than second largest remnant from LS12 if Mp = Mtarg
-     c1 = 2.43
-     c2 = -0.0408
-     c3 = 1.86
-     c4 = 1.08
-     c5 = 5.0_DP/2.0_DP
-     crufu = (2.0_DP-3.0_DP*0.36_DP)
-
-
+     INTEGER(I4B)                  :: N1 = 1  !number of objects with mass equal to the largest remnant from LS12
+     INTEGER(I4B)                  :: N2 = 2  !number of objects with mass larger than second largest remnant from LS12
+     INTEGER(I4B)                  :: N1g = 2  !number of objects with mass equal to the largest remnant from LS12 if Mp = Mtarg
+     INTEGER(I4B)                  :: N2g = 4  !number of objects with mass larger than second largest remnant from LS12 if Mp = Mtarg
+     REAL(DP)                      :: density1 = 1000.0_DP ![kg/m3]
+     REAL(DP)                      :: G = 6.674e-11 !Gravitational constant [Nm2/kg2]
+     REAL(DP)                      :: c_star = 1.8_DP !3.0 #3.0# #5#1.8 #1.8 #Measure of dissipation of energy within the target (Chambers frag.f90)
+     REAL(DP)                      :: mu_bar = 0.37_DP !0.385#0.37#0.3333# 3.978 # 1/3 material parameter for hydrodynamic planet-size bodies (LS12)
+     REAL(DP)                      :: beta = 2.85_DP !slope of SFD for remnants from LS12 2.85
+     REAL(DP)                      :: c1 = 2.43_DP
+     REAL(DP)                      :: c2 = -0.0408_DP
+     REAL(DP)                      :: c3 = 1.86_DP
+     REAL(DP)                      :: c4 = 1.08_DP
+     REAL(DP)                      :: c5 = 2.5_DP
+     REAL(DP)                      :: rho1 = 2500.0_DP ! Taking a wild guess and assuming it should be SI
 
 ! Executable code
 
+     Vimp = NORM2(vh2(:) - vh1(:))
+     b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
+     l = (rad1 + rad2)*(1-b)
+     IF (l < 2*rad2) THEN
+          alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
+     ELSE
+          alpha = 1.0_DP
+     END IF 
 
-! shouldn't this be mass of index1 + index1 children?
-      Vimp = NORM2(vh2(:) - vh1(:))
-      b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
-      l = (rad1 + rad2)*(1-b)
-      E = (NORM2(vh1)**2)/2 - G*Mcenter/NORM2(xh1)
-      a1 = - G*M_Planet/2/E
-      mu = (m1*m2)/mtot
-      IF (l < 2*rad2) THEN
-           alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
-      ELSE
-           alpha = 1.0_DP
-      END IF 
-      mtot = m1 + m2 
-      Rp = (3*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
-     !Calculate Vescp
-      vescp = SQRT(2*GC*mtot/(rad1+rad2))
-     !Calculate Rhill
-      Rhill = a1*(m1/3/(Mcenter+m1))**(1/3)
-     !Calculate Vhill
-      if ((rad2 + rad1) < Rhill) then 
-        vhill = sqrt(2 * G * m1 * ((Rhill ** 2 - Rhill * (rad1 + rad2)) / (Rhill ** 2 - 0.5 * (rad1+rad2) ** 2)) / ri)
-      else
-        vhill = vesc_p
-      end if 
-     !Calculate QR_pstar
-      QRD_pstar = calc_erosion(m1, m2, alpha)*(vhill/vesc_p)**crufu !rufu et al. eq (3)
+     mtot = m1 + m2 
+     
+     Rp = (3*(m1+alpha*m2)/(4.0_DP * PI * rho1)**(1.0_DP/3.0_DP))
+     
+     Vescp = SQRT(2*GC*mtot/(rad1+rad2))
+
+     ans(:) = calc_erosion(m1, m2, alpha)
+     QRD_pstar = ans(1)
      Write(*,*) "QRD_pstar", QRD_pstar
      !Calculate verosion
       QR_erosion = 2.0_DP * ((1.0_DP - m1) / mtot) * QRD_pstar

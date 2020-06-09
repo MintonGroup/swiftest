@@ -211,18 +211,10 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           den1_si = (den1 / GU) * MU2KG / (DU2M ** 3.0_DP)
           den2_si = (den2 / GU) * MU2KG / (DU2M ** 3.0_DP)
 
-
           mres(:) = 0.0_DP
           rres(:) = 0.0_DP
           pres(:,:) = 0.0_DP
           vres(:,:) = 0.0_DP
-
-
-
-          !regime = collresolve_resolve(model,m1_msun,m2_msun,rad1_au,rad2_au,x1_au(:),x2_au(:), v1_auy(:),v2_auy(:), &
-               !nres,mres,rres,pres,vres)
-
-          !regime = collresolve_resolve(model,m1_si,m2_si,rad1,rad2,x1(:),x2(:), v1(:),v2(:),nres,mres,rres,pres,vres)
 
           IF (m1_si > m2_si) THEN 
                itarg = index1
@@ -255,30 +247,9 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           dentot = (m1_si *den1 +m2_si*den2 )/ mtot
           Mcenter = symba_plA%helio%swiftest%mass(1) * MU2KG / GU
 
-          WRITE(*,*) "mtarg: ", mtarg
-          WRITE(*,*) "mproj: ", mproj
-          WRITE(*,*) "rtarg: ", rtarg
-          WRITE(*,*) "rproj: ", rproj
-          WRITE(*,*) "xtarg: ", xtarg
-          WRITE(*,*) "xproj: ", xproj
-          WRITE(*,*) "vtarg: ", vtarg
-          WRITE(*,*) "vproj: ", vproj
-          WRITE(*,*) "itarg: ", itarg
-          WRITE(*,*) "iproj: ", iproj
+          regime = collresolve_resolve(model,mtarg,mproj,rtarg,rproj,xtarg,xproj, vtarg,vproj, nres, mres, rres, pres, vres)
 
-
-          CALL util_regime(Mcenter, mtarg, mproj, rtarg, rproj, xtarg, xproj, vtarg, vproj, dentarg, denproj, regime, Mlr, Mslr)
-          WRITE(*,*) "Mlr :", Mlr, "Mslr: ", Mslr
-          !WRITE(*,*) "After collresolve_resolve"
-
-          !WRITE(*,*) "nres: ", nres 
-          !WRITE(*,*) "mres: ", mres(:) !THIS IS THE PROBLEM
-          !WRITE(*,*) "rres: ", rres(:)
-          !WRITE(*,*) "pres: ", pres(:,:)
-          !WRITE(*,*) "vres: ", vres(:,:)
-
-
-          !PROBLEM
+          !CALL util_regime(symba_plA, mtarg, mproj, rtarg, rproj, xtarg, xproj, vtarg, vproj, regime, Mlr, Mslr)
 
           mres(1) = Mlr
           mres(2) = Mslr 
@@ -286,7 +257,6 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           rres(1) = (3.0_DP * mres(1)  / (4.0_DP * PI * dentarg)) *(1.0_DP/3.0_DP)
           rres(2) = (3.0_DP * mres(2)  / (4.0_DP * PI * denproj)) *(1.0_DP/3.0_DP)
           rres(3) = (3.0_DP * mres(2)  / (4.0_DP * PI * dentot)) *(1.0_DP/3.0_DP)
-          !rres(:) = rres(:)*AU2CM/DU2CM
 
           mres(:) = (mres(:) / MU2KG) * GU
           rres(:) = rres(:) / DU2M
