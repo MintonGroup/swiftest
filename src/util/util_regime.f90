@@ -24,7 +24,7 @@
 !                Vetterling, and Flannery, 2nd ed., pp. 1173-4
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, regime, Mlr, Mslr)
+SUBROUTINE util_regime(symba_plA, Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1, index2, den1, den2, regime, Mlr, Mslr)
 
 ! Modules
      USE swiftest
@@ -39,12 +39,12 @@ SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, regime
 ! Arguments
      TYPE(symba_pl), INTENT(INOUT) :: symba_plA
      INTEGER(I4B), INTENT(OUT)     :: regime
-     REAL(DP), INTENT(OUT)         :: Mlr, Mslr, m1, m2, rad1, rad2
+     REAL(DP), INTENT(OUT)         :: Mcenter, Mlr, Mslr, m1, m2, rad1, rad2, den1, den2
      REAL(DP), DIMENSION(NDIM)     :: xh1, xh2, vh1, vh2
 
 ! Internals
-     REAL(DP)                      :: b,l,mu,Vescp,V_pstar, Rp, mtot, RC1
-     REAL(DP)                      :: alpha, QRD_pstar, QR, QR_supercat, QRD_lr, V_lr, vimp, bcrit
+     REAL(DP)                      :: b,l,mu,Vescp,V_pstar, Rp, mtot, RC1, Vhill, E, a1
+     REAL(DP)                      :: alpha, QRD_pstar, QR, QR_supercat, QRD_lr, V_erosion, vimp, bcrit
      REAL(DP)                      :: Vcr, V_supercat, Mint, Lint, Aint, fgamma, theta, rtarg, n2g, n2, phi
      REAL(DP)                      :: c1, c2,c3,c4,c5, rho1, rho2, beta, c_star, density1, g, mp, mtarg, mu_bar, n1, n1g
      REAL(DP), DIMENSION(3)        :: ans
@@ -63,6 +63,7 @@ SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, regime
      c3 = 1.86
      c4 = 1.08
      c5 = 5.0_DP/2.0_DP
+     crufu = (2.0_DP-3.0_DP*0.36_DP)
 
 
 
@@ -70,155 +71,108 @@ SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, regime
 
 
 ! shouldn't this be mass of index1 + index1 children?
-     !m1 = symba_plA%helio%swiftest%mass(index1)/GC
-     !m2 = symba_plA%helio%swiftest%mass(index2)/GC
-     !xh1(:) = symba_plA%helio%swiftest%xh(:,index1)
-     !xh2(:) = symba_plA%helio%swiftest%xh(:,index2)
-     !vh1(:) = symba_plA%helio%swiftest%vh(:,index1)
-     !vh2(:) = symba_plA%helio%swiftest%vh(:,index2)
-     Vimp = NORM2(vh2(:) - vh1(:))
-     !rad1 = symba_plA%helio%swiftest%radius(index1)
-     !rad2 = symba_plA%helio%swiftest%radius(index2)
-     b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
-     l = (rad1 + rad2)*(1-b)
-     IF (l < 2*rad2) THEN
-          alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
-     ELSE
-          alpha = 1.0_DP
-     END IF 
-
-     mtot = m1 + m2 
-     
-     ! DM: rho1 is not defined yet
-      !****************************
-      rho1 = 2500.0_DP ! Taking a wild guess and assuming it should be SI
-      !****************************
-     Rp = (3*(m1+alpha*m2)/(4.0_DP * PI * rho1)**(1.0_DP/3.0_DP))
-     
-     Vescp = SQRT(2*GC*mtot/(rad1+rad2))
-
-     ans(:) = calc_erosion(m1, m2, alpha)
-     QRD_pstar = ans(1)
+      Vimp = NORM2(vh2(:) - vh1(:))
+      b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
+      l = (rad1 + rad2)*(1-b)
+      E = (NORM2(vh1)**2)/2 - G*Mcenter/NORM2(xh1)
+      a1 = - G*M_Planet/2/E
+      mu = (m1*m2)/mtot
+      IF (l < 2*rad2) THEN
+           alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
+      ELSE
+           alpha = 1.0_DP
+      END IF 
+      mtot = m1 + m2 
+      Rp = (3*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
+     !Calculate Vescp
+      Vescp = SQRT(2*GC*mtot/(rad1+rad2))
+     !Calculate Rhill
+      Rhill = a1*(m1/3/(Mcenter+m1))**(1/3)
+     !Calculate Vhill
+      if ((rad2 + rad1) < Rhill) then 
+        Vhill = sqrt(2 * G * m1 * ((Rhill ** 2 - Rhill * (rad1 + rad2)) / (Rhill ** 2 - 0.5 * (rad1+rad2) ** 2)) / ri)
+      else
+        Vhill = Vesc_p
+      end if 
+     !Calculate QR_pstar
+      QRD_pstar = calc_erosion(m1, m2, alpha)*(Vhill/Vesc_p)**crufu !rufu et al. eq (3)
      Write(*,*) "QRD_pstar", QRD_pstar
-
-     V_pstar = ans(2)
-     V_lr = ans(3)
-     Write(*,*) "V_lr", V_lr 
-
-     mu = (m1*m2)/mtot
-     QR = 0.5*mu*(vimp**2.0_DP)/mtot
+     !Calculate V_erosion
+      QR_erosion = 2.0_DP * ((1.0_DP - m1) / mtot) * QRD_pstar
+      V_erosion = ((2.0_DP * QR_erosion * mtot) / mu)** (1.0_DP / 2.0_DP)
+     Write(*,*) "V_erosion", V_erosion 
+      QR = 0.5*mu*(vimp**2.0_DP)/mtot
      Write(*,*) "QR", QR
-     Mlr = (1.0_DP - 0.5 * QR / QRD_pstar) * (mtot)  ! [kg] #(Eq 5)
+     !Calculate Mass largest remnant Mlr 
+      Mlr = (1.0_DP - 0.5 * QR / QRD_pstar) * (mtot)  ! [kg] #(Eq 5)
      Write(*,*) "Mlr", Mlr 
-     Phi = 2.0_DP * ACOS((l - Rp) / Rp)
-     Aint = (Rp ** 2.0_DP) * (PI - (Phi - sin(Phi)) / 2.0_DP)
-     Lint = 2.0_DP * (Rtarg ** 2.0_DP - (Rtarg - l / 2.0_DP) ** 2.0_DP) ** (1.0_DP/2.0_DP)
-     Mint = Aint * Lint  ![kg]
-     QRD_lr = calc_QRD_lr(m2, m1, Mint)
-     QR_supercat = 1.8_DP * QRD_pstar
-     V_supercat = ((QR_supercat * mtot)/ (0.5 * mu)) ** (1.0_DP / 2.0_DP)
-     fgamma = (m1 - m2) / mtot
-     theta = 1 - b
-     Vcr = Vescp * (c1 * fgamma * theta ** c5 + c2 * fgamma + c3 * theta ** c5 + c4)
-     bcrit = rad1/(rad1+rad2)
-
-     WRITE(*,*) "START util_regime REGIME: ", regime
-
-    IF( Vimp < Vescp) THEN
-          regime = COLLRESOLVE_REGIME_MERGE
-          WRITE(*,*) "regime perfect merging regime: ", regime
-    ELSE IF (b < bcrit) THEN
-          WRITE(*,*) "regime non grazing"
-          IF (Vimp < V_lr) THEN
-              regime = COLLRESOLVE_REGIME_MERGE
-              WRITE(*,*) "regime partial accretion regime: ", regime
-          ELSE IF (Vimp > V_lr .AND. Vimp < V_supercat) THEN
-              IF (m2 < 1e-3 * m1) THEN
-                    regime = COLLRESOLVE_REGIME_MERGE
-                    WRITE(*,*) "regime cratering: ", regime
-              ELSE 
-                    Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
-                    regime = COLLRESOLVE_REGIME_DISRUPTION
-                    WRITE(*,*) "regime disruption: ", regime, Mlr, Mslr
-              END IF
-          ELSE IF (Vimp > V_supercat) THEN 
-               Mlr = Mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
-               Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
-               regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC
-               WRITE(*,*) "regime supercatastrophic: ", regime, Mlr, Mslr
-          ELSE 
-               WRITE(*,*) "error"
-          END IF
-    ELSE IF  (b > bcrit) THEN
-          WRITE(*,*) "regime grazing"
-          IF (Vimp < V_lr) THEN
-              IF (Vimp < Vcr) THEN
-                    regime = COLLRESOLVE_REGIME_MERGE
-                    WRITE(*,*) "regime graze and merge: ", regime
-              ELSE
-                    Mlr = Mtarg
-                    Mslr = (Mp + Mint) * (1.0_DP - 0.5_DP * QR / QRD_lr)
-                    regime = COLLRESOLVE_REGIME_HIT_AND_RUN
-                    WRITE(*,*) "regime hit and run: ", regime, Mlr, Mslr
-              END IF
-               
-          ELSE IF (Vimp > V_lr .AND. Vimp < V_supercat) THEN
-              IF (m2 < 1e-3 * m1) THEN 
-                    regime = COLLRESOLVE_REGIME_MERGE
-                    WRITE(*,*) "regime cratering: ", regime
-              ELSE
-                    Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
-                    regime = COLLRESOLVE_REGIME_DISRUPTION
-                    WRITE(*,*) "regime disruption: ", regime, Mlr, Mslr
-              END IF 
-          ELSE IF (Vimp > V_supercat) THEN 
-              Mlr = Mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
-              Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
-              regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC
-              WRITE(*,*) "regime supercatastrophic: ", regime, Mlr, Mslr
-          END IF 
-     END IF 
-
-     WRITE(*,*) "END util_regime REGIME: ", regime
-
+     !Calculate V_supercat
+      QR_supercat = 1.8_DP * QRD_pstar
+      V_supercat = ((QR_supercat * mtot)/ (0.5 * mu)) ** (1.0_DP / 2.0_DP)
+     !Calculate Vcr
+      fgamma = (m1 - m2) / mtot
+      theta = 1 - b
+      Vcr = Vescp * (c1 * fgamma * theta ** c5 + c2 * fgamma + c3 * theta ** c5 + c4)
+      bcrit = rad1/(rad1+rad2)
+     !Calculate Mint
+      Phi = 2.0_DP * ACOS((l - rad2) / rad2)
+      Aint = (rad2 ** 2.0_DP) * (PI - (Phi - sin(Phi)) / 2.0_DP)
+      Lint = 2.0_DP * (rad2 ** 2.0_DP - (rad2 - l / 2.0_DP) ** 2.0_DP) ** (1.0_DP/2.0_DP)
+      Mint = Aint * Lint  ![kg]
+      IF( vimp < vescp) THEN
+        regime = MERGED !perfect merging regime
+      ELSE IF (vimp < verosion) THEN 
+        IF (b<bcrit) THEN 
+          regime = MERGED !partial accretion regime"
+        ELSE IF ((b>bcrit) .AND. (Vimp < Vcr)) THEN 
+          regime = MERGED ! graze and merge
+        ELSE 
+          Mlr = m1
+          Mslr = (m2 + mint) * (1.0_DP - 0.5_DP * QR / QRD_lr)
+          regime = HIT_AND_RUN !hit and run
+        END IF 
+      ELSE IF (vimp > verosion .AND. vimp < vsupercat) THEN 
+        IF ((m2 < 1e-3 * m1)) THEN 
+          regime = MERGED !cratering regime"
+        ELSE 
+          Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
+          regime = DISRUPTION !disruption
+        END IF 
+      ELSE IF (Vimp > V_supercat) THEN 
+        Mlr = Mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
+        Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
+        regime = SUPERCATASTROPHIC ! supercatastrophic
+      ELSE 
+        WRITE(*,*) "Error no regime found in util_regime"
+      END IF 
     RETURN 
+
+
 ! Functions
 contains
 function calc_erosion(Mtarg,Mp,alpha) result(ans)
    implicit none
    real(DP),intent(in) :: Mtarg, Mp, alpha
-   real(DP) :: QRD_star1, V_star1, RC1, mu_alpha, mu, QRD_star, mu_bar, V_star, QRD_pstar, V_pstar, QR, Verosion, G
-   real(DP), DIMENSION(3) :: ans
-   mu_bar = 0.37
-   G = 6.674e-11
-   ! calc RC1
-   RC1 = (3.0_DP * (Mp + Mtarg)) /  ((4.0_DP * PI * density1) ** (1.0_DP / 3.0_DP))  ! [m]
+   real(DP)            :: QRD_star1, mu_alpha, mu, QRD_star, RD_pstar, QR
+   real(DP)            :: ans
    ! calc mu, mu_alpha
    mu = (Mtarg * Mp) / (Mtarg + Mp)  ! [kg]
    mu_alpha = (Mtarg * alpha * Mp) / (Mtarg + alpha * Mp)  ! [kg]
-   ! calc QRD_star1, V_star1
+   ! calc QRD_star1
    QRD_star1 = (c_star * 4.0_DP * PI * density1 * G * (RC1 ** 2.0_DP)) / 5.0_DP
-   V_star1 = ((2.0_DP * QRD_star1 * (Mtarg + Mp)) /  mu) ** (1.0_DP / 2.0_DP)
-   ! calc QRD_star, V_star
+   ! calc QRD_star
    QRD_star = QRD_star1 * (((Mp / Mtarg + 1.0_DP) ** 2.0_DP) / (4.0_DP * Mp / Mtarg)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP)  !(Eq 23)
-   V_star = V_star1 * (((Mp / Mtarg + 1.0_DP) ** 2.0_DP) / (4.0_DP * Mp / Mtarg)) ** (1.0_DP / (3.0_DP * mu_bar))  ! (Eq 22)
    ! calc QRD_pstar, V_pstar
    QRD_pstar = ((mu / mu_alpha) ** (2.0_DP - 3.0_DP * mu_bar / 2.0_DP)) * QRD_star  ! (Eq 15)
-   V_pstar = (2.0_DP * QRD_pstar * (Mtarg + Mp) / mu) ** (1.0_DP / 2.0_DP)  ! (Eq 16)
-   ! calc QR, Verosion
-   QR = 2.0_DP * ((1.0_DP - Mtarg) / (Mtarg + Mp)) * QRD_pstar
-   Verosion = ((2.0_DP * QR * (Mtarg + Mp)) / (Mtarg * Mp / (Mtarg + Mp))) ** (1.0_DP / 2.0_DP)
-
-   ans(1) = QRD_pstar
-   ans(2) = V_pstar
-   ans(3) = Verosion
+   
+   ans = QRD_pstar
    return
 end function calc_erosion
 
 function calc_QRD_lr(Mp,Mtarg,Mint) result(ans)
    implicit none
    real(DP),intent(in) :: Mp, Mtarg, Mint
-   real(DP) :: ans, Mtlr, mu, gammalr, QRD_star1, c_star, G, V_star1, QRD_lr, mu_bar, QR, V_lr
+   real(DP) :: ans, Mtlr, mu, gammalr, QRD_star1, c_star, G, V_star1, QRD_lr, mu_bar, QR, V_erosion
    c_star = 1.8
    G = 6.674e-11
    mu_bar = 0.37
@@ -230,12 +184,12 @@ function calc_QRD_lr(Mp,Mtarg,Mint) result(ans)
    ! calc QRD_star1, V_star1
    QRD_star1 = (c_star * 4.0_DP * PI * density1 * G * (RC1 ** 2.0_DP)) / 5.0_DP
    V_star1 = ((2.0_DP * QRD_star1 * (Mint + Mp)) / mu) ** (1.0_DP / 2.0_DP)
-   ! calc QRD_lr, QR, V_lr
+   ! calc QRD_lr, QR, V_erosion
    QRD_lr = QRD_star1 * (((gammalr + 1.0_DP) ** 2.0_DP) / (4.0_DP * gammalr)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP) !(Eq 52)
    QR = 2.0_DP * (1.0_DP - (Mint / Mtlr)) * QRD_lr
-   V_lr = ((2.0_DP * QR * Mtlr) / mu) ** (1.0_DP / 2.0_DP)     !(Eq 54)
+   V_erosion = ((2.0_DP * QR * Mtlr) / mu) ** (1.0_DP / 2.0_DP)     !(Eq 54)
 
-   ans = V_lr
+   ans = V_erosion
    return
 end function calc_QRD_lr
 
