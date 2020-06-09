@@ -68,17 +68,19 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 ! Executable code
 
       vimp = NORM2(vh2(:) - vh1(:))
+      WRITE(*,*) "vimp = ", vimp 
       b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
       l = (rad1 + rad2)*(1-b)
       E = (NORM2(vh1)**2)/2 - G*Mcenter/NORM2(xh1)
       a1 = - G*Mcenter/2/E
+      mtot = m1 + m2 
       mu = (m1*m2)/mtot
+      WRITE(*,*) "mu = ", mu
       IF (l < 2*rad2) THEN
            alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
       ELSE
            alpha = 1.0_DP
       END IF 
-      mtot = m1 + m2 
       Rp = (3*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
      !Calculate Vescp
       vescp = SQRT(2*GC*(m1+alpha*m2)/(Rp))
