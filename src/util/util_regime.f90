@@ -97,7 +97,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       QRD_pstar = calc_erosion(m1, m2, alpha)*(vhill/vescp)**crufu !rufu et al. eq (3)
      Write(*,*) "QRD_pstar", QRD_pstar
      !Calculate verosion
-      QR_erosion = 2.0_DP * ((1.0_DP - m1) / mtot) * QRD_pstar
+      QR_erosion = 2.0_DP * (1.0_DP - m1 / mtot) * QRD_pstar
       verosion = (2.0_DP * QR_erosion * mtot / mu)** (1.0_DP / 2.0_DP)
      Write(*,*) "verosion", verosion 
       QR = mu*(vimp**2.0_DP)/mtot/2.0_DP
