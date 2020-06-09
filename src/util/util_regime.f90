@@ -92,10 +92,10 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      !Calculate Vescp
       vescp = SQRT(2*GC*(m1+alpha*m2)/(Rp))
      !Calculate Rhill
-      Rhill = a1*(m1/3/(Mcenter+m1))**(1/3)
+      Rhill = a1*(m1/3/(Mcenter+m1))**(1.0_DP/3.0_DP)
      !Calculate Vhill
       if ((rad2 + rad1) < Rhill) then 
-        vhill = sqrt(2 * G * m1 * ((Rhill ** 2 - Rhill * (rad1 + rad2)) / (Rhill ** 2 - 0.5 * (rad1+rad2) ** 2)) / ri)
+        vhill = sqrt(2.0_DP * G * m1 * ((Rhill ** 2.0_DP - Rhill * (rad1 + rad2)) / (Rhill ** 2.0_DP - 0.5_DP * (rad1+rad2) ** 2.0_DP)) / (rad1+rad2))
       else
         vhill = vesc_p
       end if 
@@ -104,7 +104,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      Write(*,*) "QRD_pstar", QRD_pstar
      !Calculate verosion
       QR_erosion = 2.0_DP * ((1.0_DP - m1) / mtot) * QRD_pstar
-      verosion = ((2.0_DP * QR_erosion * mtot) / mu)** (1.0_DP / 2.0_DP)
+      verosion = (2.0_DP * QR_erosion * mtot / mu)** (1.0_DP / 2.0_DP)
      Write(*,*) "verosion", verosion 
       QR = 0.5*mu*(vimp**2.0_DP)/mtot
      Write(*,*) "QR", QR
@@ -113,7 +113,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      Write(*,*) "Mlr", Mlr 
      !Calculate vsupercat
       QR_supercat = 1.8_DP * QRD_pstar
-      vsupercat = ((QR_supercat * mtot)/ (0.5 * mu)) ** (1.0_DP / 2.0_DP)
+      vsupercat = ( 2.0_DP * QR_supercat * mtot / mu ) ** (1.0_DP / 2.0_DP)
      !Calculate Vcr
       fgamma = (m1 - m2) / mtot
       theta = 1 - b
