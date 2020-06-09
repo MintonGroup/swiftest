@@ -33,7 +33,7 @@ contains
    write(LUN, 210) "TSTOP ",param%tstop
    write(LUN, 210) "DT",param%dt
    write(LUN, 220) "PL_IN ",trim(adjustl(DUMP_PL_FILE(idx)))
-   write(LUN, 220) "IN_TYPE ",SWIFTER_REAL8_TYPE
+   write(LUN, 220) "IN_TYPE ",trim(adjustl(param%out_type))
    if (param%istep_out > 0) then
       write(LUN, 200) "ISTEP_OUT",param%istep_out
       write(LUN, 220) "BIN_OUT",trim(adjustl(param%outfile))
