@@ -245,7 +245,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           END IF
           mtot = m1_si + m2_si
           dentot = (m1_si *den1 +m2_si*den2 )/ mtot
-          !Mcenter = symba_plA%helio%swiftest%mass(1) * MU2KG / GU
+          Mcenter = symba_plA%helio%swiftest%mass(1) * MU2KG / GU
 
           !regime = collresolve_resolve(model,mtarg,mproj,rtarg,rproj,xtarg,xproj, vtarg,vproj, nres, mres, rres, pres, vres)
 
