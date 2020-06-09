@@ -69,8 +69,8 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 
       vimp = NORM2(vh2(:) - vh1(:))
       b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
-      l = (rad1 + rad2)*(1.0_DP-b)
-      E = ((NORM2(vh1)**2.0_DP)/2.0_DP) - (G*Mcenter/NORM2(xh1))
+      l = (rad1 + rad2)*(1-b)
+      E = (NORM2(vh1)**2.0_DP)/2.0_DP - G*Mcenter/NORM2(xh1)
       a1 = - G*Mcenter/2.0_DP/E
       mtot = m1 + m2 
       mu = (m1*m2)/mtot
@@ -88,6 +88,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       Rp = (3.0_DP*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
      !Calculate vescp
       vescp = SQRT(2.0_DP*G*(mtot)/(Rp)) !Mustill et al. 2018 Eq 6 
+       WRITE(*,*) "vescp = ", vescp
      !Calculate Rhill
       Rhill = a1*(m1/3.0_DP/(Mcenter+m1))**(1.0_DP/3.0_DP)
       Write(*,*) "Rhill = ", Rhill
@@ -156,6 +157,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       ELSE 
         WRITE(*,*) "Error no regime found in util_regime"
       END IF 
+      WRITE(*,*) "end algorithm"
     RETURN 
 
 
@@ -212,6 +214,7 @@ function calc_QRD_rev(Mp,Mtarg,mint,den1,den2, vimp) result(ans)
 
    if ( Mslr > mp ) Mslr = mp !Check conservation of mass
    ans = Mslr
+
    return
 end function calc_QRD_rev
 
