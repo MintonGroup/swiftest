@@ -52,7 +52,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      INTEGER(I4B)                  :: N2 = 2  !number of objects with mass larger than second largest remnant from LS12
      INTEGER(I4B)                  :: N1g = 2  !number of objects with mass equal to the largest remnant from LS12 if Mp = Mtarg
      INTEGER(I4B)                  :: N2g = 4  !number of objects with mass larger than second largest remnant from LS12 if Mp = Mtarg
-     REAL(DP)                      :: density1 = 1000.0_DP ![kg/m3]
+     REAL(DP)                      :: density1 = 1000.0_DP !standard density parameter from LS12 [kg/m3]
      REAL(DP)                      :: G = 6.674e-11 !Gravitational constant [Nm2/kg2]
      REAL(DP)                      :: c_star = 1.8_DP !3.0 #3.0# #5#1.8 #1.8 #Measure of dissipation of energy within the target (Chambers frag.f90)
      REAL(DP)                      :: mu_bar = 0.37_DP !0.385#0.37#0.3333# 3.978 # 1/3 material parameter for hydrodynamic planet-size bodies (LS12)
