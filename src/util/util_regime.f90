@@ -106,6 +106,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       Write(*,*) "QR_erosion", QR_erosion 
       verosion = (2.0_DP * QR_erosion * mtot / mu)** (1.0_DP / 2.0_DP)
       QR = mu*(vimp**2.0_DP)/mtot/2.0_DP
+      QRD_lr = calc_QRD_lr(m2, m1, mint)
      !Calculate Mass largest remnant Mlr 
       Mlr = (1.0_DP - QR / QRD_pstar / 2.0_DP) * (mtot)  ! [kg] #(Eq 5)
      !Calculate vsupercat
