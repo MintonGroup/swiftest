@@ -24,7 +24,7 @@
 !                Vetterling, and Flannery, 2nd ed., pp. 1173-4
 !
 !**********************************************************************************************************************************
-SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1, index2, regime, Mlr, Mslr)
+SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, regime, Mlr, Mslr)
 
 ! Modules
      USE swiftest
@@ -38,7 +38,6 @@ SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1
 
 ! Arguments
      TYPE(symba_pl), INTENT(INOUT) :: symba_plA
-     INTEGER(I4B), INTENT(IN)      :: index1, index2
      INTEGER(I4B), INTENT(OUT)     :: regime
      REAL(DP), INTENT(OUT)         :: Mlr, Mslr, m1, m2, rad1, rad2
      REAL(DP), DIMENSION(NDIM)     :: xh1, xh2, vh1, vh2
@@ -123,60 +122,64 @@ SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1
      Vcr = Vescp * (c1 * fgamma * theta ** c5 + c2 * fgamma + c3 * theta ** c5 + c4)
      bcrit = rad1/(rad1+rad2)
 
-     IF( Vimp < Vescp) THEN
-          WRITE(*,*) "regime perfect merging regime"
-          regime = MERGED
-     ELSE IF (b < bcrit) THEN
+     WRITE(*,*) "START util_regime REGIME: ", regime
+
+    IF( Vimp < Vescp) THEN
+          regime = COLLRESOLVE_REGIME_MERGE
+          WRITE(*,*) "regime perfect merging regime: ", regime
+    ELSE IF (b < bcrit) THEN
           WRITE(*,*) "regime non grazing"
           IF (Vimp < V_lr) THEN
-               WRITE(*,*) "regime partial accretion regime"
-               regime = MERGED
+              regime = COLLRESOLVE_REGIME_MERGE
+              WRITE(*,*) "regime partial accretion regime: ", regime
           ELSE IF (Vimp > V_lr .AND. Vimp < V_supercat) THEN
-               IF (m2 < 1e-3 * m1) THEN
-                    WRITE(*,*) "regime cratering"
-                    regime = MERGED
-               ELSE 
-                    WRITE(*,*) "regime disruption"
+              IF (m2 < 1e-3 * m1) THEN
+                    regime = COLLRESOLVE_REGIME_MERGE
+                    WRITE(*,*) "regime cratering: ", regime
+              ELSE 
                     Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
-                    regime = DISRUPTION
-               END IF
+                    regime = COLLRESOLVE_REGIME_DISRUPTION
+                    WRITE(*,*) "regime disruption: ", regime, Mlr, Mslr
+              END IF
           ELSE IF (Vimp > V_supercat) THEN 
-               WRITE(*,*) "regime supercatastrophic"
                Mlr = Mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
                Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
-               regime = SUPERCATASTROPHIC
+               regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC
+               WRITE(*,*) "regime supercatastrophic: ", regime, Mlr, Mslr
           ELSE 
                WRITE(*,*) "error"
           END IF
     ELSE IF  (b > bcrit) THEN
           WRITE(*,*) "regime grazing"
           IF (Vimp < V_lr) THEN
-               IF (Vimp < Vcr) THEN
-                    WRITE(*,*) "regime graze and merge"
-                    regime = MERGED
-               ELSE
-                    WRITE(*,*) "regime hit and run"
+              IF (Vimp < Vcr) THEN
+                    regime = COLLRESOLVE_REGIME_MERGE
+                    WRITE(*,*) "regime graze and merge: ", regime
+              ELSE
                     Mlr = Mtarg
                     Mslr = (Mp + Mint) * (1.0_DP - 0.5_DP * QR / QRD_lr)
-                    regime = HIT_AND_RUN
-               END IF
+                    regime = COLLRESOLVE_REGIME_HIT_AND_RUN
+                    WRITE(*,*) "regime hit and run: ", regime, Mlr, Mslr
+              END IF
                
           ELSE IF (Vimp > V_lr .AND. Vimp < V_supercat) THEN
-               IF (m2 < 1e-3 * m1) THEN 
-                    WRITE(*,*) "regime cratering"
-                    regime = MERGED
-               ELSE
-                    WRITE(*,*) "regime disruption"
-                     Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
-                     regime = DISRUPTION
-               END IF 
+              IF (m2 < 1e-3 * m1) THEN 
+                    regime = COLLRESOLVE_REGIME_MERGE
+                    WRITE(*,*) "regime cratering: ", regime
+              ELSE
+                    Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
+                    regime = COLLRESOLVE_REGIME_DISRUPTION
+                    WRITE(*,*) "regime disruption: ", regime, Mlr, Mslr
+              END IF 
           ELSE IF (Vimp > V_supercat) THEN 
-               WRITE(*,*) "regime supercatastrophic"
-               Mlr = Mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
-               Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
-               regime = SUPERCATASTROPHIC
+              Mlr = Mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
+              Mslr = ((m1 + m2) * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / Mtot)))) / (N2 * beta)  ! (Eq 37)
+              regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC
+              WRITE(*,*) "regime supercatastrophic: ", regime, Mlr, Mslr
           END IF 
      END IF 
+
+     WRITE(*,*) "END util_regime REGIME: ", regime
 
     RETURN 
 ! Functions
@@ -262,8 +265,6 @@ function calc_b(Mp_pos, Mp_vel, Mp_r, Mtarg_pos, Mtarg_vel, Mtarg_r) result(b)
 
    return
 end function calc_b
-
-
 
 END SUBROUTINE util_regime
 !**********************************************************************************************************************************
