@@ -43,11 +43,11 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      REAL(DP), DIMENSION(NDIM), INTENT(IN)     :: xh1, xh2, vh1, vh2
 
 ! Internals
-     REAL(DP)                      :: alpha, Aint,b,bcrit,fgamma,l,Lint, mu, phi, theta
-     REAL(DP)                      :: QRD_pstar, QR, QR_supercat, QRD_lr
+     REAL(DP)                      :: a1, alpha, Aint, b, bcrit, E, fgamma, l, Lint, mu, phi, theta
+     REAL(DP)                      :: QR, QRD_pstar, QR_erosion, QR_supercat, QRD_lr
      REAL(DP)                      :: vcr, verosion, vescp, vhill, vimp, vsupercat
      REAL(DP)                      :: mint, mtot
-     REAL(DP)                      :: Rp, Rhill, a1, E
+     REAL(DP)                      :: Rp, Rhill 
 ! Constants
      INTEGER(I4B)                  :: N1 = 1  !number of objects with mass equal to the largest remnant from LS12
      INTEGER(I4B)                  :: N2 = 2  !number of objects with mass larger than second largest remnant from LS12
@@ -81,7 +81,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
       l = (rad1 + rad2)*(1-b)
       E = (NORM2(vh1)**2)/2 - G*Mcenter/NORM2(xh1)
-      a1 = - G*M_Planet/2/E
+      a1 = - G*Mcenter/2/E
       mu = (m1*m2)/mtot
       IF (l < 2*rad2) THEN
            alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
@@ -98,10 +98,10 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       if ((rad2 + rad1) < Rhill) then 
         vhill = sqrt(2.0_DP * G * m1 * ((Rhill ** 2.0_DP - Rhill * (rad1 + rad2)) / (Rhill ** 2.0_DP - 0.5_DP * (rad1+rad2) ** 2.0_DP)) / (rad1+rad2))
       else
-        vhill = vesc_p
+        vhill = vescp
       end if 
      !Calculate QR_pstar
-      QRD_pstar = calc_erosion(m1, m2, alpha)*(vhill/vesc_p)**crufu !rufu et al. eq (3)
+      QRD_pstar = calc_erosion(m1, m2, alpha)*(vhill/vescp)**crufu !rufu et al. eq (3)
      Write(*,*) "QRD_pstar", QRD_pstar
      !Calculate verosion
       QR_erosion = 2.0_DP * ((1.0_DP - m1) / mtot) * QRD_pstar
@@ -126,12 +126,12 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       Lint = 2.0_DP * (rad2 ** 2.0_DP - (rad2 - l / 2.0_DP) ** 2.0_DP) ** (1.0_DP/2.0_DP)
       mint = Aint * Lint  ![kg]
       IF( vimp < vescp) THEN
-        regime = COLRESOLVE_REGIME_MERGE !perfect merging regime
+        regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
       ELSE IF (vimp < verosion) THEN 
         IF (b<bcrit) THEN 
-          regime = COLRESOLVE_REGIME_MERGE !partial accretion regime"
+          regime = COLLRESOLVE_REGIME_MERGE !partial accretion regime"
         ELSE IF ((b>bcrit) .AND. (Vimp < Vcr)) THEN 
-          regime = COLRESOLVE_REGIME_MERGE ! graze and merge
+          regime = COLLRESOLVE_REGIME_MERGE ! graze and merge
         ELSE 
           Mlr = m1
           Mslr = (m2 + mint) * (1.0_DP - 0.5_DP * QR / QRD_lr)
@@ -139,7 +139,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
         END IF 
       ELSE IF (vimp > verosion .AND. vimp < vsupercat) THEN 
         IF ((m2 < 1e-3 * m1)) THEN 
-          regime = COLRESOLVE_REGIME_MERGE !cratering regime"
+          regime = COLLRESOLVE_REGIME_MERGE !cratering regime"
         ELSE 
           Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
           regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
@@ -165,7 +165,7 @@ function calc_erosion(Mtarg,Mp,alpha) result(ans)
    mu = (Mtarg * Mp) / (Mtarg + Mp)  ! [kg]
    mu_alpha = (Mtarg * alpha * Mp) / (Mtarg + alpha * Mp)  ! [kg]
    ! calc QRD_star1
-   QRD_star1 = (c_star * 4.0_DP * PI * density1 * G * (RC1 ** 2.0_DP)) / 5.0_DP
+   QRD_star1 = (c_star * 4.0_DP * PI * density1 * G * (Rp ** 2.0_DP)) / 5.0_DP
    ! calc QRD_star
    QRD_star = QRD_star1 * (((Mp / Mtarg + 1.0_DP) ** 2.0_DP) / (4.0_DP * Mp / Mtarg)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP)  !(Eq 23)
    ! calc QRD_pstar, V_pstar
