@@ -67,16 +67,6 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 
 ! Executable code
 
-     Vimp = NORM2(vh2(:) - vh1(:))
-     b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
-     l = (rad1 + rad2)*(1-b)
-     IF (l < 2*rad2) THEN
-          alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
-     ELSE
-          alpha = 1.0_DP
-     END IF 
-
-! shouldn't this be mass of index1 + index1 children?
       Vimp = NORM2(vh2(:) - vh1(:))
       b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
       l = (rad1 + rad2)*(1-b)
