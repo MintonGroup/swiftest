@@ -71,17 +71,18 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       WRITE(*,*) "vimp = ", vimp 
       b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
       l = (rad1 + rad2)*(1-b)
-      E = (NORM2(vh1)**2)/2 - G*Mcenter/NORM2(xh1)
+      l = (rad1 + rad2)*(1.0_DP-b)
       a1 = - G*Mcenter/2/E
+      a1 = - G*Mcenter/2.0_DP/E
       mtot = m1 + m2 
       mu = (m1*m2)/mtot
       WRITE(*,*) "mu = ", mu
       IF (l < 2*rad2) THEN
-           alpha = (l**2.0_DP)*(3*rad2-l)/(4*(rad2**3.0_DP))
+           alpha = (l**2.0_DP)*(3.0_DP*rad2-l)/(4.0_DP*(rad2**3.0_DP))
       ELSE
            alpha = 1.0_DP
       END IF 
-      Rp = (3*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
+      Rp = (3.0_DP*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
      !Calculate Vescp
       vescp = SQRT(2*GC*(m1+alpha*m2)/(Rp))
      !Calculate Rhill
@@ -103,14 +104,14 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       QR = mu*(vimp**2.0_DP)/mtot/2.0_DP
      Write(*,*) "QR", QR
      !Calculate Mass largest remnant Mlr 
-      Mlr = (1.0_DP - 0.5 * QR / QRD_pstar) * (mtot)  ! [kg] #(Eq 5)
+      Mlr = (1.0_DP - 0.5_DP* QR / QRD_pstar) * (mtot)  ! [kg] #(Eq 5)
      Write(*,*) "Mlr", Mlr 
      !Calculate vsupercat
       QR_supercat = 1.8_DP * QRD_pstar
       vsupercat = ( 2.0_DP * QR_supercat * mtot / mu ) ** (1.0_DP / 2.0_DP)
      !Calculate Vcr
       fgamma = (m1 - m2) / mtot
-      theta = 1 - b
+      theta = 1.0_DP - b
       vcr = vescp * (c1 * fgamma * theta ** c5 + c2 * fgamma + c3 * theta ** c5 + c4)
       bcrit = rad1/(rad1+rad2)
      !Calculate mint
@@ -131,7 +132,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
           regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
         END IF 
       ELSE IF (vimp > verosion .AND. vimp < vsupercat) THEN 
-        IF ((m2 < 1e-3 * m1)) THEN 
+        IF ((m2 < 0.001_DP * m1)) THEN 
           regime = COLLRESOLVE_REGIME_MERGE !cratering regime"
         ELSE 
           Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
