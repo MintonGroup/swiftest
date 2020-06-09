@@ -67,7 +67,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
      INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
-     REAL(DP)                       :: rad1, rad2, m1, m2, den1, den2, denchild, dentarg, denproj, dentot
+     REAL(DP)                       :: rad1, rad2, m1, m2, den1, den2, denchild, dentarg, denproj, dentot, Mcenter
      REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2, x1_si, x2_si, v1_si, v2_si, xproj, xtarg, vproj, vtarg
      REAL(DP)                       :: den1_si, den2_si, rad1_si, rad2_si, rproj, rtarg
