@@ -313,7 +313,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           WRITE(*,*) "iproj: ", iproj
 
 
-          CALL util_regime(symba_plA, mtarg, mproj, rtarg, rproj, xtarg, xproj, vtarg, vproj, itarg, iproj, regime, Mlr, Mslr)
+          CALL util_regime(symba_plA, mtarg, mproj, rtarg, rproj, xtarg, xproj, vtarg, vproj, regime, Mlr, Mslr)
           WRITE(*,*) "Mlr :", Mlr, "Mslr: ", Mslr
           !WRITE(*,*) "After collresolve_resolve"
 
