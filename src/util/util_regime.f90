@@ -125,28 +125,28 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       Lint = 2.0_DP * (rad2 ** 2.0_DP - (rad2 - l / 2.0_DP) ** 2.0_DP) ** (1.0_DP/2.0_DP)
       mint = Aint * Lint  ![kg]
       IF( vimp < vescp) THEN
-        regime = MERGED !perfect merging regime
+        regime = COLRESOLVE_REGIME_MERGE !perfect merging regime
       ELSE IF (vimp < verosion) THEN 
         IF (b<bcrit) THEN 
-          regime = MERGED !partial accretion regime"
+          regime = COLRESOLVE_REGIME_MERGE !partial accretion regime"
         ELSE IF ((b>bcrit) .AND. (Vimp < Vcr)) THEN 
-          regime = MERGED ! graze and merge
+          regime = COLRESOLVE_REGIME_MERGE ! graze and merge
         ELSE 
           Mlr = m1
           Mslr = (m2 + mint) * (1.0_DP - 0.5_DP * QR / QRD_lr)
-          regime = HIT_AND_RUN !hit and run
+          regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
         END IF 
       ELSE IF (vimp > verosion .AND. vimp < vsupercat) THEN 
         IF ((m2 < 1e-3 * m1)) THEN 
-          regime = MERGED !cratering regime"
+          regime = COLRESOLVE_REGIME_MERGE !cratering regime"
         ELSE 
           Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
-          regime = DISRUPTION !disruption
+          regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
         END IF 
       ELSE IF (vimp > vsupercat) THEN 
         Mlr = Mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
         Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
-        regime = SUPERCATASTROPHIC ! supercatastrophic
+        regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC ! supercatastrophic
       ELSE 
         WRITE(*,*) "Error no regime found in util_regime"
       END IF 
