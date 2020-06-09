@@ -94,6 +94,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
           WRITE(*, *) "SWIFTEST Warning:"
           WRITE(*, *) "   In symba_step_recur, local time step is too small"
           WRITE(*, *) "   Roundoff error will be important!"
+          call util_exit(FAILURE)
      END IF
      irecp = ireci + 1
 

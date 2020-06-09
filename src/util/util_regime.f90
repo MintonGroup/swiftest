@@ -89,6 +89,11 @@ SUBROUTINE util_regime(symba_plA, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, index1
      END IF 
 
      mtot = m1 + m2 
+     
+     ! DM: rho1 is not defined yet
+      !****************************
+      rho1 = 2500.0_DP ! Taking a wild guess and assuming it should be SI
+      !****************************
      Rp = (3*(m1+alpha*m2)/(4.0_DP * PI * rho1)**(1.0_DP/3.0_DP))
      
      Vescp = SQRT(2*GC*mtot/(rad1+rad2))
