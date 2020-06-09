@@ -121,22 +121,30 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       mint = Aint * Lint  ![kg]
       IF( vimp < vescp) THEN
         regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
+         Mlr = mtot
+         Mslr = 0.0_DP
       ELSE IF (vimp < verosion) THEN 
         IF (b<bcrit) THEN 
           regime = COLLRESOLVE_REGIME_MERGE !partial accretion regime"
-        ELSE IF ((b>bcrit) .AND. (Vimp < Vcr)) THEN 
+           Mlr = mtot
+           Mslr = 0.0_DP
+        ELSE IF ((b>bcrit) .AND. (vimp < vcr)) THEN 
           regime = COLLRESOLVE_REGIME_MERGE ! graze and merge
+           Mlr = mtot
+           Mslr = 0.0_DP
         ELSE 
-          Mlr = m1
-          Mslr = (m2 + mint) * (1.0_DP - 0.5_DP * QR / QRD_lr)
+           Mlr = m1
+           Mslr = (m2 + mint) * (1.0_DP - 0.5_DP * QR / QRD_lr)
           regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
         END IF 
       ELSE IF (vimp > verosion .AND. vimp < vsupercat) THEN 
         IF ((m2 < 0.001_DP * m1)) THEN 
           regime = COLLRESOLVE_REGIME_MERGE !cratering regime"
+           Mlr = mtot
+           Mslr = 0.0_DP
         ELSE 
-          Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
-          regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
+           Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
+           regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
         END IF 
       ELSE IF (vimp > vsupercat) THEN 
         Mlr = mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
