@@ -72,7 +72,7 @@ PROGRAM tool_encounter_read
      READ(*,100)inparfile
  100 FORMAT(A)
      inparfile=TRIM(ADJUSTL(inparfile))
-   param = io_read_param_in(inparfile)
+   call param%read_from_file(inparfile)
 
    ! temporary until the conversion to the derived type argument list is complete
    nplmax = param%nplmax

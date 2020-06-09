@@ -3,7 +3,7 @@ contains
    module procedure io_write_frame
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
-   !! Write a frame (header plus records for each planet and active test particle) to output binary file
+   !! Write a frame (header plus records for each plAnet and active test particle) to output binary file
    !! There is no direct file output from this subroutine
    !!
    !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
@@ -26,8 +26,11 @@ contains
          open(unit = iu, file = outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
       case('NEW')
          open(unit = iu, file = outfile, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
-      case default
+      case ('REPLACE')
          open(unit = iu, file = outfile, status = 'REPLACE', form = 'UNFORMATTED', iostat = ierr)
+      case default
+         write(*,*) 'Invalid status code',trim(adjustl(out_stat))
+         call util_exit(FAILURE)
       end select
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
@@ -51,34 +54,34 @@ contains
       end if
    end if
 
-   call io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
+   call io_write_hdr(iu, t, swiftest_plA%npl, swiftest_tpA%ntp, iout_form, out_type)
    select case (iout_form)
    case (EL)
-      do i = 2, npl
-         mu = swiftest_pla%mass(1) + swiftest_pla%mass(i)
-         j = swiftest_pla%name(i)
-         call orbel_xv2el(swiftest_pla%xh(:,i), swiftest_pla%vh(:,i), mu, a, e, inc, capom, omega, capm)
+      do i = 2, swiftest_plA%npl
+         mu = swiftest_plA%mass(1) + swiftest_plA%mass(i)
+         j = swiftest_plA%name(i)
+         call orbel_xv2el(swiftest_plA%xh(:,i), swiftest_plA%vh(:,i), mu, a, e, inc, capom, omega, capm)
          call io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type, &
-         mass = swiftest_pla%mass(i),radius = swiftest_pla%radius(i))
+         mass = swiftest_plA%mass(i),radius = swiftest_plA%radius(i))
       end do
-      mu = swiftest_pla%mass(1)
-      do i = 1, ntp
-      j = swiftest_tpa%name(i)
-      call orbel_xv2el(swiftest_tpa%xh(:,i), swiftest_tpa%vh(:,i), mu, a, e, inc, capom, omega, capm)
-      call io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type)
+      mu = swiftest_plA%mass(1)
+      do i = 1, swiftest_tpA%ntp
+         j = swiftest_tpA%name(i)
+         call orbel_xv2el(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i), mu, a, e, inc, capom, omega, capm)
+         call io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type)
       end do
    case (XV)
-      do i = 2, npl
-         xtmp(:) = swiftest_pla%xh(:,i)
-         vtmp(:) = swiftest_pla%vh(:,i)
-         j = swiftest_pla%name(i)
+      do i = 2, swiftest_plA%npl
+         xtmp(:) = swiftest_plA%xh(:,i)
+         vtmp(:) = swiftest_plA%vh(:,i)
+         j = swiftest_plA%name(i)
          call io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type,                     &
-         mass = swiftest_pla%mass(i), radius = swiftest_pla%radius(i))
+         mass = swiftest_plA%mass(i), radius = swiftest_plA%radius(i))
       end do
-      do i = 1, ntp
-         xtmp(:) = swiftest_tpa%xh(:,i)
-         vtmp(:) = swiftest_tpa%vh(:,i)
-         j = swiftest_tpa%name(i)
+      do i = 1, swiftest_tpA%ntp
+         xtmp(:) = swiftest_tpA%xh(:,i)
+         vtmp(:) = swiftest_tpA%vh(:,i)
+         j = swiftest_tpA%name(i)
          call io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type)
       end do
    end select

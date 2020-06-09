@@ -70,7 +70,7 @@ program swiftest_symba
    100 format(a)
    inparfile = trim(adjustl(inparfile))
    ! read in the param.in file and get simulation parameters
-   param = io_read_param_in(inparfile)
+   call param%read_from_file(inparfile)
 
    ! temporary until the conversion to the derived type argument list is complete
    nplmax = param%nplmax
@@ -144,12 +144,7 @@ program swiftest_symba
    eoffset = 0.0_DP
    fragmax = 0 
    if (istep_out > 0) then
-      call io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, &
-      out_type, out_form, out_stat)
-      if (feature%lpython) then
-          call python_io_write_frame_pl(t, symba_plA, npl, out_stat)
-          if (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
-      end if
+      call io_write_frame(t, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
    end if
    if (out_stat == "old") then
       open(unit = egyiu, file = energy_file, form = "formatted", status = "old", action = "write", position = "append")
@@ -200,13 +195,8 @@ program swiftest_symba
       if (istep_out > 0) then
          iout = iout - 1
          if (iout == 0) then
-            call io_write_frame(t, npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, &
-                  out_form, out_stat)
+            call io_write_frame(t, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
             iout = istep_out
-            if (feature%lpython) then 
-               call python_io_write_frame_pl(t, symba_plA, npl, out_stat= "append")
-               if (ntp>0) call python_io_write_frame_tp(t, symba_tpA, ntp, out_stat= "append")
-            end if 
             if (feature%lenergy) then 
                call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                write(egyiu,300) t, ke, pe, te, htot

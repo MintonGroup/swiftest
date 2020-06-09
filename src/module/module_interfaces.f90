@@ -29,7 +29,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE coord_h2b(npl, swiftest_plA, msys)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: npl
@@ -40,7 +40,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE coord_h2b_tp(ntp, swiftest_tpA, swiftest_plA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: ntp
@@ -51,7 +51,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE coord_vb2vh(npl, swiftest_plA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: npl
@@ -61,7 +61,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE coord_vb2vh_tp(ntp, swiftest_tpA, vs)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)              :: ntp
@@ -72,7 +72,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE coord_vh2vb(npl, swiftest_plA, msys)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)        :: npl
@@ -83,7 +83,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE coord_vh2vb_tp(ntp, swiftest_tpA, vs)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)              :: ntp
@@ -95,7 +95,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin,  &
                qmin_alo, qmin_ahi, qmin_coord, lclose, lrhill_present)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
@@ -110,7 +110,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE discard_peri(t, npl, ntp, swiftest_plA, swiftest_tpA, msys, qmin, qmin_alo, & 
                qmin_ahi, qmin_coord, lrhill_present)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)  :: lrhill_present
@@ -124,7 +124,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(OUT)             :: iflag
                REAL(DP), INTENT(IN)                  :: dt, r2crit
@@ -135,7 +135,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE discard_pl(t, dt, npl, ntp, swiftest_plA, swiftest_tpA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: npl, ntp
@@ -147,7 +147,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE discard_sun(t, ntp, msys, swifter_tpA, rmin, rmax, rmaxu)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: ntp
@@ -158,7 +158,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_dan(mu, x0, v0, dt0, iflag)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(OUT)                :: iflag
                REAL(DP), INTENT(IN)                     :: mu, dt0
@@ -168,7 +168,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_kepmd(dm, es, ec, x, s, c)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(IN)  :: dm, es, ec
                REAL(DP), INTENT(OUT) :: x, s, c
@@ -177,7 +177,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(OUT) :: iflag
                REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
@@ -187,7 +187,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(IN)  :: dt, r0, mu, alpha, u, s
                REAL(DP), INTENT(OUT) :: f
@@ -196,7 +196,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(IN)  :: dt, r0, mu, alpha, u
                REAL(DP), INTENT(OUT) :: s
@@ -205,7 +205,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(OUT) :: iflag
                REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
@@ -216,7 +216,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(OUT) :: iflag
                REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
@@ -227,7 +227,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(OUT) :: iflag
                REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
@@ -237,7 +237,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_kepu_stumpff(x, c0, c1, c2, c3)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(INOUT) :: x
                REAL(DP), INTENT(OUT)   :: c0, c1, c2, c3
@@ -246,7 +246,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE drift_one(mu, x, v, dt, iflag)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(OUT)                :: iflag
                REAL(DP), INTENT(IN)                     :: mu, dt
@@ -256,7 +256,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_drift(npl, swiftest_plA, dt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: npl
@@ -267,7 +267,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_drift_tp(ntp, swiftest_tpA, mu, dt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: ntp
@@ -278,7 +278,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_getacch(lflag, lextra_force, t, npl, nplmax, helio_plA, j2rp2, j4rp4)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                IMPLICIT NONE
@@ -291,7 +291,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_getacch_int(npl, helio_plA)
-               USE swiftest
+               USE module_globals
                USE module_helio
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)       :: npl
@@ -301,7 +301,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_getacch_int_tp(npl, ntp, swiftest_plA, helio_tpA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                IMPLICIT NONE
@@ -313,7 +313,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xh, j2rp2, j4rp4)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                IMPLICIT NONE
@@ -328,7 +328,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_kickvb(npl, helio_plA, dt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                IMPLICIT NONE
@@ -340,7 +340,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_kickvb_tp(ntp, helio_tpA, dt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                IMPLICIT NONE
@@ -352,7 +352,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_lindrift(npl, swiftest_plA, dt, pt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)               :: npl
@@ -364,7 +364,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_lindrift_tp(ntp, swiftest_tpA, dt, pt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)              :: ntp
@@ -376,7 +376,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt)
-               USE swiftest
+               USE module_globals
                USE module_helio
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)      :: lextra_force
@@ -390,7 +390,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_step_pl(lfirst, lextra_force, t, npl, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                IMPLICIT NONE
@@ -407,7 +407,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt, &
                xbeg, xend, ptb, pte)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                IMPLICIT NONE
@@ -424,7 +424,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_user_getacch(t, npl, helio_plA)
-               USE swiftest
+               USE module_globals
                USE module_helio
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)      :: npl
@@ -435,7 +435,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE helio_user_getacch_tp(t, ntp, helio_tpA)
-               USE swiftest
+               USE module_globals
                USE module_helio
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)      :: ntp
@@ -447,7 +447,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, & 
                discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_symba
                IMPLICIT NONE
@@ -479,7 +479,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)        :: lclose, lrhill_present
@@ -490,7 +490,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)        :: ntp
@@ -500,7 +500,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_symba
                USE module_helio
@@ -513,7 +513,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE io_open(iu, fname, fopenstat, fmt, ierr)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)  :: iu
                INTEGER(I4B), INTENT(OUT) :: ierr
@@ -523,7 +523,7 @@ MODULE module_interfaces
 
      INTERFACE
           FUNCTION io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B)                           :: io_read_encounter
                INTEGER(I4B), INTENT(OUT)              :: name1, name2
@@ -535,7 +535,7 @@ MODULE module_interfaces
 
      INTERFACE
           FUNCTION io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B)               :: io_read_hdr
                INTEGER(I4B), INTENT(IN)   :: iu
@@ -547,7 +547,7 @@ MODULE module_interfaces
 
      INTERFACE
           FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B)                    :: io_read_line
                INTEGER(I4B), INTENT(IN)        :: iu
@@ -561,7 +561,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
                xh1, xh2, vh1, vh2, encounter_file, out_type)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)              :: name1, name2
                REAL(DP), INTENT(IN)                  :: t, mass1, mass2, radius1, radius2
@@ -572,7 +572,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)       :: iu, name
                REAL(DP), INTENT(IN)           :: d1, d2, d3, d4, d5, d6
@@ -583,7 +583,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                    :: npl
@@ -597,7 +597,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, msun)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                    :: ntp
                REAL(DP), INTENT(IN)                        :: j2rp2, j4rp4, msun
@@ -609,7 +609,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                   :: npl
@@ -623,7 +623,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE orbel_scget(angle, sx, cx)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(IN)  :: angle
                REAL(DP), INTENT(OUT) :: sx, cx
@@ -632,7 +632,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE orbel_xv2aeq(x, v, mu, a, e, q)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(IN)                  :: mu
                REAL(DP), DIMENSION(NDIM), INTENT(IN) :: x, v
@@ -642,7 +642,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE orbel_xv2aqt(x, v, mu, a, q, capm, tperi)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(IN)                  :: mu
                REAL(DP), DIMENSION(NDIM), INTENT(IN) :: x, v
@@ -652,7 +652,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(IN)                  :: mu
                REAL(DP), DIMENSION(NDIM), INTENT(IN) :: x, v
@@ -662,7 +662,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE python_io_write_frame_pl(t, symba_plA, npl, out_stat)
-               use swiftest
+               use module_globals
                use module_swiftest
                use module_helio
                use module_symba
@@ -676,7 +676,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
-               use swiftest
+               use module_globals
                use module_swiftest
                use module_helio
                use module_symba
@@ -692,7 +692,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), INTENT(IN)                  :: dt, r2crit
                REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xr, vr
@@ -703,7 +703,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
           symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
-          USE swiftest
+          USE module_globals
           USE module_swiftest
           USE module_helio
           USE module_symba
@@ -725,7 +725,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
           symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
-          USE swiftest
+          USE module_globals
           USE module_swiftest
           USE module_helio
           USE module_symba
@@ -748,7 +748,7 @@ MODULE module_interfaces
           SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
           encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
           array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
-          USE swiftest
+          USE module_globals
           USE module_swiftest
           USE module_helio
           USE module_symba
@@ -774,7 +774,7 @@ MODULE module_interfaces
           SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
           encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, &
           nplmax, ntpmax, fragmax, mres, rres, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
-          USE swiftest
+          USE module_globals
           USE module_swiftest
           USE module_helio
           USE module_symba
@@ -802,7 +802,7 @@ MODULE module_interfaces
           SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                eoffset, vbs, symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, &
                rad2, x1, x2, v1, v2)
-          USE swiftest
+          USE module_globals
           USE module_swiftest
           USE module_helio
           USE module_symba
@@ -823,7 +823,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -837,7 +837,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -852,7 +852,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -868,7 +868,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord,          &
                qmin_alo, qmin_ahi, j2rp2, j4rp4, eoffset)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -884,7 +884,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, ldiscards)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(INOUT) :: ldiscards
@@ -897,7 +897,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, dt, &
                rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, lclose, lrhill_present)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -914,7 +914,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_energy(npl, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)               :: npl
@@ -930,7 +930,7 @@ MODULE module_interfaces
                mergesub_list, eoffset, vbs, encounter_file, out_type, npl, ntp, &
                symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
                nplmax, ntpmax, fragmax)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -953,7 +953,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, symba_plA, j2rp2, j4rp4, nplplenc, &
                plplenc_list)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -970,7 +970,7 @@ MODULE module_interfaces
           SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
                xh, j2rp2, j4rp4,  &
                npltpenc, pltpenc_list)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -987,7 +987,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1000,7 +1000,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1013,7 +1013,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1027,7 +1027,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_helio_getacch_int(npl, nplm, helio_plA)
-               USE swiftest
+               USE module_globals
                USE module_helio
                USE module_symba
                IMPLICIT NONE
@@ -1039,7 +1039,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn, symba_plA, &
                symba_tpA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1057,7 +1057,7 @@ MODULE module_interfaces
           SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, &
                mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, &
                symba_tpA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1077,7 +1077,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)
-               USE swiftest
+               USE module_globals
                USE module_swifter
                USE module_helio
                USE module_symba
@@ -1094,7 +1094,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1110,11 +1110,12 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
     discard_tpA,feature)
-               USE swiftest
+               USE module_globals
                USE module_swiftestalloc 
                USE module_swiftest
                USE module_helio
                USE module_symba
+               use io
                IMPLICIT NONE
                INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nsppl, nsptp, nmergeadd !change to fragadd
                TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
@@ -1129,7 +1130,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_reorder_pl(npl, symba_plA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1147,7 +1148,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swiftest_pl1P, &
                swiftest_tp1P)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1167,7 +1168,7 @@ MODULE module_interfaces
                symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
                nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
                fragmax, feature)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1191,7 +1192,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2,     &
                j4rp4, dt)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1208,7 +1209,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend,    &
                ptb, pte)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1227,7 +1228,7 @@ MODULE module_interfaces
           SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,    &
                j4rp4, dt, eoffset, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,    &
                mergesub_list, encounter_file, out_type, fragmax, feature)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1251,7 +1252,7 @@ MODULE module_interfaces
           RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
                npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, & 
                out_type, nplmax, ntpmax, fragmax, feature)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                USE module_helio
                USE module_symba
@@ -1273,7 +1274,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_user_getacch(t, npl, symba_plA)
-               USE swiftest
+               USE module_globals
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)     :: npl
@@ -1284,7 +1285,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_user_getacch_tp(t, ntp, symba_tpA)
-               USE swiftest
+               USE module_globals
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)       :: ntp
@@ -1295,7 +1296,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE util_exit(code)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN) :: code
           END SUBROUTINE util_exit
@@ -1303,7 +1304,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE util_hills(npl, swiftest_plA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: npl
@@ -1313,7 +1314,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE util_index(arr, index)
-               USE swiftest
+               USE module_globals
                USE module_nrutil
                IMPLICIT NONE
                INTEGER(I4B), DIMENSION(:), INTENT(OUT) :: index
@@ -1323,7 +1324,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE util_peri(lfirst, ntp, swiftest_tpA, mu, msys, qmin_coord)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)         :: lfirst
@@ -1336,7 +1337,7 @@ MODULE module_interfaces
 
      INTERFACE 
           SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
-               USE swiftest
+               USE module_globals
                USE module_symba
                USE module_swiftest
                USE module_helio
@@ -1350,17 +1351,17 @@ MODULE module_interfaces
 
      INTERFACE util_sort
           SUBROUTINE util_sort_i4b(arr)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                INTEGER(I4B), DIMENSION(:), INTENT(INOUT) :: arr
           END SUBROUTINE util_sort_i4b
           SUBROUTINE util_sort_sp(arr)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(SP), DIMENSION(:), INTENT(INOUT) :: arr
           END SUBROUTINE util_sort_sp
           SUBROUTINE util_sort_dp(arr)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                REAL(DP), DIMENSION(:), INTENT(INOUT) :: arr
           END SUBROUTINE util_sort_dp
@@ -1368,7 +1369,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE util_toupper(string)
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
                CHARACTER(*), INTENT(INOUT) :: string
           END SUBROUTINE util_toupper
@@ -1376,7 +1377,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
-               USE swiftest
+               USE module_globals
                USE module_swiftest
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: npl, ntp
@@ -1387,7 +1388,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE util_version
-               USE swiftest
+               USE module_globals
                IMPLICIT NONE
           END SUBROUTINE util_version
      END INTERFACE
@@ -1395,7 +1396,7 @@ MODULE module_interfaces
      ! Added by D. Minton
      INTERFACE
          FUNCTION util_kahan_sum(xsum_current, xi, xerror) 
-            USE swiftest
+            USE module_globals
             IMPLICIT NONE
             REAL(DP)                :: util_kahan_sum
             REAL(DP), INTENT(IN)    :: xsum_current, xi
@@ -1405,7 +1406,7 @@ MODULE module_interfaces
 
      INTERFACE
          FUNCTION collresolve_resolve(model,m1,m2,r1,r2,p1,p2,v1,v2,n,mres,rres,pres,vres)
-         USE swiftest
+         USE module_globals
          IMPLICIT NONE
          INTEGER(I4B) :: collresolve_resolve
          INTEGER(I4B), INTENT(IN) :: model               ! collision model to apply

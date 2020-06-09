@@ -8,6 +8,7 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
    !! Adapted from Martin Duncan's Swift routine io_init_param.f
    !$ use omp_lib
+   use io
    implicit none
 
    integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
@@ -214,7 +215,7 @@ contains
          write(*,*) 'Invalid out_form: ',param%out_form
          ierr = -1
       end if
-      if ((param%out_stat /= "NEW") .and. (param%out_stat /= "UNKNOWN") .and. (param%out_stat /= "APPEND")) then
+      if ((param%out_stat /= "NEW") .and. (param%out_stat /= "REPLACE") .and. (param%out_stat /= "APPEND")) then
          write(*,*) 'Invalid out_stat: ',param%out_stat
          ierr = -1
       end if

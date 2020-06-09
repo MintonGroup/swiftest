@@ -25,7 +25,7 @@
 !**********************************************************************************************************************************
 MODULE module_swifter
 
-     USE swiftest
+     USE module_globals
      IMPLICIT NONE
 
      ! Added by D. Minton
