@@ -81,6 +81,8 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
                mtot = m1 + m2
                xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
                vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
+               name1 = symba_plA%helio%swiftest%name(index1)
+               name2 = symba_plA%helio%swiftest%name(index2)
                WRITE(*, *) "Merging particles ", name1, " and ", name2, " at time t = ",t
                nmergesub = nmergesub + 1
                mergesub_list%name(nmergesub) = name1
