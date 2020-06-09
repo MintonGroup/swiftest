@@ -80,14 +80,14 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
             Aint = (rad2 ** 2.0_DP) * (PI - (Phi - sin(Phi)) / 2.0_DP)
             Lint = 2.0_DP * (rad2 ** 2.0_DP - (rad2 - l / 2.0_DP) ** 2.0_DP) ** (1.0_DP/2.0_DP)
             mint = Aint * Lint  ![kg]
-           alpha = (l**2.0_DP)*(3.0_DP*rad2-l)/(4.0_DP*(rad2**3.0_DP))
+            alpha = (l**2.0_DP)*(3.0_DP*rad2-l)/(4.0_DP*(rad2**3.0_DP))
       ELSE
            alpha = 1.0_DP
            mint = m2
       END IF 
       Rp = (3.0_DP*(m1/den1+alpha*m2/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2019)
      !Calculate vescp
-      vescp = SQRT(2.0_DP*G*(m1+alpha*m2)/(Rp))
+      vescp = SQRT(2.0_DP*G*(mtot)/(Rp)) !Mustill et al. 2018 Eq 6 
      !Calculate Rhill
       Rhill = a1*(m1/3.0_DP/(Mcenter+m1))**(1.0_DP/3.0_DP)
       Write(*,*) "Rhill = ", Rhill
@@ -137,7 +137,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
            Mslr = 0.0_DP
         ELSE 
            Mlr = m1
-           Mslr = (m2 + mint) * (1.0_DP - 0.5_DP * QR / QRD_lr)
+           Mslr = calc_QRD_rev(m1,m2,mint,den1,den2,vimp)
           regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
         END IF 
       ELSE IF (vimp > verosion .AND. vimp < vsupercat) THEN 
@@ -161,7 +161,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 
 ! Functions
 contains
-function calc_erosion(Mtarg,Mp,alpha) result(ans)
+function calc_QRD_pstar(Mtarg,Mp,alpha) result(ans)
    implicit none
    real(DP),intent(in) :: Mtarg, Mp, alpha
    real(DP)            :: QRD_star1, mu_alpha, mu, QRD_star, RD_pstar, QR
@@ -178,28 +178,42 @@ function calc_erosion(Mtarg,Mp,alpha) result(ans)
    
    ans = QRD_pstar
    return
-end function calc_erosion
+end function calc_QRD_pstar
 
-function calc_QRD_lr(Mp,Mtarg,Mint) result(ans)
+function calc_QRD_rev(Mp,Mtarg,mint,den1,den2, vimp) result(ans)
    implicit none
-   real(DP),intent(in) :: Mp, Mtarg, Mint
-   real(DP) :: ans, Mtlr, mu, gammalr, QRD_star1, V_star1, QRD_lr, RC1, QR, verosion
+   real(DP),intent(in) :: Mp, Mtarg, mint, den1, den2, vimp
+   real(DP) :: ans, Mtot_rev, mu_rev, gamma_rev, QRD_star1, QRD_star, mu_alpha_rev
+   real(DP) :: QRD_pstar, RC1, QR_rev, QRD_pstar_rev, Mslr, QR_supercat_rev
    ! calc Mtlr, RC1, mu, gammalr
-   Mtlr =  Mint + Mp
-   RC1 = ((3.0_DP * Mtlr) / (4.0_DP * PI * density1)) ** (1.0_DP / 3.0_DP) ! [m]
-   mu = (Mint * Mp) / (Mint + Mp) ! [kg]
-   gammalr = Mint / Mp
+   Mtot_rev =  mint + Mp
+   RC1 = (3.0_DP*(mint/den1+Mp/den2)/(4.0_DP * PI))**(1.0_DP/3.0_DP) ! [m] Mustill et al 2018
+   mu_rev = (mint * Mp) / Mtot_rev ! [kg] Eq 49 LS12
+   mu_alpha_rev = (Mtarg * alpha * Mp) / (Mtarg + alpha * Mp)
+   gamma_rev = mint / Mp ! Eq 50 LS12
+   !calc QR_rev
+   QR_rev = mu_rev * (vimp ** 2.0_DP) / (2.0_DP * Mtot_rev)
    ! calc QRD_star1, V_star1
-   QRD_star1 = (c_star * 4.0_DP * PI * density1 * G * (RC1 ** 2.0_DP)) / 5.0_DP
-   V_star1 = ((2.0_DP * QRD_star1 * (Mint + Mp)) / mu) ** (1.0_DP / 2.0_DP)
-   ! calc QRD_lr, QR, verosion
-   QRD_lr = QRD_star1 * (((gammalr + 1.0_DP) ** 2.0_DP) / (4.0_DP * gammalr)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP) !(Eq 52)
-   QR = 2.0_DP * (1.0_DP - (Mint / Mtlr)) * QRD_lr
-   verosion = ((2.0_DP * QR * Mtlr) / mu) ** (1.0_DP / 2.0_DP)     !(Eq 54)
+   QRD_star1 = (c_star * 4.0_DP * PI * Mtot_rev * G ) / RC1 / 5.0_DP
+   ! calc QRD_pstar_rev
+   QRD_star = QRD_star1 * (((gamma_rev + 1.0_DP) ** 2.0_DP) / (4.0_DP * gamma_rev)) ** (2.0_DP / (3.0_DP * mu_bar) - 1.0_DP) !(Eq 52)
+   QRD_pstar = QRD_star * ((mu_rev / mu_alpha_rev) ** (2.0_DP - 3.0_DP * mu_bar / 2.0_DP))
+   QRD_pstar_rev = QRD_pstar *(vhill/vescp)**crufu !rufu et al. eq (3)
+   !calc QR_supercat_rev
+   QR_supercat_rev = 1.8_DP * QRD_pstar_rev 
+   !V_supercat_rev = ( 2.0_DP * QR_supercat_rev * Mtot_rev / mu_rev ) ** (1.0_DP / 2.0_DP)
+   if (QR_rev > QR_supercat_rev ) then 
+      Mslr = Mtot_rev * (0.1_DP * ((QR_rev / (QRD_pstar_rev * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
+   else if ( QR_rev < QRD_pstar_rev ) then 
+      Mslr = mp 
+   else 
+      Mslr = (1.0_DP - QR_rev / QRD_pstar_rev / 2.0_DP) * (Mtot_rev)  ! [kg] #(Eq 5)
+   end if 
 
-   ans = verosion
+   if ( Mslr > mp ) Mslr = mp !Check conservation of mass
+   ans = Mslr
    return
-end function calc_QRD_lr
+end function calc_QRD_rev
 
 function calc_b(Mp_pos, Mp_vel, Mp_r, Mtarg_pos, Mtarg_vel, Mtarg_r) result(b)
    implicit none
