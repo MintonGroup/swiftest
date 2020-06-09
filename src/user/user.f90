@@ -8,23 +8,24 @@ module user
 
    !>Logical flags to turn on or off various features of the code
    type, public :: feature_list
-     logical :: lextra_force = .false.       !! User defined force function turned on
-     logical :: lbig_discard = .false.       !! Save big bodies on every discard
-     logical :: lrhill_present = .false.     !! Hill's radius is in input file
-     logical :: lclose = .false.             !! Turn on close encounters
-     logical :: lfragmentation = .false.     !! Do fragmentation modeling instead of simple merger.
-     logical :: lpython = .false.            !! Output binary data in Python-friendly format
-     logical :: lenergy = .false.            !! Track the total energy of the system
-     logical :: lrotation  = .false.         !! Include rotation states of big bodies
-     logical :: ltides     = .false.         !! Include tidal dissipation 
-     logical :: lringmoons = .false.         !! Turn on the ringmoons code 
-     logical :: lpredprey  = .false.         !! Turn on the predator/prey model for seed growth in ringmoons (experimental)
+      logical :: lextra_force = .false.       !! User defined force function turned on
+      logical :: lbig_discard = .false.       !! Save big bodies on every discard
+      logical :: lrhill_present = .false.     !! Hill's radius is in input file
+      logical :: lclose = .false.             !! Turn on close encounters
+      logical :: lfragmentation = .false.     !! Do fragmentation modeling instead of simple merger.
+      logical :: lmtiny  = .false.            !! Use the MTINY variable (SyMBA)
+      logical :: lpython = .false.            !! Output binary data in Python-friendly format
+      logical :: lenergy = .false.            !! Track the total energy of the system
+      logical :: lrotation  = .false.         !! Include rotation states of big bodies
+      logical :: ltides     = .false.         !! Include tidal dissipation 
+      logical :: lringmoons = .false.         !! Turn on the ringmoons code 
+      logical :: lpredprey  = .false.         !! Turn on the predator/prey model for seed growth in ringmoons (experimental)
 
-     ! Future features not implemented or in development
-     logical :: lgr = .false.                !! Turn on GR
-     logical :: lyarkosvsky = .false.        !! Turn on Yarkovsky effect
-     logical :: lyorp = .false.              !! Turn on YORP effect
-   end type feature_list   
+      ! Future features not implemented or in development
+      logical :: lgr = .false.                !! Turn on GR
+      logical :: lyarkosvsky = .false.        !! Turn on Yarkovsky effect
+      logical :: lyorp = .false.              !! Turn on YORP effect
+end type feature_list   
 
    !> User defined input parameters that are read in from param.in
    type, public :: input_parameters
@@ -60,6 +61,7 @@ module user
       real(DP)             :: DU2M = -1.0_DP      !! Converts distance unit to centimeters
    contains
      procedure :: read_from_file => user_read_param_in
+     procedure :: dump_to_file => user_dump_param
    end type input_parameters
 
    interface
@@ -77,6 +79,12 @@ module user
          class(input_parameters),intent(out) :: param         !! Output collection of user-defined parameters
          character(*), intent(in)            :: inparfile     !! Parameter input file name (i.e. param.in)
       end subroutine user_read_param_in
+
+      !> Interface for type-bound procedure to write out the user parameters into a dump file in case the run needs to be restarted
+      module subroutine user_dump_param(param,t)
+         class(input_parameters),intent(in)  :: param         !! Output collection of user-defined parameters
+         real(DP),intent(in)                 :: t             !! Current simulation time
+      end subroutine user_dump_param
 
    end interface
 

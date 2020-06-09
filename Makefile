@@ -45,15 +45,16 @@
 #******************************************************************************
 
 SWIFTEST_MODULES =   module/module_globals.f90 \
-		     module/module_swiftest.f90 \
+                     module/module_swiftest.f90 \
+                     user/user.f90 \
                      io/io.f90 \
-                     module/swiftest.f90 \
                      module/module_swifter.f90 \
                      module/module_helio.f90 \
                      module/module_nrutil.f90 \
                      module/module_symba.f90 \
                      module/module_swiftestalloc.f90 \
-                     module/module_interfaces.f90 
+                     module/module_interfaces.f90 \
+                     module/swiftest.f90 
 
 include Makefile.Defines
 
@@ -129,6 +130,11 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
+	cd $(SWIFTEST_HOME)/src/user; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make libdir
 	cd $(SWIFTEST_HOME)/src/util; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -176,6 +182,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/orbel;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/rmvs;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/symba;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/user;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/tool;    rm -f Makefile.Defines Makefile *.gc*

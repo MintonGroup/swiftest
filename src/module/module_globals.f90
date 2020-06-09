@@ -56,13 +56,13 @@ module module_globals
    integer(I4B), parameter :: STRMAX = 128
       !! Maximum size of character strings
 
-   CHARACTER(*), parameter :: REAL4_TYPE = "REAL4"
+   character(*), parameter :: REAL4_TYPE = "REAL4"
       !! Symbolic name for binary output file type REAL4
-   CHARACTER(*), parameter :: REAL8_TYPE = "REAL8"
+   character(*), parameter :: REAL8_TYPE = "REAL8"
       !! Symbolic name for binary output file type REAL8
-   CHARACTER(*), parameter :: SWIFTER_REAL4_TYPE  = "SWIFTER4"
+   character(*), parameter :: SWIFTER_REAL4_TYPE  = "SWIFTER4"
       !! Symbolic name for binary output file type for the old style Swifter REAL4
-   CHARACTER(*), parameter :: SWIFTER_REAL8_TYPE  = "SWIFTER8"
+   character(*), parameter :: SWIFTER_REAL8_TYPE  = "SWIFTER8"
       !! Symbolic name for binary output file type for the old style Swifter REAL8
 
    integer(I4B), parameter :: EL   = 1
@@ -113,17 +113,16 @@ module module_globals
    integer(I4B), parameter :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
 
    !> String labels for body/particle addition/subtraction in discard file
-   CHARACTER(*), parameter :: ADD = "+1"
-   CHARACTER(*), parameter :: SUB = "-1"
+   character(*), parameter :: ADD = "+1"
+   character(*), parameter :: SUB = "-1"
 
    !> Standard file names
-   CHARACTER(*), parameter :: DISCARD_FILE = "discard.out"
-   CHARACTER(*), dimension(2), parameter :: DUMP_PARAM_FILE = (/ "dump_param1.dat", "dump_param2.dat" /)
-   CHARACTER(*), dimension(2), parameter :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
-   CHARACTER(*), dimension(2), parameter :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
-   CHARACTER(*), parameter :: ENERGY_FILE = "energy.out"
-   CHARACTER(*), parameter :: pl_outfile = "pl_out.dat"
-   CHARACTER(*), parameter :: tp_outfile = "tp_out.dat"
+   character(*), parameter :: DISCARD_FILE = "discard.out"
+   character(*), dimension(2), parameter :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
+   character(*), dimension(2), parameter :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
+   character(*), parameter :: ENERGY_FILE = "energy.out"
+   character(*), parameter :: pl_outfile = "pl_out.dat"
+   character(*), parameter :: tp_outfile = "tp_out.dat"
 
 
    !> Integration control parameters:
@@ -141,11 +140,11 @@ module module_globals
    real(DP),     parameter :: TINY    = 4.0E-15_DP
 
    ! Added by D. Minton
-      real(DP), save :: MU2KG = -1.0_DP       !! Converts mass units to grams
-      real(DP), save :: TU2S  = -1.0_DP       !! Converts time units to seconds
-      real(DP), save :: DU2M = -1.0_DP        !! Converts distance unit to centimeters
-      real(DP), save :: GU = 1.0_DP           !! Universal gravitational constant in user units
-      real(DP), parameter  :: GC = 6.6743E-11_DP !! Universal gravitational constant in SI units
+   real(DP), save :: MU2KG = -1.0_DP       !! Converts mass units to grams
+   real(DP), save :: TU2S  = -1.0_DP       !! Converts time units to seconds
+   real(DP), save :: DU2M = -1.0_DP        !! Converts distance unit to centimeters
+   real(DP), save :: GU = 1.0_DP           !! Universal gravitational constant in user units
+   real(DP), parameter  :: GC = 6.6743E-11_DP !! Universal gravitational constant in SI units
 
    !> Added by Carlisle Wishard and Jennifer Pouplin 
    logical, save       :: ldiscard = .false.    !! If true, then proceed to discard spilled pl and complete discard.out file.

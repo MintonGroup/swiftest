@@ -3,7 +3,7 @@ module module_swiftestalloc
    !!
    !! Module containing subroutines that allocate and initialize the Swiftest data structures
    !!
-   use swiftest
+   use module_globals
 
    contains 
 

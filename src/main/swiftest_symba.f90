@@ -6,7 +6,6 @@ program swiftest_symba
    !! Adapted from Swifter by David E. Kaufmanna swiftert_symba.f90
    !! Adapted from Hal Levison and Martin Duncan's Swift program swift_symba5.f
    !! Reference: Duncan, M. J., Levison, H. F. & Lee, M. H. 1998. Astron. J., 116, 2067.
-   use io
    use swiftest
 
    !> The following are temporary until the conversion to the new module structure is complete
@@ -71,6 +70,7 @@ program swiftest_symba
    inparfile = trim(adjustl(inparfile))
    ! read in the param.in file and get simulation parameters
    call param%read_from_file(inparfile)
+   param%feature%lmtiny = .true. ! Turn this on for SyMBA
 
    ! temporary until the conversion to the derived type argument list is complete
    nplmax = param%nplmax
@@ -210,9 +210,10 @@ program swiftest_symba
             tfrac = (t - t0)/(tstop - t0)
             write(*, 200) t, tfrac, npl, ntp
 200         format(" Time = ", es12.5, "; fraction done = ", f5.3, "; number of active pl, tp = ", i5, ", ", i5)
-            call io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
-                  istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
-                  encounter_file, mtiny, feature)
+            !call io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,        &
+            !      istep_dump, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,               &
+            !      encounter_file, mtiny, feature)
+            call user_dump_param(param,t)
             call io_dump_pl(npl, symba_plA%helio%swiftest, feature%lclose, feature%lrhill_present)
             if (ntp > 0) call io_dump_tp(ntp, symba_tpA%helio%swiftest)
             idump = istep_dump
@@ -262,9 +263,10 @@ program swiftest_symba
       if (allocated(discard_tpA%name)) call swiftest_tp_deallocate(discard_tpA)
 
    end do
-   call io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
-         j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,      &
-         mtiny, feature)
+   !call io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form, istep_dump, j2rp2,    &
+   !      j4rp4, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,      &
+   !      mtiny, feature)
+   call user_dump_param(param,t)
    call io_dump_pl(npl, symba_plA%helio%swiftest, feature%lclose, feature%lrhill_present)
    if (ntp > 0) call io_dump_tp(ntp, symba_tpA%helio%swiftest)
    if (feature%lenergy) then 

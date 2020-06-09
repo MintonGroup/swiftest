@@ -6,6 +6,7 @@ module swiftest
    !! Adapted from David E. Kaufmann's Swifter modules: module_parameters.f90 and module_swifter.f90
    use module_globals
    use io
+   use user
 
    implicit none
    public

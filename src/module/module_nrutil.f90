@@ -27,7 +27,7 @@
 !**********************************************************************************************************************************
 MODULE module_nrutil
 
-     USE swiftest
+     USE module_globals
      IMPLICIT NONE
 
      INTEGER(I4B), PARAMETER :: NPAR_ARTH   = 16

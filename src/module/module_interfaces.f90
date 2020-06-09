@@ -24,6 +24,8 @@
 !
 !**********************************************************************************************************************************
 MODULE module_interfaces
+   use module_globals
+   use user
 
      IMPLICIT NONE
 
@@ -460,21 +462,6 @@ MODULE module_interfaces
                TYPE(swiftest_pl), INTENT(INOUT)               :: discard_plA
                TYPE(symba_merger), INTENT(INOUT)              :: mergeadd_list, mergesub_list
           END SUBROUTINE io_discard_write_symba
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,            &
-               istep_dump, j2rp2, j4rp4,rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,         &
-               mtiny, feature, ring_outfile)
-               USE swiftest
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: nplmax, ntpmax, ntp, istep_out, istep_dump
-               REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
-               REAl(DP), INTENT(IN), OPTIONAL :: mtiny 
-               TYPE(feature_list), INTENT(IN) :: feature
-               CHARACTER(*), INTENT(IN), OPTIONAL :: ring_outfile
-          END SUBROUTINE io_dump_param
      END INTERFACE
 
      INTERFACE
@@ -1115,7 +1102,7 @@ MODULE module_interfaces
                USE module_swiftest
                USE module_helio
                USE module_symba
-               use io
+               use user
                IMPLICIT NONE
                INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nsppl, nsptp, nmergeadd !change to fragadd
                TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
@@ -1172,6 +1159,7 @@ MODULE module_interfaces
                USE module_swiftest
                USE module_helio
                USE module_symba
+               use user
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
                LOGICAL(LGT), INTENT(INOUT)        :: lfirst
@@ -1232,6 +1220,7 @@ MODULE module_interfaces
                USE module_swiftest
                USE module_helio
                USE module_symba
+               use user
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
                INTEGER(I4B), INTENT(IN)           :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc
@@ -1256,6 +1245,7 @@ MODULE module_interfaces
                USE module_swiftest
                USE module_helio
                USE module_symba
+               use user
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)           :: lclose
                INTEGER(I4B), INTENT(IN)           :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
@@ -1428,7 +1418,7 @@ MODULE module_interfaces
 
      INTERFACE
          SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, den2, regime, Mlr, Mslr)
-          USE swiftest
+          USE module_globals
           USE module_symba
           USE module_swiftest
           USE module_helio
