@@ -67,7 +67,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 
 ! Executable code
 
-      Vimp = NORM2(vh2(:) - vh1(:))
+      vimp = NORM2(vh2(:) - vh1(:))
       b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
       l = (rad1 + rad2)*(1-b)
       E = (NORM2(vh1)**2)/2 - G*Mcenter/NORM2(xh1)
@@ -98,7 +98,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       QR_erosion = 2.0_DP * ((1.0_DP - m1) / mtot) * QRD_pstar
       verosion = (2.0_DP * QR_erosion * mtot / mu)** (1.0_DP / 2.0_DP)
      Write(*,*) "verosion", verosion 
-      QR = 0.5*mu*(vimp**2.0_DP)/mtot
+      QR = mu*(vimp**2.0_DP)/mtot/2.0_DP
      Write(*,*) "QR", QR
      !Calculate Mass largest remnant Mlr 
       Mlr = (1.0_DP - 0.5 * QR / QRD_pstar) * (mtot)  ! [kg] #(Eq 5)
