@@ -4,40 +4,11 @@ module module_swiftestalloc
    !! Module containing subroutines that allocate and initialize the Swiftest data structures
    !!
    use swiftest_globals
+   use swiftest_data_structures
 
    contains 
 
-   subroutine swiftest_pl_allocate(swiftest_plA, npl)
-      use swiftest_data_structures
-      implicit none
 
-      integer(I4B), intent(in)            :: npl
-      type(swiftest_pl), intent(inout)    :: swiftest_plA
-
-
-      if (npl <= 0) return
-
-      allocate(swiftest_plA%name(npl))
-      allocate(swiftest_plA%status(npl))
-      allocate(swiftest_plA%mass(npl))
-      allocate(swiftest_plA%radius(npl))
-      allocate(swiftest_plA%rhill(npl))
-      allocate(swiftest_plA%xh(NDIM,npl))
-      allocate(swiftest_plA%vh(NDIM,npl))
-      allocate(swiftest_plA%xb(NDIM,npl))
-      allocate(swiftest_plA%vb(NDIM,npl))
-
-      swiftest_plA%name = 0
-      swiftest_plA%status = 0
-      swiftest_plA%mass = 0.0_DP
-      swiftest_plA%radius = 0.0_DP
-      swiftest_plA%rhill = 0.0_DP
-      swiftest_plA%xh = 0.0_DP
-      swiftest_plA%vh = 0.0_DP
-      swiftest_plA%xb = 0.0_DP
-      swiftest_plA%vb = 0.0_DP
-      return
-   end subroutine swiftest_pl_allocate
 
 
    subroutine helio_pl_allocate(helio_plA, npl)
@@ -52,7 +23,7 @@ module module_swiftestalloc
       allocate(helio_plA%ahi(NDIM,npl))
       helio_plA%ah = 0.0_DP
       helio_plA%ahi = 0.0_DP
-      call swiftest_pl_allocate(helio_plA%swiftest,npl)
+      call helio_plA%swiftest%alloc(npl)
       return
    end subroutine helio_pl_allocate
 
@@ -147,37 +118,6 @@ module module_swiftestalloc
       return
    end subroutine symba_merger_allocate
 
-   subroutine swiftest_tp_allocate(swiftest_tpA, ntp)
-      use swiftest_data_structures
-      implicit none
-
-      integer(I4B), intent(in)            :: ntp
-      type(swiftest_tp), intent(inout)    :: swiftest_tpA
-
-      if (ntp <= 0) return
-      allocate(swiftest_tpA%name(ntp))
-      allocate(swiftest_tpA%status(ntp))
-      allocate(swiftest_tpA%peri(ntp))
-      allocate(swiftest_tpA%atp(ntp))
-      allocate(swiftest_tpA%isperi(ntp))
-      allocate(swiftest_tpA%xh(NDIM,ntp))
-      allocate(swiftest_tpA%vh(NDIM,ntp))
-      allocate(swiftest_tpA%xb(NDIM,ntp))
-      allocate(swiftest_tpA%vb(NDIM,ntp))
-
-      swiftest_tpA%name = 0
-      swiftest_tpA%status = 0
-      swiftest_tpA%peri = 0.0_DP
-      swiftest_tpA%atp = 0.0_DP
-      swiftest_tpA%isperi = 0.0_DP
-      swiftest_tpA%xh = 0.0_DP
-      swiftest_tpA%vh = 0.0_DP
-      swiftest_tpA%xb = 0.0_DP
-      swiftest_tpA%vb = 0.0_DP
-      return
-   end subroutine swiftest_tp_allocate
-
-
    subroutine helio_tp_allocate(helio_tpA, ntp)
       use module_helio
       implicit none
@@ -191,7 +131,7 @@ module module_swiftestalloc
 
       helio_tpA%ah = 0.0_DP
       helio_tpA%ahi = 0.0_DP
-      call swiftest_tp_allocate(helio_tpA%swiftest,ntp)
+      call helio_tpA%swiftest%alloc(ntp)
 
       return
    end subroutine helio_tp_allocate
@@ -243,23 +183,7 @@ module module_swiftestalloc
 !___________________________
 
 
-   subroutine swiftest_pl_deallocate(swiftest_plA)
-      use swiftest_data_structures
-      implicit none
 
-      type(swiftest_pl), intent(inout)    :: swiftest_plA
-
-      deallocate(swiftest_plA%name)
-      deallocate(swiftest_plA%status)
-      deallocate(swiftest_plA%mass)
-      deallocate(swiftest_plA%radius)
-      deallocate(swiftest_plA%rhill)
-      deallocate(swiftest_plA%xh)
-      deallocate(swiftest_plA%vh)
-      deallocate(swiftest_plA%xb)
-      deallocate(swiftest_plA%vb)
-   return
-   end subroutine swiftest_pl_deallocate
 
 
    subroutine helio_pl_deallocate(helio_plA)
@@ -270,7 +194,7 @@ module module_swiftestalloc
 
       deallocate(helio_plA%ah)
       deallocate(helio_plA%ahi)
-      call swiftest_pl_deallocate(helio_plA%swiftest)
+      call helio_plA%swiftest%dealloc()
       return
    end subroutine helio_pl_deallocate
 
@@ -329,25 +253,6 @@ module module_swiftestalloc
       return
    end subroutine symba_merger_deallocate
 
-   subroutine swiftest_tp_deallocate(swiftest_tpA)
-      use swiftest_data_structures
-      implicit none
-
-      type(swiftest_tp), intent(inout)    :: swiftest_tpA
-
-      deallocate(swiftest_tpA%name)
-      deallocate(swiftest_tpA%status)
-      deallocate(swiftest_tpA%peri)
-      deallocate(swiftest_tpA%atp)
-      deallocate(swiftest_tpA%isperi)
-      deallocate(swiftest_tpA%xh)
-      deallocate(swiftest_tpA%vh)
-      deallocate(swiftest_tpA%xb)
-      deallocate(swiftest_tpA%vb)
-      return
-   end subroutine swiftest_tp_deallocate
-
-
    subroutine helio_tp_deallocate(helio_tpA)
       use module_helio
       implicit none
@@ -356,7 +261,7 @@ module module_swiftestalloc
 
       deallocate(helio_tpA%ah)
       deallocate(helio_tpA%ahi)
-      call swiftest_tp_deallocate(helio_tpA%swiftest)
+      call helio_tpA%swiftest%dealloc()
       return
    end subroutine helio_tp_deallocate
 

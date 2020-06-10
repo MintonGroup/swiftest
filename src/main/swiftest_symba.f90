@@ -103,29 +103,37 @@ program swiftest_symba
       call util_exit(failure)
    end if
    ! read in the total number of bodies from the input files
-   call io_getn(param,symba_plA%helio%swiftest,symba_tpA%helio%swiftest)
+
+   call symba_plA%helio%swiftest%read_from_file(param)
+   call symba_tpA%helio%swiftest%read_from_file(param)
 
    !Temporary until the argument lists get fixed
-   npl = symba_plA%helio%swiftest%npl
-   ntp = symba_tpA%helio%swiftest%ntp
+      npl = symba_plA%helio%swiftest%nbody
+      ntp = symba_tpA%helio%swiftest%nbody
+   ! Temporary fix until all of the data structures are converted to OOP and inheritance works properly
+      call symba_plA%helio%swiftest%dealloc()
+      call symba_tpA%helio%swiftest%dealloc()
+      call symba_pl_allocate(symba_plA,npl)
+      call symba_tp_allocate(symba_tpA,ntp)
+      call symba_plA%helio%swiftest%dealloc()
+      call symba_tpA%helio%swiftest%dealloc()
+      call symba_plA%helio%swiftest%read_from_file(param)
+      call symba_tpA%helio%swiftest%read_from_file(param)
+   !**************************************************
 
    ! create arrays of data structures big enough to store the number of bodies we are adding
-   call symba_pl_allocate(symba_plA,npl)
    call symba_merger_allocate(mergeadd_list,10*npl) !DM: Why 10*npl?
    call symba_merger_allocate(mergesub_list,npl)
    call symba_plplenc_allocate(plplenc_list, 10*npl) !DM: See ^
 
    if (ntp > 0) then
-      call symba_tp_allocate(symba_tpA, ntpmax)
       call symba_pltpenc_allocate(pltpenc_list, ntp)
    end if
 
    ! reads in initial conditions of all massive bodies from input file
-   call io_read_pl_in(param, symba_plA%helio%swiftest)
 
    ! reorder by mass 
    call symba_reorder_pl(npl, symba_plA)
-   call io_init_tp(intpfile, in_type, ntp, symba_tpA)
    call util_valid(npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest)
    ntp0 = ntp
    t = t0

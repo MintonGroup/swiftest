@@ -54,10 +54,10 @@ contains
       end if
    end if
 
-   call io_write_hdr(iu, t, swiftest_plA%npl, swiftest_tpA%ntp, iout_form, out_type)
+   call io_write_hdr(iu, t, swiftest_plA%nbody, swiftest_tpA%nbody, iout_form, out_type)
    select case (iout_form)
    case (EL)
-      do i = 2, swiftest_plA%npl
+      do i = 2, swiftest_plA%nbody
          mu = swiftest_plA%mass(1) + swiftest_plA%mass(i)
          j = swiftest_plA%name(i)
          call orbel_xv2el(swiftest_plA%xh(:,i), swiftest_plA%vh(:,i), mu, a, e, inc, capom, omega, capm)
@@ -65,20 +65,20 @@ contains
          mass = swiftest_plA%mass(i),radius = swiftest_plA%radius(i))
       end do
       mu = swiftest_plA%mass(1)
-      do i = 1, swiftest_tpA%ntp
+      do i = 1, swiftest_tpA%nbody
          j = swiftest_tpA%name(i)
          call orbel_xv2el(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i), mu, a, e, inc, capom, omega, capm)
          call io_write_line(iu, j, a, e, inc, capom, omega, capm, out_type)
       end do
    case (XV)
-      do i = 2, swiftest_plA%npl
+      do i = 2, swiftest_plA%nbody
          xtmp(:) = swiftest_plA%xh(:,i)
          vtmp(:) = swiftest_plA%vh(:,i)
          j = swiftest_plA%name(i)
          call io_write_line(iu, j, xtmp(1), xtmp(2), xtmp(3), vtmp(1), vtmp(2), vtmp(3), out_type,                     &
          mass = swiftest_plA%mass(i), radius = swiftest_plA%radius(i))
       end do
-      do i = 1, swiftest_tpA%ntp
+      do i = 1, swiftest_tpA%nbody
          xtmp(:) = swiftest_tpA%xh(:,i)
          vtmp(:) = swiftest_tpA%vh(:,i)
          j = swiftest_tpA%name(i)

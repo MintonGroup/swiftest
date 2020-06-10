@@ -79,7 +79,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         END IF
         nfrag = COUNT(frag_l_add)
 
-        CALL swiftest_pl_allocate(discard_plA,nsppl)
+        CALL discard_plA%alloc(nsppl)
 
         discard_plA%name(1:nsppl) = PACK(symba_plA%helio%swiftest%name(1:npl), discard_l_pl)
         discard_plA%status(1:nsppl) = PACK(symba_plA%helio%swiftest%status(1:npl), discard_l_pl)
@@ -166,7 +166,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
             symba_plA%helio%ah(2,1:nkpl) = PACK(symba_plA%helio%ah(2,1:npl), .NOT. discard_l_pl)
             symba_plA%helio%ah(3,1:nkpl) = PACK(symba_plA%helio%ah(3,1:npl), .NOT. discard_l_pl)
             npl = nkpl
-            symba_plA%helio%swiftest%npl = npl
+            symba_plA%helio%swiftest%nbody = npl
         END IF
     END IF 
 
@@ -178,7 +178,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         nsptp = COUNT(discard_l_tp)
         nktp = ntp - nsptp
 
-        CALL swiftest_tp_allocate(discard_tpA,nsptp)
+        CALL discard_tpA%alloc(nsptp) 
 
         discard_tpA%name(1:nsptp) = PACK(symba_tpA%helio%swiftest%name(1:ntp), discard_l_tp)
         discard_tpA%status(1:nsptp) = PACK(symba_tpA%helio%swiftest%status(1:ntp), discard_l_tp)
@@ -219,7 +219,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         symba_tpA%helio%ah(2,1:nktp) = PACK(symba_tpA%helio%ah(2,1:ntp), .NOT. discard_l_tp)
         symba_tpA%helio%ah(3,1:nktp) = PACK(symba_tpA%helio%ah(3,1:ntp), .NOT. discard_l_tp)
         ntp = nktp
-        symba_tpA%helio%swiftest%ntp = ntp
+        symba_tpA%helio%swiftest%nbody = ntp
     END IF 
 
 END SUBROUTINE symba_rearray
