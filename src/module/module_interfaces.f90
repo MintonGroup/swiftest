@@ -1096,7 +1096,7 @@ MODULE module_interfaces
 
      INTERFACE
           SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-    discard_tpA,feature)
+    discard_tpA,param)
                USE module_globals
                USE module_swiftestalloc 
                USE module_swiftest
@@ -1110,7 +1110,7 @@ MODULE module_interfaces
                TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
                TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
                TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
-               TYPE(feature_list),intent(in)                    :: feature
+               TYPE(user_input_parameters),intent(in)                    :: param
 
           END SUBROUTINE symba_rearray
      END INTERFACE  
@@ -1154,7 +1154,7 @@ MODULE module_interfaces
           SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
                symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
                nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
-               fragmax, feature)
+               fragmax, param)
                USE module_globals
                USE module_swiftest
                USE module_helio
@@ -1173,7 +1173,7 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               TYPE(feature_list):: feature        ! Derived type containing logical flags to turn on or off various features of the code
+               TYPE(user_input_parameters):: param        ! Derived type containing logical flags to turn on or off various params of the code
           END SUBROUTINE symba_step
      END INTERFACE
 
@@ -1215,7 +1215,7 @@ MODULE module_interfaces
      INTERFACE
           SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,    &
                j4rp4, dt, eoffset, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,    &
-               mergesub_list, encounter_file, out_type, fragmax, feature)
+               mergesub_list, encounter_file, out_type, fragmax, param)
                USE module_globals
                USE module_swiftest
                USE module_helio
@@ -1233,14 +1233,14 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               type(feature_list), intent(in)     :: feature
+               type(user_input_parameters), intent(in)     :: param
           END SUBROUTINE symba_step_interp
      END INTERFACE
 
      INTERFACE
           RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
                npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, & 
-               out_type, nplmax, ntpmax, fragmax, feature)
+               out_type, nplmax, ntpmax, fragmax, param)
                USE module_globals
                USE module_swiftest
                USE module_helio
@@ -1258,7 +1258,7 @@ MODULE module_interfaces
                TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
                TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
                TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               type(feature_list), intent(in)     :: feature
+               type(user_input_parameters), intent(in)     :: param
           END SUBROUTINE symba_step_recur
      END INTERFACE
 

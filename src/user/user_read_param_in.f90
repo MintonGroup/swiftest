@@ -55,7 +55,7 @@ contains
    write(*,*) "ISTEP_DUMP     = ",param%istep_dump
    write(*,*) "J2             = ",param%j2rp2
    write(*,*) "J4             = ",param%j4rp4
-   write(*,*) "CHK_CLOSE      = ",param%feature%lclose
+   write(*,*) "CHK_CLOSE      = ",param%lclose
    write(*,*) "CHK_RMIN       = ",param%rmin
    write(*,*) "CHK_RMAX       = ",param%rmax
    write(*,*) "CHK_EJECT      = ",param%rmaxu
@@ -63,9 +63,9 @@ contains
    write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(param%qmin_coord))
    write(*,*) "CHK_QMIN_RANGE = ",param%qmin_alo, param%qmin_ahi
    write(*,*) "ENC_OUT        = ",trim(adjustl(param%encounter_file))
-   write(*,*) "EXTRA_FORCE    = ",param%feature%lextra_force
-   write(*,*) "BIG_DISCARD    = ",param%feature%lbig_discard
-   write(*,*) "RHILL_PRESENT  = ",param%feature%lrhill_present
+   write(*,*) "EXTRA_FORCE    = ",param%lextra_force
+   write(*,*) "BIG_DISCARD    = ",param%lbig_discard
+   write(*,*) "RHILL_PRESENT  = ",param%lrhill_present
    ierr = 0
 
    ! Added by D. Minton
@@ -73,8 +73,8 @@ contains
    TU2S  = param%TU2S 
    DU2M = param%DU2M
    ! The fragmentation model requires the user to set the unit system explicitly.
-   write(*,*) "FRAGMENTATION  = ",param%feature%lfragmentation
-   if (param%feature%lfragmentation) then
+   write(*,*) "FRAGMENTATION  = ",param%lfragmentation
+   if (param%lfragmentation) then
       write(*,*) "MU2KG          = ",MU2KG
       write(*,*) "TU2S           = ",TU2S 
       write(*,*) "DU2M          = ",DU2M
@@ -93,8 +93,8 @@ contains
    else
       write(*,*) "MTINY          = ",param%mtiny   
    end if
-   if (param%feature%lenergy) write(*,*) "ENERGY         = ",param%feature%lenergy
-   if (param%feature%lringmoons) write(*,*) "RINGMOONS      = ",param%feature%lringmoons
+   if (param%lenergy) write(*,*) "ENERGY         = ",param%lenergy
+   if (param%lringmoons) write(*,*) "RINGMOONS      = ",param%lringmoons
 
    if (ierr < 0) then
       write(*, 100) "Input parameter(s) failed check"

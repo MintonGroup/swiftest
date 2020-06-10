@@ -77,7 +77,7 @@ contains
             read(param_value, *) param%j4rp4
          case ("CHK_CLOSE")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lclose = .true.
+            if (param_value == "YES" .or. param_value == 'T') param%lclose = .true.
          case ("CHK_RMIN")
             read(param_value, *) param%rmin
          case ("CHK_RMAX")
@@ -98,17 +98,17 @@ contains
             param%encounter_file = param_value
          case ("EXTRA_FORCE")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lextra_force = .true.
+            if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.
          case ("BIG_DISCARD")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T' ) param%feature%lbig_discard = .true.
+            if (param_value == "YES" .or. param_value == 'T' ) param%lbig_discard = .true.
          case ("RHILL_PRESENT")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == "T") param%feature%lrhill_present = .true.
+            if (param_value == "YES" .or. param_value == "T") param%lrhill_present = .true.
          ! Added by the Purdue Swiftest development group (Minton, Wishard, Populin, and Elliott)
          case ("FRAGMENTATION")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == "T") param%feature%lfragmentation = .true.
+            if (param_value == "YES" .or. param_value == "T") param%lfragmentation = .true.
          case ("MU2KG")
             read(param_value, *) param%MU2KG
          case ("TU2S")
@@ -119,29 +119,29 @@ contains
             read(param_value, *) param%mtiny
          case ("ENERGY")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lenergy = .true.
+            if (param_value == "YES" .or. param_value == 'T') param%lenergy = .true.
 
          ! The following are not yet implemented
          case ("RINGMOONS")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lringmoons = .true.
+            if (param_value == "YES" .or. param_value == 'T') param%lringmoons = .true.
          case ("RING_OUTFILE")
             param%ring_outfile = param_value
          case ("ROTATION")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lrotation = .true. 
+            if (param_value == "YES" .or. param_value == 'T') param%lrotation = .true. 
          case ("TIDES")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%ltides = .true. 
+            if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
          case ("GR")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lgr = .true. 
+            if (param_value == "YES" .or. param_value == 'T') param%lgr = .true. 
          case ("YARKOVSKY")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lyarkovsky = .true. 
+            if (param_value == "YES" .or. param_value == 'T') param%lyarkovsky = .true. 
          case ("YORP")
             call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lyorp = .true. 
+            if (param_value == "YES" .or. param_value == 'T') param%lyorp = .true. 
          case default
             write(iomsg,*) "Unknown parameter -> ",param_name
             iostat = -1

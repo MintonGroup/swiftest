@@ -9,7 +9,7 @@ contains
    !! Adapted from Martin Duncan's Swift routine io_dump_param.f
    implicit none
 
-   type(input_parameters)  :: param_dump !! Data type of dumped parameter file
+   type(user_input_parameters)  :: param_dump !! Data type of dumped parameter file
    integer(I4B), parameter :: LUN = 7 !! Unit number of output file
    integer(I4B)            :: ierr     !! Error code
    integer(I4B), save      :: idx = 1  !! Index of current dump file. Output flips between 2 files for extra security

@@ -16,8 +16,7 @@ program swiftest_symba
    implicit none
 
    ! Arguments
-   type(input_parameters)  :: param    ! derived type containing user-defined parameters
-   type(feature_list) :: feature       ! temporary until the parameter derived type conversion is complete
+   type(user_input_parameters)  :: param    ! derived type containing user-defined parameters
    integer(I4B)      :: nplmax         ! maximum number of planets
    integer(I4B)      :: ntpmax         ! maximum number of test particles
    integer(I4B)      :: istep_out      ! time steps between binary outputs
@@ -70,7 +69,7 @@ program swiftest_symba
    inparfile = trim(adjustl(inparfile))
    ! read in the param.in file and get simulation parameters
    call param%read_from_file(inparfile)
-   param%feature%lmtiny = .true. ! Turn this on for SyMBA
+   param%lmtiny = .true. ! Turn this on for SyMBA
 
    ! temporary until the conversion to the derived type argument list is complete
    nplmax = param%nplmax
@@ -98,9 +97,8 @@ program swiftest_symba
    qmin_ahi = param%qmin_ahi
    encounter_file = param%encounter_file
    mtiny = param%mtiny
-   feature = param%feature
    !^^^^^^^^^^^^^^^^^^^^^^^^^
-   if (.not. feature%lrhill_present) then
+   if (.not. param%lrhill_present) then
       write(*, *) "Swiftest error:"
       write(*, *) "   Integrator SyMBA requires massive body Hill sphere radii on input"
       call util_exit(failure)
@@ -153,15 +151,15 @@ program swiftest_symba
    end if
    300 format(7(1x, e23.16))
    write(*, *) " *************** Main Loop *************** "
-   if (feature%lenergy) then 
+   if (param%lenergy) then 
       call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
       write(egyiu,300) t, ke, pe, te, htot
    end if
    call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
    do while ((t < tstop) .and. ((ntp0 == 0) .or. (ntp > 0)))
-      call symba_step(lfirst, feature%lextra_force, feature%lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
+      call symba_step(lfirst, param%lextra_force, param%lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
             j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-            eoffset, mtiny, encounter_file, out_type, fragmax, feature)
+            eoffset, mtiny, encounter_file, out_type, fragmax, param)
       iloop = iloop + 1
       if (iloop == loopmax) then
           tbase = tbase + iloop*dt
@@ -175,19 +173,19 @@ program swiftest_symba
       call symba_discard_pl(t, npl, nplmax, nsppl, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! check this 
             qmin_ahi, j2rp2, j4rp4, eoffset)
       call symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! check this 
-            qmin_alo, qmin_ahi, feature%lclose, feature%lrhill_present)
+            qmin_alo, qmin_ahi, param%lclose, param%lrhill_present)
       if ((ldiscard .eqv. .true.) .or. (ldiscard_tp .eqv. .true.) .or. (lfrag_add .eqv. .true.)) then
          call symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-            discard_tpA,feature)
+            discard_tpA,param)
          if ((ldiscard .eqv. .true.) .or. (ldiscard_tp .eqv. .true.)) then
             call io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
-               discard_plA, discard_tpA, mergeadd_list, mergesub_list, discard_file, feature%lbig_discard) 
+               discard_plA, discard_tpA, mergeadd_list, mergesub_list, discard_file, param%lbig_discard) 
             nmergeadd = 0
             nmergesub = 0
             nsppl = 0
             nsptp = 0
          end if 
-         if (feature%lenergy) then 
+         if (param%lenergy) then 
             call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
             write(egyiu,300) t, ke, pe, te, htot
          end if
@@ -197,7 +195,7 @@ program swiftest_symba
          if (iout == 0) then
             call io_write_frame(t, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
             iout = istep_out
-            if (feature%lenergy) then 
+            if (param%lenergy) then 
                call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
                write(egyiu,300) t, ke, pe, te, htot
             end if
@@ -211,7 +209,7 @@ program swiftest_symba
             write(*, 200) t, tfrac, npl, ntp
 200         format(" Time = ", es12.5, "; fraction done = ", f5.3, "; number of active pl, tp = ", i5, ", ", i5)
             call param%dump_to_file(t)
-            call io_dump_pl(npl, symba_plA%helio%swiftest, feature%lclose, feature%lrhill_present)
+            call io_dump_pl(npl, symba_plA%helio%swiftest, param%lclose, param%lrhill_present)
             if (ntp > 0) call io_dump_tp(ntp, symba_tpA%helio%swiftest)
             idump = istep_dump
          end if
@@ -261,9 +259,9 @@ program swiftest_symba
 
    end do
    call param%dump_to_file(t)
-   call io_dump_pl(npl, symba_plA%helio%swiftest, feature%lclose, feature%lrhill_present)
+   call io_dump_pl(npl, symba_plA%helio%swiftest, param%lclose, param%lrhill_present)
    if (ntp > 0) call io_dump_tp(ntp, symba_tpA%helio%swiftest)
-   if (feature%lenergy) then 
+   if (param%lenergy) then 
       call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
       write(egyiu,300) t, ke, pe, te, htot
       close(egyiu)

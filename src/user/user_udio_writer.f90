@@ -66,25 +66,25 @@ contains
       write(unit, Pfmt) "!CHK_QMIN_COORD"
       write(unit, Pfmt) "!CHK_QMIN_RANGE"
    end if
-   if (param%feature%lmtiny) write(unit, Rfmt) "MTINY",param%mtiny
+   if (param%lmtiny) write(unit, Rfmt) "MTINY",param%mtiny
    write(unit, Rfmt) "MU2KG",MU2KG
    write(unit, Rfmt) "TU2S",TU2S 
    write(unit, Rfmt) "DU2M",DU2M
    
-   write(unit, Lfmt) "EXTRA_FORCE",param%feature%lextra_force
-   write(unit, Lfmt) "BIG_DISCARD",param%feature%lbig_discard
-   write(unit, Lfmt) "RHILL_PRESENT",param%feature%lrhill_present
-   write(unit, Lfmt) "CHK_CLOSE",param%feature%lclose
-   write(unit, Lfmt) "FRAGMENTATION", param%feature%lfragmentation
-   !write(unit, Lfmt) "ROTATION", param%feature%lrotation
-   !write(unit, Lfmt) "TIDES", param%feature%ltides
-   !write(unit, Lfmt) "GR", param%feature%lgr
-   !write(unit, Lfmt) "YARKOVSKY", param%feature%lyarkovsky
-   !write(unit, Lfmt) "YORP", param%feature%lyorp
-   !write(unit, Lfmt) "ENERGY", param%feature%lenergy
+   write(unit, Lfmt) "EXTRA_FORCE",param%lextra_force
+   write(unit, Lfmt) "BIG_DISCARD",param%lbig_discard
+   write(unit, Lfmt) "RHILL_PRESENT",param%lrhill_present
+   write(unit, Lfmt) "CHK_CLOSE",param%lclose
+   write(unit, Lfmt) "FRAGMENTATION", param%lfragmentation
+   !write(unit, Lfmt) "ROTATION", param%lrotation
+   !write(unit, Lfmt) "TIDES", param%ltides
+   !write(unit, Lfmt) "GR", param%lgr
+   !write(unit, Lfmt) "YARKOVSKY", param%lyarkovsky
+   !write(unit, Lfmt) "YORP", param%lyorp
+   !write(unit, Lfmt) "ENERGY", param%lenergy
 
-   !write(unit, Lfmt) "RINGMOONS", param%feature%lringmoons
-   !if (param%feature%lringmoons) write(unit, Sfmt) "RING_OUTFILE",trim(adjustl(param%ring_outfile))
+   !write(unit, Lfmt) "RINGMOONS", param%lringmoons
+   !if (param%lringmoons) write(unit, Sfmt) "RING_OUTFILE",trim(adjustl(param%ring_outfile))
 
 
 

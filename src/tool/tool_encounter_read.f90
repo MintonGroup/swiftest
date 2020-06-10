@@ -32,8 +32,7 @@ PROGRAM tool_encounter_read
      IMPLICIT NONE
 
 ! Arguments
-   type(input_parameters)  :: param    ! derived type containing user-defined parameters
-   type(feature_list) :: feature       ! temporary until the parameter derived type conversion is complete
+   type(user_input_parameters)  :: param    ! derived type containing user-defined parameters
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
@@ -100,7 +99,6 @@ PROGRAM tool_encounter_read
    qmin_ahi = param%qmin_ahi
    encounter_file = param%encounter_file
    mtiny = param%mtiny
-   feature = param%feature
    !^^^^^^^^^^^^^^^^^^^^^^^^^
      ierr=0
      i=0

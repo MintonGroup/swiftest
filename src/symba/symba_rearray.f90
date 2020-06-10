@@ -15,7 +15,7 @@
 !   TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
 !    TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
 !    TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
-!    type(feature_list),intent(in)                    :: feature
+!    type(user_input_parameters),intent(in)                    :: param
 !
 !  Output
 !    Arguments : npl         : number of planets
@@ -23,14 +23,14 @@
 !    File      : none
 !
 !  Invocation  : CALL symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-!  discard_tpA,feature)
+!  discard_tpA,param)
 !    
 !
 !  Notes       : Adapted from Hal Levison's Swift routine discard_massive5.f
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
-    discard_tpA,feature)
+    discard_tpA,param)
 
 ! Modules
      USE swiftest
@@ -48,7 +48,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
      TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
      TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
-     TYPE(feature_list),intent(in)                    :: feature
+     TYPE(user_input_parameters),intent(in)                    :: param
 
 ! Internals
      INTEGER(I4B)                                   :: i, nkpl, nktp, nfrag
@@ -65,7 +65,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         nsppl = COUNT(discard_l_pl)
         nkpl = npl - nsppl
         frag_l_add = [(.FALSE.,i=1,npl)]
-        IF (feature%lfragmentation) THEN
+        IF (param%lfragmentation) THEN
             DO i = 1, npl
                 IF (mergeadd_list%status(i) == DISRUPTION) THEN
                     frag_l_add(i) = .TRUE.
@@ -99,7 +99,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         discard_plA%vb(1,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(1,1:npl), discard_l_pl)
         discard_plA%vb(2,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(2,1:npl), discard_l_pl)
         discard_plA%vb(3,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(3,1:npl), discard_l_pl)
-        IF (feature%lfragmentation .AND. (nkpl + nfrag > npl)) THEN 
+        IF (param%lfragmentation .AND. (nkpl + nfrag > npl)) THEN 
             symba_plA%helio%swiftest%name(1:nkpl) = PACK(symba_plA%helio%swiftest%name(1:npl), .NOT. discard_l_pl)
             symba_plA%helio%swiftest%status(1:nkpl) = PACK(symba_plA%helio%swiftest%status(1:npl), .NOT. discard_l_pl)
             symba_plA%helio%swiftest%mass(1:nkpl) = PACK(symba_plA%helio%swiftest%mass(1:npl), .NOT. discard_l_pl)

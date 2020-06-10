@@ -41,14 +41,14 @@ contains
    end do
    swiftest_plA%status(1) = active
    do i = 2, swiftest_plA%npl
-      if (param%feature%lrhill_present) then
+      if (param%lrhill_present) then
          read(LUN, *, iostat = ierr) swiftest_plA%name(i), swiftest_plA%mass(i), swiftest_plA%rhill(i)
       else
          read(LUN, *, iostat = ierr) swiftest_plA%name(i), swiftest_plA%mass(i)
          swiftest_plA%rhill(i) = 0.0_dp
       end if
       if (ierr /= 0 ) exit
-      if (param%feature%lclose) then
+      if (param%lclose) then
          read(LUN, *, iostat = ierr) swiftest_plA%radius(i)
          if (ierr /= 0 ) exit
       else
