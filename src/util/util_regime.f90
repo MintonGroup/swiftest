@@ -44,15 +44,15 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 
 ! Internals
      REAL(DP)                      :: a1, alpha, Aint, b, bcrit, E, fgamma, l, Lint, mu, phi, theta
-     REAL(DP)                      :: QR, QRD_pstar, QR_erosion, QR_supercat, QRD_lr
+     REAL(DP)                      :: QR, QRD_pstar, QR_erosion, QR_supercat
      REAL(DP)                      :: vcr, verosion, vescp, vhill, vimp, vsupercat
      REAL(DP)                      :: mint, mtot
      REAL(DP)                      :: Rp, Rhill 
 ! Constants
      INTEGER(I4B)                  :: N1 = 1  !number of objects with mass equal to the largest remnant from LS12
      INTEGER(I4B)                  :: N2 = 2  !number of objects with mass larger than second largest remnant from LS12
-     INTEGER(I4B)                  :: N1g = 2  !number of objects with mass equal to the largest remnant from LS12 if Mp = Mtarg
-     INTEGER(I4B)                  :: N2g = 4  !number of objects with mass larger than second largest remnant from LS12 if Mp = Mtarg
+     !INTEGER(I4B)                  :: N1g = 2  !number of objects with mass equal to the largest remnant from LS12 if Mp = Mtarg
+     !INTEGER(I4B)                  :: N2g = 4  !number of objects with mass larger than second largest remnant from LS12 if Mp = Mtarg
      REAL(DP)                      :: density1 = 1000.0_DP !standard density parameter from LS12 [kg/m3]
      REAL(DP)                      :: G = 6.674e-11 !Gravitational constant [Nm2/kg2]
      REAL(DP)                      :: c_star = 1.8_DP !3.0 #3.0# #5#1.8 #1.8 #Measure of dissipation of energy within the target (Chambers frag.f90)
@@ -156,7 +156,7 @@ contains
 function calc_QRD_pstar(Mtarg,Mp,alpha) result(ans)
    implicit none
    real(DP),intent(in) :: Mtarg, Mp, alpha
-   real(DP)            :: QRD_star1, mu_alpha, mu, QRD_star, RD_pstar, QR
+   real(DP)            :: QRD_star1, mu_alpha, mu, QRD_star, QRD_pstar
    real(DP)            :: ans
    ! calc mu, mu_alpha
    mu = (Mtarg * Mp) / (Mtarg + Mp)  ! [kg]
@@ -212,7 +212,7 @@ function calc_b(Mp_pos, Mp_vel, Mp_r, Mtarg_pos, Mtarg_vel, Mtarg_r) result(b)
    implicit none
    real(DP), intent(in), DIMENSION(3) :: Mp_pos, Mp_vel, Mtarg_pos, Mtarg_vel
    real(DP), intent(in) :: Mp_r, Mtarg_r
-   real(DP) :: ans, h_sq, b, dvel_sq
+   real(DP) :: h_sq, b, dvel_sq
    real(DP), DIMENSION(3) :: dpos, dvel, h
 
    dpos(1) = mtarg_pos(1) - mp_pos(1)
