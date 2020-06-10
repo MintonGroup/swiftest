@@ -4,6 +4,9 @@ contains
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Read in parameters for the integration
+   !! Currently this procedure does not work in user-defined derived-type input mode 
+   !!    e.g. read(unit,'(DT)') param 
+   !! as the newline characters are ignored in the input file when compiled in ifort.
    !!
    !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
    !! Adapted from Martin Duncan's Swift routine io_init_param.f
@@ -17,11 +20,11 @@ contains
    integer(I4B)            :: ilength, ifirst, ilast  !! Variables used to parse input file
    character(STRMAX)       :: line                    !! Line of the input file
    character (len=:), allocatable :: line_trim,param_name, param_value
+   character(*),parameter :: linefmt = '(A)'
 
-   100 format(A)
    ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
    do
-      read(unit = unit, fmt = 100, iostat = iostat, end = 1) line
+      read(unit = unit, fmt = linefmt, iostat = iostat, end = 1) line
       line_trim = trim(adjustl(line))
       ilength = len(line_trim)
       if ((ilength /= 0)) then 

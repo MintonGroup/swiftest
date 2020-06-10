@@ -65,7 +65,7 @@ MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES)
 
 % : %.f90 force
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include $< -o $@ \
-	  -L$(SWIFTEST_HOME)/lib -lswifter -lcollresolve
+	  -L$(SWIFTEST_HOME)/lib -lswiftest -lcollresolve
 	$(INSTALL_PROGRAM) $@ $(SWIFTEST_HOME)/bin
 	rm -f $@
 
@@ -80,7 +80,7 @@ all:
 mod:
 	cd $(SWIFTEST_HOME)/src; \
 	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c $(MODULES); \
-	  $(AR) rv $(SWIFTEST_HOME)/lib/libswifter.a *.o; \
+	  $(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o; \
 	  $(INSTALL_DATA) *.mod *.smod $(SWIFTEST_HOME)/include; \
 	  rm -f *.o *.mod *.smod
 
@@ -143,7 +143,7 @@ lib:
 
 libdir:
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90
-	$(AR) rv $(SWIFTEST_HOME)/lib/libswifter.a *.o
+	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o
 	rm -f *.o
 
 collresolve:
@@ -186,7 +186,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/tool;    rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTEST_HOME)/bin;     rm -f swifter_*
+	cd $(SWIFTEST_HOME)/bin;     rm -f swiftest_*
 	cd $(SWIFTEST_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTEST_HOME)/lib;     rm -f lib*
 	cd $(SWIFTEST_HOME)/include; rm -f *.mod collresolve.h
