@@ -63,18 +63,18 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: model, nres, i, itarg, iproj
      REAL(DP), DIMENSION(3)         :: mres, rres
      REAL(DP), DIMENSION(NDIM, 3)   :: pres, vres
-     INTEGER(I4B)                   :: regime, indexbig, indexsmall  
+     INTEGER(I4B)                   :: regime 
      INTEGER(I4B)                   :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
      INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
      REAL(DP)                       :: rad1, rad2, m1, m2, den1, den2, denchild, dentarg, denproj, dentot, Mcenter
-     REAL(DP)                       :: m1_cgs, m2_cgs, rad1_cgs, rad2_cgs, mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
+     REAL(DP)                       :: mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2, x1_si, x2_si, v1_si, v2_si, xproj, xtarg, vproj, vtarg
      REAL(DP)                       :: den1_si, den2_si, rad1_si, rad2_si, rproj, rtarg
      LOGICAL(LGT)                   :: lfrag_add, lmerge
      INTEGER(I4B), DIMENSION(npl)   :: array_index1_child, array_index2_child
-     REAL(DP)                       :: m1_msun, m2_msun, rad1_au, rad2_au, AU2CM, year, Mlr, Mslr, mtarg, mproj
-     REAL(DP)                       :: K2 = 2.959122082855911e-4 ! in SI units
+     REAL(DP)                       :: Mlr, Mslr, mtarg, mproj
+     !REAL(DP)                       :: K2 = 2.959122082855911e-4 ! in SI units
      !REAL(DP)                       :: MSUN = 1.98847e30 ! in SI units
      !REAL(DP)                       :: AU = 1.495978707e11 ! in SI units
      !REAL(DP)                       :: year = 3.154e7 ! in SI units
