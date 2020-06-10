@@ -44,7 +44,6 @@ SUBROUTINE discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmax
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => discard
      IMPLICIT NONE
 

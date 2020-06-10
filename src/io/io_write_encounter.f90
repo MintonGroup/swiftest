@@ -39,7 +39,6 @@ SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, x
 
 ! Modules
      USE swiftest
-     !USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_write_encounter
      IMPLICIT NONE
 

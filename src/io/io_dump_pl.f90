@@ -37,8 +37,6 @@ SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
 
 ! Modules
      USE swiftest
-     USE module_swiftest
-     !USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_dump_pl
      IMPLICIT NONE
 

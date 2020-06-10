@@ -37,7 +37,6 @@ SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_lis
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_casehitandrun

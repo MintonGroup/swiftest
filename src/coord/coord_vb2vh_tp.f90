@@ -29,7 +29,6 @@ SUBROUTINE coord_vb2vh_tp(ntp, swiftest_tpA, vs)
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => coord_vb2vh_tp
      IMPLICIT NONE

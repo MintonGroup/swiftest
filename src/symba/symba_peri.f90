@@ -34,7 +34,6 @@ SUBROUTINE symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_peri

@@ -28,7 +28,6 @@ SUBROUTINE util_hills(npl, swiftest_plA)
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => util_hills
      IMPLICIT NONE
 

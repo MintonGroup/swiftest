@@ -36,7 +36,6 @@ SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
 
 ! Modules
      USE swiftest
-     USE module_swifter
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_discard_merge_pl

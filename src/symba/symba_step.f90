@@ -67,7 +67,6 @@ SUBROUTINE symba_step(t,dt,param,npl, ntp,symba_plA, symba_tpA,       &
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_helio
      USE module_symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_step

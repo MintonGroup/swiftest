@@ -3,8 +3,8 @@ module io
    !! todo: Replace XDR with HDF5 
    !!
    !! Module containing all input/output subroutine interface blocks 
-   use module_globals
-   use module_swiftest
+   use swiftest_globals
+   use swiftest_data_structures
    use user
 
    interface

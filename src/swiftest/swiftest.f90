@@ -3,7 +3,8 @@ module swiftest
    !! graph: false
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
-   use module_globals
+   use swiftest_globals
+   use swiftest_data_structures
    use io
    use user
 

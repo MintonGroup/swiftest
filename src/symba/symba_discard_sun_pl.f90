@@ -35,7 +35,6 @@ SUBROUTINE symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, l
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => symba_discard_sun_pl
      IMPLICIT NONE
 

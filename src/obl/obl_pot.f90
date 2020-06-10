@@ -36,7 +36,6 @@ SUBROUTINE obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => obl_pot
      IMPLICIT NONE
 

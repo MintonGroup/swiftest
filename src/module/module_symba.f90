@@ -25,7 +25,7 @@
 !**********************************************************************************************************************************
 MODULE module_symba
 
-     USE module_globals
+     USE swiftest_globals
      USE module_helio
      IMPLICIT NONE
 

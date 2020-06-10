@@ -44,8 +44,8 @@
 #
 #******************************************************************************
 
-SWIFTEST_MODULES =   module/module_globals.f90 \
-                     module/module_swiftest.f90 \
+SWIFTEST_MODULES =   swiftest/swiftest_globals.f90 \
+                     swiftest/swiftest_data_structures.f90 \
                      user/user.f90 \
                      io/io.f90 \
                      module/module_swifter.f90 \
@@ -54,7 +54,7 @@ SWIFTEST_MODULES =   module/module_globals.f90 \
                      module/module_symba.f90 \
                      module/module_swiftestalloc.f90 \
                      module/module_interfaces.f90 \
-                     module/swiftest.f90 
+                     swiftest/swiftest.f90 
 
 include Makefile.Defines
 

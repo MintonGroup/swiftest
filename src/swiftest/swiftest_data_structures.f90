@@ -1,9 +1,9 @@
-module module_swiftest
+module swiftest_data_structures
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Definition of data and structures generic to all integrators.
    !! Adapted from David E. Kaufmann's Swifter modules: module_swifter.f90
-   use module_globals
+   use swiftest_globals
    implicit none
 
    type swiftest_pl
@@ -17,6 +17,9 @@ module module_swiftest
       real(DP),     dimension(:,:),   allocatable :: vh     !! Heliocentric velocity
       real(DP),     dimension(:,:),   allocatable :: xb     !! Barycentric position
       real(DP),     dimension(:,:),   allocatable :: vb     !! Barycentric velocity
+   !contains
+   !   procedure :: set_initial_conditions => swiftest_init_pl
+   !   procedure :: read_from_file => swiftest_read_pl_in 
    end type swiftest_pl
 
    type swiftest_tp
@@ -32,4 +35,4 @@ module module_swiftest
       real(DP),     dimension(:,:),   allocatable :: vb     !! Barycentric velocity
    end type swiftest_tp
 
-end module module_swiftest
+end module swiftest_data_structures

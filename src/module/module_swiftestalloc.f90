@@ -3,12 +3,12 @@ module module_swiftestalloc
    !!
    !! Module containing subroutines that allocate and initialize the Swiftest data structures
    !!
-   use module_globals
+   use swiftest_globals
 
    contains 
 
    subroutine swiftest_pl_allocate(swiftest_plA, npl)
-      use module_swiftest
+      use swiftest_data_structures
       implicit none
 
       integer(I4B), intent(in)            :: npl
@@ -148,7 +148,7 @@ module module_swiftestalloc
    end subroutine symba_merger_allocate
 
    subroutine swiftest_tp_allocate(swiftest_tpA, ntp)
-      use module_swiftest
+      use swiftest_data_structures
       implicit none
 
       integer(I4B), intent(in)            :: ntp
@@ -244,7 +244,7 @@ module module_swiftestalloc
 
 
    subroutine swiftest_pl_deallocate(swiftest_plA)
-      use module_swiftest
+      use swiftest_data_structures
       implicit none
 
       type(swiftest_pl), intent(inout)    :: swiftest_plA
@@ -330,7 +330,7 @@ module module_swiftestalloc
    end subroutine symba_merger_deallocate
 
    subroutine swiftest_tp_deallocate(swiftest_tpA)
-      use module_swiftest
+      use swiftest_data_structures
       implicit none
 
       type(swiftest_tp), intent(inout)    :: swiftest_tpA

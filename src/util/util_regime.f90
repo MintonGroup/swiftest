@@ -29,7 +29,6 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 ! Modules
      USE swiftest
      USE module_symba
-     USE module_swiftest
      USE module_helio
      USE module_nrutil
      USE module_swiftestalloc

@@ -1,4 +1,4 @@
-module module_globals
+module swiftest_globals
    !! author: David A. Minton
    !! graph: false
    !!
@@ -150,4 +150,4 @@ module module_globals
    logical, save       :: ldiscard = .false.    !! If true, then proceed to discard spilled pl and complete discard.out file.
    logical, save       :: ldiscard_tp = .false. !! If true, then proceed to discard spilled tp 
 
-end module module_globals
+end module swiftest_globals

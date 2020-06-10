@@ -30,7 +30,6 @@ SUBROUTINE util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => util_valid
      IMPLICIT NONE
 

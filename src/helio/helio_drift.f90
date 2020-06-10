@@ -29,7 +29,6 @@ SUBROUTINE helio_drift(npl, swiftest_plA, dt)
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => helio_drift
      IMPLICIT NONE
 

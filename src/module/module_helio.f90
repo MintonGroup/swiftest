@@ -23,24 +23,24 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-MODULE module_helio
+module module_helio
 
-     USE module_globals
-     USE module_swiftest
-     IMPLICIT NONE
+   use swiftest_globals
+   use swiftest_data_structures
+   implicit none
 
-     type helio_pl
+   type helio_pl
        real(DP),     dimension(:,:),   allocatable :: ah     ! total heliocentric acceleration
        real(DP),     dimension(:,:),   allocatable :: ahi    ! heliocentric acceleration due to interactions
        type(swiftest_pl)                           :: swiftest  ! swifter planet structure
-     end type helio_pl
+    end type helio_pl
 
-     type helio_tp
+    type helio_tp
        real(DP),     dimension(:,:),   allocatable :: ah       ! total heliocentric acceleration
        real(DP),     dimension(:,:),   allocatable :: ahi      ! heliocentric acceleration due to interactions
        type(swiftest_tp)                           :: swiftest  ! swifter test particle structure
-     end type helio_tp
-END MODULE module_helio
+    end type helio_tp
+end module module_helio
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

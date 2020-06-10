@@ -34,7 +34,6 @@ SUBROUTINE discard_sun(t, ntp, msys, swiftest_tpA, rmin, rmax, rmaxu)
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => discard_sun
      IMPLICIT NONE
 

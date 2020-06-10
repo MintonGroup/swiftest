@@ -9,7 +9,6 @@ program swiftest_symba
    use swiftest
 
    !> The following are temporary until the conversion to the new module structure is complete
-   use module_swiftest
    use module_symba
    use module_interfaces
    use module_swiftestalloc

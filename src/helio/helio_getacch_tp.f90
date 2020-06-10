@@ -38,7 +38,6 @@ SUBROUTINE helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, he
 
 ! Modules
      USE swiftest
-     USE module_swiftest
      USE module_helio
      USE module_interfaces, EXCEPT_THIS_ONE => helio_getacch_tp
      IMPLICIT NONE
