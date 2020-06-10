@@ -66,7 +66,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      REAL(DP)                      :: crufu = (2.0_DP-3.0_DP*0.36_DP) ! central potential variable from Rufu et al. 2019
 
 ! Executable code
-
+      WRITE(*,*) "start util_regime"
       vimp = NORM2(vh2(:) - vh1(:))
       b = calc_b(xh2, vh2, rad2, xh1, vh1, rad1)
       l = (rad1 + rad2)*(1-b)
@@ -91,7 +91,6 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
        WRITE(*,*) "vescp = ", vescp
      !Calculate Rhill
       Rhill = a1*(m1/3.0_DP/(Mcenter+m1))**(1.0_DP/3.0_DP)
-      Write(*,*) "Rhill = ", Rhill
      !Calculate Vhill
       if ((rad2 + rad1) < Rhill) then 
         vhill = sqrt(2.0_DP * G * m1 * ((Rhill ** 2.0_DP - Rhill * (rad1 + rad2)) / &
@@ -99,12 +98,11 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
       else
         vhill = vescp
       end if 
-      Write(*,*) "vhill = ", vhill
+      WRITE(*,*) "halfway through util_regime"
      !Calculate QR_pstar
       QRD_pstar = calc_QRD_pstar(m1, m2, alpha)*(vhill/vescp)**crufu !rufu et al. eq (3)
      !Calculate verosion
       QR_erosion = 2.0_DP * (1.0_DP - m1 / mtot) * QRD_pstar
-      Write(*,*) "QR_erosion", QR_erosion 
       verosion = (2.0_DP * QR_erosion * mtot / mu)** (1.0_DP / 2.0_DP)
       QR = mu*(vimp**2.0_DP)/mtot/2.0_DP
       !QRD_lr = calc_QRD_lr(m2, m1, mint)
@@ -113,48 +111,65 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      !Calculate vsupercat
       QR_supercat = 1.8_DP * QRD_pstar
       vsupercat = ( 2.0_DP * QR_supercat * mtot / mu ) ** (1.0_DP / 2.0_DP)
-      Write(*,*) "vsupercat = ", vsupercat
      !Calculate Vcr
       fgamma = (m1 - m2) / mtot
       theta = 1.0_DP - b
       vcr = vescp * (c1 * fgamma * theta ** c5 + c2 * fgamma + c3 * theta ** c5 + c4)
-      Write(*,*) "vcr = ", vcr
       bcrit = rad1/(rad1+rad2)
-      Write(*,*) "bcrit = ", bcrit
 
+      WRITE(*,*) "before case loop util_regime"
+      WRITE(*,*) "vimp: ", vimp
+      WRITE(*,*) "vescp: ", vescp
+      WRITE(*,*) "verosion: ", verosion
+      WRITE(*,*) "b: ", b
+      WRITE(*,*) "bcrit: ", bcrit
+      WRITE(*,*) "vcr: ", vcr
+      WRITE(*,*) "vsupercat: ", vsupercat
+      WRITE(*,*) "m1: ", m1
+      WRITE(*,*) "m2: ", m2
 
       IF( vimp < vescp) THEN
+        WRITE(*,*) "IF 1 "
         regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
          Mlr = mtot
          Mslr = 0.0_DP
       ELSE IF (vimp < verosion) THEN 
-        IF (b<bcrit) THEN 
+        WRITE(*,*) "IF 2 "
+        IF (b<bcrit) THEN
+          WRITE(*,*) "IF 3 " 
           regime = COLLRESOLVE_REGIME_MERGE !partial accretion regime"
            Mlr = mtot
            Mslr = 0.0_DP
-        ELSE IF ((b>bcrit) .AND. (vimp < vcr)) THEN 
+        ELSE IF ((b>bcrit) .AND. (vimp < vcr)) THEN
+          WRITE(*,*) "IF 4 " 
           regime = COLLRESOLVE_REGIME_MERGE ! graze and merge
            Mlr = mtot
            Mslr = 0.0_DP
-        ELSE 
+        ELSE
+           WRITE(*,*) "IF 5 " 
            Mlr = m1
            Mslr = calc_QRD_rev(m1,m2,mint,den1,den2,vimp)
           regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
         END IF 
-      ELSE IF (vimp > verosion .AND. vimp < vsupercat) THEN 
+      ELSE IF (vimp > verosion .AND. vimp < vsupercat) THEN
+        WRITE(*,*) "IF 6 " 
         IF ((m2 < 0.001_DP * m1)) THEN 
+          WRITE(*,*) "IF 7 "
           regime = COLLRESOLVE_REGIME_MERGE !cratering regime"
            Mlr = mtot
            Mslr = 0.0_DP
         ELSE 
+          WRITE(*,*) "IF 8 "
            Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
            regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
         END IF 
       ELSE IF (vimp > vsupercat) THEN 
+        WRITE(*,*) "IF 9 "
          Mlr = mtot * (0.1_DP * ((QR / (QRD_pstar * 1.8_DP)) ** (-1.5_DP)))     !Eq (44)
          Mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (N1 * Mlr / mtot)))) / (N2 * beta)  ! (Eq 37)
         regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC ! supercatastrophic
       ELSE 
+        WRITE(*,*) "IF 10 "
         WRITE(*,*) "Error no regime found in util_regime"
       END IF 
       WRITE(*,*) "end algorithm"
