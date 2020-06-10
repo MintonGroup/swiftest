@@ -33,8 +33,7 @@
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-    symba_plA, nplplenc, plplenc_list, &
-    nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+    symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
 ! Modules
     USE swiftest
@@ -135,12 +134,11 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
     r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
     theta = (2.0_DP * PI) / nfrag
+    msun = symba_plA%helio%swiftest%mass(1)
     semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
     CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
-
     IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
         WRITE(*,*) "Timestep is too large to resolve fragments."
-        STOP
     ELSE
         ! Add new fragments to mergeadd_list
         mtot = 0.0_DP ! running total mass of new fragments
