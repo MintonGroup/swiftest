@@ -45,8 +45,8 @@
 #******************************************************************************
 
 SWIFTEST_MODULES =   swiftest/swiftest_globals.f90 \
-                     swiftest/swiftest_data_structures.f90 \
                      user/user.f90 \
+                     swiftest/swiftest_data_structures.f90 \
                      io/io.f90 \
                      module/module_swifter.f90 \
                      module/module_helio.f90 \

@@ -4,7 +4,6 @@ module user
    !!
    !! Module containing all input/output subroutine interface blocks 
    use swiftest_globals
-   use swiftest_data_structures
 
    !> User defined input parameters that are read in from param.in
    type, public :: user_input_parameters
