@@ -161,9 +161,9 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
                          IF (param%lfragmentation) THEN
-                            CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, & 
-                              eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, &
-                              nplplenc, npltpenc, pltpenc_list, plplenc_list, nplmax, ntpmax, fragmax)
+                            CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+                                        eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, nplmax, &
+                                        ntpmax, fragmax)
                          ELSE
                             CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
                               mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA)
@@ -257,10 +257,9 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                              (symba_plA%levelg(index_i) >= ireci) .AND.                                                         &
                              (symba_plA%levelg(index_j) >= ireci))  THEN    
                               IF (param%lfragmentation) THEN
-                                   CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, & 
-                                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, ntp, &
-                                        symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-                                        nplmax, ntpmax, fragmax)
+                                   CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+                                        eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, nplmax, &
+                                        ntpmax, fragmax)
                               ELSE
                                    CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
                                         mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA)
