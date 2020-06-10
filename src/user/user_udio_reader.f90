@@ -114,12 +114,11 @@ contains
             read(param_value, *) param%DU2M
          case ("MTINY")
             read(param_value, *) param%mtiny
-         case ("PYTHON")
-            call util_toupper(param_value)
-            if (param_value == "YES" .or. param_value == 'T') param%feature%lpython = .true.
          case ("ENERGY")
             call util_toupper(param_value)
             if (param_value == "YES" .or. param_value == 'T') param%feature%lenergy = .true.
+
+         ! The following are not yet implemented
          case ("RINGMOONS")
             call util_toupper(param_value)
             if (param_value == "YES" .or. param_value == 'T') param%feature%lringmoons = .true.
@@ -128,6 +127,18 @@ contains
          case ("ROTATION")
             call util_toupper(param_value)
             if (param_value == "YES" .or. param_value == 'T') param%feature%lrotation = .true. 
+         case ("TIDES")
+            call util_toupper(param_value)
+            if (param_value == "YES" .or. param_value == 'T') param%feature%ltides = .true. 
+         case ("GR")
+            call util_toupper(param_value)
+            if (param_value == "YES" .or. param_value == 'T') param%feature%lgr = .true. 
+         case ("YARKOVSKY")
+            call util_toupper(param_value)
+            if (param_value == "YES" .or. param_value == 'T') param%feature%lyarkovsky = .true. 
+         case ("YORP")
+            call util_toupper(param_value)
+            if (param_value == "YES" .or. param_value == 'T') param%feature%lyorp = .true. 
          case default
             write(iomsg,*) "Unknown parameter -> ",param_name
             iostat = -1

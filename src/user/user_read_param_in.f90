@@ -89,7 +89,6 @@ contains
    else
       write(*,*) "MTINY          = ",param%mtiny   
    end if
-   if (param%feature%lpython) write(*,*) "PYTHON         = ",param%feature%lpython
    if (param%feature%lenergy) write(*,*) "ENERGY         = ",param%feature%lenergy
    if (param%feature%lringmoons) write(*,*) "RINGMOONS      = ",param%feature%lringmoons
 

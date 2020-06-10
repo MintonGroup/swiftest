@@ -9,23 +9,23 @@ contains
    !! Adapted from Martin Duncan's Swift routine io_dump_param.f
    implicit none
 
-   character(*),parameter :: NL    = new_line('A')                   !! New line character, due to write statements not making new lines
-                                                                     !!    in user-defined derived-type output 
-   character(*),parameter :: Ifmt  = '(A20,1X,I0,"'//NL//'")'        !! Format label for integer values
-   character(*),parameter :: Rfmt  = '(A20,1X,f0.16,"'//NL//'")'     !! Format label for real values 
-   character(*),parameter :: R2fmt = '(A20,2(1X,f0.16),"'//NL//'")'  !! Format label for 2x real values 
-   character(*),parameter :: Sfmt  = '(A20,1X,A,"'//NL//'")'         !! Format label for string values 
-   character(*),parameter :: Lfmt  = '(A20,1X,L1,"'//NL//'")'        !! Format label for logical values 
-   character(*),parameter :: Pfmt  = '(A20,"'//NL//'")'              !! Format label for single parameter string
+   character(*),parameter :: NL    = new_line('A')                    !! New line character, due to write statements not making new lines
+                                                                      !!    in user-defined derived-type output 
+   character(*),parameter :: Ifmt  = '(A20,1X,I0,"'//NL//'")'         !! Format label for integer values
+   character(*),parameter :: Rfmt  = '(A20,1X,ES25.17,"'//NL//'")'    !! Format label for real values 
+   character(*),parameter :: R2fmt = '(A20,2(1X,ES25.17),"'//NL//'")'  !! Format label for 2x real values 
+   character(*),parameter :: Sfmt  = '(A20,1X,A,"'//NL//'")'          !! Format label for string values 
+   character(*),parameter :: Lfmt  = '(A20,1X,L1,"'//NL//'")'         !! Format label for logical values 
+   character(*),parameter :: Pfmt  = '(A20,"'//NL//'")'               !! Format label for single parameter string
 
-   write(unit, Ifmt) "NPLMAX ",param%nplmax
-   write(unit, Ifmt) "NTPMAX ",param%ntpmax
+   write(unit, Ifmt) "NPLMAX",param%nplmax
+   write(unit, Ifmt) "NTPMAX",param%ntpmax
    write(unit, Rfmt) "T0", param%t0
-   write(unit, Rfmt) "TSTOP ",param%tstop
+   write(unit, Rfmt) "TSTOP",param%tstop
    write(unit, Rfmt) "DT",param%dt
-   write(unit, Sfmt) "PL_IN ",trim(adjustl(param%inplfile))
-   write(unit, Sfmt) "TP_IN ",trim(adjustl(param%intpfile))
-   write(unit, Sfmt) "IN_TYPE ",trim(adjustl(param%out_type))
+   write(unit, Sfmt) "PL_IN",trim(adjustl(param%inplfile))
+   write(unit, Sfmt) "TP_IN",trim(adjustl(param%intpfile))
+   write(unit, Sfmt) "IN_TYPE",trim(adjustl(param%out_type))
    if (param%istep_out > 0) then
       write(unit, Ifmt) "ISTEP_OUT",param%istep_out
       write(unit, Sfmt) "BIN_OUT",trim(adjustl(param%outfile))
@@ -34,11 +34,12 @@ contains
       write(unit, Sfmt) "OUT_STAT","APPEND"
    else
       write(unit, Pfmt) "!ISTEP_OUT "
-      write(unit, Pfmt) "!BIN_OUT "
-      write(unit, Pfmt) "!OUT_TYPE "
-      write(unit, Pfmt) "!OUT_FORM "
-      write(unit, Pfmt) "!OUT_STAT "
+      write(unit, Pfmt) "!BIN_OUT"
+      write(unit, Pfmt) "!OUT_TYPE"
+      write(unit, Pfmt) "!OUT_FORM"
+      write(unit, Pfmt) "!OUT_STAT"
    end if
+   write(unit, Sfmt) "ENC_OUT",trim(adjustl(param%encounter_file))
    if (param%istep_dump > 0) then
       write(unit, Ifmt) "ISTEP_DUMP",param%istep_dump
    else
@@ -55,29 +56,38 @@ contains
       write(unit, Pfmt) "!J2 "
       write(unit, Pfmt) "!J4 "
    end if
-   write(unit, Lfmt) "CHK_CLOSE ",param%feature%lclose
-   write(unit, Rfmt) "CHK_RMIN ",param%rmin
-   write(unit, Rfmt) "CHK_RMAX ",param%rmax
-   write(unit, Rfmt) "CHK_EJECT ",param%rmaxu
-   write(unit, Rfmt) "CHK_QMIN ",param%qmin
+   write(unit, Rfmt) "CHK_RMIN",param%rmin
+   write(unit, Rfmt) "CHK_RMAX",param%rmax
+   write(unit, Rfmt) "CHK_EJECT",param%rmaxu
+   write(unit, Rfmt) "CHK_QMIN",param%qmin
    if (param%qmin >= 0.0_DP) then
-      write(unit, Sfmt) "CHK_QMIN_COORD ",trim(adjustl(param%qmin_coord))
-      write(unit, R2fmt) "CHK_QMIN_RANGE ",param%qmin_alo, param%qmin_ahi
+      write(unit, Sfmt) "CHK_QMIN_COORD",trim(adjustl(param%qmin_coord))
+      write(unit, R2fmt) "CHK_QMIN_RANGE",param%qmin_alo, param%qmin_ahi
    else
-      write(unit, Pfmt) "!CHK_QMIN_COORD "
-      write(unit, Pfmt) "!CHK_QMIN_RANGE "
+      write(unit, Pfmt) "!CHK_QMIN_COORD"
+      write(unit, Pfmt) "!CHK_QMIN_RANGE"
    end if
-   write(unit, Sfmt) "ENC_OUT ",trim(adjustl(param%encounter_file))
-   write(unit, Lfmt) "EXTRA_FORCE ",param%feature%lextra_force
-   write(unit, Lfmt) "BIG_DISCARD ",param%feature%lbig_discard
-   write(unit, Lfmt) "RHILL_PRESENT ",param%feature%lrhill_present
-   if (param%feature%lmtiny) write(unit, Rfmt) "MTINY ",param%mtiny
-
-   ! the fragmentation model requires the user to set the unit system explicitly.
-   write(unit, Lfmt) "FRAGMENTATION", param%feature%lfragmentation
+   if (param%feature%lmtiny) write(unit, Rfmt) "MTINY",param%mtiny
    write(unit, Rfmt) "MU2KG",MU2KG
-   write(unit, Rfmt) "TU2S ",TU2S 
+   write(unit, Rfmt) "TU2S",TU2S 
    write(unit, Rfmt) "DU2M",DU2M
+   
+   write(unit, Lfmt) "EXTRA_FORCE",param%feature%lextra_force
+   write(unit, Lfmt) "BIG_DISCARD",param%feature%lbig_discard
+   write(unit, Lfmt) "RHILL_PRESENT",param%feature%lrhill_present
+   write(unit, Lfmt) "CHK_CLOSE",param%feature%lclose
+   write(unit, Lfmt) "FRAGMENTATION", param%feature%lfragmentation
+   !write(unit, Lfmt) "ROTATION", param%feature%lrotation
+   !write(unit, Lfmt) "TIDES", param%feature%ltides
+   !write(unit, Lfmt) "GR", param%feature%lgr
+   !write(unit, Lfmt) "YARKOVSKY", param%feature%lyarkovsky
+   !write(unit, Lfmt) "YORP", param%feature%lyorp
+   !write(unit, Lfmt) "ENERGY", param%feature%lenergy
+
+   !write(unit, Lfmt) "RINGMOONS", param%feature%lringmoons
+   !if (param%feature%lringmoons) write(unit, Sfmt) "RING_OUTFILE",trim(adjustl(param%ring_outfile))
+
+
 
    return
 

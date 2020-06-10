@@ -14,16 +14,14 @@ module user
       logical :: lclose = .false.             !! Turn on close encounters
       logical :: lfragmentation = .false.     !! Do fragmentation modeling instead of simple merger.
       logical :: lmtiny  = .false.            !! Use the MTINY variable (SyMBA)
-      logical :: lpython = .false.            !! Output binary data in Python-friendly format
-      logical :: lenergy = .false.            !! Track the total energy of the system
       logical :: lrotation  = .false.         !! Include rotation states of big bodies
       logical :: ltides     = .false.         !! Include tidal dissipation 
       logical :: lringmoons = .false.         !! Turn on the ringmoons code 
-      logical :: lpredprey  = .false.         !! Turn on the predator/prey model for seed growth in ringmoons (experimental)
+      logical :: lenergy = .false.            !! Track the total energy of the system
 
       ! Future features not implemented or in development
       logical :: lgr = .false.                !! Turn on GR
-      logical :: lyarkosvsky = .false.        !! Turn on Yarkovsky effect
+      logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.              !! Turn on YORP effect
 end type feature_list   
 
