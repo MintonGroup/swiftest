@@ -79,7 +79,7 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
                x2, v1, v2)
 
           CASE (COLLRESOLVE_REGIME_HIT_AND_RUN)
-               CALL symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+               CALL symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
                symba_plA, nplplenc, plplenc_list, &
                nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 

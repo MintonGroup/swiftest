@@ -711,7 +711,7 @@ MODULE module_interfaces
      END INTERFACE
 
      INTERFACE
-          SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+          SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
           symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
           USE swiftest_globals
           USE swiftest_data_structures
@@ -720,7 +720,7 @@ MODULE module_interfaces
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
           INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, fragmax
-          REAL(DP), INTENT(IN)                             :: t
+          REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
           REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
           REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
