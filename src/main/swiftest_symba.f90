@@ -70,7 +70,6 @@ program swiftest_symba
    inparfile = trim(adjustl(inparfile))
    ! read in the param.in file and get simulation parameters
    call param%read_from_file(inparfile)
-   write(*,*) 'istep_out in SyMBA: ',param%istep_out
    param%feature%lmtiny = .true. ! Turn this on for SyMBA
 
    ! temporary until the conversion to the derived type argument list is complete
