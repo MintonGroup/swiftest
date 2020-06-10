@@ -11,17 +11,17 @@
 !
 !  Input
 !    Arguments : lfirst         : logical flag indicating whether current invocation is the first
-!                lextra_force   : logical flag indicating whether to include user-supplied accelerations
-!                lclose         : logical flag indicating whether to check for mergers
+!                param%lextra_force   : logical flag indicating whether to include user-supplied accelerations
+!                param%lclose         : logical flag indicating whether to check for mergers
 !                t              : time
 !                npl            : number of planets
-!                nplmax         : maximum allowed number of planets
+!                param%nplmax         : maximum allowed number of planets
 !                ntp            : number of active test particles
-!                ntpmax         : maximum allowed number of test particles
+!                param%ntpmax         : maximum allowed number of test particles
 !                symba_pl1P     : pointer to head of SyMBA planet structure linked-list
 !                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
-!                j2rp2          : J2 * R**2 for the Sun
-!                j4rp4          : J4 * R**4 for the Sun
+!                param%j2rp2          : J2 * R**2 for the Sun
+!                param%j4rp4          : J4 * R**4 for the Sun
 !                dt             : time step
 !                nplplenc       : number of planet-planet encounters
 !                npltpenc       : number of planet-test particle encounters
@@ -32,9 +32,9 @@
 !                mergeadd_list  : array of structures of merged planets to add
 !                mergesub_list  : array of structures of merged planets to subtract
 !                eoffset        : energy offset (net energy lost in mergers)
-!                mtiny          : smallest self-gravitating mass
-!                encounter_file : name of output file for encounters
-!                out_type       : binary format of output file
+!                param%mtiny          : smallest self-gravitating mass
+!                param%encounter_file : name of output file for encounters
+!                param%out_type       : binary format of output file
 !    Terminal  : none
 !    File      : none
 !
@@ -54,16 +54,16 @@
 !    Terminal  : error message
 !    File      : none
 !
-!  Invocation  : CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4,
+!  Invocation  : CALL symba_step(lfirst, param%lextra_force, param%lclose, t, npl, param%nplmax, ntp, param%ntpmax, symba_pl1P, symba_tp1P, param%j2rp2, param%j4rp4,
 !                                dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,
-!                                mergesub_list, eoffset, mtiny, encounter_file, out_type)
+!                                mergesub_list, eoffset, param%mtiny, param%encounter_file, param%out_type)
 !
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_step_pl.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,        &
-     nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,          &
-     encounter_file, out_type, fragmax, param)
+SUBROUTINE symba_step(t,dt,param,npl, ntp,symba_plA, symba_tpA,       &
+               nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub,&
+               mergeadd_list, mergesub_list, eoffset, fragmax)
 
 ! Modules
      USE swiftest
@@ -74,27 +74,25 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
      IMPLICIT NONE
 
 ! Arguments
-     LOGICAL(LGT), INTENT(IN)                         :: lextra_force, lclose
-     LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
-     INTEGER(I4B), INTENT(IN)                         :: npl, nplmax, ntp, ntpmax
+     TYPE(user_input_parameters)                      :: param        ! Derived type containing user defined parameters 
+     INTEGER(I4B), INTENT(IN)                         :: npl, ntp
      INTEGER(I4B), INTENT(INOUT)                      :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
-     REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
+     REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
-     CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
      TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-     TYPE(user_input_parameters)                      :: param        ! Derived type containing user defined parameters 
 ! Internals
      LOGICAL(LGT)              :: lencounter, lvdotr
      INTEGER(I4B)              :: i, j, irec, nplm
      REAL(DP), DIMENSION(NDIM) :: xr, vr
+     LOGICAL, SAVE             :: lfirst = .true.
      
 ! Executable code
 
-          DO i = 1,npl
+    DO i = 1,npl
           symba_plA%nplenc(i) = 0
           symba_plA%ntpenc(i) = 0
           symba_plA%levelg(i) = -1
@@ -113,7 +111,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
      nplplenc = 0
      npltpenc = 0
-     IF (symba_plA%helio%swiftest%mass(1) < mtiny) THEN
+     IF (symba_plA%helio%swiftest%mass(1) < param%mtiny) THEN
           nplm = 0
      ELSE
           nplm = 1
@@ -123,7 +121,7 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 ! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
 
      DO i = 2, npl
-          IF (symba_plA%helio%swiftest%mass(i) < mtiny) EXIT
+          IF (symba_plA%helio%swiftest%mass(i) < param%mtiny) EXIT
           nplm = nplm + 1
           DO j = i + 1, npl
                xr(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
@@ -186,13 +184,16 @@ SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax,
 
      lencounter = ((nplplenc > 0) .OR. (npltpenc > 0))
      IF (lencounter) THEN
-          CALL symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,   &
-               dt, eoffset, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,           &
-               mergesub_list, encounter_file, out_type, fragmax, param)
+          CALL symba_step_interp(param%lextra_force, param%lclose, t, npl, nplm, param%nplmax, &
+               ntp, param%ntpmax, symba_plA, symba_tpA, param%j2rp2, param%j4rp4,   &
+               dt, eoffset, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
+               nmergesub, mergeadd_list, mergesub_list, param%encounter_file, param%out_type, &
+               fragmax, param)
           lfirst = .TRUE.
      ELSE
-          CALL symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA%helio, symba_tpA%helio, &
-               j2rp2, j4rp4, dt)
+          CALL symba_step_helio(lfirst, param%lextra_force, t, npl, nplm, param%nplmax, ntp,&
+               param%ntpmax, symba_plA%helio, symba_tpA%helio, &
+               param%j2rp2, param%j4rp4, dt)
      END IF
 
      RETURN

@@ -43,7 +43,7 @@ program swiftest_symba
    character(strmax) :: out_stat       ! open status for output binary file
 
    ! Internals
-   logical                       :: lfirst, lfrag_add
+   logical                       :: lfrag_add
    integer(I4B)                  :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
    integer(I4B)                  :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
    real(DP)                      :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
@@ -128,7 +128,6 @@ program swiftest_symba
    call symba_reorder_pl(npl, symba_plA)
    call io_init_tp(intpfile, in_type, ntp, symba_tpA)
    call util_valid(npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest)
-   lfirst = .true.
    ntp0 = ntp
    t = t0
    tbase = t0
@@ -157,9 +156,9 @@ program swiftest_symba
    end if
    call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
    do while ((t < tstop) .and. ((ntp0 == 0) .or. (ntp > 0)))
-      call symba_step(lfirst, param%lextra_force, param%lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, &
-            j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-            eoffset, mtiny, encounter_file, out_type, fragmax, param)
+      call symba_step(t, dt, param,npl,ntp,symba_plA, symba_tpA,nplplenc, npltpenc,&
+            plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+            eoffset, fragmax)
       iloop = iloop + 1
       if (iloop == loopmax) then
           tbase = tbase + iloop*dt
