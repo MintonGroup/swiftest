@@ -1,43 +1,10 @@
-                      !**********************************************************************************************************************************
-!
-!  Unit Name   : module_swiftest
-!  Unit Type   : module
-!  Project     : SWIFTEST
-!  Package     : module
-!  Language    : Fortran 2003 
-!
-!  Description : Definition of data and structures generic to all integrators
-!
-!  Input
-!    Arguments : N/A
-!    Terminal  : N/A
-!    File      : N/A
-!
-!  Output
-!    Arguments : N/A
-!    Terminal  : N/A
-!    File      : N/A
-!
-!  Invocation  : N/A
-!
-!  Notes       : 
-!
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David A. Minton
-!
-!**********************************************************************************************************************************
 module module_swiftest
-
+   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   !!
+   !! Definition of data and structures generic to all integrators.
+   !! Adapted from David E. Kaufmann's Swifter modules: module_swifter.f90
    use module_globals
    implicit none
-
-
-
-   !integer(I4B), parameter :: NENMAX = 32767
-   !integer(I4B), parameter :: NTENC = 3
-   !real(DP), parameter     :: RHSCALE = 6.5_DP
-   !real(DP), parameter     :: RSHELL = 0.48075_DP
 
    type swiftest_pl
       integer(I4B)                                :: npl    !! Number of massive bodies
@@ -53,7 +20,7 @@ module module_swiftest
    end type swiftest_pl
 
    type swiftest_tp
-      integer(I4B)                                :: ntp    !! Number of testparticles
+      integer(I4B)                                :: ntp    !! Number of test particles
       integer(I4B), dimension(:),     allocatable :: name   !! External identifier (hash)
       integer(I4B), dimension(:),     allocatable :: status !! Status
       integer(I4B), dimension(:),     allocatable :: isperi !! Perihelion passage flag

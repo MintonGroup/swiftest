@@ -12,7 +12,7 @@ module io
       module subroutine io_getn(param,swiftest_plA,swiftest_tpA)
          type(input_parameters),intent(inout) :: param      !! Input collection of user-defined parameters
          type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store number of massive bodies
-         type(swiftest_tp), intent(inout)  :: swiftest_tpA  !! Swiftest data structure to store number of test partifles
+         type(swiftest_tp), intent(inout)  :: swiftest_tpA  !! Swiftest data structure to store number of test particles
       end subroutine io_getn
 
       module subroutine io_read_pl_in(param,swiftest_plA) 

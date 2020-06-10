@@ -60,8 +60,12 @@ end type feature_list
       real(DP)             :: TU2S  = -1.0_DP      !! Converts time units to seconds
       real(DP)             :: DU2M = -1.0_DP      !! Converts distance unit to centimeters
    contains
-     procedure :: read_from_file => user_read_param_in
-     procedure :: dump_to_file => user_dump_param
+      procedure :: read_from_file => user_read_param_in
+      procedure :: dump_to_file => user_dump_param
+      procedure :: udio_reader => user_udio_reader
+      procedure :: udio_writer => user_udio_writer
+      generic   :: read(formatted) => udio_reader
+      generic   :: write(formatted) => udio_writer
    end type input_parameters
 
    interface
@@ -76,15 +80,37 @@ end type feature_list
 
       !> Interface for type-bound procedure to read in the input parameters from a file
       module subroutine user_read_param_in(param,inparfile) 
-         class(input_parameters),intent(out) :: param         !! Output collection of user-defined parameters
+         class(input_parameters),intent(out) :: param         !! Input collection of user-defined parameters
          character(*), intent(in)            :: inparfile     !! Parameter input file name (i.e. param.in)
       end subroutine user_read_param_in
 
       !> Interface for type-bound procedure to write out the user parameters into a dump file in case the run needs to be restarted
       module subroutine user_dump_param(param,t)
-         class(input_parameters),intent(in)  :: param         !! Output collection of user-defined parameters
-         real(DP),intent(in)                 :: t             !! Current simulation time
+         class(input_parameters),intent(in)  :: param    !! Output collection of user-defined parameters
+         real(DP),intent(in)                 :: t        !! Current simulation time
       end subroutine user_dump_param
+
+      !> Interface for type-bound procedure for user-defined derived-type IO for reading
+      module subroutine user_udio_reader(param, unit, iotype, v_list, iostat, iomsg) 
+         class(input_parameters),intent(inout)  :: param         !! Input collection of user-defined parameters
+         integer, intent(in)                    :: unit        
+         character(len=*), intent(in)           :: iotype
+         integer, intent(in)                    :: v_list(:)
+         integer, intent(out)                   :: iostat
+         character(len=*), intent(inout)        :: iomsg
+      end subroutine user_udio_reader
+
+      !> Interface for type-bound procedure for user-defined derived-type IO for writing
+      module subroutine user_udio_writer(param, unit, iotype, v_list, iostat, iomsg) 
+         class(input_parameters),intent(in)  :: param         !! Output collection of user-defined parameters
+         integer, intent(in)                 :: unit        
+         character(len=*), intent(in)        :: iotype
+         integer, intent(in)                 :: v_list(:)
+         integer, intent(out)                :: iostat
+         character(len=*), intent(inout)     :: iomsg
+      end subroutine user_udio_writer
+
+
 
    end interface
 
