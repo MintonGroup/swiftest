@@ -165,8 +165,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, &
                               nplplenc, npltpenc, pltpenc_list, plplenc_list, nplmax, ntpmax, fragmax)
                          ELSE
-                            CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, & 
-                              mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
+                            CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
+                              mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA)
                          END IF
                      END IF
                END DO
@@ -176,7 +176,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                     IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                          &
                         (symba_plA%levelg(index_pl) >= ireci) .AND.                                       &
                         (symba_tpA%levelg(index_tp) >= ireci)) THEN                                          
-                         CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)                    !check later 
+                         CALL symba_merge_tp(t, dtl, i, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)                    !check later 
                     END IF
                END DO
           END IF
@@ -262,8 +262,8 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                                         symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
                                         nplmax, ntpmax, fragmax)
                               ELSE
-                                   CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, & 
-                                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, symba_tpA)
+                                   CALL symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
+                                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA)
                               END IF
                          END IF
                     END DO
@@ -273,8 +273,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          IF ((pltpenc_list%status(i) == ACTIVE) .AND.                                                             &
                              (symba_plA%levelg(index_pl) >= ireci) .AND.                                                          &
                              (symba_tpA%levelg(index_tp) >= ireci))                                                               &
-                              CALL symba_merge_tp(t, dtl, i, npltpenc, pltpenc_list, vbs, encounter_file, out_type, &
-                                   symba_plA, symba_tpA)                !check that later
+                              CALL symba_merge_tp(t, dtl, i, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)                !check that later
                     END DO
                END IF
                DO i = 1, nplplenc
