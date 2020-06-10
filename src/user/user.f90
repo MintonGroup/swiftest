@@ -60,8 +60,9 @@ module user
       procedure :: dump_to_file => user_dump_param
       procedure :: udio_reader => user_udio_reader
       procedure :: udio_writer => user_udio_writer
-      generic   :: read(formatted) => udio_reader
-      generic   :: write(formatted) => udio_writer
+      !TODO: Figure out if user-defined derived-type io can be made to work properly
+      !generic   :: read(formatted) => udio_reader
+      !generic   :: write(formatted) => udio_writer
    end type user_input_parameters
 
    interface
