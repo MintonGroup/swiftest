@@ -57,7 +57,7 @@ SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_lis
 
 ! Internals
  
-     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2
+     INTEGER(I4B)                                     :: nfrag, i, k, index1, index2, frags_added
      INTEGER(I4B)                                     :: index1_parent, index2_parent
      INTEGER(I4B)                                     :: name1, name2, index_keep, index_rm
      REAL(DP)                                         :: mtot, d_rm, m_rm, r_rm, vx_rm, vy_rm
@@ -106,7 +106,6 @@ SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_lis
 
      WRITE(*, *) "Hit and run between particles ", name1, " and ", name2, " at time t = ",t
      WRITE(*, *) "Particle ", index_keep, " survives; Particle ", index_rm, " is fragmented."
-     WRITE(*, *) "Number of fragments added: ", (nfrag - 1)
 
      ! Add both parents to mergesub_list
      nmergesub = nmergesub + 1
@@ -145,11 +144,9 @@ SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_lis
      ! Add new fragments to mergeadd_list
      mtot = 0.0_DP ! running total mass of new fragments
      mv = 0.0_DP   ! running sum of m*v of new fragments to be used in COM calculation
+     frags_added = 0 
 
      DO i = 1, nfrag
-         nmergeadd = nmergeadd + 1
-         mergeadd_list%status(nmergeadd) = HIT_AND_RUN
-         mergeadd_list%ncomp(nmergeadd) = 2
          m_rm = symba_plA%helio%swiftest%mass(index_rm)
          r_rm = symba_plA%helio%swiftest%radius(index_rm)
          vx_rm = symba_plA%helio%swiftest%vh(1,index_rm)
@@ -158,6 +155,9 @@ SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_lis
 
          IF (i == 1) THEN
              ! first largest particle equal to index_keep
+             nmergeadd = nmergeadd + 1
+             mergeadd_list%status(nmergeadd) = HIT_AND_RUN
+             mergeadd_list%ncomp(nmergeadd) = 2
              mergeadd_list%name(nmergeadd) = symba_plA%helio%swiftest%name(index_keep)
              mergeadd_list%mass(nmergeadd) = symba_plA%helio%swiftest%mass(index_keep)
              mergeadd_list%radius(nmergeadd) = symba_plA%helio%swiftest%radius(index_keep)
@@ -167,6 +167,10 @@ SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_lis
          END IF
          IF (i == 2) THEN
              ! second largest particle from collresolve mres[1] rres[1]
+             frags_added = frags_added + 1
+             nmergeadd = nmergeadd + 1
+             mergeadd_list%status(nmergeadd) = HIT_AND_RUN
+             mergeadd_list%ncomp(nmergeadd) = 2
              mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i - 1
              mergeadd_list%mass(nmergeadd) = mres(2)
              mergeadd_list%radius(nmergeadd) = rres(2) 
@@ -187,8 +191,12 @@ SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_lis
          IF (i > 2) THEN
             m_rem = m_rm - mres(2)
             IF (m_rem > (m_rm) / 1000.0_DP) THEN
+                frags_added = frags_added + 1
              ! FIXME all other particles implement eq. 31 LS12
              ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
+                nmergeadd = nmergeadd + 1
+                mergeadd_list%status(nmergeadd) = HIT_AND_RUN
+                mergeadd_list%ncomp(nmergeadd) = 2
                 mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i - 1
                 m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5.0_DP))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * d_rm)
                 IF (m_test < m_rem) THEN
@@ -215,6 +223,8 @@ SUBROUTINE symba_casehitandrun (t, index_enc, nmergeadd, nmergesub, mergeadd_lis
          END IF                                           
           mv = mv + (mergeadd_list%mass(nmergeadd) * mergeadd_list%vh(:,nmergeadd))
      END DO
+
+     WRITE(*, *) "Number of fragments added: ", (frags_added)
      ! Calculate energy after frag                                                                           
      vnew(:) = mv / mtot    ! COM of new fragments                               
      enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
