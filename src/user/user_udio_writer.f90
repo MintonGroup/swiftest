@@ -9,14 +9,13 @@ contains
    !! Adapted from Martin Duncan's Swift routine io_dump_param.f
    implicit none
 
-   character(*),parameter :: NL    = new_line('A')                    !! New line character, due to write statements not making new lines
                                                                       !!    in user-defined derived-type output 
-   character(*),parameter :: Ifmt  = '(A20,1X,I0,"'//NL//'")'         !! Format label for integer values
-   character(*),parameter :: Rfmt  = '(A20,1X,ES25.17,"'//NL//'")'    !! Format label for real values 
-   character(*),parameter :: R2fmt = '(A20,2(1X,ES25.17),"'//NL//'")'  !! Format label for 2x real values 
-   character(*),parameter :: Sfmt  = '(A20,1X,A,"'//NL//'")'          !! Format label for string values 
-   character(*),parameter :: Lfmt  = '(A20,1X,L1,"'//NL//'")'         !! Format label for logical values 
-   character(*),parameter :: Pfmt  = '(A20,"'//NL//'")'               !! Format label for single parameter string
+   character(*),parameter :: Ifmt  = '(A20,1X,I0/)'         !! Format label for integer values
+   character(*),parameter :: Rfmt  = '(A20,1X,ES25.17/)'    !! Format label for real values 
+   character(*),parameter :: R2fmt = '(A20,2(1X,ES25.17)/)'  !! Format label for 2x real values 
+   character(*),parameter :: Sfmt  = '(A20,1X,A/)'          !! Format label for string values 
+   character(*),parameter :: Lfmt  = '(A20,1X,L1/)'         !! Format label for logical values 
+   character(*),parameter :: Pfmt  = '(A20/)'               !! Format label for single parameter string
 
    write(unit, Ifmt) "NPLMAX",param%nplmax
    write(unit, Ifmt) "NTPMAX",param%ntpmax
