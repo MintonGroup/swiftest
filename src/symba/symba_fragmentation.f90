@@ -261,10 +261,9 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           mres(:) = (mres(:) / MU2KG) * GU
           rres(:) = rres(:) / DU2M
 
-          CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, &
-               npltpenc, pltpenc_list, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, &
-               array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
+          CALL symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+          npl, symba_plA, nplplenc, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, array_index1_child, &
+          array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
      END IF 
      RETURN

@@ -32,9 +32,8 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard_mass_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-     array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
+SUBROUTINE symba_casemerge (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+     npl, symba_plA, nplplenc, plplenc_list, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
 ! Modules
      USE swiftest
@@ -46,32 +45,25 @@ SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_lis
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
-     REAL(DP), INTENT(IN)                             :: t, dt
+     INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc
+     REAL(DP), INTENT(IN)                             :: t
      REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-     CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-     TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
      TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
      INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
 
 ! Internals
  
-     INTEGER(I4B)                 :: model, nres
-     REAL(DP)                     :: mres, rres, pres, vres
      INTEGER(I4B)                 :: i, j, k, stat1, stat2, index1, index2, indexchild
-     INTEGER(I4B)                 :: index1_child, index2_child, index1_parent, index2_parent, index_big1, index_big2
+     INTEGER(I4B)                 :: index1_child, index2_child, index1_parent, index2_parent
      INTEGER(I4B)                 :: name1, name2
-     REAL(DP)                     :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, mtmp, mmax 
+     REAL(DP)                     :: mtot
      REAL(DP)                     :: eold, enew, mass1, mass2
-     REAL(DP), DIMENSION(NDIM)    :: xr, vr, xnew, vnew
+     REAL(DP), DIMENSION(NDIM)    :: xr, xnew, vnew
      INTEGER(I4B), DIMENSION(npl) :: array_keep_child, array_rm_child
-
-
 
 ! Executable code
                index1 = plplenc_list%index1(index_enc)

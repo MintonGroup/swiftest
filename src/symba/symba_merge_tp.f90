@@ -30,7 +30,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine symba5_merge.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)
+SUBROUTINE symba_merge_tp(t, dt, index_enc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)
 
 ! Modules
      USE swiftest
@@ -41,7 +41,7 @@ SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encount
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc, npltpenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
      CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
