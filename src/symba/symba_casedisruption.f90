@@ -61,7 +61,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     INTEGER(I4B)                                     :: name1, name2
     REAL(DP)                                         :: mtot, msun, avg_d, d_p1, d_p2, semimajor_encounter, e, q, semimajor_inward
     REAL(DP)                                         :: rhill_p1, rhill_p2, r_circle, theta, radius1, radius2
-    REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold
+    REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, A, B
     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
@@ -200,9 +200,20 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
             x_frag = (r_circle * cos(theta * i)) + x_com
             y_frag = (r_circle * sin(theta * i)) + y_com
             z_frag = z_com
-            vx_frag = ((1.0_DP / nfrag) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
-            vy_frag = ((1.0_DP / nfrag) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
+            !vx_frag = ((1.0_DP / frags_added) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(1)) + (m2 * v2(1)))) - vbs(1)
+            !vy_frag = ((1.0_DP / frags_added) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m1 * v1(2)) + (m2 * v2(2)))) - vbs(2)
+            !vz_frag = vz_com - vbs(3)
+
+            !Conservation of Angular Momentum
+            A = (((x1(2) * v1(3) * m1) - (x1(3) * v1(2) * m1)) + ((x2(2) * v2(3) * m2) - (x2(3) * v2(2) * m2))) &
+               / mergeadd_list%mass(nmergeadd)
+            B = (((x1(3) * v1(1) * m1) - (x1(1) * v1(3) * m1)) + ((x2(3) * v2(1) * m2) - (x2(1) * v2(3) * m2))) &
+               / mergeadd_list%mass(nmergeadd)
+
+            vx_frag = ((1.0_DP / frags_added) * (B / z_frag)) - vbs(1)
+            vy_frag = ((1.0_DP / frags_added) * (-A / z_frag)) - vbs(2)
             vz_frag = vz_com - vbs(3)
+
             mergeadd_list%xh(1,nmergeadd) = x_frag
             mergeadd_list%xh(2,nmergeadd) = y_frag 
             mergeadd_list%xh(3,nmergeadd) = z_frag                                                    
