@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : module_symba
+!  Unit Name   : symba
 !  Unit Type   : module
 !  Project     : SWIFTEST
 !  Package     : module
@@ -23,10 +23,10 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-MODULE module_symba
+MODULE symba
 
      USE swiftest
-     USE module_helio
+     USE helio
      IMPLICIT NONE
 
      INTEGER(I4B), PARAMETER :: NENMAX = 32767
@@ -84,7 +84,7 @@ MODULE module_symba
           real(DP),     dimension(:),     allocatable :: mass 
           real(DP),     dimension(:),     allocatable :: radius 
      end type symba_merger 
-END MODULE module_symba
+END MODULE symba
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

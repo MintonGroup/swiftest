@@ -8,8 +8,8 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine io_init_pl.f90
    !! Adapted from Martin Duncan's Swift routine io_init_pl.f
    use swiftest
-   use module_symba
-   !use module_helio
+   use symba
+   !use helio
    !use module_swiftest
    !use module_fxdr
    !use module_interfaces

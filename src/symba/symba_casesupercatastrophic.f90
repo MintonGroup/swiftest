@@ -37,8 +37,8 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
 
 ! Modules
      USE swiftest
-     USE module_helio
-     USE module_symba
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_casesupercatastrophic
      IMPLICIT NONE
 

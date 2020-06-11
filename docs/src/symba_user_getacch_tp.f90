@@ -29,7 +29,7 @@ SUBROUTINE symba_user_getacch_tp(t, ntp, symba_tpA)
 
 ! Modules
      USE swiftest
-     USE module_symba
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_user_getacch_tp
      IMPLICIT NONE
 

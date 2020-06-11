@@ -34,8 +34,8 @@ SUBROUTINE symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
 ! Modules
      USE swiftest
      USE module_swiftest
-     USE module_helio
-     USE module_symba
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_chk
      IMPLICIT NONE
 

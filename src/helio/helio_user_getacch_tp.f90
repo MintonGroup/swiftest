@@ -29,7 +29,7 @@ SUBROUTINE helio_user_getacch_tp(t, ntp, helio_tpA)
 
 ! Modules
      USE swiftest
-     USE module_helio
+     USE helio
      USE module_interfaces, EXCEPT_THIS_ONE => helio_user_getacch_tp
      IMPLICIT NONE
 

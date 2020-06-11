@@ -28,8 +28,8 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
 
 ! Modules
      USE swiftest
-     USE module_symba
-     USE module_helio
+     USE symba
+     USE helio
      USE module_nrutil
      USE module_swiftestalloc
      USE module_interfaces, EXCEPT_THIS_ONE => util_regime

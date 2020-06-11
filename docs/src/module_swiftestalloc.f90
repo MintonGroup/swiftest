@@ -58,7 +58,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE helio_pl_allocate(helio_plA, npl)
             USE swiftest
-            USE module_helio
+            USE helio
             IMPLICIT NONE
 
             ! Arguments
@@ -74,7 +74,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_pl_allocate(symba_plA, npl)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -97,7 +97,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_plplenc_allocate(plplenc_list, nplplenc)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -116,7 +116,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_merger_allocate(mergeadd_list, nmergeadd)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -158,7 +158,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE helio_tp_allocate(helio_tpA, ntp)
             USE swiftest
-            USE module_helio
+            USE helio
             IMPLICIT NONE
 
             ! Arguments
@@ -175,7 +175,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_tp_allocate(symba_tpA, ntp)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -191,7 +191,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_pltpenc_allocate(pltpenc_list, npltpenc)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -232,7 +232,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE helio_pl_deallocate(helio_plA)
             USE swiftest
-            USE module_helio
+            USE helio
             IMPLICIT NONE
 
             ! Arguments
@@ -247,7 +247,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_pl_deallocate(symba_plA)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -270,7 +270,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_plplenc_deallocate(plplenc_list)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -288,7 +288,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_merger_deallocate(mergeadd_list)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -328,7 +328,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE helio_tp_deallocate(helio_tpA)
             USE swiftest
-            USE module_helio
+            USE helio
             IMPLICIT NONE
 
             ! Arguments
@@ -343,7 +343,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_tp_deallocate(symba_tpA)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments
@@ -358,7 +358,7 @@ MODULE module_swiftestalloc
 
         SUBROUTINE symba_pltpenc_deallocate(pltpenc_list)
             USE swiftest
-            USE module_symba
+            USE symba
             IMPLICIT NONE
 
             ! Arguments

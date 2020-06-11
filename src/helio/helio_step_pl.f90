@@ -40,7 +40,7 @@ SUBROUTINE helio_step_pl(lfirst, lextra_force, t, npl, nplmax, helio_plA, j2rp2,
 
 ! Modules
      USE swiftest
-     USE module_helio
+     USE helio
      USE module_interfaces, EXCEPT_THIS_ONE => helio_step_pl
      IMPLICIT NONE
 

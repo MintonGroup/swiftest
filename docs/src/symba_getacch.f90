@@ -39,8 +39,8 @@ SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, symba_plA, j2rp2, j4rp4, np
 ! Modules
      USE swiftest
      USE module_swiftest
-     USE module_helio
-     USE module_symba
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch
      IMPLICIT NONE
 

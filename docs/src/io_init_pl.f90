@@ -37,8 +37,8 @@ SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
 
 ! Modules
      USE swiftest
-     USE module_symba
-     USE module_helio
+     USE symba
+     USE helio
      USE module_swiftest
      USE module_fxdr
      USE module_interfaces, EXCEPT_THIS_ONE => io_init_pl

@@ -7,8 +7,8 @@ module swiftest_data_structures
    implicit none
    private
 
-   !! An abstract superclass for a generic Swiftest particle. All particle types are derived from this class
-   type, abstract, public :: swiftest_particle           
+   !! A superclass for a generic Swiftest particle. All particle types are derived from this class
+   type, public :: swiftest_particle           
       !! Superclass that defines the generic elements of a Swiftest particle 
       !private
       integer(I4B)                              :: nbody  !! Number of bodies
@@ -16,25 +16,14 @@ module swiftest_data_structures
       integer(I4B), dimension(:),   allocatable :: status !! Status
       logical                                   :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
    contains
-      procedure, public :: superalloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
-      procedure, public :: superdealloc => swiftest_particle_deallocate  !! A base constructor that sets nbody and allocates the common components
+      procedure, public :: alloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
+      procedure, public :: set_from_file => swiftest_read_particle_input_file
+      final :: swiftest_particle_deallocate  !! A destructor/finalizer that deallocates everything 
       !procedure, public :: get_nbody => swiftest_get_nbody
       !procedure, public :: get_name => swiftest_get_name
       !procedure, public :: get_status => swiftest_get_status
       !procedure, public :: get_is_allocated => swiftest_get_is_allocated
-      procedure(swiftest_read_particle_input_file), public, deferred :: set_from_file
    end type swiftest_particle
-
-   abstract interface
-      !! An abstract interface that defines the generic file read method for all Swiftest particle types
-      subroutine swiftest_read_particle_input_file(self,param) 
-         use user
-         import swiftest_particle
-         implicit none
-         class(swiftest_particle), intent(inout)  :: self  !! Generic swiftest body initial conditions
-         type(user_input_parameters),intent(in) :: param   !! Input collection of user-defined parameters
-      end subroutine swiftest_read_particle_input_file
-   end interface
 
    !! Basic Swiftest test particle class
    type, public, extends(swiftest_particle) :: swiftest_tp 
@@ -67,6 +56,14 @@ module swiftest_data_structures
    !> Only the constructor and destructor method implementations are listed here. All other methods are implemented in the swiftest submodules
    interface
       !! Interfaces for all Swiftest particle methods that are implemented in separate submodules 
+      !! An abstract interface that defines the generic file read method for all Swiftest particle types
+      module subroutine swiftest_read_particle_input_file(self,param) 
+         use user
+         implicit none
+         class(swiftest_particle), intent(inout)  :: self  !! Generic swiftest body initial conditions
+         type(user_input_parameters),intent(in) :: param   !! Input collection of user-defined parameters
+      end subroutine swiftest_read_particle_input_file
+
       module subroutine swiftest_read_pl_in(self,param) 
          use user
          implicit none
@@ -83,6 +80,8 @@ module swiftest_data_structures
    end interface
 
    contains
+
+
       !! Swiftest constructor and desctructor methods
       subroutine swiftest_particle_allocate(self,n)
          !! Basic Swiftest generic particle constructor method
@@ -113,7 +112,7 @@ module swiftest_data_structures
          !! Basic Swiftest generic particle destructor/finalizer
          implicit none
 
-         class(swiftest_particle), intent(inout)    :: self
+         type(swiftest_particle), intent(inout)    :: self
 
          if (self%is_allocated) then
             deallocate(self%name)
@@ -130,7 +129,7 @@ module swiftest_data_structures
          class(swiftest_tp), intent(inout)    :: self !! Swiftest test particle object
          integer, intent(in)                  :: n    !! Number of test particles to allocate
         
-         call self%superalloc(n)
+         call self%swiftest_particle%alloc(n)
          if (n <= 0) return
 
          if (self%is_allocated) then
@@ -173,7 +172,6 @@ module swiftest_data_structures
             deallocate(self%xb)
             deallocate(self%vb)
          end if
-         call self%superdealloc()
          return
       end subroutine swiftest_tp_deallocate
 
@@ -184,7 +182,7 @@ module swiftest_data_structures
          class(swiftest_pl), intent(inout)    :: self !! Swiftest massive body object
          integer, intent(in)                  :: n    !! Number of massive bodies to allocate
 
-         call self%superalloc(n)
+         call self%swiftest_particle%alloc(n)
          if (n <= 0) return
 
          if (self%is_allocated) then
@@ -215,7 +213,6 @@ module swiftest_data_structures
             deallocate(self%radius)
             deallocate(self%rhill)
          end if
-         call self%superdealloc()
          return
       end subroutine swiftest_pl_deallocate
 

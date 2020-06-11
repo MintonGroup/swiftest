@@ -6,7 +6,7 @@ module io
    use swiftest
    !> The following use statements are temporary until Swiftest module structure conversion is complete
    use module_interfaces 
-   use module_symba
+   use symba
 
    interface
 

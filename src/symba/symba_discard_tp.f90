@@ -48,8 +48,8 @@ SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, dt, rmin, rm
 
 ! Modules
      USE swiftest
-     USE module_helio
-     USE module_symba
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_discard_tp
      IMPLICIT NONE
 

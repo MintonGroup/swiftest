@@ -3,7 +3,7 @@ module symba
    !!
    !! Definition of classes and methods specific to the Symplectic Massive Body Algorithm
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: module_symba.f90
+   !! Adapted from David E. Kaufmann's Swifter modules: symba.f90
    use swiftest_globals
    use helio
    implicit none
@@ -182,7 +182,7 @@ contains
       class(symba_encounter), intent(inout) :: self !! SyMBA encounter super class
       integer, intent(in)                   :: n    !! Number of test particles to allocate
      
-      call self%superalloc(n)
+      call self%swiftest_particle%alloc(n)
       if (n <= 0) return
 
       if (self%is_allocated) then
@@ -210,7 +210,6 @@ contains
          deallocate(self%lvdotr)
          deallocate(self%level)
       end if
-      call self%superdealloc()
       return
    end subroutine symba_encounter_deallocate
 

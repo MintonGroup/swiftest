@@ -36,8 +36,8 @@ SUBROUTINE symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_a
 
 ! Modules
      USE swiftest
-     USE module_helio
-     USE module_symba
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_discard_peri_pl
      IMPLICIT NONE
 

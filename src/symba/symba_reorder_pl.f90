@@ -28,8 +28,8 @@ SUBROUTINE symba_reorder_pl(npl, symba_plA)
 
 ! Modules
      USE swiftest
-     USE module_helio
-     USE module_symba
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_reorder_pl
      IMPLICIT NONE
 

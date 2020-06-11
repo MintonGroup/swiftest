@@ -29,7 +29,7 @@ SUBROUTINE coord_vh2vb(npl, swiftest_plA, msys)
 
 ! Modules
      USE swiftest
-     USE module_symba
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => coord_vh2vb
      IMPLICIT NONE
 

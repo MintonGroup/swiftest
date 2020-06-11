@@ -11,7 +11,7 @@ program swiftest_symba
 
    !> The following are temporary until the conversion to the new module structure is complete
    use module_swiftest
-   use module_symba
+   use symba
    use module_interfaces
    use module_swiftestalloc
    implicit none

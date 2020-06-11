@@ -31,8 +31,8 @@ SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
 
 ! Modules
      USE swiftest
-     USE module_helio
-     USE module_symba
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift_tp
      IMPLICIT NONE
 

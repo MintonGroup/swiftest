@@ -35,8 +35,8 @@ SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encount
 ! Modules
      USE swiftest
      USE module_swifter
-     USE module_helio
-     USE module_symba
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_merge_tp
      IMPLICIT NONE
 

@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : module_helio
+!  Unit Name   : helio
 !  Unit Type   : module
 !  Project     : SWIFTEST
 !  Package     : module
@@ -23,7 +23,7 @@
 !  Notes       : 
 !
 !**********************************************************************************************************************************
-MODULE module_helio
+MODULE helio
 
      USE swiftest
      USE module_swiftest
@@ -40,7 +40,7 @@ MODULE module_helio
        real(DP),     dimension(:,:),   allocatable :: ahi      ! heliocentric acceleration due to interactions
        type(swiftest_tp)                           :: swiftest  ! swifter test particle structure
      end type helio_tp
-END MODULE module_helio
+END MODULE helio
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann
