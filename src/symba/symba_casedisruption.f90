@@ -173,7 +173,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
                 m_rem = (m1 + m2) - (mres(1) + mres(2))!*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
                 
-               IF (m_rem > (m_rm) / 1000.0_DP) THEN
+               IF (m_rem > (m2) / 1000.0_DP) THEN
                   frags_added = frags_added + 1
                   nmergeadd = nmergeadd + 1
                   mergeadd_list%status(nmergeadd) = DISRUPTION

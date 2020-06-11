@@ -180,7 +180,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
                 ! FIXME all other particles implement eq. 31 LS12
                 ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
                m_rem = (m1 + m2) - (mergeadd_list%mass(nmergeadd))
-               IF (m_rem > (m_rm) / 1000.0_DP) THEN
+               IF (m_rem > (m2) / 1000.0_DP) THEN
                   frags_added = frags_added + 1
                   nmergeadd = nmergeadd + 1
                   mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
