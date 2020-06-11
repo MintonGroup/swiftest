@@ -61,7 +61,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                                     :: name1, name2, index_keep, index_rm, name_keep, name_rm
      REAL(DP)                                         :: mtot, msun, d_rm, m_rm, r_rm, vx_rm, vy_rm, semimajor_encounter
      REAL(DP)                                         :: rhill_keep, r_circle, theta, radius1, radius2, e, q
-     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, semimajor_inward
+     REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, semimajor_inward, A, B
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
      REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
      REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
@@ -159,8 +159,12 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
          DO i = 1, nfrag
             m_rm = symba_plA%helio%swiftest%mass(index_rm)
             r_rm = symba_plA%helio%swiftest%radius(index_rm)
+            x_rm = symba_plA%helio%swiftest%xh(1,index_rm)
+            y_rm = symba_plA%helio%swiftest%xh(2,index_rm)
+            z_rm = symba_plA%helio%swiftest%xh(3,index_rm)
             vx_rm = symba_plA%helio%swiftest%vh(1,index_rm)
             vy_rm = symba_plA%helio%swiftest%vh(2,index_rm)
+            vz_rm = symba_plA%helio%swiftest%vh(3,index_rm)
             d_rm = (3.0_DP * m_rm) / (4.0_DP * PI * (r_rm ** 3.0_DP))
 
             IF (i == 1) THEN
@@ -188,9 +192,16 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                x_frag = (r_circle * cos(theta * i)) + x_com
                y_frag = (r_circle * sin(theta * i)) + y_com
                z_frag = z_com
-               vx_frag = ((1.0_DP / (nfrag-1)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vx_rm))) - vbs(1)
-               vy_frag = ((1.0_DP / (nfrag-1)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vy_rm))) - vbs(2)
+               !vx_frag = ((1.0_DP / (frags_added)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vx_rm))) - vbs(1)
+               !vy_frag = ((1.0_DP / (frags_added)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vy_rm))) - vbs(2)
+               !vz_frag = vz_com - vbs(3)
+
+               A = ((y_rm * vz_rm * m_rm) - (z_rm * vy_rm * m_rm)) / mergeadd_list%mass(nmergeadd)
+               B = ((z_rm * vx_rm * m_rm) - (x_rm * vz_rm * m_rm)) / mergeadd_list%mass(nmergeadd)
+               vx_frag = ((1.0_DP / frags_added) * (B / z_frag)) - vbs(1)
+               vy_frag = ((1.0_DP / frags_added) * (-A / z_frag)) - vbs(2)
                vz_frag = vz_com - vbs(3)
+
                mergeadd_list%xh(1,nmergeadd) = x_frag
                mergeadd_list%xh(2,nmergeadd) = y_frag 
                mergeadd_list%xh(3,nmergeadd) = z_frag                                                    
@@ -221,9 +232,16 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                   x_frag = (r_circle * cos(theta * i)) + x_com
                   y_frag = (r_circle * sin(theta * i)) + y_com
                   z_frag = z_com
-                  vx_frag = ((1.0_DP / (nfrag-1)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vx_rm))) - vbs(1)
-                  vy_frag = ((1.0_DP / (nfrag-1)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vy_rm))) - vbs(2)
+                  !vx_frag = ((1.0_DP / (frags_added)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vx_rm))) - vbs(1)
+                  !vy_frag = ((1.0_DP / (frags_added)) * (1.0_DP / mergeadd_list%mass(nmergeadd)) * ((m_rm * vy_rm))) - vbs(2)
+                  !vz_frag = vz_com - vbs(3)
+
+                  A = ((y_rm * vz_rm * m_rm) - (z_rm * vy_rm * m_rm)) / mergeadd_list%mass(nmergeadd)
+                  B = ((z_rm * vx_rm * m_rm) - (x_rm * vz_rm * m_rm)) / mergeadd_list%mass(nmergeadd)
+                  vx_frag = ((1.0_DP / frags_added) * (B / z_frag)) - vbs(1)
+                  vy_frag = ((1.0_DP / frags_added) * (-A / z_frag)) - vbs(2)
                   vz_frag = vz_com - vbs(3)
+
                   mergeadd_list%xh(1,nmergeadd) = x_frag
                   mergeadd_list%xh(2,nmergeadd) = y_frag 
                   mergeadd_list%xh(3,nmergeadd) = z_frag                                                    
