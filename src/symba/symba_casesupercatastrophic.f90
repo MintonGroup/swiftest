@@ -152,11 +152,8 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
         avg_d = ((m1 * d_p1) + (m2 * d_p2)) / (m1 + m2)
 
         DO i = 1, nfrag
-            nmergeadd = nmergeadd + 1
-            mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
-            mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
-            mergeadd_list%ncomp(nmergeadd) = 2
             IF ((mres(1) < m1m2_10) .AND. (i == 1)) THEN
+               frags_added = frags_added + 1
                nmergeadd = nmergeadd + 1
                mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
                mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
@@ -167,6 +164,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
                mtot = mtot + mergeadd_list%mass(nmergeadd)  
             ELSE IF ((mres(1) > m1m2_10) .AND. (i == 1)) THEN
                ! first largest particle from collresolve mres[0] rres[0]
+               frags_added = frags_added + 1
                nmergeadd = nmergeadd + 1
                mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
                mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
