@@ -44,17 +44,17 @@
 #
 #******************************************************************************
 
-SWIFTEST_MODULES =   swiftest/swiftest_globals.f90 \
-                     user/user.f90 \
-                     swiftest/swiftest_data_structures.f90 \
-                     io/io.f90 \
-                     module/module_swifter.f90 \
-                     module/module_helio.f90 \
-                     module/module_nrutil.f90 \
-                     module/module_symba.f90 \
-                     module/module_swiftestalloc.f90 \
-                     module/module_interfaces.f90 \
-                     swiftest_for/swiftest.f90 
+SWIFTEST_MODULES =   swiftest_globals.f90 \
+                     user.f90 \
+                     swiftest_data_structures.f90 \
+                     io.f90 \
+                     module_swifter.f90 \
+                     module_helio.f90 \
+                     module_nrutil.f90 \
+                     module_symba.f90 \
+                     module_swiftestalloc.f90 \
+                     module_interfaces.f90 \
+                     swiftest.f90 
 
 include Makefile.Defines
 
@@ -78,11 +78,11 @@ all:
 	  make tools
 
 mod:
-	cd $(SWIFTEST_HOME)/src; \
+	cd $(SWIFTEST_HOME)/src/modules/; \
 	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c $(MODULES); \
 	  $(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o; \
-	  $(INSTALL_DATA) *.mod *.smod $(SWIFTEST_HOME)/include; \
-	  rm -f *.o *.mod *.smod
+	  $(INSTALL_DATA) *.mod $(SWIFTEST_HOME)/include; \
+	  rm -f *.o *.mod 
 
 lib:
 	cd $(SWIFTEST_HOME)/src/coord; \
@@ -109,7 +109,7 @@ lib:
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
+	  make libdir2
 	cd $(SWIFTEST_HOME)/src/obl; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -129,7 +129,7 @@ lib:
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
+	  make libdir2
 	cd $(SWIFTEST_HOME)/src/symba; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -139,7 +139,7 @@ lib:
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
+	  make libdir2
 	cd $(SWIFTEST_HOME)/src/util; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -148,8 +148,14 @@ lib:
 
 libdir:
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90
-	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o
-	rm -f *.o
+	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o 
+	rm -f *.o 
+
+libdir2:
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90; \
+	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
+	$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
+	rm -f *.o *.smod
 
 collresolve:
 	cd $(COLLRESOLVE_HOME); \
@@ -177,7 +183,7 @@ bin: *.f90
 	make $(basename $^)
 
 clean:
-	cd $(SWIFTEST_HOME)/src/module;  rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/modules;  rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/coord;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
@@ -195,7 +201,7 @@ clean:
 	cd $(SWIFTEST_HOME)/bin;     rm -f swiftest_*
 	cd $(SWIFTEST_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTEST_HOME)/lib;     rm -f lib*
-	cd $(SWIFTEST_HOME)/include; rm -f *.mod collresolve.h
+	cd $(SWIFTEST_HOME)/include; rm -f *.mod *.smod collresolve.h
 	cd $(COLLRESOLVE_HOME); rm -rf autom4te.cache aux Makefile stamp-h1 configure config.status config.h config.log aclocal.m4 lib* *.in *.o *.lo cambioni2019/*.o cambioni2019/*.lo
 
 
