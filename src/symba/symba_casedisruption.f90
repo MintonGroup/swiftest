@@ -146,6 +146,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
         DO i = 1, nfrag
             IF (i == 1) THEN
                 ! first largest particle from collresolve mres[0] rres[0]
+                frags_added = frags_added + 1
                 nmergeadd = nmergeadd + 1
                 mergeadd_list%status(nmergeadd) = DISRUPTION
                 mergeadd_list%ncomp(nmergeadd) = 2
@@ -156,6 +157,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
             END IF
             IF (i == 2) THEN
                 ! second largest particle from collresolve mres[1] rres[1]
+                frags_added = frags_added + 1
                 nmergeadd = nmergeadd + 1
                 mergeadd_list%status(nmergeadd) = DISRUPTION
                 mergeadd_list%ncomp(nmergeadd) = 2
