@@ -232,7 +232,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                   mergeadd_list%vh(3,nmergeadd) = vz_frag 
                ELSE 
                   mergeadd_list%mass(nmergeadd) = mergeadd_list%mass(nmergeadd) + m_rem
-                  mergeadd_list%radius(nmergeadd) = (((3.0_DP/4.0_DP) * PI) * (mergeadd_list%mass(nmergeadd) / avg_d)) &
+                  mergeadd_list%radius(nmergeadd) = (((3.0_DP/4.0_DP) * PI) * (mergeadd_list%mass(nmergeadd) / d_rm)) &
                      ** (1.0_DP / 3.0_DP)                                                            
                END IF  
             END IF                                           
