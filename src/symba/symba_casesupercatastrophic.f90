@@ -99,7 +99,6 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      eold = eold - (m1*m2/(SQRT(DOT_PRODUCT(xr(:), xr(:)))))
 
      WRITE(*, *) "Supercatastrophic disruption between particles ", name1, " and ", name2, " at time t = ",t
-     WRITE(*, *) "Number of fragments added: ", nfrag
      
      ! Add both parents to mergesub_list
      nmergesub = nmergesub + 1
