@@ -65,29 +65,20 @@ module swiftest_globals
    character(*), parameter :: SWIFTER_REAL8_TYPE  = "SWIFTER8"
       !! Symbolic name for binary output file type for the old style Swifter REAL8
 
-   integer(I4B), parameter :: EL   = 1
-      !! Symbolic name for binary output file contents for orbital element type
-   integer(I4B), parameter :: XV   = 2
-      !! Symbolic name for binary output file contents for cartesian position and velocity type
+   integer(I4B), parameter :: EL   = 1 !! Symbolic name for binary output file contents for orbital element type
+   integer(I4B), parameter :: XV   = 2 !! Symbolic name for binary output file contents for cartesian position and velocity type
 
    ! OPENMP code added by D. Minton
    ! OpenMP Parameters
-   integer(I4B), save :: nthreads = 1
-      !! Number of OpenMP threads
-   integer(I4B), parameter :: NTHERSHOLD = 1000
-      !! Threshold value for OpenMP loop parallelization
+   integer(I4B), save :: nthreads = 1 !! Number of OpenMP threads
+   integer(I4B), parameter :: NTHERSHOLD = 1000 !! Threshold value for OpenMP loop parallelization
 
-   integer(I4B), parameter :: SUCCESS =  0
-      !! Symbolic name for function return/flag code for success
-   integer(I4B), parameter :: FAILURE = -1
-      !! Symbolic name for function return/flag code for failure
+   integer(I4B), parameter :: SUCCESS =  0 !! Symbolic name for function return/flag code for success
+   integer(I4B), parameter :: FAILURE = -1 !! Symbolic name for function return/flag code for failure
 
-   integer(I4B), parameter :: ELLIPSE   = -1
-     !! Symbolic names for orbit types - ellipse
-   integer(I4B), parameter :: PARABOLA  =  0
-     !! Symbolic names for orbit types - parabola
-   integer(I4B), parameter :: HYPERBOLA =  1
-     !! Symbolic names for orbit types - hyperbola
+   integer(I4B), parameter :: ELLIPSE   = -1 !! Symbolic names for orbit types - ellipse
+   integer(I4B), parameter :: PARABOLA  =  0 !! Symbolic names for orbit types - parabola
+   integer(I4B), parameter :: HYPERBOLA =  1 !! Symbolic names for orbit types - hyperbola
 
    !> Symbolic names for body/particle status codes:
    integer(I4B), parameter :: ACTIVE             =  0
