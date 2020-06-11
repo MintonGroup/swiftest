@@ -81,8 +81,8 @@ mod:
 	cd $(SWIFTEST_HOME)/src/modules/; \
 	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c $(MODULES); \
 	  $(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o; \
-	  $(INSTALL_DATA) *.mod $(SWIFTEST_HOME)/include; \
-	  rm -f *.o *.mod 
+	  $(INSTALL_DATA) *.mod *.smod $(SWIFTEST_HOME)/include; \
+	  rm -f *.o *.mod  *.smod
 
 lib:
 	cd $(SWIFTEST_HOME)/src/coord; \
