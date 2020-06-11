@@ -59,8 +59,8 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                                     :: nfrag, i, k, index1, index2, frags_added
      INTEGER(I4B)                                     :: index1_parent, index2_parent
      INTEGER(I4B)                                     :: name1, name2, index_keep, index_rm, name_keep, name_rm
-     REAL(DP)                                         :: mtot, msun, d_rm, m_rm, r_rm, vx_rm, vy_rm, semimajor_encounter
-     REAL(DP)                                         :: rhill_keep, r_circle, theta, radius1, radius2, e, q
+     REAL(DP)                                         :: mtot, msun, d_rm, m_rm, r_rm, x_rm, y_rm, z_rm, vx_rm, vy_rm, vz_rm 
+     REAL(DP)                                         :: rhill_keep, r_circle, theta, radius1, radius2, e, q, semimajor_encounter
      REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, semimajor_inward, A, B
      REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
      REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
