@@ -56,7 +56,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
 ! Internals
  
-    INTEGER(I4B)                                     :: nfrag, i, k, index1, index2
+    INTEGER(I4B)                                     :: nfrag, i, k, index1, index2, frags_added
     INTEGER(I4B)                                     :: index1_parent, index2_parent
     INTEGER(I4B)                                     :: name1, name2
     REAL(DP)                                         :: mtot, msun, avg_d, d_p1, d_p2, semimajor_encounter, e, q, semimajor_inward
@@ -98,7 +98,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     eold = eold - (m1*m2/(SQRT(DOT_PRODUCT(xr(:), xr(:)))))
 
     WRITE(*, *) "Disruption between particles ", name1, " and ", name2, " at time t = ",t
-    WRITE(*, *) "Number of fragments added: ", nfrag
      
      ! Add both parents to mergesub_list
     nmergesub = nmergesub + 1
@@ -138,24 +137,29 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
     CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
     IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
-        WRITE(*,*) "Timestep is too large to resolve fragments."
+        WRITE(*,*) "WARNING in symba_casedisruption: Timestep is too large to resolve fragments."
     ELSE
         ! Add new fragments to mergeadd_list
         mtot = 0.0_DP ! running total mass of new fragments
         mv = 0.0_DP   ! running sum of m*v of new fragments to be used in COM calculation
+        frags_added = 0 
         DO i = 1, nfrag
-            nmergeadd = nmergeadd + 1
-            mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
-            mergeadd_list%status(nmergeadd) = DISRUPTION
-            mergeadd_list%ncomp(nmergeadd) = 2
             IF (i == 1) THEN
                 ! first largest particle from collresolve mres[0] rres[0]
+                nmergeadd = nmergeadd + 1
+                mergeadd_list%status(nmergeadd) = DISRUPTION
+                mergeadd_list%ncomp(nmergeadd) = 2
+                mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
                 mergeadd_list%mass(nmergeadd) = mres(1)!*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
                 mergeadd_list%radius(nmergeadd) = rres(1)!/DU2CM
                 mtot = mtot + mergeadd_list%mass(nmergeadd)                             
             END IF
             IF (i == 2) THEN
                 ! second largest particle from collresolve mres[1] rres[1]
+                nmergeadd = nmergeadd + 1
+                mergeadd_list%status(nmergeadd) = DISRUPTION
+                mergeadd_list%ncomp(nmergeadd) = 2
+                mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
                 mergeadd_list%mass(nmergeadd) = mres(2)!*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
                 mergeadd_list%radius(nmergeadd) = rres(2)!/DU2CM
                 mtot = mtot + mergeadd_list%mass(nmergeadd)                            
@@ -165,20 +169,32 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
                  ! FIXME current equation taken from Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
                 d_p1 = (3.0_DP * m1) / (4.0_DP * PI * (rad1 ** 3.0_DP))
                 d_p2 = (3.0_DP * m2) / (4.0_DP * PI * (rad2 ** 3.0_DP))
-                avg_d = (d_p1 + d_p2) / 2.0_DP
+                avg_d = ((m1 * d_p1) + (m2 * d_p2)) / (m1 + m2)
 
                 m_rem = (m1 + m2) - (mres(1) + mres(2))!*GC/(DU2CM**3 / (MU2GM * TU2S**2))/MU2GM
-                m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) * PI * avg_d)
-             
-                IF (m_test < m_rem) THEN
-                    mergeadd_list%mass(nmergeadd) = m_test
-                ELSE
-                    mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
-                END IF 
-                mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
-                    ** (1.0_DP / 3.0_DP) 
-                mtot = mtot + mergeadd_list%mass(nmergeadd)                                                              
-            END IF                                  
+                
+               IF (m_rem > (m_rm) / 1000.0_DP) THEN
+                  frags_added = frags_added + 1
+                  nmergeadd = nmergeadd + 1
+                  mergeadd_list%status(nmergeadd) = DISRUPTION
+                  mergeadd_list%ncomp(nmergeadd) = 2
+                  mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+                  m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5.0_DP))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) &
+                     * PI * avg_d)
+                  IF (m_test < m_rem) THEN
+                     mergeadd_list%mass(nmergeadd) = m_test
+                  ELSE
+                     mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot 
+                  END IF 
+                  mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
+                     ** (1.0_DP / 3.0_DP) 
+                  mtot = mtot + mergeadd_list%mass(nmergeadd) 
+               ELSE 
+                  mergeadd_list%mass(nmergeadd) = mergeadd_list%mass(nmergeadd) + m_rem
+                  mergeadd_list%radius(nmergeadd) = (((3.0_DP/4.0_DP) * PI) * (mergeadd_list%mass(nmergeadd) / avg_d)) &
+                     ** (1.0_DP / 3.0_DP)                                                            
+               END IF 
+            END IF                                 
             x_frag = (r_circle * cos(theta * i)) + x_com
             y_frag = (r_circle * sin(theta * i)) + y_com
             z_frag = z_com
@@ -194,7 +210,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
             mv = mv + (mergeadd_list%mass(nmergeadd) * mergeadd_list%vh(:,nmergeadd))
         END DO
     END IF
-
+   WRITE(*, *) "Number of fragments added: ", frags_added
      ! Calculate energy after frag                                                                           
     vnew(:) = mv / mtot    ! COM of new fragments                               
     enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
