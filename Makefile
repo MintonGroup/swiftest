@@ -51,8 +51,7 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
                      module_swifter.f90 \
                      helio.f90 \
                      module_nrutil.f90 \
-                     module_symba.f90 \
-                     module_swiftestalloc.f90 \
+                     symba.f90 \
                      module_interfaces.f90 \
                      swiftest.f90 
 

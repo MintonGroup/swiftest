@@ -17,16 +17,19 @@ module swiftest_data_structures
       logical                                   :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
    contains
       procedure, public :: superalloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
+      procedure, public :: superdealloc => swiftest_particle_deallocate  !! A base constructor that sets nbody and allocates the common components
       !procedure, public :: get_nbody => swiftest_get_nbody
       !procedure, public :: get_name => swiftest_get_name
+      !procedure, public :: get_status => swiftest_get_status
+      !procedure, public :: get_is_allocated => swiftest_get_is_allocated
       procedure(swiftest_read_particle_input_file), public, deferred :: set_from_file
-      final :: swiftest_particle_dealloc
    end type swiftest_particle
 
    abstract interface
       !! An abstract interface that defines the generic file read method for all Swiftest particle types
       subroutine swiftest_read_particle_input_file(self,param) 
          use user
+         import swiftest_particle
          implicit none
          class(swiftest_particle), intent(inout)  :: self  !! Generic swiftest body initial conditions
          type(user_input_parameters),intent(in) :: param   !! Input collection of user-defined parameters
@@ -110,7 +113,7 @@ module swiftest_data_structures
          !! Basic Swiftest generic particle destructor/finalizer
          implicit none
 
-         type(swiftest_particle), intent(inout)    :: self
+         class(swiftest_particle), intent(inout)    :: self
 
          if (self%is_allocated) then
             deallocate(self%name)
@@ -170,6 +173,7 @@ module swiftest_data_structures
             deallocate(self%xb)
             deallocate(self%vb)
          end if
+         call self%superdealloc()
          return
       end subroutine swiftest_tp_deallocate
 
@@ -211,6 +215,7 @@ module swiftest_data_structures
             deallocate(self%radius)
             deallocate(self%rhill)
          end if
+         call self%superdealloc()
          return
       end subroutine swiftest_pl_deallocate
 

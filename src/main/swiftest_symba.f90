@@ -9,9 +9,7 @@ program swiftest_symba
    use swiftest
 
    !> The following are temporary until the conversion to the new module structure is complete
-   use module_symba
    use module_interfaces
-   use module_swiftestalloc
    implicit none
 
    ! Arguments
@@ -104,34 +102,20 @@ program swiftest_symba
    end if
    ! read in the total number of bodies from the input files
 
-   call symba_plA%helio%swiftest%read_from_file(param)
-   call symba_tpA%helio%swiftest%read_from_file(param)
+   call symba_plA%read_from_file(param)
+   call symba_tpA%read_from_file(param)
 
-   !Temporary until the argument lists get fixed
-      npl = symba_plA%helio%swiftest%nbody
-      ntp = symba_tpA%helio%swiftest%nbody
-   ! Temporary fix until all of the data structures are converted to OOP and inheritance works properly
-      call symba_plA%helio%swiftest%dealloc()
-      call symba_tpA%helio%swiftest%dealloc()
-      call symba_pl_allocate(symba_plA,npl)
-      call symba_tp_allocate(symba_tpA,ntp)
-      call symba_plA%helio%swiftest%dealloc()
-      call symba_tpA%helio%swiftest%dealloc()
-      call symba_plA%helio%swiftest%read_from_file(param)
-      call symba_tpA%helio%swiftest%read_from_file(param)
-   !**************************************************
+   !Temporary until everything get switched over
+   npl = symba_plA%nbody
+   ntp = symba_tpA%nbody
 
    ! create arrays of data structures big enough to store the number of bodies we are adding
-   call symba_merger_allocate(mergeadd_list,10*npl) !DM: Why 10*npl?
-   call symba_merger_allocate(mergesub_list,npl)
-   call symba_plplenc_allocate(plplenc_list, 10*npl) !DM: See ^
-
-   if (ntp > 0) then
-      call symba_pltpenc_allocate(pltpenc_list, ntp)
-   end if
+   call mergeadd_list%alloc(10*npl)!DM: Why 10*npl?
+   call mergesub_list%alloc(npl)
+   call plplenc_list%alloc(10*npl)!DM: See ^
+   call pltpenc_list%alloc(ntp)!DM: See ^
 
    ! reads in initial conditions of all massive bodies from input file
-
    ! reorder by mass 
    call symba_reorder_pl(npl, symba_plA)
    call util_valid(npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest)

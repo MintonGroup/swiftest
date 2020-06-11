@@ -7,41 +7,26 @@ module swiftest_globals
    implicit none
    public
 
-   integer, parameter :: I4B = SELECTED_INT_KIND(9)
-      !! Symbolic name for kind types of 4-byte integers
-   integer, parameter :: I2B = SELECTED_INT_KIND(4)
-      !! Symbolic name for kind types of 2-byte integers
-   integer, parameter :: I1B = SELECTED_INT_KIND(2)
-      !! Symbolic name for kind types of 1-byte integers
+   integer, parameter :: I4B = SELECTED_INT_KIND(9) !! Symbolic name for kind types of 4-byte integers
+   integer, parameter :: I2B = SELECTED_INT_KIND(4) !! Symbolic name for kind types of 2-byte integers
+   integer, parameter :: I1B = SELECTED_INT_KIND(2) !! Symbolic name for kind types of 1-byte integers
 
-   integer, parameter :: SP = KIND(1.0)
-      !! Symbolic name for kind types of single-precision reals
-   integer, parameter :: DP = KIND(1.0D0)
-      !! Symbolic name for kind types of double-precision reals
+   integer, parameter :: SP = KIND(1.0) !! Symbolic name for kind types of single-precision reals
+   integer, parameter :: DP = KIND(1.0D0) !! Symbolic name for kind types of double-precision reals
 
-   integer, parameter :: LGT = KIND(.TRUE.)
-      !! Symbolic name for kind type of default logical
+   integer, parameter :: LGT = KIND(.TRUE.) !! Symbolic name for kind type of default logical
 
-   real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP
-      !! Definition of /(\pi / 2\)
-   real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP
-      !! Definition of /(\pi\)
-   real(DP), parameter :: PI3BY2 = 4.712388980384689857693965074919254326296_DP
-      !! Definition of /(3 \pi / 2\)
-   real(DP), parameter :: TWOPI  = 6.283185307179586476925286766559005768394_DP
-      !! Definition of /(2\pi)
-   real(DP), parameter :: DEGRAD = 180.0_DP/PI
-      !! Definition of conversion factor from degrees to radians
+   real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP !! Definition of /(\pi / 2\)
+   real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP !! Definition of /(\pi\)
+   real(DP), parameter :: PI3BY2 = 4.712388980384689857693965074919254326296_DP !! Definition of /(3 \pi / 2\)
+   real(DP), parameter :: TWOPI  = 6.283185307179586476925286766559005768394_DP !! Definition of /(2\pi)
+   real(DP), parameter :: DEGRAD = 180.0_DP/PI !! Definition of conversion factor from degrees to radians
 
-   integer(I4B), parameter :: LOWERCASE_BEGIN  = IACHAR('a')
-      !! ASCII character set parameter for lower to upper conversion - start of lowercase
-   integer(I4B), parameter :: LOWERCASE_END    = IACHAR('z')
-      !! ASCII character set parameter for lower to upper conversion - end of lowercase
-   integer(I4B), parameter :: UPPERCASE_OFFSET = IACHAR('A') - IACHAR('a')
-      !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
+   integer(I4B), parameter :: LOWERCASE_BEGIN  = IACHAR('a') !! ASCII character set parameter for lower to upper conversion - start of lowercase
+   integer(I4B), parameter :: LOWERCASE_END    = IACHAR('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
+   integer(I4B), parameter :: UPPERCASE_OFFSET = IACHAR('A') - IACHAR('a') !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
 
-   real(SP), parameter :: VERSION_NUMBER = 0.1_SP
-      !! swiftest version
+   real(SP), parameter :: VERSION_NUMBER = 0.1_SP !! swiftest version
 
    !> Symbolic name for swiftest types
    !integer(I4B), parameter  :: SWIFTEST = 1
@@ -53,17 +38,12 @@ module swiftest_globals
    !integer(I4B), parameter :: RMVS     = 7
    !integer(I4B), parameter  :: SYMBA    = 8
 
-   integer(I4B), parameter :: STRMAX = 128
-      !! Maximum size of character strings
+   integer(I4B), parameter :: STRMAX = 128 !! Maximum size of character strings
 
-   character(*), parameter :: REAL4_TYPE = "REAL4"
-      !! Symbolic name for binary output file type REAL4
-   character(*), parameter :: REAL8_TYPE = "REAL8"
-      !! Symbolic name for binary output file type REAL8
-   character(*), parameter :: SWIFTER_REAL4_TYPE  = "SWIFTER4"
-      !! Symbolic name for binary output file type for the old style Swifter REAL4
-   character(*), parameter :: SWIFTER_REAL8_TYPE  = "SWIFTER8"
-      !! Symbolic name for binary output file type for the old style Swifter REAL8
+   character(*), parameter :: REAL4_TYPE = "REAL4" !! Symbolic name for binary output file type REAL4
+   character(*), parameter :: REAL8_TYPE = "REAL8" !! Symbolic name for binary output file type REAL8
+   character(*), parameter :: SWIFTER_REAL4_TYPE  = "SWIFTER4" !! Symbolic name for binary output file type for the old style Swifter REAL4
+   character(*), parameter :: SWIFTER_REAL8_TYPE  = "SWIFTER8" !! Symbolic name for binary output file type for the old style Swifter REAL8
 
    integer(I4B), parameter :: EL   = 1 !! Symbolic name for binary output file contents for orbital element type
    integer(I4B), parameter :: XV   = 2 !! Symbolic name for binary output file contents for cartesian position and velocity type
@@ -126,7 +106,7 @@ module swiftest_globals
 
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM    = 3          !! Number of dimensions in our reality
-   integer(I4B), parameter :: NDIM2   = 2 * NDIM     !! 2x the number of dimensions
+   integer(I4B), parameter :: NDIM2   = 2 * NDIM   !! 2x the number of dimensions
    integer(I4B), parameter :: LOOPMAX = 2147483647 !! Maximum loop limit /(2^{31} - 1\)
    real(DP),     parameter :: TINY    = 4.0E-15_DP
 

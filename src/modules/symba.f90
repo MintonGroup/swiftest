@@ -4,6 +4,7 @@ module symba
    !! Definition of classes and methods specific to the Symplectic Massive Body Algorithm
    !!
    !! Adapted from David E. Kaufmann's Swifter modules: module_symba.f90
+   use swiftest_globals
    use helio
    implicit none
 
@@ -43,7 +44,8 @@ module symba
       integer(I4B), dimension(:),     allocatable :: level  !! encounter recursion level
    contains
       procedure :: alloc => symba_encounter_allocate
-      final :: symba_encounter_dealloc
+      procedure :: set_from_file => symba_encounter_dummy_input
+      final :: symba_encounter_deallocate
    end type symba_encounter
 
    !! Class structure for a planet-planet encounter
@@ -113,9 +115,9 @@ contains
       type(symba_tp), intent(inout)    :: self
 
       if (self%is_allocated) then
-         deallocate(self%nplenc(n))
-         deallocate(self%levelg(n))
-         deallocate(self%levelm(n))
+         deallocate(self%nplenc)
+         deallocate(self%levelg)
+         deallocate(self%levelm)
       end if
       return
    end subroutine symba_tp_deallocate
@@ -150,7 +152,7 @@ contains
       self%levelm(:) = 0
       self%nchild(:) = 0
       self%index_parent(:) = 1
-      self%index_child(:) = 1
+      self%index_child(:,:) = 1
 
       return
    end subroutine symba_pl_allocate
@@ -173,7 +175,7 @@ contains
       return
    end subroutine symba_pl_deallocate
 
-   subroutine symba_encounter_allocate
+   subroutine symba_encounter_allocate(self,n)
       !! Basic Symba encounter structure constructor method
       implicit none
 
@@ -189,7 +191,7 @@ contains
       end if
       write(*,*) 'Allocating the Symba encounter superclass'
 
-      allocate(self%lvdotr(n)))
+      allocate(self%lvdotr(n))
       allocate(self%level(n))
 
       self%lvdotr(:) = .false.
@@ -198,35 +200,141 @@ contains
       return
    end subroutine symba_encounter_allocate
    
-   subroutine symba_encounter_dealloc
-   end subroutine symba_encounter_dealloc
+   subroutine symba_encounter_deallocate(self)
+      !! SyMBA encounter superclass destructor/finalizer
+      implicit none
 
-   subroutine symba_pltpenc_allocate
+      type(symba_encounter), intent(inout)    :: self
+
+      if (self%is_allocated) then
+         deallocate(self%lvdotr)
+         deallocate(self%level)
+      end if
+      call self%superdealloc()
+      return
+   end subroutine symba_encounter_deallocate
+
+   subroutine symba_encounter_dummy_input(self,param) 
+      !! This method is needed in order to extend the abstract type swiftest_particle. It does nothing
+      use user
+      implicit none
+      class(symba_encounter), intent(inout)  :: self  !! SyMBA encounter data structure 
+      type(user_input_parameters),intent(in) :: param !! Input collection of user-defined parameters
+      return
+   end subroutine symba_encounter_dummy_input
+
+   subroutine symba_pltpenc_allocate(self,n)
       !! SyMBA planet-test particle encounter structure constructor method
       implicit none
 
-      class(symba_pltpenc), intent(inout) :: self !! SyMBA encounter super class
-      integer, intent(in)                   :: n    !! Number of test particles to allocate
+      class(symba_pltpenc), intent(inout) :: self !! SyMBA planet-test particle encounter class
+      integer, intent(in)                 :: n    !! Number of encounter slots to allocate
 
+      call self%symba_encounter%alloc(n)
+      if (n <= 0) return
+
+      if (self%is_allocated) then
+         write(*,*) 'SyMBA pl-tp encounter structure already alllocated'
+         return
+      end if
+      write(*,*) 'Allocating the Symba pl-tp encounter class'
+
+      allocate(self%indexpl(n))
+      allocate(self%indextp(n))
+
+      self%indexpl(:) = 1
+      self%indextp(:) = 1
+   end subroutine symba_pltpenc_allocate
+
+   subroutine symba_pltpenc_deallocate(self)
+      !! SyMBA planet-test particle encounter destructor/finalizer
+      implicit none
+
+      type(symba_pltpenc), intent(inout)    :: self
+
+      if (self%is_allocated) then
+         deallocate(self%indexpl)
+         deallocate(self%indextp)
+      end if
+      return
+   end subroutine symba_pltpenc_deallocate
+
+   subroutine symba_plplenc_allocate(self,n)
+      !! SyMBA planet-planet particle encounter structure constructor method
+      implicit none
+
+      class(symba_plplenc), intent(inout) :: self !! SyMBA planet-planet encounter class
+      integer, intent(in)                 :: n    !! Number of encounter slots to allocate
+
+      call self%symba_encounter%alloc(n)
+      if (n <= 0) return
+
+      if (self%is_allocated) then
+         write(*,*) 'SyMBA pl-pl encounter structure already alllocated'
+         return
+      end if
+      write(*,*) 'Allocating the Symba pl-pl encounter class'
+    
       allocate(self%index1(n))
       allocate(self%index2(n))
       allocate(self%enc_child(n))
-      allocate(self%enc_parent(n)) 
-   end subroutine symba_pltpenc_allocate
+      allocate(self%enc_parent(n))
+      
+      self%index1(:) = 1
+      self%index2(:) = 1
+      self%enc_child(:) = 1
+      self%enc_parent(:) = 1
 
-   subroutine symba_pltpenc_deallocate
-   end subroutine symba_pltpenc_deallocate
-
-   subroutine symba_plplenc_allocate
+      return
    end subroutine symba_plplenc_allocate
 
-   subroutine symba_plplenc_deallocate
+   subroutine symba_plplenc_deallocate(self)
+      !! SyMBA planet-planet encounter destructor/finalizer
+      implicit none
+
+      type(symba_plplenc), intent(inout)    :: self
+
+      if (self%is_allocated) then
+         deallocate(self%index1)
+         deallocate(self%index2)
+         deallocate(self%enc_child)
+         deallocate(self%enc_parent)
+      end if
+      return
    end subroutine symba_plplenc_deallocate
 
-   subroutine symba_merger_allocate
+   subroutine symba_merger_allocate(self,n)
+      !! SyMBA merger encounter structure constructor method
+      implicit none
+
+      class(symba_merger), intent(inout) :: self !! SyMBA merger class
+      integer, intent(in)                 :: n    !! Number of encounter slots to allocate
+
+      call self%swiftest_pl%alloc(n)
+      if (n <= 0) return
+
+      if (self%is_allocated) then
+         write(*,*) 'SyMBA merger structure already alllocated'
+         return
+      end if
+      write(*,*) 'Allocating the SyMBA merger  class'
+    
+      allocate(self%index_ps(n))
+      
+      self%index_ps(:) = 1
+
    end subroutine symba_merger_allocate
 
-   subroutine symba_merger_deallocate
+   subroutine symba_merger_deallocate(self)
+      !! SyMBA merger destructor/finalizer
+      implicit none
+
+      type(symba_merger), intent(inout)    :: self
+
+      if (self%is_allocated) then
+         deallocate(self%index_ps)
+      end if
+      return
    end subroutine symba_merger_deallocate
 
 end module symba

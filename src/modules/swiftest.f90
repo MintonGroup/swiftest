@@ -4,9 +4,12 @@ module swiftest
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
    use swiftest_globals
+   use user
    use swiftest_data_structures
    use io
-   use user
+   use helio
+   use symba
+
 
    implicit none
    public

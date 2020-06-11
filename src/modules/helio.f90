@@ -3,6 +3,7 @@ module helio
    !!
    !! Definition of classes and methods specific to the Democratic Heliocentric Method
    !! Adapted from David E. Kaufmann's Swifter modules: module_helio.f90
+   use swiftest_globals
    use swiftest_data_structures
    implicit none
 
@@ -21,7 +22,7 @@ module helio
       real(DP),     dimension(:,:),   allocatable :: ahi ! heliocentric acceleration due to interactions
    contains
       procedure :: alloc => helio_pl_allocate
-      procedure :: dealloc => helio_tp_deallocate
+      final :: helio_pl_deallocate
    end type helio_pl
 
 
@@ -31,7 +32,7 @@ module helio
 !! Interfaces for all helio particle methods that are implemented in separate submodules 
 !end interface
    contains
-      !! Swiftest constructor and desctructor methods
+      !! Helio constructor and desctructor methods
       subroutine helio_tp_allocate(self,n)
          !! Helio test particle constructor method
          implicit none
@@ -50,10 +51,23 @@ module helio
          allocate(self%ah(NDIM,n))
          allocate(self%ahi(NDIM,n))
 
-         self%ah = 0.0_DP
-         self%ahi = 0.0_DP
+         self%ah(:,:) = 0.0_DP
+         self%ahi(:,:) = 0.0_DP
          return
       end subroutine helio_tp_allocate
+
+      subroutine helio_tp_deallocate(self)
+         !! Helio test particle destructor/finalizer
+         implicit none
+
+         type(helio_tp), intent(inout)    :: self
+
+         if (self%is_allocated) then
+            deallocate(self%ah)
+            deallocate(self%ahi)
+         end if
+         return
+      end subroutine helio_tp_deallocate
 
       subroutine helio_pl_allocate(self,n)
          !! Helio massive body constructor method
@@ -72,23 +86,10 @@ module helio
          allocate(self%ah(NDIM,n))
          allocate(self%ahi(NDIM,n))
 
-         self%ah = 0.0_DP
-         self%ahi = 0.0_DP
+         self%ah(:,:) = 0.0_DP
+         self%ahi(:,:) = 0.0_DP
          return
       end subroutine helio_pl_allocate
-
-      subroutine helio_tp_deallocate(self)
-         !! Helio test particle destructor/finalizer
-         implicit none
-
-         type(helio_tp), intent(inout)    :: self
-
-         if (self%is_allocated) then
-            deallocate(self%ah)
-            deallocate(self%ahi)
-         end if
-         return
-      end subroutine helio_tp_deallocate
 
       subroutine helio_pl_deallocate(self)
          !! Helio massive body destructor/finalizer
