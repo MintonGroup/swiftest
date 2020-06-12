@@ -135,7 +135,9 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
    r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
    theta = (2.0_DP * PI) / nfrag
-
+   l(:) = (v2(:)-v1(:))/NORM2((v2(:)-v1(:))
+   p(:) = CROSS_PRODUCT(xr(:)/NORM2(xr(:), l(:)))
+   k(:) = CROSS_PRODUCT(l(:),p(:))
    ! Check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
    semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
    CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
@@ -220,9 +222,9 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          END IF
 
          ! Increment around the circle for positions of fragments
-         x_frag = (r_circle * cos(theta * i)) + x_com
-         y_frag = (r_circle * sin(theta * i)) + y_com
-         z_frag = z_com
+         x_frag = (r_circle * cos(theta * i))*l(1) + (r_circle * sin(theta * i))*p(1)+ x_com
+         y_frag = (r_circle * cos(theta * i))*l(2) + (r_circle * sin(theta * i))*p(2) + y_com
+         z_frag = (r_circle * cos(theta * i))*l(3) + (r_circle * sin(theta * i))*p(3) + z_com
 
          !Conservation of Angular Momentum for velocities of fragments
          A = (((x1(2) * v1(3) * m1) - (x1(3) * v1(2) * m1)) + ((x2(2) * v2(3) * m2) - (x2(3) * v2(2) * m2))) &
