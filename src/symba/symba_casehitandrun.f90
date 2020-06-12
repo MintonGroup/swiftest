@@ -57,17 +57,19 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 ! Internals
  
      INTEGER(I4B)                                     :: nfrag, i, k, index1, index2, frags_added
-     INTEGER(I4B)                                     :: index1_parent, index2_parent
+     INTEGER(I4B)                                     :: index1_parent, index2_parent, index_keep_parent, index_rm_parent
      INTEGER(I4B)                                     :: name1, name2, index_keep, index_rm, name_keep, name_rm
      REAL(DP)                                         :: mtot, msun, d_rm, m_rm, r_rm, x_rm, y_rm, z_rm, vx_rm, vy_rm, vz_rm 
      REAL(DP)                                         :: rhill_keep, r_circle, theta, radius1, radius2, e, q, semimajor_encounter
      REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, semimajor_inward, A, B
-     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
-     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
-     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
+     REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com, mass_keep, mass_rm
+     REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag, rad_keep, rad_rm
+     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv, xh_keep, xh_rm, vh_keep, vh_rm
 
 
 ! Executable code
+
+      WRITE(*,*) "ENTERING CASEHITANDRUN"
 
      nfrag = 4
      index1 = plplenc_list%index1(index_enc)
@@ -84,13 +86,33 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      IF (m2 > m1) THEN
           index_keep = index2
           index_rm = index1
-          name_keep = symba_plA%helio%swiftest%name(index2)
-          name_rm = symba_plA%helio%swiftest%name(index1)
+          mass_keep = m2
+          mass_rm = m1
+          rad_keep = rad2
+          rad_rm = rad1
+          xh_keep = x2
+          xh_rm = x1
+          vh_keep = v2
+          vh_rm = v1
+          index_keep_parent = symba_plA%index_parent(index_keep)
+          index_rm_parent = symba_plA%index_parent(index_rm)
+          name_keep = symba_plA%helio%swiftest%name(index_keep)
+          name_rm = symba_plA%helio%swiftest%name(index_rm)
      ELSE
           index_keep = index1
           index_rm = index2
-          name_keep = symba_plA%helio%swiftest%name(index1)
-          name_rm = symba_plA%helio%swiftest%name(index2)
+          mass_keep = m1
+          mass_rm = m2
+          rad_keep = rad1
+          rad_rm = rad2
+          xh_keep = x1
+          xh_rm = x2
+          vh_keep = v1
+          vh_rm = v2
+          index_keep_parent = symba_plA%index_parent(index_keep)
+          index_rm_parent = symba_plA%index_parent(index_rm)
+          name_keep = symba_plA%helio%swiftest%name(index_keep)
+          name_rm = symba_plA%helio%swiftest%name(index_rm)
      END IF
 
      ! Find COM
@@ -108,7 +130,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      eold = eold - (m1*m2/(SQRT(DOT_PRODUCT(xr(:), xr(:)))))
 
      WRITE(*, *) "Hit and run between particles ", name1, " and ", name2, " at time t = ",t
-     WRITE(*, *) "Particle ", name_keep, " survives; Particle ", name_rm, " is fragmented."
+     !WRITE(*, *) "Particle ", name_keep, " survives; Particle ", name_rm, " is fragmented."
 
      ! Add both parents to mergesub_list
      nmergesub = nmergesub + 1
@@ -140,7 +162,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      symba_plA%helio%swiftest%status(index2) = HIT_AND_RUN
 
      ! Calculate the positions of the new fragments
-     rhill_keep = symba_plA%helio%swiftest%rhill(index_keep)
+     rhill_keep = symba_plA%helio%swiftest%rhill(index_keep_parent)
      r_circle = rhill_keep
      theta = (2.0_DP * PI) / (nfrag - 1)
 
@@ -157,14 +179,14 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
       ELSE
 
          DO i = 1, nfrag
-            m_rm = symba_plA%helio%swiftest%mass(index_rm)
-            r_rm = symba_plA%helio%swiftest%radius(index_rm)
-            x_rm = symba_plA%helio%swiftest%xh(1,index_rm)
-            y_rm = symba_plA%helio%swiftest%xh(2,index_rm)
-            z_rm = symba_plA%helio%swiftest%xh(3,index_rm)
-            vx_rm = symba_plA%helio%swiftest%vh(1,index_rm)
-            vy_rm = symba_plA%helio%swiftest%vh(2,index_rm)
-            vz_rm = symba_plA%helio%swiftest%vh(3,index_rm)
+            m_rm = mass_rm
+            r_rm = rad_rm
+            x_rm = xh_rm(1)
+            y_rm = xh_rm(2)
+            z_rm = xh_rm(3)
+            vx_rm = vh_rm(1)
+            vy_rm = vh_rm(2)
+            vz_rm = vh_rm(3)
             d_rm = (3.0_DP * m_rm) / (4.0_DP * PI * (r_rm ** 3.0_DP))
 
             IF (i == 1) THEN
@@ -173,10 +195,10 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                mergeadd_list%status(nmergeadd) = HIT_AND_RUN
                mergeadd_list%ncomp(nmergeadd) = 2
                mergeadd_list%name(nmergeadd) = symba_plA%helio%swiftest%name(index_keep)
-               mergeadd_list%mass(nmergeadd) = symba_plA%helio%swiftest%mass(index_keep)
-               mergeadd_list%radius(nmergeadd) = symba_plA%helio%swiftest%radius(index_keep)
-               mergeadd_list%xh(:,nmergeadd) = symba_plA%helio%swiftest%xh(:,index_keep)
-               mergeadd_list%vh(:,nmergeadd) = symba_plA%helio%swiftest%vh(:,index_keep)
+               mergeadd_list%mass(nmergeadd) = mass_keep
+               mergeadd_list%radius(nmergeadd) = rad_keep
+               mergeadd_list%xh(:,nmergeadd) = xh_keep
+               mergeadd_list%vh(:,nmergeadd) = vh_keep
                mtot = mtot + mergeadd_list%mass(nmergeadd)                       
             END IF
             IF (i == 2) THEN
@@ -248,6 +270,13 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                   mergeadd_list%vh(1,nmergeadd) = vx_frag
                   mergeadd_list%vh(2,nmergeadd) = vy_frag
                   mergeadd_list%vh(3,nmergeadd) = vz_frag 
+               ELSE IF ((m_rem < (m_rm) / 1000.0_DP) .AND. frags_added == 1) THEN
+                  mergeadd_list%name(nmergeadd) = symba_plA%helio%swiftest%name(index_rm)
+                  mergeadd_list%mass(nmergeadd) = mass_rm
+                  mergeadd_list%radius(nmergeadd) = rad_rm
+                  mergeadd_list%xh(:,nmergeadd) = xh_rm
+                  mergeadd_list%vh(:,nmergeadd) = vh_rm
+                  mtot = mtot - mres(2) + mass_rm 
                ELSE 
                   mergeadd_list%mass(nmergeadd) = mergeadd_list%mass(nmergeadd) + m_rem
                   mergeadd_list%radius(nmergeadd) = (((3.0_DP/4.0_DP) * PI) * (mergeadd_list%mass(nmergeadd) / d_rm)) &
@@ -263,6 +292,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
       enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
       eoffset = eoffset + eold - enew
       ! Update fragmax to account for new fragments
-      fragmax = fragmax + (nfrag - 1)
+      fragmax = fragmax + frags_added
+      WRITE(*,*) "LEAVING CASEHITANDRUN"
       RETURN 
 END SUBROUTINE symba_casehitandrun
