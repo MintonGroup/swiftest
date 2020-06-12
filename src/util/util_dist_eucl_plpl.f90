@@ -29,11 +29,11 @@
 SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
 
 ! Modules
-     USE module_parameters
-     USE module_swiftest
-     USE module_symba
+     USE swiftest_globals
+     USE swiftest_data_structures
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => util_dist_eucl_plpl
-     USE omp_lib
+     !$ USE omp_lib
      IMPLICIT NONE
 
 ! Arguments

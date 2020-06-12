@@ -1,1708 +1,1621 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : module_interfaces
-!  Unit Type   : module
-!  Project     : Swiftest
-!  Package     : module
-!  Language    : Fortran 90/95
-!
-!  Description : Definition of interfaces of subroutines and functions used in swiftest package
-!
-!  Input
-!    Arguments : N/A
-!    Terminal  : N/A
-!    File      : N/A
-!
-!  Output
-!    Arguments : N/A
-!    Terminal  : N/A
-!    File      : N/A
-!
-!  Invocation  : N/A
-!
-!  Notes       : 
-!
-!**********************************************************************************************************************************
-MODULE module_interfaces
+module module_interfaces
 
-     IMPLICIT NONE
+     implicit none
 
-     INTERFACE
-          SUBROUTINE coord_h2b(npl, swiftest_plA, msys)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)         :: npl
-               REAL(DP), INTENT(OUT)            :: msys
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-          END SUBROUTINE coord_h2b
-     END INTERFACE
+     interface
+          subroutine coord_h2b(npl, swiftest_pla, msys)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)         :: npl
+               real(DP), intent(out)            :: msys
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+          end subroutine coord_h2b
+     end interface
 
-     INTERFACE
-          SUBROUTINE coord_h2b_tp(ntp, swiftest_tpA, swiftest_plA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)         :: ntp
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-          END SUBROUTINE coord_h2b_tp
-     END INTERFACE
+     interface
+          subroutine coord_h2b_tp(ntp, swiftest_tpa, swiftest_pla)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)         :: ntp
+               type(swiftest_tp), intent(inout) :: swiftest_tpa
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+          end subroutine coord_h2b_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE coord_vb2vh(npl, swiftest_plA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)         :: npl
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-          END SUBROUTINE coord_vb2vh
-     END INTERFACE
+     interface
+          subroutine coord_vb2vh(npl, swiftest_pla)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)         :: npl
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+          end subroutine coord_vb2vh
+     end interface
 
-     INTERFACE
-          SUBROUTINE coord_vb2vh_tp(ntp, swiftest_tpA, vs)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)              :: ntp
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: vs
-               TYPE(swiftest_tp), INTENT(INOUT)      :: swiftest_tpA
-          END SUBROUTINE coord_vb2vh_tp
-     END INTERFACE
+     interface
+          subroutine coord_vb2vh_tp(ntp, swiftest_tpa, vs)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)              :: ntp
+               real(DP), dimension(ndim), intent(in) :: vs
+               type(swiftest_tp), intent(inout)      :: swiftest_tpa
+          end subroutine coord_vb2vh_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE coord_vh2vb(npl, swiftest_plA, msys)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)        :: npl
-               REAL(DP), INTENT(OUT)           :: msys
-               TYPE(swiftest_pl),INTENT(INOUT) :: swiftest_plA
-          END SUBROUTINE coord_vh2vb
-     END INTERFACE
+     interface
+          subroutine coord_vh2vb(npl, swiftest_pla, msys)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)        :: npl
+               real(DP), intent(out)           :: msys
+               type(swiftest_pl),intent(inout) :: swiftest_pla
+          end subroutine coord_vh2vb
+     end interface
 
-     INTERFACE
-          SUBROUTINE coord_vh2vb_tp(ntp, swiftest_tpA, vs)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)              :: ntp
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: vs
-               TYPE(swiftest_tp), INTENT(INOUT)      :: swiftest_tpA
-          END SUBROUTINE coord_vh2vb_tp
-     END INTERFACE
+     interface
+          subroutine coord_vh2vb_tp(ntp, swiftest_tpa, vs)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)              :: ntp
+               real(DP), dimension(ndim), intent(in) :: vs
+               type(swiftest_tp), intent(inout)      :: swiftest_tpa
+          end subroutine coord_vh2vb_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin,  &
+     interface
+          subroutine discard(t, dt, npl, ntp, swiftest_pla, swiftest_tpa, rmin, rmax, rmaxu, qmin,  &
                qmin_alo, qmin_ahi, qmin_coord, lclose, lrhill_present)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)  :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)  :: npl, ntp
-               REAL(DP), INTENT(IN)      :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN)  :: qmin_coord
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-          END SUBROUTINE discard
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               logical(lgt), intent(in)  :: lclose, lrhill_present
+               integer(I4B), intent(in)  :: npl, ntp
+               real(DP), intent(in)      :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+               character(*), intent(in)  :: qmin_coord
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+               type(swiftest_tp), intent(inout) :: swiftest_tpa
+          end subroutine discard
+     end interface
 
-     INTERFACE
-          SUBROUTINE discard_peri(t, npl, ntp, swiftest_plA, swiftest_tpA, msys, qmin, qmin_alo, & 
+     interface
+          subroutine discard_peri(t, npl, ntp, swiftest_pla, swiftest_tpa, msys, qmin, qmin_alo, & 
                qmin_ahi, qmin_coord, lrhill_present)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)  :: lrhill_present
-               INTEGER(I4B), INTENT(IN)  :: npl, ntp
-               REAL(DP), INTENT(IN)      :: t, msys, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN)  :: qmin_coord
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-          END SUBROUTINE discard_peri
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               logical(lgt), intent(in)  :: lrhill_present
+               integer(I4B), intent(in)  :: npl, ntp
+               real(DP), intent(in)      :: t, msys, qmin, qmin_alo, qmin_ahi
+               character(*), intent(in)  :: qmin_coord
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+               type(swiftest_tp), intent(inout) :: swiftest_tpa
+          end subroutine discard_peri
+     end interface
 
-     INTERFACE
-          SUBROUTINE discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(OUT)             :: iflag
-               REAL(DP), INTENT(IN)                  :: dt, r2crit
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: dx, dv
-               REAL(DP), INTENT(OUT)                 :: r2min
-          END SUBROUTINE discard_pl_close
-     END INTERFACE
+     interface
+          subroutine discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(out)             :: iflag
+               real(DP), intent(in)                  :: dt, r2crit
+               real(DP), dimension(ndim), intent(in) :: dx, dv
+               real(DP), intent(out)                 :: r2min
+          end subroutine discard_pl_close
+     end interface
 
-     INTERFACE
-          SUBROUTINE discard_pl(t, dt, npl, ntp, swiftest_plA, swiftest_tpA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: npl, ntp
-               REAL(DP), INTENT(IN)      :: t, dt
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-          END SUBROUTINE discard_pl
-     END INTERFACE
+     interface
+          subroutine discard_pl(t, dt, npl, ntp, swiftest_pla, swiftest_tpa)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)  :: npl, ntp
+               real(DP), intent(in)      :: t, dt
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+               type(swiftest_tp), intent(inout) :: swiftest_tpa
+          end subroutine discard_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE discard_sun(t, ntp, msys, swifter_tpA, rmin, rmax, rmaxu)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: ntp
-               REAL(DP), INTENT(IN)      :: t, msys, rmin, rmax, rmaxu
-               TYPE(swiftest_tp), INTENT(INOUT) :: swifter_tpA
-          END SUBROUTINE discard_sun
-     END INTERFACE
+     interface
+          subroutine discard_sun(t, ntp, msys, swifter_tpa, rmin, rmax, rmaxu)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)  :: ntp
+               real(DP), intent(in)      :: t, msys, rmin, rmax, rmaxu
+               type(swiftest_tp), intent(inout) :: swifter_tpa
+          end subroutine discard_sun
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_dan(mu, x0, v0, dt0, iflag)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(OUT)                :: iflag
-               REAL(DP), INTENT(IN)                     :: mu, dt0
-               REAL(DP), DIMENSION(NDIM), INTENT(INOUT) :: x0, v0
-          END SUBROUTINE drift_dan
-     END INTERFACE
+     interface
+          subroutine drift_dan(mu, x0, v0, dt0, iflag)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(out)                :: iflag
+               real(DP), intent(in)                     :: mu, dt0
+               real(DP), dimension(ndim), intent(inout) :: x0, v0
+          end subroutine drift_dan
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_kepmd(dm, es, ec, x, s, c)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(IN)  :: dm, es, ec
-               REAL(DP), INTENT(OUT) :: x, s, c
-          END SUBROUTINE drift_kepmd
-     END INTERFACE
+     interface
+          subroutine drift_kepmd(dm, es, ec, x, s, c)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(in)  :: dm, es, ec
+               real(DP), intent(out) :: x, s, c
+          end subroutine drift_kepmd
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(OUT) :: iflag
-               REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
-               REAL(DP), INTENT(OUT)     :: fp, c1, c2, c3
-          END SUBROUTINE drift_kepu
-     END INTERFACE
+     interface
+          subroutine drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(out) :: iflag
+               real(DP), intent(in)      :: dt, r0, mu, alpha, u
+               real(DP), intent(out)     :: fp, c1, c2, c3
+          end subroutine drift_kepu
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(IN)  :: dt, r0, mu, alpha, u, s
-               REAL(DP), INTENT(OUT) :: f
-          END SUBROUTINE drift_kepu_fchk
-     END INTERFACE
+     interface
+          subroutine drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(in)  :: dt, r0, mu, alpha, u, s
+               real(DP), intent(out) :: f
+          end subroutine drift_kepu_fchk
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(IN)  :: dt, r0, mu, alpha, u
-               REAL(DP), INTENT(OUT) :: s
-          END SUBROUTINE drift_kepu_guess
-     END INTERFACE
+     interface
+          subroutine drift_kepu_guess(dt, r0, mu, alpha, u, s)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(in)  :: dt, r0, mu, alpha, u
+               real(DP), intent(out) :: s
+          end subroutine drift_kepu_guess
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(OUT) :: iflag
-               REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
-               REAL(DP), INTENT(INOUT)   :: s
-               REAL(DP), INTENT(OUT)     :: fp, c1, c2, c3
-          END SUBROUTINE drift_kepu_lag
-     END INTERFACE
+     interface
+          subroutine drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(out) :: iflag
+               real(DP), intent(in)      :: dt, r0, mu, alpha, u
+               real(DP), intent(inout)   :: s
+               real(DP), intent(out)     :: fp, c1, c2, c3
+          end subroutine drift_kepu_lag
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(OUT) :: iflag
-               REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
-               REAL(DP), INTENT(INOUT)   :: s
-               REAL(DP), INTENT(OUT)     :: fp, c1, c2, c3
-          END SUBROUTINE drift_kepu_new
-     END INTERFACE
+     interface
+          subroutine drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(out) :: iflag
+               real(DP), intent(in)      :: dt, r0, mu, alpha, u
+               real(DP), intent(inout)   :: s
+               real(DP), intent(out)     :: fp, c1, c2, c3
+          end subroutine drift_kepu_new
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(OUT) :: iflag
-               REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
-               REAL(DP), INTENT(OUT)     :: s
-          END SUBROUTINE drift_kepu_p3solve
-     END INTERFACE
+     interface
+          subroutine drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(out) :: iflag
+               real(DP), intent(in)      :: dt, r0, mu, alpha, u
+               real(DP), intent(out)     :: s
+          end subroutine drift_kepu_p3solve
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_kepu_stumpff(x, c0, c1, c2, c3)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(INOUT) :: x
-               REAL(DP), INTENT(OUT)   :: c0, c1, c2, c3
-          END SUBROUTINE drift_kepu_stumpff
-     END INTERFACE
+     interface
+          subroutine drift_kepu_stumpff(x, c0, c1, c2, c3)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(inout) :: x
+               real(DP), intent(out)   :: c0, c1, c2, c3
+          end subroutine drift_kepu_stumpff
+     end interface
 
-     INTERFACE
-          SUBROUTINE drift_one(mu, x, v, dt, iflag)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(OUT)                :: iflag
-               REAL(DP), INTENT(IN)                     :: mu, dt
-               REAL(DP), DIMENSION(NDIM), INTENT(INOUT) :: x, v
-          END SUBROUTINE drift_one
-     END INTERFACE
+     interface
+          subroutine drift_one(mu, x, v, dt, iflag)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(out)                :: iflag
+               real(DP), intent(in)                     :: mu, dt
+               real(DP), dimension(ndim), intent(inout) :: x, v
+          end subroutine drift_one
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_drift(npl, swiftest_plA, dt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)         :: npl
-               REAL(DP), INTENT(IN)             :: dt
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-          END SUBROUTINE helio_drift
-     END INTERFACE
+     interface
+          subroutine helio_drift(npl, swiftest_pla, dt)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)         :: npl
+               real(DP), intent(in)             :: dt
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+          end subroutine helio_drift
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_drift_tp(ntp, swiftest_tpA, mu, dt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)         :: ntp
-               REAL(DP), INTENT(IN)             :: mu, dt
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-          END SUBROUTINE helio_drift_tp
-     END INTERFACE
+     interface
+          subroutine helio_drift_tp(ntp, swiftest_tpa, mu, dt)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)         :: ntp
+               real(DP), intent(in)             :: mu, dt
+               type(swiftest_tp), intent(inout) :: swiftest_tpa
+          end subroutine helio_drift_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_getacch(lflag, lextra_force, t, npl, nplmax, helio_plA, j2rp2, j4rp4)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)       :: lflag, lextra_force
-               INTEGER(I4B), INTENT(IN)       :: npl, nplmax
-               REAL(DP), INTENT(IN)           :: t, j2rp2, j4rp4
-               TYPE(helio_pl), INTENT(INOUT)  :: helio_plA
-          END SUBROUTINE helio_getacch
-     END INTERFACE
+     interface
+          subroutine helio_getacch(lflag, lextra_force, t, npl, nplmax, helio_pla, j2rp2, j4rp4)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               implicit none
+               logical(lgt), intent(in)       :: lflag, lextra_force
+               integer(I4B), intent(in)       :: npl, nplmax
+               real(DP), intent(in)           :: t, j2rp2, j4rp4
+               type(helio_pl), intent(inout)  :: helio_pla
+          end subroutine helio_getacch
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_getacch_int(npl, helio_plA)
-               USE swiftest_globals
-               USE helio
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)       :: npl
-               TYPE(helio_pl), INTENT(INOUT)  :: helio_plA
-          END SUBROUTINE helio_getacch_int
-     END INTERFACE
+     interface
+          subroutine helio_getacch_int(npl, helio_pla)
+               use swiftest_globals
+               use helio
+               implicit none
+               integer(I4B), intent(in)       :: npl
+               type(helio_pl), intent(inout)  :: helio_pla
+          end subroutine helio_getacch_int
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_getacch_int_tp(npl, ntp, swiftest_plA, helio_tpA, xh)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                   :: npl, ntp
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
-               TYPE(swiftest_pl), INTENT(INOUT)           :: swiftest_plA
-               TYPE(helio_tp), INTENT(INOUT)              :: helio_tpA
-          END SUBROUTINE helio_getacch_int_tp
-     END INTERFACE
+     interface
+          subroutine helio_getacch_int_tp(npl, ntp, swiftest_pla, helio_tpa, xh)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               implicit none
+               integer(I4B), intent(in)                   :: npl, ntp
+               real(DP), dimension(ndim, npl), intent(in) :: xh
+               type(swiftest_pl), intent(inout)           :: swiftest_pla
+               type(helio_tp), intent(inout)              :: helio_tpa
+          end subroutine helio_getacch_int_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xh, j2rp2, j4rp4)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                   :: lflag, lextra_force
-               INTEGER(I4B), INTENT(IN)                   :: npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)                       :: t, j2rp2, j4rp4
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
-               TYPE(helio_pl), INTENT(INOUT)              :: helio_plA
-               TYPE(helio_tp), INTENT(INOUT)              :: helio_tpA
-          END SUBROUTINE helio_getacch_tp
-     END INTERFACE
+     interface
+          subroutine helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_pla, helio_tpa, xh, j2rp2, j4rp4)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               implicit none
+               logical(lgt), intent(in)                   :: lflag, lextra_force
+               integer(I4B), intent(in)                   :: npl, nplmax, ntp, ntpmax
+               real(DP), intent(in)                       :: t, j2rp2, j4rp4
+               real(DP), dimension(ndim, npl), intent(in) :: xh
+               type(helio_pl), intent(inout)              :: helio_pla
+               type(helio_tp), intent(inout)              :: helio_tpa
+          end subroutine helio_getacch_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_kickvb(npl, helio_plA, dt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)       :: npl
-               REAL(DP), INTENT(IN)           :: dt
-               TYPE(helio_pl), INTENT(INOUT)  :: helio_plA
-          END SUBROUTINE helio_kickvb
-     END INTERFACE
+     interface
+          subroutine helio_kickvb(npl, helio_pla, dt)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               implicit none
+               integer(I4B), intent(in)       :: npl
+               real(DP), intent(in)           :: dt
+               type(helio_pl), intent(inout)  :: helio_pla
+          end subroutine helio_kickvb
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_kickvb_tp(ntp, helio_tpA, dt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)       :: ntp
-               REAL(DP), INTENT(IN)           :: dt
-               TYPE(helio_tp), INTENT(INOUT)  :: helio_tpA
-          END SUBROUTINE helio_kickvb_tp
-     END INTERFACE
+     interface
+          subroutine helio_kickvb_tp(ntp, helio_tpa, dt)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               implicit none
+               integer(I4B), intent(in)       :: ntp
+               real(DP), intent(in)           :: dt
+               type(helio_tp), intent(inout)  :: helio_tpa
+          end subroutine helio_kickvb_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_lindrift(npl, swiftest_plA, dt, pt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)               :: npl
-               REAL(DP), INTENT(IN)                   :: dt
-               REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: pt
-               TYPE(swiftest_pl), INTENT(INOUT)       :: swiftest_plA
-          END SUBROUTINE helio_lindrift
-     END INTERFACE
+     interface
+          subroutine helio_lindrift(npl, swiftest_pla, dt, pt)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)               :: npl
+               real(DP), intent(in)                   :: dt
+               real(DP), dimension(ndim), intent(out) :: pt
+               type(swiftest_pl), intent(inout)       :: swiftest_pla
+          end subroutine helio_lindrift
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_lindrift_tp(ntp, swiftest_tpA, dt, pt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)              :: ntp
-               REAL(DP), INTENT(IN)                  :: dt
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: pt
-               TYPE(swiftest_tp), INTENT(INOUT)      :: swiftest_tpA
-          END SUBROUTINE helio_lindrift_tp
-     END INTERFACE
+     interface
+          subroutine helio_lindrift_tp(ntp, swiftest_tpa, dt, pt)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)              :: ntp
+               real(DP), intent(in)                  :: dt
+               real(DP), dimension(ndim), intent(in) :: pt
+               type(swiftest_tp), intent(inout)      :: swiftest_tpa
+          end subroutine helio_lindrift_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt)
-               USE swiftest_globals
-               USE helio
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)      :: lextra_force
-               LOGICAL(LGT), INTENT(INOUT)   :: lfirst
-               INTEGER(I4B), INTENT(IN)      :: npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)          :: t, j2rp2, j4rp4, dt
-               TYPE(helio_pl), INTENT(INOUT) :: helio_plA
-               TYPE(helio_tp), INTENT(INOUT) :: helio_tpA
-          END SUBROUTINE helio_step
-     END INTERFACE
+     interface
+          subroutine helio_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_pla, helio_tpa, j2rp2, j4rp4, dt)
+               use swiftest_globals
+               use helio
+               implicit none
+               logical(lgt), intent(in)      :: lextra_force
+               logical(lgt), intent(inout)   :: lfirst
+               integer(I4B), intent(in)      :: npl, nplmax, ntp, ntpmax
+               real(DP), intent(in)          :: t, j2rp2, j4rp4, dt
+               type(helio_pl), intent(inout) :: helio_pla
+               type(helio_tp), intent(inout) :: helio_tpa
+          end subroutine helio_step
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_step_pl(lfirst, lextra_force, t, npl, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                    :: lextra_force
-               LOGICAL(LGT), INTENT(INOUT)                 :: lfirst
-               INTEGER(I4B), INTENT(IN)                    :: npl, nplmax
-               REAL(DP), INTENT(IN)                        :: t, j2rp2, j4rp4, dt
-               REAL(DP), DIMENSION(NDIM), INTENT(OUT)      :: ptb, pte
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(OUT) :: xbeg,xend
-               TYPE(helio_pl), INTENT(INOUT)               :: helio_plA
-          END SUBROUTINE helio_step_pl
-     END INTERFACE
+     interface
+          subroutine helio_step_pl(lfirst, lextra_force, t, npl, nplmax, helio_pla, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               implicit none
+               logical(lgt), intent(in)                    :: lextra_force
+               logical(lgt), intent(inout)                 :: lfirst
+               integer(I4B), intent(in)                    :: npl, nplmax
+               real(DP), intent(in)                        :: t, j2rp2, j4rp4, dt
+               real(DP), dimension(ndim), intent(out)      :: ptb, pte
+               real(DP), dimension(ndim, npl), intent(out) :: xbeg,xend
+               type(helio_pl), intent(inout)               :: helio_pla
+          end subroutine helio_step_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt, &
+     interface
+          subroutine helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_pla, helio_tpa, j2rp2, j4rp4, dt, &
                xbeg, xend, ptb, pte)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                   :: lextra_force
-               LOGICAL(LGT), INTENT(INOUT)                :: lfirsttp
-               INTEGER(I4B), INTENT(IN)                   :: npl, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)                       :: t, j2rp2, j4rp4, dt
-               REAL(DP), DIMENSION(NDIM), INTENT(IN)      :: ptb, pte
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xbeg, xend
-               TYPE(helio_pl), INTENT(INOUT)              :: helio_plA
-               TYPE(helio_tp), INTENT(INOUT)              :: helio_tpA
-          END SUBROUTINE helio_step_tp
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               implicit none
+               logical(lgt), intent(in)                   :: lextra_force
+               logical(lgt), intent(inout)                :: lfirsttp
+               integer(I4B), intent(in)                   :: npl, nplmax, ntp, ntpmax
+               real(DP), intent(in)                       :: t, j2rp2, j4rp4, dt
+               real(DP), dimension(ndim), intent(in)      :: ptb, pte
+               real(DP), dimension(ndim, npl), intent(in) :: xbeg, xend
+               type(helio_pl), intent(inout)              :: helio_pla
+               type(helio_tp), intent(inout)              :: helio_tpa
+          end subroutine helio_step_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_user_getacch(t, npl, helio_plA)
-               USE swiftest_globals
-               USE helio
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)      :: npl
-               REAL(DP), INTENT(IN)          :: t
-               TYPE(helio_pl), INTENT(INOUT) :: helio_plA
-          END SUBROUTINE helio_user_getacch
-     END INTERFACE
+     interface
+          subroutine helio_user_getacch(t, npl, helio_pla)
+               use swiftest_globals
+               use helio
+               implicit none
+               integer(I4B), intent(in)      :: npl
+               real(DP), intent(in)          :: t
+               type(helio_pl), intent(inout) :: helio_pla
+          end subroutine helio_user_getacch
+     end interface
 
-     INTERFACE
-          SUBROUTINE helio_user_getacch_tp(t, ntp, helio_tpA)
-               USE swiftest_globals
-               USE helio
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)      :: ntp
-               REAL(DP), INTENT(IN)          :: t
-               TYPE(helio_tp), INTENT(INOUT) :: helio_tpA
-          END SUBROUTINE helio_user_getacch_tp
-     END INTERFACE
+     interface
+          subroutine helio_user_getacch_tp(t, ntp, helio_tpa)
+               use swiftest_globals
+               use helio
+               implicit none
+               integer(I4B), intent(in)      :: ntp
+               real(DP), intent(in)          :: t
+               type(helio_tp), intent(inout) :: helio_tpa
+          end subroutine helio_user_getacch_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, & 
-               discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                       :: lbig_discard
-               INTEGER(I4B), INTENT(IN)                       :: npl, ntp, nsppl, nsptp, nmergeadd, nmergesub
-               REAL(DP), INTENT(IN)                           :: t, mtiny
-               CHARACTER(*), INTENT(IN)                       :: fname
-               TYPE(symba_pl), INTENT(INOUT)                  :: symba_plA
-               TYPE(swiftest_tp), INTENT(INOUT)               :: discard_tpA
-               TYPE(swiftest_pl), INTENT(INOUT)               :: discard_plA
-               TYPE(symba_merger), INTENT(INOUT)              :: mergeadd_list, mergesub_list
-          END SUBROUTINE io_discard_write_symba
-     END INTERFACE
+     interface
+          subroutine io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_pla, & 
+               discard_pla, discard_tpa, mergeadd_list, mergesub_list, fname, lbig_discard)
+               use swiftest_globals
+               use swiftest_data_structures
+               use symba
+               implicit none
+               logical(lgt), intent(in)                       :: lbig_discard
+               integer(I4B), intent(in)                       :: npl, ntp, nsppl, nsptp, nmergeadd, nmergesub
+               real(DP), intent(in)                           :: t, mtiny
+               character(*), intent(in)                       :: fname
+               type(symba_pl), intent(inout)                  :: symba_pla
+               type(swiftest_tp), intent(inout)               :: discard_tpa
+               type(swiftest_pl), intent(inout)               :: discard_pla
+               type(symba_merger), intent(inout)              :: mergeadd_list, mergesub_list
+          end subroutine io_discard_write_symba
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,            &
+     interface
+          subroutine io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,            &
                istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,         &
                lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
-               USE swiftest_globals
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython
-               INTEGER(I4B), INTENT(IN) :: nplmax, ntpmax, ntp, istep_out, istep_dump
-               REAL(DP), INTENT(IN)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, mtiny
-               CHARACTER(*), INTENT(IN) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
-          END SUBROUTINE io_dump_param
-     END INTERFACE
+               use swiftest_globals
+               implicit none
+               logical(lgt), intent(in) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython
+               integer(I4B), intent(in) :: nplmax, ntpmax, ntp, istep_out, istep_dump
+               real(DP), intent(in)     :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, mtiny
+               character(*), intent(in) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
+          end subroutine io_dump_param
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE module_fxdr
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)        :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)        :: npl
-               TYPE(swiftest_pl), INTENT(INOUT):: swiftest_plA
-          END SUBROUTINE io_dump_pl
-     END INTERFACE
+     interface
+          subroutine io_dump_pl(npl, swiftest_pla, lclose, lrhill_present)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               logical(lgt), intent(in)        :: lclose, lrhill_present
+               integer(I4B), intent(in)        :: npl
+               type(swiftest_pl), intent(inout):: swiftest_pla
+          end subroutine io_dump_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)        :: ntp
-               TYPE(swiftest_tp), INTENT(INOUT):: swiftest_tpA
-          END SUBROUTINE io_dump_tp
-     END INTERFACE
+     interface
+          subroutine io_dump_tp(ntp, swiftest_tpa)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)        :: ntp
+               type(swiftest_tp), intent(inout):: swiftest_tpa
+          end subroutine io_dump_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
-               USE swiftest_globals
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(INOUT) :: nplmax, ntpmax
-               INTEGER(I4B), INTENT(OUT)   :: npl, ntp
-               CHARACTER(*), INTENT(IN)    :: inplfile, intpfile, in_type
-          END SUBROUTINE io_getn
-     END INTERFACE
+     interface
+          subroutine io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(inout) :: nplmax, ntpmax
+               integer(I4B), intent(out)   :: npl, ntp
+               character(*), intent(in)    :: inplfile, intpfile, in_type
+          end subroutine io_getn
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_get_token(buffer, ilength, ifirst, ilast, ierr)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)    :: ilength
-               INTEGER(I4B), INTENT(INOUT) :: ifirst
-               INTEGER(I4B), INTENT(OUT)   :: ilast, ierr
-               CHARACTER(*), INTENT(IN)    :: buffer
-          END SUBROUTINE io_get_token
-     END INTERFACE
+     interface
+          subroutine io_get_token(buffer, ilength, ifirst, ilast, ierr)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(in)    :: ilength
+               integer(I4B), intent(inout) :: ifirst
+               integer(I4B), intent(out)   :: ilast, ierr
+               character(*), intent(in)    :: buffer
+          end subroutine io_get_token
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
+     interface
+          subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,     &
                out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,     &
                qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython, lenergy)
-               USE swiftest_globals
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(OUT) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython, lenergy
-               INTEGER(I4B), INTENT(OUT) :: nplmax, ntpmax, istep_out, istep_dump
-               REAL(DP), INTENT(OUT)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               REAL(DP), INTENT(OUT), OPTIONAL :: mtiny
-               CHARACTER(*), INTENT(IN)  :: inparfile
-               CHARACTER(*), INTENT(OUT) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, &
+               use swiftest_globals
+               implicit none
+               logical(lgt), intent(out) :: lclose, lextra_force, lbig_discard, lrhill_present, lpython, lenergy
+               integer(I4B), intent(out) :: nplmax, ntpmax, istep_out, istep_dump
+               real(DP), intent(out)     :: t0, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+               real(DP), intent(out), optional :: mtiny
+               character(*), intent(in)  :: inparfile
+               character(*), intent(out) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, &
                                             out_stat
-          END SUBROUTINE io_init_param
-     END INTERFACE
+          end subroutine io_init_param
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE symba
-               USE helio
-               USE module_fxdr
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)         :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)         :: npl
-               CHARACTER(*), INTENT(IN)         :: inplfile, in_type
-               TYPE(symba_pl), INTENT(INOUT)    :: symba_plA
-          END SUBROUTINE io_init_pl
-     END INTERFACE
+     interface
+          subroutine io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_pla)
+               use swiftest_globals
+               use swiftest_data_structures
+               use symba
+               use helio
+               implicit none
+               logical(lgt), intent(in)         :: lclose, lrhill_present
+               integer(I4B), intent(in)         :: npl
+               character(*), intent(in)         :: inplfile, in_type
+               type(symba_pl), intent(inout)    :: symba_pla
+          end subroutine io_init_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_init_tp(intpfile, in_type, ntp, symba_tpA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE symba
-               USE helio
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)         :: ntp
-               CHARACTER(*), INTENT(IN)         :: intpfile, in_type
-               TYPE(symba_tp), INTENT(INOUT)    :: symba_tpA
-          END SUBROUTINE io_init_tp
-     END INTERFACE
+     interface
+          subroutine io_init_tp(intpfile, in_type, ntp, symba_tpa)
+               use swiftest_globals
+               use swiftest_data_structures
+               use symba
+               use helio
+               implicit none
+               integer(I4B), intent(in)         :: ntp
+               character(*), intent(in)         :: intpfile, in_type
+               type(symba_tp), intent(inout)    :: symba_tpa
+          end subroutine io_init_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_open(iu, fname, fopenstat, fmt, ierr)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: iu
-               INTEGER(I4B), INTENT(OUT) :: ierr
-               CHARACTER(*), INTENT(IN)  :: fname, fopenstat, fmt
-          END SUBROUTINE io_open
-     END INTERFACE
+     interface
+          subroutine io_open(iu, fname, fopenstat, fmt, ierr)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(in)  :: iu
+               integer(I4B), intent(out) :: ierr
+               character(*), intent(in)  :: fname, fopenstat, fmt
+          end subroutine io_open
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_open_fxdr(fname, fopenstat, lflag, iu, ierr)
-               USE swiftest_globals
-               USE module_fxdr
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)  :: lflag
-               INTEGER(I4B), INTENT(OUT) :: iu, ierr
-               CHARACTER(*), INTENT(IN)  :: fname
-               CHARACTER(1), INTENT(IN)  :: fopenstat
-          END SUBROUTINE io_open_fxdr
-     END INTERFACE
+     interface
+          function io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
+               use swiftest_globals
+               implicit none
+               integer(I4B)                           :: io_read_encounter
+               integer(I4B), intent(out)              :: name1, name2
+               real(DP), intent(out)                  :: t, mass1, mass2
+               real(DP), dimension(ndim), intent(out) :: xh1, xh2, vh1, vh2
+               character(*), intent(in)               :: encounter_file,out_type
+          end function io_read_encounter
+     end interface
 
-     INTERFACE
-          FUNCTION io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
-               USE swiftest_globals
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B)                           :: io_read_encounter
-               INTEGER(I4B), INTENT(OUT)              :: name1, name2
-               REAL(DP), INTENT(OUT)                  :: t, mass1, mass2
-               REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: xh1, xh2, vh1, vh2
-               CHARACTER(*), INTENT(IN)               :: encounter_file,out_type
-          END FUNCTION io_read_encounter
-     END INTERFACE
+     interface
+          function io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
+               use swiftest_globals
+               implicit none
+               integer(I4B)               :: io_read_hdr
+               integer(I4B), intent(in)   :: iu
+               integer(I4B), intent(out)  :: npl, ntp, iout_form
+               real(DP), intent(out)      :: t
+               character(*), intent(in)   :: out_type
+          end function io_read_hdr
+     end interface
 
-     INTERFACE
-          FUNCTION io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
-               USE swiftest_globals
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B)               :: io_read_hdr
-               INTEGER(I4B), INTENT(IN)   :: iu
-               INTEGER(I4B), INTENT(OUT)  :: npl, ntp, iout_form
-               REAL(DP), INTENT(OUT)      :: t
-               CHARACTER(*), INTENT(IN)   :: out_type
-          END FUNCTION io_read_hdr
-     END INTERFACE
+     interface
+          function io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, mass, radius)
+               use swiftest_globals
+               implicit none
+               integer(I4B)                    :: io_read_line
+               integer(I4B), intent(in)        :: iu
+               integer(I4B), intent(out)       :: name
+               real(DP), intent(out)           :: d1, d2, d3, d4, d5, d6
+               real(DP), optional, intent(out) :: mass, radius
+               character(*), intent(in)        :: out_type
+          end function io_read_line
+     end interface
 
-     INTERFACE
-          FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
-               USE swiftest_globals
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B)                    :: io_read_line
-               INTEGER(I4B), INTENT(IN)        :: iu
-               INTEGER(I4B), INTENT(OUT)       :: name
-               REAL(DP), INTENT(OUT)           :: d1, d2, d3, d4, d5, d6
-               REAL(DP), OPTIONAL, INTENT(OUT) :: MASS, RADIUS
-               CHARACTER(*), INTENT(IN)        :: out_type
-          END FUNCTION io_read_line
-     END INTERFACE
-
-     INTERFACE
-          SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+     interface
+          subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
                xh1, xh2, vh1, vh2, encounter_file, out_type)
-               USE swiftest_globals
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)              :: name1, name2
-               REAL(DP), INTENT(IN)                  :: t, mass1, mass2, radius1, radius2
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xh1, xh2, vh1, vh2
-               CHARACTER(*), INTENT(IN)              :: encounter_file, out_type
-          END SUBROUTINE io_write_encounter
-     END INTERFACE
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(in)              :: name1, name2
+               real(DP), intent(in)                  :: t, mass1, mass2, radius1, radius2
+               real(DP), dimension(ndim), intent(in) :: xh1, xh2, vh1, vh2
+               character(*), intent(in)              :: encounter_file, out_type
+          end subroutine io_write_encounter
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_write_frame(t, npl, ntp, swiftest_plA, swiftest_tpA, outfile, &
+     interface
+          subroutine io_write_frame(t, npl, ntp, swiftest_pla, swiftest_tpa, outfile, &
                out_type, out_form, out_stat)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: npl, ntp
-               REAL(DP), INTENT(IN)      :: t
-               CHARACTER(*), INTENT(IN)  :: outfile, out_type, out_form, out_stat
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-          END SUBROUTINE io_write_frame
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)  :: npl, ntp
+               real(DP), intent(in)      :: t
+               character(*), intent(in)  :: outfile, out_type, out_form, out_stat
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+               type(swiftest_tp), intent(inout) :: swiftest_tpa
+          end subroutine io_write_frame
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
-               USE swiftest_globals
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: iu, npl, ntp, iout_form
-               REAL(DP), INTENT(IN)     :: t
-               CHARACTER(*), INTENT(IN) :: out_type
-          END SUBROUTINE io_write_hdr
-     END INTERFACE
+     interface
+          subroutine io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(in) :: iu, npl, ntp, iout_form
+               real(DP), intent(in)     :: t
+               character(*), intent(in) :: out_type
+          end subroutine io_write_hdr
+     end interface
 
-     INTERFACE
-          SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
-               USE swiftest_globals
-               USE module_fxdr
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)       :: iu, name
-               REAL(DP), INTENT(IN)           :: d1, d2, d3, d4, d5, d6
-               REAL(DP), OPTIONAL, INTENT(IN) :: MASS, RADIUS
-               CHARACTER(*), INTENT(IN)       :: out_type
-          END SUBROUTINE io_write_line
-     END INTERFACE
+     interface
+          subroutine io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, mass, radius)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(in)       :: iu, name
+               real(DP), intent(in)           :: d1, d2, d3, d4, d5, d6
+               real(DP), optional, intent(in) :: mass, radius
+               character(*), intent(in)       :: out_type
+          end subroutine io_write_line
+     end interface
 
-     INTERFACE
-          SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                    :: npl
-               REAL(DP), INTENT(IN)                        :: j2rp2, j4rp4
-               REAL(DP), DIMENSION(npl), INTENT(IN)        :: irh
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)  :: xh
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(OUT) :: aobl
-               TYPE(swiftest_pl), INTENT(INOUT)            :: swiftest_plA
-          END SUBROUTINE obl_acc
-     END INTERFACE
+     interface
+          subroutine obl_acc(npl, swiftest_pla, j2rp2, j4rp4, xh, irh, aobl)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)                    :: npl
+               real(DP), intent(in)                        :: j2rp2, j4rp4
+               real(DP), dimension(npl), intent(in)        :: irh
+               real(DP), dimension(ndim, npl), intent(in)  :: xh
+               real(DP), dimension(ndim, npl), intent(out) :: aobl
+               type(swiftest_pl), intent(inout)            :: swiftest_pla
+          end subroutine obl_acc
+     end interface
 
-     INTERFACE
-          SUBROUTINE obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, msun)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                    :: ntp
-               REAL(DP), INTENT(IN)                        :: j2rp2, j4rp4, msun
-               REAL(DP), DIMENSION(ntp), INTENT(IN)        :: irht
-               REAL(DP), DIMENSION(NDIM, ntp), INTENT(IN)  :: xht
-               REAL(DP), DIMENSION(NDIM, ntp), INTENT(OUT) :: aoblt
-          END SUBROUTINE obl_acc_tp
-     END INTERFACE
+     interface
+          subroutine obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, msun)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(in)                    :: ntp
+               real(DP), intent(in)                        :: j2rp2, j4rp4, msun
+               real(DP), dimension(ntp), intent(in)        :: irht
+               real(DP), dimension(ndim, ntp), intent(in)  :: xht
+               real(DP), dimension(ndim, ntp), intent(out) :: aoblt
+          end subroutine obl_acc_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                   :: npl
-               REAL(DP), INTENT(IN)                       :: j2rp2, j4rp4
-               REAL(DP), INTENT(OUT)                      :: oblpot
-               REAL(DP), DIMENSION(npl), INTENT(IN)       :: irh
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
-               TYPE(swiftest_pl), INTENT(INOUT)           :: swiftest_plA
-          END SUBROUTINE obl_pot
-     END INTERFACE
+     interface
+          subroutine obl_pot(npl, swiftest_pla, j2rp2, j4rp4, xh, irh, oblpot)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)                   :: npl
+               real(DP), intent(in)                       :: j2rp2, j4rp4
+               real(DP), intent(out)                      :: oblpot
+               real(DP), dimension(npl), intent(in)       :: irh
+               real(DP), dimension(ndim, npl), intent(in) :: xh
+               type(swiftest_pl), intent(inout)           :: swiftest_pla
+          end subroutine obl_pot
+     end interface
 
-     INTERFACE
-          SUBROUTINE orbel_scget(angle, sx, cx)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(IN)  :: angle
-               REAL(DP), INTENT(OUT) :: sx, cx
-          END SUBROUTINE orbel_scget
-     END INTERFACE
+     interface
+          subroutine orbel_scget(angle, sx, cx)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(in)  :: angle
+               real(DP), intent(out) :: sx, cx
+          end subroutine orbel_scget
+     end interface
 
-     INTERFACE
-          SUBROUTINE orbel_xv2aeq(x, v, mu, a, e, q)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(IN)                  :: mu
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: x, v
-               REAL(DP), INTENT(OUT)                 :: a, e, q
-          END SUBROUTINE orbel_xv2aeq
-     END INTERFACE
+     interface
+          subroutine orbel_xv2aeq(x, v, mu, a, e, q)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(in)                  :: mu
+               real(DP), dimension(ndim), intent(in) :: x, v
+               real(DP), intent(out)                 :: a, e, q
+          end subroutine orbel_xv2aeq
+     end interface
 
-     INTERFACE
-          SUBROUTINE orbel_xv2aqt(x, v, mu, a, q, capm, tperi)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(IN)                  :: mu
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: x, v
-               REAL(DP), INTENT(OUT)                 :: a, q, capm, tperi
-          END SUBROUTINE orbel_xv2aqt
-     END INTERFACE
+     interface
+          subroutine orbel_xv2aqt(x, v, mu, a, q, capm, tperi)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(in)                  :: mu
+               real(DP), dimension(ndim), intent(in) :: x, v
+               real(DP), intent(out)                 :: a, q, capm, tperi
+          end subroutine orbel_xv2aqt
+     end interface
 
-     INTERFACE
-          SUBROUTINE orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(IN)                  :: mu
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: x, v
-               REAL(DP), INTENT(OUT)                 :: a, e, inc, capom, omega, capm
-          END SUBROUTINE orbel_xv2el
-     END INTERFACE
+     interface
+          subroutine orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(in)                  :: mu
+               real(DP), dimension(ndim), intent(in) :: x, v
+               real(DP), intent(out)                 :: a, e, inc, capom, omega, capm
+          end subroutine orbel_xv2el
+     end interface
 
-     INTERFACE
-          SUBROUTINE python_io_write_frame_pl(t, symba_plA, npl, out_stat)
+     interface
+          subroutine python_io_write_frame_pl(t, symba_pla, npl, out_stat)
                use swiftest_globals
                use swiftest_data_structures
                use helio
                use symba
-               IMPLICIT NONE
+               implicit none
                real(DP), intent(in)      :: t
-               type(symba_pl),intent(in) :: symba_plA
+               type(symba_pl),intent(in) :: symba_pla
                integer, intent(in)       :: npl
                character(*), intent(in)  :: out_stat
-          END SUBROUTINE python_io_write_frame_pl
-     END INTERFACE
+          end subroutine python_io_write_frame_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE python_io_write_frame_tp(t, symba_tpA, ntp, out_stat)
+     interface
+          subroutine python_io_write_frame_tp(t, symba_tpa, ntp, out_stat)
                use swiftest_globals
                use swiftest_data_structures
                use helio
                use symba
-               IMPLICIT NONE
+               implicit none
                real(DP), intent(in)      :: t
-               type(symba_tp),intent(in) :: symba_tpA
+               type(symba_tp),intent(in) :: symba_tpa
                integer, intent(in)       :: ntp
                character(*), intent(in)  :: out_stat
-          END SUBROUTINE python_io_write_frame_tp
-     END INTERFACE
+          end subroutine python_io_write_frame_tp
+     end interface
 
 
 
-     INTERFACE
-          SUBROUTINE rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), INTENT(IN)                  :: dt, r2crit
-               REAL(DP), DIMENSION(NDIM), INTENT(IN) :: xr, vr
-               INTEGER(I4B), INTENT(OUT)             :: iflag
-          END SUBROUTINE rmvs_chk_ind
-     END INTERFACE
+     interface
+          subroutine rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
+               use swiftest_globals
+               implicit none
+               real(DP), intent(in)                  :: dt, r2crit
+               real(DP), dimension(ndim), intent(in) :: xr, vr
+               integer(I4B), intent(out)             :: iflag
+          end subroutine rmvs_chk_ind
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-          encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+     interface
+          subroutine symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+          encounter_file, out_type, npl, ntp, symba_pla, symba_tpa, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
           nplmax, ntpmax, fragmax, mres, rres, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
-          USE swiftest_globals
-          USE swiftest_data_structures
-          USE helio
-          USE symba
-          IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-          REAL(DP), INTENT(IN)                             :: t, dt
-          REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
-          REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
-          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
-          REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
-          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
+          use swiftest_globals
+          use symba
+          implicit none
+          integer(I4B), intent(in)                         :: index_enc, nplmax, ntpmax
+          integer(I4B), intent(inout)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
+          real(DP), intent(in)                             :: t, dt
+          real(DP), intent(inout)                          :: eoffset, m1, m2, rad1, rad2
+          real(DP), dimension(3), intent(inout)            :: mres, rres
+          real(DP), dimension(ndim), intent(in)            :: vbs
+          real(DP), dimension(ndim), intent(inout)         :: x1, x2, v1, v2
+          character(*), intent(in)                         :: encounter_file, out_type
+          type(symba_plplenc), intent(inout)               :: plplenc_list
+          type(symba_pltpenc), intent(inout)               :: pltpenc_list
+          type(symba_merger), intent(inout)                :: mergeadd_list, mergesub_list
+          type(symba_pl), intent(inout)                    :: symba_pla
+          type(symba_tp), intent(inout)                    :: symba_tpa
+          integer(I4B), dimension(npl), intent(inout)      :: array_index1_child, array_index2_child
 
-          END SUBROUTINE symba_casedisruption
-     END INTERFACE
+          end subroutine symba_casedisruption
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-          encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+     interface
+          subroutine symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+          encounter_file, out_type, npl, ntp, symba_pla, symba_tpa, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
           nplmax, ntpmax, fragmax, mres, rres, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
-          USE swiftest_globals
-          USE swiftest_data_structures
-          USE helio
-          USE symba
-          IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-          REAL(DP), INTENT(IN)                             :: t, dt
-          REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
-          REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
-          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
-          REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
-          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
+          use swiftest_globals
+          use swiftest_data_structures
+          use helio
+          use symba
+          implicit none
+          integer(I4B), intent(in)                         :: index_enc, nplmax, ntpmax
+          integer(I4B), intent(inout)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
+          real(DP), intent(in)                             :: t, dt
+          real(DP), intent(inout)                          :: eoffset, m1, m2, rad1, rad2
+          real(DP), dimension(3), intent(inout)            :: mres, rres
+          real(DP), dimension(ndim), intent(in)            :: vbs
+          real(DP), dimension(ndim), intent(inout)         :: x1, x2, v1, v2
+          character(*), intent(in)                         :: encounter_file, out_type
+          type(symba_plplenc), intent(inout)               :: plplenc_list
+          type(symba_pltpenc), intent(inout)               :: pltpenc_list
+          type(symba_merger), intent(inout)                :: mergeadd_list, mergesub_list
+          type(symba_pl), intent(inout)                    :: symba_pla
+          type(symba_tp), intent(inout)                    :: symba_tpa
+          integer(I4B), dimension(npl), intent(inout)      :: array_index1_child, array_index2_child
 
-          END SUBROUTINE symba_casehitandrun
-     END INTERFACE
+          end subroutine symba_casehitandrun
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-          encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+     interface
+          subroutine symba_casemerge (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+          encounter_file, out_type, npl, ntp, symba_pla, symba_tpa, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
           array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
-          USE swiftest_globals
-          USE swiftest_data_structures
-          USE helio
-          USE symba
-          IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
-          REAL(DP), INTENT(IN)                             :: t, dt
-          REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
-          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
-          REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
-          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
+          use swiftest_globals
+          use swiftest_data_structures
+          use helio
+          use symba
+          implicit none
+          integer(I4B), intent(in)                         :: index_enc
+          integer(I4B), intent(inout)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc
+          real(DP), intent(in)                             :: t, dt
+          real(DP), intent(inout)                          :: eoffset, m1, m2, rad1, rad2
+          real(DP), dimension(ndim), intent(in)            :: vbs
+          real(DP), dimension(ndim), intent(inout)         :: x1, x2, v1, v2
+          character(*), intent(in)                         :: encounter_file, out_type
+          type(symba_plplenc), intent(inout)               :: plplenc_list
+          type(symba_pltpenc), intent(inout)               :: pltpenc_list
+          type(symba_merger), intent(inout)                :: mergeadd_list, mergesub_list
+          type(symba_pl), intent(inout)                    :: symba_pla
+          type(symba_tp), intent(inout)                    :: symba_tpa
+          integer(I4B), dimension(npl), intent(inout)      :: array_index1_child, array_index2_child
 
-          END SUBROUTINE symba_casemerge
-     END INTERFACE
+          end subroutine symba_casemerge
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-          encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, &
+     interface
+          subroutine symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+          encounter_file, out_type, npl, ntp, symba_pla, symba_tpa, nplplenc, npltpenc, pltpenc_list, plplenc_list, regime, &
           nplmax, ntpmax, fragmax, mres, rres, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
-          USE swiftest_globals
-          USE swiftest_data_structures
-          USE helio
-          USE symba
-          IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-          REAL(DP), INTENT(IN)                             :: t, dt
-          REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
-          REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
-          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
-          REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
-          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          INTEGER(I4B), INTENT(IN)                         :: regime 
-          INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
+          use swiftest_globals
+          use swiftest_data_structures
+          use helio
+          use symba
+          implicit none
+          integer(I4B), intent(in)                         :: index_enc, nplmax, ntpmax
+          integer(I4B), intent(inout)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
+          real(DP), intent(in)                             :: t, dt
+          real(DP), intent(inout)                          :: eoffset, m1, m2, rad1, rad2
+          real(DP), dimension(3), intent(inout)            :: mres, rres
+          real(DP), dimension(ndim), intent(in)            :: vbs
+          real(DP), dimension(ndim), intent(inout)         :: x1, x2, v1, v2
+          character(*), intent(in)                         :: encounter_file, out_type
+          type(symba_plplenc), intent(inout)               :: plplenc_list
+          type(symba_pltpenc), intent(inout)               :: pltpenc_list
+          type(symba_merger), intent(inout)                :: mergeadd_list, mergesub_list
+          type(symba_pl), intent(inout)                    :: symba_pla
+          type(symba_tp), intent(inout)                    :: symba_tpa
+          integer(I4B), intent(in)                         :: regime 
+          integer(I4B), dimension(npl), intent(inout)      :: array_index1_child, array_index2_child
 
-          END SUBROUTINE symba_caseresolve
-     END INTERFACE
+          end subroutine symba_caseresolve
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, &
+     interface
+          subroutine symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
+               eoffset, vbs, encounter_file, out_type, npl, ntp, symba_pla, symba_tpa, nplplenc, npltpenc, pltpenc_list, &
                plplenc_list, nplmax, ntpmax, fragmax, mres, rres, array_index1_child, array_index2_child, m1, m2, rad1, &
                rad2, x1, x2, v1, v2)
-          USE swiftest_globals
-          USE swiftest_data_structures
-          USE helio
-          USE symba
-          IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-          REAL(DP), INTENT(IN)                             :: t, dt
-          REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
-          REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
-          REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
-          REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
-          CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-          TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-          TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
-          TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-          TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-          TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
+          use swiftest_globals
+          use swiftest_data_structures
+          use helio
+          use symba
+          implicit none
+          integer(I4B), intent(in)                         :: index_enc, nplmax, ntpmax
+          integer(I4B), intent(inout)                      :: npl, ntp, nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
+          real(DP), intent(in)                             :: t, dt
+          real(DP), intent(inout)                          :: eoffset, m1, m2, rad1, rad2
+          real(DP), dimension(3), intent(inout)            :: mres, rres
+          real(DP), dimension(ndim), intent(in)            :: vbs
+          real(DP), dimension(ndim), intent(inout)         :: x1, x2, v1, v2
+          character(*), intent(in)                         :: encounter_file, out_type
+          type(symba_plplenc), intent(inout)               :: plplenc_list
+          type(symba_pltpenc), intent(inout)               :: pltpenc_list
+          type(symba_merger), intent(inout)                :: mergeadd_list, mergesub_list
+          type(symba_pl), intent(inout)                    :: symba_pla
+          type(symba_tp), intent(inout)                    :: symba_tpa
+          integer(I4B), dimension(npl), intent(inout)      :: array_index1_child, array_index2_child
 
-          END SUBROUTINE symba_casesupercatastrophic
-     END INTERFACE
+          end subroutine symba_casesupercatastrophic
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(OUT)          :: lencounter, lvdotr
-               INTEGER(I4B), INTENT(IN)           :: irec
-               REAL(DP), INTENT(IN)               :: rhill1, rhill2, dt
-               REAL(DP), DIMENSION(:), INTENT(IN) :: xr, vr
-          END SUBROUTINE symba_chk
-     END INTERFACE
+     interface
+          subroutine symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(out)          :: lencounter, lvdotr
+               integer(I4B), intent(in)           :: irec
+               real(DP), intent(in)               :: rhill1, rhill2, dt
+               real(DP), dimension(:), intent(in) :: xr, vr
+          end subroutine symba_chk
+     end interface
 
-     INTERFACE 
-          SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvdotr, nplplenc)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               TYPE(symba_pl), INTENT(IN)                    :: symba_plA
-               INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
-               INTEGER(I4B), INTENT(IN)           :: num_encounters
-               INTEGER(I4B), DIMENSION(2,num_encounters),INTENT(IN)   :: k_plpl
-               REAL(DP), INTENT(IN)               :: dt
-               INTEGER(I4B), INTENT(INOUT)        :: nplplenc
-          END SUBROUTINE symba_chk_eucl
-     END INTERFACE
+     interface 
+          subroutine symba_chk_eucl(num_encounters, k_plpl, symba_pla, dt, lencounter, lvdotr, nplplenc)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               type(symba_pl), intent(in)                    :: symba_pla
+               integer(I4B), dimension(num_encounters), intent(out) :: lencounter, lvdotr
+               integer(I4B), intent(in)           :: num_encounters
+               integer(I4B), dimension(2,num_encounters),intent(in)   :: k_plpl
+               real(DP), intent(in)               :: dt
+               integer(I4B), intent(inout)        :: nplplenc
+          end subroutine symba_chk_eucl
+     end interface
 
-     INTERFACE 
-          SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr, npltpenc)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               TYPE(symba_pl), INTENT(IN)                    :: symba_plA
-               TYPE(symba_tp), INTENT(IN)                    :: symba_tpA
-               INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
-               INTEGER(I4B), INTENT(IN)           :: num_encounters
-               INTEGER(I4B), DIMENSION(2,num_encounters),INTENT(IN)   :: k_pltp
-               REAL(DP), INTENT(IN)               :: dt
-               INTEGER(I4B), INTENT(INOUT)        :: npltpenc
-          END SUBROUTINE symba_chk_eucl_pltp
-     END INTERFACE
+     interface 
+          subroutine symba_chk_eucl_pltp(num_encounters, k_pltp, symba_pla, symba_tpa, dt, lencounter, lvdotr, npltpenc)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               type(symba_pl), intent(in)                    :: symba_pla
+               type(symba_tp), intent(in)                    :: symba_tpa
+               integer(I4B), dimension(num_encounters), intent(out) :: lencounter, lvdotr
+               integer(I4B), intent(in)           :: num_encounters
+               integer(I4B), dimension(2,num_encounters),intent(in)   :: k_pltp
+               real(DP), intent(in)               :: dt
+               integer(I4B), intent(inout)        :: npltpenc
+          end subroutine symba_chk_eucl_pltp
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                      :: nplplenc
-               INTEGER(I4B), INTENT(INOUT)                   :: npl
-               REAL(DP), INTENT(IN)                          :: t
-               TYPE(symba_pl)                                :: symba_plA
-               TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
-          END SUBROUTINE symba_discard_merge_pl
-     END INTERFACE
+     interface
+          subroutine symba_discard_merge_pl(t, npl, symba_pla, nplplenc, plplenc_list)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               integer(I4B), intent(in)                      :: nplplenc
+               integer(I4B), intent(inout)                   :: npl
+               real(DP), intent(in)                          :: t
+               type(symba_pl)                                :: symba_pla
+               type(symba_plplenc), intent(in)               :: plplenc_list
+          end subroutine symba_discard_merge_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(INOUT) :: ldiscards
-               INTEGER(I4B), INTENT(IN)    :: npl
-               REAL(DP), INTENT(IN)        :: t, msys, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(symba_pl), INTENT(INOUT)     :: symba_plA
-          END SUBROUTINE symba_discard_peri_pl
-     END INTERFACE
+     interface
+          subroutine symba_discard_peri_pl(t, npl, symba_pla, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(inout) :: ldiscards
+               integer(I4B), intent(in)    :: npl
+               real(DP), intent(in)        :: t, msys, qmin, qmin_alo, qmin_ahi
+               character(*), intent(in)    :: qmin_coord
+               type(symba_pl), intent(inout)     :: symba_pla
+          end subroutine symba_discard_peri_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord,          &
+     interface
+          subroutine symba_discard_pl(t, npl, nplmax, nsp, symba_pla, rmin, rmax, rmaxu, qmin, qmin_coord,          &
                qmin_alo, qmin_ahi, j2rp2, j4rp4, eoffset)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)    :: nplmax
-               INTEGER(I4B), INTENT(INOUT) :: npl, nsp
-               REAL(DP), INTENT(IN)        :: t, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, j2rp2, j4rp4
-               REAL(DP), INTENT(INOUT)     :: eoffset
-               CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(symba_pl), INTENT(INOUT)     :: symba_plA
-          END SUBROUTINE symba_discard_pl
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               integer(I4B), intent(in)    :: nplmax
+               integer(I4B), intent(inout) :: npl, nsp
+               real(DP), intent(in)        :: t, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, j2rp2, j4rp4
+               real(DP), intent(inout)     :: eoffset
+               character(*), intent(in)    :: qmin_coord
+               type(symba_pl), intent(inout)     :: symba_pla
+          end subroutine symba_discard_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, ldiscards)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(INOUT) :: ldiscards
-               INTEGER(I4B), INTENT(IN)    :: npl
-               REAL(DP), INTENT(IN)        :: t, msys, rmin, rmax, rmaxu
-               TYPE(swiftest_pl), INTENT(INOUT)   :: swiftest_plA
-          END SUBROUTINE symba_discard_sun_pl
-     END INTERFACE
+     interface
+          subroutine symba_discard_sun_pl(t, npl, msys, swiftest_pla, rmin, rmax, rmaxu, ldiscards)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               logical(lgt), intent(inout) :: ldiscards
+               integer(I4B), intent(in)    :: npl
+               real(DP), intent(in)        :: t, msys, rmin, rmax, rmaxu
+               type(swiftest_pl), intent(inout)   :: swiftest_pla
+          end subroutine symba_discard_sun_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, dt, &
+     interface
+          subroutine symba_discard_tp(t, npl, ntp, nsp, symba_pla, symba_tpa, dt, &
                rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, lclose, lrhill_present)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)    :: lclose, lrhill_present
-               INTEGER(I4B), INTENT(IN)    :: npl
-               INTEGER(I4B), INTENT(INOUT) :: ntp, nsp
-               REAL(DP), INTENT(IN)        :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
-               CHARACTER(*), INTENT(IN)    :: qmin_coord
-               TYPE(symba_pl), INTENT(INOUT)     :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)     :: symba_tpA
-          END SUBROUTINE symba_discard_tp
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)    :: lclose, lrhill_present
+               integer(I4B), intent(in)    :: npl
+               integer(I4B), intent(inout) :: ntp, nsp
+               real(DP), intent(in)        :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+               character(*), intent(in)    :: qmin_coord
+               type(symba_pl), intent(inout)     :: symba_pla
+               type(symba_tp), intent(inout)     :: symba_tpa
+          end subroutine symba_discard_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)               :: npl, nplmax
-               REAL(DP), INTENT(IN)                   :: j2rp2, j4rp4
-               REAL(DP), INTENT(OUT)                  :: ke, pe, te
-               REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: htot
-               TYPE(swiftest_pl), INTENT(INOUT)             :: swiftest_plA
-          END SUBROUTINE symba_energy
-     END INTERFACE
+     interface
+          subroutine symba_energy(npl, nplmax, swiftest_pla, j2rp2, j4rp4, ke, pe, te, htot)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)               :: npl, nplmax
+               real(DP), intent(in)                   :: j2rp2, j4rp4
+               real(DP), intent(out)                  :: ke, pe, te
+               real(DP), dimension(ndim), intent(out) :: htot
+               type(swiftest_pl), intent(inout)             :: swiftest_pla
+          end subroutine symba_energy
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_fragmentation(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, &
+     interface
+          subroutine symba_fragmentation(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, &
                mergesub_list, eoffset, vbs, encounter_file, out_type, npl, ntp, &
-               symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+               symba_pla, symba_tpa, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
                nplmax, ntpmax, fragmax)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-               INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
-               INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp
-               REAL(DP), INTENT(IN)                             :: t, dt
-               REAL(DP), INTENT(INOUT)                          :: eoffset
-               REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
-               CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-               TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-               TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
-               TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-               TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          END SUBROUTINE symba_fragmentation
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               integer(I4B), intent(in)                         :: index_enc, nplmax, ntpmax
+               integer(I4B), intent(inout)                      :: nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
+               integer(I4B), intent(inout)                      :: npl, ntp
+               real(DP), intent(in)                             :: t, dt
+               real(DP), intent(inout)                          :: eoffset
+               real(DP), dimension(ndim), intent(in)            :: vbs
+               character(*), intent(in)                         :: encounter_file, out_type
+               type(symba_plplenc), intent(inout)               :: plplenc_list
+               type(symba_pltpenc), intent(inout)               :: pltpenc_list
+               type(symba_merger), intent(inout)                :: mergeadd_list, mergesub_list
+               type(symba_pl), intent(inout)                    :: symba_pla
+               type(symba_tp), intent(inout)                    :: symba_tpa
+          end subroutine symba_fragmentation
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+     interface
+          subroutine symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pla, j2rp2, j4rp4, nplplenc, &
                plplenc_list)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc
-               REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
-               TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
-               TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
-          END SUBROUTINE symba_getacch
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)                      :: lextra_force
+               integer(I4B), intent(in)                      :: npl, nplm, nplmax, nplplenc
+               real(DP), intent(in)                          :: t, j2rp2, j4rp4
+               type(symba_pl), intent(inout)                 :: symba_pla
+               type(symba_plplenc), intent(in)               :: plplenc_list
+          end subroutine symba_getacch
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+     interface
+          subroutine symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_pla, symba_tpa, &
                xh, j2rp2, j4rp4,  &
                npltpenc, pltpenc_list)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, ntp, ntpmax, npltpenc
-               REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)    :: xh
-               TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)                 :: symba_tpA
-               TYPE(symba_pltpenc), INTENT(IN)               :: pltpenc_list
-          END SUBROUTINE symba_getacch_tp
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)                      :: lextra_force
+               integer(I4B), intent(in)                      :: npl, nplm, nplmax, ntp, ntpmax, npltpenc
+               real(DP), intent(in)                          :: t, j2rp2, j4rp4
+               real(DP), dimension(ndim, npl), intent(in)    :: xh
+               type(symba_pl), intent(inout)                 :: symba_pla
+               type(symba_tp), intent(inout)                 :: symba_tpa
+               type(symba_pltpenc), intent(in)               :: pltpenc_list
+          end subroutine symba_getacch_tp
+     end interface
 
 
-     INTERFACE
-          SUBROUTINE symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+     interface
+          subroutine symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_pla, j2rp2, j4rp4, nplplenc, &
                plplenc_list, num_plpl_comparisons, k_plpl)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc, num_plpl_comparisons
-               REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
-               TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
-               TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
-               INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
-          END SUBROUTINE symba_getacch_eucl
-     END INTERFACE
+               use swiftest_globals
+               use symba
+               implicit none
+               logical(lgt), intent(in)                      :: lextra_force
+               integer(I4B), intent(in)                      :: npl, nplm, nplmax, nplplenc, num_plpl_comparisons
+               real(DP), intent(in)                          :: t, j2rp2, j4rp4
+               type(symba_pl), intent(inout)                 :: symba_pla
+               type(symba_plplenc), intent(in)               :: plplenc_list
+               integer(I4B), dimension(num_plpl_comparisons,2),intent(in) :: k_plpl
+          end subroutine symba_getacch_eucl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_getacch_tp_eucl(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+     interface
+          subroutine symba_getacch_tp_eucl(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_pla, symba_tpa, &
                xh, j2rp2, j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, ntp, ntpmax, npltpenc, num_pltp_comparisons
-               REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
-               REAL(DP), DIMENSION(NDIM, npl), INTENT(IN)    :: xh
-               TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)                 :: symba_tpA
-               TYPE(symba_pltpenc), INTENT(IN)               :: pltpenc_list
-               INTEGER(I4B), DIMENSION(num_pltp_comparisons,2), INTENT(IN) :: k_pltp
-          END SUBROUTINE symba_getacch_tp_eucl
-     END INTERFACE
+               use swiftest_globals
+               use symba
+               implicit none
+               logical(lgt), intent(in)                      :: lextra_force
+               integer(I4B), intent(in)                      :: npl, nplm, nplmax, ntp, ntpmax, npltpenc, num_pltp_comparisons
+               real(DP), intent(in)                          :: t, j2rp2, j4rp4
+               real(DP), dimension(ndim, npl), intent(in)    :: xh
+               type(symba_pl), intent(inout)                 :: symba_pla
+               type(symba_tp), intent(inout)                 :: symba_tpa
+               type(symba_pltpenc), intent(in)               :: pltpenc_list
+               integer(I4B), dimension(num_pltp_comparisons,2), intent(in) :: k_pltp
+          end subroutine symba_getacch_tp_eucl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)      :: irec, npl
-               REAL(DP), INTENT(IN)          :: dt
-               TYPE(symba_pl), INTENT(INOUT) :: symba_plA
-          END SUBROUTINE symba_helio_drift
-     END INTERFACE
+     interface
+          subroutine symba_helio_drift(irec, npl, symba_pla, dt)
+               use swiftest_globals
+               use symba
+               implicit none
+               integer(I4B), intent(in)      :: irec, npl
+               real(DP), intent(in)          :: dt
+               type(symba_pl), intent(inout) :: symba_pla
+          end subroutine symba_helio_drift
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)      :: irec, ntp
-               REAL(DP), INTENT(IN)          :: mu, dt
-               TYPE(symba_tp), INTENT(INOUT) :: symba_tpA
-          END SUBROUTINE symba_helio_drift_tp
-     END INTERFACE
+     interface
+          subroutine symba_helio_drift_tp(irec, ntp, symba_tpa, mu, dt)
+               use swiftest_globals
+               use symba
+               implicit none
+               integer(I4B), intent(in)      :: irec, ntp
+               real(DP), intent(in)          :: mu, dt
+               type(symba_tp), intent(inout) :: symba_tpa
+          end subroutine symba_helio_drift_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)       :: lflag, lextra_force
-               INTEGER(I4B), INTENT(IN)       :: npl, nplm, nplmax
-               REAL(DP), INTENT(IN)           :: t, j2rp2, j4rp4
-               TYPE(helio_pl), INTENT(INOUT)  :: helio_plA
-          END SUBROUTINE symba_helio_getacch
-     END INTERFACE
+     interface
+          subroutine symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_pla, j2rp2, j4rp4)
+               use swiftest_globals
+               use helio
+               implicit none
+               logical(lgt), intent(in)       :: lflag, lextra_force
+               integer(I4B), intent(in)       :: npl, nplm, nplmax
+               real(DP), intent(in)           :: t, j2rp2, j4rp4
+               type(helio_pl), intent(inout)  :: helio_pla
+          end subroutine symba_helio_getacch
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_helio_getacch_int(npl, nplm, helio_plA)
-               USE swiftest_globals
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)      :: npl, nplm
-               TYPE(helio_pl), INTENT(INOUT) :: helio_plA
-          END SUBROUTINE symba_helio_getacch_int
-     END INTERFACE
+     interface
+          subroutine symba_helio_getacch_int(npl, nplm, helio_pla)
+               use swiftest_globals
+               use helio
+               implicit none
+               integer(I4B), intent(in)      :: npl, nplm
+               type(helio_pl), intent(inout) :: helio_pla
+          end subroutine symba_helio_getacch_int
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn, symba_plA, &
-               symba_tpA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)        :: irec, nplplenc, npltpenc
-               REAL(DP), INTENT(IN)            :: dt, sgn
-               TYPE(symba_plplenc), INTENT(IN) :: plplenc_list
-               TYPE(symba_pltpenc), INTENT(IN) :: pltpenc_list
-               TYPE(symba_pl), INTENT(INOUT)   :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)   :: symba_tpA
-          END SUBROUTINE symba_kick
-     END INTERFACE
+     interface
+          subroutine symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn, symba_pla, &
+               symba_tpa)
+               use swiftest_globals
+               use symba
+               implicit none
+               integer(I4B), intent(in)        :: irec, nplplenc, npltpenc
+               real(DP), intent(in)            :: dt, sgn
+               type(symba_plplenc), intent(in) :: plplenc_list
+               type(symba_pltpenc), intent(in) :: pltpenc_list
+               type(symba_pl), intent(inout)   :: symba_pla
+               type(symba_tp), intent(inout)   :: symba_tpa
+          end subroutine symba_kick
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, &
-               mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, &
-               symba_tpA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
-               INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, npl
-               REAL(DP), INTENT(IN)                             :: t, dt
-               REAL(DP), INTENT(INOUT)                          :: eoffset
-               REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
-               CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-               TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-               TYPE(symba_merger),  INTENT(INOUT)               :: mergeadd_list, mergesub_list
-               TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          END SUBROUTINE symba_merge_pl
-     END INTERFACE
+     interface
+          subroutine symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, &
+               mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_pla, &
+               symba_tpa)
+               use swiftest_globals
+               use symba
+               implicit none
+               integer(I4B), intent(in)                         :: index_enc, nplplenc
+               integer(I4B), intent(inout)                      :: nmergeadd, nmergesub, npl
+               real(DP), intent(in)                             :: t, dt
+               real(DP), intent(inout)                          :: eoffset
+               real(DP), dimension(ndim), intent(in)            :: vbs
+               character(*), intent(in)                         :: encounter_file, out_type
+               type(symba_plplenc), intent(inout)               :: plplenc_list
+               type(symba_merger),  intent(inout)               :: mergeadd_list, mergesub_list
+               type(symba_pl), intent(inout)                    :: symba_pla
+               type(symba_tp), intent(inout)                    :: symba_tpa
+          end subroutine symba_merge_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)
-               USE swiftest_globals
-               USE module_swifter
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)               :: index_enc, npltpenc
-               REAL(DP), INTENT(IN)                   :: t, dt
-               REAL(DP), DIMENSION(NDIM), INTENT(IN)  :: vbs
-               CHARACTER(*), INTENT(IN)               :: encounter_file, out_type
-               TYPE(symba_pltpenc), INTENT(INOUT)     :: pltpenc_list
-               TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-          END SUBROUTINE symba_merge_tp
-     END INTERFACE
+     interface
+          subroutine symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_pla, symba_tpa)
+               use swiftest_globals
+               use module_swifter
+               use helio
+               use symba
+               implicit none
+               integer(I4B), intent(in)               :: index_enc, npltpenc
+               real(DP), intent(in)                   :: t, dt
+               real(DP), dimension(ndim), intent(in)  :: vbs
+               character(*), intent(in)               :: encounter_file, out_type
+               type(symba_pltpenc), intent(inout)     :: pltpenc_list
+               type(symba_pl), intent(inout)                    :: symba_pla
+               type(symba_tp), intent(inout)                    :: symba_tpa
+          end subroutine symba_merge_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)       :: lfirst
-               INTEGER(I4B), INTENT(IN)       :: npl
-               REAL(DP), INTENT(IN)           :: msys
-               CHARACTER(*), INTENT(IN)       :: qmin_coord
-               TYPE(symba_pl), INTENT(INOUT)  :: symba_plA
-          END SUBROUTINE symba_peri
-     END INTERFACE
+     interface
+          subroutine symba_peri(lfirst, npl, symba_pla, msys, qmin_coord)
+               use swiftest_globals
+               use symba
+               implicit none
+               logical(lgt), intent(in)       :: lfirst
+               integer(I4B), intent(in)       :: npl
+               real(DP), intent(in)           :: msys
+               character(*), intent(in)       :: qmin_coord
+               type(symba_pl), intent(inout)  :: symba_pla
+          end subroutine symba_peri
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, &
-               mergeadd_list, discard_plA, discard_tpA, NPLMAX, j2rp2, j4rp4)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(INOUT)                      :: npl, ntp, nsppl, nsptp, nmergeadd, NPLMAX !change to fragadd
-               REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4
-               TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-               TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
-               TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
-               TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
+     interface
+          subroutine symba_rearray(t, npl, ntp, nsppl, nsptp, symba_pla, symba_tpa, nmergeadd, &
+               mergeadd_list, discard_pla, discard_tpa, nplmax, j2rp2, j4rp4)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               integer(I4B), intent(inout)                      :: npl, ntp, nsppl, nsptp, nmergeadd, nplmax !change to fragadd
+               real(DP), intent(in)                             :: t, j2rp2, j4rp4
+               type(symba_pl), intent(inout)                    :: symba_pla
+               type(symba_tp), intent(inout)                    :: symba_tpa
+               type(swiftest_tp), intent(inout)                 :: discard_tpa
+               type(swiftest_pl), intent(inout)                 :: discard_pla
+               type(symba_merger), intent(inout)                :: mergeadd_list !change to fragadd_list
 
-          END SUBROUTINE symba_rearray
-     END INTERFACE  
+          end subroutine symba_rearray
+     end interface  
 
-     INTERFACE
-          SUBROUTINE symba_reorder_pl(npl, symba_plA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: npl
-               TYPE(symba_pl), INTENT(INOUT)  :: symba_plA
-               INTEGER(I4B)                              :: i
-               INTEGER(I4B), DIMENSION(:), ALLOCATABLE   :: index
-               REAL(DP), DIMENSION(:), ALLOCATABLE       :: mass
-               REAL(DP), DIMENSION(:,:), allocatable     :: symba_plwkspA
-               INTEGER(I4B), DIMENSION(:,:), allocatable :: symba_plwkspA_id_status
-          END SUBROUTINE symba_reorder_pl
-     END INTERFACE
+     interface
+          subroutine symba_reorder_pl(npl, symba_pla)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               integer(I4B), intent(in) :: npl
+               type(symba_pl), intent(inout)  :: symba_pla
+               integer(I4B)                              :: i
+               integer(I4B), dimension(:), allocatable   :: index
+               real(DP), dimension(:), allocatable       :: mass
+               real(DP), dimension(:,:), allocatable     :: symba_plwkspa
+               integer(I4B), dimension(:,:), allocatable :: symba_plwkspa_id_status
+          end subroutine symba_reorder_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1P, symba_tp1P, swiftest_pl1P, &
-               swiftest_tp1P)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                            :: npl, ntp
-               TYPE(swiftest_pl), POINTER                           :: swiftest_pl1P
-               TYPE(swiftest_tp), POINTER                           :: swiftest_tp1P
-               TYPE(symba_pl), INTENT(INOUT) :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT) :: symba_tpA
-               TYPE(symba_pl), POINTER                             :: symba_pl1P
-               TYPE(symba_tp), POINTER                             :: symba_tp1P
-          END SUBROUTINE symba_setup
-     END INTERFACE
+     interface
+          subroutine symba_setup(npl, ntp, symba_pla, symba_tpa, symba_pl1p, symba_tp1p, swiftest_pl1p, &
+               swiftest_tp1p)
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               integer(I4B), intent(in)                            :: npl, ntp
+               type(swiftest_pl), pointer                           :: swiftest_pl1p
+               type(swiftest_tp), pointer                           :: swiftest_tp1p
+               type(symba_pl), intent(inout) :: symba_pla
+               type(symba_tp), intent(inout) :: symba_tpa
+               type(symba_pl), pointer                             :: symba_pl1p
+               type(symba_tp), pointer                             :: symba_tp1p
+          end subroutine symba_setup
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,&
+     interface
+          subroutine symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pla, symba_tpa, j2rp2, j4rp4,&
                dt,nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,&
                mtiny,encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
-               LOGICAL(LGT), INTENT(INOUT)        :: lfirst
-               INTEGER(I4B), INTENT(IN)           :: npl, nplmax, ntp, ntpmax
-               INTEGER(I4B), INTENT(INOUT)        :: nplplenc, npltpenc, nmergeadd, nmergesub
-               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
-               REAL(DP), INTENT(INOUT)            :: eoffset
-               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
-               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
-               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
-               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
-               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               INTEGER(I4B), INTENT(IN)           :: num_plpl_comparisons, num_pltp_comparisons
-               INTEGER(I4B), DIMENSION(2,num_plpl_comparisons),INTENT(IN) :: k_plpl
-               INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
-          END SUBROUTINE symba_step_eucl
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)           :: lextra_force, lclose
+               logical(lgt), intent(inout)        :: lfirst
+               integer(I4B), intent(in)           :: npl, nplmax, ntp, ntpmax
+               integer(I4B), intent(inout)        :: nplplenc, npltpenc, nmergeadd, nmergesub
+               real(DP), intent(in)               :: t, j2rp2, j4rp4, dt, mtiny
+               real(DP), intent(inout)            :: eoffset
+               character(*), intent(in)           :: encounter_file, out_type
+               type(symba_pl), intent(inout)      :: symba_pla
+               type(symba_tp), intent(inout)      :: symba_tpa
+               type(symba_plplenc), intent(inout) :: plplenc_list
+               type(symba_pltpenc), intent(inout) :: pltpenc_list
+               type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+               integer(I4B), intent(in)           :: num_plpl_comparisons, num_pltp_comparisons
+               integer(I4B), dimension(2,num_plpl_comparisons),intent(in) :: k_plpl
+               integer(I4B), dimension(2,num_pltp_comparisons),intent(in) :: k_pltp
+          end subroutine symba_step_eucl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
-               symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
+     interface
+          subroutine symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pla, &
+               symba_tpa, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
                nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
                fragmax)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
-               LOGICAL(LGT), INTENT(INOUT)        :: lfirst
-               INTEGER(I4B), INTENT(IN)           :: npl, nplmax, ntp, ntpmax
-               INTEGER(I4B), INTENT(INOUT)        :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
-               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
-               REAL(DP), INTENT(INOUT)            :: eoffset
-               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
-               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
-               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
-               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
-               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-          END SUBROUTINE symba_step
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)           :: lextra_force, lclose
+               logical(lgt), intent(inout)        :: lfirst
+               integer(I4B), intent(in)           :: npl, nplmax, ntp, ntpmax
+               integer(I4B), intent(inout)        :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
+               real(DP), intent(in)               :: t, j2rp2, j4rp4, dt, mtiny
+               real(DP), intent(inout)            :: eoffset
+               character(*), intent(in)           :: encounter_file, out_type
+               type(symba_pl), intent(inout)      :: symba_pla
+               type(symba_tp), intent(inout)      :: symba_tpa
+               type(symba_plplenc), intent(inout) :: plplenc_list
+               type(symba_pltpenc), intent(inout) :: pltpenc_list
+               type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+          end subroutine symba_step
+     end interface
 
-! FOR TESTING PURPOSES ONLY _ USE WITH SYMBA_STEP_TEST
-     INTERFACE
-          SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2,     &
+! for testing purposes only _ use with symba_step_test
+     interface
+          subroutine symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_pla, helio_tpa, j2rp2,     &
                j4rp4, dt)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)      :: lextra_force
-               LOGICAL(LGT), INTENT(INOUT)   :: lfirst
-               INTEGER(I4B), INTENT(IN)      :: npl, nplm, nplmax, ntp, ntpmax
-               REAL(DP), INTENT(IN)          :: t, j2rp2, j4rp4, dt
-               TYPE(helio_pl), INTENT(INOUT) :: helio_plA
-               TYPE(helio_tp), INTENT(INOUT) :: helio_tpA
-          END SUBROUTINE symba_step_helio
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)      :: lextra_force
+               logical(lgt), intent(inout)   :: lfirst
+               integer(I4B), intent(in)      :: npl, nplm, nplmax, ntp, ntpmax
+               real(DP), intent(in)          :: t, j2rp2, j4rp4, dt
+               type(helio_pl), intent(inout) :: helio_pla
+               type(helio_tp), intent(inout) :: helio_tpa
+          end subroutine symba_step_helio
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend,    &
+     interface
+          subroutine symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_pla, j2rp2, j4rp4, dt, xbeg, xend,    &
                ptb, pte)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)                     :: lextra_force
-               LOGICAL(LGT), INTENT(INOUT)                  :: lfirst
-               INTEGER(I4B), INTENT(IN)                     :: npl, nplm, nplmax
-               REAL(DP), INTENT(IN)                         :: t, j2rp2, j4rp4, dt
-               REAL(DP), DIMENSION(NDIM, nplm), INTENT(OUT) :: xbeg, xend
-               REAL(DP), DIMENSION(NDIM), INTENT(OUT)       :: ptb, pte
-               TYPE(helio_pl), INTENT(INOUT)                :: helio_plA
-          END SUBROUTINE symba_step_helio_pl
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)                     :: lextra_force
+               logical(lgt), intent(inout)                  :: lfirst
+               integer(I4B), intent(in)                     :: npl, nplm, nplmax
+               real(DP), intent(in)                         :: t, j2rp2, j4rp4, dt
+               real(DP), dimension(ndim, nplm), intent(out) :: xbeg, xend
+               real(DP), dimension(ndim), intent(out)       :: ptb, pte
+               type(helio_pl), intent(inout)                :: helio_pla
+          end subroutine symba_step_helio_pl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,&
+     interface
+          subroutine symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_pla, symba_tpa, j2rp2,&
                j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
                mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
-               INTEGER(I4B), INTENT(IN)           :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc, num_pltp_comparisons
-               INTEGER(I4B), INTENT(INOUT)        :: nmergeadd, nmergesub
-               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
-               REAL(DP), INTENT(INOUT)            :: eoffset
-               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
-               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
-               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
-               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
-               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-               INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
-               INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
-               INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
-          END SUBROUTINE symba_step_interp_eucl
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)           :: lextra_force, lclose
+               integer(I4B), intent(in)           :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc, num_pltp_comparisons
+               integer(I4B), intent(inout)        :: nmergeadd, nmergesub
+               real(DP), intent(in)               :: t, j2rp2, j4rp4, dt, mtiny
+               real(DP), intent(inout)            :: eoffset
+               character(*), intent(in)           :: encounter_file, out_type
+               type(symba_pl), intent(inout)      :: symba_pla
+               type(symba_tp), intent(inout)      :: symba_tpa
+               type(symba_plplenc), intent(inout) :: plplenc_list
+               type(symba_pltpenc), intent(inout) :: pltpenc_list
+               type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+               integer(I4B), intent(in)                         :: num_plpl_comparisons
+               integer(I4B), dimension(num_plpl_comparisons,2),intent(in) :: k_plpl
+               integer(I4B), dimension(2,num_pltp_comparisons),intent(in) :: k_pltp
+          end subroutine symba_step_interp_eucl
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,    &
+     interface
+          subroutine symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_pla, symba_tpa, j2rp2,    &
                j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,    &
                mergesub_list, encounter_file, out_type, fragmax)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
-               INTEGER(I4B), INTENT(IN)           :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc
-               INTEGER(I4B), INTENT(INOUT)        :: nmergeadd, nmergesub, fragmax
-               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
-               REAL(DP), INTENT(INOUT)            :: eoffset
-               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
-               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
-               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
-               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
-               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-          END SUBROUTINE symba_step_interp
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)           :: lextra_force, lclose
+               integer(I4B), intent(in)           :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc
+               integer(I4B), intent(inout)        :: nmergeadd, nmergesub, fragmax
+               real(DP), intent(in)               :: t, j2rp2, j4rp4, dt, mtiny
+               real(DP), intent(inout)            :: eoffset
+               character(*), intent(in)           :: encounter_file, out_type
+               type(symba_pl), intent(inout)      :: symba_pla
+               type(symba_tp), intent(inout)      :: symba_tpa
+               type(symba_plplenc), intent(inout) :: plplenc_list
+               type(symba_pltpenc), intent(inout) :: pltpenc_list
+               type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+          end subroutine symba_step_interp
+     end interface
 
 
-     INTERFACE
-          RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
+     interface
+          recursive subroutine symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pla, symba_tpa, dt0, eoffset, nplplenc, &
                npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, & 
                out_type, nplmax, ntpmax, fragmax)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE helio
-               USE symba
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)           :: lclose
-               INTEGER(I4B), INTENT(IN)           :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
-               INTEGER(I4B), INTENT(INOUT)        :: nmergeadd, nmergesub
-               REAL(DP), INTENT(IN)               :: t, dt0
-               REAL(DP), INTENT(INOUT)            :: eoffset
-               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
-               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
-               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
-               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
-               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
-               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
-          END SUBROUTINE symba_step_recur
-     END INTERFACE
+               use swiftest_globals
+               use swiftest_data_structures
+               use helio
+               use symba
+               implicit none
+               logical(lgt), intent(in)           :: lclose
+               integer(I4B), intent(in)           :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
+               integer(I4B), intent(inout)        :: nmergeadd, nmergesub
+               real(DP), intent(in)               :: t, dt0
+               real(DP), intent(inout)            :: eoffset
+               character(*), intent(in)           :: encounter_file, out_type
+               type(symba_pl), intent(inout)      :: symba_pla
+               type(symba_tp), intent(inout)      :: symba_tpa
+               type(symba_plplenc), intent(inout) :: plplenc_list
+               type(symba_pltpenc), intent(inout) :: pltpenc_list
+               type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+          end subroutine symba_step_recur
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_user_getacch(t, npl, symba_plA)
-               USE swiftest_globals
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)     :: npl
-               REAL(DP), INTENT(IN)         :: t
-               TYPE(symba_pl), INTENT(INOUT):: symba_plA
-          END SUBROUTINE symba_user_getacch
-     END INTERFACE
+     interface
+          subroutine symba_user_getacch(t, npl, symba_pla)
+               use swiftest_globals
+               use symba
+               implicit none
+               integer(I4B), intent(in)     :: npl
+               real(DP), intent(in)         :: t
+               type(symba_pl), intent(inout):: symba_pla
+          end subroutine symba_user_getacch
+     end interface
 
-     INTERFACE
-          SUBROUTINE symba_user_getacch_tp(t, ntp, symba_tpA)
-               USE swiftest_globals
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)       :: ntp
-               REAL(DP), INTENT(IN)           :: t
-               TYPE(symba_tp), INTENT(INOUT)  :: symba_tpA
-          END SUBROUTINE symba_user_getacch_tp
-     END INTERFACE
+     interface
+          subroutine symba_user_getacch_tp(t, ntp, symba_tpa)
+               use swiftest_globals
+               use symba
+               implicit none
+               integer(I4B), intent(in)       :: ntp
+               real(DP), intent(in)           :: t
+               type(symba_tp), intent(inout)  :: symba_tpa
+          end subroutine symba_user_getacch_tp
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_exit(code)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: code
-          END SUBROUTINE util_exit
-     END INTERFACE
+     interface
+          subroutine util_exit(code)
+               use swiftest_globals
+               implicit none
+               integer(I4B), intent(in) :: code
+          end subroutine util_exit
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_dist_index_plpl(npl, nplm, num_comparisons, k_plpl)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: npl, nplm
-               INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_plpl
-               INTEGER(I4B), INTENT(OUT) :: num_comparisons
-          END SUBROUTINE
-     END INTERFACE
+     interface
+          subroutine util_dist_index_plpl(npl, nplm, num_comparisons, k_plpl)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)  :: npl, nplm
+               integer(I4B), dimension(:,:),allocatable,intent(out) :: k_plpl
+               integer(I4B), intent(out) :: num_comparisons
+          end subroutine
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: nplm, ntp
-               INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_pltp
-               INTEGER(I4B), INTENT(OUT) :: num_comparisons
-          END SUBROUTINE util_dist_index_pltp
-     END INTERFACE
+     interface
+          subroutine util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)  :: nplm, ntp
+               integer(I4B), dimension(:,:),allocatable,intent(out) :: k_pltp
+               integer(I4B), intent(out) :: num_comparisons
+          end subroutine util_dist_index_pltp
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)  :: npl
-               INTEGER(I4B), DIMENSION(2,num_comparisons),INTENT(IN) :: k_plpl
-               INTEGER(I4B), INTENT(IN) :: num_comparisons
-               REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
-               REAL(DP), DIMENSION(NDIM,num_comparisons),INTENT(INOUT) :: outvar
-          END SUBROUTINE util_dist_eucl_plpl
-     END INTERFACE
+     interface
+          subroutine util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
+               use swiftest_globals
+               use swiftest_data_structures
+               use symba
+               implicit none
+               integer(I4B), intent(in)  :: npl
+               integer(I4B), dimension(2,num_comparisons),intent(in) :: k_plpl
+               integer(I4B), intent(in) :: num_comparisons
+               real(DP),dimension(ndim,npl),intent(in) :: invar
+               real(DP), dimension(ndim,num_comparisons),intent(inout) :: outvar
+          end subroutine util_dist_eucl_plpl
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, num_pltp_comparisons, k_pltp, outvar)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               USE symba
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN) :: npl, ntp
-               INTEGER(I4B), DIMENSION(num_pltp_comparisons,2),INTENT(IN) :: k_pltp
-               INTEGER(I4B), INTENT(IN) :: num_pltp_comparisons
-               REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: planets
-               REAL(DP),DIMENSION(NDIM,ntp),INTENT(IN) :: test_particles
-               REAL(DP), DIMENSION(NDIM,num_pltp_comparisons),INTENT(INOUT) :: outvar
-          END SUBROUTINE
-     END INTERFACE
+     interface
+          subroutine util_dist_eucl_pltp(npl, ntp, planets, test_particles, num_pltp_comparisons, k_pltp, outvar)
+               use swiftest_globals
+               use swiftest_data_structures
+               use symba
+               implicit none
+               integer(I4B), intent(in) :: npl, ntp
+               integer(I4B), dimension(num_pltp_comparisons,2),intent(in) :: k_pltp
+               integer(I4B), intent(in) :: num_pltp_comparisons
+               real(DP),dimension(ndim,npl),intent(in) :: planets
+               real(DP),dimension(ndim,ntp),intent(in) :: test_particles
+               real(DP), dimension(ndim,num_pltp_comparisons),intent(inout) :: outvar
+          end subroutine
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_hills(npl, swiftest_plA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)         :: npl
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-          END SUBROUTINE util_hills
-     END INTERFACE
+     interface
+          subroutine util_hills(npl, swiftest_pla)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)         :: npl
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+          end subroutine util_hills
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_index(arr, index)
-               USE swiftest_globals
-               USE module_nrutil
-               IMPLICIT NONE
-               INTEGER(I4B), DIMENSION(:), INTENT(OUT) :: index
-               REAL(DP), DIMENSION(:), INTENT(IN)      :: arr
-          END SUBROUTINE util_index
-     END INTERFACE
+     interface
+          subroutine util_index(arr, index)
+               use swiftest_globals
+               use module_nrutil
+               implicit none
+               integer(I4B), dimension(:), intent(out) :: index
+               real(DP), dimension(:), intent(in)      :: arr
+          end subroutine util_index
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_peri(lfirst, ntp, swiftest_tpA, mu, msys, qmin_coord)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               LOGICAL(LGT), INTENT(IN)         :: lfirst
-               INTEGER(I4B), INTENT(IN)         :: ntp
-               REAL(DP), INTENT(IN)             :: mu, msys
-               CHARACTER(*), INTENT(IN)         :: qmin_coord
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-          END SUBROUTINE util_peri
-     END INTERFACE
+     interface
+          subroutine util_peri(lfirst, ntp, swiftest_tpa, mu, msys, qmin_coord)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               logical(lgt), intent(in)         :: lfirst
+               integer(I4B), intent(in)         :: ntp
+               real(DP), intent(in)             :: mu, msys
+               character(*), intent(in)         :: qmin_coord
+               type(swiftest_tp), intent(inout) :: swiftest_tpa
+          end subroutine util_peri
+     end interface
 
-     INTERFACE 
-          SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
-               USE swiftest_globals
-               USE symba
-               USE swiftest_data_structures
-               USE helio
-               USE module_nrutil
-               IMPLICIT NONE
-               TYPE(symba_pl), INTENT(INOUT) :: symba_plA
-               INTEGER(I4B), INTENT(IN)      :: npl_old, npl_new
-          END SUBROUTINE util_resize_pl
-     END INTERFACE
+     interface 
+          subroutine util_resize_pl(symba_pla, npl_new, npl_old)
+               use swiftest_globals
+               use symba
+               use swiftest_data_structures
+               use helio
+               use module_nrutil
+               implicit none
+               type(symba_pl), intent(inout) :: symba_pla
+               integer(I4B), intent(in)      :: npl_old, npl_new
+          end subroutine util_resize_pl
+     end interface
 
-     INTERFACE util_sort
-          SUBROUTINE util_sort_i4b(arr)
-               USE swiftest_globals
-               IMPLICIT NONE
-               INTEGER(I4B), DIMENSION(:), INTENT(INOUT) :: arr
-          END SUBROUTINE util_sort_i4b
-          SUBROUTINE util_sort_sp(arr)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(SP), DIMENSION(:), INTENT(INOUT) :: arr
-          END SUBROUTINE util_sort_sp
-          SUBROUTINE util_sort_dp(arr)
-               USE swiftest_globals
-               IMPLICIT NONE
-               REAL(DP), DIMENSION(:), INTENT(INOUT) :: arr
-          END SUBROUTINE util_sort_dp
-     END INTERFACE
+     interface util_sort
+          subroutine util_sort_I4B(arr)
+               use swiftest_globals
+               implicit none
+               integer(I4B), dimension(:), intent(inout) :: arr
+          end subroutine util_sort_I4B
+          subroutine util_sort_sp(arr)
+               use swiftest_globals
+               implicit none
+               real(sp), dimension(:), intent(inout) :: arr
+          end subroutine util_sort_sp
+          subroutine util_sort_DP(arr)
+               use swiftest_globals
+               implicit none
+               real(DP), dimension(:), intent(inout) :: arr
+          end subroutine util_sort_DP
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_toupper(string)
-               USE swiftest_globals
-               IMPLICIT NONE
-               CHARACTER(*), INTENT(INOUT) :: string
-          END SUBROUTINE util_toupper
-     END INTERFACE
+     interface
+          subroutine util_toupper(string)
+               use swiftest_globals
+               implicit none
+               character(*), intent(inout) :: string
+          end subroutine util_toupper
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_valid(npl, ntp, swiftest_plA, swiftest_tpA)
-               USE swiftest_globals
-               USE swiftest_data_structures
-               IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)         :: npl, ntp
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
-          END SUBROUTINE util_valid
-     END INTERFACE
+     interface
+          subroutine util_valid(npl, ntp, swiftest_pla, swiftest_tpa)
+               use swiftest_globals
+               use swiftest_data_structures
+               implicit none
+               integer(I4B), intent(in)         :: npl, ntp
+               type(swiftest_pl), intent(inout) :: swiftest_pla
+               type(swiftest_tp), intent(inout) :: swiftest_tpa
+          end subroutine util_valid
+     end interface
 
-     INTERFACE
-          SUBROUTINE util_version
-               USE swiftest_globals
-               IMPLICIT NONE
-          END SUBROUTINE util_version
-     END INTERFACE
+     interface
+          subroutine util_version
+               use swiftest_globals
+               implicit none
+          end subroutine util_version
+     end interface
 
-     ! Added by D. Minton
-     INTERFACE
-         FUNCTION util_kahan_sum(xsum_current, xi, xerror) 
-            USE swiftest_globals
-            IMPLICIT NONE
-            REAL(DP)                :: util_kahan_sum
-            REAL(DP), INTENT(IN)    :: xsum_current, xi
-            REAL(DP), INTENT(INOUT) :: xerror
-         END FUNCTION
-     END INTERFACE
+     interface
+         function util_kahan_sum(xsum_current, xi, xerror) 
+            use swiftest_globals
+            implicit none
+            real(DP)                :: util_kahan_sum
+            real(DP), intent(in)    :: xsum_current, xi
+            real(DP), intent(inout) :: xerror
+         end function
+     end interface
 
-END MODULE module_interfaces
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+end module module_interfaces

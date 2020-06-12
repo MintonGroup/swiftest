@@ -32,9 +32,9 @@
 SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, num_pltp_comparisons, k_pltp, outvar)
 
 ! Modules
-     USE module_parameters
-     USE module_swiftest
-     USE module_symba
+     USE swiftest_globals
+     USE swiftest_data_structures
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => util_dist_eucl_pltp
      IMPLICIT NONE
 

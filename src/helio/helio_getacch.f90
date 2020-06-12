@@ -64,11 +64,11 @@ SUBROUTINE helio_getacch(lflag, lextra_force, t, npl, nplmax, helio_plA, j2rp2, 
                lmalloc = .FALSE.
           END IF
           DO i = 2, npl
-               xh(:, i) = helio_plA%swiftest%xh(:,i)
+               xh(:, i) = helio_plA%xh(:,i)
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_acc(npl, helio_plA%swiftest, j2rp2, j4rp4, xh, irh, aobl)
+          CALL obl_acc(npl, helio_plA, j2rp2, j4rp4, xh, irh, aobl)
           DO i = 2, npl
                helio_plA%ah(:,i) = helio_plA%ahi(:,i) + aobl(:, i) - aobl(:, 1)
           END DO

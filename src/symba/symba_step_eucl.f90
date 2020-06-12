@@ -66,10 +66,10 @@ SUBROUTINE symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, nt
      encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
 
 ! Modules
-     USE module_parameters
-     USE module_swiftest
-     USE module_helio
-     USE module_symba
+     USE swiftest_globals
+     USE swiftest_data_structures
+     USE helio
+     USE symba
      USE module_interfaces, EXCEPT_THIS_ONE => symba_step_eucl
      IMPLICIT NONE
 
