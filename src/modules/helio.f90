@@ -31,125 +31,130 @@ module helio
 
 !> Interfaces for all helio particle methods that are implemented in separate submodules 
 interface
-   subroutine helio_drift(helio_plA, dt)
-      implicit none
-      class(helio_pl), intent(inout) :: helio_plA
-      real(DP), intent(in)             :: dt
-   end subroutine helio_drift
 
-   subroutine helio_drift_tp(helio_tpA, mu, dt)
+   subroutine helio_drift_pl(helio_plA, dt, dummy_mu)
       implicit none
-      class(helio_tp), intent(inout) :: helio_tpA
-      real(DP), intent(in)             :: mu, dt
+      class(helio_pl), intent(inout) :: helio_plA !! Helio massive body particle data structure
+      real(DP), intent(in)           :: dt        !! Stepsize
+      real(DP), optional, intent(in) :: dummy_mu  !! Dummy argument used to make this method to be polymorphic pl and tp classes
+   end subroutine helio_drift_pl
+
+   subroutine helio_drift_tp(helio_tpA, dt, mu)
+      implicit none
+      class(helio_tp), intent(inout) :: helio_tpA  !! Helio test particle data structure
+      real(DP), intent(in)           :: dt         !! Stepsize
+      real(DP), optional, intent(in) :: mu         !! Central mass term. Argument is optional so that this can be a polymorphic method for both pl and tp classes
    end subroutine helio_drift_tp
 
-   subroutine helio_getacch(helio_plA, param, t, lflag)
+   subroutine helio_getacch_pl(helio_plA, dummy_helio_plA, param, t, lflag)
+      use user
       implicit none
-      class(helio_pl), intent(inout)  :: helio_plA
-      type(user_input_parameters),intent(in) :: param   !! Input collection of user-defined parameter
-      real(DP), intent(in)           :: t
-      logical, intent(in)       :: lflag
-   end subroutine helio_getacch
+      class(helio_pl), intent(inout)         :: helio_plA       !! Helio massive body particle data structure. 
+      class(helio_pl), optional, intent(in)  :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
+      type(user_input_parameters),intent(in) :: param           !! Input collection of user-defined parameter
+      real(DP), intent(in)                   :: t               !! Current time. This is passed to the user-defined acceleration function.
+      logical, intent(in)                    :: lflag           !! Logical flag indicating whether to recompute direct cross term accelrations
+   end subroutine helio_getacch_pl
 
-   subroutine helio_getacch_int(helio_plA)
+   subroutine helio_getacch_tp(helio_tpA, helio_plA, param, t, lflag)
+      use user
       implicit none
-      class(helio_pl), intent(inout)  :: helio_plA
-      integer(I4B), intent(in)       :: npl
-   end subroutine helio_getacch_int
-
-   subroutine helio_getacch_int_tp(npl, ntp, helio_plA, helio_tpA, xh)
-      implicit none
-      integer(I4B), intent(in)                   :: npl, ntp
-      real(DP), dimension(NDIM, npl), intent(in) :: xh
-      type(helio_pl), intent(inout)           :: helio_plA
-      type(helio_tp), intent(inout)              :: helio_tpA
-   end subroutine helio_getacch_int_tp
-
-   subroutine helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xh, j2rp2, j4rp4)
-      implicit none
-      logical, intent(in)                   :: lflag, lextra_force
-      integer(I4B), intent(in)                   :: npl, nplmax, ntp, ntpmax
-      real(DP), intent(in)                       :: t, j2rp2, j4rp4
-      real(DP), dimension(NDIM, npl), intent(in) :: xh
-      type(helio_pl), intent(inout)              :: helio_plA
-      type(helio_tp), intent(inout)              :: helio_tpA
+      class(helio_tp), intent(inout)         :: helio_tpA !! Helio test particle data structure
+      class(helio_pl), optional, intent(in)  :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
+      type(user_input_parameters),intent(in) :: param     !! Input collection of user-defined parameter
+      real(DP), intent(in)                   :: t         !! Current time. This is passed to the user-defined acceleration function.
    end subroutine helio_getacch_tp
 
-   subroutine helio_kickvb(npl, helio_plA, dt)
+   subroutine helio_getacch_int_pl(helio_plA, dummy_helio_plA)
       implicit none
-      integer(I4B), intent(in)       :: npl
-      real(DP), intent(in)           :: dt
-      type(helio_pl), intent(inout)  :: helio_plA
-   end subroutine helio_kickvb
+      class(helio_pl), intent(inout)        :: helio_plA       !! Helio massive body particle data structure.
+      class(helio_pl), optional, intent(in) :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
+   end subroutine helio_getacch_int_pl
 
-   subroutine helio_kickvb_tp(ntp, helio_tpA, dt)
+   subroutine helio_getacch_int_tp(helio_tpA, helio_plA)
       implicit none
-      integer(I4B), intent(in)       :: ntp
-      real(DP), intent(in)           :: dt
-      type(helio_tp), intent(inout)  :: helio_tpA
+      class(helio_tp), intent(inout)        :: helio_tpA !! Helio test particle data structure
+      class(helio_pl), optional, intent(in) :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
+   end subroutine helio_getacch_int_tp
+
+   subroutine helio_kickvb_pl(helio_plA, dt)
+      implicit none
+      class(helio_pl), intent(inout) :: helio_plA !! Helio massive body particle data structure.
+      real(DP), intent(in)           :: dt        !! Stepsize
+   end subroutine helio_kickvb_pl
+
+   subroutine helio_kickvb_tp(helio_tpA, dt)
+      implicit none
+      class(helio_tp), intent(inout) :: helio_tpA  !! Helio test particle data structure
+      real(DP), intent(in)           :: dt         !! Stepsize
    end subroutine helio_kickvb_tp
 
-   subroutine helio_lindrift(npl, swiftest_plA, dt, pt)
+   subroutine helio_lindrift_pl(helio_plA, dt, pt)
       implicit none
-      integer(I4B), intent(in)               :: npl
-      real(DP), intent(in)                   :: dt
-      real(DP), dimension(NDIM), intent(out) :: pt
-      type(swiftest_pl), intent(inout)       :: swiftest_plA
-   end subroutine helio_lindrift
+      class(helio_pl), intent(inout)           :: helio_plA !! Helio massive body particle data structur
+      real(DP), intent(in)                     :: dt        !! Stepsize
+      real(DP), dimension(NDIM), intent(inout) :: pt        !! Negative barycentric velocity of the Sun
+   end subroutine helio_lindrift_pl
 
-   subroutine helio_lindrift_tp(ntp, swiftest_tpA, dt, pt)
+   subroutine helio_lindrift_tp(helio_tpA, dt, pt)
       implicit none
-      integer(I4B), intent(in)              :: ntp
-      real(DP), intent(in)                  :: dt
-      real(DP), dimension(NDIM), intent(in) :: pt
-      type(swiftest_tp), intent(inout)      :: swiftest_tpA
+      class(helio_tp), intent(inout)           :: helio_tpA !! Helio test particle data structure
+      real(DP), intent(in)                     :: dt        !! Stepsize
+      real(DP), dimension(NDIM), intent(inout) :: pt        !! Negative barycentric velocity of the Sun
    end subroutine helio_lindrift_tp
 
-   subroutine helio_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt)
+   subroutine helio_step(helio_plA, helio_tpA, param, t, dt, lfirst)
       implicit none
-      logical, intent(in)      :: lextra_force
-      logical, intent(inout)   :: lfirst
-      integer(I4B), intent(in)      :: npl, nplmax, ntp, ntpmax
-      real(DP), intent(in)          :: t, j2rp2, j4rp4, dt
-      type(helio_pl), intent(inout) :: helio_plA
-      type(helio_tp), intent(inout) :: helio_tpA
+      use user
+      type(helio_pl), intent(inout)          :: helio_plA !! Helio massive body particle data structure. 
+      type(helio_tp), intent(inout)          :: helio_tpA !! Helio test particle data structure
+      type(user_input_parameters),intent(in) :: param     !! Input collection of user-defined parameter
+      real(DP), intent(in)                   :: t         !! Current time
+      real(DP), intent(in)                   :: dt        !! Stepsiz
+      logical, intent(inout)                 :: lfirst    !! Logical flag indicating whether current invocation is the first 
+                                                          !!     TODO: Replace lfirst with internal flag with save attribute
    end subroutine helio_step
 
-   subroutine helio_step_pl(lfirst, lextra_force, t, npl, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
+   subroutine helio_step_pl(helio_plA, dummy_helio_plA, param, t, dt, lfirst, xbeg, xend, ptb, pte)
       implicit none
-      logical, intent(in)                    :: lextra_force
-      logical, intent(inout)                 :: lfirst
-      integer(I4B), intent(in)                    :: npl, nplmax
-      real(DP), intent(in)                        :: t, j2rp2, j4rp4, dt
-      real(DP), dimension(NDIM), intent(out)      :: ptb, pte
-      real(DP), dimension(NDIM, npl), intent(out) :: xbeg,xend
-      type(helio_pl), intent(inout)               :: helio_plA
+      class(helio_pl), intent(inout)         :: helio_plA       !! Helio massive body particle data structure.
+      class(helio_pl), optional, intent(in)  :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
+      type(user_input_parameters),intent(in) :: param           !! Input collection of user-defined parameter
+      real(DP), intent(in)                   :: t               !! Current time
+      real(DP), intent(in)                   :: dt              !! Stepsize
+      logical, intent(inout)                 :: lfirst          !! Logical flag indicating whether current invocation is the first 
+                                                                !!     TODO: Replace lfirst with internal flag with save attribute
+      real(DP), dimension(:), intent(in)     :: ptb             !! Negative barycentric velocity of the Sun at beginning of time step
+      real(DP), dimension(:), intent(in)     :: pte             !! Negative barycentric velocity of the Sun at end of time step
+      real(DP), dimension(:, :), intent(in)  :: xbeg            !! Heliocentric planet positions at beginning of time step
+      real(DP), dimension(:, :), intent(in)  :: xend            !! Heliocentric planet positions at end of time step
    end subroutine helio_step_pl
 
-   subroutine helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
+   subroutine helio_step_tp(helio_tpA, helio_plA, param, t, dt, lfirst, xbeg, xend, ptb, pte)
       implicit none
-      logical, intent(in)                   :: lextra_force
-      logical, intent(inout)                :: lfirsttp
-      integer(I4B), intent(in)                   :: npl, nplmax, ntp, ntpmax
-      real(DP), intent(in)                       :: t, j2rp2, j4rp4, dt
-      real(DP), dimension(NDIM), intent(in)      :: ptb, pte
-      real(DP), dimension(NDIM, npl), intent(in) :: xbeg, xend
-      type(helio_pl), intent(inout)              :: helio_plA
-      type(helio_tp), intent(inout)              :: helio_tpA
+      class(helio_tp), intent(inout)         :: helio_tpA !! Helio test particle data structure.
+      class(helio_pl), optional, intent(in)  :: helio_plA !! Helio massive body particle data structure.
+      type(user_input_parameters),intent(in) :: param     !! Input collection of user-defined parameter
+      real(DP), intent(in)                   :: t         !! Current time
+      real(DP), intent(in)                   :: dt        !! Stepsize
+      logical, intent(inout)                 :: lfirst    !! Logical flag indicating whether current invocation is the first 
+                                                          !!     TODO: Replace lfirst with internal flag with save attribute
+      real(DP), dimension(:), intent(in)     :: ptb       !! Negative barycentric velocity of the Sun at beginning of time step
+      real(DP), dimension(:), intent(in)     :: pte       !! Negative barycentric velocity of the Sun at end of time step
+      real(DP), dimension(:, :), intent(in)  :: xbeg      !! Heliocentric planet positions at beginning of time step
+      real(DP), dimension(:, :), intent(in)  :: xend      !! Heliocentric planet positions at end of time step
    end subroutine helio_step_tp
 
-   subroutine helio_user_getacch(t, npl, helio_plA)
+   subroutine helio_user_getacch_pl(helio_plA, t)
       implicit none
-      integer(I4B), intent(in)      :: npl
-      real(DP), intent(in)          :: t
-      type(helio_pl), intent(inout) :: helio_plA
-   end subroutine helio_user_getacch
+      class(helio_pl), intent(inout) :: helio_plA  !! Helio massive body particle data structure
+      real(DP), intent(in)           :: t          !! Current tim
+   end subroutine helio_user_getacch_pl
 
-   subroutine helio_user_getacch_tp(t, ntp, helio_tpA)
+   subroutine helio_user_getacch_tp(helio_tpA, t)
       implicit none
-      integer(I4B), intent(in)      :: ntp
-      real(DP), intent(in)          :: t
-      type(helio_tp), intent(inout) :: helio_tpA
+      class(helio_tp), intent(inout) :: helio_tpA  !! Helio massive body particle data structure
+      real(DP), intent(in)           :: t          !! Current tim
    end subroutine helio_user_getacch_tp
 end interface
 

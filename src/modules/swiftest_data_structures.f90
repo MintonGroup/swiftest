@@ -19,10 +19,6 @@ module swiftest_data_structures
       procedure, public :: alloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
       procedure, public :: set_from_file => swiftest_read_particle_input_file
       final :: swiftest_particle_deallocate  !! A destructor/finalizer that deallocates everything 
-      !procedure, public :: get_nbody => swiftest_get_nbody
-      !procedure, public :: get_name => swiftest_get_name
-      !procedure, public :: get_status => swiftest_get_status
-      !procedure, public :: get_is_allocated => swiftest_get_is_allocated
    end type swiftest_particle
 
    !! Basic Swiftest test particle class
