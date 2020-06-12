@@ -70,7 +70,7 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
 ! Executable code
      
      ! nfrag should be larger than disruption to account for the majority of mass entering fragments instead of lr and slr
-
+     WRITE(*,*) "ENTERING CASESUPERCATASTROPHIC"
      nfrag = 10 
      index1 = plplenc_list%index1(index_enc)
      index2 = plplenc_list%index2(index_enc)
@@ -232,8 +232,8 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
      eoffset = eoffset + eold - enew
 
      ! Update fragmax to account for new fragments
-     fragmax = fragmax + nfrag
-
+     fragmax = fragmax + frags_added
+     WRITE(*,*) "LEAVING CASESUPERCATASTROPHIC"
 
      RETURN 
 END SUBROUTINE symba_casesupercatastrophic
