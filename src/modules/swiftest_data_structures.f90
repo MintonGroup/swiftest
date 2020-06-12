@@ -14,10 +14,12 @@ module swiftest_data_structures
       integer(I4B)                              :: nbody  !! Number of bodies
       integer(I4B), dimension(:),   allocatable :: name   !! External identifier (hash)
       integer(I4B), dimension(:),   allocatable :: status !! Status
+      real(DP),     dimension(:),   allocatable :: mu     !! Vectorized central body mass term used for elemental functions
       logical                                   :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
    contains
       procedure, public :: alloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
       procedure, public :: set_from_file => swiftest_read_particle_input_file
+      procedure, public :: set_mu => swiftest_set_mu !! Method used to construct the vectorized form of the central body mass
       final :: swiftest_particle_deallocate  !! A destructor/finalizer that deallocates everything 
    end type swiftest_particle
 
@@ -52,7 +54,6 @@ module swiftest_data_structures
    !> Only the constructor and destructor method implementations are listed here. All other methods are implemented in the swiftest submodules
    interface
       !! Interfaces for all Swiftest particle methods that are implemented in separate submodules 
-      !! An abstract interface that defines the generic file read method for all Swiftest particle types
       module subroutine swiftest_read_particle_input_file(self,param) 
          use user
          implicit none
@@ -73,6 +74,12 @@ module swiftest_data_structures
          class(swiftest_tp), intent(inout)  :: self  !! Swiftest data structure to store massive body initial conditions
          type(user_input_parameters),intent(in) :: param    !! Input collection of user-defined parameters
       end subroutine swiftest_read_tp_in
+
+      module subroutine swiftest_set_mu(self,mu)
+         implicit none
+         class(swiftest_particle), intent(inout)  :: self !! Swiftest data structure to store massive body initial conditions
+         real(DP),intent(in) :: mu                        !! Input collection of user-defined parameters
+      end subroutine swiftest_set_mu
    end interface
 
    contains
