@@ -84,7 +84,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
    radius1 = symba_plA%helio%swiftest%radius(index1)
    radius2 = symba_plA%helio%swiftest%radius(index2)
 
-   ! Determine which of the two particles in the collision is larger where mass INCLUDeS the mass of all their children
+   ! Determine which of the two particles in the collision is larger where mass INCLUDES the mass of all their children
    IF (m2 > m1) THEN
       index_keep = index2
       index_rm = index1
@@ -171,7 +171,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
    mtot = 0.0_DP ! running total mass of new fragments
    mv = 0.0_DP   ! running sum of m*v of new fragments to be used in COM calculation
-   frags_added = 0 
+   frags_added = 0 ! running total number of new fragments
    msun = symba_plA%helio%swiftest%mass(1)
 
    ! Check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
@@ -192,7 +192,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
          vy_rm = vh_rm(2)
          vz_rm = vh_rm(3)
          d_rm = (3.0_DP * m_rm) / (4.0_DP * PI * (r_rm ** 3.0_DP))
-         ! If we are added the first and largest fragment, it's characteristics should be equal to those of the kept parent
+         ! If we are added the first and largest fragment (lr), it's characteristics should be equal to those of the kept parent
          IF (i == 1) THEN
             nmergeadd = nmergeadd + 1
             mergeadd_list%status(nmergeadd) = HIT_AND_RUN
@@ -262,7 +262,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                   mergeadd_list%mass(nmergeadd) = (m1 + m2) - mtot
                END IF 
 
-               ! Calculate the density of the fragments using the density of the removed particle. 
+               ! Calculate the radius of the fragments using the density of the removed particle. 
                mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * d_rm))  & 
                   ** (1.0_DP / 3.0_DP) 
 
