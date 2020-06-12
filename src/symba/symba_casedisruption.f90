@@ -63,7 +63,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, A, B
    REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
    REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
-   REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
+   REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv, l, k, p
 
 ! Executable code
 
