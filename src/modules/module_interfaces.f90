@@ -1,3 +1,19 @@
+     INTERFACE
+          SUBROUTINE symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,&
+               j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
+               mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
+               USE module_parameters
+     END INTERFACE
+          END SUBROUTINE symba_step_interp_eucl
+               INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
+               INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
+               INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons
+               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
+               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
+               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
+               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
+               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
 !**********************************************************************************************************************************
 !
 !  Unit Name   : module_interfaces
@@ -1413,21 +1429,167 @@ MODULE module_interfaces
      END INTERFACE
 
 END MODULE module_interfaces
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
+               REAL(DP), INTENT(INOUT)            :: eoffset
+               INTEGER(I4B), INTENT(INOUT)        :: nmergeadd, nmergesub
+               INTEGER(I4B), INTENT(IN)           :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc, num_pltp_comparisons
+               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
+               IMPLICIT NONE
+               USE module_symba
+               USE module_helio
+               USE module_swiftest
+     END INTERFACE
+          END SUBROUTINE symba_step_helio
+               TYPE(helio_tp), INTENT(INOUT) :: helio_tpA
+               TYPE(helio_pl), INTENT(INOUT) :: helio_plA
+               REAL(DP), INTENT(IN)          :: t, j2rp2, j4rp4, dt
+               INTEGER(I4B), INTENT(IN)      :: npl, nplm, nplmax, ntp, ntpmax
+               LOGICAL(LGT), INTENT(INOUT)   :: lfirst
+               LOGICAL(LGT), INTENT(IN)      :: lextra_force
+               IMPLICIT NONE
+               USE module_symba
+               USE module_helio
+               USE module_swiftest
+               USE module_parameters
+               j4rp4, dt)
+          SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2,     &
+     INTERFACE
+! FOR TESTING PURPOSES ONLY _ USE WITH SYMBA_STEP_TEST
+     INTERFACE
+          SUBROUTINE symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,&
+               dt,nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,&
+               USE module_parameters
+               mtiny,encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
+               USE module_swiftest
+               USE module_helio
+               USE module_symba
+               IMPLICIT NONE
+               LOGICAL(LGT), INTENT(IN)           :: lextra_force, lclose
+               LOGICAL(LGT), INTENT(INOUT)        :: lfirst
+               INTEGER(I4B), INTENT(IN)           :: npl, nplmax, ntp, ntpmax
+               INTEGER(I4B), INTENT(INOUT)        :: nplplenc, npltpenc, nmergeadd, nmergesub
+               REAL(DP), INTENT(IN)               :: t, j2rp2, j4rp4, dt, mtiny
+               REAL(DP), INTENT(INOUT)            :: eoffset
+               TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
+               CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
+               TYPE(symba_tp), INTENT(INOUT)      :: symba_tpA
+               TYPE(symba_plplenc), INTENT(INOUT) :: plplenc_list
+               TYPE(symba_pltpenc), INTENT(INOUT) :: pltpenc_list
+               TYPE(symba_merger), INTENT(INOUT)  :: mergeadd_list, mergesub_list
+               INTEGER(I4B), INTENT(IN)           :: num_plpl_comparisons, num_pltp_comparisons
+               INTEGER(I4B), DIMENSION(2,num_plpl_comparisons),INTENT(IN) :: k_plpl
+               INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
+     END INTERFACE
+          END SUBROUTINE symba_step_eucl
+     INTERFACE
+          SUBROUTINE symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+               plplenc_list, num_plpl_comparisons, k_plpl)
+               USE module_parameters
+               USE module_swiftest
+               USE module_helio
+               IMPLICIT NONE
+               USE module_symba
+               LOGICAL(LGT), INTENT(IN)                      :: lextra_force
+               INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc, num_plpl_comparisons
+               REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
+               TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
+               TYPE(symba_plplenc), INTENT(IN)               :: plplenc_list
+               INTEGER(I4B), DIMENSION(num_plpl_comparisons,2),INTENT(IN) :: k_plpl
+          END SUBROUTINE symba_getacch_eucl
+     END INTERFACE
+     END INTERFACE
+          END SUBROUTINE symba_chk_eucl_pltp
+               INTEGER(I4B), INTENT(INOUT)        :: npltpenc
+               REAL(DP), INTENT(IN)               :: dt
+               INTEGER(I4B), DIMENSION(2,num_encounters),INTENT(IN)   :: k_pltp
+               INTEGER(I4B), INTENT(IN)           :: num_encounters
+               INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
+               TYPE(symba_tp), INTENT(IN)                    :: symba_tpA
+               TYPE(symba_pl), INTENT(IN)                    :: symba_plA
+               IMPLICIT NONE
+               USE module_symba
+               USE module_helio
+               USE module_swiftest
+               USE module_parameters
+          SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr, npltpenc)
+     INTERFACE 
+
+     END INTERFACE
+          END SUBROUTINE symba_chk_eucl
+               INTEGER(I4B), INTENT(INOUT)        :: nplplenc
+               REAL(DP), INTENT(IN)               :: dt
+               INTEGER(I4B), DIMENSION(2,num_encounters),INTENT(IN)   :: k_plpl
+               INTEGER(I4B), INTENT(IN)           :: num_encounters
+               INTEGER(I4B), DIMENSION(num_encounters), INTENT(OUT) :: lencounter, lvdotr
+               TYPE(symba_pl), INTENT(IN)                    :: symba_plA
+               IMPLICIT NONE
+               USE module_symba
+               USE module_helio
+               USE module_swiftest
+               USE module_parameters
+          SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvdotr, nplplenc)
+     INTERFACE 
+     END INTERFACE
+          END SUBROUTINE
+               REAL(DP), DIMENSION(NDIM,num_pltp_comparisons),INTENT(INOUT) :: outvar
+               REAL(DP),DIMENSION(NDIM,ntp),INTENT(IN) :: test_particles
+               REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: planets
+               INTEGER(I4B), INTENT(IN) :: num_pltp_comparisons
+               INTEGER(I4B), DIMENSION(num_pltp_comparisons,2),INTENT(IN) :: k_pltp
+               INTEGER(I4B), INTENT(IN) :: npl, ntp
+               IMPLICIT NONE
+               USE module_symba
+               USE module_swiftest
+               USE module_parameters
+          SUBROUTINE util_dist_eucl_pltp(npl, ntp, planets, test_particles, num_pltp_comparisons, k_pltp, outvar)
+     INTERFACE
+
+     END INTERFACE
+          END SUBROUTINE util_dist_eucl_plpl
+               REAL(DP), DIMENSION(NDIM,num_comparisons),INTENT(INOUT) :: outvar
+               REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
+               INTEGER(I4B), INTENT(IN) :: num_comparisons
+               INTEGER(I4B), DIMENSION(2,num_comparisons),INTENT(IN) :: k_plpl
+               INTEGER(I4B), INTENT(IN)  :: npl
+               IMPLICIT NONE
+               USE module_symba
+               USE module_swiftest
+               USE module_parameters
+          SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
+     INTERFACE
+
+
+     END INTERFACE
+          END SUBROUTINE util_dist_index_pltp
+               INTEGER(I4B), INTENT(OUT) :: num_comparisons
+               INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_pltp
+               INTEGER(I4B), INTENT(IN)  :: nplm, ntp
+               IMPLICIT NONE
+               USE module_swiftest
+               USE module_parameters
+          SUBROUTINE util_dist_index_pltp(nplm, ntp, num_comparisons, k_pltp)
+     INTERFACE
+
+     END INTERFACE
+          END SUBROUTINE
+               INTEGER(I4B), INTENT(OUT) :: num_comparisons
+               INTEGER(I4B), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT) :: k_plpl
+               INTEGER(I4B), INTENT(IN)  :: npl, nplm
+               USE module_swiftest
+               IMPLICIT NONE
+               USE module_parameters
+     INTERFACE
+          SUBROUTINE util_dist_index_plpl(npl, nplm, num_comparisons, k_plpl)
+
+
+
+
+
+
+
+
+
+
+     INTERFACE
+
+

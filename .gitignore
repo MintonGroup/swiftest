@@ -16,6 +16,7 @@ src/*/Makefile
 !Makefile.Defines
 src/*/Makefile.Defines
 !.gitignore
+!*.py
 
 #fxdr library
 !fxdr*/*.c

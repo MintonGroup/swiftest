@@ -30,21 +30,23 @@
 !  Notes       : Adapted from Martin Duncan's Swift routine anal_energy.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE symba_energy(npl, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
+SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
 
 ! Modules
-     USE swiftest
+     USE module_parameters
+     USE module_swiftest
      USE module_interfaces, EXCEPT_THIS_ONE => symba_energy
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)               :: npl
+     INTEGER(I4B), INTENT(IN)               :: npl, nplmax
      REAL(DP), INTENT(IN)                   :: j2rp2, j4rp4
      REAL(DP), INTENT(OUT)                  :: ke, pe, te
      REAL(DP), DIMENSION(NDIM), INTENT(OUT) :: htot
      TYPE(swiftest_pl), INTENT(INOUT)       :: swiftest_plA
 
 ! Internals
+     LOGICAL(LGT)                                 :: lmalloc = .TRUE.
      INTEGER(I4B)                                 :: i, j
      REAL(DP)                                     :: mass, msys, r2, v2, oblpot
      REAL(DP), DIMENSION(NDIM)                    :: h, x, v, dx
@@ -57,6 +59,11 @@ SUBROUTINE symba_energy(npl, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
      htot = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
      ke = 0.0_DP
      pe = 0.0_DP
+
+!$omp parallel do default(none) &
+!$omp shared (swiftest_plA, npl) &
+!$omp private (i, x, v, mass, h, htot, v2, dx, r2) &
+!$omp reduction (+:ke, pe)
      DO i = 1, npl - 1
           x(:) = swiftest_plA%xb(:,i)
           v(:) = swiftest_plA%vb(:,i)
@@ -75,6 +82,8 @@ SUBROUTINE symba_energy(npl, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
                END IF
           END DO
      END DO
+!$omp end parallel do
+     i = npl ! needed to account for the parllelization above
      x(:) = swiftest_plA%xb(:,i)
      v(:) = swiftest_plA%vb(:,i)
      mass = swiftest_plA%mass(i)
