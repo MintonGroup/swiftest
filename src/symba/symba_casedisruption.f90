@@ -67,7 +67,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv
 
 ! Executable code
-
+    WRITE(*,*) "ENTERING CASEDISRUPTION"
      ! determine the number of fragments and the SFD
     nfrag = 3 !this will be determined later from collresolve
      ! instead of nfrag do a mfrag and that way we calculate the number of appropriate frags for each regime and collision
@@ -96,7 +96,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     eold = 0.5_DP*(m1*DOT_PRODUCT(v1(:), v1(:)) + m2*DOT_PRODUCT(v2(:), v2(:)))
     xr(:) = x2(:) - x1(:)
     eold = eold - (m1*m2/(SQRT(DOT_PRODUCT(xr(:), xr(:)))))
-
     WRITE(*, *) "Disruption between particles ", name1, " and ", name2, " at time t = ",t
      
      ! Add both parents to mergesub_list
@@ -230,7 +229,8 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
     eoffset = eoffset + eold - enew
 
      ! Update fragmax to account for new fragments
-    fragmax = fragmax + nfrag
+    fragmax = fragmax + frags_added
+    WRITE(*,*) "LEAVING CASEDISRUPTION"
     RETURN 
 END SUBROUTINE symba_casedisruption
 
