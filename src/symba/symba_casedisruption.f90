@@ -77,10 +77,11 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    index2_parent = symba_plA%index_parent(index2)
    name1 = symba_plA%helio%swiftest%name(index1)
    name2 = symba_plA%helio%swiftest%name(index2)
-   mass1 = symba_plA%helio%swiftest%mass(index1)
+   mass1 = symba_plA%helio%swiftest%mass(index1) ! the mass of the first particle in the collision NOT INCLUDING all it's children
    mass2 = symba_plA%helio%swiftest%mass(index2)
    radius1 = symba_plA%helio%swiftest%radius(index1)
    radius2 = symba_plA%helio%swiftest%radius(index2)
+   msun = symba_plA%helio%swiftest%mass(1)
 
    ! Find COM
    x_com = ((x1(1) * m1) + (x2(1) * m2)) / (m1 + m2)
@@ -134,7 +135,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
    r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
    theta = (2.0_DP * PI) / nfrag
-   msun = symba_plA%helio%swiftest%mass(1)
 
    ! Check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
    semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
@@ -143,12 +143,12 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
       WRITE(*,*) "WARNING in symba_casedisruption: Timestep is too large to resolve fragments."
    ELSE
-   ! If not, continue through all possible fragments to be added
-   mtot = 0.0_DP ! running total mass of new fragments
-   mv = 0.0_DP   ! running sum of m*v of new fragments to be used in COM calculation
-   frags_added = 0 ! running total number of new fragments
+      ! If not, continue through all possible fragments to be added
+      mtot = 0.0_DP ! running total mass of new fragments
+      mv = 0.0_DP   ! running sum of m*v of new fragments to be used in COM calculation
+      frags_added = 0 ! running total number of new fragments
       DO i = 1, nfrag
-         ! If we are added the first and largest fragment (lr), it's mass and radius should be taken from 
+         ! If we are adding the first and largest fragment (lr), it's mass and radius should be taken from 
          ! util_regime while it's position and velocity should be calculated on the circle of radius 
          ! r_circle as described above.
          IF (i == 1) THEN
@@ -161,7 +161,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
             mergeadd_list%radius(nmergeadd) = rres(1)
             mtot = mtot + mergeadd_list%mass(nmergeadd)                             
          END IF
-         ! If we are added the second fragment (slr), it's mass and radius should be taken from 
+         ! If we are adding the second fragment (slr), it's mass and radius should be taken from 
          ! util_regime while it's position and velocity should be calculated on the circle of 
          ! radius r_circle as described above.
          IF (i == 2) THEN
@@ -196,7 +196,6 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
                ! Create a "test mass" using Durda et al 2007 Figure 2 Supercatastrophic: N = (1.5e5)e(-1.3*D)
                m_test = (((- 1.0_DP / 2.6_DP) * log(i / (1.5_DP * 10.0_DP ** 5.0_DP))) ** 3.0_DP) * ((4.0_DP / 3.0_DP) &
                   * PI * avg_d)
-
                ! If the test mass is smaller than the mass that needs to be "made up for", add it. 
                IF (m_test < m_rem) THEN
                   mergeadd_list%mass(nmergeadd) = m_test
