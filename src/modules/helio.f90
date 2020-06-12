@@ -27,8 +27,6 @@ module helio
       procedure, public :: get_acch => helio_getacch !! Compute heliocentric accelerations of plAnetss
    end type helio_pl
 
-
-
 !> Interfaces for all helio particle methods that are implemented in separate submodules 
 interface
 
