@@ -73,16 +73,16 @@ contains
          self%status(i) = ACTIVE
       end do
    else
-      read(LUN, iostat = ierr) self%name
-      read(LUN, iostat = ierr) self%mass
+      read(LUN, iostat = ierr) self%name(:)
+      read(LUN, iostat = ierr) self%mass(:)
       if (param%lrhill_present) then
-         read(LUN, iostat = ierr) self%rhill(i)
+         read(LUN, iostat = ierr) self%rhill(:)
       else
          self%rhill(:) = 0.0_dp
       end if
       self%status(:) = ACTIVE
       if (param%lclose) then
-         read(LUN, iostat = ierr) self%radius
+         read(LUN, iostat = ierr) self%radius(:)
       else
          self%radius(:) = 0.0_dp
       end if
