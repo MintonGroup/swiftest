@@ -1,9 +1,10 @@
 submodule (helio) s_helio_drift_pl
 contains
 module procedure helio_drift_pl     
-   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   !! author: David A. Minton
    !!
    !! Loop through planets and call Danby drift routine
+   !! New vectorized version included
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_drift.f90
    !! Adapted from Hal Levison's Swift routine drift.f

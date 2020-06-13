@@ -1,73 +1,50 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : helio_drift_tp
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : helio
-!  Language    : Fortran 90/95
-!
-!  Description : Loop through test particles and call Danby drift routine
-!
-!  Input
-!    Arguments : ntp          : number of active test particles
-!                swifter_tp1P : pointer to head of active Swifter test particle structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : swifter_tp1P : pointer to head of active Swifter test particle structure linked-list
-!    Terminal  : error message
-!    File      : none
-!
-!  Invocation  : CALL helio_drift_tp(ntp, swifter_tp1P, mu, dt)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine drift_tp.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE helio_drift_tp(ntp, swiftest_tpA, mu, dt)
+submodule (helio) s_helio_drift_tp
+contains
+   module procedure helio_drift_tp     
+   !! author: David A. Minton
+   !!
+   !! Loop through test particles and call Danby drift routine
+   !! New vectorized version included
+   !!
+   !! Adapted from David E. Kaufmann's Swifter routine helio_drift_tp.f90
+   !! Adapted from Hal Levison's Swift routine drift_tp.f
+   use swiftest
+   implicit none
 
-! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_drift_tp
-     IMPLICIT NONE
+   integer(I4B) :: npl 
+   integer(I4B), dimension(:),allocatable :: iflag_vec
+   integer(I4B) :: i, iflag
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)         :: ntp
-     REAL(DP), INTENT(IN)             :: mu, dt
-     TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
+   npl = helio_tpA%nbody
+   if (lvectorize) then
+      allocate(iflag_vec(npl))
+      call drift_one_vec(helio_tpA%mu_vec(2:npl), helio_tpA%xh(1,2:npl),&
+                                                  helio_tpA%xh(2,2:npl),& 
+                                                  helio_tpA%xh(3,2:npl),& 
+                                                  helio_tpA%vb(1,2:npl),& 
+                                                  helio_tpA%vb(2,2:npl),& 
+                                                  helio_tpA%vb(3,2:npl),&
+                                                  helio_tpA%dt_vec(2:npl), iflag_vec(2:npl))
+      if (any(iflag_vec(2:npl) /= 0)) then
+         do i = 1,npl
+            if (iflag_vec(i) /= 0) then
+               write(*, *) "Particle ", helio_tpA%name(i), " lost due to error in Danby drift"
+            end if
+         end do
+         deallocate(iflag_vec)
+      end if
+      deallocate(iflag_vec)
+   else
+      do i = 2, npl
+         call drift_one(mu, helio_tpA%xh(:,i), helio_tpA%vb(:,i), dt, iflag)
+         if (iflag /= 0) then
+               write(*, *) "Particle ", helio_tpA%name(i), " lost due to error in Danby drift"
+         end if
+      end do
+   end if
+   
 
-! Internals
-     INTEGER(I4B)                     :: i, iflag
+   return
 
-! Executable code
-     DO i = 1, ntp
-          IF (swiftest_tpA%status(i) == ACTIVE) THEN
-               CALL drift_one(mu, swiftest_tpA%xh(:,i), swiftest_tpA%vb(:,i), dt, iflag)
-               IF (iflag /= 0) THEN
-                    swiftest_tpA%status(i) = DISCARDED_DRIFTERR
-                    WRITE(*, *) "Particle ", swiftest_tpA%name(i), " lost due to error in Danby drift"
-               END IF
-          END IF
-     END DO
-
-     RETURN
-
-END SUBROUTINE helio_drift_tp
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure helio_drift_tp
+end submodule s_helio_drift_tp
