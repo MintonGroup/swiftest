@@ -47,9 +47,9 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, fragmax
    REAL(DP), INTENT(IN)                             :: t, dt
    REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
-   REAL(DP), DIMENSION(3), INTENT(INOUT)            :: mres, rres
-   REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
-   REAL(DP), DIMENSION(NDIM), INTENT(INOUT)         :: x1, x2, v1, v2
+   REAL(DP), DIMENSION(:), INTENT(INOUT)            :: mres, rres
+   REAL(DP), DIMENSION(:), INTENT(IN)            :: vbs
+   REAL(DP), DIMENSION(:), INTENT(INOUT)         :: x1, x2, v1, v2
    TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
    TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
    TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
@@ -63,7 +63,17 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, A, B
    REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
    REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
-   REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv, l, k, p
+   REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv, l, kk, p
+
+   !TEMPORARY
+   interface 
+      function cross_product(ar1,ar2) result(ans)
+         use swiftest
+         implicit none
+         real(DP),dimension(3),intent(in) :: ar1,ar2
+         real(DP),dimension(3)             :: ans
+      end function cross_product
+   end interface
 
 ! Executable code
 
@@ -135,9 +145,9 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
    r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / nfrag))
    theta = (2.0_DP * PI) / nfrag
-   l(:) = (v2(:)-v1(:))/NORM2((v2(:)-v1(:))
-   p(:) = CROSS_PRODUCT(xr(:)/NORM2(xr(:), l(:)))
-   k(:) = CROSS_PRODUCT(l(:),p(:))
+   l(:) = (v2(:) - v1(:)) / NORM2(v2(:)-v1(:))
+   p(:) = CROSS_PRODUCT(xr(:) / NORM2(xr(:)), l(:))
+   kk(:) = CROSS_PRODUCT(l(:),p(:))
    ! Check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
    semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
    CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
@@ -257,3 +267,17 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    RETURN 
 END SUBROUTINE symba_casedisruption
 
+
+function cross_product(ar1,ar2) result(ans)
+   use swiftest
+   implicit none
+   
+   real(DP),dimension(3),intent(in) :: ar1,ar2
+   real(DP),dimension(3)             :: ans
+
+   ans(1) = ar1(2) * ar2(3) - ar1(3) * ar2(2)
+   ans(2) = ar1(3) * ar2(1) - ar1(1) * ar2(3)
+   ans(3) = ar1(1) * ar2(2) - ar1(2) * ar2(1)
+
+   return 
+end function cross_product

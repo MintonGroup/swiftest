@@ -169,8 +169,8 @@ contains
       iostat = -1
       return
    end if
-   if ((param%in_type /= SWIFTER_REAL8_TYPE) .and. (param%in_type /= "ASCII")) then
-      write(iomsg,*) 'Invalid input file type:',param%in_type
+   if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII")) then
+      write(iomsg,*) 'Invalid input file type:',trim(adjustl(param%in_type))
       iostat = -1
       return
    end if
@@ -187,17 +187,17 @@ contains
    if (param%outfile /= "") then
       if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
             (param%out_type /= SWIFTER_REAL4_TYPE)  .and. (param%out_type /= SWIFTER_REAL8_TYPE)) then
-         write(iomsg,*) 'Invalid out_type: ',param%out_type
+         write(iomsg,*) 'Invalid out_type: ',trim(adjustl(param%out_type))
          iostat = -1
          return
       end if
       if ((param%out_form /= "EL") .and. (param%out_form /= "XV")) then
-         write(iomsg,*) 'Invalid out_form: ',param%out_form
+         write(iomsg,*) 'Invalid out_form: ',trim(adjustl(param%out_form))
          iostat = -1
          return
       end if
       if ((param%out_stat /= "NEW") .and. (param%out_stat /= "REPLACE") .and. (param%out_stat /= "APPEND")) then
-         write(iomsg,*) 'Invalid out_stat: ',param%out_stat
+         write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(param%out_stat))
          iostat = -1
          return
       end if
@@ -209,7 +209,7 @@ contains
    end if
    if (param%qmin > 0.0_DP) then
       if ((param%qmin_coord /= "HELIO") .and. (param%qmin_coord /= "BARY")) then
-         write(iomsg,*) 'Invalid qmin_coord: ',param%qmin_coord
+         write(iomsg,*) 'Invalid qmin_coord: ',trim(adjustl(param%qmin_coord))
          return
          iostat = -1
       end if

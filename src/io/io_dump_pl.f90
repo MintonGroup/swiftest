@@ -46,64 +46,45 @@ SUBROUTINE io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
      TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
 
 ! Internals
-     INTEGER(I4B)                     :: i, iu, ierr
-     INTEGER(I4B), SAVE               :: idx = 1
+   INTEGER(I4B)                     :: i, iu, ierr
+   INTEGER(I4B), SAVE               :: idx = 1
    integer(I4B),parameter             :: LUN = 7
 
-! Executable code
-     !CALL io_open_fxdr(DUMP_PL_FILE(idx), "W", .TRUE., iu, ierr)
-     !CALL io_open(iu, outfile, " "UNFORMATTED", ierr)
    open(unit = LUN, file = DUMP_PL_FILE(idx), form = "UNFORMATTED", status = 'REPLACE', iostat = ierr)
-     IF (ierr /= 0) THEN
-          WRITE(*, *) "SWIFTEST Error:"
-          WRITE(*, *) "   Unable to open binary dump file ", TRIM(DUMP_PL_FILE(idx))
-          CALL util_exit(FAILURE)
-     END IF
+   if (ierr /= 0) then
+      write(*, *) "swiftest error:"
+      write(*, *) "   unable to open binary dump file ", trim(dump_pl_file(idx))
+      call util_exit(failure)
+   end if
    write(LUN) npl
-   write(LUN) swiftest_plA%name(1)
-   write(LUN) swiftest_plA%mass(1)
-   write(LUN) swiftest_plA%xh(:,1)
-   write(LUN) swiftest_plA%vh(:,1)
-     !ierr = ixdrint(LUN, npl)
-     !ierr = ixdrint(LUN, swiftest_plA%name(1))
-     !ierr = ixdrdouble(LUN, swiftest_plA%mass(1))
-     !ierr = ixdrdmat(LUN, NDIM, swiftest_plA%xh(:,1))
-     !ierr = ixdrdmat(LUN, NDIM, swiftest_plA%vh(:,1))
-     DO i = 2, npl
-          !ierr = ixdrint(LUN, swiftest_plA%name(i))
-          !ierr = ixdrdouble(LUN, swiftest_plA%mass(i))
-         write(LUN) swiftest_plA%name(i)
-         write(LUN) swiftest_plA%mass(i)
-          IF (lrhill_present) write(LUN) swiftest_plA%rhill(i) !ierr = ixdrdouble(LUN, swiftest_plA%rhill(i))
-          IF (lclose) write(LUN) swiftest_plA%radius(i) !ierr = ixdrdouble(LUN, swiftest_plA%radLUNs(i))
-         write(LUN) swiftest_plA%xh(:,i)
-         write(LUN) swiftest_plA%vh(:,i)
-          !ierr = ixdrdmat(LUN, NDIM, swiftest_plA%xh(:,i))
-          !ierr = ixdrdmat(LUN, NDIM, swiftest_plA%vh(:,i))
-     END DO
+   write(LUN) swiftest_pla%name(:)
+   write(LUN) swiftest_pla%mass(:)
+   if (lrhill_present) write(LUN) swiftest_pla%rhill(:) 
+   if (lclose) write(LUN) swiftest_pla%radius(:) 
+   write(LUN) swiftest_pla%xh(:,:)
+   write(LUN) swiftest_pla%vh(:,:)
    close(LUN)
-     !ierr = ixdrclose(LUN)
-     idx = idx + 1
-     IF (idx > 2) idx = 1
+   idx = idx + 1
+   if (idx > 2) idx = 1
 
-     RETURN
+   return
 
-END SUBROUTINE io_dump_pl
+end subroutine io_dump_pl
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  author(s)   : david e. kaufmann
 !
-!  Revision Control System (RCS) Information
+!  revision control system (rcs) information
 !
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
+!  source file : $rcsfile$
+!  full path   : $source$
+!  revision    : $revision$
+!  date        : $date$
+!  programmer  : $author$
+!  locked by   : $locker$
+!  state       : $state$
 !
-!  Modification History:
+!  modification history:
 !
-!  $Log$
+!  $log$
 !**********************************************************************************************************************************

@@ -9,27 +9,45 @@ contains
    !! Adapted from Martin Duncan's Swift routine io_init_tp.f
    implicit none
 
-   integer(I4B), parameter          :: LUN = 7              !! Unit number of input file
-   integer(I4B)                     :: i, iu, ierr, ntp
+   integer(I4B), parameter  :: LUN = 7              !! Unit number of input file
+   integer(I4B)             :: i, iu, ierr, ntp
+   logical                  :: is_ascii
+
 
 ! Executable code
    ierr = 0
-   open(unit = LUN, file = param%intpfile, status = 'old', iostat = ierr)
+   is_ascii = (param%in_type == 'ASCII')  
+   if (is_ascii) then
+      open(unit = LUN, file = param%intpfile, status = 'old', form = 'formatted', iostat = ierr)
+   else
+      open(unit = LUN, file = param%intpfile, status = 'old', form = 'unformatted', iostat = ierr)
+   end if
    if (ierr /=  0) then
       write(*,*) 'Error opening test particle initial conditions file ',trim(adjustl(param%intpfile))
       return
    end if
-   read(lun, *) ntp
+   if (is_ascii) then
+      read(lun, *) ntp
+   else
+      read(lun) ntp
+   end if
    if (ntp <= 0) return
 
    call self%alloc(ntp)
 
-   do i = 1, self%nbody
-      read(LUN, *) self%name(i)
-      read(LUN, *) self%xh(:,i)
-      read(LUN, *) self%vh(:,i)
-      self%status(i) = ACTIVE
-   end do
+   if (is_ascii) then
+      do i = 1, self%nbody
+         read(LUN, *) self%name(i)
+         read(LUN, *) self%xh(:,i)
+         read(LUN, *) self%vh(:,i)
+         self%status(i) = ACTIVE
+      end do
+   else
+      read(LUN) self%name(:)
+      read(LUN) self%xh(:,:)
+      read(LUN) self%vh(:,:)
+      self%status(:) = ACTIVE
+   end if
    close(LUN)
 
    return
