@@ -1355,8 +1355,8 @@ MODULE module_interfaces
                USE swiftest_data_structures
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)         :: npl, ntp
-               TYPE(swiftest_pl), INTENT(INOUT) :: swiftest_plA
-               TYPE(swiftest_tp), INTENT(INOUT) :: swiftest_tpA
+               TYPE(swiftest_pl), INTENT(IN) :: swiftest_plA
+               TYPE(swiftest_tp), INTENT(IN) :: swiftest_tpA
           END SUBROUTINE util_valid
      END INTERFACE
 

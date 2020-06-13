@@ -9,7 +9,7 @@ module swiftest_data_structures
 
 
    type,public :: swiftest_tp
-      integer(I4B)                                :: nbody  !! Number of bodies
+      integer(I4B)                                :: nbody = 0  !! Number of bodies
       integer(I4B), dimension(:),     allocatable :: name   !! External identifier (hash)
       integer(I4B), dimension(:),     allocatable :: status !! Status
       integer(I4B), dimension(:),     allocatable :: isperi !! Perihelion passage flag
