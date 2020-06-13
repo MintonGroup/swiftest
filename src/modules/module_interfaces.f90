@@ -131,105 +131,6 @@ module module_interfaces
           end subroutine discard_sun
      end interface
 
-     interface
-          subroutine drift_dan(mu, x0, v0, dt0, iflag)
-               use swiftest_globals
-               implicit none
-               integer(I4B), intent(out)                :: iflag
-               real(DP), intent(in)                     :: mu, dt0
-               real(DP), dimension(ndim), intent(inout) :: x0, v0
-          end subroutine drift_dan
-     end interface
-
-     interface
-          subroutine drift_kepmd(dm, es, ec, x, s, c)
-               use swiftest_globals
-               implicit none
-               real(DP), intent(in)  :: dm, es, ec
-               real(DP), intent(out) :: x, s, c
-          end subroutine drift_kepmd
-     end interface
-
-     interface
-          subroutine drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
-               use swiftest_globals
-               implicit none
-               integer(I4B), intent(out) :: iflag
-               real(DP), intent(in)      :: dt, r0, mu, alpha, u
-               real(DP), intent(out)     :: fp, c1, c2, c3
-          end subroutine drift_kepu
-     end interface
-
-     interface
-          subroutine drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
-               use swiftest_globals
-               implicit none
-               real(DP), intent(in)  :: dt, r0, mu, alpha, u, s
-               real(DP), intent(out) :: f
-          end subroutine drift_kepu_fchk
-     end interface
-
-     interface
-          subroutine drift_kepu_guess(dt, r0, mu, alpha, u, s)
-               use swiftest_globals
-               implicit none
-               real(DP), intent(in)  :: dt, r0, mu, alpha, u
-               real(DP), intent(out) :: s
-          end subroutine drift_kepu_guess
-     end interface
-
-     interface
-          subroutine drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-               use swiftest_globals
-               implicit none
-               integer(I4B), intent(out) :: iflag
-               real(DP), intent(in)      :: dt, r0, mu, alpha, u
-               real(DP), intent(inout)   :: s
-               real(DP), intent(out)     :: fp, c1, c2, c3
-          end subroutine drift_kepu_lag
-     end interface
-
-     interface
-          subroutine drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-               use swiftest_globals
-               implicit none
-               integer(I4B), intent(out) :: iflag
-               real(DP), intent(in)      :: dt, r0, mu, alpha, u
-               real(DP), intent(inout)   :: s
-               real(DP), intent(out)     :: fp, c1, c2, c3
-          end subroutine drift_kepu_new
-     end interface
-
-     interface
-          subroutine drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
-               use swiftest_globals
-               implicit none
-               integer(I4B), intent(out) :: iflag
-               real(DP), intent(in)      :: dt, r0, mu, alpha, u
-               real(DP), intent(out)     :: s
-          end subroutine drift_kepu_p3solve
-     end interface
-
-     interface
-          subroutine drift_kepu_stumpff(x, c0, c1, c2, c3)
-               use swiftest_globals
-               implicit none
-               real(DP), intent(inout) :: x
-               real(DP), intent(out)   :: c0, c1, c2, c3
-          end subroutine drift_kepu_stumpff
-     end interface
-
-     interface
-          subroutine drift_one(mu, x, v, dt, iflag)
-               use swiftest_globals
-               implicit none
-               integer(I4B), intent(out)                :: iflag
-               real(DP), intent(in)                     :: mu, dt
-               real(DP), dimension(ndim), intent(inout) :: x, v
-          end subroutine drift_one
-     end interface
-
-
 
      interface
           subroutine io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_pla, & 
@@ -482,7 +383,7 @@ module module_interfaces
      end interface
 
      interface
-          subroutine orbel_scget(angle, sx, cx)
+          pure subroutine orbel_scget(angle, sx, cx)
                use swiftest_globals
                implicit none
                real(DP), intent(in)  :: angle

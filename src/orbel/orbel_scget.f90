@@ -26,7 +26,7 @@
 !                Input angle must be in radians
 !
 !**********************************************************************************************************************************
-SUBROUTINE orbel_scget(angle, sx, cx)
+pure SUBROUTINE orbel_scget(angle, sx, cx)
 
 ! Modules
      USE swiftest

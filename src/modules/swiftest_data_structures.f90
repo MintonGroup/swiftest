@@ -14,12 +14,13 @@ module swiftest_data_structures
       integer(I4B)                              :: nbody  !! Number of bodies
       integer(I4B), dimension(:),   allocatable :: name   !! External identifier (hash)
       integer(I4B), dimension(:),   allocatable :: status !! Status
-      real(DP),     dimension(:),   allocatable :: mu     !! Vectorized central body mass term used for elemental functions
+      real(DP),     dimension(:),   allocatable :: mu_vec     !! Vectorized central body mass term used for elemental functions
+      real(DP),     dimension(:),   allocatable :: dt_vec     !! Vectorized stepsize used for elemental functions
       logical                                   :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
    contains
       procedure, public :: alloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
       procedure, public :: set_from_file => swiftest_read_particle_input_file
-      procedure, public :: set_mu => swiftest_set_mu !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: set_vec => swiftest_set_vec !! Method used to construct the vectorized form of the central body mass
       final :: swiftest_particle_deallocate  !! A destructor/finalizer that deallocates everything 
    end type swiftest_particle
 
@@ -75,11 +76,12 @@ module swiftest_data_structures
          type(user_input_parameters),intent(in) :: param    !! Input collection of user-defined parameters
       end subroutine swiftest_read_tp_in
 
-      module subroutine swiftest_set_mu(self,mu)
+      module subroutine swiftest_set_vec(self,mu,dt)
          implicit none
          class(swiftest_particle), intent(inout)  :: self !! Swiftest data structure to store massive body initial conditions
-         real(DP),intent(in) :: mu                        !! Input collection of user-defined parameters
-      end subroutine swiftest_set_mu
+         real(DP),intent(in) :: mu                        !! Input scalar central body mass term
+         real(DP),intent(in) :: dt                        !! Input scalar stepsize
+      end subroutine swiftest_set_vec
    end interface
 
    contains

@@ -106,8 +106,8 @@ program swiftest_symba
    call symba_tpA%read_from_file(param)
 
    ! Save central body mass in vector form so that elemental functions can be evaluated with it
-   call symba_tpA%set_mu(symba_plA%mass(1))
-   call symba_plA%set_mu(symba_plA%mass(1))
+   call symba_tpA%set_vec(symba_plA%mass(1),param%dt)
+   call symba_plA%set_vec(symba_plA%mass(1),param%dt)
 
    !Temporary until everything get switched over
    npl = symba_plA%nbody

@@ -120,6 +120,9 @@ contains
          case ("ENERGY")
             call util_toupper(param_value)
             if (param_value == "YES" .or. param_value == 'T') param%lenergy = .true.
+         case ("VECTORIZE")
+            call util_toupper(param_value)
+            if (param_value == "YES" .or. param_value == "T") param%lvectorize = .true.
 
          ! The following are not yet implemented
          case ("RINGMOONS")
@@ -216,6 +219,63 @@ contains
          iostat = -1
       end if
    end if
+
+   write(*,*) "NPLMAX         = ",param%nplmax
+   write(*,*) "NTPMAX         = ",param%ntpmax
+   write(*,*) "T0             = ",param%t0
+   write(*,*) "TSTOP          = ",param%tstop
+   write(*,*) "DT             = ",param%dt
+   write(*,*) "PL_IN          = ",trim(adjustl(param%inplfile))
+   write(*,*) "TP_IN          = ",trim(adjustl(param%intpfile))
+   write(*,*) "IN_TYPE        = ",trim(adjustl(param%in_type))
+   write(*,*) "ISTEP_OUT      = ",param%istep_out
+   write(*,*) "BIN_OUT        = ",trim(adjustl(param%outfile))
+   write(*,*) "OUT_TYPE       = ",trim(adjustl(param%out_type))
+   write(*,*) "OUT_FORM       = ",trim(adjustl(param%out_form))
+   write(*,*) "OUT_STAT       = ",trim(adjustl(param%out_stat))
+   write(*,*) "ISTEP_DUMP     = ",param%istep_dump
+   write(*,*) "J2             = ",param%j2rp2
+   write(*,*) "J4             = ",param%j4rp4
+   write(*,*) "CHK_CLOSE      = ",param%lclose
+   write(*,*) "CHK_RMIN       = ",param%rmin
+   write(*,*) "CHK_RMAX       = ",param%rmax
+   write(*,*) "CHK_EJECT      = ",param%rmaxu
+   write(*,*) "CHK_QMIN       = ",param%qmin
+   write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(param%qmin_coord))
+   write(*,*) "CHK_QMIN_RANGE = ",param%qmin_alo, param%qmin_ahi
+   write(*,*) "ENC_OUT        = ",trim(adjustl(param%encounter_file))
+   write(*,*) "EXTRA_FORCE    = ",param%lextra_force
+   write(*,*) "BIG_DISCARD    = ",param%lbig_discard
+   write(*,*) "RHILL_PRESENT  = ",param%lrhill_present
+   write(*,*) "VECTORIZED     = ",param%lvectorized
+
+   ! Added by D. Minton
+   MU2KG = param%MU2KG
+   TU2S  = param%TU2S 
+   DU2M = param%DU2M
+   ! The fragmentation model requires the user to set the unit system explicitly.
+   write(*,*) "FRAGMENTATION  = ",param%lfragmentation
+   if (param%lfragmentation) then
+      write(*,*) "MU2KG          = ",MU2KG
+      write(*,*) "TU2S           = ",TU2S 
+      write(*,*) "DU2M          = ",DU2M
+      if ((MU2KG < 0.0_DP) .or. (TU2S < 0.0_DP) .or. (DU2M < 0.0_DP)) then
+         write(*,*) 'Invalid unit conversion factor'
+         write(*,*) 'MU2KG: ',MU2KG
+         write(*,*) 'TU2S: ',TU2S
+         write(*,*) 'DU2M: ',DU2M
+         ierr = -1
+      end if
+   end if 
+   !Added mtiny to the argument list rather than from the terminal
+   if (param%mtiny < 0.0_DP) then
+      write(*,*) "Invalid MTINY: ",param%mtiny
+      ierr = -1
+   else
+      write(*,*) "MTINY          = ",param%mtiny   
+   end if
+   if (param%lenergy) write(*,*) "ENERGY         = ",param%lenergy
+   if (param%lringmoons) write(*,*) "RINGMOONS      = ",param%lringmoons
 
    return 
 

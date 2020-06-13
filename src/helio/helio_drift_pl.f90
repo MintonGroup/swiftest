@@ -1,30 +1,59 @@
 submodule (helio) s_helio_drift_pl
 contains
-   module procedure helio_drift_pl
+module procedure helio_drift_pl     
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
-   !! Read in parameters for the integration
+   !! Loop through planets and call Danby drift routine
    !!
-   !! Adapted from David E. Kaufmann's Swifter routine io_init_param.
+   !! Adapted from David E. Kaufmann's Swifter routine helio_drift.f90
+   !! Adapted from Hal Levison's Swift routine drift.f
+   use swiftest
    implicit none
 
-   integer(I4B)                   :: i, iflag, i
-   real(DP)                       :: mu
+   integer(I4B) :: npl 
+   integer(I4B), dimension(:),allocatable :: iflag_vec
+   integer(I4B) :: i, iflag
 
-   iflag = helio_plA%drift_one(dt) 
-   do i = 2, npl
-      call drift_one(mu, swiftest_plA%xh(:,i), swiftest_plA%vb(:,i), dt, iflag)
-      if (iflag /= 0) then
-          write(*, *) " plAnet ", swiftest_plA%name(i), " is lost!!!!!!!!!!"
-          write(*, *) mu, dt
-          write(*, *) swiftest_plA%xh(:,i)
-          write(*, *) swiftest_plA%vb(:,i)
-          write(*, *) " stopping "
-          call util_exit(failure)
+   npl = helio_plA%nbody
+   if (lvectorize) then
+      allocate(iflag_vec(npl))
+      call drift_one_vec(helio_plA%mu_vec(2:npl), helio_plA%xh(1,2:npl),&
+                                                  helio_plA%xh(2,2:npl),& 
+                                                  helio_plA%xh(3,2:npl),& 
+                                                  helio_plA%vb(1,2:npl),& 
+                                                  helio_plA%vb(2,2:npl),& 
+                                                  helio_plA%vb(3,2:npl),&
+                                                  helio_plA%dt_vec(2:npl), iflag_vec(2:npl))
+      if (any(iflag_vec(2:npl) /= 0)) then
+         do i = 1,npl
+            if (iflag_vec(i) /= 0) then
+               write(*, *) " Planet ", helio_plA%name(i), " is lost!!!!!!!!!!"
+               write(*, *) mu, dt
+               write(*, *) helio_plA%xh(:,i)
+               write(*, *) helio_plA%vb(:,i)
+               write(*, *) " Stopping "
+            end if
+         end do
+         deallocate(iflag_vec)
+         call util_exit(failure)
       end if
-   end do
-
+      deallocate(iflag_vec)
+   else
+      do i = 2, npl
+         call drift_one(mu, helio_plA%xh(:,i), helio_plA%vb(:,i), dt, iflag)
+         if (iflag /= 0) then
+               write(*, *) " Planet ", helio_plA%name(i), " is lost!!!!!!!!!!"
+               write(*, *) mu, dt
+               write(*, *) helio_plA%xh(:,i)
+               write(*, *) helio_plA%vb(:,i)
+               write(*, *) " Stopping "
+               call util_exit(failure)
+         end if
+      end do
+   end if
+   
    return
+
 
    end procedure helio_drift_pl
 end submodule s_helio_drift_pl
