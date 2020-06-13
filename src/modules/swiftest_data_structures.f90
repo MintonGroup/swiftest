@@ -11,11 +11,11 @@ module swiftest_data_structures
    type, public :: swiftest_particle           
       !! Superclass that defines the generic elements of a Swiftest particle 
       !private
-      integer(I4B)                              :: nbody  !! Number of bodies
-      integer(I4B), dimension(:),   allocatable :: name   !! External identifier (hash)
-      integer(I4B), dimension(:),   allocatable :: status !! Status
-      real(DP),     dimension(:),   allocatable :: mu_vec     !! Vectorized central body mass term used for elemental functions
-      real(DP),     dimension(:),   allocatable :: dt_vec     !! Vectorized stepsize used for elemental functions
+      integer(I4B)                              :: nbody = 0 !! Number of bodies
+      integer(I4B), dimension(:),   allocatable :: name      !! External identifier (hash)
+      integer(I4B), dimension(:),   allocatable :: status    !! Status
+      real(DP),     dimension(:),   allocatable :: mu_vec    !! Vectorized central body mass term used for elemental functions
+      real(DP),     dimension(:),   allocatable :: dt_vec    !! Vectorized stepsize used for elemental functions
       logical                                   :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
    contains
       procedure, public :: alloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
