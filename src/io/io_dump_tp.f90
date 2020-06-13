@@ -28,43 +28,36 @@
 !  Notes       : Adapted from Martin Duncan's Swift routine io_dump_tp.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE io_dump_tp(ntp, swiftest_tpA)
+subroutine io_dump_tp(ntp, swiftest_tpa)
+   use swiftest
+   use module_interfaces, except_this_one => io_dump_tp
+   implicit none
 
-! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => io_dump_tp
-     IMPLICIT NONE
+   integer(I4B), intent(in)            :: ntp
+   type(swiftest_tp), intent(inout)    :: swiftest_tpa
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)            :: ntp
-     TYPE(swiftest_tp), INTENT(INOUT)    :: swiftest_tpA
+   integer(I4B)                        :: i, iu, ierr
+   integer(I4B), save                  :: idx = 1
+   integer(I4B), parameter             :: lun = 7
 
-! Internals
-     INTEGER(I4B)                        :: i, iu, ierr
-     INTEGER(I4B), SAVE                  :: idx = 1
-   integer(I4B), parameter                :: LUN = 7
-
-! Executable code
    open(unit = LUN, file = DUMP_TP_FILE(idx), form = "UNFORMATTED", status = 'REPLACE', iostat = ierr)
 
-     IF (ierr /= 0) THEN
-          WRITE(*, *) "SWIFTEST Error:"
-          WRITE(*, *) "   Unable to open binary dump file ", TRIM(DUMP_TP_FILE(idx))
-          CALL util_exit(FAILURE)
-     END IF
+   if (ierr /= 0) then
+        write(*, *) "swiftest error:"
+        write(*, *) "   unable to open binary dump file ", trim(dump_tp_file(idx))
+        call util_exit(failure)
+   end if
    write(LUN) ntp
-     DO i = 1, ntp
-         write(LUN) swiftest_tpA%name(i)
-         write(LUN) swiftest_tpA%xh(:,i)
-         write(LUN) swiftest_tpA%vh(:,i)
-     END DO
+   write(LUN) swiftest_tpA%name(:)
+   write(LUN) swiftest_tpA%xh(:,:)
+   write(LUN) swiftest_tpA%vh(:,:)
    close(LUN)
-     idx = idx + 1
-     IF (idx > 2) idx = 1
+   idx = idx + 1
+   if (idx > 2) idx = 1
 
-     RETURN
+   return
 
-END SUBROUTINE io_dump_tp
+END subroutine io_dump_tp
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann
