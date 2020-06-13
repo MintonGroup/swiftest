@@ -83,6 +83,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
    mass2 = symba_plA%helio%swiftest%mass(index2)
    radius1 = symba_plA%helio%swiftest%radius(index1)
    radius2 = symba_plA%helio%swiftest%radius(index2)
+   msun = symba_plA%helio%swiftest%mass(1)
 
    ! Determine which of the two particles in the collision is larger where mass INCLUDES the mass of all their children
    IF (m2 > m1) THEN
@@ -172,7 +173,6 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
    mtot = 0.0_DP ! running total mass of new fragments
    mv = 0.0_DP   ! running sum of m*v of new fragments to be used in COM calculation
    frags_added = 0 ! running total number of new fragments
-   msun = symba_plA%helio%swiftest%mass(1)
 
    ! Check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
    semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
@@ -192,7 +192,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
          vy_rm = vh_rm(2)
          vz_rm = vh_rm(3)
          d_rm = (3.0_DP * m_rm) / (4.0_DP * PI * (r_rm ** 3.0_DP))
-         ! If we are added the first and largest fragment (lr), it's characteristics should be equal to those of the kept parent
+         ! If we are adding the first and largest fragment (lr), it's characteristics should be equal to those of the kept parent
          IF (i == 1) THEN
             nmergeadd = nmergeadd + 1
             mergeadd_list%status(nmergeadd) = HIT_AND_RUN
@@ -204,7 +204,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
             mergeadd_list%vh(:,nmergeadd) = vh_keep
             mtot = mtot + mergeadd_list%mass(nmergeadd)                       
          END IF
-         ! If we are added the second fragment, it's mass and radius should be taken from util_regime while it's position
+         ! If we are adding the second fragment, it's mass and radius should be taken from util_regime while it's position
          ! and velocity should be calculated on the circle of radius rhill_keep as described above.
          IF (i == 2) THEN
             ! frags_added is the actual number of fragments added to the simulation vs nfrag which is the total possible
