@@ -16,16 +16,11 @@ module io
          character(len=:),allocatable     :: token          !! Returned token string
       end function io_get_token
 
-      module subroutine io_getn(param,swiftest_plA,swiftest_tpA)
-         type(swiftest_configuration),intent(inout) :: param      !! Input collection of user-defined parameters
+      module subroutine io_getn(config,swiftest_plA,swiftest_tpA)
+         type(swiftest_configuration),intent(inout) :: config      !! Input collection of user-defined parameters
          type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store number of massive bodies
          type(swiftest_tp), intent(inout)  :: swiftest_tpA  !! Swiftest data structure to store number of test particles
       end subroutine io_getn
-
-      module subroutine io_read_pl_in(param,swiftest_plA) 
-         type(swiftest_configuration),intent(in) :: param         !! Input collection of user-defined parameters
-         type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store massive body initial conditions
-      end subroutine io_read_pl_in
 
       module subroutine io_write_frame(t, swiftest_plA, swiftest_tpA, outfile, out_type, out_form, out_stat)
          real(DP), intent(in)             :: t              !! Current time of simulation

@@ -121,14 +121,12 @@ module swiftest_data_structures
       end subroutine swiftest_read_particle_input_file
 
       module subroutine swiftest_read_pl_in(self,config) 
-         use io_
          implicit none
          class(swiftest_pl), intent(inout)  :: self  !! Swiftest data structure to store massive body initial conditions
          type(swiftest_configuration),intent(in) :: config    !! Input collection of user-defined configuration parameters
       end subroutine swiftest_read_pl_in
 
       module subroutine swiftest_read_tp_in(self,config) 
-         use io_
          implicit none
          class(swiftest_tp), intent(inout)  :: self  !! Swiftest data structure to store massive body initial conditions
          type(swiftest_configuration),intent(in) :: config    !! Input collection of user-defined configuration parameters
@@ -278,17 +276,29 @@ module swiftest_data_structures
          return
       end subroutine swiftest_pl_deallocate
 
+      !> Interface for type-bound procedure to write out the configuration parameters into a dump file in case the run needs to be restarted
+      module subroutine io_dump_config(config,t)
+         class(swiftest_configuration),intent(in)  :: config  !! Output collection of user-defined parameters
+         real(DP),intent(in)                       :: t       !! Current simulation time
+      end subroutine io_dump_config
+
       !> Interface for type-bound procedure to read in the input parameters from a file
       module subroutine io_read_config_in(config,inparfile) 
          class(swiftest_configuration),intent(out) :: config     !! Input collection of user-defined parameters
          character(*), intent(in)                  :: inparfile  !! Parameter input file name (i.e. param.in)
       end subroutine io_read_config_in
 
-      !> Interface for type-bound procedure to write out the io_ parameters into a dump file in case the run needs to be restarted
-      module subroutine io_dump_config(config,t)
-         class(swiftest_configuration),intent(in)  :: config  !! Output collection of user-defined parameters
-         real(DP),intent(in)                       :: t       !! Current simulation time
-      end subroutine io_dump_config
+      !> Interface for type-bound procedure to read in the input massive body initial condition file
+      module subroutine io_read_pl_in(config,swiftest_plA) 
+         type(swiftest_configuration),intent(in) :: config  !! Input collection of user-defined parameters
+         type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store massive body initial conditions
+      end subroutine io_read_pl_in
+
+      !> Interface for type-bound procedure to read in the input test particle initial condition file
+      module subroutine io_read_tp_in(config,swiftest_tpA) 
+         type(swiftest_configuration),intent(in) :: config  !! Input collection of user-defined parameters
+         type(swiftest_tp), intent(inout)  :: swiftest_tpA  !! Swiftest data structure to store test particle initial conditions
+      end subroutine io_read_tp_in
 
       !> Interface for type-bound procedure for user-defined derived-type IO for reading
       module subroutine io_udio_reader(config, unit, iotype, v_list, iostat, iomsg) 
