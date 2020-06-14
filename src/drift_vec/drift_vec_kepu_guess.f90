@@ -27,11 +27,12 @@
 !  Notes       : Adapted from Hal Levison and Martin Duncan's Swift routine drift_kepu_guess.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
+PURE SUBROUTINE drift_vec_kepu_guess(dt, r0, mu, alpha, u, s)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_guess
+     USE swiftest
+     USE drift_vec, EXCEPT_THIS_ONE => drift_vec_kepu_guess
+     USE module_interfaces
      IMPLICIT NONE
 
 ! Arguments
@@ -60,13 +61,13 @@ SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
                s = x/SQRT(alpha)
           END IF
      ELSE
-          CALL drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
+          CALL drift_vec_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
           IF (iflag /= 0) s = dt/r0
      END IF
 
      RETURN
 
-END SUBROUTINE drift_kepu_guess
+END SUBROUTINE drift_vec_kepu_guess
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

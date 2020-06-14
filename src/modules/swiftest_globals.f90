@@ -3,7 +3,7 @@ module swiftest_globals
    !! graph: false
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
-   !! Adapted from David E. Kaufmann's Swifter modules: module_parameters.f90 and module_swifter.f90
+   !! Adapted from David E. Kaufmann's Swifter modules: swiftest_globals.f90 and module_swifter.f90
    implicit none
    public
 

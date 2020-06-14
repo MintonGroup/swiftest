@@ -31,10 +31,10 @@
 !  Notes       : Adapted from Hal Levison's Swift routine drift_kepu.f
 !
 !**********************************************************************************************************************************
-PURE SUBROUTINE drift_kepu(dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+SUBROUTINE drift_kepu(dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
 
 ! Modules
-     USE swiftest
+     USE swiftest_globals
      USE drift, EXCEPT_THIS_ONE => drift_kepu
      IMPLICIT NONE
 

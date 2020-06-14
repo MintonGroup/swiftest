@@ -28,10 +28,10 @@
 !  Notes       : Adapted from Martin Duncan's Swift routine drift_kepu_fchk.f
 !
 !**********************************************************************************************************************************
-PURE SUBROUTINE drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
+SUBROUTINE drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
 
 ! Modules
-     USE swiftest
+     USE swiftest_globals
      USE drift, EXCEPT_THIS_ONE => drift_kepu_fchk
      IMPLICIT NONE
 

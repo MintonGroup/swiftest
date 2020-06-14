@@ -30,11 +30,11 @@
 !                Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 177 - 178.
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
+PURE SUBROUTINE drift_vec_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_p3solve
+     USE swiftest
+     USE drift_vec, EXCEPT_THIS_ONE => drift_vec_kepu_p3solve
      IMPLICIT NONE
 
 ! Arguments
@@ -74,7 +74,7 @@ SUBROUTINE drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
 
      RETURN
 
-END SUBROUTINE drift_kepu_p3solve
+END SUBROUTINE drift_vec_kepu_p3solve
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

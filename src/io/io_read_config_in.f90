@@ -1,14 +1,13 @@
-submodule (user) s_user_read_param_in
+submodule (swiftest_data_structures) s_io_read_config_in
 contains
-   module procedure user_read_param_in
-   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   module procedure io_read_config_in
+   !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Read in parameters for the integration
    !!
-   !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
-   !! Adapted from Martin Duncan's Swift routine io_init_param.f
+   !! Adapted from David E. Kaufmann's Swifter routine io_init_config.f90
+   !! Adapted from Martin Duncan's Swift routine io_init_config.f
    !$ use omp_lib
-   !use util, only: util_exit ! IMPLEMENTATION TBD
    implicit none
 
    integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
@@ -16,7 +15,7 @@ contains
    character(STRMAX)       :: error_message           !! Error message in UDIO procedure
 
    ! Read in name of parameter file
-   write(*, *) 'Parameter data file is ', trim(adjustl(inparfile))
+   write(*, *) 'Configuration data file is ', trim(adjustl(inparfile))
    write(*, *) ' '
    100 format(A)
    open(unit = LUN, file = inparfile, status = 'old', iostat = ierr)
@@ -29,8 +28,8 @@ contains
    !! todo: Currently this procedure does not work in user-defined derived-type input mode 
    !!    as the newline characters are ignored in the input file when compiled in ifort.
 
-   !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) param
-   call param%udio_reader(LUN,iotype="none",v_list=(/0/),iostat=ierr,iomsg=error_message)
+   !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) config
+   call config%udio_reader(LUN,iotype="none",v_list=(/0/),iostat=ierr,iomsg=error_message)
    if (ierr /= 0) then
       write(*,*) 'Swiftest error reading ', trim(adjustl(inparfile))
       write(*,*) ierr,trim(adjustl(error_message))
@@ -40,7 +39,6 @@ contains
    close(LUN)
 
    ierr = 0
-
 
    if (ierr < 0) then
       write(*, 100) "Input parameter(s) failed check"
@@ -56,6 +54,6 @@ contains
 
    return 
 
-   end procedure user_read_param_in
+   end procedure io_read_config_in
 
-end submodule s_user_read_param_in
+end submodule s_io_read_config_in

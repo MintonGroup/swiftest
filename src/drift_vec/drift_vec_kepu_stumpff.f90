@@ -28,11 +28,11 @@
 !                Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 171 - 172.
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepu_stumpff(x, c0, c1, c2, c3)
+PURE SUBROUTINE drift_vec_kepu_stumpff(x, c0, c1, c2, c3)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_stumpff
+     USE swiftest
+     USE drift_vec, EXCEPT_THIS_ONE => drift_vec_kepu_stumpff
      IMPLICIT NONE
 
 ! Arguments
@@ -68,7 +68,7 @@ SUBROUTINE drift_kepu_stumpff(x, c0, c1, c2, c3)
 
      RETURN
 
-END SUBROUTINE drift_kepu_stumpff
+END SUBROUTINE drift_vec_kepu_stumpff
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

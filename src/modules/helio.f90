@@ -1,5 +1,5 @@
 module helio
-   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Definition of classes and methods specific to the Democratic Heliocentric Method
    !! Adapted from David E. Kaufmann's Swifter modules: helio.f90
@@ -47,21 +47,19 @@ interface
    end subroutine helio_drift_tp
 
    module subroutine helio_getacch_pl(helio_plA, dummy_helio_plA, param, t, lflag)
-      use user
       implicit none
       class(helio_pl), intent(inout)         :: helio_plA       !! Helio massive body particle data structure. 
       class(helio_pl), optional, intent(in)  :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
-      type(user_input_parameters),intent(in) :: param           !! Input collection of user-defined parameter
+      type(swiftest_configuration),intent(in) :: param           !! Input collection of user-defined parameter
       real(DP), intent(in)                   :: t               !! Current time. This is passed to the user-defined acceleration function.
       logical, intent(in)                    :: lflag           !! Logical flag indicating whether to recompute direct cross term accelrations
    end subroutine helio_getacch_pl
 
    module subroutine helio_getacch_tp(helio_tpA, helio_plA, param, t, lflag)
-      use user
       implicit none
       class(helio_tp), intent(inout)         :: helio_tpA !! Helio test particle data structure
       class(helio_pl), optional, intent(in)  :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
-      type(user_input_parameters),intent(in) :: param     !! Input collection of user-defined parameter
+      type(swiftest_configuration),intent(in) :: param     !! Input collection of user-defined parameter
       real(DP), intent(in)                   :: t         !! Current time. This is passed to the user-defined acceleration function.
       logical, intent(in)                    :: lflag     !! Logical flag indicating whether to recompute direct cross term accelrations
    end subroutine helio_getacch_tp
@@ -105,11 +103,10 @@ interface
    end subroutine helio_lindrift_tp
 
    module subroutine helio_step(helio_plA, helio_tpA, param, t, dt, lfirst)
-      use user
       implicit none
       type(helio_pl), intent(inout)          :: helio_plA !! Helio massive body particle data structure. 
       type(helio_tp), intent(inout)          :: helio_tpA !! Helio test particle data structure
-      type(user_input_parameters),intent(in) :: param     !! Input collection of user-defined parameter
+      type(swiftest_configuration),intent(in) :: param     !! Input collection of user-defined parameter
       real(DP), intent(in)                   :: t         !! Current time
       real(DP), intent(in)                   :: dt        !! Stepsiz
       logical, intent(inout)                 :: lfirst    !! Logical flag indicating whether current invocation is the first 
@@ -117,11 +114,10 @@ interface
    end subroutine helio_step
 
    module subroutine helio_step_pl(helio_plA, dummy_helio_plA, param, t, dt, lfirst, xbeg, xend, ptb, pte)
-      use user
       implicit none
       class(helio_pl), intent(inout)         :: helio_plA       !! Helio massive body particle data structure.
       class(helio_pl), optional, intent(in)  :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
-      type(user_input_parameters),intent(in) :: param           !! Input collection of user-defined parameter
+      type(swiftest_configuration),intent(in) :: param           !! Input collection of user-defined parameter
       real(DP), intent(in)                   :: t               !! Current time
       real(DP), intent(in)                   :: dt              !! Stepsize
       logical, intent(inout)                 :: lfirst          !! Logical flag indicating whether current invocation is the first 
@@ -133,11 +129,10 @@ interface
    end subroutine helio_step_pl
 
    module subroutine helio_step_tp(helio_tpA, helio_plA, param, t, dt, lfirst, xbeg, xend, ptb, pte)
-      use user
       implicit none
       class(helio_tp), intent(inout)         :: helio_tpA !! Helio test particle data structure.
       class(helio_pl), optional, intent(in)  :: helio_plA !! Helio massive body particle data structure.
-      type(user_input_parameters),intent(in) :: param     !! Input collection of user-defined parameter
+      type(swiftest_configuration),intent(in) :: param     !! Input collection of user-defined parameter
       real(DP), intent(in)                   :: t         !! Current time
       real(DP), intent(in)                   :: dt        !! Stepsize
       logical, intent(inout)                 :: lfirst    !! Logical flag indicating whether current invocation is the first 

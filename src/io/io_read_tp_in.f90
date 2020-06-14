@@ -1,7 +1,7 @@
-submodule (swiftest_data_structures) s_swiftest_read_tp_in
+submodule (swiftest_data_structures) s_io_read_tp_in
 contains
-   module procedure swiftest_read_tp_in
-   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   module procedure io_read_tp_in
+   !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Read in test particle data
    !!
@@ -16,14 +16,14 @@ contains
 
 ! Executable code
    ierr = 0
-   is_ascii = (param%in_type == 'ASCII')  
+   is_ascii = (config%in_type == 'ASCII')  
    if (is_ascii) then
-      open(unit = LUN, file = param%intpfile, status = 'old', form = 'formatted', iostat = ierr)
+      open(unit = LUN, file = config%intpfile, status = 'old', form = 'formatted', iostat = ierr)
    else
-      open(unit = LUN, file = param%intpfile, status = 'old', form = 'unformatted', iostat = ierr)
+      open(unit = LUN, file = config%intpfile, status = 'old', form = 'unformatted', iostat = ierr)
    end if
    if (ierr /=  0) then
-      write(*,*) 'Error opening test particle initial conditions file ',trim(adjustl(param%intpfile))
+      write(*,*) 'Error opening test particle initial conditions file ',trim(adjustl(config%intpfile))
       return
    end if
    if (is_ascii) then
@@ -51,7 +51,7 @@ contains
    close(LUN)
 
    return
-   end procedure swiftest_read_tp_in
+   end procedure io_read_tp_in
 
-end submodule s_swiftest_read_tp_in
+end submodule s_io_read_tp_in
 

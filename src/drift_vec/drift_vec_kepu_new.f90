@@ -1,12 +1,12 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : drift_kepu_lag
+!  Unit Name   : drift_kepu_new
 !  Unit Type   : subroutine
 !  Project     : Swiftest
 !  Package     : drift
 !  Language    : Fortran 90/95
 !
-!  Description : Solve Kepler's equation in universal variables using Laguerre's method
+!  Description : Solve Kepler's equation in universal variables using Newton's method
 !
 !  Input
 !    Arguments : s     : universal variable
@@ -28,18 +28,18 @@
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+!  Invocation  : CALL drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
 !
-!  Notes       : Adapted from Hal Levison's Swift routine drift_kepu_lag.f
+!  Notes       : Adapted from Hal Levison's Swift routine drift_kepu_new.f
 !
-!                Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 178 - 180.
+!                Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 174 - 175.
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+PURE SUBROUTINE drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_lag
+     USE swiftest
+     USE drift, EXCEPT_THIS_ONE => drift_vec_kepu_new
      IMPLICIT NONE
 
 ! Arguments
@@ -49,26 +49,23 @@ SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
      REAL(DP), INTENT(OUT)     :: fp, c1, c2, c3
 
 ! Internals
-     INTEGER(I4B) :: nc, ncmax
-     REAL(DP)     :: ln, x, fpp, ds, c0, f, fdt
+     INTEGER(I4B) :: nc
+     REAL(DP)     :: x, c0, ds, f, fpp, fppp, fdt
 
 ! Executable code
-     IF (alpha < 0.0_DP) THEN
-          ncmax = NLAG2
-     ELSE
-          ncmax = NLAG1
-     END IF
-     ln = 5.0_DP
-     DO nc = 0, ncmax
+     DO nc = 0, 6
           x = s*s*alpha
-          CALL drift_kepu_stumpff(x, c0, c1, c2, c3)
+          CALL drift_vec_kepu_stumpff(x, c0, c1, c2, c3)
           c1 = c1*s
           c2 = c2*s*s
           c3 = c3*s*s*s
           f = r0*c1 + u*c2 + mu*c3 - dt
           fp = r0*c0 + u*c1 + mu*c2
           fpp = (-r0*alpha + mu)*c1 + u*c0
-          ds = -ln*f/(fp + SIGN(1.0_DP, fp)*SQRT(ABS((ln - 1.0_DP)*(ln - 1.0_DP)*fp*fp - (ln - 1.0_DP)*ln*f*fpp)))
+          fppp = (-r0*alpha + mu)*c0 - u*alpha*c1
+          ds = -f/fp
+          ds = -f/(fp + ds*fpp/2.0_DP)
+          ds = -f/(fp + ds*fpp/2.0_DP + ds*ds*fppp/6.0_DP)
           s = s + ds
           fdt = f/dt
           IF (fdt*fdt < DANBYB*DANBYB) THEN
@@ -76,11 +73,11 @@ SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
                RETURN
           END IF
      END DO
-     iflag = 2
+     iflag = 1
 
      RETURN
 
-END SUBROUTINE drift_kepu_lag
+END SUBROUTINE drift_vec_kepu_new
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

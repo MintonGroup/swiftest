@@ -1,12 +1,12 @@
 !**********************************************************************************************************************************
 !
-!  Unit Name   : drift_kepu_guess
+!  Unit Name   : drift_kepu_fchk
 !  Unit Type   : subroutine
 !  Project     : Swiftest
 !  Package     : drift
 !  Language    : Fortran 90/95
 !
-!  Description : Compute initial guess for solving Kepler's equation using universal variables
+!  Description : Computes the value of f, the function whose root we are trying to find in universal variables
 !
 !  Input
 !    Arguments : dt    : time step
@@ -14,59 +14,45 @@
 !                mu    : G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
 !                alpha : twice the binding energy
 !                u     : dot product of position and velocity vectors
+!                s     : universal variable (approximate root of f)
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : s     : initial guess for the value of the universal variable
+!    Arguments : f     : function value
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL drift_kepu_guess(dt, r0, mu, alpha, u, s)
+!  Invocation  : CALL drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
 !
-!  Notes       : Adapted from Hal Levison and Martin Duncan's Swift routine drift_kepu_guess.f
+!  Notes       : Adapted from Martin Duncan's Swift routine drift_kepu_fchk.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
+PURE SUBROUTINE drift_vec_kepu_fchk(dt, r0, mu, alpha, u, s, f)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_guess
+     USE swiftest
+     USE drift_vec, EXCEPT_THIS_ONE => drift_vec_kepu_fchk
      IMPLICIT NONE
 
 ! Arguments
-     REAL(DP), INTENT(IN)  :: dt, r0, mu, alpha, u
-     REAL(DP), INTENT(OUT) :: s
+     REAL(DP), INTENT(IN)  :: dt, r0, mu, alpha, u, s
+     REAL(DP), INTENT(OUT) :: f
 
 ! Internals
-     INTEGER(I4B)        :: iflag
-     REAL(DP), PARAMETER :: THRESH = 0.4_DP, DANBYK = 0.85_DP
-     REAL(DP)            :: y, sy, cy, sigma, es, x, a, en, ec, e
+     REAL(DP) :: x, c0, c1, c2, c3
 
 ! Executable code
-     IF (alpha > 0.0_DP) THEN
-          IF (dt/r0 <= THRESH) THEN
-               s = dt/r0 - (dt*dt*u)/(2.0_DP*r0*r0*r0)
-          ELSE
-               a = mu/alpha
-               en = SQRT(mu/(a*a*a))
-               ec = 1.0_DP - r0/a
-               es = u/(en*a*a)
-               e = SQRT(ec*ec + es*es)
-               y = en*dt - es
-               CALL orbel_scget(y, sy, cy)
-               sigma = SIGN(1.0_DP, es*cy + ec*sy)
-               x = y + sigma*DANBYK*e
-               s = x/SQRT(alpha)
-          END IF
-     ELSE
-          CALL drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
-          IF (iflag /= 0) s = dt/r0
-     END IF
+     x = s*s*alpha
+     CALL drift_vec_kepu_stumpff(x, c0, c1, c2, c3)
+     c1 = c1*s
+     c2 = c2*s*s
+     c3 = c3*s*s*s
+     f = r0*c1 + u*c2 + mu*c3 - dt
 
      RETURN
 
-END SUBROUTINE drift_kepu_guess
+END SUBROUTINE drift_vec_kepu_fchk
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

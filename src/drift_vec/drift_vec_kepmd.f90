@@ -30,11 +30,11 @@
 !                Can do that in calling routine by checking how close (x - ec*s + es*(1.0 - c) - dm) is to zero
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepmd(dm, es, ec, x, s, c)
+PURE SUBROUTINE drift_vec_kepmd(dm, es, ec, x, s, c)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepmd
+     USE swiftest
+     USE drift_vec, EXCEPT_THIS_ONE => drift_kepmd_vec
      IMPLICIT NONE
 
 ! Arguments
@@ -67,7 +67,7 @@ SUBROUTINE drift_kepmd(dm, es, ec, x, s, c)
 
      RETURN
 
-END SUBROUTINE drift_kepmd
+END SUBROUTINE drift_vec_kepmd
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

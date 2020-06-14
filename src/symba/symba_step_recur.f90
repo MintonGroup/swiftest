@@ -76,7 +76,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
      TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
      TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-     type(user_input_parameters), intent(in)          :: param
+     type(swiftest_configuration), intent(in)          :: param
 
 
 
@@ -159,7 +159,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                         ! Determines collisional regime if lfrag=.TRUE. for close encounter planets
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
-                         IF (param%lfragmentation) THEN
+                         IF (config%lfragmentation) THEN
                             CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                                         eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, nplmax, &
                                         ntpmax, fragmax)
@@ -255,7 +255,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                          IF ((plplenc_list%status(i) == ACTIVE) .AND.                                                             &
                              (symba_plA%levelg(index_i) >= ireci) .AND.                                                         &
                              (symba_plA%levelg(index_j) >= ireci))  THEN    
-                              IF (param%lfragmentation) THEN
+                              IF (config%lfragmentation) THEN
                                    CALL symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
                                         eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, nplmax, &
                                         ntpmax, fragmax)

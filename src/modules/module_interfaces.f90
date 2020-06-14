@@ -125,7 +125,7 @@ module module_interfaces
          type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
       end subroutine io_discard_write_symba
 
-      subroutine io_dump_param(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,     &
+      subroutine io_dump_config(nplmax, ntpmax, ntp, t, tstop, dt, in_type, istep_out, outfile, out_type, out_form,     &
          istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, encounter_file,    &
          lextra_force, lbig_discard, lrhill_present, mtiny, lpython)
          use swiftest_globals
@@ -134,7 +134,7 @@ module module_interfaces
          integer(I4B), intent(in) :: nplmax, ntpmax, ntp, istep_out, istep_dump
          real(DP), intent(in)   :: t, tstop, dt, j2rp2, j4rp4, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, mtiny
          character(*), intent(in) :: qmin_coord, encounter_file, in_type, outfile, out_type, out_form
-      end subroutine io_dump_param
+      end subroutine io_dump_config
 
       subroutine io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
          use swiftest_globals
@@ -170,7 +170,7 @@ module module_interfaces
          character(*), intent(in)   :: buffer
       end subroutine io_get_token
 
-      subroutine io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,   &
+      subroutine io_init_config(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile,   &
          out_type, out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,   &
          qmin_ahi, encounter_file, lextra_force, lbig_discard, lrhill_present, mtiny, lpython, lenergy)
          use swiftest_globals
@@ -182,7 +182,7 @@ module module_interfaces
          character(*), intent(in)  :: inparfile
          character(*), intent(out) :: qmin_coord, encounter_file, inplfile, intpfile, in_type, outfile, out_type, out_form, &
                out_stat
-      end subroutine io_init_param
+      end subroutine io_init_config
 
       subroutine io_init_pl(inplfile, in_type, lclose, lrhill_present, npl, symba_plA)
          use swiftest_globals

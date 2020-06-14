@@ -32,7 +32,7 @@ PROGRAM tool_encounter_read
      IMPLICIT NONE
 
 ! Arguments
-   type(user_input_parameters)  :: param    ! derived type containing user-defined parameters
+   type(swiftest_configuration)  :: param    ! derived type containing user-defined parameters
      INTEGER(I4B)      :: nplmax         ! Maximum number of planets
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
@@ -71,34 +71,34 @@ PROGRAM tool_encounter_read
      READ(*,100)inparfile
  100 FORMAT(A)
      inparfile=TRIM(ADJUSTL(inparfile))
-   call param%read_from_file(inparfile)
+   call config%read_from_file(inparfile)
 
    ! temporary until the conversion to the derived type argument list is complete
-   nplmax = param%nplmax
-   ntpmax = param%ntpmax
-   t0 = param%t0
-   tstop = param%tstop
-   dt = param%dt
-   inplfile = param%inplfile
-   intpfile = param%intpfile
-   in_type = param%in_type
-   istep_out = param%istep_out
-   outfile = param%outfile
-   out_type = param%out_type
-   out_form = param%out_form
-   out_stat = param%out_stat
-   istep_dump = param%istep_dump
-   j2rp2 = param%j2rp2
-   j4rp4 = param%j4rp4
-   rmin = param%rmin
-   rmax = param%rmax
-   rmaxu = param%rmaxu
-   qmin = param%qmin
-   qmin_coord = param%qmin_coord
-   qmin_alo = param%qmin_alo
-   qmin_ahi = param%qmin_ahi
-   encounter_file = param%encounter_file
-   mtiny = param%mtiny
+   nplmax = config%nplmax
+   ntpmax = config%ntpmax
+   t0 = config%t0
+   tstop = config%tstop
+   dt = config%dt
+   inplfile = config%inplfile
+   intpfile = config%intpfile
+   in_type = config%in_type
+   istep_out = config%istep_out
+   outfile = config%outfile
+   out_type = config%out_type
+   out_form = config%out_form
+   out_stat = config%out_stat
+   istep_dump = config%istep_dump
+   j2rp2 = config%j2rp2
+   j4rp4 = config%j4rp4
+   rmin = config%rmin
+   rmax = config%rmax
+   rmaxu = config%rmaxu
+   qmin = config%qmin
+   qmin_coord = config%qmin_coord
+   qmin_alo = config%qmin_alo
+   qmin_ahi = config%qmin_ahi
+   encounter_file = config%encounter_file
+   mtiny = config%mtiny
    !^^^^^^^^^^^^^^^^^^^^^^^^^
      ierr=0
      i=0

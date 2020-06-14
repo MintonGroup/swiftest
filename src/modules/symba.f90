@@ -1,5 +1,5 @@
 module symba
-   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Definition of classes and methods specific to the Symplectic Massive Body Algorithm
    !!
@@ -215,10 +215,9 @@ contains
 
    subroutine symba_encounter_dummy_input(self,param) 
       !! This method is needed in order to extend the abstract type swiftest_particle. It does nothing
-      use user
       implicit none
       class(symba_encounter), intent(inout)  :: self  !! SyMBA encounter data structure 
-      type(user_input_parameters),intent(in) :: param !! Input collection of user-defined parameters
+      type(swiftest_configuration),intent(in) :: param !! Input collection of user-defined parameters
       return
    end subroutine symba_encounter_dummy_input
 

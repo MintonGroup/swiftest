@@ -1,12 +1,12 @@
-submodule(user) s_user_get_token
+submodule(swiftest_data_structures) s_io_get_token
 contains
-   module procedure user_get_token
+   module procedure io_get_token
    !! author: David A. Minton
    !!
    !! Retrieves a character token from an input string. Here a token is defined as any set of contiguous non-blank characters not 
    !! beginning with or containing "!". If "!" is present, any remaining part of the buffer including the "!" is ignored
    !!
-   !! Adapted from David E. Kaufmann's Swifter routine user_get_token.f90
+   !! Adapted from David E. Kaufmann's Swifter routine io_get_token.f90
    implicit none
 
    integer(I4B) :: i,ilength
@@ -40,5 +40,5 @@ contains
 
    return
 
-   end procedure user_get_token
-end submodule s_user_get_token
+   end procedure io_get_token
+end submodule s_io_get_token

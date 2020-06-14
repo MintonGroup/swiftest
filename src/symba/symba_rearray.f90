@@ -15,7 +15,7 @@
 !   TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
 !    TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
 !    TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
-!    type(user_input_parameters),intent(in)                    :: param
+!    type(swiftest_configuration),intent(in)                    :: param
 !
 !  Output
 !    Arguments : npl         : number of planets
@@ -47,7 +47,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
      TYPE(swiftest_tp), INTENT(INOUT)                 :: discard_tpA
      TYPE(swiftest_pl), INTENT(INOUT)                 :: discard_plA
      TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list !change to fragadd_list
-     TYPE(user_input_parameters),intent(in)                    :: param
+     TYPE(swiftest_configuration),intent(in)                    :: param
 
 ! Internals
      INTEGER(I4B)                                   :: i, nkpl, nktp, nfrag
@@ -64,7 +64,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         nsppl = COUNT(discard_l_pl)
         nkpl = npl - nsppl
         frag_l_add = [(.FALSE.,i=1,npl)]
-        IF (param%lfragmentation) THEN
+        IF (config%lfragmentation) THEN
             DO i = 1, npl
                 IF (mergeadd_list%status(i) == DISRUPTION) THEN
                     frag_l_add(i) = .TRUE.
@@ -98,7 +98,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
         discard_plA%vb(1,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(1,1:npl), discard_l_pl)
         discard_plA%vb(2,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(2,1:npl), discard_l_pl)
         discard_plA%vb(3,1:nsppl) = PACK(symba_plA%helio%swiftest%vb(3,1:npl), discard_l_pl)
-        IF (param%lfragmentation .AND. (nkpl + nfrag > npl)) THEN 
+        IF (config%lfragmentation .AND. (nkpl + nfrag > npl)) THEN 
             symba_plA%helio%swiftest%name(1:nkpl) = PACK(symba_plA%helio%swiftest%name(1:npl), .NOT. discard_l_pl)
             symba_plA%helio%swiftest%status(1:nkpl) = PACK(symba_plA%helio%swiftest%status(1:npl), .NOT. discard_l_pl)
             symba_plA%helio%swiftest%mass(1:nkpl) = PACK(symba_plA%helio%swiftest%mass(1:npl), .NOT. discard_l_pl)

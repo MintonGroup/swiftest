@@ -1,7 +1,7 @@
 submodule (swiftest_data_structures) s_swiftest_read_pl_in
 contains
    module procedure swiftest_read_pl_in
-   !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Read in massive body data 
    !!
@@ -14,14 +14,14 @@ contains
    logical                 :: is_ascii 
 
    ierr = 0
-   is_ascii = (param%in_type == 'ASCII') 
+   is_ascii = (config%in_type == 'ASCII') 
    if (is_ascii) then
-      open(unit = LUN, file = param%inplfile, status = 'old', form = 'formatted', iostat = ierr)
+      open(unit = LUN, file = config%inplfile, status = 'old', form = 'formatted', iostat = ierr)
    else
-      open(unit = LUN, file = param%inplfile, status = 'old', form = 'unformatted', iostat = ierr)
+      open(unit = LUN, file = config%inplfile, status = 'old', form = 'unformatted', iostat = ierr)
    end if
    if (ierr /=  0) then
-      write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(param%inplfile))
+      write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(config%inplfile))
       return
    end if
 
@@ -40,7 +40,7 @@ contains
       read(LUN, *, iostat = ierr) self%xh(:,1)
       read(LUN, *, iostat = ierr) self%vh(:,1)
       if (ierr /= 0) then
-         write(*,*) 'Error reading central body values in ',trim(adjustl(param%inplfile))
+         write(*,*) 'Error reading central body values in ',trim(adjustl(config%inplfile))
          return
       end if
       do i = 1, NDIM
@@ -54,14 +54,14 @@ contains
       end do
       self%status(1) = ACTIVE
       do i = 2, self%nbody
-         if (param%lrhill_present) then
+         if (config%lrhill_present) then
             read(LUN, *, iostat = ierr) self%name(i), self%mass(i), self%rhill(i)
          else
             read(LUN, *, iostat = ierr) self%name(i), self%mass(i)
             self%rhill(i) = 0.0_dp
          end if
          if (ierr /= 0 ) exit
-         if (param%lclose) then
+         if (config%lclose) then
             read(LUN, *, iostat = ierr) self%radius(i)
             if (ierr /= 0 ) exit
          else
@@ -75,13 +75,13 @@ contains
    else
       read(LUN, iostat = ierr) self%name(:)
       read(LUN, iostat = ierr) self%mass(:)
-      if (param%lrhill_present) then
+      if (config%lrhill_present) then
          read(LUN, iostat = ierr) self%rhill(:)
       else
          self%rhill(:) = 0.0_dp
       end if
       self%status(:) = ACTIVE
-      if (param%lclose) then
+      if (config%lclose) then
          read(LUN, iostat = ierr) self%radius(:)
       else
          self%radius(:) = 0.0_dp
@@ -92,7 +92,7 @@ contains
    end if
    close(unit = LUN)
    if (ierr /= 0 ) then
-      write(*,*) 'Error reading in massive body initial conditions from ',trim(adjustl(param%inplfile))
+      write(*,*) 'Error reading in massive body initial conditions from ',trim(adjustl(config%inplfile))
       call util_exit(FAILURE)
    end if
 

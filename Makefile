@@ -45,7 +45,6 @@
 #******************************************************************************
 
 SWIFTEST_MODULES =   swiftest_globals.f90 \
-                     user.f90 \
                      swiftest_data_structures.f90 \
                      io.f90 \
                      module_swifter.f90 \
@@ -100,11 +99,16 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
+	cd $(SWIFTEST_HOME)/src/drift_vec; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make libdir2
 	cd $(SWIFTEST_HOME)/src/helio; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
+	  make libdir2
 	cd $(SWIFTEST_HOME)/src/io; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -135,11 +139,6 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTEST_HOME)/src/user; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir2
 	cd $(SWIFTEST_HOME)/src/util; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -187,6 +186,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/coord;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/drift_vec;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/helio;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/io;      rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/obl;     rm -f Makefile.Defines Makefile *.gc*
@@ -194,7 +194,6 @@ clean:
 	cd $(SWIFTEST_HOME)/src/rmvs;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/swiftest;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/symba;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTEST_HOME)/src/user;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/tool;    rm -f Makefile.Defines Makefile *.gc*
