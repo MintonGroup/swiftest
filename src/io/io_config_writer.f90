@@ -1,6 +1,6 @@
-submodule(swiftest_data_structures) s_io_udio_writer
+submodule(swiftest_data_structures) s_io_config_writer
 contains
-   module procedure io_udio_writer
+   module procedure io_config_writer
    !! author: David A. Minton
    !!
    !! Dump integration parameters to file
@@ -96,5 +96,5 @@ contains
 
    return
 
-   end procedure io_udio_writer
-end submodule s_io_udio_writer
+   end procedure io_config_writer
+end submodule s_io_config_writer

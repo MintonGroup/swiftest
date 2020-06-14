@@ -104,11 +104,11 @@ module swiftest_data_structures
    contains
       procedure :: read_from_file => io_read_config_in
       procedure :: dump_to_file => io_dump_config
-      procedure :: udio_reader => io_udio_reader
-      procedure :: udio_writer => io_udio_writer
+      procedure :: config_reader => io_config_reader
+      procedure :: config_writer => io_config_writer
       !TODO: Figure out if user-defined derived-type io can be made to work properly
-      !generic   :: read(formatted) => udio_reader
-      !generic   :: write(formatted) => udio_writer
+      !generic   :: read(formatted) => config_reader
+      !generic   :: write(formatted) => config_writer
    end type swiftest_configuration
 
    !> Only the constructor and destructor method implementations are listed here. All other methods are implemented in the swiftest submodules
@@ -283,41 +283,41 @@ module swiftest_data_structures
       end subroutine io_dump_config
 
       !> Interface for type-bound procedure to read in the input parameters from a file
-      module subroutine io_read_config_in(config,inparfile) 
+      module subroutine io_read_config_in(config, inparfile) 
          class(swiftest_configuration),intent(out) :: config     !! Input collection of user-defined parameters
          character(*), intent(in)                  :: inparfile  !! Parameter input file name (i.e. param.in)
       end subroutine io_read_config_in
 
       !> Interface for type-bound procedure to read in the input massive body initial condition file
-      module subroutine io_read_pl_in(config,swiftest_plA) 
-         type(swiftest_configuration),intent(in) :: config  !! Input collection of user-defined parameters
-         type(swiftest_pl), intent(inout)  :: swiftest_plA  !! Swiftest data structure to store massive body initial conditions
+      module subroutine io_read_pl_in(self, config) 
+         class(swiftest_pl), intent(inout)  :: self  !! Swiftest data structure to store massive body initial conditions
+         type(swiftest_configuration), intent(in) :: config  !! Input collection of user-defined parameters
       end subroutine io_read_pl_in
 
       !> Interface for type-bound procedure to read in the input test particle initial condition file
-      module subroutine io_read_tp_in(config,swiftest_tpA) 
-         type(swiftest_configuration),intent(in) :: config  !! Input collection of user-defined parameters
-         type(swiftest_tp), intent(inout)  :: swiftest_tpA  !! Swiftest data structure to store test particle initial conditions
+      module subroutine io_read_tp_in(self, config) 
+         class(swiftest_tp), intent(inout)  :: self  !! Swiftest data structure to store test particle initial conditions
+         type(swiftest_configuration), intent(in) :: config  !! Input collection of user-defined parameters
       end subroutine io_read_tp_in
 
       !> Interface for type-bound procedure for user-defined derived-type IO for reading
-      module subroutine io_udio_reader(config, unit, iotype, v_list, iostat, iomsg) 
-         class(swiftest_configuration),intent(inout)  :: config   !! Input collection of user-defined parameters
+      module subroutine io_config_reader(config, unit, iotype, v_list, iostat, iomsg) 
+         class(swiftest_configuration), intent(inout)  :: config   !! Input collection of user-defined parameters
          integer, intent(in)                    :: unit        
          character(len=*), intent(in)           :: iotype
          integer, intent(in)                    :: v_list(:)
          integer, intent(out)                   :: iostat
          character(len=*), intent(inout)        :: iomsg
-      end subroutine io_udio_reader
+      end subroutine io_config_reader
 
       !> Interface for type-bound procedure for user-defined derived-type IO for writing
-      module subroutine io_udio_writer(config, unit, iotype, v_list, iostat, iomsg) 
+      module subroutine io_config_writer(config, unit, iotype, v_list, iostat, iomsg) 
          class(swiftest_configuration),intent(in)  :: config       !! Output collection of user-defined parameters
          integer, intent(in)                 :: unit        
          character(len=*), intent(in)        :: iotype
          integer, intent(in)                 :: v_list(:)
          integer, intent(out)                :: iostat
          character(len=*), intent(inout)     :: iomsg
-      end subroutine io_udio_writer
+      end subroutine io_config_writer
 
 end module swiftest_data_structures

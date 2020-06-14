@@ -213,11 +213,11 @@ contains
       return
    end subroutine symba_encounter_deallocate
 
-   subroutine symba_encounter_dummy_input(self,param) 
+   subroutine symba_encounter_dummy_input(self,config) 
       !! This method is needed in order to extend the abstract type swiftest_particle. It does nothing
       implicit none
       class(symba_encounter), intent(inout)  :: self  !! SyMBA encounter data structure 
-      type(swiftest_configuration),intent(in) :: param !! Input collection of user-defined parameters
+      type(swiftest_configuration),intent(in) :: config !! Input collection of user-defined parameters
       return
    end subroutine symba_encounter_dummy_input
 

@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_io_udio_reader
+submodule (swiftest_data_structures) s_io_config_reader
 contains
-   module procedure io_udio_reader
+   module procedure io_config_reader
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Read in parameters for the integration
@@ -279,6 +279,6 @@ contains
 
    return 
 
-   end procedure io_udio_reader
+   end procedure io_config_reader
 
-end submodule s_io_udio_reader
+end submodule s_io_config_reader
