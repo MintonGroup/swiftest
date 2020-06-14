@@ -153,14 +153,6 @@ module module_interfaces
          type(swiftest_tp), intent(inout):: swiftest_tpA
       end subroutine io_dump_tp
 
-      subroutine io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
-         use swiftest_globals
-         implicit none
-         integer(I4B), intent(inout) :: nplmax, ntpmax
-         integer(I4B), intent(out)   :: npl, ntp
-         character(*), intent(in)   :: inplfile, intpfile, in_type
-      end subroutine io_getn
-
       subroutine io_get_token(buffer, ilength, ifirst, ilast, ierr)
          use swiftest_globals
          implicit none
