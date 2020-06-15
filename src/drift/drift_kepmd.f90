@@ -33,8 +33,7 @@
 SUBROUTINE drift_kepmd(dm, es, ec, x, s, c)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepmd
+     use swiftest, EXCEPT_THIS_ONE => drift_kepmd
      IMPLICIT NONE
 
 ! Arguments

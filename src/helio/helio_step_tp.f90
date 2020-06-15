@@ -44,9 +44,7 @@ SUBROUTINE helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, he
      xend, ptb, pte)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_step_tp
+     USE swiftest, EXCEPT_THIS_ONE => helio_step_tp
      IMPLICIT NONE
 
 ! Arguments

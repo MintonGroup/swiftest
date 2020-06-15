@@ -29,11 +29,7 @@
 SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
 
 ! Modules
-     USE swiftest_globals
-     USE module_swiftest
-     USE module_helio
-     USE module_symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_drift
+     use swiftest, EXCEPT_THIS_ONE => symba_helio_drift
      IMPLICIT NONE
 
 ! Arguments

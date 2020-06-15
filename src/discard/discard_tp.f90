@@ -39,12 +39,12 @@
 !  Notes       : Adapted from Hal Levison's Swift routine discard.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE discard_tp(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, qmin_coord, lclose,  &
+SUBROUTINE discard_tp(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, &
+     qmin, qmin_alo, qmin_ahi, qmin_coord, lclose,  &
      lrhill_present)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => discard
+     USE swiftest, EXCEPT_THIS_ONE => discard_tp
      IMPLICIT NONE
 
 ! Arguments

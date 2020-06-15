@@ -33,8 +33,7 @@
 SUBROUTINE drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_p3solve
+     use swiftest, EXCEPT_THIS_ONE => drift_kepu_p3solve
      IMPLICIT NONE
 
 ! Arguments

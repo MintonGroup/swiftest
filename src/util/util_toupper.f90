@@ -26,8 +26,7 @@
 SUBROUTINE util_toupper(string)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => util_toupper
+     use swiftest, EXCEPT_THIS_ONE => util_toupper
      IMPLICIT NONE
 
 ! Arguments

@@ -20,8 +20,7 @@
   !       01/26/10 D. Minton - added to SWIFTER and modified types
   !-------------------------------------------------------------------------------------------
 ! Modules
-   USE swiftest
-   USE module_interfaces, EXCEPT_THIS_ONE => util_kahan_sum
+   use swiftest, EXCEPT_THIS_ONE => util_kahan_sum
   implicit none
 
   ! Input/Output variables

@@ -63,10 +63,7 @@ SUBROUTINE symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, nt
      encounter_file, out_type, fragmax, param)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_step_interp
+     use swiftest, EXCEPT_THIS_ONE => symba_step_interp
      IMPLICIT NONE
 
 ! Arguments

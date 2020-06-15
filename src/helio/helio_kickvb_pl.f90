@@ -28,9 +28,7 @@
 SUBROUTINE helio_kickvb(npl, helio_plA, dt)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_kickvb
+     USE swiftest, EXCEPT_THIS_ONE => helio_kickvb
      IMPLICIT NONE
 
 ! Arguments

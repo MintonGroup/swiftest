@@ -31,8 +31,7 @@
 SUBROUTINE discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => discard_pl_close
+     USE swiftest, EXCEPT_THIS_ONE => discard_pl_close
      IMPLICIT NONE
 
 ! Arguments

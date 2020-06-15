@@ -47,10 +47,7 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
      vbs, encounter_file, out_type, npl, symba_plA)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_merge_pl
+     use swiftest, EXCEPT_THIS_ONE => symba_merge_pl
      IMPLICIT NONE
 
 ! Arguments

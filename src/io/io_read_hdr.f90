@@ -35,8 +35,7 @@
 FUNCTION io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => io_read_hdr
+     USE swiftest, EXCEPT_THIS_ONE => io_read_hdr
      IMPLICIT NONE
 
 ! Arguments

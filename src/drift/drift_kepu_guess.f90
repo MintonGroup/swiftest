@@ -30,8 +30,7 @@
 SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_guess
+     use swiftest, EXCEPT_THIS_ONE => drift_kepu_guess
      IMPLICIT NONE
 
 ! Arguments

@@ -28,9 +28,7 @@
 SUBROUTINE symba_user_getacch(t, npl, symba_plA)
 
 ! Modules
-     USE swiftest
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_user_getacch
+     use swiftest, EXCEPT_THIS_ONE => symba_user_getacch
      IMPLICIT NONE
 
 ! Arguments

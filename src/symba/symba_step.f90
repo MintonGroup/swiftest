@@ -66,10 +66,7 @@ SUBROUTINE symba_step(t,dt,param,npl, ntp,symba_plA, symba_tpA,       &
                mergeadd_list, mergesub_list, eoffset, fragmax)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_step
+     use swiftest, EXCEPT_THIS_ONE => symba_step
      IMPLICIT NONE
 
 ! Arguments

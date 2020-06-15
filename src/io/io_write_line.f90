@@ -39,8 +39,7 @@
 SUBROUTINE io_write_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => io_write_line
+     USE swiftest, EXCEPT_THIS_ONE => io_write_line
      IMPLICIT NONE
 
 ! Arguments

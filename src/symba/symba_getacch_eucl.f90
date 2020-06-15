@@ -38,12 +38,7 @@ SUBROUTINE symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2r
      num_plpl_comparisons, k_plpl)
 
 ! Modules
-     USE swiftest_globals
-     USE swiftest_data_structures
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch_eucl
-     !$ USE omp_lib
+     use swiftest, EXCEPT_THIS_ONE => symba_getacch_eucl
      IMPLICIT NONE
 
 ! Arguments

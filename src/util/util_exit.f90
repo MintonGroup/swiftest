@@ -26,8 +26,7 @@
 SUBROUTINE util_exit(code)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => util_exit
+     use swiftest, EXCEPT_THIS_ONE => util_exit
      IMPLICIT NONE
 
 ! Arguments

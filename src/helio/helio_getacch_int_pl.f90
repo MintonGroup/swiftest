@@ -24,12 +24,10 @@
 !  Notes       : Adapted from Hal Levison's Swift routine getacch_ah3.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE helio_getacch_int(npl, helio_plA)
+SUBROUTINE helio_getacch_int_pl(npl, helio_plA)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_getacch_int
+     USE swiftest, EXCEPT_THIS_ONE => helio_getacch_int_pl
      IMPLICIT NONE
 
 ! Arguments
@@ -57,7 +55,7 @@ SUBROUTINE helio_getacch_int(npl, helio_plA)
 
      RETURN
 
-END SUBROUTINE helio_getacch_int
+END SUBROUTINE helio_getacch_int_pl
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

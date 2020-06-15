@@ -28,9 +28,7 @@
 SUBROUTINE helio_kickvb_tp(ntp, helio_tpA, dt)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_kickvb_tp
+     USE swiftest, EXCEPT_THIS_ONE => helio_kickvb_tp
      IMPLICIT NONE
 
 ! Arguments

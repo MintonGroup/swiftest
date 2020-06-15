@@ -37,10 +37,7 @@ SUBROUTINE symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_l
      m1, m2, rad1, rad2, x1, x2, v1, v2)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_caseresolve
+     use swiftest, EXCEPT_THIS_ONE => symba_caseresolve
      IMPLICIT NONE
 
 ! Arguments

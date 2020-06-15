@@ -34,10 +34,7 @@
 SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_helio_getacch
+     use swiftest, EXCEPT_THIS_ONE => symba_helio_getacch
      IMPLICIT NONE
 
 ! Arguments

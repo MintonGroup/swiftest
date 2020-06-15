@@ -32,8 +32,7 @@
 SUBROUTINE symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr, npltpenc)
 
 ! Modules
-     USE swiftest_globals
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_chk_eucl_pltp
+     use swiftest, EXCEPT_THIS_ONE => symba_chk_eucl_pltp
      IMPLICIT NONE
 
 ! Arguments

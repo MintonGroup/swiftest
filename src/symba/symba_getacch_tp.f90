@@ -43,11 +43,7 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
      pltpenc_list)
 
 ! Modules
-     USE swiftest_globals
-     USE module_swiftest
-     USE module_helio
-     USE module_symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_getacch_tp
+     use swiftest, EXCEPT_THIS_ONE => symba_getacch_tp
      IMPLICIT NONE
 
 ! Arguments

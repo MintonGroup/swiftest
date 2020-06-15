@@ -30,8 +30,7 @@
 PURE SUBROUTINE drift_vec_kepu_guess(dt, r0, mu, alpha, u, s)
 
 ! Modules
-     USE swiftest, EXCEPT_THIS_ONE => drift_vec_kepu_guess
-     USE module_interfaces
+     USE swiftest, EXCEPT_THIS_THIS_ONE => drift_vec_kepu_guess
      IMPLICIT NONE
 
 ! Arguments

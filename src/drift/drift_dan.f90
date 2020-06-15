@@ -31,8 +31,7 @@
 SUBROUTINE drift_dan(mu, x0, v0, dt0, iflag)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_dan
+     USE swiftest, EXCEPT_THIS_ONE => drift_dan
      IMPLICIT NONE
 
 ! Arguments

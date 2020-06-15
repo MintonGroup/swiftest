@@ -37,8 +37,7 @@
 SUBROUTINE discard_peri(t, npl, ntp, swiftest_plA, swiftest_tpA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, lrhill_present)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => discard_peri
+     USE swiftest, EXCEPT_THIS_ONE => discard_peri
      IMPLICIT NONE
 
 ! Arguments

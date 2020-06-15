@@ -8,8 +8,6 @@ program swiftest_symba
    !! Reference: Duncan, M. J., Levison, H. F. & Lee, M. H. 1998. Astron. J., 116, 2067.
    use swiftest
 
-   !> The following are temporary until the conversion to the new module structure is complete
-   use module_interfaces
    implicit none
 
    ! Arguments

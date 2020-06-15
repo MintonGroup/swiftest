@@ -47,10 +47,7 @@ SUBROUTINE symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, dt, rmin, rm
      qmin_alo, qmin_ahi, lclose, lrhill_present)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_discard_tp
+     use swiftest, EXCEPT_THIS_ONE => symba_discard_tp
      IMPLICIT NONE
 
 ! Arguments

@@ -32,12 +32,7 @@
 SUBROUTINE symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvdotr, nplplenc)
 
 ! Modules
-     USE swiftest_globals
-     USE module_swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_chk_eucl
-     !$ USE omp_lib
+     use swiftest, EXCEPT_THIS_ONE => symba_chk_eucl
      IMPLICIT NONE
 
 ! Arguments

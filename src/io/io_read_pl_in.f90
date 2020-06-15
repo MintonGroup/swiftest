@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_read_pl_in
+submodule (swiftest_data_structures) s_io_read_pl_in
 contains
-   module procedure swiftest_read_pl_in
+   module procedure io_read_pl_in
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Read in massive body data 
@@ -98,7 +98,7 @@ contains
 
 
    return
-   end procedure swiftest_read_pl_in
+   end procedure io_read_pl_in
 
-end submodule s_swiftest_read_pl_in
+end submodule s_io_read_pl_in
 

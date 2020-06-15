@@ -31,8 +31,7 @@
 SUBROUTINE drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
 
 ! Modules
-     USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_fchk
+     use swiftest, EXCEPT_THIS_ONE => drift_kepu_fchk
      IMPLICIT NONE
 
 ! Arguments

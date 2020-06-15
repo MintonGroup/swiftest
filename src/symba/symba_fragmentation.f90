@@ -36,10 +36,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_fragmentation
+     use swiftest, EXCEPT_THIS_ONE => symba_fragmentation
      IMPLICIT NONE
 
 ! Arguments

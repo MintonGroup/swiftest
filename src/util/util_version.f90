@@ -26,8 +26,7 @@
 SUBROUTINE util_version
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => util_version
+     use swiftest, EXCEPT_THIS_ONE => util_version
      IMPLICIT NONE
 
 ! Executable code

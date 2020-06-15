@@ -47,10 +47,7 @@ SUBROUTINE symba_discard_pl(t, npl, nplmax, nsp, symba_plA, rmin, rmax, rmaxu, q
      qmin_ahi, j2rp2, j4rp4, eoffset)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_discard_pl
+     use swiftest, EXCEPT_THIS_ONE => symba_discard_pl
      IMPLICIT NONE
 
 ! Arguments

@@ -3,7 +3,7 @@ module discard
    interface
 
 
-      subroutine discard_tp(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin,  &
+      subroutine discard_tp(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin,&
          qmin_alo, qmin_ahi, qmin_coord, lclose, lrhill_present)
          use swiftest_globals
          use swiftest_data_structures

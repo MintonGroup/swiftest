@@ -33,10 +33,7 @@
 SUBROUTINE symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn, symba_plA, symba_tpA)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_kick
+     use swiftest, EXCEPT_THIS_ONE => symba_kick
      IMPLICIT NONE
 
 ! Arguments

@@ -33,8 +33,7 @@
 SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => obl_acc
+     USE swiftest, EXCEPT_THIS_ONE => obl_acc
      IMPLICIT NONE
 
 ! Arguments

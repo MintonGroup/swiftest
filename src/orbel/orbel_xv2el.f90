@@ -43,8 +43,7 @@
 SUBROUTINE orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => orbel_xv2el
+     use swiftest, EXCEPT_THIS_ONE => orbel_xv2el
      IMPLICIT NONE
 
 ! Arguments

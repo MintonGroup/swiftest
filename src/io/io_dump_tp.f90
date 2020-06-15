@@ -1,4 +1,3 @@
-!**********************************************************************************************************************************
 !
 !  Unit Name   : io_dump_tp
 !  Unit Type   : subroutine
@@ -29,8 +28,7 @@
 !
 !**********************************************************************************************************************************
 subroutine io_dump_tp(ntp, swiftest_tpa)
-   use swiftest
-   use module_interfaces, except_this_one => io_dump_tp
+   use swiftest, except_this_one => io_dump_tp
    implicit none
 
    integer(I4B), intent(in)            :: ntp

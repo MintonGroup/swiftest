@@ -38,8 +38,7 @@
 SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, encounter_file, out_type)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => io_write_encounter
+     USE swiftest, EXCEPT_THIS_ONE => io_write_encounter
      IMPLICIT NONE
 
 ! Arguments

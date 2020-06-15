@@ -27,8 +27,7 @@
 SUBROUTINE util_sort_sp(arr)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => util_sort_sp
+     use swiftest, EXCEPT_THIS_ONE => util_sort_sp
      IMPLICIT NONE
 
 ! Arguments

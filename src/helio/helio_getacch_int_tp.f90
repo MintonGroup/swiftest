@@ -30,9 +30,8 @@
 SUBROUTINE helio_getacch_int_tp(npl, ntp, swiftest_plA, helio_tpA)
 
 ! Modules
-     USE swiftest
      USE helio
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_getacch_int_tp
+     USE swiftest, EXCEPT_THIS_ONE => helio_getacch_int_tp
      IMPLICIT NONE
 
 ! Arguments

@@ -29,8 +29,7 @@
 pure SUBROUTINE orbel_scget(angle, sx, cx)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => orbel_scget
+     USE swiftest, EXCEPT_THIS_ONE => orbel_scget
      IMPLICIT NONE
 
 ! Arguments

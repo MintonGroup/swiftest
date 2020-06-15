@@ -41,10 +41,7 @@
 SUBROUTINE symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2, j4rp4, dt)
 
 ! Modules
-     USE swiftest
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_step_helio
+     use swiftest, EXCEPT_THIS_ONE => symba_step_helio
      IMPLICIT NONE
 
 ! Arguments

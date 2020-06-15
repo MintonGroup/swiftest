@@ -15,6 +15,7 @@ module swiftest
    use orbel
    use rmvs
    use symba
+   use module_nrutil
 
 
    implicit none

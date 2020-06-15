@@ -39,7 +39,7 @@ SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
 
 ! Modules
      USE swiftest_globals
-     USE drift, EXCEPT_THIS_ONE => drift_kepu_lag
+     use swiftest, EXCEPT_THIS_ONE => drift_kepu_lag
      IMPLICIT NONE
 
 ! Arguments

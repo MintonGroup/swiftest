@@ -33,11 +33,7 @@ SUBROUTINE symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd
     discard_tpA,param)
 
 ! Modules
-     USE swiftest
-     USE module_swiftestalloc 
-     USE helio
-     USE symba
-     USE module_interfaces, EXCEPT_THIS_ONE => symba_rearray
+     use swiftest, EXCEPT_THIS_ONE => symba_rearray
      IMPLICIT NONE
 
 ! Arguments

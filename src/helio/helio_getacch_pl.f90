@@ -33,9 +33,8 @@
 SUBROUTINE helio_getacch(lflag, lextra_force, t, npl, nplmax, helio_plA, j2rp2, j4rp4)
 
 ! Modules
-     USE swiftest
      USE helio
-     USE module_interfaces, EXCEPT_THIS_ONE => helio_getacch
+     USE swiftest, EXCEPT_THIS_ONE => helio_getacch
      IMPLICIT NONE
 
 ! Arguments

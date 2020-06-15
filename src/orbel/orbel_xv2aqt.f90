@@ -35,8 +35,7 @@
 SUBROUTINE orbel_xv2aqt(x, v, mu, a, q, capm, tperi)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => orbel_xv2aqt
+     USE swiftest, EXCEPT_THIS_ONE => orbel_xv2aqt
      IMPLICIT NONE
 
 ! Arguments

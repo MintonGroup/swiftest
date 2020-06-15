@@ -27,12 +27,7 @@
 SUBROUTINE util_resize_pl(symba_plA, npl_new, npl_old)
 
 ! Modules
-     USE swiftest
-     USE symba
-     USE helio
-     USE module_nrutil
-     USE module_swiftestalloc
-     USE module_interfaces, EXCEPT_THIS_ONE => util_resize_pl
+     use swiftest, EXCEPT_THIS_ONE => util_resize_pl
      IMPLICIT NONE
 
 ! Arguments
