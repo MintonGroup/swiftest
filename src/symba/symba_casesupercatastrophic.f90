@@ -174,19 +174,22 @@ SUBROUTINE symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, 
          ! mass of the system aka if it is too small to resolve. If so, add a fragment with a mass of one tenth the total mass 
          ! of the system and calculate its radius.
          IF ((mres(1) < m1m2_10)) THEN
-            frags_added = frags_added + 1
-            nmergeadd = nmergeadd + 1
-            mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
-            mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
-            mergeadd_list%ncomp(nmergeadd) = 2
-            mergeadd_list%mass(nmergeadd) = m1m2_10
-            mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
-               ** (1.0_DP / 3.0_DP)
-            mtot = mtot + mergeadd_list%mass(nmergeadd) 
+            DO i = 1, nfrag
+               frags_added = frags_added + 1
+               nmergeadd = nmergeadd + 1
+               mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+               mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
+               mergeadd_list%ncomp(nmergeadd) = 2
+               mergeadd_list%mass(nmergeadd) = m1m2_10
+               mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
+                  ** (1.0_DP / 3.0_DP)
+               mtot = mtot + mergeadd_list%mass(nmergeadd) 
+            END DO 
+         END  IF
          ! If we are adding the first and largest fragment (lr), check to see if its mass is LARGER than one tenth the total 
          ! mass of the system aka if it is large enough to resolve. If so, its mass and radius should be taken from 
          ! util_regime.
-         ELSE IF ((mres(1) > m1m2_10)) THEN
+         IF ((mres(1) > m1m2_10)) THEN
             frags_added = frags_added + 1
             nmergeadd = nmergeadd + 1
             mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
