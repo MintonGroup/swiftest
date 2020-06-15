@@ -31,8 +31,7 @@
 pure subroutine drift_vec_dan(mu, x0, v0, dt0, iflag)
 
 ! modules
-     use swiftest
-     use drift_vec, except_this_one => drift_vec_dan
+     use swiftest, except_this_one => drift_vec_dan
      implicit none
 
 ! arguments

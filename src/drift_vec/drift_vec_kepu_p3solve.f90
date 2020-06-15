@@ -33,8 +33,7 @@
 PURE SUBROUTINE drift_vec_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
 
 ! Modules
-     USE swiftest
-     USE drift, EXCEPT_THIS_ONE => drift_vec_kepu_p3solve
+     USE swiftest, EXCEPT_THIS_ONE => drift_vec_kepu_p3solve
      IMPLICIT NONE
 
 ! Arguments

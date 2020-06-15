@@ -31,8 +31,7 @@
 PURE SUBROUTINE drift_vec_kepu_stumpff(x, c0, c1, c2, c3)
 
 ! Modules
-     USE swiftest
-     USE drift_vec, EXCEPT_THIS_ONE => drift_vec_kepu_stumpff
+     USE swiftest, EXCEPT_THIS_ONE => drift_vec_kepu_stumpff
      IMPLICIT NONE
 
 ! Arguments

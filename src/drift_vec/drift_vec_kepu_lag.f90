@@ -38,8 +38,7 @@
 PURE SUBROUTINE drift_vec_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
 
 ! Modules
-     USE swiftest
-     USE drift_vec, EXCEPT_THIS_ONE => drift_vec_kepu_lag
+     USE swiftest, EXCEPT_THIS_ONE => drift_vec_kepu_lag
      IMPLICIT NONE
 
 ! Arguments

@@ -1,5 +1,4 @@
 module drift_vec
-use swiftest_globals
 implicit none
 
 interface

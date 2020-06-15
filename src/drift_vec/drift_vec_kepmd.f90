@@ -33,8 +33,7 @@
 PURE SUBROUTINE drift_vec_kepmd(dm, es, ec, x, s, c)
 
 ! Modules
-     USE swiftest
-     USE drift_vec, EXCEPT_THIS_ONE => drift_kepmd_vec
+     USE swiftest, EXCEPT_THIS_ONE => drift_vec_kepmd
      IMPLICIT NONE
 
 ! Arguments

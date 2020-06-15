@@ -77,9 +77,577 @@ module symba
    end type symba_merger 
 
 !> Only the constructor and destructor method implementations are listed here. All other methods are implemented in the symba submodules.
-!interface
+interface
 !! Interfaces for all helio particle methods that are implemented in separate submodules 
-!end interface
+      subroutine symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+         symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         use swiftest_globals
+         implicit none
+         integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+         integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, fragmax
+         real(DP), intent(in)          :: t, dt
+         real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
+         real(DP), dimension(:), intent(inout)     :: mres, rres
+         real(DP), dimension(:), intent(in)     :: vbs
+         real(DP), dimension(:), intent(inout)    :: x1, x2, v1, v2
+         type(symba_plplenc), intent(inout)      :: plplenc_list
+         type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
+         type(symba_pl), intent(inout)      :: symba_plA
+
+      end subroutine symba_casedisruption
+
+      subroutine symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+         symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+         integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, fragmax
+         real(DP), intent(in)          :: t, dt
+         real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
+         real(DP), dimension(:), intent(inout)     :: mres, rres
+         real(DP), dimension(:), intent(in)     :: vbs
+         real(DP), dimension(:), intent(inout)    :: x1, x2, v1, v2
+         type(symba_plplenc), intent(inout)      :: plplenc_list
+         type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
+         type(symba_pl), intent(inout)      :: symba_plA
+
+      end subroutine symba_casehitandrun
+
+      subroutine symba_casemerge (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, npl, &
+         symba_plA, nplplenc, plplenc_list, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in)       :: index_enc
+         integer(I4B), intent(inout)        :: npl, nmergeadd, nmergesub, nplplenc
+         real(DP), intent(in)          :: t
+         real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
+         real(DP), dimension(:), intent(in)     :: vbs
+         real(DP), dimension(:), intent(inout)    :: x1, x2, v1, v2
+         type(symba_plplenc), intent(inout)      :: plplenc_list
+         type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
+         type(symba_pl), intent(inout)      :: symba_plA
+         integer(I4B), dimension(npl), intent(inout)   :: array_index1_child, array_index2_child
+      end subroutine symba_casemerge
+
+      subroutine symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+         npl, symba_plA, nplplenc, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, array_index1_child, &
+         array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+         integer(I4B), intent(inout)        :: npl, nmergeadd, nmergesub, nplplenc, fragmax
+         real(DP), intent(in)          :: t, dt
+         real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
+         real(DP), dimension(:), intent(inout)     :: mres, rres
+         real(DP), dimension(:), intent(in)     :: vbs
+         real(DP), dimension(:), intent(inout)    :: x1, x2, v1, v2
+         type(symba_plplenc), intent(inout)      :: plplenc_list
+         type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
+         type(symba_pl), intent(inout)      :: symba_plA
+         integer(I4B), intent(in)       :: regime
+         integer(I4B), dimension(npl), intent(inout)   :: array_index1_child, array_index2_child
+      end subroutine symba_caseresolve
+
+      subroutine symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
+         symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         use swiftest_globals
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+         integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, fragmax
+         real(DP), intent(in)          :: t, dt
+         real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
+         real(DP), dimension(:), intent(inout)     :: mres, rres
+         real(DP), dimension(:), intent(in)     :: vbs
+         real(DP), dimension(:), intent(inout)    :: x1, x2, v1, v2
+         type(symba_plplenc), intent(inout)      :: plplenc_list
+         type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
+         TYPE(symba_pl), INTENT(INOUT)      :: symba_plA
+      end subroutine symba_casesupercatastrophic
+
+      subroutine symba_chk(xr, vr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         logical(lgt), intent(out)   :: lencounter, lvdotr
+         integer(I4B), intent(in)    :: irec
+         real(DP), intent(in)      :: rhill1, rhill2, dt
+         real(DP), dimension(:), intent(in) :: xr, vr
+      end subroutine symba_chk
+
+      subroutine symba_chk_eucl(num_encounters, k_plpl, symba_plA, dt, lencounter, lvdotr, nplplenc)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         type(symba_pl), intent(in)      :: symba_plA
+         integer(I4B), dimension(num_encounters), intent(out) :: lencounter, lvdotr
+         integer(I4B), intent(in)    :: num_encounters
+         integer(I4B), dimension(2,num_encounters),intent(in)   :: k_plpl
+         real(DP), intent(in)      :: dt
+         integer(I4B), intent(inout)   :: nplplenc
+      end subroutine symba_chk_eucl
+
+      subroutine symba_chk_eucl_pltp(num_encounters, k_pltp, symba_plA, symba_tpA, dt, lencounter, lvdotr, npltpenc)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         type(symba_pl), intent(in)      :: symba_plA
+         type(symba_tp), intent(in)      :: symba_tpA
+         integer(I4B), dimension(num_encounters), intent(out) :: lencounter, lvdotr
+         integer(I4B), intent(in)    :: num_encounters
+         integer(I4B), dimension(2,num_encounters),intent(in)   :: k_pltp
+         real(DP), intent(in)      :: dt
+         integer(I4B), intent(inout)   :: npltpenc
+      end subroutine symba_chk_eucl_pltp
+
+      subroutine symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in)        :: nplplenc
+         integer(I4B), intent(inout)       :: npl
+         real(DP), intent(in)        :: t
+         type(symba_pl)         :: symba_plA
+         type(symba_plplenc), intent(in)      :: plplenc_list
+      end subroutine symba_discard_merge_pl
+
+      subroutine symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         logical(lgt), intent(inout) :: ldiscards
+         integer(I4B), intent(in)   :: npl
+         real(DP), intent(in)   :: t, msys, qmin, qmin_alo, qmin_ahi
+         character(*), intent(in)   :: qmin_coord
+         type(symba_pl), intent(inout)   :: symba_plA
+      end subroutine symba_discard_peri_pl
+
+      subroutine symba_discard_pl(t, npl, nplmax, nsp, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord,   &
+         qmin_alo, qmin_ahi, j2rp2, j4rp4, eoffset)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in)   :: nplmax
+         integer(I4B), intent(inout) :: npl, nsp
+         real(DP), intent(in)   :: t, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, j2rp2, j4rp4
+         real(DP), intent(inout)   :: eoffset
+         character(*), intent(in)   :: qmin_coord
+         type(symba_pl), intent(inout)   :: symba_plA
+      end subroutine symba_discard_pl
+
+      subroutine symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, ldiscards)
+         use swiftest_globals
+         use swiftest_data_structures
+         implicit none
+         logical(lgt), intent(inout) :: ldiscards
+         integer(I4B), intent(in)   :: npl
+         real(DP), intent(in)   :: t, msys, rmin, rmax, rmaxu
+         type(swiftest_pl), intent(inout)   :: swiftest_plA
+      end subroutine symba_discard_sun_pl
+
+      subroutine symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, dt, &
+         rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, lclose, lrhill_present)
+         use swiftest_globals
+         use swiftest_data_structures
+         implicit none
+         logical(lgt), intent(in)   :: lclose, lrhill_present
+         integer(I4B), intent(in)   :: npl
+         integer(I4B), intent(inout) :: ntp, nsp
+         real(DP), intent(in)   :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+         character(*), intent(in)   :: qmin_coord
+         type(symba_pl), intent(inout)   :: symba_plA
+         type(symba_tp), intent(inout)   :: symba_tpA
+      end subroutine symba_discard_tp
+
+      subroutine symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
+         use swiftest_globals
+         use swiftest_data_structures
+         implicit none
+         integer(I4B), intent(in)      :: npl, nplmax
+         real(DP), intent(in)       :: j2rp2, j4rp4
+         real(DP), intent(out)      :: ke, pe, te
+         real(DP), dimension(ndim), intent(out) :: htot
+         type(swiftest_pl), intent(inout)      :: swiftest_plA
+      end subroutine symba_energy
+
+      subroutine symba_fragmentation(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, &
+         mergesub_list, eoffset, vbs, encounter_file, out_type, npl, ntp, &
+         symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
+         nplmax, ntpmax, fragmax)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+         integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
+         integer(I4B), intent(inout)        :: npl, ntp
+         real(DP), intent(in)          :: t, dt
+         real(DP), intent(inout)        :: eoffset
+         real(DP), dimension(ndim), intent(in)     :: vbs
+         character(*), intent(in)       :: encounter_file, out_type
+         type(symba_plplenc), intent(inout)      :: plplenc_list
+         type(symba_pltpenc), intent(inout)      :: pltpenc_list
+         type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
+         type(symba_pl), intent(inout)      :: symba_plA
+         type(symba_tp), intent(inout)      :: symba_tpA
+      end subroutine symba_fragmentation
+
+      subroutine symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+         plplenc_list)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         logical(lgt), intent(in)        :: lextra_force
+         integer(I4B), intent(in)        :: npl, nplm, nplmax, nplplenc
+         real(DP), intent(in)        :: t, j2rp2, j4rp4
+         type(symba_pl), intent(inout)      :: symba_plA
+         type(symba_plplenc), intent(in)      :: plplenc_list
+      end subroutine symba_getacch
+
+      subroutine symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+         xh, j2rp2, j4rp4,  &
+         npltpenc, pltpenc_list)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         logical(lgt), intent(in)        :: lextra_force
+         integer(I4B), intent(in)        :: npl, nplm, nplmax, ntp, ntpmax, npltpenc
+         real(DP), intent(in)        :: t, j2rp2, j4rp4
+         real(DP), dimension(ndim, npl), intent(in)   :: xh
+         type(symba_pl), intent(inout)      :: symba_plA
+         type(symba_tp), intent(inout)      :: symba_tpA
+         type(symba_pltpenc), intent(in)      :: pltpenc_list
+      end subroutine symba_getacch_tp
+
+      subroutine symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+         plplenc_list, num_plpl_comparisons, k_plpl)
+         use swiftest_globals
+         implicit none
+         logical(lgt), intent(in)        :: lextra_force
+         integer(I4B), intent(in)        :: npl, nplm, nplmax, nplplenc, num_plpl_comparisons
+         real(DP), intent(in)        :: t, j2rp2, j4rp4
+         type(symba_pl), intent(inout)      :: symba_plA
+         type(symba_plplenc), intent(in)      :: plplenc_list
+         integer(I4B), dimension(num_plpl_comparisons,2),intent(in) :: k_plpl
+      end subroutine symba_getacch_eucl
+
+      subroutine symba_getacch_tp_eucl(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
+         xh, j2rp2, j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
+         use swiftest_globals
+         implicit none
+         logical(lgt), intent(in)        :: lextra_force
+         integer(I4B), intent(in)        :: npl, nplm, nplmax, ntp, ntpmax, npltpenc, num_pltp_comparisons
+         real(DP), intent(in)        :: t, j2rp2, j4rp4
+         real(DP), dimension(ndim, npl), intent(in)   :: xh
+         type(symba_pl), intent(inout)      :: symba_plA
+         type(symba_tp), intent(inout)      :: symba_tpA
+         type(symba_pltpenc), intent(in)      :: pltpenc_list
+         integer(I4B), dimension(num_pltp_comparisons,2), intent(in) :: k_pltp
+      end subroutine symba_getacch_tp_eucl
+
+      subroutine symba_helio_drift(irec, npl, symba_plA, dt)
+         use swiftest_globals
+         implicit none
+         integer(I4B), intent(in)   :: irec, npl
+         real(DP), intent(in)   :: dt
+         type(symba_pl), intent(inout) :: symba_plA
+      end subroutine symba_helio_drift
+
+      subroutine symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
+         use swiftest_globals
+         implicit none
+         integer(I4B), intent(in)   :: irec, ntp
+         real(DP), intent(in)   :: mu, dt
+         type(symba_tp), intent(inout) :: symba_tpA
+      end subroutine symba_helio_drift_tp
+
+      subroutine symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4)
+         use swiftest_globals
+         use helio
+         implicit none
+         logical(lgt), intent(in)   :: lflag, lextra_force
+         integer(I4B), intent(in)   :: npl, nplm, nplmax
+         real(DP), intent(in)    :: t, j2rp2, j4rp4
+         type(helio_pl), intent(inout)  :: helio_plA
+      end subroutine symba_helio_getacch
+
+      subroutine symba_helio_getacch_int(npl, nplm, helio_plA)
+         use swiftest_globals
+         use helio
+         implicit none
+         integer(I4B), intent(in)   :: npl, nplm
+         type(helio_pl), intent(inout) :: helio_plA
+      end subroutine symba_helio_getacch_int
+
+      subroutine symba_kick(irec, nplplenc, npltpenc, plplenc_list, pltpenc_list, dt, sgn, symba_plA, &
+         symba_tpA)
+         use swiftest_globals
+         implicit none
+         integer(I4B), intent(in)   :: irec, nplplenc, npltpenc
+         real(DP), intent(in)     :: dt, sgn
+         type(symba_plplenc), intent(in) :: plplenc_list
+         type(symba_pltpenc), intent(in) :: pltpenc_list
+         type(symba_pl), intent(inout)   :: symba_plA
+         type(symba_tp), intent(inout)   :: symba_tpA
+      end subroutine symba_kick
+
+      subroutine symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, nmergesub, &
+         mergeadd_list, mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA, &
+         symba_tpA)
+         use swiftest_globals
+         implicit none
+         integer(I4B), intent(in)       :: index_enc, nplplenc
+         integer(I4B), intent(inout)        :: nmergeadd, nmergesub, npl
+         real(DP), intent(in)          :: t, dt
+         real(DP), intent(inout)        :: eoffset
+         real(DP), dimension(ndim), intent(in)     :: vbs
+         character(*), intent(in)       :: encounter_file, out_type
+         type(symba_plplenc), intent(inout)      :: plplenc_list
+         type(symba_merger),  intent(inout)      :: mergeadd_list, mergesub_list
+         type(symba_pl), intent(inout)      :: symba_plA
+         type(symba_tp), intent(inout)      :: symba_tpA
+      end subroutine symba_merge_pl
+
+      subroutine symba_merge_tp(t, dt, index_enc, npltpenc, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)
+         use swiftest_globals
+         use helio
+         implicit none
+         integer(I4B), intent(in)      :: index_enc, npltpenc
+         real(DP), intent(in)       :: t, dt
+         real(DP), dimension(ndim), intent(in)  :: vbs
+         character(*), intent(in)      :: encounter_file, out_type
+         type(symba_pltpenc), intent(inout)   :: pltpenc_list
+         type(symba_pl), intent(inout)      :: symba_plA
+         type(symba_tp), intent(inout)      :: symba_tpA
+      end subroutine symba_merge_tp
+
+      subroutine symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
+         use swiftest_globals
+         implicit none
+         logical(lgt), intent(in)   :: lfirst
+         integer(I4B), intent(in)   :: npl
+         real(DP), intent(in)    :: msys
+         character(*), intent(in)   :: qmin_coord
+         type(symba_pl), intent(inout)  :: symba_plA
+      end subroutine symba_peri
+
+      subroutine symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, &
+         mergeadd_list, discard_plA, discard_tpA, nplmax, j2rp2, j4rp4)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(inout)        :: npl, ntp, nsppl, nsptp, nmergeadd, nplmax !change to fragadd
+         real(DP), intent(in)          :: t, j2rp2, j4rp4
+         type(symba_pl), intent(inout)      :: symba_plA
+         type(symba_tp), intent(inout)      :: symba_tpA
+         type(swiftest_tp), intent(inout)      :: discard_tpA
+         type(swiftest_pl), intent(inout)      :: discard_plA
+         type(symba_merger), intent(inout)     :: mergeadd_list !change to fragadd_list
+
+      end subroutine symba_rearray
+
+      subroutine symba_reorder_pl(npl, symba_plA)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in) :: npl
+         type(symba_pl), intent(inout)  :: symba_plA
+         integer(I4B)         :: i
+         integer(I4B), dimension(:), allocatable   :: index
+         real(DP), dimension(:), allocatable   :: mass
+         real(DP), dimension(:,:), allocatable   :: symba_plwkspa
+         integer(I4B), dimension(:,:), allocatable :: symba_plwkspa_id_status
+      end subroutine symba_reorder_pl
+
+      subroutine symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1p, symba_tp1p, swiftest_pl1p, &
+         swiftest_tp1p)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         integer(I4B), intent(in)         :: npl, ntp
+         type(swiftest_pl), pointer         :: swiftest_pl1p
+         type(swiftest_tp), pointer         :: swiftest_tp1p
+         type(symba_pl), intent(inout) :: symba_plA
+         type(symba_tp), intent(inout) :: symba_tpA
+         type(symba_pl), pointer          :: symba_pl1p
+         type(symba_tp), pointer          :: symba_tp1p
+      end subroutine symba_setup
+
+      subroutine symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,&
+         dt,nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,&
+         mtiny,encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         logical(lgt), intent(in)    :: lextra_force, lclose
+         logical(lgt), intent(inout)   :: lfirst
+         integer(I4B), intent(in)    :: npl, nplmax, ntp, ntpmax
+         integer(I4B), intent(inout)   :: nplplenc, npltpenc, nmergeadd, nmergesub
+         real(DP), intent(in)      :: t, j2rp2, j4rp4, dt, mtiny
+         real(DP), intent(inout)     :: eoffset
+         character(*), intent(in)    :: encounter_file, out_type
+         type(symba_pl), intent(inout)   :: symba_plA
+         type(symba_tp), intent(inout)   :: symba_tpA
+         type(symba_plplenc), intent(inout) :: plplenc_list
+         type(symba_pltpenc), intent(inout) :: pltpenc_list
+         type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+         integer(I4B), intent(in)    :: num_plpl_comparisons, num_pltp_comparisons
+         integer(I4B), dimension(2,num_plpl_comparisons),intent(in) :: k_plpl
+         integer(I4B), dimension(2,num_pltp_comparisons),intent(in) :: k_pltp
+      end subroutine symba_step_eucl
+
+      subroutine symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
+         symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
+         nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
+         fragmax)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         logical(lgt), intent(in)    :: lextra_force, lclose
+         logical(lgt), intent(inout)   :: lfirst
+         integer(I4B), intent(in)    :: npl, nplmax, ntp, ntpmax
+         integer(I4B), intent(inout)   :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
+         real(DP), intent(in)      :: t, j2rp2, j4rp4, dt, mtiny
+         real(DP), intent(inout)     :: eoffset
+         character(*), intent(in)    :: encounter_file, out_type
+         type(symba_pl), intent(inout)   :: symba_plA
+         type(symba_tp), intent(inout)   :: symba_tpA
+         type(symba_plplenc), intent(inout) :: plplenc_list
+         type(symba_pltpenc), intent(inout) :: pltpenc_list
+         type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+      end subroutine symba_step
+
+      ! for testing purposes only _ use with symba_step_test
+      subroutine symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2,   &
+         j4rp4, dt)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         logical(lgt), intent(in)   :: lextra_force
+         logical(lgt), intent(inout)   :: lfirst
+         integer(I4B), intent(in)   :: npl, nplm, nplmax, ntp, ntpmax
+         real(DP), intent(in)   :: t, j2rp2, j4rp4, dt
+         type(helio_pl), intent(inout) :: helio_plA
+         type(helio_tp), intent(inout) :: helio_tpA
+      end subroutine symba_step_helio
+
+      subroutine symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend,   &
+         ptb, pte)
+         use swiftest_globals
+         use swiftest_data_structures
+         use helio
+         implicit none
+         logical(lgt), intent(in)       :: lextra_force
+         logical(lgt), intent(inout)      :: lfirst
+         integer(I4B), intent(in)       :: npl, nplm, nplmax
+         real(DP), intent(in)       :: t, j2rp2, j4rp4, dt
+         real(DP), dimension(ndim, nplm), intent(out) :: xbeg, xend
+         real(DP), dimension(ndim), intent(out)   :: ptb, pte
+         type(helio_pl), intent(inout)     :: helio_plA
+      end subroutine symba_step_helio_pl
+
+      subroutine symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,&
+         j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
+         mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
+         use swiftest_globals
+         use swiftest_data_structures
+         implicit none
+         logical(lgt), intent(in)    :: lextra_force, lclose
+         integer(I4B), intent(in)    :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc, num_pltp_comparisons
+         integer(I4B), intent(inout)   :: nmergeadd, nmergesub
+         real(DP), intent(in)      :: t, j2rp2, j4rp4, dt, mtiny
+         real(DP), intent(inout)     :: eoffset
+         character(*), intent(in)    :: encounter_file, out_type
+         type(symba_pl), intent(inout)   :: symba_plA
+         type(symba_tp), intent(inout)   :: symba_tpA
+         type(symba_plplenc), intent(inout) :: plplenc_list
+         type(symba_pltpenc), intent(inout) :: pltpenc_list
+         type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+         integer(I4B), intent(in)       :: num_plpl_comparisons
+         integer(I4B), dimension(num_plpl_comparisons,2),intent(in) :: k_plpl
+         integer(I4B), dimension(2,num_pltp_comparisons),intent(in) :: k_pltp
+      end subroutine symba_step_interp_eucl
+
+      subroutine symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,   &
+         j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,   &
+         mergesub_list, encounter_file, out_type, fragmax)
+         use swiftest_globals
+         use swiftest_data_structures
+         implicit none
+         logical(lgt), intent(in)    :: lextra_force, lclose
+         integer(I4B), intent(in)    :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc
+         integer(I4B), intent(inout)   :: nmergeadd, nmergesub, fragmax
+         real(DP), intent(in)      :: t, j2rp2, j4rp4, dt, mtiny
+         real(DP), intent(inout)     :: eoffset
+         character(*), intent(in)    :: encounter_file, out_type
+         type(symba_pl), intent(inout)   :: symba_plA
+         type(symba_tp), intent(inout)   :: symba_tpA
+         type(symba_plplenc), intent(inout) :: plplenc_list
+         type(symba_pltpenc), intent(inout) :: pltpenc_list
+         type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+      end subroutine symba_step_interp
+
+      recursive subroutine symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
+         npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, & 
+         out_type, nplmax, ntpmax, fragmax)
+         use swiftest_globals
+         use swiftest_data_structures
+         implicit none
+         logical(lgt), intent(in)    :: lclose
+         integer(I4B), intent(in)    :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
+         integer(I4B), intent(inout)   :: nmergeadd, nmergesub
+         real(DP), intent(in)      :: t, dt0
+         real(DP), intent(inout)     :: eoffset
+         character(*), intent(in)    :: encounter_file, out_type
+         type(symba_pl), intent(inout)   :: symba_plA
+         type(symba_tp), intent(inout)   :: symba_tpA
+         type(symba_plplenc), intent(inout) :: plplenc_list
+         type(symba_pltpenc), intent(inout) :: pltpenc_list
+         type(symba_merger), intent(inout)  :: mergeadd_list, mergesub_list
+      end subroutine symba_step_recur
+
+      subroutine symba_user_getacch(t, npl, symba_plA)
+         use swiftest_globals
+         use swiftest_data_structures
+         implicit none
+         integer(I4B), intent(in)   :: npl
+         real(DP), intent(in)    :: t
+         type(symba_pl), intent(inout):: symba_plA
+      end subroutine symba_user_getacch
+
+      subroutine symba_user_getacch_tp(t, ntp, symba_tpA)
+         use swiftest_globals
+         use swiftest_data_structures
+         implicit none
+         integer(I4B), intent(in)   :: ntp
+         real(DP), intent(in)    :: t
+         type(symba_tp), intent(inout)  :: symba_tpA
+      end subroutine symba_user_getacch_tp
+
+end interface
+
 contains
    !! SyMBA constructor and desctructor methods
    subroutine symba_tp_allocate(self,n)

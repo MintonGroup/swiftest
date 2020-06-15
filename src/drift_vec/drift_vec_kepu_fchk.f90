@@ -31,8 +31,7 @@
 PURE SUBROUTINE drift_vec_kepu_fchk(dt, r0, mu, alpha, u, s, f)
 
 ! Modules
-     USE swiftest
-     USE drift, EXCEPT_THIS_ONE => drift_vec_kepu_fchk
+     USE swiftest, EXCEPT_THIS_ONE => drift_vec_kepu_fchk
      IMPLICIT NONE
 
 ! Arguments
