@@ -12,5 +12,5 @@ contains
       deallocate(self%rhill)
    end if
    return
-   end procedure swiftest_pl_deallocat
+   end procedure swiftest_pl_deallocate
 end submodule s_swiftest_pl_deallocate

@@ -13,4 +13,4 @@ contains
    end if
    return
    end procedure swiftest_particle_deallocate
-end submodule s_swiftst_particle_deallocate
+end submodule s_swiftest_particle_deallocate
