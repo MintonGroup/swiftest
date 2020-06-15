@@ -9,14 +9,11 @@ module procedure helio_lindrift_tp
    !! Adapted from David E. Kaufmann's Swifter routine helio_lindrift_tp.f90
    !! Adapted from Hal Levison's Swift routine helio_lindrift_tp.f
    use swiftest
-   integer(I4B)          :: i
+   integer(I4B)          :: i, ntp
 
-! executable code
-   do i = 1, ntp
-      if (swiftest_tpA%status(i) == ACTIVE) then 
-         swiftest_tpA%xh(:,i) = swiftest_tpA%xh(:,i) + pt(:) * dt
-      end if
-   end do
+   where (helio_tpA%status(1:ntp) == ACTIVE)
+      helio_tpA%xh(:,1:ntp) = helio_tpA%xh(:,1:ntp) + pt(:) * dt
+   end where
 
    return
 

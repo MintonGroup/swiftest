@@ -14,20 +14,20 @@ module procedure helio_step_tp
 ! executable code
    dth = 0.5_DP * dt
    lflag = lfirsttp
-   mu = helio_plA%swiftest%mass(1)
+   mu = helio_plA%mass(1)
    if (lfirsttp) then
-      call coord_vh2vb_tp(ntp, helio_tpA%swiftest, -ptb)
+      call coord_vh2vb_tp(ntp, helio_tpA, -ptb)
       lfirsttp = .false.
    end if
-   call helio_lindrift_tp(ntp, helio_tpA%swiftest, dth, ptb)
-   call helio_getacch_tp(lflag, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xbeg, j2rp2, j4rp4)
+   call helio_lindrift_tp(ntp, helio_tpA, dth, ptb)
+   call helio_getacch_tp(helio_tpA, helio_plA, config, t, lflag)
    lflag = .true.
    call helio_kickvb_tp(ntp, helio_tpA, dth)
-   call helio_drift_tp(ntp, helio_tpA%swiftest, mu, dt)
-   call helio_getacch_tp(lflag, lextra_force, t+dt, npl, nplmax, ntp, ntpmax, helio_plA, helio_tpA, xend, j2rp2, j4rp4)
-   call helio_kickvb_tp(ntp, helio_tpA, dth)
-   call helio_lindrift_tp(ntp, helio_tpA%swiftest, dth, pte)
-   call coord_vb2vh_tp(ntp, helio_tpA%swiftest, -pte)
+   call helio_drift_tp(ntp, helio_tpA, mu, dt)
+   call helio_getacch_tp(helio_tpA, helio_plA, config, t + dt, lflag)
+   call helio_kickvb_tp(helio_tpA, dth)
+   call helio_lindrift_tp(helio_tpA, dth, pte)
+   call coord_vb2vh_tp(helio_tpA, -pte)
 
    return
 

@@ -18,9 +18,8 @@ contains
       lmalloc = .false.
    end if
    lfirsttp = lfirst
-   call helio_step_pl(lfirst, lextra_force, t, npl, nplmax, helio_pl1p, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
-   if (ntp > 0) call helio_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, helio_pl1p, helio_tp1p, j2rp2, j4rp4,   &
-      dt, xbeg, xend, ptb, pte)
+   call helio_step_pl(helio_plA, config, t, dt, lfirst, xbeg, xend, ptb, pte)
+   if (ntp > 0) call helio_step_tp(helio_tpA, helio_plA, config, t, dt, lfirst, xbeg, xend, ptb, pte)
 
    return
 

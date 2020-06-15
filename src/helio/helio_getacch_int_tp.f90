@@ -8,10 +8,12 @@ module procedure helio_getacch_int_tp
    !! Adapted from David E. Kaufmann's Swifter routine helio_getacch_int_tp.f90
    !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
    use swiftest
-   integer(I4B)              :: i, j
+   integer(I4B)              :: i, j, ntp, npl
    real(DP)                  :: r2, fac
    real(DP), dimension(NDIM) :: dx
 
+   ntp = helio_tpA%nbody
+   npl = helio_plA%nbody
    do i = 1, ntp
      if (helio_tpA%status(i) == ACTIVE) then
         do j = 2, npl

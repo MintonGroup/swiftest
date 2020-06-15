@@ -9,21 +9,21 @@ contains
    !! Adapted from Hal Levison's Swift routine helio_getacch.f
    use swiftest
    logical, save                    :: lmalloc = .true.
-   integer(I4B)                     :: i
+   integer(I4B)                     :: i, npl
    real(DP)                       :: r2
    real(DP), dimension(:), allocatable, save    :: irh
    real(DP), dimension(:, :), allocatable, save :: xh, aobl
-   type(helio_pl), intent(inout)          :: helio_plA
 
+   npl = helio_plA%nbody
    if (lflag) then
       do i = 2, npl
          helio_plA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
       end do
-      call helio_getacch_int(npl, helio_plA)
+      call helio_getacch_int_pl(helio_plA)
    end if
-   if (j2rp2 /= 0.0_DP) then
+   if (config%j2rp2 /= 0.0_DP) then
       if (lmalloc) then
-         allocate(xh(ndim, nplmax), aobl(ndim, nplmax), irh(nplmax))
+         allocate(xh(NDIM, config%nplmax), aobl(NDIM, config%nplmax), irh(config%nplmax))
          lmalloc = .false.
       end if
       do i = 2, npl
@@ -31,7 +31,7 @@ contains
          r2 = dot_product(xh(:, i), xh(:, i))
          irh(i) = 1.0_DP / sqrt(r2)
       end do
-      call obl_acc(npl, helio_plA, j2rp2, j4rp4, xh, irh, aobl)
+      call obl_acc(npl, helio_plA, config%j2rp2, config%j4rp4, xh, irh, aobl)
       do i = 2, npl
          helio_plA%ah(:,i) = helio_plA%ahi(:,i) + aobl(:, i) - aobl(:, 1)
       end do
@@ -40,7 +40,7 @@ contains
          helio_plA%ah(:,i) = helio_plA%ahi(:,i)
       end do
    end if
-   if (lextra_force) call helio_user_getacch(t, npl, helio_plA)
+   if (config%lextra_force) call helio_user_getacch(helio_plA, t)
 
    return
 

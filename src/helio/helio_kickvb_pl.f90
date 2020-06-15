@@ -13,10 +13,10 @@ contains
 
    if (config%lvectorize) then
       npl = helio_plA%nbody
-      helio_plA%swiftest%vb(:,2:npl) = helio_plA%swiftest%vb(:,2:npl) + helio_plA%ah(:,2:npl) * dt
+      helio_plA%vb(:,2:npl) = helio_plA%vb(:,2:npl) + helio_plA%ah(:,2:npl) * dt
    else
       do i = 2, npl
-         helio_plA%swiftest%vb(:,i) = helio_plA%swiftest%vb(:,i) + helio_plA%ah(:,i) * dt
+         helio_plA%vb(:,i) = helio_plA%vb(:,i) + helio_plA%ah(:,i) * dt
       end do
    end if
 

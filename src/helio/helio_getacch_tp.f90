@@ -16,32 +16,33 @@ contains
 
 ! executable code
    if (lflag) then
-      if (config%vectorize) then
+      if (config%lvectorize) then
          helio_tpA%ahi(:,:) = 0.0_DP
       else
          do i = 1, ntp
             helio_tpA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
          end do
       end if
-      call helio_getacch_int_tp(npl, ntp, helio_plA, helio_tpA)
+      call helio_getacch_int_tp(helio_plA, helio_tpA)
    end if
-   if (j2rp2 /= 0.0_DP) then
+   if (config%j2rp2 /= 0.0_DP) then
       if (lmalloc) then
-         allocate(aobl(ndim, nplmax), irh(nplmax), xht(ndim, ntpmax), aoblt(ndim, ntpmax), irht(ntpmax))
+         allocate(aobl(NDIM, config%nplmax), irh(config%nplmax), xht(NDIM, config%ntpmax), &
+                     aoblt(NDIM, config%ntpmax), irht(config%ntpmax))
          lmalloc = .false.
       end if
       do i = 2, npl
          r2 = dot_product(xh(:, i), xh(:, i))
          irh(i) = 1.0_DP / sqrt(r2)
       end do
-      call obl_acc(npl, helio_plA, j2rp2, j4rp4, xh, irh, aobl)
+      call obl_acc(npl, helio_plA, config%j2rp2, config%j4rp4, xh, irh, aobl)
       mu = helio_plA%mass(1)
       do i = 1, ntp
          xht(:, i) = helio_tpA%xh(:,i)
          r2 = dot_product(xht(:, i), xht(:, i))
-         irht(i) = 1.0_DP/sqrt(r2)
+         irht(i) = 1.0_DP / sqrt(r2)
       end do
-      call obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, mu)
+      call obl_acc_tp(ntp, xht, config%j2rp2, config%j4rp4, irht, aoblt, mu)
       if (config%lvectorize) then
          helio_tpA%ah(:,:) = helio_tpA%ahi(:,:) + aoblt(:, :) - aobl(:, 1)
       else
@@ -50,7 +51,7 @@ contains
          end do
       end if
    else
-      if (config%vectorize) then
+      if (config%lvectorize) then
          helio_tpA%ah(:,:) = helio_tpA%ahi(:,:)
       else
          do i = 1, ntp
@@ -58,7 +59,7 @@ contains
          end do
       end if
    end if
-   if (lextra_force) call helio_user_getacch_tp(t, ntp, helio_tpA)
+   if (config%lextra_force) call helio_user_getacch_tp(helio_tpA, t)
 
    return
 

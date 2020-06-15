@@ -3,23 +3,23 @@ contains
 module procedure helio_lindrift_pl
    !! author: David A. Minton
    !!
-   !! Perform linear drift of planets due to barycentric momentum of Sun
+   !! Perform linear drift of plAnets due to barycentric momentum of Sun
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_lindrift.f90
    !! Adapted from Hal Levison's Swift routine helio_lindrift.f
    use swiftest
    integer(I4B)          :: i
 
-   real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't play nicely 
+   real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't plAy nicely 
                                      !with openmp's reduction for some reason
 
    pttmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
    do i = 2, npl
-      pttmp(:) = pttmp(:) + swiftest_pla%mass(i)*swiftest_pla%vb(:,i)
+      pttmp(:) = pttmp(:) + helio_plA%mass(i) * helio_plA%vb(:,i)
    end do
-   pttmp(:) = pttmp(:)/swiftest_pla%mass(1)
+   pttmp(:) = pttmp(:) / helio_plA%mass(1)
    do i = 2, npl
-      swiftest_pla%xh(:,i) = swiftest_pla%xh(:,i) + pttmp(:)*dt
+      helio_plA%xh(:,i) = helio_plA%xh(:,i) + pttmp(:) * dt
    end do
    pt(:)=pttmp(:)
 

@@ -8,12 +8,12 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine helio_kickvh_tp.f90
    !! Adapted from Hal Levison's Swift routine kickvh_tp.f
    use swiftest
-   integer(I4B)          :: i
+   integer(I4B)          :: i, ntp
 
-! executable code
-   do i = 1, ntp
-      if (helio_tpa%swiftest%status(i) == active) helio_tpa%swiftest%vb(:,i) = helio_tpa%swiftest%vb(:,i) + helio_tpa%ah(:,i)*dt
-   end do
+   ntp = helio_tpA%nbody
+   where(helio_tpA%status(1:ntp) == ACTIVE)
+      helio_tpA%vb(:,1:ntp) = helio_tpA%vb(:,1:ntp) + helio_tpA%ah(:,1:ntp) * dt
+   endwhere
 
    return
 
