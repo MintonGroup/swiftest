@@ -23,7 +23,7 @@ contains
             helio_tpA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
          end do
       end if
-      call helio_getacch_int_tp(npl, ntp, helio_plA%swiftest, helio_tpA)
+      call helio_getacch_int_tp(npl, ntp, helio_plA, helio_tpA)
    end if
    if (j2rp2 /= 0.0_DP) then
       if (lmalloc) then
@@ -34,10 +34,10 @@ contains
          r2 = dot_product(xh(:, i), xh(:, i))
          irh(i) = 1.0_DP / sqrt(r2)
       end do
-      call obl_acc(npl, helio_plA%swiftest, j2rp2, j4rp4, xh, irh, aobl)
-      mu = helio_plA%swiftest%mass(1)
+      call obl_acc(npl, helio_plA, j2rp2, j4rp4, xh, irh, aobl)
+      mu = helio_plA%mass(1)
       do i = 1, ntp
-         xht(:, i) = helio_tpA%swiftest%xh(:,i)
+         xht(:, i) = helio_tpA%xh(:,i)
          r2 = dot_product(xht(:, i), xht(:, i))
          irht(i) = 1.0_DP/sqrt(r2)
       end do

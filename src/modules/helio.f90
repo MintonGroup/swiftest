@@ -36,13 +36,13 @@ module helio
       end subroutine helio_tp_deallocate
   
       !> Get heliocentric accelration of the test particle
-      module subroutine helio_getacch_tp(helio_tpA, helio_plA, param, t, lflag)
+      module subroutine helio_getacch_tp(helio_tpA, helio_plA, config, t, lflag)
          implicit none
-         class(helio_tp), intent(inout)         :: helio_tpA !! Helio test particle data structure
-         class(helio_pl), optional, intent(in)  :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
-         type(swiftest_configuration),intent(in) :: param     !! Input collection of user-defined parameter
-         real(DP), intent(in)                   :: t         !! Current time. This is passed to the user-defined acceleration function.
-         logical, intent(in)                    :: lflag     !! Logical flag indicating whether to recompute direct cross term accelrations
+         class(helio_tp), intent(inout)          :: helio_tpA !! Helio test particle data structure
+         class(helio_pl), optional, intent(in)   :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
+         type(swiftest_configuration),intent(in) :: config    !! Input collection of user-defined parameter
+         real(DP), intent(in)                    :: t         !! Current time. This is passed to the user-defined acceleration function.
+         logical, intent(in)                     :: lflag     !! Logical flag indicating whether to recompute direct cross term accelrations
       end subroutine helio_getacch_tp
    end interface
 
@@ -75,13 +75,13 @@ module helio
       end subroutine helio_pl_deallocate
 
       !> Get helioctric accelration of massive bodies
-      module subroutine helio_getacch_pl(helio_plA, dummy_helio_plA, param, t, lflag)
+      module subroutine helio_getacch_pl(helio_plA, dummy_helio_plA, config, t, lflag)
          implicit none
-         class(helio_pl), intent(inout)         :: helio_plA       !! Helio massive body particle data structure. 
-         class(helio_pl), optional, intent(in)  :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
-         type(swiftest_configuration),intent(in) :: param           !! Input collection of user-defined parameter
-         real(DP), intent(in)                   :: t               !! Current time. This is passed to the user-defined acceleration function.
-         logical, intent(in)                    :: lflag           !! Logical flag indicating whether to recompute direct cross term accelrations
+         class(helio_pl), intent(inout)          :: helio_plA       !! Helio massive body particle data structure. 
+         class(helio_pl), optional, intent(in)   :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
+         type(swiftest_configuration),intent(in) :: config           !! Input collection of user-defined parameter
+         real(DP), intent(in)                    :: t               !! Current time. This is passed to the user-defined acceleration function.
+         logical, intent(in)                     :: lflag           !! Logical flag indicating whether to recompute direct cross term accelrations
       end subroutine helio_getacch_pl
    end interface
 
@@ -142,45 +142,45 @@ interface
       real(DP), dimension(NDIM), intent(inout) :: pt        !! Negative barycentric velocity of the Sun
    end subroutine helio_lindrift_tp
 
-   module subroutine helio_step(helio_plA, helio_tpA, param, t, dt, lfirst)
+   module subroutine helio_step(helio_plA, helio_tpA, config, t, dt, lfirst)
       implicit none
-      type(helio_pl), intent(inout)          :: helio_plA !! Helio massive body particle data structure. 
-      type(helio_tp), intent(inout)          :: helio_tpA !! Helio test particle data structure
-      type(swiftest_configuration),intent(in) :: param     !! Input collection of user-defined parameter
-      real(DP), intent(in)                   :: t         !! Current time
-      real(DP), intent(in)                   :: dt        !! Stepsiz
-      logical, intent(inout)                 :: lfirst    !! Logical flag indicating whether current invocation is the first 
-                                                          !!     TODO: Replace lfirst with internal flag with save attribute
+      type(helio_pl), intent(inout)           :: helio_plA !! Helio massive body particle data structure. 
+      type(helio_tp), intent(inout)           :: helio_tpA !! Helio test particle data structure
+      type(swiftest_configuration),intent(in) :: config    !! Input collection of user-defined parameter
+      real(DP), intent(in)                    :: t         !! Current time
+      real(DP), intent(in)                    :: dt        !! Stepsiz
+      logical, intent(inout)                  :: lfirst    !! Logical flag indicating whether current invocation is the first 
+                                                           !!     TODO: Replace lfirst with internal flag with save attribute
    end subroutine helio_step
 
-   module subroutine helio_step_pl(helio_plA, dummy_helio_plA, param, t, dt, lfirst, xbeg, xend, ptb, pte)
+   module subroutine helio_step_pl(helio_plA, dummy_helio_plA, config, t, dt, lfirst, xbeg, xend, ptb, pte)
       implicit none
-      class(helio_pl), intent(inout)         :: helio_plA       !! Helio massive body particle data structure.
-      class(helio_pl), optional, intent(in)  :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
-      type(swiftest_configuration),intent(in) :: param           !! Input collection of user-defined parameter
-      real(DP), intent(in)                   :: t               !! Current time
-      real(DP), intent(in)                   :: dt              !! Stepsize
-      logical, intent(inout)                 :: lfirst          !! Logical flag indicating whether current invocation is the first 
-                                                                !!     TODO: Replace lfirst with internal flag with save attribute
-      real(DP), dimension(:), intent(in)     :: ptb             !! Negative barycentric velocity of the Sun at beginning of time step
-      real(DP), dimension(:), intent(in)     :: pte             !! Negative barycentric velocity of the Sun at end of time step
-      real(DP), dimension(:, :), intent(in)  :: xbeg            !! Heliocentric planet positions at beginning of time step
-      real(DP), dimension(:, :), intent(in)  :: xend            !! Heliocentric planet positions at end of time step
+      class(helio_pl), intent(inout)          :: helio_plA       !! Helio massive body particle data structure.
+      class(helio_pl), optional, intent(in)   :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
+      type(swiftest_configuration),intent(in) :: config          !! Input collection of user-defined parameter
+      real(DP), intent(in)                    :: t               !! Current time
+      real(DP), intent(in)                    :: dt              !! Stepsize
+      logical, intent(inout)                  :: lfirst          !! Logical flag indicating whether current invocation is the first 
+                                                                 !!     TODO: Replace lfirst with internal flag with save attribute
+      real(DP), dimension(:), intent(in)      :: ptb             !! Negative barycentric velocity of the Sun at beginning of time step
+      real(DP), dimension(:), intent(in)      :: pte             !! Negative barycentric velocity of the Sun at end of time step
+      real(DP), dimension(:, :), intent(in)   :: xbeg            !! Heliocentric planet positions at beginning of time step
+      real(DP), dimension(:, :), intent(in)   :: xend            !! Heliocentric planet positions at end of time step
    end subroutine helio_step_pl
 
-   module subroutine helio_step_tp(helio_tpA, helio_plA, param, t, dt, lfirst, xbeg, xend, ptb, pte)
+   module subroutine helio_step_tp(helio_tpA, helio_plA,  config, t, dt, lfirst, xbeg, xend, ptb, pte)
       implicit none
-      class(helio_tp), intent(inout)         :: helio_tpA !! Helio test particle data structure.
-      class(helio_pl), optional, intent(in)  :: helio_plA !! Helio massive body particle data structure.
-      type(swiftest_configuration),intent(in) :: param     !! Input collection of user-defined parameter
-      real(DP), intent(in)                   :: t         !! Current time
-      real(DP), intent(in)                   :: dt        !! Stepsize
-      logical, intent(inout)                 :: lfirst    !! Logical flag indicating whether current invocation is the first 
-                                                          !!     TODO: Replace lfirst with internal flag with save attribute
-      real(DP), dimension(:), intent(in)     :: ptb       !! Negative barycentric velocity of the Sun at beginning of time step
-      real(DP), dimension(:), intent(in)     :: pte       !! Negative barycentric velocity of the Sun at end of time step
-      real(DP), dimension(:, :), intent(in)  :: xbeg      !! Heliocentric planet positions at beginning of time step
-      real(DP), dimension(:, :), intent(in)  :: xend      !! Heliocentric planet positions at end of time step
+      class(helio_tp), intent(inout)          :: helio_tpA !! Helio test particle data structure.
+      class(helio_pl), optional, intent(in)   :: helio_plA !! Helio massive body particle data structure.
+      type(swiftest_configuration),intent(in) :: config    !! Input collection of user-defined parameter
+      real(DP), intent(in)                    :: t         !! Current time
+      real(DP), intent(in)                    :: dt        !! Stepsize
+      logical, intent(inout)                  :: lfirst    !! Logical flag indicating whether current invocation is the first 
+                                                           !!     TODO: Replace lfirst with internal flag with save attribute
+      real(DP), dimension(:), intent(in)      :: ptb       !! Negative barycentric velocity of the Sun at beginning of time step
+      real(DP), dimension(:), intent(in)      :: pte       !! Negative barycentric velocity of the Sun at end of time step
+      real(DP), dimension(:, :), intent(in)   :: xbeg      !! Heliocentric planet positions at beginning of time step
+      real(DP), dimension(:, :), intent(in)   :: xend      !! Heliocentric planet positions at end of time step
    end subroutine helio_step_tp
 
    module subroutine helio_user_getacch_pl(helio_plA, t)

@@ -13,11 +13,11 @@ module procedure helio_getacch_int_tp
    real(DP), dimension(NDIM) :: dx
 
    do i = 1, ntp
-     if (helio_tpA%swiftest%status(i) == active) then
+     if (helio_tpA%status(i) == ACTIVE) then
         do j = 2, npl
-           dx(:) = helio_tpA%swiftest%xh(:,i) - swiftest_plA%xh(:,j)
+           dx(:) = helio_tpA%xh(:,i) - helio_plA%xh(:,j)
            r2 = dot_product(dx(:), dx(:))
-           fac = swiftest_plA%mass(j) / (r2 * sqrt(r2))
+           fac = helio_plA%mass(j) / (r2 * sqrt(r2))
            helio_tpA%ahi(:,i) = helio_tpA%ahi(:,i) - fac * dx(:)
         end do
      end if
