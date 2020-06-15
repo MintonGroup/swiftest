@@ -33,13 +33,13 @@
 !    Terminal  : none
 !    File      : none
 !
-!  Invocation  : CALL discard(t, dt, npl, ntp, swifter_pl1P, swifter_tp1P, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi,
+!  Invocation  : CALL discard_tpt, dt, npl, ntp, swifter_pl1P, swifter_tp1P, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi,
 !                             qmin_coord, lclose, lrhill_present)
 !
 !  Notes       : Adapted from Hal Levison's Swift routine discard.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, qmin_coord, lclose,  &
+SUBROUTINE discard_tp(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, qmin_coord, lclose,  &
      lrhill_present)
 
 ! Modules
@@ -71,7 +71,7 @@ SUBROUTINE discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmax
 
      RETURN
 
-END SUBROUTINE discard
+END SUBROUTINE discard_tp
 !**********************************************************************************************************************************
 !
 !  Author(s)   : David E. Kaufmann

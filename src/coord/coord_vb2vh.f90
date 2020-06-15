@@ -27,8 +27,7 @@
 SUBROUTINE coord_vb2vh(npl, swiftest_plA)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => coord_vb2vh
+     USE swiftest, EXCEPT_THIS_ONE => coord_vb2vh
      IMPLICIT NONE
 
 ! Arguments

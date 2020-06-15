@@ -2,7 +2,15 @@ module io
    !! author: David A. Minton
    !! todo: Replace XDR with HDF5 
    !!
-   !! Module containing all input/output subroutine interface blocks 
+   !! Module containing all input/output subroutine interface blocks
+   !! Note: The following io methods are type-bound procedures, and so their interfaces are included in the class definitions
+   !!    io_config_reader        (swiftest_data_structures)
+   !!    io_config_writer        (swiftest_data_structures)
+   !!    io_discard_write_symba  (symba)
+   !!    io_dump_config          (swiftest_data_structures) 
+   !!    io_read_config_in       (swiftest_data_structures)
+   !!    io_read_pl_in           (swiftest_data_structures)
+   !!    io_read_tp_in           (swiftest_data_structures)
    use swiftest_globals
    use swiftest_data_structures
 
@@ -35,22 +43,6 @@ module io
          integer(I4B), intent(in) :: iout_form     !! Output format type (EL, XV,- see swiftest module for symbolic name definitions)
          character(*), intent(in) :: out_type      !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
       end subroutine io_write_hdr
-
-      subroutine io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, nmergesub, symba_plA, & 
-         discard_plA, discard_tpA, mergeadd_list, mergesub_list, fname, lbig_discard)
-         use swiftest_globals
-         use swiftest_data_structures
-         use symba
-         implicit none
-         logical(lgt), intent(in)       :: lbig_discard
-         integer(I4B), intent(in)       :: npl, ntp, nsppl, nsptp, nmergeadd, nmergesub
-         real(DP), intent(in)         :: t, mtiny
-         character(*), intent(in)       :: fname
-         type(symba_pl), intent(inout)      :: symba_plA
-         type(swiftest_tp), intent(inout)      :: discard_tpA
-         type(swiftest_pl), intent(inout)      :: discard_plA
-         type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
-      end subroutine io_discard_write_symba
 
       subroutine io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
          use swiftest_globals

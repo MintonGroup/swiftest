@@ -3,7 +3,7 @@ module discard
    interface
 
 
-      subroutine discard(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin,  &
+      subroutine discard_tp(t, dt, npl, ntp, swiftest_plA, swiftest_tpA, rmin, rmax, rmaxu, qmin,  &
          qmin_alo, qmin_ahi, qmin_coord, lclose, lrhill_present)
          use swiftest_globals
          use swiftest_data_structures
@@ -14,7 +14,7 @@ module discard
          character(*), intent(in)  :: qmin_coord
          type(swiftest_pl), intent(inout) :: swiftest_plA
          type(swiftest_tp), intent(inout) :: swiftest_tpA
-      end subroutine discard
+      end subroutine discard_tp
 
       subroutine discard_peri(t, npl, ntp, swiftest_plA, swiftest_tpA, msys, qmin, qmin_alo, & 
          qmin_ahi, qmin_coord, lrhill_present)

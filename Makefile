@@ -58,7 +58,6 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
                      rmvs.f90 \
                      symba.f90 \
                      util.f90 \
-                     module_interfaces.f90 \
                      swiftest.f90 
 
 include Makefile.Defines

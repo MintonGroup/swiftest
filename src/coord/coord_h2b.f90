@@ -28,8 +28,7 @@
 SUBROUTINE coord_h2b(npl, swiftest_plA, msys)
 
 ! Modules
-     USE swiftest
-     USE module_interfaces, EXCEPT_THIS_ONE => coord_h2b
+     USE swiftest, EXCEPT_THIS_ONE => coord_h2b
      IMPLICIT NONE
 
 ! Arguments
