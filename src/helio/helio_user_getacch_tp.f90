@@ -1,63 +1,15 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : helio_user_getacch_tp
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : helio
-!  Language    : Fortran 90/95
-!
-!  Description : Add user-supplied heliocentric accelerations to test particles
-!
-!  Input
-!    Arguments : t          : time
-!                ntp        : number of active test particles
-!                helio_tp1P : pointer to head of active helio test particle structure linked-list
-!    Terminal  : TBS as needed by user
-!    File      : TBS as needed by user
-!
-!  Output
-!    Arguments : helio_tp1P : pointer to head of active helio test particle structure linked-list
-!    Terminal  : TBS as needed by user
-!    File      : TBS as needed by user
-!
-!  Invocation  : CALL helio_user_getacch_tp(t, ntp, helio_tp1P)
-!
-!  Notes       : 
-!
-!**********************************************************************************************************************************
-SUBROUTINE helio_user_getacch_tp(t, ntp, helio_tpA)
+submodule (helio) s_helio_user_getacch_tp
+contains
+module procedure helio_user_getacch_tp
+   !! author: David A. Minton
+   !!
+   !! Loop through planets and call Danby drift routine
+   !! New vectorized version included
+   !!
+   !! Adapted from David E. Kaufmann's Swifter routine helio_user_getacch_tp.f90
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => helio_user_getacch_tp
-     IMPLICIT NONE
+   ! User-defined method goes here
+   return
 
-! Arguments
-     INTEGER(I4B), INTENT(IN) :: ntp
-     REAL(DP), INTENT(IN)     :: t
-     TYPE(helio_tp), INTENT(INOUT)  :: helio_tpA
-
-! Internals
-
-! Executable code
-
-     RETURN
-
-END SUBROUTINE helio_user_getacch_tp
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure helio_user_getacch_tp
+end submodule s_helio_user_getacch_tp

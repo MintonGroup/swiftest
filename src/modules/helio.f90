@@ -7,6 +7,10 @@ module helio
    use swiftest_data_structures
    implicit none
 
+   !********************************************************************************************************************************
+   !                                    helio_tp class definitions and method interfaces
+   !*******************************************************************************************************************************
+
    !! Helio test particle class
    type, public, extends(swiftest_tp) :: helio_tp
       real(DP), dimension(:,:), allocatable :: ah  !! Total heliocentric acceleration
@@ -16,6 +20,35 @@ module helio
       final :: helio_tp_deallocate
       procedure, public :: get_acch => helio_getacch_tp !! Compute heliocentric accelerations of test particles
    end type helio_tp
+
+   interface
+      !> Helio constructor and desctructor methods
+      module subroutine helio_tp_allocate(self,n)
+         implicit none
+         class(helio_tp), intent(inout) :: self !! Swiftest test particle object
+         integer, intent(in)            :: n    !! Number of test particles to allocate
+      end subroutine helio_tp_allocate
+
+      !> Helio test particle destructor/finalizer
+      subroutine helio_tp_deallocate(self)
+         implicit none
+         type(helio_tp), intent(inout)    :: self
+      end subroutine helio_tp_deallocate
+  
+      !> Get heliocentric accelration of the test particle
+      module subroutine helio_getacch_tp(helio_tpA, helio_plA, param, t, lflag)
+         implicit none
+         class(helio_tp), intent(inout)         :: helio_tpA !! Helio test particle data structure
+         class(helio_pl), optional, intent(in)  :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
+         type(swiftest_configuration),intent(in) :: param     !! Input collection of user-defined parameter
+         real(DP), intent(in)                   :: t         !! Current time. This is passed to the user-defined acceleration function.
+         logical, intent(in)                    :: lflag     !! Logical flag indicating whether to recompute direct cross term accelrations
+      end subroutine helio_getacch_tp
+   end interface
+
+   !********************************************************************************************************************************
+   !                                    helio_pl class definitions and method interfaces
+   !*******************************************************************************************************************************
 
    !! Helio massive body particle class
    type, public, extends(swiftest_pl) :: helio_pl
@@ -27,7 +60,32 @@ module helio
       procedure, public :: get_acch => helio_getacch_pl !! Compute heliocentric accelerations of plAnetss
    end type helio_pl
 
-!> Interfaces for all helio particle methods that are implemented in separate submodules 
+   interface
+      !> Helio massive body constructor method
+      subroutine helio_pl_allocate(self,n)
+         implicit none
+         class(helio_pl), intent(inout)    :: self !! Swiftest test particle object
+         integer, intent(in)                  :: n    !! Number of test particles to allocate
+      end subroutine helio_pl_allocate
+
+      !> Helio massive body destructor/finalizer
+      subroutine helio_pl_deallocate(self)
+         implicit none
+         type(helio_pl), intent(inout)    :: self
+      end subroutine helio_pl_deallocate
+
+      !> Get helioctric accelration of massive bodies
+      module subroutine helio_getacch_pl(helio_plA, dummy_helio_plA, param, t, lflag)
+         implicit none
+         class(helio_pl), intent(inout)         :: helio_plA       !! Helio massive body particle data structure. 
+         class(helio_pl), optional, intent(in)  :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
+         type(swiftest_configuration),intent(in) :: param           !! Input collection of user-defined parameter
+         real(DP), intent(in)                   :: t               !! Current time. This is passed to the user-defined acceleration function.
+         logical, intent(in)                    :: lflag           !! Logical flag indicating whether to recompute direct cross term accelrations
+      end subroutine helio_getacch_pl
+   end interface
+
+!> Interfaces for all non-type bound helio methods that are implemented in separate submodules 
 interface
 
    module subroutine helio_drift_pl(helio_plA, dt, mu, lvectorize)
@@ -45,24 +103,6 @@ interface
       real(DP), optional, intent(in) :: mu         !! G * m1, G = gravitational constant, m1 = mass of central body
       logical, intent(in)            :: lvectorize !! Use vectorized version of this method
    end subroutine helio_drift_tp
-
-   module subroutine helio_getacch_pl(helio_plA, dummy_helio_plA, param, t, lflag)
-      implicit none
-      class(helio_pl), intent(inout)         :: helio_plA       !! Helio massive body particle data structure. 
-      class(helio_pl), optional, intent(in)  :: dummy_helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
-      type(swiftest_configuration),intent(in) :: param           !! Input collection of user-defined parameter
-      real(DP), intent(in)                   :: t               !! Current time. This is passed to the user-defined acceleration function.
-      logical, intent(in)                    :: lflag           !! Logical flag indicating whether to recompute direct cross term accelrations
-   end subroutine helio_getacch_pl
-
-   module subroutine helio_getacch_tp(helio_tpA, helio_plA, param, t, lflag)
-      implicit none
-      class(helio_tp), intent(inout)         :: helio_tpA !! Helio test particle data structure
-      class(helio_pl), optional, intent(in)  :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
-      type(swiftest_configuration),intent(in) :: param     !! Input collection of user-defined parameter
-      real(DP), intent(in)                   :: t         !! Current time. This is passed to the user-defined acceleration function.
-      logical, intent(in)                    :: lflag     !! Logical flag indicating whether to recompute direct cross term accelrations
-   end subroutine helio_getacch_tp
 
    module subroutine helio_getacch_int_pl(helio_plA, dummy_helio_plA)
       implicit none
@@ -158,76 +198,10 @@ end interface
 
 !> Only the constructor and destructor method implementations are listed here. All other methods are implemented in the helio submodules.
    contains
-      !! Helio constructor and desctructor methods
-      subroutine helio_tp_allocate(self,n)
-         !! Helio test particle constructor method
-         implicit none
 
-         class(helio_tp), intent(inout) :: self !! Swiftest test particle object
-         integer, intent(in)            :: n    !! Number of test particles to allocate
 
-         if (self%is_allocated) then
-            write(*,*) 'Helio test particle structure already alllocated'
-            return
-         end if
-         write(*,*) 'Allocating the Swiftest test particle structure'
-         
-         call self%swiftest_tp%alloc(n)
-         if (n <= 0) return
-         allocate(self%ah(NDIM,n))
-         allocate(self%ahi(NDIM,n))
 
-         self%ah(:,:) = 0.0_DP
-         self%ahi(:,:) = 0.0_DP
-         return
-      end subroutine helio_tp_allocate
 
-      subroutine helio_tp_deallocate(self)
-         !! Helio test particle destructor/finalizer
-         implicit none
-
-         type(helio_tp), intent(inout)    :: self
-
-         if (self%is_allocated) then
-            deallocate(self%ah)
-            deallocate(self%ahi)
-         end if
-         return
-      end subroutine helio_tp_deallocate
-
-      subroutine helio_pl_allocate(self,n)
-         !! Helio massive body constructor method
-         implicit none
-
-         class(helio_pl), intent(inout)    :: self !! Swiftest test particle object
-         integer, intent(in)                  :: n    !! Number of test particles to allocate
-
-         if (self%is_allocated) then
-            write(*,*) 'Helio plAnet structure already alllocated'
-            return
-         end if
-         call self%swiftest_pl%alloc(n)
-
-         if (n <= 0) return
-         allocate(self%ah(NDIM,n))
-         allocate(self%ahi(NDIM,n))
-
-         self%ah(:,:) = 0.0_DP
-         self%ahi(:,:) = 0.0_DP
-         return
-      end subroutine helio_pl_allocate
-
-      subroutine helio_pl_deallocate(self)
-         !! Helio massive body destructor/finalizer
-         implicit none
-
-         type(helio_pl), intent(inout)    :: self
-         if (self%is_allocated) then
-            deallocate(self%ah)
-            deallocate(self%ahi)
-         end if
-         return
-      end subroutine helio_pl_deallocate
 
       
 

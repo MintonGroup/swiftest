@@ -1,81 +1,29 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : helio_lindrift
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : helio
-!  Language    : Fortran 90/95
-!
-!  Description : Perform linear drift of planets due to barycentric momentum of Sun
-!
-!  Input
-!    Arguments : npl          : number of planets
-!                swifter_pl1P : pointer to head of Swifter planet structure linked-list
-!                dt           : time step
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : swifter_pl1P : pointer to head of Swifter planet structure linked-list
-!                pt           : negative barycentric velocity of the Sun
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL helio_lindrift(npl, swifter_pl1P, dt, pt)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine helio_lindrift.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE helio_lindrift(npl, swiftest_plA, dt, pt)
+submodule (helio) s_helio_lindrift_pl
+contains
+module procedure helio_lindrift_pl
+   !! author: David A. Minton
+   !!
+   !! Perform linear drift of planets due to barycentric momentum of Sun
+   !!
+   !! Adapted from David E. Kaufmann's Swifter routine helio_lindrift.f90
+   !! Adapted from Hal Levison's Swift routine helio_lindrift.f
+   use swiftest
+   integer(I4B)          :: i
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => helio_lindrift
-     IMPLICIT NONE
+   real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't play nicely 
+                                     !with openmp's reduction for some reason
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)                          :: npl
-     REAL(DP), INTENT(IN)                              :: dt
-     REAL(DP), DIMENSION(NDIM), INTENT(OUT)            :: pt
-     TYPE(swiftest_pl), INTENT(INOUT)    :: swiftest_plA
+   pttmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+   do i = 2, npl
+      pttmp(:) = pttmp(:) + swiftest_pla%mass(i)*swiftest_pla%vb(:,i)
+   end do
+   pttmp(:) = pttmp(:)/swiftest_pla%mass(1)
+   do i = 2, npl
+      swiftest_pla%xh(:,i) = swiftest_pla%xh(:,i) + pttmp(:)*dt
+   end do
+   pt(:)=pttmp(:)
 
-! Internals
-     INTEGER(I4B)              :: i
+   return
 
-! Added by D. Minton
-
-     REAL(DP),DIMENSION(NDIM) :: pttmp !INTENT(OUT) variables don't play nicely 
-                                       !with OpenMP's reduction for some reason
-
-! Executable code
-    
-     pttmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     DO i = 2, npl
-          pttmp(:) = pttmp(:) + swiftest_plA%mass(i)*swiftest_plA%vb(:,i)
-     END DO
-     pttmp(:) = pttmp(:)/swiftest_plA%mass(1)
-     DO i = 2, npl
-          swiftest_plA%xh(:,i) = swiftest_plA%xh(:,i) + pttmp(:)*dt
-     END DO
-     pt(:)=pttmp(:)
-
-     RETURN
-
-END SUBROUTINE helio_lindrift
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure helio_lindrift_pl
+end submodule s_helio_lindrift_pl

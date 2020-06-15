@@ -1,6 +1,6 @@
 submodule (helio) s_helio_drift_pl
 contains
-module procedure helio_drift_pl     
+   module procedure helio_drift_pl     
    !! author: David A. Minton
    !!
    !! Loop through planets and call Danby drift routine
