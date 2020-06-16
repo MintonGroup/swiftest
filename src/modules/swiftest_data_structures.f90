@@ -236,8 +236,6 @@ module swiftest_data_structures
       end subroutine swiftest_pl_deallocate
    end interface
 
-
-
    !********************************************************************************************************************************
    !                                    TEMPORARY OLD SWITER DERIVED TYPE
    !                                    DELETE AFTER TRANSITION IS COMPLETE

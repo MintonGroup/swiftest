@@ -13,8 +13,13 @@ module symba
    real(DP), public, parameter     :: RHSCALE = 6.5_DP
    real(DP), public, parameter     :: RSHELL = 0.48075_DP
 
+   !********************************************************************************************************************************
+   !                                    symba_tp class definitions and method interfaces
+   !*******************************************************************************************************************************
+
+
    !! SyMBA test particle class
-   type, public, extends(helio_tp) :: symba_tp
+   type, public, extends(helio_pl) :: symba_tp
       integer(I4B), dimension(:),     allocatable :: nplenc  !! number of encounters with planets this time step
       integer(I4B), dimension(:),     allocatable :: levelg  !! level at which this particle should be moved
       integer(I4B), dimension(:),     allocatable :: levelm  !! deepest encounter level achieved this time step
@@ -23,13 +28,14 @@ module symba
       final :: symba_tp_deallocate
    end type symba_tp
 
+   !********************************************************************************************************************************
+   !                                    symba_pl class definitions and method interfaces
+   !*******************************************************************************************************************************
+
    !! SyMBA massive body particle class
-   type, public, extends(helio_pl) :: symba_pl
+   type, public, extends(symba_tp) :: symba_pl
       logical, dimension(:),     allocatable :: lmerged      !! flag indicating whether body has merged with another this time step
-      integer(I4B), dimension(:),     allocatable :: nplenc  !! number of encounters with other planets this time step
       integer(I4B), dimension(:),     allocatable :: ntpenc  !! number of encounters with test particles this time step
-      integer(I4B), dimension(:),     allocatable :: levelg  !! level at which this body should be moved
-      integer(I4B), dimension(:),     allocatable :: levelm  !! deepest encounter level achieved this time step
       integer(I4B), dimension(:),     allocatable :: nchild  !! number of children in merger list
       integer(I4B), dimension(:),     allocatable :: index_parent  !! position of the parent of id
       integer(I4B), dimension(:,:),   allocatable :: index_child   !! position of the children of id
@@ -37,6 +43,11 @@ module symba
       procedure :: alloc => symba_pl_allocate
       final :: symba_pl_deallocate
    end type symba_pl
+
+   !********************************************************************************************************************************
+   !                                    symba_encounter class definitions and method interfaces
+   !*******************************************************************************************************************************
+
 
    !! Generic abstract class structure for a SyMBA encounter class
    type, private, extends(swiftest_particle) :: symba_encounter
@@ -47,6 +58,10 @@ module symba
       procedure :: set_from_file => symba_encounter_dummy_input
       final :: symba_encounter_deallocate
    end type symba_encounter
+
+   !********************************************************************************************************************************
+   !                                    symba_plplenc class definitions and method interfaces
+   !*******************************************************************************************************************************
 
    !! Class structure for a planet-planet encounter
    type, public, extends(symba_encounter) :: symba_plplenc
@@ -59,6 +74,10 @@ module symba
       final :: symba_plplenc_deallocate
    end type symba_plplenc
 
+   !********************************************************************************************************************************
+   !                                    symba_pltpenc class definitions and method interfaces
+   !*******************************************************************************************************************************
+
    !! Class structure for a planet-test particle encounter
    type, public, extends(symba_encounter) :: symba_pltpenc
       integer(I4B), dimension(:), allocatable :: indexpl    !! Index position within the main symba structure for the first planet in an encounter
@@ -68,7 +87,11 @@ module symba
       final :: symba_pltpenc_deallocate
    end type symba_pltpenc
 
-   !! Class that 
+   !********************************************************************************************************************************
+   !                                    symba_merger class definitions and method interfaces
+   !********************************************************************************************************************************
+
+   !! Class structure for merger structure
    type, public, extends(swiftest_pl) :: symba_merger
       integer(I4B), dimension(:), allocatable :: index_ps   ! Index position within the main symba structure for the body being merged
    contains

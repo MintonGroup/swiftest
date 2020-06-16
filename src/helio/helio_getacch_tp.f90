@@ -15,11 +15,11 @@ contains
    real(DP), dimension(:, :), allocatable, save :: aobl, xht, aoblt
 
 ! executable code
-   ntp = helio_tpA%nbody
+   ntp = self%nbody
    npl = helio_plA%nbody
    if (lflag) then
-      helio_tpA%ahi(:,:) = 0.0_DP
-      call helio_getacch_int_tp(helio_plA, helio_tpA)
+      self%ahi(:,:) = 0.0_DP
+      call helio_getacch_int_tp(helio_plA, self)
    end if
    if (config%j2rp2 /= 0.0_DP) then
       if (lmalloc) then
@@ -34,16 +34,16 @@ contains
       call obl_acc(helio_plA, config%j2rp2, config%j4rp4, xh, irh, aobl)
       mu = helio_plA%mass(1)
       do i = 1, ntp
-         xht(:, i) = helio_tpA%xh(:,i)
+         xht(:, i) = self%xh(:,i)
          r2 = dot_product(xht(:, i), xht(:, i))
          irht(i) = 1.0_DP / sqrt(r2)
       end do
       call obl_acc_tp(ntp, xht, config%j2rp2, config%j4rp4, irht, aoblt, mu)
-      helio_tpA%ah(:,:) = helio_tpA%ahi(:,:) + aoblt(:, :) - aobl(:, 1)
+      self%ah(:,:) = self%ahi(:,:) + aoblt(:, :) - aobl(:, 1)
    else
-      helio_tpA%ah(:,:) = helio_tpA%ahi(:,:)
+      self%ah(:,:) = self%ahi(:,:)
    end if
-   if (config%lextra_force) call helio_user_getacch_tp(helio_tpA, t)
+   if (config%lextra_force) call helio_user_getacch_tp(self, t)
 
    return
 
