@@ -56,7 +56,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    INTEGER(I4B)                                     :: index1_parent, index2_parent
    INTEGER(I4B)                                     :: name1, name2, nstart
    REAL(DP)                                         :: mtot, msun, avg_d, d_p1, d_p2, semimajor_encounter, e, q, semimajor_inward
-   REAL(DP)                                         :: rhill_p1, rhill_p2, r_circle, theta, radius1, radius2
+   REAL(DP)                                         :: rhill_p1, rhill_p2, r_circle, theta, radius1, radius2, r_smallestcircle
    REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, A, B, v_col
    REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com
    REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag
@@ -145,13 +145,13 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
    rhill_p1 = symba_plA%helio%swiftest%rhill(index1_parent)
    rhill_p2 = symba_plA%helio%swiftest%rhill(index2_parent)
-   r_circle = (rhill_p1 + rhill_p2)
+   r_smallestcircle = (RHSCALE * rhill_p1 + RHSCALE * rhill_p2) / (2.0_DP * sin(PI / 2.0_DP))
 
    ! Check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
    semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
    CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
    ! If they are going to be added interior to this orbit, give a warning
-   IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
+   IF (semimajor_inward > (semimajor_encounter - r_smallestcircle)) THEN
       WRITE(*,*) "WARNING in symba_casedisruption: Timestep is too large to resolve fragments."
    END IF
    ! If not, continue through all possible fragments to be added
@@ -182,6 +182,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
       ! util_regime while it's position and velocity should be calculated on the circle of 
       ! radius r_circle as described above.
       IF ((mres(2) > (1.0_DP / 3.0_DP)*mres(1))) THEN
+         WRITE(*,*) "CASEDISRUPTION 1st IF"
          ! frags_added is the actual number of fragments added to the simulation vs nfrag which is the total possible
          frags_added = frags_added + 1
          nmergeadd = nmergeadd + 1
@@ -192,6 +193,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          mergeadd_list%radius(nmergeadd) = rres(2)
          mtot = mtot + mergeadd_list%mass(nmergeadd)
          DO i = 3, nfrag
+            WRITE(*,*) "CASEDISRUPTION 1st DO"
             frags_added = frags_added + 1
             nmergeadd = nmergeadd + 1
             mergeadd_list%status(nmergeadd) = DISRUPTION
@@ -205,8 +207,10 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          END DO                            
       END IF
 
-      IF ((i == 2) .AND. (mres(2) < (1.0_DP / 3.0_DP)*mres(1))) THEN   
+      IF ((mres(2) < (1.0_DP / 3.0_DP)*mres(1))) THEN
+         WRITE(*,*) "CASEDISRUPTION 2nd IF"   
          DO i = 2, nfrag
+            WRITE(*,*) "CASEDISRUPTION 2nd DO"
             m_rem = (m1 + m2) - mres(1)
             frags_added = frags_added + 1
             nmergeadd = nmergeadd + 1
@@ -271,10 +275,11 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
       ! Calculate the positions of the new fragments in a circle with a radius large enough to space
       ! all fragments apart by a distance of rhill_p1 + rhill_p2
-   r_circle = (rhill_p1 + rhill_p2) / (2.0_DP * sin(PI / frags_added))
+   r_circle = (2.0_DP * rhill_p1 + 2.0_DP * rhill_p2) / (2.0_DP * sin(PI / frags_added))
    theta = (2.0_DP * PI) / frags_added
 
    DO i=1, frags_added
+      WRITE(*,*) "CASEDISRUPTION 3rd DO"
 
          !WRITE(*,*) "CASEDISRUPTION mfrag/mtot", mergeadd_list%mass(nstart + i) / (m1 + m2)
 

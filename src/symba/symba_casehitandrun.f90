@@ -58,8 +58,9 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
    REAL(DP)                                         :: mtot, msun, d_rm, m_rm, r_rm, x_rm, y_rm, z_rm, vx_rm, vy_rm, vz_rm 
    REAL(DP)                                         :: rhill_keep, r_circle, theta, radius1, radius2, e, q, semimajor_encounter
    REAL(DP)                                         :: m_rem, m_test, mass1, mass2, enew, eold, semimajor_inward, A, B, v_col
-   REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com, mass_keep, mass_rm
+   REAL(DP)                                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com, mass_keep, mass_rm, rhill_rm
    REAL(DP)                                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag, rad_keep, rad_rm
+   REAL(DP)                                         :: r_smallestcircle
    REAL(DP), DIMENSION(NDIM)                        :: vnew, xr, mv, xh_keep, xh_rm, vh_keep, vh_rm, l, kk, p
 
    !TEMPORARY
@@ -185,13 +186,14 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
    ! Increment around the circle for positions of fragments
    ! Calculate the positions of the new fragments in a circle of radius rhill_keep
    rhill_keep = symba_plA%helio%swiftest%rhill(index_keep_parent)
-   r_circle = rhill_keep
+   rhill_rm = symba_plA%helio%swiftest%rhill(index_rm_parent)
+   r_smallestcircle = (RHSCALE * rhill_rm + RHSCALE * rhill_keep) / (2.0_DP * sin(PI / 2.0_DP))
 
    ! Check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
    semimajor_inward = ((dt * 32.0_DP) ** 2.0_DP) ** (1.0_DP / 3.0_DP)
    CALL orbel_xv2aeq(x1, v1, msun, semimajor_encounter, e, q)
    ! If they are going to be added interior to this orbit, give a warning
-   IF (semimajor_inward > (semimajor_encounter - r_circle)) THEN
+   IF (semimajor_inward > (semimajor_encounter - r_smallestcircle)) THEN
       WRITE(*,*) "WARNING in symba_casehitandrun: Timestep is too large to resolve fragments."
    END IF
 
@@ -266,6 +268,7 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
    END IF
 
    IF (frags_added > 1) THEN
+         r_circle = (RHSCALE * rhill_keep + RHSCALE * rhill_rm) / (2.0_DP * sin(PI / frags_added))
          theta = (2.0_DP * PI) / (frags_added)
          DO i=1, frags_added
             ! Increment around the circle for positions of fragments
