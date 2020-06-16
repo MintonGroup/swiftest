@@ -146,7 +146,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children
                index1_child = array_index1_child(i)
                mtmp = symba_plA%helio%swiftest%mass(index1_child)
-               denchild = ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_child)**3.0_DP)
+               vchild = ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_child)**3.0_DP)
                vol1 = vol1 + vchild
                IF (mtmp > mmax) THEN
                     mmax = mtmp
