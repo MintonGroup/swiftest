@@ -185,6 +185,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
       ! util_regime while it's position and velocity should be calculated on the circle of 
       ! radius r_circle as described above.
       IF ((mres(2) > (1.0_DP / 3.0_DP)*mres(1))) THEN
+         WRITE(*,*) "CASEDISRUPTION 1st IF"
          ! frags_added is the actual number of fragments added to the simulation vs nfrag which is the total possible
          frags_added = frags_added + 1
          nmergeadd = nmergeadd + 1
@@ -195,6 +196,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          mergeadd_list%radius(nmergeadd) = rres(2)
          mtot = mtot + mergeadd_list%mass(nmergeadd)
          DO i = 3, nfrag
+            WRITE(*,*) "CASEDISRUPTION 1st DO"
             frags_added = frags_added + 1
             nmergeadd = nmergeadd + 1
             mergeadd_list%status(nmergeadd) = DISRUPTION
@@ -208,8 +210,10 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          END DO                            
       END IF
 
-      IF ((i == 2) .AND. (mres(2) < (1.0_DP / 3.0_DP)*mres(1))) THEN   
+      IF ((mres(2) < (1.0_DP / 3.0_DP)*mres(1))) THEN
+         WRITE(*,*) "CASEDISRUPTION 2nd IF"   
          DO i = 2, nfrag
+            WRITE(*,*) "CASEDISRUPTION 2nd DO"
             m_rem = (m1 + m2) - mres(1)
             frags_added = frags_added + 1
             nmergeadd = nmergeadd + 1
@@ -278,6 +282,7 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    theta = (2.0_DP * PI) / frags_added
 
    DO i=1, frags_added
+      WRITE(*,*) "CASEDISRUPTION 3rd DO"
 
          !WRITE(*,*) "CASEDISRUPTION mfrag/mtot", mergeadd_list%mass(nstart + i) / (m1 + m2)
 
