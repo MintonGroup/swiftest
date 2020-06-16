@@ -1,38 +1,36 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : util_version
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : util
-!  Language    : Fortran 90/95
-!
-!  Description : Print program version information to terminal
-!
-!  Input
-!    Arguments : none
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : none
-!    Terminal  : Program version information
-!    File      : none
-!
-!  Invocation  : CALL util_version
-!
-!  Notes       : Adapted from Hal Levison's Swift routine util_version.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE util_version
+submodule (util) s_util_version
+contains
+   module procedure util_version
+   !! author: David A. Minton
+   !!
+   !! Print program version information to terminale
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: util_version.f90
+   use swiftest
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => util_version
-     IMPLICIT NONE
+   write(*, 200) VERSION_NUMBER
+200 format(/, "************* Swiftest: Version ", f3.1, " *************", //, &
+         "Based off of Swifter:", //,                                         &
+         "Authors:", //,                                                      &
+         "    The Purdue University Swiftest Development team ", /,           &
+         "    Lead by David A. Minton ", /,                                   &
+         "    Single loop blocking by Jacob R. Elliott", /,                   &
+         "    Fragmentation by Carlisle A. Wishard and", //,                  &
+         "    Jennifer L. L. Poutplin                 ", //,                  &
+         "Please address comments and questions to:", //,                     &
+         "    David A. Minton", /,                                            &
+         "    Department Earth, Atmospheric, & Planetary Sciences ",/,        &
+         "    Purdue University", /,                                          &
+         "    550 Stadium Mall Drive", /,                                     &
+         "    West Lafayette, Indiana 47907", /,                              &
+         "    765-250-8034 ", /,                                              &
+         "    daminton@purdue.edu", /,                                        &
+         "Special thanks to Hal Levison and Martin Duncan for the original",/,&
+         "SWIFTER and SWIFT codes that made this possible.", //,              &
+         "************************************************", /)
 
-! Executable code
-     WRITE(*, 100) VERSION_NUMBER
- 100 FORMAT(/, "************* SWIFTEST: Version ", F3.1, " *************", //, &
-               "BASED OFF OF SWIFTER:", //,                                                &
+
+100 FORMAT(/,  "************* SWIFTER: Version ", F3.1, " *************", //, &
                "Authors:", //,                                                &
                "    Martin Duncan: Queen's University", /,                    &
                "    Hal Levison  : Southwest Research Institute", //,         &
@@ -48,24 +46,7 @@ SUBROUTINE util_version
                "    kaufmann@boulder.swri.edu (DEK)", //,                     &
                "************************************************", /)
 
-     RETURN
+     return
 
-END SUBROUTINE util_version
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann (Checked by Jennifer Pouplin & Carlisle Wishard)
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure util_version
+end submodule s_util_version

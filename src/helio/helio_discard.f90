@@ -13,5 +13,5 @@ contains
      call helio_tpA%spill(helio_tp_discard)
 
      return
-
-end procedure helio_discard
+     end procedure helio_discard
+end submodule s_helio_discard

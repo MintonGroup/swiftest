@@ -382,47 +382,47 @@ module swiftest_data_structures
    !********************************************************************************************************************************
 
    !> Temporary until the transition to Swiftest is complete
-   TYPE swifter_ptr_arr
-   TYPE(swifter_pl), POINTER :: thisP   ! pointer to current swifter massive body
-   END TYPE swifter_ptr_arr
-   TYPE swifter_ptr_arr_tp
-   TYPE(swifter_tp), POINTER :: thisP   ! pointer to current swifter massive body
-   END TYPE swifter_ptr_arr_tp
-
-   TYPE swifter_pl
-      INTEGER(I4B)              :: id     ! external identifier
-      INTEGER(I4B)              :: status ! status
-      REAL(DP)                  :: mass   ! mass
-      REAL(DP)                  :: radius ! radius
-      REAL(DP)                  :: rhill  ! Hill's sphere radius
-      REAL(DP), DIMENSION(NDIM) :: xh     ! heliocentric position
-      REAL(DP), DIMENSION(NDIM) :: vh     ! heliocentric velocity
-      REAL(DP), DIMENSION(NDIM) :: xb     ! barycentric position
-      REAL(DP), DIMENSION(NDIM) :: vb     ! barycentric velocity
-      TYPE(swifter_pl), POINTER :: prevP  ! pointer to previous massive body
-      TYPE(swifter_pl), POINTER :: nextP  ! pointer to next massive body
-      ! Added by D. Minton
-      ! Used for OpenMP parallelized loops
-      TYPE(swifter_ptr_arr),DIMENSION(:),ALLOCATABLE :: swifter_plPA ! Array of pointers to Swifter massive body structures 
-      !^^^^^^^^^^^^^^^^^^^
-   END TYPE swifter_pl
-
-   TYPE swifter_tp
-      INTEGER(I4B)              :: id     ! external identifier
-      INTEGER(I4B)              :: status ! status
-      INTEGER(I4B)              :: isperi ! perihelion passage flag
-      REAL(DP)                  :: peri   ! perihelion distance
-      REAL(DP)                  :: atp    ! semimajor axis following perihelion passage
-      REAL(DP), DIMENSION(NDIM) :: xh     ! heliocentric position
-      REAL(DP), DIMENSION(NDIM) :: vh     ! heliocentric velocity
-      REAL(DP), DIMENSION(NDIM) :: xb     ! barycentric position
-      REAL(DP), DIMENSION(NDIM) :: vb     ! barycentric velocity
-      TYPE(swifter_tp), POINTER :: prevP  ! pointer to previous test particle
-      TYPE(swifter_tp), POINTER :: nextP  ! pointer to next test particle
-      ! Added by D. Minton
-      ! Used for OpenMP parallelized loops
-      TYPE(swifter_ptr_arr_tp),DIMENSION(:),ALLOCATABLE :: swifter_tpPA ! Array of pointers to Swifter massive body structures 
-      !^^^^^^^^^^^^^^^^^^^
-   END TYPE swifter_tp
-
+   !TYPE swifter_ptr_arr
+   !TYPE(swifter_pl), POINTER :: thisP   ! pointer to current swifter massive body
+   !END TYPE swifter_ptr_arr
+   !TYPE swifter_ptr_arr_tp
+   !TYPE(swifter_tp), POINTER :: thisP   ! pointer to current swifter massive body
+   !END TYPE swifter_ptr_arr_tp
+!
+!   TYPE swifter_pl
+!      INTEGER(I4B)              :: id     ! external identifier
+!      INTEGER(I4B)              :: status ! status
+!      REAL(DP)                  :: mass   ! mass
+!      REAL(DP)                  :: radius ! radius
+!      REAL(DP)                  :: rhill  ! Hill's sphere radius
+!      REAL(DP), DIMENSION(NDIM) :: xh     ! heliocentric position
+!      REAL(DP), DIMENSION(NDIM) :: vh     ! heliocentric velocity
+!      REAL(DP), DIMENSION(NDIM) :: xb     ! barycentric position
+!      REAL(DP), DIMENSION(NDIM) :: vb     ! barycentric velocity
+!      TYPE(swifter_pl), POINTER :: prevP  ! pointer to previous massive body
+!      TYPE(swifter_pl), POINTER :: nextP  ! pointer to next massive body
+!      ! Added by D. Minton
+!      ! Used for OpenMP parallelized loops
+!      TYPE(swifter_ptr_arr),DIMENSION(:),ALLOCATABLE :: swifter_plPA ! Array of pointers to Swifter massive body structures 
+!      !^^^^^^^^^^^^^^^^^^^
+!   END TYPE swifter_pl
+!
+!   TYPE swifter_tp
+!      INTEGER(I4B)              :: id     ! external identifier
+!      INTEGER(I4B)              :: status ! status
+!      INTEGER(I4B)              :: isperi ! perihelion passage flag
+!      REAL(DP)                  :: peri   ! perihelion distance
+!      REAL(DP)                  :: atp    ! semimajor axis following perihelion passage
+!      REAL(DP), DIMENSION(NDIM) :: xh     ! heliocentric position
+!      REAL(DP), DIMENSION(NDIM) :: vh     ! heliocentric velocity
+!      REAL(DP), DIMENSION(NDIM) :: xb     ! barycentric position
+!      REAL(DP), DIMENSION(NDIM) :: vb     ! barycentric velocity
+!      TYPE(swifter_tp), POINTER :: prevP  ! pointer to previous test particle
+!      TYPE(swifter_tp), POINTER :: nextP  ! pointer to next test particle
+!      ! Added by D. Minton
+!      ! Used for OpenMP parallelized loops
+!      TYPE(swifter_ptr_arr_tp),DIMENSION(:),ALLOCATABLE :: swifter_tpPA ! Array of pointers to Swifter massive body structures 
+!      !^^^^^^^^^^^^^^^^^^^
+!   END TYPE swifter_tp
+!
 end module swiftest_data_structures

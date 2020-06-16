@@ -13,12 +13,12 @@ contains
        (config%rmaxu >= 0.0_DP) .or. &
        ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
      call swiftest_plA%h2b()
-     call swiftest_tpA%h2b(swifter_plA)
+     call swiftest_tpA%h2b(swiftest_plA)
    end if
    if ((config%rmin >= 0.0_DP) .or. &
        (config%rmax >= 0.0_DP) .or. &
        (config%rmaxu >= 0.0_DP)) call discard_sun(swiftest_tpA, config, t) 
-   if (qmin >= 0.0_DP) call discard_peri(swiftest_plA, swiftest_tpA, config, t, dt)
+   if (config%qmin >= 0.0_DP) call discard_peri(swiftest_plA, swiftest_tpA, config, t, dt)
    if (config%lclose) call discard_pl(swiftest_plA, swiftest_tpA, config, t, dt) 
 
    return

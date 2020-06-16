@@ -9,17 +9,19 @@ contains
    !! Adapted from Hal Levison's Swift routine discard_peri.f
    use swiftest
    logical, save             :: lfirst = .true.
-   integer(I4B)              :: i, j, ih
+   integer(I4B)              :: i, j, ih, ntp, npl
    real(DP)                  :: r2
    real(DP), dimension(NDIM) :: dx
 
 
+   ntp = swiftest_tpA%nbody
+   npl = swiftest_plA%nbody
    if (lfirst) then
       if (.not. config%lrhill_present) call util_hills(npl, swiftest_plA)
-      call util_peri(lfirst, swiftest_tpA%nbody, swiftest_tpA, swiftest_plA%mass(1), swiftest_plA%msys, config%qmin_coord)
+      call util_peri(lfirst, ntp, swiftest_tpA, swiftest_plA%mass(1), swiftest_plA%msys, config%qmin_coord)
       lfirst = .false.
    else
-      call util_peri(swiftest_tpA, swiftest_plA, config, lfirst)
+      call util_peri(lfirst, ntp, swiftest_tpA, swiftest_plA%mass(1), swiftest_plA%msys, config%qmin_coord)
       do i = 1, ntp
          if (swiftest_tpA%status(i) == ACTIVE) then
             if (swiftest_tpA%isperi(i) == 0) then
@@ -30,9 +32,9 @@ contains
                   if (r2 <= swiftest_plA%rhill(j) * swiftest_plA%rhill(j)) ih = 0
                end do
                if (ih == 1) then
-                  if ((swiftest_tpA%atp(i) >= qmin_alo) .and.    &
-                     (swiftest_tpA%atp(i) <= qmin_ahi) .and.    &           
-                      (swiftest_tpA%peri(i) <= qmin)) then
+                  if ((swiftest_tpA%atp(i) >= config%qmin_alo) .and.    &
+                     (swiftest_tpA%atp(i) <= config%qmin_ahi) .and.    &           
+                      (swiftest_tpA%peri(i) <= config%qmin)) then
                      swiftest_tpA%status(i) = DISCARDED_PERI
                      write(*, *) "Particle ", swiftest_tpA%name(i), " perihelion distance too small at t = ", t
                      swiftest_tpA%ldiscard = .true.

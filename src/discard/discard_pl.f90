@@ -10,12 +10,12 @@ contains
    use swiftest
    implicit none
 
-! internals
-   integer(I4B)              :: i, j, isp
+   integer(I4B)              :: i, j, isp, ntp, npl
    real(DP)                  :: r2min, radius
    real(DP), dimension(ndim) :: dx, dv
 
-! executable code
+   ntp = swiftest_tpA%nbody
+   npl = swiftest_plA%nbody
    do i = 1, ntp
       if (swiftest_tpA%status(i) == ACTIVE) then
          do j = 2, npl
@@ -24,10 +24,10 @@ contains
             radius = swiftest_plA%radius(i)
             call discard_pl_close(dx(:), dv(:), dt, radius * radius, isp, r2min)
             if (isp /= 0) then
-               swiftest_tpA%status(i) = discarded_plr
-               ldiscard = .true.
+               swiftest_tpA%status(i) = DISCARDED_PLR
+               swiftest_plA%ldiscard = .true.
                write(*, *) "Particle ", swiftest_tpA%name(i), " too close to massive body ", swiftest_plA%name(i), " at t = ", t
-               ldiscard_tp = .true.
+               swiftest_tpA%ldiscard = .true.
                exit
             end if
          end do

@@ -44,8 +44,8 @@ module helio
       !> Method to remove the inactive bodies and spill them to a discard object
       module subroutine helio_spill_tp(self,discard)
          implicit none
-         class(helio_tp), intent(inout)    :: self    !! Swiftest test particle object to input
-         class(swiftest_particle), intent(inout)    :: discard !! Discarded body list
+         class(helio_tp), intent(inout)           :: self    !! Swiftest test particle object to input
+         class(swiftest_particle), intent(inout)  :: discard !! Discarded body list
       end subroutine helio_spill_tp
   
    end interface

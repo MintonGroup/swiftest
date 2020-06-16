@@ -1,91 +1,42 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : discard_pl_close
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : discard
-!  Language    : Fortran 90/95
-!
-!  Description : Check to see if a test particle and massive body are having, or will have within the next time step, an encounter such
-!                that the separation distance r is less than some critical radius rcrit (or r**2 < rcrit**2 = r2crit)
-!
-!  Input
-!    Arguments : dx     : relative position of test particle with respect to massive body
-!                dv     : relative velocity of test particle with respect to massive body
-!                dt     : time step
-!                r2crit : square of the boundary of the encounter region
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : iflag  : flag indicating encounter (0 = NO, 1 = YES)
-!                r2min  : square of the smallest predicted separation distance
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine discard_pl_close.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
+submodule (swiftest_data_structures) s_discard_pl_close
+contains
+   module procedure discard_pl_close
+   !! author: David A. Minton
+   !!
+   !!  Check to see if a test particle and massive body are having, or will have within the next time step, an encounter such
+   !!          that the separation distance r is less than some critical radius rcrit (or r**2 < rcrit**2 = r2crit)
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: discard_pl_close.f90
+   !! Adapted from Hal Levison's Swift routine discard_pl_close.f
+   use swiftest
+   real(DP) :: r2, v2, vdotr, tmin
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => discard_pl_close
-     IMPLICIT NONE
+! executable code
+   r2 = dot_product(dx(:), dx(:))
+   if (r2 <= r2crit) then
+      iflag = 1
+   else
+      vdotr = dot_product(dx(:), dv(:))
+      if (vdotr > 0.0_DP) then
+         iflag = 0
+      else
+         v2 = dot_product(dv(:), dv(:))
+         tmin = -vdotr / v2
+         if (tmin < dt) then
+            r2min = r2 - vdotr * vdotr / v2
+         else
+            r2min = r2 + 2 * vdotr * dt + v2 * dt * dt
+         end if
+         r2min = min(r2min, r2)
+         if (r2min <= r2crit) then
+            iflag = 1
+         else
+            iflag = 0
+         end if
+      end if
+   end if
 
-! Arguments
-     INTEGER(I4B), INTENT(OUT)             :: iflag
-     REAL(DP), INTENT(IN)                  :: dt, r2crit
-     REAL(DP), DIMENSION(NDIM), INTENT(IN) :: dx, dv
-     REAL(DP), INTENT(OUT)                 :: r2min
+   return
 
-! Internals
-     REAL(DP) :: r2, v2, vdotr, tmin
-
-! Executable code
-     r2 = DOT_PRODUCT(dx(:), dx(:))
-     IF (r2 <= r2crit) THEN
-          iflag = 1
-     ELSE
-          vdotr = DOT_PRODUCT(dx(:), dv(:))
-          IF (vdotr > 0.0_DP) THEN
-               iflag = 0
-          ELSE
-               v2 = DOT_PRODUCT(dv(:), dv(:))
-               tmin = -vdotr/v2
-               IF (tmin < dt) THEN
-                    r2min = r2 - vdotr*vdotr/v2
-               ELSE
-                    r2min = r2 + 2.0_DP*vdotr*dt + v2*dt*dt
-               END IF
-               r2min = MIN(r2min, r2)
-               IF (r2min <= r2crit) THEN
-                    iflag = 1
-               ELSE
-                    iflag = 0
-               END IF
-          END IF
-     END IF
-
-     RETURN
-
-END SUBROUTINE discard_pl_close
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure discard_pl_close
+end submodule s_discard_pl_close

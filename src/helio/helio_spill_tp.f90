@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_helio_spill_tp
+submodule (helio) s_helio_spill_tp
 contains
    module procedure helio_spill_tp
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -18,9 +18,6 @@ contains
 
    ! Call the spill method for the parent class (the base class in this case)
    call self%swiftest_pl%spill(discard)
-
-   real(DP), dimension(:,:), allocatable :: ah  !! Total heliocentric acceleration
-   real(DP), dimension(:,:), allocatable :: ahi !! Heliocentric acceleration due to interactions
 
    ! Pack the discarded bodies into the discard object
    discard%ah(:)  = pack(self%ah(:),  self%lspill_list)

@@ -7,7 +7,7 @@ contains
    !!
    !! Adapted from David E. Kaufmann's Swifter modules: util_sort_DP.f90
    !! Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,
-   !!      Vetterling, and Flannery, 2nd ed., pp. 1169-7
+   !!      Vetterling, and Flannery, 2nd ed., pp. 1169-70
    use swiftest
    integer(I4B), parameter       :: NN = 15, NSTACK = 50
    real(sp)                :: a, dum
