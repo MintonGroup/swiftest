@@ -44,7 +44,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc, fragmax
+     INTEGER(I4B), INTENT(IN)                         :: npl, nplplenc
+     INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -190,6 +191,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                x2(:) = x2(:) + mtmp*symba_plA%helio%swiftest%xh(:,index2_child)
                v2(:) = v2(:) + mtmp*symba_plA%helio%swiftest%vb(:,index2_child)
           END DO
+          GU = GC / (DU2M**3 / (MU2KG * TU2S**2))
           den2 = den2 / m2
           rad2 = ((3.0_DP * m2) / (den2 * 4.0_DP * PI)) ** (1.0_DP / 3.0_DP)
           x2(:) = x2(:)/m2
@@ -250,8 +252,9 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           mres(2) = Mslr 
           mres(3) = mtot - Mlr - Mslr
           rres(1) = (3.0_DP * mres(1)  / (4.0_DP * PI * dentarg)) *(1.0_DP/3.0_DP)
-          rres(2) = (3.0_DP * mres(2)  / (4.0_DP * PI * denproj)) *(1.0_DP/3.0_DP)
-          rres(3) = (3.0_DP * mres(2)  / (4.0_DP * PI * dentot)) *(1.0_DP/3.0_DP)
+          rres(1) = (3.0_DP * mres(1)  / (4.0_DP * PI * dentarg)) ** (1.0_DP/3.0_DP)
+          rres(2) = (3.0_DP * mres(2)  / (4.0_DP * PI * denproj)) ** (1.0_DP/3.0_DP)
+          rres(3) = (3.0_DP * mres(2)  / (4.0_DP * PI * dentot)) ** (1.0_DP/3.0_DP)
 
           mres(:) = (mres(:) / MU2KG) * GU
           rres(:) = rres(:) / DU2M

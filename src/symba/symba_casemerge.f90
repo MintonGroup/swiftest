@@ -43,8 +43,8 @@ SUBROUTINE symba_casemerge (t, index_enc, nmergeadd, nmergesub, mergeadd_list, m
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc
+     INTEGER(I4B), INTENT(IN)                         :: index_enc, npl, nplplenc
+     INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                             :: t
      REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
      REAL(DP), DIMENSION(:), INTENT(IN)            :: vbs

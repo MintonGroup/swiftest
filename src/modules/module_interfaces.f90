@@ -697,7 +697,8 @@ MODULE module_interfaces
           USE module_symba
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, fragmax
+          INTEGER(I4B), INTENT(IN)                         :: nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
           REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
           REAL(DP), DIMENSION(:), INTENT(INOUT)            :: mres, rres
@@ -719,7 +720,8 @@ MODULE module_interfaces
           USE module_symba
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, fragmax
+          INTEGER(I4B), INTENT(IN)                         :: nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
           REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
           REAL(DP), DIMENSION(:), INTENT(INOUT)            :: mres, rres
@@ -740,8 +742,8 @@ MODULE module_interfaces
           USE module_helio
           USE module_symba
           IMPLICIT NONE
-          INTEGER(I4B), INTENT(IN)                         :: index_enc
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc
+          INTEGER(I4B), INTENT(IN)                         :: index_enc, npl, nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
           REAL(DP), INTENT(IN)                             :: t
           REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
           REAL(DP), DIMENSION(:), INTENT(IN)            :: vbs
@@ -764,7 +766,8 @@ MODULE module_interfaces
           USE module_symba
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc, fragmax
+          INTEGER(I4B), INTENT(IN)                         :: npl, nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
           REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
           REAL(DP), DIMENSION(:), INTENT(INOUT)            :: mres, rres
@@ -789,7 +792,8 @@ MODULE module_interfaces
           USE module_symba
           IMPLICIT NONE
           INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-          INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, fragmax
+          INTEGER(I4B), INTENT(IN)                         :: nplplenc
+          INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
           REAL(DP), INTENT(IN)                             :: t, dt
           REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
           REAL(DP), DIMENSION(:), INTENT(INOUT)            :: mres, rres
@@ -916,7 +920,8 @@ MODULE module_interfaces
                USE module_symba
                IMPLICIT NONE
                INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-               INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc, fragmax
+               INTEGER(I4B), INTENT(IN)                         :: npl,  nplplenc
+               INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
                REAL(DP), INTENT(IN)                             :: t, dt
                REAL(DP), INTENT(INOUT)                          :: eoffset
                REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -1038,8 +1043,8 @@ MODULE module_interfaces
                USE module_helio
                USE module_symba
                IMPLICIT NONE
-               INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
-               INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, npl
+               INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc, npl
+               INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
                REAL(DP), INTENT(IN)                             :: t, dt
                REAL(DP), INTENT(INOUT)                          :: eoffset
                REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -1232,8 +1237,8 @@ MODULE module_interfaces
                use user
                IMPLICIT NONE
                LOGICAL(LGT), INTENT(IN)           :: lclose
-               INTEGER(I4B), INTENT(IN)           :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
-               INTEGER(I4B), INTENT(INOUT)        :: nmergeadd, nmergesub
+               INTEGER(I4B), INTENT(IN)           :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax
+               INTEGER(I4B), INTENT(INOUT)        :: nmergeadd, nmergesub, fragmax
                REAL(DP), INTENT(IN)               :: t, dt0
                REAL(DP), INTENT(INOUT)            :: eoffset
                CHARACTER(*), INTENT(IN)           :: encounter_file, out_type
