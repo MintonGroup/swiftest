@@ -14,7 +14,7 @@ contains
    if (n <= 0) return
 
    if (self%is_allocated) then
-      write(*,*) 'Swiftest massive body structure already alllocated'
+      !write(*,*) 'Swiftest massive body structure already alllocated'
       return
    end if
 

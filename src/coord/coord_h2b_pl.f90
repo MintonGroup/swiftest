@@ -10,14 +10,13 @@ contains
    use swiftest
    integer(I4B)          :: i, npl
    real(DP), dimension(NDIM) :: xtmp, vtmp
+   real(DP) :: msys
 
 ! executable code
-   swiftest_plA%msys = self%mass(1)
    npl = self%nbody
    xtmp(:) = 0.0_DP
    vtmp(:) = 0.0_DP
    do i = 2, npl
-      self%msys = self%msys + self%mass(i)
       xtmp(:) = xtmp(:) + self%mass(i) * self%xh(:,i)
       vtmp(:) = vtmp(:) + self%mass(i) * self%vh(:,i)
    end do

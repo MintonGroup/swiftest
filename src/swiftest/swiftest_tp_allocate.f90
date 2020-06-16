@@ -14,7 +14,7 @@ contains
    if (n <= 0) return
 
    if (self%is_allocated) then
-      write(*,*) 'Swiftest test particle structure already alllocated'
+      !write(*,*) 'Swiftest test particle structure already alllocated'
       return
    end if
    write(*,*) 'Allocating the Swiftest test particle'

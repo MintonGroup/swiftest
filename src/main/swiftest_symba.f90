@@ -107,6 +107,10 @@ program swiftest_symba
    call symba_tpA%set_vec(symba_plA%mass(1),config%dt)
    call symba_plA%set_vec(symba_plA%mass(1),config%dt)
 
+   ! Save system mass to both objects
+   call symba_plA%set_msys(symba_plA)
+   call symba_tpA%set_msys(symba_plA)
+
    !Temporary until everything get switched over
    npl = symba_plA%nbody
    ntp = symba_tpA%nbody

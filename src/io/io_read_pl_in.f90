@@ -96,7 +96,6 @@ contains
       call util_exit(FAILURE)
    end if
 
-
    return
    end procedure io_read_pl_in
 

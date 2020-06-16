@@ -111,17 +111,21 @@ module swiftest_data_structures
    type, public :: swiftest_particle           
       !! Superclass that defines the generic elements of a Swiftest particle 
       !private
-      integer(I4B)                              :: nbody = 0 !! Number of bodies
-      integer(I4B), dimension(:),   allocatable :: name      !! External identifier (hash)
-      integer(I4B), dimension(:),   allocatable :: status    !! Status
-      real(DP),     dimension(:),   allocatable :: mu_vec    !! Vectorized central body mass term used for elemental functions
-      real(DP),     dimension(:),   allocatable :: dt_vec    !! Vectorized stepsize used for elemental functions
-      logical                                   :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
-      real(DP)                                  :: msys      !! Total system mass - used for barycentric coordinate conversion
+      integer(I4B)                            :: nbody = 0 !! Number of bodies
+      integer(I4B), dimension(:), allocatable :: name      !! External identifier (hash)
+      integer(I4B), dimension(:), allocatable :: status    !! Status
+      real(DP),     dimension(:), allocatable :: mu_vec    !! Vectorized central body mass term used for elemental functions
+      real(DP),     dimension(:), allocatable :: dt_vec    !! Vectorized stepsize used for elemental functions
+      logical                                 :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
+      real(DP)                                :: msys = 0.0_DP      !! Total system mass - used for barycentric coordinate conversion
+      logical,      dimension(:), allocatable :: ldiscard  !! Discard flag
+      logical                                 :: lspill = .false. !! Logical flag to determine whether the spilled particle list has been computed
    contains
       procedure, public :: alloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
       procedure, public :: set_from_file => swiftest_read_particle_input_file
       procedure, public :: set_vec => swiftest_set_vec !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: spill => swiftest_particle_spill !! Method to remove the inactive particles and spill them to a discard object 
+      procedure, public :: set_msys => swiftest_set_msys !! Method to set the msys value
       final :: swiftest_particle_deallocate  !! A destructor/finalizer that deallocates everything 
    end type swiftest_particle
 
@@ -149,11 +153,21 @@ module swiftest_data_structures
          real(DP),intent(in) :: dt                        !! Input scalar stepsize
       end subroutine swiftest_set_vec
 
-      !> Basic Swiftest generic particle destructor/finalizer
-      module subroutine swiftest_particle_deallocate(self)
+      !> Basic Swiftest generic particle array condenser
+      module  subroutine swiftest_particle_allocate(self,n)
          implicit none
-         type(swiftest_particle), intent(inout)    :: self !! Generic Swiftest particle object
-      end subroutine swiftest_particle_deallocate
+         class(swiftest_particle), intent(inout) :: self !! Generic Swiftest particle object
+         integer, intent(in)                     :: n    !! Number of particles to allocate space for
+      end subroutine swiftest_particle_allocate
+
+      !> Basic Swiftest generic particle destructor/finalizer
+      module subroutine swiftest_particle_spill(self,discard)
+         implicit none
+         class(swiftest_particle), intent(inout)    :: self    !! Generic Swiftest particle object to input
+         class(swiftest_particle), intent(inout)    :: discard !! Discarded body list
+      end subroutine swiftest_particle_spill
+
+
 
    end interface
 
@@ -174,10 +188,11 @@ module swiftest_data_structures
    contains
       procedure, public :: alloc => swiftest_tp_allocate
       procedure, public :: set_from_file => io_read_tp_in 
-      final :: swiftest_tp_deallocate
+      procedure, public :: spill => swiftest_tp_spill !! Method to remove the inactive test particles and spill them to a discard object 
       procedure, public :: h2b => coord_h2b_tp
       procedure, public :: vb2vh => coord_vb2vh_tp
       procedure, public :: vh2vb => coord_vh2vb_tp
+      final :: swiftest_tp_deallocate
    end type swiftest_tp
 
    !> Interfaces type-bound procedures for swiftest_tp class
@@ -194,6 +209,13 @@ module swiftest_data_structures
          class(swiftest_tp), intent(inout)  :: self         !! Swiftest data structure to store test particle initial conditions
          type(swiftest_configuration), intent(in) :: config !! User-defined configuration parameters
       end subroutine io_read_tp_in
+
+      !> Basic Swiftest generic particle destructor/finalizer
+      module subroutine swiftest_tp_spill(self,discard)
+         implicit none
+         class(swiftest_tp), intent(inout)    :: self    !! Swiftest test particle object to input
+         class(swiftest_tp), intent(inout)    :: discard !! Discarded body list
+      end subroutine swiftest_tp_spill
 
       !> Basic Swiftest test particle destructor/finalizer
       module subroutine swiftest_tp_deallocate(self)
@@ -215,10 +237,11 @@ module swiftest_data_structures
    contains
       procedure, public :: alloc => swiftest_pl_allocate
       procedure, public :: set_from_file => io_read_pl_in 
-      final :: swiftest_pl_deallocate
+      procedure, public :: spill => swiftest_pl_spill !! Method to remove the inactive massive bodies and spill them to a discard object 
       procedure, public :: h2b => coord_h2b_pl
       procedure, public :: vb2vh => coord_vb2vh_pl
       procedure, public :: vh2vb => coord_vh2vb_pl
+      final :: swiftest_pl_deallocate
    end type swiftest_pl
 
    !> Interfaces type-bound procedures for swiftest_pl class
@@ -237,11 +260,25 @@ module swiftest_data_structures
          type(swiftest_configuration), intent(in) :: config !! Input collection of user-defined parameters
       end subroutine io_read_pl_in
 
+            !> Basic Swiftest generic particle destructor/finalizer
+      module subroutine swiftest_pl_spill(self,discard)
+         implicit none
+         class(swiftest_pl), intent(inout)    :: self    !! Swiftest massive body particle object to input
+         class(swiftest_pl), intent(inout)    :: discard !! Discarded body list
+      end subroutine swiftest_pl_spill
+
       !> Basic Swiftest massive body destructor/finalizer
       module subroutine swiftest_pl_deallocate(self)
          implicit none
          type(swiftest_pl), intent(inout)    :: self
       end subroutine swiftest_pl_deallocate
+
+      !> Interface for a method used to calculate the total system mass
+      module subroutine swiftest_set_msys(self, swiftest_plA)
+         implicit none
+         class(swiftest_particle), intent(inout)  :: self !! Generic Swiftest particle object
+         class(swiftest_pl), intent(in)  :: swiftest_plA  !! Swiftest massive body object
+      end subroutine swiftest_set_msys
    end interface
 
    !> Interfaces for coordinate transform methods
@@ -250,14 +287,14 @@ module swiftest_data_structures
       module subroutine coord_h2b_pl(self, swiftest_plA)
          implicit none
          class(swiftest_pl), intent(inout) :: self
-         class(swiftest_pl), intent(inout) :: swiftest_plA
+         class(swiftest_pl), optional, intent(inout) :: swiftest_plA
       end subroutine coord_h2b_pl
 
       !> Convert from heliocentric to barycentric coordinates, active test particles only
       module subroutine coord_h2b_tp(self, swiftest_plA)
          implicit none
          class(swiftest_tp), intent(inout) :: self
-         class(swiftest_pl), intent(inout) :: swiftest_plA
+         class(swiftest_pl), optional, intent(inout) :: swiftest_plA
       end subroutine coord_h2b_tp
 
       !> Convert from barycentric to heliocentric coordinates, massive body velocities only

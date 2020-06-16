@@ -9,17 +9,18 @@ contains
    if (n <= 0) return
 
    if (self%is_allocated) then
-      write(*,*) 'Swiftest particle structure already alllocated'
+      !write(*,*) 'Swiftest particle structure already alllocated'
       return
    end if
-   write(*,*) 'Allocating the basic Swiftest particle'
+   !write(*,*) 'Allocating the basic Swiftest particle'
    allocate(self%name(n))
    allocate(self%status(n))
+   allocate(self%mu_vec(n))
+   allocate(self%dt_vec(n))
 
    self%name(:) = 0
    self%status(:) = 0
    self%is_allocated = .true.
-   self%msys = 0.0_DP
 
    return
    end procedure swiftest_particle_allocate

@@ -16,13 +16,15 @@ module helio
       real(DP), dimension(:,:), allocatable :: ah  !! Total heliocentric acceleration
       real(DP), dimension(:,:), allocatable :: ahi !! Heliocentric acceleration due to interactions
    contains
-      procedure :: alloc => helio_tp_allocate
+      procedure, public :: alloc => helio_tp_allocate
+      procedure, public :: set_from_file => io_read_tp_in !! Override swiftest_pl io reader with the tp reader
+      procedure, public :: spill => helio_spill_tp           !! Method to remove the inactive Helio particles (tp or pl) and spill them to a discard object 
+      procedure, public :: getacch => helio_getacch_tp    !! Compute heliocentric accelerations of test particles
+      procedure, public :: step => helio_step_tp          !! Step active test particles ahead using Democratic Heliocentric method
+      procedure, public :: drift => helio_drift_tp        !! Loop through test particles and call Danby drift routine
+      procedure, public :: lindrift => helio_lindrift_tp  !! Perform linear drift of test particles due to barycentric momentum of Sun
+      procedure, public :: kick => helio_kickvb_tp        !! Kick barycentric velocities of active test particles
       final :: helio_tp_deallocate
-      procedure, public :: getacch => helio_getacch_tp   !! Compute heliocentric accelerations of test particles
-      procedure, public :: step => helio_step_tp         !! Step active test particles ahead using Democratic Heliocentric method
-      procedure, public :: drift => helio_drift_tp       !! Loop through test particles and call Danby drift routine
-      procedure, public :: lindrift => helio_lindrift_tp !! Perform linear drift of test particles due to barycentric momentum of Sun
-      procedure, public :: kick => helio_kickvb_tp       !! Kick barycentric velocities of active test particles
    end type helio_tp
 
    interface
@@ -38,6 +40,13 @@ module helio
          implicit none
          type(helio_tp), intent(inout)    :: self
       end subroutine helio_tp_deallocate
+
+      !> Method to remove the inactive bodies and spill them to a discard object
+      module subroutine helio_spill_tp(self,discard)
+         implicit none
+         class(helio_tp), intent(inout)    :: self    !! Swiftest test particle object to input
+         class(helio_tp), intent(inout)    :: discard !! Discarded body list
+      end subroutine helio_spill_tp
   
    end interface
 
@@ -48,13 +57,14 @@ module helio
    !! Helio massive body particle class
    type, public, extends(helio_tp) :: helio_pl
    contains
-      procedure :: alloc => helio_pl_allocate            !! Constructor method - Allocates space for number of particles
-      final :: helio_pl_deallocate                       !! Finalizer method - Deallocates all allocatables 
-      procedure, public :: getacch => helio_getacch_pl   !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: step => helio_step_pl         !! Step massive bodies ahead Democratic Heliocentric method
-      procedure, public :: drift => helio_drift_pl       !! Loop through massive bodies and call Danby drift routine
-      procedure, public :: lindrift => helio_lindrift_pl !! Perform linear drift of massive bodies due to barycentric momentum of Sun
-      procedure, public :: kick => helio_kickvb_pl       !! Kick barycentric velocities of active massive bodies
+      procedure, public :: alloc => helio_pl_allocate     !! Constructor method - Allocates space for number of particles
+      procedure, public :: set_from_file => io_read_pl_in !! Override helio_tp io reader with the pl reader
+      procedure, public :: getacch => helio_getacch_pl    !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: step => helio_step_pl          !! Step massive bodies ahead Democratic Heliocentric method
+      procedure, public :: drift => helio_drift_pl        !! Loop through massive bodies and call Danby drift routine
+      procedure, public :: lindrift => helio_lindrift_pl  !! Perform linear drift of massive bodies due to barycentric momentum of Sun
+      procedure, public :: kick => helio_kickvb_pl        !! Kick barycentric velocities of active massive bodies
+      final :: helio_pl_deallocate                        !! Finalizer method - Deallocates all allocatables 
    end type helio_pl
 
    interface
@@ -74,6 +84,16 @@ module helio
 
 !> Interfaces for all non-type bound helio methods that are implemented in separate submodules 
 interface
+   !> Call discard routine to determine spilled test particles, then remove them from active list
+   module function helio_discard(helio_plA, helio_tpA, config, t, dt) result(helio_tp_discard)
+      implicit none
+      type(helio_pl), intent(inout)           :: helio_plA !! Helio massive body particle data structure. 
+      type(helio_tp), intent(inout)           :: helio_tpA !! Helio test particle data structure
+      type(swiftest_configuration),intent(in) :: config    !! Input collection of user-defined parameter
+      real(DP), intent(in)                    :: t         !! Current time
+      real(DP), intent(in)                    :: dt        !! Stepsize
+      type(helio_tp)                          :: helio_tp_discard !! Discarded Helio test particles
+   end function helio_discard
 
    !> Get helioctric accelration of massive bodies
    module subroutine helio_getacch_pl(self, config, t, lflag, helio_plA, xh)
@@ -155,7 +175,7 @@ interface
       type(helio_tp), intent(inout)           :: helio_tpA !! Helio test particle data structure
       type(swiftest_configuration),intent(in) :: config    !! Input collection of user-defined parameter
       real(DP), intent(in)                    :: t         !! Current time
-      real(DP), intent(in)                    :: dt        !! Stepsiz
+      real(DP), intent(in)                    :: dt        !! Stepsize
       logical, intent(inout)                  :: lfirst    !! Logical flag indicating whether current invocation is the first 
                                                            !!     TODO: Replace lfirst with internal flag with save attribute
    end subroutine helio_step
