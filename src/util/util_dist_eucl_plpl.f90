@@ -35,10 +35,10 @@ SUBROUTINE util_dist_eucl_plpl(npl, invar, num_comparisons, k_plpl, outvar)
 
 ! Arguments
      INTEGER(I4B), INTENT(IN) :: npl
-     INTEGER(I4B), DIMENSION(2,num_comparisons),INTENT(IN) :: k_plpl
+     INTEGER(I4B), DIMENSION(:,:),INTENT(IN) :: k_plpl
      INTEGER(I4B), INTENT(IN) :: num_comparisons
-     REAL(DP),DIMENSION(NDIM,npl),INTENT(IN) :: invar
-     REAL(DP), DIMENSION(NDIM,num_comparisons),INTENT(INOUT) :: outvar
+     REAL(DP),DIMENSION(:,:),INTENT(IN) :: invar
+     REAL(DP), DIMENSION(:,:),INTENT(INOUT) :: outvar
 
 ! Internals
      INTEGER(I4B) :: k

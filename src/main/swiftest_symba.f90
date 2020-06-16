@@ -173,7 +173,7 @@ program swiftest_symba
       if ((ldiscard .eqv. .true.) .or. (ldiscard_tp .eqv. .true.) .or. (lfrag_add .eqv. .true.)) then
          call symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
             discard_tpA,param)
-         if ((ldiscard .eqv. .true.) .or. (ldiscard_tp .eqv. .true.)) then
+         if ((lspill_list .eqv. .true.) .or. (ldiscard_tp .eqv. .true.)) then
             call io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
                discard_plA, discard_tpA, mergeadd_list, mergesub_list, discard_file, config%lbig_discard) 
             nmergeadd = 0

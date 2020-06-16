@@ -1,142 +1,98 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : util_index
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : util
-!  Language    : Fortran 90/95
-!
-!  Description : Index input real array into ascending numerical order using Quicksort algorithm
-!
-!  Input
-!    Arguments : arr   : array to index
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : index : index table for sorted array
-!    Terminal  : error message
-!    File      : none
-!
-!  Invocation  : CALL util_index(arr, index)
-!
-!  Notes       : Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,
-!                Vetterling, and Flannery, 2nd ed., pp. 1173-4
-!
-!**********************************************************************************************************************************
-SUBROUTINE util_index(arr, index)
+submodule (util) s_util_index
+contains
+   module procedure util_index
+   !! author: David A. Minton
+   !!
+   !! Compute Hill sphere radii of massive bodies
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: util_index.f90
+   !! Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,
+   !!      Vetterling, and Flannery, 2nd ed., pp. 1173-4
+   use swiftest
+   integer(I4B), parameter       :: nn = 15, nstack = 50
+   integer(I4B)            :: n, k, i, j, indext, jstack, l, r, dum
+   integer(I4B), dimension(nstack) :: istack
+   real(DP)                :: a
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => util_index
-     IMPLICIT NONE
+   n = size(arr)
+   if (n /= size(index)) then
+      write(*, *) "swifter error:"
+      write(*, *) "   array size mismatch in util_index"
+      call util_exit(failure)
+   end if
+   index = arth(1, 1, n)
+   jstack = 0
+   ! l is the counter ie 'the one we are at'
+   l = 1
+   ! r is the length of the array ie 'the total number of particles'
+   r = n
+   do
+      if ((r - l) < nn) then
+         do j = l + 1, r
+            indext = index(j)
+            a = arr(indext)
+            do i = j - 1, l, -1
+               if (arr(index(i)) <= a) exit
+               index(i+1) = index(i)
+            end do
+            index(i+1) = indext
+         end do
+         if (jstack == 0) return
+         r = istack(jstack)
+         l = istack(jstack-1)
+         jstack = jstack - 2
+      else
+         k = (l + r)/2
+         dum = index(k); index(k) = index(l+1); index(l+1) = dum
+         ! if the mass of the particle we are at in our counting is greater than the mass of the last particle then put the particle we are at above the last one
+         if (arr(index(l)) > arr(index(r))) then
+            dum = index(l); index(l) = index(r); index(r) = dum
+         end if
+         ! if the mass of the particle above the one we are at in our counting is greater than the last particle then put that particle above the last one
+         if (arr(index(l+1)) > arr(index(r))) then
+            dum = index(l+1); index(l+1) = index(r); index(r) = dum
+         end if
+         ! if the mass of teh particle we are at in our counting is greater than the one above it, then put it above the one above it
+         if (arr(index(l)) > arr(index(l+1))) then
+            dum = index(l); index(l) = index(l+1); index(l+1) = dum
+         end if
+         i = l + 1
+         j = r
+         indext = index(l+1)
+         a = arr(indext)
+         do
+            do
+               i = i + 1
+               if (arr(index(i)) >= a) exit
+            end do
+            do
+               j = j - 1
+               if (arr(index(j)) <= a) exit
+            end do
+            if (j < i) exit
+            dum = index(i); index(i) = index(j); index(j) = dum
+         end do
+         index(l+1) = index(j)
+         index(j) = indext
+         jstack = jstack + 2
+         if (jstack > nstack) then
+            write(*, *) "swifter error:"
+            write(*, *) "   nstack too small in util_sort"
+            call util_exit(failure)
+         end if
+         if ((r - i + 1) >= (j - l)) then
+            istack(jstack) = r
+            istack(jstack-1) = i
+            r = j - 1
+         else
+            istack(jstack) = j - 1
+            istack(jstack-1) = l
+            l = i
+         end if
+      end if
+   end do
 
-! Arguments
-     INTEGER(I4B), DIMENSION(:), INTENT(OUT) :: index
-     REAL(DP), DIMENSION(:), INTENT(IN)      :: arr
+   return
 
-! Internals
-     INTEGER(I4B), PARAMETER         :: NN = 15, NSTACK = 50
-     INTEGER(I4B)                    :: n, k, i, j, indext, jstack, l, r, dum
-     INTEGER(I4B), DIMENSION(NSTACK) :: istack
-     REAL(DP)                        :: a
-
-! Executable code
-     n = SIZE(arr)
-     IF (n /= SIZE(index)) THEN
-          WRITE(*, *) "SWIFTER Error:"
-          WRITE(*, *) "   Array size mismatch in util_index"
-          CALL util_exit(FAILURE)
-     END IF
-     index = arth(1, 1, n)
-     jstack = 0
-     ! l is the counter ie 'the one we are at'
-     l = 1
-     ! r is the length of the array ie 'the total number of particles'
-     r = n
-     DO
-          IF ((r - l) < NN) THEN
-               DO j = l + 1, r
-                    indext = index(j)
-                    a = arr(indext)
-                    DO i = j - 1, l, -1
-                         IF (arr(index(i)) <= a) EXIT
-                         index(i+1) = index(i)
-                    END DO
-                    index(i+1) = indext
-               END DO
-               IF (jstack == 0) RETURN
-               r = istack(jstack)
-               l = istack(jstack-1)
-               jstack = jstack - 2
-          ELSE
-               k = (l + r)/2
-               dum = index(k); index(k) = index(l+1); index(l+1) = dum
-               ! if the mass of the particle we are at in our counting is greater than the mass of the last particle then put the particle we are at above the last one
-               IF (arr(index(l)) > arr(index(r))) THEN
-                    dum = index(l); index(l) = index(r); index(r) = dum
-               END IF
-               ! if the mass of the particle above the one we are at in our counting is greater than the last particle then put that particle above the last one
-               IF (arr(index(l+1)) > arr(index(r))) THEN
-                    dum = index(l+1); index(l+1) = index(r); index(r) = dum
-               END IF
-               ! if the mass of teh particle we are at in our counting is greater than the one above it, then put it above the one above it
-               IF (arr(index(l)) > arr(index(l+1))) THEN
-                    dum = index(l); index(l) = index(l+1); index(l+1) = dum
-               END IF
-               i = l + 1
-               j = r
-               indext = index(l+1)
-               a = arr(indext)
-               DO
-                    DO
-                         i = i + 1
-                         IF (arr(index(i)) >= a) EXIT
-                    END DO
-                    DO
-                         j = j - 1
-                         IF (arr(index(j)) <= a) EXIT
-                    END DO
-                    IF (j < i) EXIT
-                    dum = index(i); index(i) = index(j); index(j) = dum
-               END DO
-               index(l+1) = index(j)
-               index(j) = indext
-               jstack = jstack + 2
-               IF (jstack > NSTACK) THEN
-                    WRITE(*, *) "SWIFTER Error:"
-                    WRITE(*, *) "   NSTACK too small in util_sort"
-                    CALL util_exit(FAILURE)
-               END IF
-               IF ((r - i + 1) >= (j - l)) THEN
-                    istack(jstack) = r
-                    istack(jstack-1) = i
-                    r = j - 1
-               ELSE
-                    istack(jstack) = j - 1
-                    istack(jstack-1) = l
-                    l = i
-               END IF
-          END IF
-     END DO
-
-     RETURN
-
-END SUBROUTINE util_index
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure util_index
+end submodule s_util_index

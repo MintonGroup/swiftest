@@ -117,8 +117,4 @@ module swiftest_globals
    real(DP), save :: GU = 1.0_DP           !! Universal gravitational constant in user units
    real(DP), parameter  :: GC = 6.6743E-11_DP !! Universal gravitational constant in SI units
 
-   !> Added by Carlisle Wishard and Jennifer Pouplin 
-   logical, save       :: ldiscard = .false.    !! If true, then proceed to discard spilled pl and complete discard.out file.
-   logical, save       :: ldiscard_tp = .false. !! If true, then proceed to discard spilled tp 
-
 end module swiftest_globals

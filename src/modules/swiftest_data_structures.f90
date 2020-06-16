@@ -112,15 +112,16 @@ module swiftest_data_structures
    type, public :: swiftest_particle           
       !! Superclass that defines the generic elements of a Swiftest particle 
       !private
-      integer(I4B)                            :: nbody = 0 !! Number of bodies
-      integer(I4B), dimension(:), allocatable :: name      !! External identifier (hash)
-      integer(I4B), dimension(:), allocatable :: status    !! Status
-      real(DP),     dimension(:), allocatable :: mu_vec    !! Vectorized central body mass term used for elemental functions
-      real(DP),     dimension(:), allocatable :: dt_vec    !! Vectorized stepsize used for elemental functions
-      logical                                 :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
+      integer(I4B)                            :: nbody = 0          !! Number of bodies
+      integer(I4B), dimension(:), allocatable :: name               !! External identifier (hash)
+      integer(I4B), dimension(:), allocatable :: status             !! An integrator-specific status indicator 
+      real(DP),     dimension(:), allocatable :: mu_vec             !! Vectorized central body mass term used for elemental functions
+      real(DP),     dimension(:), allocatable :: dt_vec             !! Vectorized stepsize used for elemental functions
       real(DP)                                :: msys = 0.0_DP      !! Total system mass - used for barycentric coordinate conversion
-      logical,      dimension(:), allocatable :: ldiscard  !! Discard flag
-      logical                                 :: lspill = .false. !! Logical flag to determine whether the spilled particle list has been computed
+      logical,      dimension(:), allocatable :: lspill_list        !! Logical array of bodies to spill
+      logical                                 :: lspill = .false.   !! Logical flag to determine whether the spilled particle list has been computed
+      logical                                 :: ldiscard = .false. !! If true, then proceed to discard spilled pl and complete discard.out file.
+      logical                                 :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
    contains
       procedure, public :: alloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
       procedure, public :: set_from_file => swiftest_read_particle_input_file
@@ -197,27 +198,27 @@ module swiftest_data_structures
       !> Basic Swiftest test particle constructor method
       module subroutine swiftest_tp_allocate(self,n)
          implicit none
-         class(swiftest_tp), intent(inout)    :: self !! Swiftest test particle object
-         integer, intent(in)                  :: n    !! Number of test particles to allocate
+         class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
+         integer, intent(in)               :: n    !! Number of test particles to allocate
       end subroutine swiftest_tp_allocate
 
       !> Interface for type-bound procedure to read in the input test particle initial condition file
       module subroutine io_read_tp_in(self, config) 
-         class(swiftest_tp), intent(inout)  :: self         !! Swiftest data structure to store test particle initial conditions
+         class(swiftest_tp), intent(inout)        :: self   !! Swiftest data structure to store test particle initial conditions
          type(swiftest_configuration), intent(in) :: config !! User-defined configuration parameters
       end subroutine io_read_tp_in
 
       !> Basic Swiftest generic particle destructor/finalizer
       module subroutine swiftest_tp_spill(self,discard)
          implicit none
-         class(swiftest_tp), intent(inout)    :: self    !! Swiftest test particle object to input
-         class(swiftest_particle), intent(inout)    :: discard !! Discarded body list
+         class(swiftest_tp), intent(inout)       :: self    !! Swiftest test particle object to input
+         class(swiftest_particle), intent(inout) :: discard !! Discarded body list
       end subroutine swiftest_tp_spill
 
       !> Basic Swiftest test particle destructor/finalizer
       module subroutine swiftest_tp_deallocate(self)
          implicit none
-         type(swiftest_tp), intent(inout)    :: self !! Swiftest test particle object
+         type(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       end subroutine swiftest_tp_deallocate
    end interface
 
@@ -259,21 +260,21 @@ module swiftest_data_structures
             !> Basic Swiftest generic particle destructor/finalizer
       module subroutine swiftest_pl_spill(self,discard)
          implicit none
-         class(swiftest_pl), intent(inout)    :: self    !! Swiftest massive body particle object to input
-         class(swiftest_particle), intent(inout)    :: discard !! Discarded body list
+         class(swiftest_pl), intent(inout)       :: self    !! Swiftest massive body particle object to input
+         class(swiftest_particle), intent(inout) :: discard !! Discarded body list
       end subroutine swiftest_pl_spill
 
       !> Basic Swiftest massive body destructor/finalizer
       module subroutine swiftest_pl_deallocate(self)
          implicit none
-         type(swiftest_pl), intent(inout)    :: self
+         type(swiftest_pl), intent(inout)    :: self !! Swiftest massive body object
       end subroutine swiftest_pl_deallocate
 
       !> Interface for a method used to calculate the total system mass
       module subroutine swiftest_set_msys(self, swiftest_plA)
          implicit none
-         class(swiftest_particle), intent(inout)  :: self !! Generic Swiftest particle object
-         class(swiftest_pl), intent(in)  :: swiftest_plA  !! Swiftest massive body object
+         class(swiftest_particle), intent(inout)  :: self          !! Generic Swiftest particle object
+         class(swiftest_pl), intent(in)           :: swiftest_plA  !! Swiftest massive body object
       end subroutine swiftest_set_msys
    end interface
 
@@ -282,15 +283,15 @@ module swiftest_data_structures
       !> Convert from heliocentric to barycentric coordinates, massive bodies only
       module subroutine coord_h2b_pl(self, swiftest_plA)
          implicit none
-         class(swiftest_pl), intent(inout) :: self
-         class(swiftest_pl), optional, intent(inout) :: swiftest_plA
+         class(swiftest_pl), intent(inout)           :: self         !! Swiftest massive body object
+         class(swiftest_pl), optional, intent(inout) :: swiftest_plA !! Swiftest massive body object (used to get msys)
       end subroutine coord_h2b_pl
 
       !> Convert from heliocentric to barycentric coordinates, active test particles only
       module subroutine coord_h2b_tp(self, swiftest_plA)
          implicit none
-         class(swiftest_tp), intent(inout) :: self
-         class(swiftest_pl), optional, intent(inout) :: swiftest_plA
+         class(swiftest_tp), intent(inout)           :: self         !! Swiftest test particle object
+         class(swiftest_pl), optional, intent(inout) :: swiftest_plA !! Swiftest massive body object (used to get msys)
       end subroutine coord_h2b_tp
 
       !> Convert from barycentric to heliocentric coordinates, massive body velocities only
@@ -320,6 +321,59 @@ module swiftest_data_structures
          class(swiftest_tp), intent(inout)  :: self
          real(DP), dimension(:), optional, intent(in) :: vs
       end subroutine coord_vh2vb_tp
+   end interface
+
+   !> Interfaces for particle discard methods
+   interface
+      !> Check to see if test particles should be discarded based on their positions or because they are unbound from the system
+      module subroutine discard_tp(swiftest_plA, swiftest_tpA, config, t, dt)
+         implicit none
+         class(swiftest_pl), intent(inout)         :: swiftest_plA !! Swiftest massive body object
+         class(swiftest_tp), intent(inout)         :: swiftest_tpA !! Swiftest test particle object
+         class(swiftest_configuration), intent(in) :: config       !! User-defined configuration parameters
+         real(DP), intent(in)                      :: t            !! Current simulation time
+         real(DP), intent(out)                     :: dt           !! Stepsize 
+      end subroutine discard_tp
+
+      !> Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      module subroutine discard_pl(swiftest_plA, swiftest_tpA, config, t, dt)
+         class(swiftest_pl), intent(inout)         :: swiftest_plA !! Swiftest massive body object
+         class(swiftest_tp), intent(inout)         :: swiftest_tpA !! Swiftest test particle object
+         class(swiftest_configuration), intent(in) :: config       !! User-defined configuration parameters
+         real(DP), intent(in)                      :: t            !! Current simulation time
+         real(DP), intent(out)                     :: dt           !! Stepsize 
+      end subroutine discard_pl
+
+      !> Check to see if a test particle should be discarded because its perihelion distance becomes too small
+      module subroutine discard_peri(swiftest_plA, swiftest_tpA, config, t, dt) 
+         implicit none
+         class(swiftest_pl), intent(inout)         :: swiftest_plA !! Swiftest massive body object
+         class(swiftest_tp), intent(inout)         :: swiftest_tpA !! Swiftest test particle object
+         class(swiftest_configuration), intent(in) :: config       !! User-defined configuration parameters
+         real(DP), intent(in)                      :: t            !! Current simulation time
+         real(DP), intent(out)                     :: dt           !! Stepsize 
+      end subroutine discard_peri
+
+      !> Check to see if a test particle and massive body are having, or will have within the next time step, an encounter such
+      !>         that the separation distance r is less than some critical radius rcrit (or r**2 < rcrit**2 = r2crit)
+      module subroutine discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
+         implicit none
+         integer(I4B), intent(out)          :: iflag               !! Flag indicating encounter (0 = NO, 1 = YES)
+         real(DP), intent(in)               :: dt                  !! Stepsize 
+         real(DP), intent(in)               :: r2crit              !! Square of the boundary of the encounter region
+         real(DP), dimension(:), intent(in) :: dx                  !! Relative position of test particle with respect to massive body
+         real(DP), dimension(:), intent(in) :: dv                  !! relative velocity of test particle with respect to massive body
+         real(DP), intent(out)              :: r2min               !! Square of the smallest predicted separation distance
+      end subroutine discard_pl_close
+
+      !> Check to see if test particles should be discarded based on their positions relative to the Sun
+      !>         or because they are unbound from the syste
+      module subroutine discard_sun(swiftest_tpA, config, t)
+         implicit none
+         class(swiftest_tp), intent(inout)         :: swiftest_tpA !! Swiftest test particle object
+         class(swiftest_configuration), intent(in) :: config       !! User-defined configuration parameters
+         real(DP), intent(in)                      :: t            !! Current simulation time
+      end subroutine discard_sun
    end interface
 
    !********************************************************************************************************************************

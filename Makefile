@@ -46,7 +46,6 @@
 
 SWIFTEST_MODULES =   swiftest_globals.f90 \
                      swiftest_data_structures.f90 \
-                     discard.f90 \
                      drift.f90 \
                      helio.f90 \
                      io.f90 \
@@ -96,7 +95,7 @@ lib:
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
+	  make libdir2
 	cd $(SWIFTEST_HOME)/src/drift; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \

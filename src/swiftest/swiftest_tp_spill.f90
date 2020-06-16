@@ -9,8 +9,8 @@ contains
 
    if (.not. self%lspill) then  ! Only calculate the number of spilled particles if this method is called directly. It won't recompute if this method
                                 ! is called from higher up in the class heirarchy 
-      self%ldiscard = (self%status(:) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
-      nspill = count(self%ldiscard)
+      self%lspill_list = (self%status(:) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
+      nspill = count(self%lspill_list)
       self%nbody = self%nbody - nspill
       call discard%alloc(nspill) ! Create the discard object
       self%lspill = .true.
@@ -20,22 +20,22 @@ contains
    call self%swiftest_particle%spill(discard)
 
    ! Pack the discarded bodies into the discard object
-   discard%peri(:)   = pack(self%peri(:),   self%ldiscard)
-   discard%atp(:)    = pack(self%atp(:),    self%ldiscard)
-   discard%isperi(:) = pack(self%isperi(:), self%ldiscard)
-   discard%xh(:)     = pack(self%xh(:),     self%ldiscard)
-   discard%vh(:)     = pack(self%vh(:),     self%ldiscard)
-   discard%xb(:)     = pack(self%xb(:),     self%ldiscard)
-   discard%vb(:)     = pack(self%vb(:),     self%ldiscard)
+   discard%peri(:)   = pack(self%peri(:),   self%lspill_list)
+   discard%atp(:)    = pack(self%atp(:),    self%lspill_list)
+   discard%isperi(:) = pack(self%isperi(:), self%lspill_list)
+   discard%xh(:)     = pack(self%xh(:),     self%lspill_list)
+   discard%vh(:)     = pack(self%vh(:),     self%lspill_list)
+   discard%xb(:)     = pack(self%xb(:),     self%lspill_list)
+   discard%vb(:)     = pack(self%vb(:),     self%lspill_list)
 
    ! Pack the kept bodies back into the original object
-   self%peri(:)   = pack(self%peri(:),   .not. self%ldiscard)
-   self%atp(:)    = pack(self%atp(:),    .not. self%ldiscard)
-   self%isperi(:) = pack(self%isperi(:), .not. self%ldiscard)
-   self%xh(:)     = pack(self%xh(:),     .not. self%ldiscard)
-   self%vh(:)     = pack(self%vh(:),     .not. self%ldiscard)
-   self%xb(:)     = pack(self%xb(:),     .not. self%ldiscard)
-   self%vb(:)     = pack(self%vb(:),     .not. self%ldiscard))
+   self%peri(:)   = pack(self%peri(:),   .not. self%lspill_list)
+   self%atp(:)    = pack(self%atp(:),    .not. self%lspill_list)
+   self%isperi(:) = pack(self%isperi(:), .not. self%lspill_list)
+   self%xh(:)     = pack(self%xh(:),     .not. self%lspill_list)
+   self%vh(:)     = pack(self%vh(:),     .not. self%lspill_list)
+   self%xb(:)     = pack(self%xb(:),     .not. self%lspill_list)
+   self%vb(:)     = pack(self%vb(:),     .not. self%lspill_list))
 
    end procedure swiftest_tp_spill
 end submodule s_swiftest_tp_spill

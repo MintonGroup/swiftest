@@ -9,8 +9,8 @@ contains
 
    if (.not. self%lspill) then  ! Only calculate the number of spilled particles if this method is called directly. It won't recompute if this method
                                 ! is called from higher up in the class heirarchy 
-      self%ldiscard = (self%status(:) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
-      nspill = count(self%ldiscard)
+      self%lspill_list = (self%status(:) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
+      nspill = count(self%lspill_list)
       self%nbody = self%nbody - nspill
       call discard%alloc(nspill) ! Create the discard object
       self%lspill = .true.
@@ -23,12 +23,12 @@ contains
    real(DP), dimension(:,:), allocatable :: ahi !! Heliocentric acceleration due to interactions
 
    ! Pack the discarded bodies into the discard object
-   discard%ah(:)  = pack(self%ah(:),  self%ldiscard)
-   discard%ahi(:) = pack(self%ahi(:), self%ldiscard)
+   discard%ah(:)  = pack(self%ah(:),  self%lspill_list)
+   discard%ahi(:) = pack(self%ahi(:), self%lspill_list)
 
    ! Pack the kept bodies back into the original object
-   self%ah(:) = pack(self%ah(:),  .not. self%ldiscard)
-   self%ahi(:)= pack(self%ahi(:), .not. self%ldiscard)
+   self%ah(:) = pack(self%ah(:),  .not. self%lspill_list)
+   self%ahi(:)= pack(self%ahi(:), .not. self%lspill_list)
 
    end procedure helio_spill_tp
 end submodule s_helio_spill_tp

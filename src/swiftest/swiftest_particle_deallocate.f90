@@ -10,7 +10,7 @@ contains
       deallocate(self%name)
       deallocate(self%status)
       self%is_allocated = .false.
-      if (allocated(self%ldiscard)) deallocate(self%ldiscard)
+      if (allocated(self%lspill_list)) deallocate(self%lspill_list)
    end if
    return
    end procedure swiftest_particle_deallocate

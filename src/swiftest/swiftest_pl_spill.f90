@@ -9,8 +9,8 @@ contains
 
    if (.not. self%lspill) then  ! Only calculate the number of spilled particles if this method is called directly. It won't recompute if this method
                                 ! is called from higher up in the class heirarchy 
-      self%ldiscard = (self%status(:) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
-      nspill = count(self%ldiscard)
+      self%lspill_list = (self%status(:) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
+      nspill = count(self%lspill_list)
       self%nbody = self%nbody - nspill
       call discard%alloc(nspill) ! Create the discard object
       self%lspill = .true.
@@ -20,14 +20,14 @@ contains
    call self%swiftest_tp%spill(discard)
 
    ! Pack the discarded bodies into the discard object
-   discard%mass(:)   = pack(self%mass(:),   self%ldiscard)
-   discard%radius(:) = pack(self%radius(:), self%ldiscard)
-   discard%rhill(:)  = pack(self%rhill(:),  self%ldiscard)
+   discard%mass(:)   = pack(self%mass(:),   self%lspill_list)
+   discard%radius(:) = pack(self%radius(:), self%lspill_list)
+   discard%rhill(:)  = pack(self%rhill(:),  self%lspill_list)
 
    ! Pack the kept bodies back into the original object
-   self%mass(:)   = pack(self%mass(:),   .not. self%ldiscard)
-   self%radius(:) = pack(self%radius(:), .not. self%ldiscard)
-   self%rhill(:)  = pack(self%rhill(:),  .not. self%ldiscard)
+   self%mass(:)   = pack(self%mass(:),   .not. self%lspill_list)
+   self%radius(:) = pack(self%radius(:), .not. self%lspill_list)
+   self%rhill(:)  = pack(self%rhill(:),  .not. self%lspill_list)
 
    return
    end procedure swiftest_tp_spill
