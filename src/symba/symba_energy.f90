@@ -9,9 +9,9 @@
 !  Description : Compute total system angular momentum vector and kinetic, potential and total system energy
 !
 !  Input
-!    Arguments : npl          : number of planets
-!                nplmax       : maximum allowed number of planets
-!                swiftest_pl1P : pointer to head of Swiftest planet structure linked-list
+!    Arguments : npl          : number of massive bodies
+!                nplmax       : maximum allowed number of massive bodies
+!                swiftest_pl1P : pointer to head of Swiftest massive body structure linked-list
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
 !    Terminal  : none

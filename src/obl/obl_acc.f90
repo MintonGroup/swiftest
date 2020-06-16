@@ -6,20 +6,20 @@
 !  Package     : obl
 !  Language    : Fortran 90/95
 !
-!  Description : Compute the barycentric accelerations of planets due to the oblateness of the central body
+!  Description : Compute the barycentric accelerations of massive bodies due to the oblateness of the central body
 !
 !  Input
-!    Arguments : npl          : number of planets
-!                swifter_pl1P : pointer to head of Swifter planet structure linked-list
+!    Arguments : npl          : number of massive bodies
+!                swifter_pl1P : pointer to head of Swifter massive body structure linked-list
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
-!                xh           : heliocentric positions of planets
-!                irh          : inverse heliocentric radii of planets
+!                xh           : heliocentric positions of massive bodies
+!                irh          : inverse heliocentric radii of massive bodies
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : aobl         : barycentric accelerations of planets due to central body oblateness
+!    Arguments : aobl         : barycentric accelerations of massive bodies due to central body oblateness
 !    Terminal  : none
 !    File      : none
 !

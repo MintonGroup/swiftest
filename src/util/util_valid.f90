@@ -6,12 +6,12 @@
 !  Package     : util
 !  Language    : Fortran 90/95
 !
-!  Description : Validate planet and test particle ids
+!  Description : Validate massive body and test particle ids
 !
 !  Input
-!    Arguments : npl          : number of planets
+!    Arguments : npl          : number of massive bodies
 !                ntp          : number of active test particles
-!                swifter_pl1P : pointer to head of SWIFTER planet structure linked-list
+!                swifter_pl1P : pointer to head of SWIFTER massive body structure linked-list
 !                swifter_tp1P : pointer to head of active SWIFTER test particle structure linked-list
 !    Terminal  : none
 !    File      : none

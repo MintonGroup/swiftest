@@ -6,18 +6,18 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Check to see if planets should be discarded based on their positions or because they are unbound
+!  Description : Check to see if massive bodies should be discarded based on their positions or because they are unbound
 !
 !  Input
 !    Arguments : t           : time
-!                npl         : number of planets
-!                nplmax      : maximum allowed number of planets
-!                nsp         : number of spilled planets
-!                symba_pl1P  : pointer to head of SyMBA planet structure linked-list
-!                symba_pld1P : pointer to head of discard SyMBA planet structure linked-list
+!                npl         : number of massive bodies
+!                nplmax      : maximum allowed number of massive bodies
+!                nsp         : number of spilled massive bodies
+!                symba_pl1P  : pointer to head of SyMBA massive body structure linked-list
+!                symba_pld1P : pointer to head of discard SyMBA massive body structure linked-list
 !                rmin        : minimum allowed heliocentric radius
 !                rmax        : maximum allowed heliocentric radius
-!                rmaxu       : maximum allowed heliocentric radius for unbound planets
+!                rmaxu       : maximum allowed heliocentric radius for unbound massive bodies
 !                qmin        : minimum allowed pericenter distance
 !                qmin_coord  : coordinate frame for qmin
 !                qmin_alo    : minimum semimajor axis for qmin
@@ -29,10 +29,10 @@
 !    File      : none
 !
 !  Output
-!    Arguments : npl         : number of planets
-!                nsp         : number of spilled planets
-!                symba_pl1P  : pointer to head of SyMBA planet structure linked-list
-!                symba_pld1P : pointer to head of discard SyMBA planet structure linked-list
+!    Arguments : npl         : number of massive bodies
+!                nsp         : number of spilled massive bodies
+!                symba_pl1P  : pointer to head of SyMBA massive body structure linked-list
+!                symba_pld1P : pointer to head of discard SyMBA massive body structure linked-list
 !                eoffset     : energy offset
 !    Terminal  : none
 !    File      : none

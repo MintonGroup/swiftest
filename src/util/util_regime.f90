@@ -50,7 +50,7 @@ SUBROUTINE util_regime(Mcenter, m1, m2, rad1, rad2, xh1, xh2, vh1, vh2, den1, de
      REAL(DP)                      :: density1 = 1000.0_DP !standard density parameter from LS12 [kg/m3]
      REAL(DP)                      :: G = 6.674e-11 !Gravitational constant [Nm2/kg2]
      REAL(DP)                      :: c_star = 1.8_DP !3.0 #3.0# #5#1.8 #1.8 #Measure of dissipation of energy within the target (Chambers frag.f90)
-     REAL(DP)                      :: mu_bar = 0.37_DP !0.385#0.37#0.3333# 3.978 # 1/3 material parameter for hydrodynamic planet-size bodies (LS12)
+     REAL(DP)                      :: mu_bar = 0.37_DP !0.385#0.37#0.3333# 3.978 # 1/3 material parameter for hydrodynamic massive body-size bodies (LS12)
      REAL(DP)                      :: beta = 2.85_DP !slope of SFD for remnants from LS12 2.85
      REAL(DP)                      :: c1 = 2.43_DP !Ls12 constants
      REAL(DP)                      :: c2 = -0.0408_DP !Ls12 constants

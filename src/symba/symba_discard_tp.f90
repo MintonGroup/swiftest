@@ -10,10 +10,10 @@
 !
 !  Input
 !    Arguments : t              : time
-!                npl            : number of planets
+!                npl            : number of massive bodies
 !                ntp            : number of active test particles
 !                nsp            : number of spilled test particles
-!                symba_pl1P     : pointer to head of SyMBA planet structure linked-list
+!                symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
 !                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
 !                symba_tpd1P    : pointer to head of discard SyMBA test particle structure linked-list
 !                dt             : time step
@@ -24,8 +24,8 @@
 !                qmin_coord     : coordinate frame for qmin
 !                qmin_alo       : minimum semimajor axis for qmin
 !                qmin_ahi       : maximum semimajor axis for qmin
-!                lclose         : logical flag indicating whether to check for close planet-test particle encounters
-!                lrhill_present : logical flag indicating whether Hill sphere radii for planets are present
+!                lclose         : logical flag indicating whether to check for close massive body-test particle encounters
+!                lrhill_present : logical flag indicating whether Hill sphere radii for massive bodies are present
 !    Terminal  : none
 !    File      : none
 !

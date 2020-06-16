@@ -20,7 +20,7 @@ module symba
 
    !! SyMBA test particle class
    type, public, extends(helio_pl) :: symba_tp
-      integer(I4B), dimension(:),     allocatable :: nplenc  !! number of encounters with planets this time step
+      integer(I4B), dimension(:),     allocatable :: nplenc  !! number of encounters with massive bodies this time step
       integer(I4B), dimension(:),     allocatable :: levelg  !! level at which this particle should be moved
       integer(I4B), dimension(:),     allocatable :: levelm  !! deepest encounter level achieved this time step
    contains
@@ -63,10 +63,10 @@ module symba
    !                                    symba_plplenc class definitions and method interfaces
    !*******************************************************************************************************************************
 
-   !! Class structure for a planet-planet encounter
+   !! Class structure for a massive body-massive body encounter
    type, public, extends(symba_encounter) :: symba_plplenc
-      integer(I4B), dimension(:), allocatable :: index1       !! position of the first planet in encounter
-      integer(I4B), dimension(:), allocatable :: index2       !! position of the second planet in encounter
+      integer(I4B), dimension(:), allocatable :: index1       !! position of the first massive body in encounter
+      integer(I4B), dimension(:), allocatable :: index2       !! position of the second massive body in encounter
       integer(I4B), dimension(:), allocatable :: enc_child    !! the child of the encounter
       integer(I4B), dimension(:), allocatable :: enc_parent   !! the child of the encounter
    contains
@@ -78,10 +78,10 @@ module symba
    !                                    symba_pltpenc class definitions and method interfaces
    !*******************************************************************************************************************************
 
-   !! Class structure for a planet-test particle encounter
+   !! Class structure for a massive body-test particle encounter
    type, public, extends(symba_encounter) :: symba_pltpenc
-      integer(I4B), dimension(:), allocatable :: indexpl    !! Index position within the main symba structure for the first planet in an encounter
-      integer(I4B), dimension(:), allocatable :: indextp    !! Index position within the main symba structure for the second planet in an encounter
+      integer(I4B), dimension(:), allocatable :: indexpl    !! Index position within the main symba structure for the first massive body in an encounter
+      integer(I4B), dimension(:), allocatable :: indextp    !! Index position within the main symba structure for the second massive body in an encounter
    contains
       procedure :: alloc => symba_pltpenc_allocate
       final :: symba_pltpenc_deallocate
@@ -730,7 +730,7 @@ contains
       call self%helio_pl%alloc(n)
 
       if (self%is_allocated) then
-         write(*,*) 'Symba planet structure already alllocated'
+         write(*,*) 'Symba massive body structure already alllocated'
          return
       end if
       if (n <= 0) return
@@ -820,10 +820,10 @@ contains
    end subroutine symba_encounter_dummy_input
 
    subroutine symba_pltpenc_allocate(self,n)
-      !! SyMBA planet-test particle encounter structure constructor method
+      !! SyMBA massive body-test particle encounter structure constructor method
       implicit none
 
-      class(symba_pltpenc), intent(inout) :: self !! SyMBA planet-test particle encounter class
+      class(symba_pltpenc), intent(inout) :: self !! SyMBA massive body-test particle encounter class
       integer, intent(in)                 :: n    !! Number of encounter slots to allocate
 
       call self%symba_encounter%alloc(n)
@@ -843,7 +843,7 @@ contains
    end subroutine symba_pltpenc_allocate
 
    subroutine symba_pltpenc_deallocate(self)
-      !! SyMBA planet-test particle encounter destructor/finalizer
+      !! SyMBA massive body-test particle encounter destructor/finalizer
       implicit none
 
       type(symba_pltpenc), intent(inout)    :: self
@@ -856,10 +856,10 @@ contains
    end subroutine symba_pltpenc_deallocate
 
    subroutine symba_plplenc_allocate(self,n)
-      !! SyMBA planet-planet particle encounter structure constructor method
+      !! SyMBA massive body-massive body particle encounter structure constructor method
       implicit none
 
-      class(symba_plplenc), intent(inout) :: self !! SyMBA planet-planet encounter class
+      class(symba_plplenc), intent(inout) :: self !! SyMBA massive body-massive body encounter class
       integer, intent(in)                 :: n    !! Number of encounter slots to allocate
 
       call self%symba_encounter%alloc(n)
@@ -885,7 +885,7 @@ contains
    end subroutine symba_plplenc_allocate
 
    subroutine symba_plplenc_deallocate(self)
-      !! SyMBA planet-planet encounter destructor/finalizer
+      !! SyMBA massive body-massive body encounter destructor/finalizer
       implicit none
 
       type(symba_plplenc), intent(inout)    :: self

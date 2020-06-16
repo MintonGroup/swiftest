@@ -3,7 +3,7 @@ contains
    module procedure helio_getacch_pl   
    !! author: David A. Minton
    !!
-   !! Compute heliocentric accelerations of plAnets
+   !! Compute heliocentric accelerations of massive bodies
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_getacch.f90
    !! Adapted from Hal Levison's Swift routine helio_getacch.f
@@ -30,7 +30,9 @@ contains
          irh(i) = 1.0_DP / sqrt(r2)
       end do
       call obl_acc(self, config%j2rp2, config%j4rp4, xh_loc, irh, aobl)
-      self%ah(:,2:npl) = self%ahi(:,2:npl) + aobl(:, 2:npl) - aobl(:, 1)
+      do i = 1, NDIM
+         self%ah(i,2:npl) = self%ahi(i,2:npl) + aobl(i, 2:npl) - aobl(i, 1)
+      end do
    else
       self%ah(:,:) = self%ahi(:,:)
    end if

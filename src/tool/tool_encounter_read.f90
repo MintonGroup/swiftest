@@ -32,7 +32,7 @@ PROGRAM tool_encounter_read
 
 ! Arguments
    type(swiftest_configuration)  :: param    ! derived type containing user-defined parameters
-     INTEGER(I4B)      :: nplmax         ! Maximum number of planets
+     INTEGER(I4B)      :: nplmax         ! Maximum number of massive bodies
      INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
      INTEGER(I4B)      :: istep_dump     ! Time steps between dumps
@@ -50,7 +50,7 @@ PROGRAM tool_encounter_read
      REAL(DP)          :: mtiny          ! Mass cutoff
      CHARACTER(STRMAX) :: qmin_coord     ! Coordinate frame to use for qmin
      CHARACTER(STRMAX) :: encounter_file ! Name of output file for encounters
-     CHARACTER(STRMAX) :: inplfile       ! Name of input file for planets
+     CHARACTER(STRMAX) :: inplfile       ! Name of input file for massive bodies
      CHARACTER(STRMAX) :: intpfile       ! Name of input file for test particles
      CHARACTER(STRMAX) :: in_type        ! Format of input data files
      CHARACTER(STRMAX) :: outfile        ! Name of output binary file

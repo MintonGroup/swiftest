@@ -13,21 +13,21 @@ module procedure helio_step_tp
 
 ! executable code
    dth = 0.5_DP * dt
-   lflag = lfirsttp
+   lflag = lfirst
    mu = helio_plA%mass(1)
-   if (lfirsttp) then
-      call coord_vh2vb_tp(ntp, helio_tpA, -ptb)
-      lfirsttp = .false.
+   if (lfirst) then
+      call self%vh2vb(vs = -ptb)
+      lfirst = .false.
    end if
-   call helio_lindrift_tp(ntp, helio_tpA, dth, ptb)
-   call helio_getacch_tp(helio_tpA, helio_plA, config, t, lflag)
+   call self%lindrift(dth, ptb)
+   call self%getacch(config, t, lflag, helio_plA, xbeg)
    lflag = .true.
-   call helio_kickvb_tp(ntp, helio_tpA, dth)
-   call helio_drift_tp(ntp, helio_tpA, mu, dt)
-   call helio_getacch_tp(helio_tpA, helio_plA, config, t + dt, lflag)
-   call helio_kickvb_tp(helio_tpA, dth)
-   call helio_lindrift_tp(helio_tpA, dth, pte)
-   call coord_vb2vh_tp(helio_tpA, -pte)
+   call self%kick(dth)
+   call self%drift(mu, dt)
+   call self%getacch(config, t + dt, lflag, helio_plA, xend)
+   call self%kick(dth)
+   call self%lindrift(dth, pte)
+   call self%vb2vh(vs = -pte)
 
    return
 

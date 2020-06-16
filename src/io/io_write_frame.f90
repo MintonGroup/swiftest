@@ -3,7 +3,7 @@ contains
    module procedure io_write_frame
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
-   !! Write a frame (header plus records for each plAnet and active test particle) to output binary file
+   !! Write a frame (header plus records for each massive body and active test particle) to output binary file
    !! There is no direct file output from this subroutine
    !!
    !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90

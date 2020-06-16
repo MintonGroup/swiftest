@@ -6,7 +6,7 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Step planets and active test particles ahead in democratic heliocentric coordinates, descending the recursive
+!  Description : Step massive bodies and active test particles ahead in democratic heliocentric coordinates, descending the recursive
 !                branch if necessary to handle possible close encounters
 !
 !  Input
@@ -14,23 +14,23 @@
 !                lextra_force   : logical flag indicating whether to include user-supplied accelerations
 !                lclose         : logical flag indicating whether to check for mergers
 !                t              : time
-!                npl            : number of planets
-!                nplmax         : maximum allowed number of planets
+!                npl            : number of massive bodies
+!                nplmax         : maximum allowed number of massive bodies
 !                ntp            : number of active test particles
 !                ntpmax         : maximum allowed number of test particles
-!                symba_pl1P     : pointer to head of SyMBA planet structure linked-list
+!                symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
 !                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
 !                j2rp2          : J2 * R**2 for the Sun
 !                j4rp4          : J4 * R**4 for the Sun
 !                dt             : time step
-!                nplplenc       : number of planet-planet encounters
-!                npltpenc       : number of planet-test particle encounters
-!                plplenc_list   : array of planet-planet encounter structures
-!                pltpenc_list   : array of planet-test particle encounter structures
-!                nmergeadd      : number of merged planets to add
-!                nmergesub      : number of merged planets to subtract
-!                mergeadd_list  : array of structures of merged planets to add
-!                mergesub_list  : array of structures of merged planets to subtract
+!                nplplenc       : number of massive body-massive body encounters
+!                npltpenc       : number of massive body-test particle encounters
+!                plplenc_list   : array of massive body-massive body encounter structures
+!                pltpenc_list   : array of massive body-test particle encounter structures
+!                nmergeadd      : number of merged massive bodies to add
+!                nmergesub      : number of merged massive bodies to subtract
+!                mergeadd_list  : array of structures of merged massive bodies to add
+!                mergesub_list  : array of structures of merged massive bodies to subtract
 !                eoffset        : energy offset (net energy lost in mergers)
 !                mtiny          : smallest self-gravitating mass
 !                encounter_file : name of output file for encounters
@@ -40,16 +40,16 @@
 !
 !  Output
 !    Arguments : lfirst         : logical flag indicating whether current invocation is the first
-!                symba_pl1P     : pointer to head of SyMBA planet structure linked-list
+!                symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
 !                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
-!                nplplenc       : number of planet-planet encounters
-!                npltpenc       : number of planet-test particle encounters
-!                plplenc_list   : array of planet-planet encounter structures
-!                pltpenc_list   : array of planet-test particle encounter structures
-!                nmergeadd      : number of merged planets to add
-!                nmergesub      : number of merged planets to subtract
-!                mergeadd_list  : array of structures of merged planets to add
-!                mergesub_list  : array of structures of merged planets to subtract
+!                nplplenc       : number of massive body-massive body encounters
+!                npltpenc       : number of massive body-test particle encounters
+!                plplenc_list   : array of massive body-massive body encounter structures
+!                pltpenc_list   : array of massive body-test particle encounter structures
+!                nmergeadd      : number of merged massive bodies to add
+!                nmergesub      : number of merged massive bodies to subtract
+!                mergeadd_list  : array of structures of merged massive bodies to add
+!                mergesub_list  : array of structures of merged massive bodies to subtract
 !                eoffset        : energy offset (net energy lost in mergers)
 !    Terminal  : error message
 !    File      : none
@@ -97,9 +97,9 @@ SUBROUTINE symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, nt
      
 ! Executable code
 
-     ! initialize planets
-     symba_plA%nplenc(1:npl) = 0 ! number of planet encounters this particular planet has
-     symba_plA%ntpenc(1:npl) = 0 ! number of test particle encounters this particle planet has
+     ! initialize massive bodies
+     symba_plA%nplenc(1:npl) = 0 ! number of massive body encounters this particular massive body has
+     symba_plA%ntpenc(1:npl) = 0 ! number of test particle encounters this particle massive body has
      symba_plA%levelg(1:npl) = -1 ! 
      symba_plA%levelm(1:npl) = -1 ! 
      symba_plA%index_parent(1:npl) = (/ (i, i=1,npl)/)
@@ -141,7 +141,7 @@ SUBROUTINE symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, nt
           enddo
 
           symba_plA%lmerged(k_plpl(1,plpl_encounters_indices)) = .FALSE. ! they have not merged YET
-          symba_plA%nplenc(k_plpl(1,plpl_encounters_indices)) = symba_plA%nplenc(k_plpl(1,plpl_encounters_indices)) + 1 ! number of particles that planet "i" has close encountered
+          symba_plA%nplenc(k_plpl(1,plpl_encounters_indices)) = symba_plA%nplenc(k_plpl(1,plpl_encounters_indices)) + 1 ! number of particles that massive body "i" has close encountered
           symba_plA%levelg(k_plpl(1,plpl_encounters_indices)) = 0 ! recursion level
           symba_plA%levelm(k_plpl(1,plpl_encounters_indices)) = 0 ! recursion level
           symba_plA%nchild(k_plpl(1,plpl_encounters_indices)) = 0 
@@ -155,8 +155,8 @@ SUBROUTINE symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, nt
           plplenc_list%status(1:nplplenc) = ACTIVE ! you are in an encounter
           plplenc_list%lvdotr(1:nplplenc) = plpl_lvdotr(plpl_encounters_indices)! flag of relative accelerations to say if there will be a close encounter in next timestep 
           plplenc_list%level(1:nplplenc)  = 0 ! recursion level
-          plplenc_list%index1(1:nplplenc) = k_plpl(1,plpl_encounters_indices) ! index of first planet in encounter
-          plplenc_list%index2(1:nplplenc) = k_plpl(2,plpl_encounters_indices) ! index of second planet in encounter
+          plplenc_list%index1(1:nplplenc) = k_plpl(1,plpl_encounters_indices) ! index of first massive body in encounter
+          plplenc_list%index2(1:nplplenc) = k_plpl(2,plpl_encounters_indices) ! index of second massive body in encounter
           deallocate(plpl_encounters_indices)
      endif
      

@@ -3,25 +3,26 @@ contains
 module procedure helio_lindrift_pl
    !! author: David A. Minton
    !!
-   !! Perform linear drift of plAnets due to barycentric momentum of Sun
+   !! Perform linear drift of massive bodies due to barycentric momentum of Sun
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_lindrift.f90
    !! Adapted from Hal Levison's Swift routine helio_lindrift.f
    use swiftest
-   integer(I4B)          :: i
+   integer(I4B)          :: i, npl
 
    real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't plAy nicely 
                                      !with openmp's reduction for some reason
 
-   pttmp(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+   npl = self%nbody
+   pttmp(:) = 0.0_DP
    do i = 2, npl
-      pttmp(:) = pttmp(:) + helio_plA%mass(i) * helio_plA%vb(:,i)
+      pttmp(:) = pttmp(:) + self%mass(i) * self%vb(:,i)
    end do
-   pttmp(:) = pttmp(:) / helio_plA%mass(1)
+   pttmp(:) = pttmp(:) / self%mass(1)
    do i = 2, npl
-      helio_plA%xh(:,i) = helio_plA%xh(:,i) + pttmp(:) * dt
+      self%xh(:,i) = self%xh(:,i) + pttmp(:) * dt
    end do
-   pt(:)=pttmp(:)
+   pt(:) = pttmp(:)
 
    return
 

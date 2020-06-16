@@ -32,7 +32,7 @@ module helio
    type helio_pl
        real(DP),     dimension(:,:),   allocatable :: ah     ! total heliocentric acceleration
        real(DP),     dimension(:,:),   allocatable :: ahi    ! heliocentric acceleration due to interactions
-       type(swiftest_pl)                           :: swiftest  ! swifter planet structure
+       type(swiftest_pl)                           :: swiftest  ! swifter massive body structure
     end type helio_pl
 
     type helio_tp

@@ -6,17 +6,17 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Add user-supplied heliocentric accelerations to planets
+!  Description : Add user-supplied heliocentric accelerations to massive bodies
 !
 !  Input
 !    Arguments : t          : time
-!                npl        : number of planets
-!                symba_pl1P : pointer to head of SyMBA planet structure linked-list
+!                npl        : number of massive bodies
+!                symba_pl1P : pointer to head of SyMBA massive body structure linked-list
 !    Terminal  : TBS as needed by user
 !    File      : TBS as needed by user
 !
 !  Output
-!    Arguments : symba_pl1P : pointer to head of SyMBA planet structure linked-list
+!    Arguments : symba_pl1P : pointer to head of SyMBA massive body structure linked-list
 !    Terminal  : TBS as needed by user
 !    File      : TBS as needed by user
 !

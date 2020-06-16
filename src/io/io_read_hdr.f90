@@ -13,13 +13,13 @@
 !                out_type  : format of input binary file
 !    Terminal  : none
 !    File      : t (or ttmp) : time
-!                npl         : number of planets
+!                npl         : number of massive bodies
 !                ntp         : number of active test particles
 !                iout_form   : specifier of data contained in input file (elements / heliocentric coordinates / filtered elements)
 !
 !  Output
 !    Arguments : t         : time
-!                npl       : number of planets
+!                npl       : number of massive bodies
 !                ntp       : number of active test particles
 !                iout_form : specifier of data contained in input file (elements / heliocentric coordinates / filtered elements)
 !    Terminal  : none

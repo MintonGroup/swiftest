@@ -6,12 +6,12 @@
 !  Package     : discard
 !  Language    : Fortran 90/95
 !
-!  Description : Check to see if a test particle and planet are having, or will have within the next time step, an encounter such
+!  Description : Check to see if a test particle and massive body are having, or will have within the next time step, an encounter such
 !                that the separation distance r is less than some critical radius rcrit (or r**2 < rcrit**2 = r2crit)
 !
 !  Input
-!    Arguments : dx     : relative position of test particle with respect to planet
-!                dv     : relative velocity of test particle with respect to planet
+!    Arguments : dx     : relative position of test particle with respect to massive body
+!                dv     : relative velocity of test particle with respect to massive body
 !                dt     : time step
 !                r2crit : square of the boundary of the encounter region
 !    Terminal  : none

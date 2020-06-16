@@ -6,7 +6,7 @@
 !  Package     : rmvs
 !  Language    : Fortran 90/95
 !
-!  Description : Determine whether a test particle and planet are having or will have an encounter within the next time step
+!  Description : Determine whether a test particle and massive body are having or will have an encounter within the next time step
 !
 !  Input
 !    Arguments : xr     : relative position

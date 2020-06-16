@@ -19,6 +19,7 @@ contains
    self%name(:) = 0
    self%status(:) = 0
    self%is_allocated = .true.
+   self%msys = 0.0_DP
 
    return
    end procedure swiftest_particle_allocate

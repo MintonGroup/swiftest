@@ -10,7 +10,7 @@
 !
 !  Input
 !    Arguments : iu       : unit number associated with output binary file
-!                id       : planet or test particle identifier
+!                id       : massive body or test particle identifier
 !                d1       : first quantity to write  (semimajor axis (pericentric distance for a parabola) or heliocentric x )
 !                d2       : second quantity to write (eccentricity                                         or heliocentric y )
 !                d3       : third quantity to write  (inclination                                          or heliocentric z )
@@ -26,7 +26,7 @@
 !  Output
 !    Arguments : none
 !    Terminal  : error message
-!    File      : id                   : planet or test particle identifier
+!    File      : id                   : massive body or test particle identifier
 !                smass (or dmass)     : optional mass (omitted for massless test particle)
 !                sradius (or dradius) : optional radius (omitted for massless test particle)
 !                svec (or dvec)       : 6-vector of orbital elements or position and velocity components

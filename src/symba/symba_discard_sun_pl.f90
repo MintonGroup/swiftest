@@ -6,23 +6,23 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Check to see if planets should be discarded based on their positions relative to the Sun
+!  Description : Check to see if massive bodies should be discarded based on their positions relative to the Sun
 !
 !  Input
 !    Arguments : t            : time
-!                npl          : number of planets
+!                npl          : number of massive bodies
 !                msys         : total system mass
-!                swifter_pl1P : pointer to head of Swifter planet structure linked-list
+!                swifter_pl1P : pointer to head of Swifter massive body structure linked-list
 !                rmin         : minimum allowed heliocentric radius
 !                rmax         : maximum allowed heliocentric radius
-!                rmaxu        : maximum allowed heliocentric radius for unbound planets
-!                ldiscards    : logical flag indicating whether any planets are discarded
+!                rmaxu        : maximum allowed heliocentric radius for unbound massive bodies
+!                ldiscards    : logical flag indicating whether any massive bodies are discarded
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : swifter_pl1P : pointer to head of Swifter planet structure linked-list
-!                ldiscards    : logical flag indicating whether any planets are discarded
+!    Arguments : swifter_pl1P : pointer to head of Swifter massive body structure linked-list
+!                ldiscards    : logical flag indicating whether any massive bodies are discarded
 !    Terminal  : status message
 !    File      : none
 !

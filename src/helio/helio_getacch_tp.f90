@@ -8,9 +8,9 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine helio_getacch_tp.f90
    !! Adapted from Hal Levison's Swift routine helio_getacch_tp.f
    use swiftest
-   logical, save                 :: lmalloc = .true.
-   integer(I4B)                     :: i, npl, ntp
-   real(DP)                       :: r2, mu
+   logical, save                                :: lmalloc = .true.
+   integer(I4B)                                 :: i, npl, ntp
+   real(DP)                                     :: r2, mu
    real(DP), dimension(:), allocatable, save    :: irh, irht
    real(DP), dimension(:, :), allocatable, save :: aobl, xht, aoblt
 
@@ -19,7 +19,7 @@ contains
    npl = helio_plA%nbody
    if (lflag) then
       self%ahi(:,:) = 0.0_DP
-      call helio_getacch_int_tp(helio_plA, self)
+      call helio_getacch_int_tp(self, helio_plA)
    end if
    if (config%j2rp2 /= 0.0_DP) then
       if (lmalloc) then
@@ -39,7 +39,9 @@ contains
          irht(i) = 1.0_DP / sqrt(r2)
       end do
       call obl_acc_tp(ntp, xht, config%j2rp2, config%j4rp4, irht, aoblt, mu)
-      self%ah(:,:) = self%ahi(:,:) + aoblt(:, :) - aobl(:, 1)
+      do i = 1, NDIM
+         self%ah(i,:) = self%ahi(i,:) + aoblt(i, :) - aobl(i, 1)
+      end do
    else
       self%ah(:,:) = self%ahi(:,:)
    end if

@@ -6,16 +6,16 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Step planets ahead in democratic heliocentric coordinates
+!  Description : Step massive bodies ahead in democratic heliocentric coordinates
 !
 !  Input
 !    Arguments : lfirst       : logical flag indicating whether current invocation is the first
 !                lextra_force : logical flag indicating whether to include user-supplied accelerations
 !                t            : time
-!                npl          : number of planets
-!                nplm         : number of planets with mass > mtiny
-!                nplmax       : maximum allowed number of planets
-!                helio_pl1P   : pointer to head of helio planet structure linked-list
+!                npl          : number of massive bodies
+!                nplm         : number of massive bodies with mass > mtiny
+!                nplmax       : maximum allowed number of massive bodies
+!                helio_pl1P   : pointer to head of helio massive body structure linked-list
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
 !                dt           : time step
@@ -24,9 +24,9 @@
 !
 !  Output
 !    Arguments : lfirst       : logical flag indicating whether current invocation is the first
-!                helio_pl1P   : pointer to head of helio planet structure linked-list
-!                xbeg         : heliocentric positions of planets with mass > mtiny prior to Kepler drift
-!                xend         : heliocentric positions of planets with mass > mtiny after Kepler drift
+!                helio_pl1P   : pointer to head of helio massive body structure linked-list
+!                xbeg         : heliocentric positions of massive bodies with mass > mtiny prior to Kepler drift
+!                xend         : heliocentric positions of massive bodies with mass > mtiny after Kepler drift
 !                ptb          : negative barycentric velocity of the Sun prior to the first kick
 !                pte          : negative barycentric velocity of the Sun after the second kick
 !    Terminal  : none

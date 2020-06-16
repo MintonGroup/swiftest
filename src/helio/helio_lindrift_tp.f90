@@ -9,10 +9,13 @@ module procedure helio_lindrift_tp
    !! Adapted from David E. Kaufmann's Swifter routine helio_lindrift_tp.f90
    !! Adapted from Hal Levison's Swift routine helio_lindrift_tp.f
    use swiftest
-   integer(I4B)          :: i, ntp
+   integer(I4B)          :: ntp
 
-   where (helio_tpA%status(1:ntp) == ACTIVE)
-      helio_tpA%xh(:,1:ntp) = helio_tpA%xh(:,1:ntp) + pt(:) * dt
+   ntp = self%nbody
+   where (self%status(1:ntp) == ACTIVE)
+      self%xh(1,1:ntp) = self%xh(1,1:ntp) + pt(1) * dt
+      self%xh(2,1:ntp) = self%xh(2,1:ntp) + pt(2) * dt
+      self%xh(3,1:ntp) = self%xh(3,1:ntp) + pt(3) * dt
    end where
 
    return

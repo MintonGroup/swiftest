@@ -6,24 +6,24 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Compute heliocentric accelerations of planets
+!  Description : Compute heliocentric accelerations of massive bodies
 !
 !  Input
 !    Arguments : lextra_force : logical flag indicating whether to include user-supplied accelerations
 !                t            : time
-!                npl          : number of planets
-!                nplm         : number of planets with mass > mtiny
-!                nplmax       : maximum allowed number of planets
-!                symba_pl1P   : pointer to head of SyMBA planet structure linked-list
+!                npl          : number of massive bodies
+!                nplm         : number of massive bodies with mass > mtiny
+!                nplmax       : maximum allowed number of massive bodies
+!                symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
-!                nplplenc     : number of planet-planet encounters
-!                plplenc_list : array of planet-test particle encounter structures
+!                nplplenc     : number of massive body-massive body encounters
+!                plplenc_list : array of massive body-test particle encounter structures
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : symba_pl1P   : pointer to head of SyMBA planet structure linked-list
+!    Arguments : symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
 !    Terminal  : none
 !    File      : none
 !

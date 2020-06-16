@@ -6,16 +6,16 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Rearrange SyMBA planet arrays in order of decreasing mass
+!  Description : Rearrange SyMBA massive body arrays in order of decreasing mass
 !
 !  Input
-!    Arguments : npl        : number of planets
-!                symba_plA  : structure of arrays of SyMBA planet 
+!    Arguments : npl        : number of massive bodies
+!                symba_plA  : structure of arrays of SyMBA massive body 
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : symba_plA : structure of arrays of SyMBA planet 
+!    Arguments : symba_plA : structure of arrays of SyMBA massive body 
 !    Terminal  : none
 !    File      : none
 !

@@ -13,12 +13,12 @@ module swiftest_data_structures
 
    !> User defined configuration parameters that are read in from the configuration input file 
    type, public :: swiftest_configuration
-      integer(I4B)         :: nplmax = -1          !! Maximum allowed number of planets
+      integer(I4B)         :: nplmax = -1          !! Maximum allowed number of massive bodies
       integer(I4B)         :: ntpmax = -1          !! Maximum allowed number of test particles
       real(DP)             :: t0 = 0.0_DP          !! Integration start time
       real(DP)             :: tstop = 0.0_DP       !! Integration stop time
       real(DP)             :: dt = 0.0_DP          !! Time step
-      character(STRMAX)    :: inplfile = ''        !! Name of input file for planets
+      character(STRMAX)    :: inplfile = ''        !! Name of input file for massive bodies
       character(STRMAX)    :: intpfile = ''        !! Name of input file for test particles
       character(STRMAX)    :: in_type = 'ASCII'    !! Format of input data files
       integer(I4B)         :: istep_out = -1       !! Number of time steps between binary outputs
@@ -117,6 +117,7 @@ module swiftest_data_structures
       real(DP),     dimension(:),   allocatable :: mu_vec    !! Vectorized central body mass term used for elemental functions
       real(DP),     dimension(:),   allocatable :: dt_vec    !! Vectorized stepsize used for elemental functions
       logical                                   :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
+      real(DP)                                  :: msys      !! Total system mass - used for barycentric coordinate conversion
    contains
       procedure, public :: alloc => swiftest_particle_allocate  !! A base constructor that sets nbody and allocates the common components
       procedure, public :: set_from_file => swiftest_read_particle_input_file
@@ -133,10 +134,10 @@ module swiftest_data_structures
          integer, intent(in)                     :: n    !! Number of particles to allocate space for
       end subroutine swiftest_particle_allocate
 
-            !> Generic interface for the set_from_file method (only implemented in extended classes)
+      !> Generic interface for the set_from_file method (only implemented in extended classes)
       module subroutine swiftest_read_particle_input_file(self,config) 
          implicit none
-         class(swiftest_particle), intent(inout)  :: self  !! Generic Swiftest particle object
+         class(swiftest_particle), intent(inout) :: self  !! Generic Swiftest particle object
          type(swiftest_configuration),intent(in) :: config !! User-defined configuration parameters
       end subroutine swiftest_read_particle_input_file
 
@@ -153,6 +154,7 @@ module swiftest_data_structures
          implicit none
          type(swiftest_particle), intent(inout)    :: self !! Generic Swiftest particle object
       end subroutine swiftest_particle_deallocate
+
    end interface
 
    !********************************************************************************************************************************
@@ -173,6 +175,9 @@ module swiftest_data_structures
       procedure, public :: alloc => swiftest_tp_allocate
       procedure, public :: set_from_file => io_read_tp_in 
       final :: swiftest_tp_deallocate
+      procedure, public :: h2b => coord_h2b_tp
+      procedure, public :: vb2vh => coord_vb2vh_tp
+      procedure, public :: vh2vb => coord_vh2vb_tp
    end type swiftest_tp
 
    !> Interfaces type-bound procedures for swiftest_tp class
@@ -211,6 +216,9 @@ module swiftest_data_structures
       procedure, public :: alloc => swiftest_pl_allocate
       procedure, public :: set_from_file => io_read_pl_in 
       final :: swiftest_pl_deallocate
+      procedure, public :: h2b => coord_h2b_pl
+      procedure, public :: vb2vh => coord_vb2vh_pl
+      procedure, public :: vh2vb => coord_vh2vb_pl
    end type swiftest_pl
 
    !> Interfaces type-bound procedures for swiftest_pl class
@@ -225,7 +233,7 @@ module swiftest_data_structures
       !> Interface for type-bound procedure to read in the input massive body initial condition file
       module subroutine io_read_pl_in(self, config) 
          implicit none
-         class(swiftest_pl), intent(inout)  :: self         !! Swiftest data structure to store massive body initial conditions
+         class(swiftest_pl), intent(inout)        :: self   !! Swiftest data structure to store massive body initial conditions
          type(swiftest_configuration), intent(in) :: config !! Input collection of user-defined parameters
       end subroutine io_read_pl_in
 
@@ -236,6 +244,51 @@ module swiftest_data_structures
       end subroutine swiftest_pl_deallocate
    end interface
 
+   !> Interfaces for coordinate transform methods
+   interface
+      !> Convert from heliocentric to barycentric coordinates, massive bodies only
+      module subroutine coord_h2b_pl(self, swiftest_plA)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self
+         class(swiftest_pl), intent(inout) :: swiftest_plA
+      end subroutine coord_h2b_pl
+
+      !> Convert from heliocentric to barycentric coordinates, active test particles only
+      module subroutine coord_h2b_tp(self, swiftest_plA)
+         implicit none
+         class(swiftest_tp), intent(inout) :: self
+         class(swiftest_pl), intent(inout) :: swiftest_plA
+      end subroutine coord_h2b_tp
+
+      !> Convert from barycentric to heliocentric coordinates, massive body velocities only
+      module subroutine coord_vb2vh_pl(self, vs)
+         implicit none
+         class(swiftest_pl), intent(inout)            :: self
+         real(DP), dimension(:), optional, intent(in) :: vs
+      end subroutine coord_vb2vh_pl
+
+      !> Convert from barycentric to heliocentric coordinates, active test particle velocities only
+      module subroutine coord_vb2vh_tp(self, vs)
+         implicit none
+         class(swiftest_tp), intent(inout)            :: self
+         real(DP), dimension(:), optional, intent(in) :: vs
+      end subroutine coord_vb2vh_tp
+
+      !> Convert Convert from heliocentric to barycentric coordinates, massive body velocities only
+      module subroutine coord_vh2vb_pl(self, vs)
+         implicit none
+         class(swiftest_pl),intent(inout)             :: self
+         real(DP), dimension(:), optional, intent(in) :: vs
+      end subroutine coord_vh2vb_pl
+
+      !> Convert from barycentric to heliocentric coordinates, active test particle velocities only
+      module subroutine coord_vh2vb_tp(self, vs)
+         implicit none
+         class(swiftest_tp), intent(inout)  :: self
+         real(DP), dimension(:), optional, intent(in) :: vs
+      end subroutine coord_vh2vb_tp
+   end interface
+
    !********************************************************************************************************************************
    !                                    TEMPORARY OLD SWITER DERIVED TYPE
    !                                    DELETE AFTER TRANSITION IS COMPLETE
@@ -243,10 +296,10 @@ module swiftest_data_structures
 
    !> Temporary until the transition to Swiftest is complete
    TYPE swifter_ptr_arr
-   TYPE(swifter_pl), POINTER :: thisP   ! pointer to current swifter planet
+   TYPE(swifter_pl), POINTER :: thisP   ! pointer to current swifter massive body
    END TYPE swifter_ptr_arr
    TYPE swifter_ptr_arr_tp
-   TYPE(swifter_tp), POINTER :: thisP   ! pointer to current swifter planet
+   TYPE(swifter_tp), POINTER :: thisP   ! pointer to current swifter massive body
    END TYPE swifter_ptr_arr_tp
 
    TYPE swifter_pl
@@ -259,11 +312,11 @@ module swiftest_data_structures
       REAL(DP), DIMENSION(NDIM) :: vh     ! heliocentric velocity
       REAL(DP), DIMENSION(NDIM) :: xb     ! barycentric position
       REAL(DP), DIMENSION(NDIM) :: vb     ! barycentric velocity
-      TYPE(swifter_pl), POINTER :: prevP  ! pointer to previous planet
-      TYPE(swifter_pl), POINTER :: nextP  ! pointer to next planet
+      TYPE(swifter_pl), POINTER :: prevP  ! pointer to previous massive body
+      TYPE(swifter_pl), POINTER :: nextP  ! pointer to next massive body
       ! Added by D. Minton
       ! Used for OpenMP parallelized loops
-      TYPE(swifter_ptr_arr),DIMENSION(:),ALLOCATABLE :: swifter_plPA ! Array of pointers to Swifter planet structures 
+      TYPE(swifter_ptr_arr),DIMENSION(:),ALLOCATABLE :: swifter_plPA ! Array of pointers to Swifter massive body structures 
       !^^^^^^^^^^^^^^^^^^^
    END TYPE swifter_pl
 
@@ -281,7 +334,7 @@ module swiftest_data_structures
       TYPE(swifter_tp), POINTER :: nextP  ! pointer to next test particle
       ! Added by D. Minton
       ! Used for OpenMP parallelized loops
-      TYPE(swifter_ptr_arr_tp),DIMENSION(:),ALLOCATABLE :: swifter_tpPA ! Array of pointers to Swifter planet structures 
+      TYPE(swifter_ptr_arr_tp),DIMENSION(:),ALLOCATABLE :: swifter_tpPA ! Array of pointers to Swifter massive body structures 
       !^^^^^^^^^^^^^^^^^^^
    END TYPE swifter_tp
 

@@ -3,23 +3,23 @@ contains
    module procedure helio_step
    !! author: David A. Minton
    !!
-   !! Step planets and active test particles ahead in heliocentric coordinatee
+   !! Step massive bodies and active test particles ahead in heliocentric coordinates
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_step.f90
    !! Adapted from Hal Levison's Swift routine helio_step.f
    use swiftest
-   logical(lgt)                     :: lfirsttp
-   logical(lgt), save                 :: lmalloc = .true.
-   real(DP), dimension(ndim)            :: ptb, pte
+   logical                                :: lfirsttp
+   logical, save                          :: lmalloc = .true.
+   real(DP), dimension(NDIM)              :: ptb, pte
    real(DP), dimension(:, :), allocatable, save :: xbeg, xend
 
    if (lmalloc) then
-      allocate(xbeg(ndim, nplmax), xend(ndim, nplmax))
+      allocate(xbeg(NDIM, config%nplmax), xend(NDIM, config%nplmax))
       lmalloc = .false.
    end if
    lfirsttp = lfirst
-   call helio_step_pl(helio_plA, config, t, dt, lfirst, xbeg, xend, ptb, pte)
-   if (ntp > 0) call helio_step_tp(helio_tpA, helio_plA, config, t, dt, lfirst, xbeg, xend, ptb, pte)
+   call helio_plA%step(helio_plA, config, t, dt, lfirst, xbeg, xend, ptb, pte)
+   if (helio_tpA%nbody > 0) call helio_tpA%step(helio_plA, config, t, dt, lfirst, xbeg, xend, ptb, pte)
 
    return
 

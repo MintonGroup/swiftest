@@ -11,18 +11,18 @@
 !  Input
 !    Arguments : lextra_force : logical flag indicating whether to include user-supplied accelerations
 !                t            : time
-!                npl          : number of planets
-!                nplm         : number of planets with mass > mtiny
-!                nplmax       : maximum allowed number of planets
+!                npl          : number of massive bodies
+!                nplm         : number of massive bodies with mass > mtiny
+!                nplmax       : maximum allowed number of massive bodies
 !                ntp          : number of active test particles
 !                ntpmax       : maximum allowed number of test particles
-!                symba_pl1P   : pointer to head of SyMBA planet structure linked-list
+!                symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
 !                symba_tp1P   : pointer to head of active SyMBA test particle structure linked-list
-!                xh           : heliocentric positions of planets at time t
+!                xh           : heliocentric positions of massive bodies at time t
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
-!                npltpenc     : number of planet-test particle encounters
-!                pltpenc_list : array of planet-test particle encounter structures
+!                npltpenc     : number of massive body-test particle encounters
+!                pltpenc_list : array of massive body-test particle encounter structures
 !    Terminal  : none
 !    File      : none
 !

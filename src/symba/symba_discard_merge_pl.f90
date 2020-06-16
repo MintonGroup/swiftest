@@ -6,24 +6,24 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Merge planets
+!  Description : Merge massive bodies
 !
 !  Input
 !    Arguments : t            : time
-!                npl          : number of planets
-!                nsppl        : number of spilled planets
-!                symba_pl1P   : pointer to head of SyMBA planet structure linked-list
-!                symba_pld1P  : pointer to head of discard SyMBA planet structure linked-list
-!                nplplenc     : number of planet-planet encounters
-!                plplenc_list : array of planet-planet encounter structures
+!                npl          : number of massive bodies
+!                nsppl        : number of spilled massive bodies
+!                symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
+!                symba_pld1P  : pointer to head of discard SyMBA massive body structure linked-list
+!                nplplenc     : number of massive body-massive body encounters
+!                plplenc_list : array of massive body-massive body encounter structures
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : npl          : number of planets
-!                nsppl        : number of spilled planets
-!                symba_pl1P   : pointer to head of SyMBA planet structure linked-list
-!                symba_pld1P  : pointer to head of discard SyMBA planet structure linked-list
+!    Arguments : npl          : number of massive bodies
+!                nsppl        : number of spilled massive bodies
+!                symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
+!                symba_pld1P  : pointer to head of discard SyMBA massive body structure linked-list
 !    Terminal  : none
 !    File      : none
 !

@@ -1,9 +1,9 @@
-submodule (helio) s_helio_kickvb
+submodule (helio) s_helio_kickvb_pl
 contains
-   module procedure helio_kickvb
+   module procedure helio_kickvb_pl
    !! author: David A. Minton
    !!
-   !! Kick barycentric velocities of plAnets
+   !! Kick barycentric velocities of massive bodies
    !! Includes vectorized version
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_kickvb.f90
@@ -11,9 +11,10 @@ contains
    use swiftest
    integer(I4B)          :: i, npl
 
-   helio_plA%vb(:,2:npl) = helio_plA%vb(:,2:npl) + helio_plA%ah(:,2:npl) * dt
+   npl = self%nbody
+   self%vb(:,2:npl) = self%vb(:,2:npl) + self%ah(:,2:npl) * dt
 
    return
 
-   end procedure helio_kickvb
-end submodule s_helio_kickvb
+   end procedure helio_kickvb_pl
+end submodule s_helio_kickvb_pl

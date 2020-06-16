@@ -6,18 +6,18 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Loop through planets and call Danby drift routine
+!  Description : Loop through massive bodies and call Danby drift routine
 !
 !  Input
 !    Arguments : irec       : input recursion level
-!                npl        : number of planets
-!                symba_pl1P : pointer to head of SyMBA planet structure linked-list
+!                npl        : number of massive bodies
+!                symba_pl1P : pointer to head of SyMBA massive body structure linked-list
 !                dt         : time step
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : symba_pl1P : pointer to head of SyMBA planet structure linked-list
+!    Arguments : symba_pl1P : pointer to head of SyMBA massive body structure linked-list
 !    Terminal  : error message
 !    File      : none
 !
@@ -50,7 +50,7 @@ SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
           IF ((symba_plA%levelg(i) == irec) .AND. (symba_plA%helio%swiftest%status(i) == ACTIVE)) THEN
                CALL drift_one(mu, symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%vb(:,i), dt, iflag)
                IF (iflag /= 0) THEN
-                    WRITE(*, *) " Planet ", symba_plA%helio%swiftest%name(i), " is lost!!!!!!!!!!"
+                    WRITE(*, *) " massive body ", symba_plA%helio%swiftest%name(i), " is lost!!!!!!!!!!"
                     WRITE(*, *) mu, dt
                     WRITE(*, *) symba_plA%helio%swiftest%xh(:,i)
                     WRITE(*, *) symba_plA%helio%swiftest%vb(:,i)

@@ -6,13 +6,13 @@
 !  Package     : io
 !  Language    : Fortran 90/95
 !
-!  Description : Dump planet data to file
+!  Description : Dump massive body data to file
 !
 !  Input
-!    Arguments : npl            : number of planets
-!                swifter_pl1P   : pointer to head of Swifter planet structure linked-list
-!                lclose         : logical flag indicating whether to check for planet-test particle encounters
-!                lrhill_present : logical flag indicating whether Hill's sphere radii are present in planet data
+!    Arguments : npl            : number of massive bodies
+!                swifter_pl1P   : pointer to head of Swifter massive body structure linked-list
+!                lclose         : logical flag indicating whether to check for massive body-test particle encounters
+!                lrhill_present : logical flag indicating whether Hill's sphere radii are present in massive body data
 !    Terminal  : none
 !    File      : none
 !
@@ -20,13 +20,13 @@
 !    Arguments : none
 !    Terminal  : error message
 !    File      : to dump file
-!                npl            : number of planets
-!                id             : planet identifier     (from planet structure, for each planet)
-!                mass           : mass                  (from planet structure, for each planet)
-!                rhill          : Hill's sphere radius  (from planet structure, for each planet except the Sun, if lrhill_present)
-!                radius         : planet radius         (from planet structure, for each planet except the Sun, if lclose)
-!                xh             : heliocentric position (from planet structure, for each planet)
-!                vh             : heliocentric velocity (from planet structure, for each planet)
+!                npl            : number of massive bodies
+!                id             : massive body identifier     (from massive body structure, for each massive body)
+!                mass           : mass                  (from massive body structure, for each massive body)
+!                rhill          : Hill's sphere radius  (from massive body structure, for each massive body except the Sun, if lrhill_present)
+!                radius         : massive body radius         (from massive body structure, for each massive body except the Sun, if lclose)
+!                xh             : heliocentric position (from massive body structure, for each massive body)
+!                vh             : heliocentric velocity (from massive body structure, for each massive body)
 !
 !  Invocation  : CALL io_dump_pl(npl, swifter_pl1P, lclose, lrhill_present)
 !

@@ -6,17 +6,17 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Compute direct cross term heliocentric accelerations of planets
+!  Description : Compute direct cross term heliocentric accelerations of massive bodies
 !
 !  Input
-!    Arguments : npl        : number of planets
-!                nplm       : number of planets with mass > mtiny
-!                helio_pl1P : pointer to head of helio planet structure linked-list
+!    Arguments : npl        : number of massive bodies
+!                nplm       : number of massive bodies with mass > mtiny
+!                helio_pl1P : pointer to head of helio massive body structure linked-list
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : helio_pl1P : pointer to head of helio planet structure linked-list
+!    Arguments : helio_pl1P : pointer to head of helio massive body structure linked-list
 !    Terminal  : none
 !    File      : none
 !

@@ -12,15 +12,15 @@ module procedure helio_getacch_int_tp
    real(DP)                  :: r2, fac
    real(DP), dimension(NDIM) :: dx
 
-   ntp = helio_tpA%nbody
+   ntp = self%nbody
    npl = helio_plA%nbody
    do i = 1, ntp
-     if (helio_tpA%status(i) == ACTIVE) then
+     if (self%status(i) == ACTIVE) then
         do j = 2, npl
-           dx(:) = helio_tpA%xh(:,i) - helio_plA%xh(:,j)
+           dx(:) = self%xh(:,i) - helio_plA%xh(:,j)
            r2 = dot_product(dx(:), dx(:))
            fac = helio_plA%mass(j) / (r2 * sqrt(r2))
-           helio_tpA%ahi(:,i) = helio_tpA%ahi(:,i) - fac * dx(:)
+           self%ahi(:,i) = self%ahi(:,i) - fac * dx(:)
         end do
      end if
    end do

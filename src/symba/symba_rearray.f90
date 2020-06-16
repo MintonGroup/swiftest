@@ -18,7 +18,7 @@
 !    type(swiftest_configuration),intent(in)                    :: param
 !
 !  Output
-!    Arguments : npl         : number of planets
+!    Arguments : npl         : number of massive bodies
 !    Terminal  : none
 !    File      : none
 !

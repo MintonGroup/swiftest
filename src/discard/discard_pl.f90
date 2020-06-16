@@ -6,14 +6,14 @@
 !  Package     : discard
 !  Language    : Fortran 90/95
 !
-!  Description : Check to see if test particles should be discarded based on their positions relative to the planets
+!  Description : Check to see if test particles should be discarded based on their positions relative to the massive bodies
 !
 !  Input
 !    Arguments : t            : time
 !                dt           : time step
-!                npl          : number of planets
+!                npl          : number of massive bodies
 !                ntp          : number of active test particles
-!                swifter_pl1P : pointer to head of Swifter planet structure linked-list
+!                swifter_pl1P : pointer to head of Swifter massive body structure linked-list
 !                swifter_tp1P : pointer to head of active Swifter test particle structure linked-list
 !    Terminal  : none
 !    File      : none
@@ -56,7 +56,7 @@ SUBROUTINE discard_pl(t, dt, npl, ntp, swiftest_plA, swiftest_tpA)
                     IF (isp /= 0) THEN
                          swiftest_tpA%status(i) = DISCARDED_PLR
                          ldiscard = .TRUE.
-                         WRITE(*, *) "Particle ", swiftest_tpA%name(i), " too close to Planet ", swiftest_plA%name(i), " at t = ", t
+                         WRITE(*, *) "Particle ", swiftest_tpA%name(i), " too close to massive body ", swiftest_plA%name(i), " at t = ", t
                          ldiscard_tp = .TRUE.
                          EXIT
                     END IF

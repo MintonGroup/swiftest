@@ -3,7 +3,7 @@ contains
 module procedure helio_user_getacch
    !! author: David A. Minton
    !!
-   !! Add user-supplied heliocentric accelerations to planets
+   !! Add user-supplied heliocentric accelerations to massive bodies
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_user_getacch.f90
 

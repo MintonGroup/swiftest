@@ -9,12 +9,12 @@
 !  Description : Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
 !
 !  Input
-!    Arguments : npl          : number of planets
-!                swifter_pl1P : pointer to head of Swifter planet structure linked-list
+!    Arguments : npl          : number of massive bodies
+!                swifter_pl1P : pointer to head of Swifter massive body structure linked-list
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
-!                xh           : heliocentric positions of the planets
-!                irh          : inverse heliocentric radii of the planets
+!                xh           : heliocentric positions of the massive bodies
+!                irh          : inverse heliocentric radii of the massive bodies
 !    Terminal  : none
 !    File      : none
 !

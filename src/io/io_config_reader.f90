@@ -161,7 +161,7 @@ contains
       return
    end if
    if (config%inplfile == "") then
-      write(iomsg,*) 'No valid planet file in input file'
+      write(iomsg,*) 'No valid massive body file in input file'
       iostat = -1
       return
    end if

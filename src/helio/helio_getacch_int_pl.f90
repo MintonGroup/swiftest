@@ -3,7 +3,7 @@ contains
 module procedure helio_getacch_int_pl   
    !! author: David A. Minton
    !!
-   !! Compute direct cross term heliocentric accelerations of plAnetse
+   !! Compute direct cross term heliocentric accelerations of massive bodiese
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_getacch_int.f90
    !! Adapted from Hal Levison's Swift routine getacch_ah3.f
@@ -12,16 +12,16 @@ module procedure helio_getacch_int_pl
    real(DP)                  :: rji2, irij3, faci, facj
    real(DP), dimension(NDIM) :: dx
 
-   npl = helio_plA%nbody
+   npl = self%nbody
    do i = 2, npl - 1
       do j = i + 1, npl
-         dx(:) = helio_plA%xh(:,j) - helio_plA%xh(:,i)
+         dx(:) = self%xh(:,j) - self%xh(:,i)
          rji2 = dot_product(dx(:), dx(:))
          irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-         faci = helio_plA%mass(i) * irij3
-         facj = helio_plA%mass(j) * irij3
-         helio_plA%ahi(:,i) = helio_plA%ahi(:,i) + facj * dx(:)
-         helio_plA%ahi(:,i) = helio_plA%ahi(:,j) - faci * dx(:)
+         faci = self%mass(i) * irij3
+         facj = self%mass(j) * irij3
+         self%ahi(:,i) = self%ahi(:,i) + facj * dx(:)
+         self%ahi(:,i) = self%ahi(:,j) - faci * dx(:)
       end do
    end do
 

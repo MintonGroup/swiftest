@@ -13,13 +13,13 @@
 !  Input
 !    Arguments : t              : time
 !                dt             : time step
-!                index          : index of planet-planet encounter in array plplenc_list
-!                nplplenc       : number of planet-planet encounters
-!                plplenc_list   : array of planet-planet encounter structures
-!                nmergeadd      : number of merged planets to add
-!                nmergesub      : number of merged planets to subtract
-!                mergeadd_list  : array of structures of merged planets to add
-!                mergesub_list  : array of structures of merged planets to subtract
+!                index          : index of massive body-massive body encounter in array plplenc_list
+!                nplplenc       : number of massive body-massive body encounters
+!                plplenc_list   : array of massive body-massive body encounter structures
+!                nmergeadd      : number of merged massive bodies to add
+!                nmergesub      : number of merged massive bodies to subtract
+!                mergeadd_list  : array of structures of merged massive bodies to add
+!                mergesub_list  : array of structures of merged massive bodies to subtract
 !                eoffset        : energy offset (net energy lost in mergers)
 !                vbs            : barycentric velocity of the Sun
 !                encounter_file : name of output file for encounters
@@ -28,11 +28,11 @@
 !    File      : none
 !
 !  Output
-!    Arguments : plplenc_list   : array of planet-planet encounter structures
-!                nmergeadd      : number of merged planets to add
-!                nmergesub      : number of merged planets to subtract
-!                mergeadd_list  : array of structures of merged planets to add
-!                mergesub_list  : array of structures of merged planets to subtract
+!    Arguments : plplenc_list   : array of massive body-massive body encounter structures
+!                nmergeadd      : number of merged massive bodies to add
+!                nmergesub      : number of merged massive bodies to subtract
+!                mergeadd_list  : array of structures of merged massive bodies to add
+!                mergesub_list  : array of structures of merged massive bodies to subtract
 !                eoffset        : energy offset (net energy lost in mergers)
 !    Terminal  : status message
 !    File      : none

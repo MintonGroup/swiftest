@@ -15,19 +15,15 @@ contains
    integer(I4B), dimension(:),allocatable :: iflag
    integer(I4B) :: i
 
-   npl = helio_tpA%nbody
+   npl = self%nbody
    allocate(iflag(npl))
-   call drift_one(helio_tpA%mu_vec(2:npl), helio_tpA%xh(1,2:npl),&
-                                           helio_tpA%xh(2,2:npl),& 
-                                           helio_tpA%xh(3,2:npl),& 
-                                           helio_tpA%vb(1,2:npl),& 
-                                           helio_tpA%vb(2,2:npl),& 
-                                           helio_tpA%vb(3,2:npl),&
-                                           helio_tpA%dt_vec(2:npl), iflag(2:npl))
+   call drift_one(self%mu_vec(2:npl), self%xh(1,2:npl), self%xh(2,2:npl), self%xh(3,2:npl),& 
+                                      self%vb(1,2:npl), self%vb(2,2:npl), self%vb(3,2:npl),&
+                                      self%dt_vec(2:npl), iflag(2:npl))
    if (any(iflag(2:npl) /= 0 )) then
       do i = 1,npl
          if (iflag(i) /= 0) then
-            write(*, *) "Particle ", helio_tpA%name(i), " lost due to error in Danby drift"
+            write(*, *) "Particle ", self%name(i), " lost due to error in Danby drift"
          end if
       end do
       deallocate(iflag)

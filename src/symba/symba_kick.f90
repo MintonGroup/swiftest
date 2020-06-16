@@ -6,22 +6,22 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Kick barycentric velocities of planets and active test particles within SyMBA recursion
+!  Description : Kick barycentric velocities of massive bodies and active test particles within SyMBA recursion
 !
 !  Input
 !    Arguments : irec         : input recursion level
-!                nplplenc     : number of planet-planet encounters
-!                npltpenc     : number of planet-test particle encounters
-!                plplenc_list : array of planet-planet encounter structures
-!                pltpenc_list : array of planet-test particle encounter structures
+!                nplplenc     : number of massive body-massive body encounters
+!                npltpenc     : number of massive body-test particle encounters
+!                plplenc_list : array of massive body-massive body encounter structures
+!                pltpenc_list : array of massive body-test particle encounter structures
 !                dt           : time step
 !                sgn          : sign to be applied to acceleration
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : plplenc_list : array of planet-planet encounter structures
-!                pltpenc_list : array of planet-test particle encounter structures
+!    Arguments : plplenc_list : array of massive body-massive body encounter structures
+!                pltpenc_list : array of massive body-test particle encounter structures
 !    Terminal  : none
 !    File      : none
 !

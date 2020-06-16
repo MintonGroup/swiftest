@@ -16,14 +16,14 @@
 !
 !  Output
 !    Arguments : t              : time
-!                id1            : identifier of first planet / particle
-!                id2            : identifier of second planet / particle
-!                mass1          : mass of first planet / particle
-!                mass2          : mass of second planet / particle
-!                xh1            : heliocentric position of first planet / particle
-!                xh2            : heliocentric position of second planet / particle
-!                vh1            : heliocentric velocity of first planet / particle
-!                vh2            : heliocentric velocity of second planet / particle
+!                id1            : identifier of first massive body / particle
+!                id2            : identifier of second massive body / particle
+!                mass1          : mass of first massive body / particle
+!                mass2          : mass of second massive body / particle
+!                xh1            : heliocentric position of first massive body / particle
+!                xh2            : heliocentric position of second massive body / particle
+!                vh1            : heliocentric velocity of first massive body / particle
+!                vh2            : heliocentric velocity of second massive body / particle
 !    Terminal  : error message
 !    File      : none
 !

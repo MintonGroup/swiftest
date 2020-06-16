@@ -9,8 +9,8 @@
 !  Description : Turns i,j indices into k index for use in the Euclidean distance matrix
 !
 !  Input
-!    Arguments : npl          : number of planets
-!              : nplm         : number of planets above mtiny
+!    Arguments : npl          : number of massive bodies
+!              : nplm         : number of massive bodies above mtiny
 !    Terminal  : none
 !    File      : none
 !

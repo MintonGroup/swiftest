@@ -6,23 +6,23 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Compute heliocentric accelerations of planets
+!  Description : Compute heliocentric accelerations of massive bodies
 !
 !  Input
 !    Arguments : lflag        : logical flag indicating whether to recompute direct cross term heliocentric accelerations
 !                lextra_force : logical flag indicating whether to include user-supplied accelerations
 !                t            : time
-!                npl          : number of planets
-!                nplm         : number of planets with mass > mtiny
-!                nplmax       : maximum allowed number of planets
-!                helio_pl1P   : pointer to head of helio planet structure linked-list
+!                npl          : number of massive bodies
+!                nplm         : number of massive bodies with mass > mtiny
+!                nplmax       : maximum allowed number of massive bodies
+!                helio_pl1P   : pointer to head of helio massive body structure linked-list
 !                j2rp2        : J2 * R**2 for the Sun
 !                j4rp4        : J4 * R**4 for the Sun
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : helio_pl1P   : pointer to head of helio planet structure linked-list
+!    Arguments : helio_pl1P   : pointer to head of helio massive body structure linked-list
 !    Terminal  : none
 !    File      : none
 !

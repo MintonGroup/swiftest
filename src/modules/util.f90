@@ -38,7 +38,7 @@ module util
          real(DP), dimension(ndim,num_comparisons),intent(inout) :: outvar
       end subroutine util_dist_eucl_plpl
 
-      subroutine util_dist_eucl_pltp(npl, ntp, plAnets, test_particles, num_pltp_comparisons, k_pltp, outvar)
+      subroutine util_dist_eucl_pltp(npl, ntp, massive bodies, test_particles, num_pltp_comparisons, k_pltp, outvar)
          use swiftest_globals
          use swiftest_data_structures
          use symba
@@ -46,7 +46,7 @@ module util
          integer(I4B), intent(in) :: npl, ntp
          integer(I4B), dimension(num_pltp_comparisons,2),intent(in) :: k_pltp
          integer(I4B), intent(in) :: num_pltp_comparisons
-         real(DP),dimension(ndim,npl),intent(in) :: plAnets
+         real(DP),dimension(ndim,npl),intent(in) :: massive bodies
          real(DP),dimension(ndim,ntp),intent(in) :: test_particles
          real(DP), dimension(ndim,num_pltp_comparisons),intent(inout) :: outvar
       end subroutine

@@ -10,16 +10,16 @@
 !
 !  Input
 !    Arguments : t              : time
-!                npl            : number of planets
+!                npl            : number of massive bodies
 !                ntp            : number of active test particles
-!                swifter_pl1P   : pointer to head of Swifter planet structure linked-list
+!                swifter_pl1P   : pointer to head of Swifter massive body structure linked-list
 !                swifter_tp1P   : pointer to head of active Swifter test particle structure linked-list
 !                msys           : total system mass
 !                qmin           : minimum pericenter distance for test particle
 !                qmin_alo       : minimum semimajor axis for qmin
 !                qmin_ahi       : maximum semimajor axis for qmin
 !                qmin_coord     : coordinate frame to use for qmin
-!                lrhill_present : logical flag indicating whether Hill sphere radii for planets are present
+!                lrhill_present : logical flag indicating whether Hill sphere radii for massive bodies are present
 !    Terminal  : none
 !    File      : none
 !

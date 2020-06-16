@@ -9,7 +9,7 @@
 !  Description : Calculates the Euclidean distance matrix (but in array form)
 !
 !  Input
-!    Arguments : npl : number of planets
+!    Arguments : npl : number of massive bodies
 !              : invar : variable that we want to make comparisons between
 !              : num_comparisons : number of comparisons to make
 !              : k_plpl : matrix to convert linear index k into i,j indices

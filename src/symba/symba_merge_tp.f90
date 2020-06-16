@@ -6,14 +6,14 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Check for merger between planet and test particle in SyMBA
+!  Description : Check for merger between massive body and test particle in SyMBA
 !
 !  Input
 !    Arguments : t              : time
 !                dt             : time step
-!                index          : index of planet-test particle encounter in array pltpenc_list
-!                npltpenc       : number of planet-test particle encounters
-!                pltpenc_list   : array of planet-test particle encounter structures
+!                index          : index of massive body-test particle encounter in array pltpenc_list
+!                npltpenc       : number of massive body-test particle encounters
+!                pltpenc_list   : array of massive body-test particle encounter structures
 !                vbs            : barycentric velocity of the Sun
 !                encounter_file : name of output file for encounters
 !                out_type       : binary format of output file
@@ -21,7 +21,7 @@
 !    File      : none
 !
 !  Output
-!    Arguments : pltpenc_list   : array of planet-test particle encounter structures
+!    Arguments : pltpenc_list   : array of massive body-test particle encounter structures
 !    Terminal  : status message
 !    File      : none
 !
@@ -92,7 +92,7 @@ SUBROUTINE symba_merge_tp(t, dt, index_enc, pltpenc_list, vbs, encounter_file, o
      IF (lmerge) THEN
           pltpenc_list%status(index_enc) = MERGED
           symba_tpA%helio%swiftest%status = DISCARDED_PLR
-          WRITE(*, *) "Particle ", symba_tpA%helio%swiftest%name, " too close to Planet ", &
+          WRITE(*, *) "Particle ", symba_tpA%helio%swiftest%name, " too close to massive body ", &
           symba_plA%helio%swiftest%name, " at t = ", t
      END IF
 

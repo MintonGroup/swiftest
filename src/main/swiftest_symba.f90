@@ -12,7 +12,7 @@ program swiftest_symba
 
    ! Arguments
    type(swiftest_configuration)  :: param    ! derived type containing user-defined parameters
-   integer(I4B)      :: nplmax         ! maximum number of planets
+   integer(I4B)      :: nplmax         ! maximum number of massive bodies
    integer(I4B)      :: ntpmax         ! maximum number of test particles
    integer(I4B)      :: istep_out      ! time steps between binary outputs
    integer(I4B)      :: istep_dump     ! time steps between dumps
@@ -29,7 +29,7 @@ program swiftest_symba
    real(DP)          :: qmin_ahi       ! maximum semimajor axis for qmin
    character(strmax) :: qmin_coord     ! coordinate frame to use for qmin
    character(strmax) :: encounter_file ! name of output file for encounters
-   character(strmax) :: inplfile       ! name of input file for planets
+   character(strmax) :: inplfile       ! name of input file for massive bodies
    character(strmax) :: intpfile       ! name of input file for test particles
    character(strmax) :: in_type        ! format of input data files
    character(strmax) :: outfile        ! name of output binary file

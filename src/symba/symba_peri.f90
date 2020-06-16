@@ -6,19 +6,19 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Determine system pericenter passages for planets in SyMBA
+!  Description : Determine system pericenter passages for massive bodies in SyMBA
 !
 !  Input
 !    Arguments : lfirst     : logical flag indicating whether current invocation is the first
-!                npl        : number of planets
-!                symba_pl1P : pointer to head of SyMBA planet structure linked-list
+!                npl        : number of massive bodies
+!                symba_pl1P : pointer to head of SyMBA massive body structure linked-list
 !                msys       : total system mass
 !                qmin_coord : coordinate frame for qmin
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : symba_pl1P : pointer to head of SyMBA planet structure linked-list
+!    Arguments : symba_pl1P : pointer to head of SyMBA massive body structure linked-list
 !    Terminal  : none
 !    File      : none
 !
@@ -27,7 +27,7 @@
 !  Notes       : Adapted from Hal Levison's Swift routine util_mass_peri.f
 !
 !                If the coordinate system used is barycentric, then this routine assumes that the barycentric coordinates in the
-!                planet structures are up-to-date and are not recomputed
+!                massive body structures are up-to-date and are not recomputed
 !
 !**********************************************************************************************************************************
 SUBROUTINE symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)

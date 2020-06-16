@@ -6,16 +6,16 @@
 !  Package     : util
 !  Language    : Fortran 90/95
 !
-!  Description : Compute Hill sphere radii of planets
+!  Description : Compute Hill sphere radii of massive bodies
 !
 !  Input
-!    Arguments : npl          : number of planets
-!                swifter_pl1P : pointer to head of SWIFTER planet structure linked-list
+!    Arguments : npl          : number of massive bodies
+!                swifter_pl1P : pointer to head of SWIFTER massive body structure linked-list
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : swifter_pl1P : pointer to head of SWIFTER planet structure linked-list
+!    Arguments : swifter_pl1P : pointer to head of SWIFTER massive body structure linked-list
 !    Terminal  : none
 !    File      : none
 !

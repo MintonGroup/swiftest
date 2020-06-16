@@ -12,9 +12,9 @@
 !  Input
 !    Arguments : t              : time
 !                dt             : time step
-!                npl            : number of planets
+!                npl            : number of massive bodies
 !                ntp            : number of test particles
-!                swifter_pl1P   : pointer to head of Swifter planet structure linked-list
+!                swifter_pl1P   : pointer to head of Swifter massive body structure linked-list
 !                swifter_tp1P   : pointer to head of active Swifter test particle structure linked-list
 !                rmin           : minimum heliocentric radius for test particle
 !                rmax           : maximum heliocentric radius for test particle
@@ -23,8 +23,8 @@
 !                qmin_alo       : minimum semimajor axis for qmin
 !                qmin_ahi       : maximum semimajor axis for qmin
 !                qmin_coord     : coordinate frame to use for qmin
-!                lclose         : logical flag indicating whether to check for planet-test particle encounters
-!                lrhill_present : logical flag indicating whether Hill sphere radii for planets are present
+!                lclose         : logical flag indicating whether to check for massive body-test particle encounters
+!                lrhill_present : logical flag indicating whether Hill sphere radii for massive bodies are present
 !    Terminal  : none
 !    File      : none
 !

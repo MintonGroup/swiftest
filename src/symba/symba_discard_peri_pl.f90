@@ -6,24 +6,24 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Check to see if planets should be discarded based on their pericenter distances
+!  Description : Check to see if massive bodies should be discarded based on their pericenter distances
 !
 !  Input
 !    Arguments : t          : time
-!                npl        : number of planets
-!                symba_pl1P : pointer to head of SyMBA planet structure linked-list
+!                npl        : number of massive bodies
+!                symba_pl1P : pointer to head of SyMBA massive body structure linked-list
 !                msys       : total system mass
 !                qmin       : minimum allowed pericenter distance
 !                qmin_alo   : minimum semimajor axis for qmin
 !                qmin_ahi   : maximum semimajor axis for qmin
 !                qmin_coord : coordinate frame for qmin
-!                ldiscards  : logical flag indicating whether any planets are discarded
+!                ldiscards  : logical flag indicating whether any massive bodies are discarded
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : symba_pl1P : pointer to head of SyMBA planet structure linked-list
-!                ldiscards  : logical flag indicating whether any planets are discarded
+!    Arguments : symba_pl1P : pointer to head of SyMBA massive body structure linked-list
+!                ldiscards  : logical flag indicating whether any massive bodies are discarded
 !    Terminal  : status message
 !    File      : none
 !

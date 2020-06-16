@@ -6,43 +6,43 @@
 !  Package     : symba
 !  Language    : Fortran 90/95
 !
-!  Description : Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
+!  Description : Step interacting massive bodies and active test particles ahead in democratic heliocentric coordinates at the current
 !                recursion level, if applicable, and descend to the next deeper level if necessary
 !
 !  Input
 !    Arguments : lclose         : logical flag indicating whether to check for mergers
 !                t              : time
 !                ireci          : input recursion level
-!                npl            : number of planets
-!                nplm           : number of planets with mass > mtiny
+!                npl            : number of massive bodies
+!                nplm           : number of massive bodies with mass > mtiny
 !                ntp            : number of active test particles
-!                symba_pl1P     : pointer to head of SyMBA planet structure linked-list
+!                symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
 !                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
 !                dt0            : time step (primary time step for overall integration)
 !                eoffset        : energy offset (net energy lost in mergers)
-!                nplplenc       : number of planet-planet encounters
-!                npltpenc       : number of planet-test particle encounters
-!                plplenc_list   : array of planet-planet encounter structures
-!                pltpenc_list   : array of planet-test particle encounter structures
-!                nmergeadd      : number of merged planets to add
-!                nmergesub      : number of merged planets to subtract
-!                mergeadd_list  : array of structures of merged planets to add
-!                mergesub_list  : array of structures of merged planets to subtract
+!                nplplenc       : number of massive body-massive body encounters
+!                npltpenc       : number of massive body-test particle encounters
+!                plplenc_list   : array of massive body-massive body encounter structures
+!                pltpenc_list   : array of massive body-test particle encounter structures
+!                nmergeadd      : number of merged massive bodies to add
+!                nmergesub      : number of merged massive bodies to subtract
+!                mergeadd_list  : array of structures of merged massive bodies to add
+!                mergesub_list  : array of structures of merged massive bodies to subtract
 !                encounter_file : name of output file for encounters
 !                out_type       : binary format of output file
 !    Terminal  : none
 !    File      : none
 !
 !  Output
-!    Arguments : symba_pl1P     : pointer to head of SyMBA planet structure linked-list
+!    Arguments : symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
 !                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
 !                eoffset        : energy offset (net energy lost in mergers)
-!                plplenc_list   : array of planet-planet encounter structures
-!                pltpenc_list   : array of planet-test particle encounter structures
-!                nmergeadd      : number of merged planets to add
-!                nmergesub      : number of merged planets to subtract
-!                mergeadd_list  : array of structures of merged planets to add
-!                mergesub_list  : array of structures of merged planets to subtract
+!                plplenc_list   : array of massive body-massive body encounter structures
+!                pltpenc_list   : array of massive body-test particle encounter structures
+!                nmergeadd      : number of merged massive bodies to add
+!                nmergesub      : number of merged massive bodies to subtract
+!                mergeadd_list  : array of structures of merged massive bodies to add
+!                mergesub_list  : array of structures of merged massive bodies to subtract
 !    Terminal  : warning message
 !    File      : none
 !
@@ -153,7 +153,7 @@ RECURSIVE SUBROUTINE symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_pl
                         (symba_plA%levelg(index_i) >= ireci) .AND.                                                              &
                         (symba_plA%levelg(index_j) >= ireci))) THEN
                         ! Create if statement to check for collisions (LS12) or merger depending on flag lfrag in param.in
-                        ! Determines collisional regime if lfrag=.TRUE. for close encounter planets
+                        ! Determines collisional regime if lfrag=.TRUE. for close encounter massive bodies
                         ! CALL symba_frag_pl(...)
                         ! Determines if close encounter leads to merger if lfrag=.FALSE.   
                          IF (config%lfragmentation) THEN

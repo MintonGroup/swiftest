@@ -6,23 +6,23 @@
 !  Package     : io
 !  Language    : Fortran 90/95
 !
-!  Description : Write out information about discarded and merged planets and test particles in SyMBA
+!  Description : Write out information about discarded and merged massive bodies and test particles in SyMBA
 !
 !  Input
 !    Arguments : t             : time
 !                mtiny         : smallest self-gravitating mass
-!                npl           : number of planets
-!                nsppl         : number of spilled planets
+!                npl           : number of massive bodies
+!                nsppl         : number of spilled massive bodies
 !                nsptp         : number of spilled test particles
-!                nmergeadd     : number of merged planets to add
-!                nmergesub     : number of merged planets to subtract
-!                symba_pl1P    : pointer to head of SyMBA planet structure linked-list
-!                symba_pld1P   : pointer to head of discard SyMBA planet structure linked-list
+!                nmergeadd     : number of merged massive bodies to add
+!                nmergesub     : number of merged massive bodies to subtract
+!                symba_pl1P    : pointer to head of SyMBA massive body structure linked-list
+!                symba_pld1P   : pointer to head of discard SyMBA massive body structure linked-list
 !                symba_tpd1P   : pointer to head of discard SyMBA test particle structure linked-list
-!                mergeadd_list : array of structures of merged planets to add
-!                mergesub_list : array of structures of merged planets to subtract
+!                mergeadd_list : array of structures of merged massive bodies to add
+!                mergesub_list : array of structures of merged massive bodies to subtract
 !                fname         : name of file to write
-!                lbig_discard  : logical flag indicating whether to dump planet data with discards
+!                lbig_discard  : logical flag indicating whether to dump massive body data with discards
 !    Terminal  : none
 !    File      : none
 !
