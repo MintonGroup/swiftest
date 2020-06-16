@@ -18,13 +18,13 @@ contains
    npl = helio_tpA%nbody
    allocate(iflag(npl))
    call drift_one(helio_tpA%mu_vec(2:npl), helio_tpA%xh(1,2:npl),&
-                                             helio_tpA%xh(2,2:npl),& 
-                                             helio_tpA%xh(3,2:npl),& 
-                                             helio_tpA%vb(1,2:npl),& 
-                                             helio_tpA%vb(2,2:npl),& 
-                                             helio_tpA%vb(3,2:npl),&
-                                             helio_tpA%dt_vec(2:npl), iflag(2:npl))
-   if (any(iflag(2:npl) )) then
+                                           helio_tpA%xh(2,2:npl),& 
+                                           helio_tpA%xh(3,2:npl),& 
+                                           helio_tpA%vb(1,2:npl),& 
+                                           helio_tpA%vb(2,2:npl),& 
+                                           helio_tpA%vb(3,2:npl),&
+                                           helio_tpA%dt_vec(2:npl), iflag(2:npl))
+   if (any(iflag(2:npl) /= 0 )) then
       do i = 1,npl
          if (iflag(i) /= 0) then
             write(*, *) "Particle ", helio_tpA%name(i), " lost due to error in Danby drift"
@@ -32,7 +32,7 @@ contains
       end do
       deallocate(iflag)
    end if
-   deallocate(iflag_vec)
+   deallocate(iflag)
    
 
    return

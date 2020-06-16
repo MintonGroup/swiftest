@@ -32,27 +32,27 @@
 !                Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
 !
 !**********************************************************************************************************************************
-SUBROUTINE obl_pot(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
+SUBROUTINE obl_pot(swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
 
 ! Modules
      USE swiftest, EXCEPT_THIS_ONE => obl_pot
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                   :: npl
+     class(swiftest_pl), INTENT(INOUT)          :: swiftest_plA
      REAL(DP), INTENT(IN)                       :: j2rp2, j4rp4
      REAL(DP), INTENT(OUT)                      :: oblpot
      REAL(DP), DIMENSION(:), INTENT(IN)         :: irh
      REAL(DP), DIMENSION(:, :), INTENT(IN)      :: xh
-     TYPE(swiftest_pl), INTENT(INOUT)           :: swiftest_plA
 
 ! Internals
-     INTEGER(I4B)              :: i
+     INTEGER(I4B)              :: i, npl
      REAL(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4, mu
 
 ! Executable code
      oblpot = 0.0_DP
      mu = swiftest_plA%mass(1)
+     npl = swiftest_plA%nbody
      DO i = 2, npl
           rinv2 = irh(i)**2
           t0 = mu*swiftest_plA%mass(i)*rinv2*irh(i)

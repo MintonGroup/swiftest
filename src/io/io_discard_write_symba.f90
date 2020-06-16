@@ -102,18 +102,18 @@ SUBROUTINE io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, s
      IF (lbig_discard) THEN
           nplm = 0
           DO i = 1, npl
-               IF (symba_plA%helio%swiftest%mass(i) < mtiny) EXIT
+               IF (symba_plA%mass(i) < mtiny) EXIT
                nplm = nplm + 1
           END DO
           IF (nplm > 1) THEN
                WRITE(LUN, 400) nplm
  400           FORMAT(I8)
                DO i = 2, nplm
-                    WRITE(LUN, 500) symba_plA%helio%swiftest%name(i), symba_plA%helio%swiftest%mass(i),& 
-                     symba_plA%helio%swiftest%radius(i)
+                    WRITE(LUN, 500) symba_plA%name(i), symba_plA%mass(i),& 
+                     symba_plA%radius(i)
  500                FORMAT(I8, 2(1X, E23.16))
-                    WRITE(LUN, 300) symba_plA%helio%swiftest%xh(:,i)
-                    WRITE(LUN, 300) symba_plA%helio%swiftest%vh(:,i)
+                    WRITE(LUN, 300) symba_plA%xh(:,i)
+                    WRITE(LUN, 300) symba_plA%vh(:,i)
                END DO
           END IF
      END IF

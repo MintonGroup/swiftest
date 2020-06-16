@@ -96,7 +96,7 @@ SUBROUTINE symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, hto
                r2 = DOT_PRODUCT(swiftest_plA%xh(:,i),swiftest_plA%xh(:,i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_pot(npl, swiftest_plA, j2rp2, j4rp4, swiftest_plA%xh(:,:), irh, oblpot)
+          CALL obl_pot(swiftest_plA, j2rp2, j4rp4, swiftest_plA%xh(:,:), irh, oblpot)
           pe = pe + oblpot
      END IF
      te = ke + pe

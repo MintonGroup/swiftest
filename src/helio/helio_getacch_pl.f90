@@ -16,9 +16,7 @@ contains
 
    npl = helio_plA%nbody
    if (lflag) then
-      do i = 2, npl
-         helio_plA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      end do
+      helio_plA%ahi(:,2:npl) = 0.0_DP
       call helio_getacch_int_pl(helio_plA)
    end if
    if (config%j2rp2 /= 0.0_DP) then
@@ -31,14 +29,10 @@ contains
          r2 = dot_product(xh(:, i), xh(:, i))
          irh(i) = 1.0_DP / sqrt(r2)
       end do
-      call obl_acc(npl, helio_plA, config%j2rp2, config%j4rp4, xh, irh, aobl)
-      do i = 2, npl
-         helio_plA%ah(:,i) = helio_plA%ahi(:,i) + aobl(:, i) - aobl(:, 1)
-      end do
+      call obl_acc(helio_plA, config%j2rp2, config%j4rp4, xh, irh, aobl)
+      helio_plA%ah(:,2:npl) = helio_plA%ahi(:,2:npl) + aobl(:, 2:npl) - aobl(:, 1)
    else
-      do i = 2, npl
-         helio_plA%ah(:,i) = helio_plA%ahi(:,i)
-      end do
+      helio_plA%ah(:,:) = helio_plA%ahi(:,:)
    end if
    if (config%lextra_force) call helio_user_getacch(helio_plA, t)
 

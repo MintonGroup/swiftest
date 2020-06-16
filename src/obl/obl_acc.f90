@@ -30,26 +30,26 @@
 !                Returned values do not include monopole term or terms higher than J4
 !
 !**********************************************************************************************************************************
-SUBROUTINE obl_acc(npl, swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
+SUBROUTINE obl_acc(swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
 
 ! Modules
      USE swiftest, EXCEPT_THIS_ONE => obl_acc
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                     :: npl
+     class(swiftest_pl), INTENT(INOUT)             :: swiftest_plA
      REAL(DP), INTENT(IN)                         :: j2rp2, j4rp4
      REAL(DP), DIMENSION(:), INTENT(IN)         :: irh
      REAL(DP), DIMENSION(:,:), INTENT(IN)   :: xh
      REAL(DP), DIMENSION(:,:), INTENT(OUT)  :: aobl
-     TYPE(swiftest_pl), INTENT(INOUT)             :: swiftest_plA
 
 ! Internals
-     INTEGER(I4B)              :: i
+     INTEGER(I4B)              :: i, npl
      REAL(DP)                  :: rinv2, t0, t1, t2, t3, fac1, fac2, msun
 
 ! Executable code
      msun = swiftest_plA%mass(1)
+     npl = swiftest_plA%nbody
      DO i = 2, npl
           rinv2 = irh(i)**2
           t0 = -msun*rinv2*rinv2*irh(i)

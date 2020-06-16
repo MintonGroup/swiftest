@@ -65,23 +65,23 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
 
 ! Executable code
      !Removed by D. Minton
-     !helio_tpP => symba_tp1P%helio
+     !helio_tpP => symba_tp1P
      !^^^^^^^^^^^^^^^^^^^^
      ! OpenMP parallelization added by D. Minton
      DO i = 1, ntp
           !Added by D. Minton
-          !helio_tpP => symba_tp1P%symba_tpPA(i)%thisP%helio
+          !helio_tpP => symba_tp1P%symba_tpPA(i)%thisP
           !^^^^^^^^^^^^^^^^^^
-          symba_tpA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-          IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) THEN
+          symba_tpA%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+          IF (symba_tpA%status(i) == ACTIVE) THEN
                !swifter_plP => swifter_pl1P
                !DO j = 2, nplm
                DO j = 2, nplm
                     !swifter_plP => swifter_plP%nextP
-                    dx(:) = symba_tpA%helio%swiftest%xh(:,i) - xh(:, j)
+                    dx(:) = symba_tpA%xh(:,i) - xh(:, j)
                     r2 = DOT_PRODUCT(dx(:), dx(:))
-                    fac = symba_PlA%helio%swiftest%mass(j)/(r2*SQRT(r2))
-                    symba_tpA%helio%ah(:,i) = symba_tpA%helio%ah(:,i) - fac*dx(:)
+                    fac = symba_PlA%mass(j)/(r2*SQRT(r2))
+                    symba_tpA%ah(:,i) = symba_tpA%ah(:,i) - fac*dx(:)
                END DO
           END IF
           !Removed by D. Minton
@@ -89,15 +89,15 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
           !^^^^^^^^^^^^^^^^^^^^
      END DO
      DO i = 1, npltpenc
-          !swifter_plP => pltpenc_list(i)%plP%helio%swifter
-          !helio_tpP => pltpenc_list(i)%tpP%helio
+          !swifter_plP => pltpenc_list(i)%plP%swifter
+          !helio_tpP => pltpenc_list(i)%tpP
           index_pl = pltpenc_list%indexpl(i)
           index_tp = pltpenc_list%indextp(i)
-          IF (symba_tpA%helio%swiftest%status(index_tp) == ACTIVE) THEN
-               dx(:) = symba_tpA%helio%swiftest%xh(:,index_tp) - symba_plA%helio%swiftest%xh(:,index_pl)
+          IF (symba_tpA%status(index_tp) == ACTIVE) THEN
+               dx(:) = symba_tpA%xh(:,index_tp) - symba_plA%xh(:,index_pl)
                r2 = DOT_PRODUCT(dx(:), dx(:))
-               fac = symba_plA%helio%swiftest%mass(index_pl)/(r2*SQRT(r2))
-               symba_tpA%helio%ah(:,index_tp) = symba_tpA%helio%ah(:,index_tp) + fac*dx(:)
+               fac = symba_plA%mass(index_pl)/(r2*SQRT(r2))
+               symba_tpA%ah(:,index_tp) = symba_tpA%ah(:,index_tp) + fac*dx(:)
           END IF
      END DO
      IF (j2rp2 /= 0.0_DP) THEN
@@ -109,17 +109,17 @@ SUBROUTINE symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, sym
                r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
                irh(i) = 1.0_DP/SQRT(r2)
           END DO
-          CALL obl_acc(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)
-          mu = symba_plA%helio%swiftest%mass(1)
+          CALL obl_acc(symba_plA, j2rp2, j4rp4, symba_plA%xh(:,:), irh, aobl)
+          mu = symba_plA%mass(1)
           DO i = 1, ntp
-               xht(:, i) = symba_tpA%helio%swiftest%xh(:,i) !optimize
+               xht(:, i) = symba_tpA%xh(:,i) !optimize
                r2 = DOT_PRODUCT(xht(:, i), xht(:, i))
                irht(i) = 1.0_DP/SQRT(r2)
           END DO
           CALL obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, mu)
           DO i = 1, ntp
-               IF (symba_tpA%helio%swiftest%status(i) == ACTIVE) &
-               symba_tpA%helio%ah(:,i) = symba_tpA%helio%ah(:,i) + aoblt(:, i) - aobl(:, 1)
+               IF (symba_tpA%status(i) == ACTIVE) &
+               symba_tpA%ah(:,i) = symba_tpA%ah(:,i) + aoblt(:, i) - aobl(:, 1)
           END DO
      END IF
      IF (lextra_force) CALL symba_user_getacch_tp(t, ntp, symba_tpA)
