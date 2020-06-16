@@ -11,14 +11,7 @@ contains
    use swiftest
    integer(I4B)          :: i, npl
 
-   if (config%lvectorize) then
-      npl = helio_plA%nbody
-      helio_plA%vb(:,2:npl) = helio_plA%vb(:,2:npl) + helio_plA%ah(:,2:npl) * dt
-   else
-      do i = 2, npl
-         helio_plA%vb(:,i) = helio_plA%vb(:,i) + helio_plA%ah(:,i) * dt
-      end do
-   end if
+   helio_plA%vb(:,2:npl) = helio_plA%vb(:,2:npl) + helio_plA%ah(:,2:npl) * dt
 
    return
 

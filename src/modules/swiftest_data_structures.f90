@@ -54,7 +54,6 @@ module swiftest_data_structures
       logical :: ltides     = .false.              !! Include tidal dissipation 
       logical :: lringmoons = .false.              !! Turn on the ringmoons code 
       logical :: lenergy = .false.                 !! Track the total energy of the system
-      logical :: lvectorize = .false.             !! Use vectorized versions of core subroutines and functions
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR

@@ -12,36 +12,27 @@ contains
    implicit none
 
    integer(I4B) :: npl 
-   integer(I4B), dimension(:),allocatable :: iflag_vec
-   integer(I4B) :: i, iflag
+   integer(I4B), dimension(:),allocatable :: iflag
+   integer(I4B) :: i
 
    npl = helio_tpA%nbody
-   if (lvectorize) then
-      allocate(iflag_vec(npl))
-      call drift_one_vec(helio_tpA%mu_vec(2:npl), helio_tpA%xh(1,2:npl),&
-                                                  helio_tpA%xh(2,2:npl),& 
-                                                  helio_tpA%xh(3,2:npl),& 
-                                                  helio_tpA%vb(1,2:npl),& 
-                                                  helio_tpA%vb(2,2:npl),& 
-                                                  helio_tpA%vb(3,2:npl),&
-                                                  helio_tpA%dt_vec(2:npl), iflag_vec(2:npl))
-      if (any(iflag_vec(2:npl) /= 0)) then
-         do i = 1,npl
-            if (iflag_vec(i) /= 0) then
-               write(*, *) "Particle ", helio_tpA%name(i), " lost due to error in Danby drift"
-            end if
-         end do
-         deallocate(iflag_vec)
-      end if
-      deallocate(iflag_vec)
-   else
-      do i = 2, npl
-         call drift_one(mu, helio_tpA%xh(:,i), helio_tpA%vb(:,i), dt, iflag)
-         if (iflag /= 0) then
-               write(*, *) "Particle ", helio_tpA%name(i), " lost due to error in Danby drift"
+   allocate(iflag(npl))
+   call drift_one(helio_tpA%mu_vec(2:npl), helio_tpA%xh(1,2:npl),&
+                                             helio_tpA%xh(2,2:npl),& 
+                                             helio_tpA%xh(3,2:npl),& 
+                                             helio_tpA%vb(1,2:npl),& 
+                                             helio_tpA%vb(2,2:npl),& 
+                                             helio_tpA%vb(3,2:npl),&
+                                             helio_tpA%dt_vec(2:npl), iflag(2:npl))
+   if (any(iflag(2:npl) )) then
+      do i = 1,npl
+         if (iflag(i) /= 0) then
+            write(*, *) "Particle ", helio_tpA%name(i), " lost due to error in Danby drift"
          end if
       end do
+      deallocate(iflag)
    end if
+   deallocate(iflag_vec)
    
 
    return

@@ -4,7 +4,6 @@ module procedure helio_user_getacch_tp
    !! author: David A. Minton
    !!
    !! Loop through planets and call Danby drift routine
-   !! New vectorized version included
    !!
    !! Adapted from David E. Kaufmann's Swifter routine helio_user_getacch_tp.f90
 

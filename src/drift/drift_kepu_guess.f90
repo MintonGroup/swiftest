@@ -27,10 +27,10 @@
 !  Notes       : Adapted from Hal Levison and Martin Duncan's Swift routine drift_kepu_guess.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
+PURE SUBROUTINE drift_kepu_guess(dt, r0, mu, alpha, u, s)
 
 ! Modules
-     use swiftest, EXCEPT_THIS_ONE => drift_kepu_guess
+     USE swiftest, EXCEPT_THIS_THIS_ONE => drift_kepu_guess
      IMPLICIT NONE
 
 ! Arguments

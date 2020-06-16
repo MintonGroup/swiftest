@@ -35,10 +35,10 @@
 !                Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 174 - 175.
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+PURE SUBROUTINE drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
 
 ! Modules
-     use swiftest, EXCEPT_THIS_ONE => drift_kepu_new
+     USE swiftest, EXCEPT_THIS_ONE => drift_kepu_new
      IMPLICIT NONE
 
 ! Arguments

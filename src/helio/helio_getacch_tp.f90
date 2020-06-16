@@ -16,13 +16,7 @@ contains
 
 ! executable code
    if (lflag) then
-      if (config%lvectorize) then
-         helio_tpA%ahi(:,:) = 0.0_DP
-      else
-         do i = 1, ntp
-            helio_tpA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-         end do
-      end if
+      helio_tpA%ahi(:,:) = 0.0_DP
       call helio_getacch_int_tp(helio_plA, helio_tpA)
    end if
    if (config%j2rp2 /= 0.0_DP) then
@@ -43,21 +37,9 @@ contains
          irht(i) = 1.0_DP / sqrt(r2)
       end do
       call obl_acc_tp(ntp, xht, config%j2rp2, config%j4rp4, irht, aoblt, mu)
-      if (config%lvectorize) then
-         helio_tpA%ah(:,:) = helio_tpA%ahi(:,:) + aoblt(:, :) - aobl(:, 1)
-      else
-         do i = 1, ntp
-            helio_tpA%ah(:,i) = helio_tpA%ahi(:,i) + aoblt(:, i) - aobl(:, 1)
-         end do
-      end if
+      helio_tpA%ah(:,:) = helio_tpA%ahi(:,:) + aoblt(:, :) - aobl(:, 1)
    else
-      if (config%lvectorize) then
-         helio_tpA%ah(:,:) = helio_tpA%ahi(:,:)
-      else
-         do i = 1, ntp
-            helio_tpA%ah(:,i) = helio_tpA%ahi(:,i)
-         end do
-      end if
+      helio_tpA%ah(:,:) = helio_tpA%ahi(:,:)
    end if
    if (config%lextra_force) call helio_user_getacch_tp(helio_tpA, t)
 

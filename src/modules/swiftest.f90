@@ -8,7 +8,7 @@ module swiftest
    use coord
    use discard
    use drift
-   use drift_vec
+   use drift
    use helio
    use io
    use obl

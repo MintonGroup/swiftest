@@ -28,48 +28,48 @@
 !  Notes       : Adapted from Hal Levison and Martin Duncan's Swift routine drift_dan.f
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_dan(mu, x0, v0, dt0, iflag)
+pure subroutine drift_dan(mu, x0, v0, dt0, iflag)
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => drift_dan
-     IMPLICIT NONE
+! modules
+     use swiftest, except_this_one => drift_dan
+     implicit none
 
-! Arguments
-     INTEGER(I4B), INTENT(OUT)                :: iflag
-     REAL(DP), INTENT(IN)                     :: mu, dt0
-     REAL(DP), DIMENSION(NDIM), INTENT(INOUT) :: x0, v0
+! arguments
+     real(DP), intent(in)                     :: mu, dt0
+     real(DP), dimension(:), intent(inout) :: x0, v0
+     integer(I4B), intent(out) :: iflag
 
-! Internals
-     REAL(DP)                  :: dt, f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
-     REAL(DP)                  :: v0s, a, asq, en, dm, ec, es, esq, xkep, fchk, s, c
-     REAL(DP), DIMENSION(NDIM) :: x, v
+! internals
+     real(DP)                  :: dt, f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
+     real(DP)                  :: v0s, a, asq, en, dm, ec, es, esq, xkep, fchk, s, c
+     real(DP), dimension(NDIM) :: x, v
 
-! Executable code
+! executable code
      iflag = 0
      dt = dt0
-     r0 = SQRT(DOT_PRODUCT(x0(:), x0(:)))
-     v0s = DOT_PRODUCT(v0(:), v0(:))
-     u = DOT_PRODUCT(x0(:), v0(:))
+     r0 = sqrt(dot_product(x0(:), x0(:)))
+     v0s = dot_product(v0(:), v0(:))
+     u = dot_product(x0(:), v0(:))
      alpha = 2.0_DP*mu/r0 - v0s
-     IF (alpha > 0.0_DP) THEN
+     if (alpha > 0.0_DP) then
           a = mu/alpha
           asq = a*a
-          en = SQRT(mu/(a*asq))
+          en = sqrt(mu/(a*asq))
           ec = 1.0_DP - r0/a
           es = u/(en*asq)
           esq = ec*ec + es*es
-          dm = dt*en - INT(dt*en/TWOPI)*TWOPI
+          dm = dt*en - int(dt*en/twopi)*twopi
           dt = dm/en
-          IF ((esq < E2MAX) .AND. (dm*dm < DM2MAX) .AND. (esq*dm*dm < E2DM2MAX)) THEN
-               CALL drift_kepmd(dm, es, ec, xkep, s, c)
+          if ((esq < e2max) .and. (dm*dm < dm2max) .and. (esq*dm*dm < e2dm2max)) then
+               call drift_kepmd(dm, es, ec, xkep, s, c)
                fchk = (xkep - ec*s + es*(1.0_DP - c) - dm)
-! DEK - original code compared fchk*fchk with DANBYB, but I think it should
-! DEK - be compared with DANBYB*DANBYB, and I changed it accordingly - please
-! DEK - check with Hal and/or Martin about this
-               IF (fchk*fchk > DANBYB*DANBYB) THEN
+! dek - original code compared fchk*fchk with danbyb, but i think it should
+! dek - be compared with danbyb*danbyb, and i changed it accordingly - please
+! dek - check with hal and/or martin about this
+               if (fchk*fchk > danbyb*danbyb) then
                     iflag = 1
-                    RETURN
-               END IF
+                    return
+               end if
                fp = 1.0_DP - ec*c + es*s
                f = a/r0*(c - 1.0_DP) + 1.0_DP
                g = dt + (s - xkep)/en
@@ -80,11 +80,11 @@ SUBROUTINE drift_dan(mu, x0, v0, dt0, iflag)
                x0(:) = x(:)
                v0(:) = v(:)
                iflag = 0
-               RETURN
-          END IF
-     END IF
-     CALL drift_kepu(dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-     IF (iflag == 0) THEN
+               return
+          end if
+     end if
+     call drift_kepu(dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+     if (iflag == 0) then
           f = 1.0_DP - mu/r0*c2
           g = dt - mu*c3
           fdot = -mu/(fp*r0)*c1
@@ -93,26 +93,26 @@ SUBROUTINE drift_dan(mu, x0, v0, dt0, iflag)
           v(:) = x0(:)*fdot + v0(:)*gdot
           x0(:) = x(:)
           v0(:) = v(:)
-     END IF
+     end if
 
-     RETURN
+     return
 
-END SUBROUTINE drift_dan
+end subroutine drift_dan
 !**********************************************************************************************************************************
 !
-!  Author(s)   : David E. Kaufmann
+!  author(s)   : david e. kaufmann
 !
-!  Revision Control System (RCS) Information
+!  revision control system (rcs) information
 !
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
+!  source file : $rcsfile$
+!  full path   : $source$
+!  revision    : $revision$
+!  date        : $date$
+!  programmer  : $author$
+!  locked by   : $locker$
+!  state       : $state$
 !
-!  Modification History:
+!  modification history:
 !
-!  $Log$
+!  $log$
 !**********************************************************************************************************************************

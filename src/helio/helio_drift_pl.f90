@@ -12,46 +12,32 @@ contains
    implicit none
 
    integer(I4B) :: npl 
-   integer(I4B), dimension(:),allocatable :: iflag_vec
-   integer(I4B) :: i, iflag
+   integer(I4B), dimension(:),allocatable :: iflag
+   integer(I4B) :: i
 
    npl = helio_plA%nbody
-   if (lvectorize) then
-      allocate(iflag_vec(npl))
-      call drift_one_vec(helio_plA%mu_vec(2:npl), helio_plA%xh(1,2:npl),&
-                                                  helio_plA%xh(2,2:npl),& 
-                                                  helio_plA%xh(3,2:npl),& 
-                                                  helio_plA%vb(1,2:npl),& 
-                                                  helio_plA%vb(2,2:npl),& 
-                                                  helio_plA%vb(3,2:npl),&
-                                                  helio_plA%dt_vec(2:npl), iflag_vec(2:npl))
-      if (any(iflag_vec(2:npl) /= 0)) then
-         do i = 1,npl
-            if (iflag_vec(i) /= 0) then
-               write(*, *) " Planet ", helio_plA%name(i), " is lost!!!!!!!!!!"
-               write(*, *) mu, dt
-               write(*, *) helio_plA%xh(:,i)
-               write(*, *) helio_plA%vb(:,i)
-               write(*, *) " Stopping "
-            end if
-         end do
-         deallocate(iflag_vec)
-         call util_exit(failure)
-      end if
-      deallocate(iflag_vec)
-   else
-      do i = 2, npl
-         call drift_one(mu, helio_plA%xh(:,i), helio_plA%vb(:,i), dt, iflag)
-         if (iflag /= 0) then
-               write(*, *) " Planet ", helio_plA%name(i), " is lost!!!!!!!!!!"
-               write(*, *) mu, dt
-               write(*, *) helio_plA%xh(:,i)
-               write(*, *) helio_plA%vb(:,i)
-               write(*, *) " Stopping "
-               call util_exit(failure)
+   allocate(iflag(npl))
+   call drift_one(helio_plA%mu_vec(2:npl), helio_plA%xh(1,2:npl),&
+                                           helio_plA%xh(2,2:npl),& 
+                                           helio_plA%xh(3,2:npl),& 
+                                           helio_plA%vb(1,2:npl),& 
+                                           helio_plA%vb(2,2:npl),& 
+                                           helio_plA%vb(3,2:npl),&
+                                           helio_plA%dt_vec(2:npl), iflag(2:npl))
+   if (any(iflag(2:npl) /= 0)) then
+      do i = 1,npl
+         if (iflag(i) /= 0) then
+            write(*, *) " Planet ", helio_plA%name(i), " is lost!!!!!!!!!!"
+            write(*, *) mu, dt
+            write(*, *) helio_plA%xh(:,i)
+            write(*, *) helio_plA%vb(:,i)
+            write(*, *) " Stopping "
          end if
       end do
+      deallocate(iflag)
+      call util_exit(failure)
    end if
+   deallocate(iflag)
    
    return
 

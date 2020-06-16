@@ -35,11 +35,10 @@
 !                Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 178 - 180.
 !
 !**********************************************************************************************************************************
-SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+PURE SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
 
 ! Modules
-     USE swiftest_globals
-     use swiftest, EXCEPT_THIS_ONE => drift_kepu_lag
+     USE swiftest, EXCEPT_THIS_ONE => drift_kepu_lag
      IMPLICIT NONE
 
 ! Arguments

@@ -1,76 +1,32 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : drift_one
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : drift
-!  Language    : Fortran 90/95
-!
-!  Description : Perform Danby drift for one body, redoing drift with smaller substeps if original accuracy is insufficient
-!
-!  Input
-!    Arguments : mu    : G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-!                x     : position of body to drift
-!                v     : velocity of body to drift
-!                dt    : time step
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : x     : position of body to drift
-!                v     : velocity of body to drift
-!                iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL drift_one(mu, x, v, dt, iflag)
-!
-!  Notes       : Adapted from Hal Levison and Martin Duncan's Swift routine drift_one.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE drift_one(mu, x, v, dt, iflag)
+submodule (drift) s_drift_one
+contains
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => drift_one
-     IMPLICIT NONE
+    module procedure drift_one
+    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+    !!
+    !! Perform Danby drift for one body, redoing drift with smaller substeps if original accuracy is insufficient
+    !! The code has been vectorized as an elemental procedure
+    !!
+    !! Adapted from David E. Kaufmann's Swifter routine routine drift_one.f90
+    !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_one.f
+     use swiftest_globals
+    integer(I4B) :: i
+    real(DP)     :: dttmp
+    real(DP),dimension(NDIM) :: x,v
+    
+    x = (/posx, posy, posz/)
+    v = (/vx, vy, vz/)
 
-! Arguments
-     INTEGER(I4B), INTENT(OUT)                :: iflag
-     REAL(DP), INTENT(IN)                     :: mu, dt
-     REAL(DP), DIMENSION(NDIM), INTENT(INOUT) :: x, v
+    call drift_dan(mu, x(:), v(:), dt, iflag)
+    if (iflag /= 0) then
+         dttmp = 0.1_DP * dt
+         do i = 1, 10
+              call drift_dan(mu, x(:), v(:), dttmp, iflag)
+              if (iflag /= 0) return
+         end do
+    end if
 
-! Internals
-     INTEGER(I4B) :: i
-     REAL(DP)     :: dttmp
+    return
+    end procedure drift_one
 
-! Executable code
-     CALL drift_dan(mu, x(:), v(:), dt, iflag)
-     IF (iflag /= 0) THEN
-          dttmp = 0.1_DP*dt
-          DO i = 1, 10
-               CALL drift_dan(mu, x(:), v(:), dttmp, iflag)
-               IF (iflag /= 0) RETURN
-          END DO
-     END IF
-
-     RETURN
-
-END SUBROUTINE drift_one
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+end submodule s_drift_one

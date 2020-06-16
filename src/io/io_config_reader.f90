@@ -120,10 +120,6 @@ contains
          case ("ENERGY")
             call util_toupper(config_value)
             if (config_value == "YES" .or. config_value == 'T') config%lenergy = .true.
-         case ("VECTORIZE")
-            call util_toupper(config_value)
-            if (config_value == "YES" .or. config_value == "T") config%lvectorize = .true.
-
          ! The following are not yet implemented
          case ("RINGMOONS")
             call util_toupper(config_value)
@@ -247,7 +243,6 @@ contains
    write(*,*) "EXTRA_FORCE    = ",config%lextra_force
    write(*,*) "BIG_DISCARD    = ",config%lbig_discard
    write(*,*) "RHILL_PRESENT  = ",config%lrhill_present
-   write(*,*) "VECTORIZED     = ",config%lvectorized
 
    ! Added by D. Minton
    MU2KG = config%MU2KG
