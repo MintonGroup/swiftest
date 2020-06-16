@@ -164,11 +164,11 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
    d_p2 = (3.0_DP * m2) / (4.0_DP * PI * (rad2 ** 3.0_DP))
    avg_d = ((m1 * d_p1) + (m2 * d_p2)) / (m1 + m2)
 
-   DO i = 1, nfrag
+   !DO i = 1, nfrag
       ! If we are adding the first and largest fragment (lr), it's mass and radius should be taken from 
       ! util_regime while it's position and velocity should be calculated on the circle of radius 
       ! r_circle as described above.
-      IF (i == 1) THEN
+      !IF (i == 1) THEN
          frags_added = frags_added + 1
          nmergeadd = nmergeadd + 1
          mergeadd_list%status(nmergeadd) = DISRUPTION
@@ -177,11 +177,11 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          mergeadd_list%mass(nmergeadd) = mres(1)
          mergeadd_list%radius(nmergeadd) = rres(1)
          mtot = mtot + mergeadd_list%mass(nmergeadd)                             
-      END IF
+      !END IF
       ! If we are adding the second fragment (slr), it's mass and radius should be taken from 
       ! util_regime while it's position and velocity should be calculated on the circle of 
       ! radius r_circle as described above.
-      IF ((i == 2) .AND. (mres(2) > (1.0_DP / 3.0_DP)*mres(1))) THEN
+      IF ((mres(2) > (1.0_DP / 3.0_DP)*mres(1))) THEN
          ! frags_added is the actual number of fragments added to the simulation vs nfrag which is the total possible
          frags_added = frags_added + 1
          nmergeadd = nmergeadd + 1
@@ -190,37 +190,51 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
          mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
          mergeadd_list%mass(nmergeadd) = mres(2)
          mergeadd_list%radius(nmergeadd) = rres(2)
-         mtot = mtot + mergeadd_list%mass(nmergeadd)                            
+         mtot = mtot + mergeadd_list%mass(nmergeadd)
+         DO i = 3, nfrag
+            frags_added = frags_added + 1
+            nmergeadd = nmergeadd + 1
+            mergeadd_list%status(nmergeadd) = DISRUPTION
+            mergeadd_list%ncomp(nmergeadd) = 2
+            mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+            m_rem = (m1 + m2) - (mres(1) + mres(2))
+            mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
+            mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
+               ** (1.0_DP / 3.0_DP) 
+            mtot = mtot + mergeadd_list%mass(nmergeadd) 
+         END DO                            
       END IF
 
-      IF ((i == 2) .AND. (mres(2) < (1.0_DP / 3.0_DP)*mres(1))) THEN
-         frags_added = frags_added + 1
-         nmergeadd = nmergeadd + 1
-         mergeadd_list%status(nmergeadd) = DISRUPTION
-         mergeadd_list%ncomp(nmergeadd) = 2
-         mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
-         m_rem = (m1 + m2) - mres(1)
-         mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
-         mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
-            ** (1.0_DP / 3.0_DP) 
-         mtot = mtot + mergeadd_list%mass(nmergeadd) 
+      IF ((i == 2) .AND. (mres(2) < (1.0_DP / 3.0_DP)*mres(1))) THEN   
+         DO i = 2, nfrag
+            m_rem = (m1 + m2) - mres(1)
+            frags_added = frags_added + 1
+            nmergeadd = nmergeadd + 1
+            mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+            mergeadd_list%status(nmergeadd) = DISRUPTION
+            mergeadd_list%ncomp(nmergeadd) = 2
+            mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
+            mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
+               ** (1.0_DP / 3.0_DP)  
+            mtot = mtot + mergeadd_list%mass(nmergeadd)
+         END DO
       END IF
 
       ! If we are doing more fragments
-      IF ((i > 2) .AND. (mres(2) > (1.0_DP / 3.0_DP)*mres(1))) THEN
+      !IF ((i > 2) .AND. (mres(2) > (1.0_DP / 3.0_DP)*mres(1))) THEN
          ! m_rem is the mass needed to be "made up for" in fragments, mres(1) and mres(2) are the mass of the largest 
          ! and second largest fragments that have already been added, and m1 and m2 are the masses of the original 
          ! particles involved in the collision.
-         frags_added = frags_added + 1
-         nmergeadd = nmergeadd + 1
-         mergeadd_list%status(nmergeadd) = DISRUPTION
-         mergeadd_list%ncomp(nmergeadd) = 2
-         mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
-         m_rem = (m1 + m2) - (mres(1) + mres(2))
-         mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
-         mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
-            ** (1.0_DP / 3.0_DP) 
-         mtot = mtot + mergeadd_list%mass(nmergeadd) 
+         !frags_added = frags_added + 1
+         !nmergeadd = nmergeadd + 1
+         !mergeadd_list%status(nmergeadd) = DISRUPTION
+         !mergeadd_list%ncomp(nmergeadd) = 2
+         !mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+         !m_rem = (m1 + m2) - (mres(1) + mres(2))
+         !mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
+         !mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * PI * avg_d))  & 
+         !   ** (1.0_DP / 3.0_DP) 
+         !mtot = mtot + mergeadd_list%mass(nmergeadd) 
 
             !WRITE(*,*) "CASEDISRUPTION mres(1) and mres(2)", mres(1), mres(2)
 
@@ -252,8 +266,8 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
             !   mergeadd_list%radius(nmergeadd) = (((3.0_DP/4.0_DP) * PI) * (mergeadd_list%mass(nmergeadd) / avg_d)) &
             !      ** (1.0_DP / 3.0_DP)                                                            
             !END IF
-      END IF
-   END DO
+      !END IF
+   !END DO
 
       ! Calculate the positions of the new fragments in a circle with a radius large enough to space
       ! all fragments apart by a distance of rhill_p1 + rhill_p2
@@ -274,6 +288,10 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
       vx_frag = ((A * cos(theta * i))*l(1)) + ((A * sin(theta * i))*p(1)) + vx_com
       vy_frag = ((A * cos(theta * i))*l(2)) + ((A * sin(theta * i))*p(2)) + vy_com
       vz_frag = ((A * cos(theta * i))*l(3)) + ((A * sin(theta * i))*p(3)) + vz_com
+
+      WRITE(*,*) "CASEDISRUPTION vx_frag", vx_frag
+      WRITE(*,*) "CASEDISRUPTION vy_frag", vy_frag
+      WRITE(*,*) "CASEDISRUPTION vz_frag", vz_frag
 
          !vx_frag = ((1.0_DP / frags_added) * (1.0_DP / mergeadd_list%mass(nstart + i)) * ((m1 * v1(1)) + (m2 * v2(1)))) + vx_com !- vbs(1)
          !vy_frag = ((1.0_DP / frags_added) * (1.0_DP / mergeadd_list%mass(nstart + i)) * ((m1 * v1(2)) + (m2 * v2(2)))) + vy_com !- vbs(2)
