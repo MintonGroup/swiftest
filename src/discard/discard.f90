@@ -32,7 +32,9 @@ contains
       call swiftest_plA%h2b()
       call swiftest_tpA%h2b(swifter_plA)
    end if
-   if ((rmin >= 0.0_DP) .or. (rmax >= 0.0_DP) .or. (rmaxu >= 0.0_DP)) call discard_sun(t, ntp, msys, swifter_tp1p, rmin, rmax,  &
+   if ((config%rmin >= 0.0_DP) .or. &
+       (config%rmax >= 0.0_DP) .or. &
+       (config%rmaxu >= 0.0_DP)) call discard_sun(swiftest_tpA, config, swiftest_plA%msys ntp, msys, swifter_tp1p, rmin, rmax,  &
       rmaxu)
    if (qmin >= 0.0_DP) call discard_peri(t, npl, ntp, swifter_pl1p, swifter_tp1p, msys, qmin, qmin_alo, qmin_ahi, qmin_coord,   &
       lrhill_present)

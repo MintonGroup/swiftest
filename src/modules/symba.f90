@@ -25,7 +25,6 @@ module symba
       integer(I4B), dimension(:),     allocatable :: levelm  !! deepest encounter level achieved this time step
    contains
       procedure, public :: alloc => symba_tp_allocate
-      procedure, public :: set_from_file => io_read_tp_in !! Override helio_pl io reader with the tp reader
       final :: symba_tp_deallocate
    end type symba_tp
 
@@ -42,7 +41,6 @@ module symba
       integer(I4B), dimension(:,:), allocatable :: index_child  !! position of the children of id
    contains
       procedure, public :: alloc => symba_pl_allocate
-      procedure, public :: set_from_file => io_read_pl_in !! Override symba_tp io reader with the pl reader
       final :: symba_pl_deallocate
    end type symba_pl
 

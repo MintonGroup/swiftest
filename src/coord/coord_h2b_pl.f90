@@ -14,6 +14,7 @@ contains
 
 ! executable code
    npl = self%nbody
+   call self%set_msys(self)
    xtmp(:) = 0.0_DP
    vtmp(:) = 0.0_DP
    do i = 2, npl

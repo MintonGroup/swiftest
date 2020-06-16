@@ -17,7 +17,7 @@ module helio
       real(DP), dimension(:,:), allocatable :: ahi !! Heliocentric acceleration due to interactions
    contains
       procedure, public :: alloc => helio_tp_allocate
-      procedure, public :: set_from_file => io_read_tp_in !! Override swiftest_pl io reader with the tp reader
+      !procedure, public :: set_from_file => io_read_tp_in !! Override swiftest_pl io reader with the tp reader
       procedure, public :: spill => helio_spill_tp           !! Method to remove the inactive Helio particles (tp or pl) and spill them to a discard object 
       procedure, public :: getacch => helio_getacch_tp    !! Compute heliocentric accelerations of test particles
       procedure, public :: step => helio_step_tp          !! Step active test particles ahead using Democratic Heliocentric method
@@ -45,7 +45,7 @@ module helio
       module subroutine helio_spill_tp(self,discard)
          implicit none
          class(helio_tp), intent(inout)    :: self    !! Swiftest test particle object to input
-         class(helio_tp), intent(inout)    :: discard !! Discarded body list
+         class(swiftest_particle), intent(inout)    :: discard !! Discarded body list
       end subroutine helio_spill_tp
   
    end interface
@@ -58,7 +58,7 @@ module helio
    type, public, extends(helio_tp) :: helio_pl
    contains
       procedure, public :: alloc => helio_pl_allocate     !! Constructor method - Allocates space for number of particles
-      procedure, public :: set_from_file => io_read_pl_in !! Override helio_tp io reader with the pl reader
+      !procedure, public :: set_from_file => io_read_pl_in !! Override helio_tp io reader with the pl reader
       procedure, public :: getacch => helio_getacch_pl    !! Compute heliocentric accelerations of massive bodies
       procedure, public :: step => helio_step_pl          !! Step massive bodies ahead Democratic Heliocentric method
       procedure, public :: drift => helio_drift_pl        !! Loop through massive bodies and call Danby drift routine

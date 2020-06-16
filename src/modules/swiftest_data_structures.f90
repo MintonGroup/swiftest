@@ -6,6 +6,7 @@ module swiftest_data_structures
    use swiftest_globals
    implicit none
    private
+   public :: io_read_pl_in, io_read_tp_in
 
    !********************************************************************************************************************************
    !                                    swiftest_configuration class definitions and method interfaces
@@ -132,7 +133,7 @@ module swiftest_data_structures
    !> Interfaces type-bound procedures for swiftest_particle class
    interface
       !> Basic Swiftest generic particle constructor method
-      module  subroutine swiftest_particle_allocate(self,n)
+      module subroutine swiftest_particle_allocate(self,n)
          implicit none
          class(swiftest_particle), intent(inout) :: self !! Generic Swiftest particle object
          integer, intent(in)                     :: n    !! Number of particles to allocate space for
@@ -153,13 +154,6 @@ module swiftest_data_structures
          real(DP),intent(in) :: dt                        !! Input scalar stepsize
       end subroutine swiftest_set_vec
 
-      !> Basic Swiftest generic particle array condenser
-      module  subroutine swiftest_particle_allocate(self,n)
-         implicit none
-         class(swiftest_particle), intent(inout) :: self !! Generic Swiftest particle object
-         integer, intent(in)                     :: n    !! Number of particles to allocate space for
-      end subroutine swiftest_particle_allocate
-
       !> Basic Swiftest generic particle destructor/finalizer
       module subroutine swiftest_particle_spill(self,discard)
          implicit none
@@ -167,7 +161,11 @@ module swiftest_data_structures
          class(swiftest_particle), intent(inout)    :: discard !! Discarded body list
       end subroutine swiftest_particle_spill
 
-
+         !> Basic Swiftest generic particle constructor method
+      module  subroutine swiftest_particle_deallocate(self)
+         implicit none
+         type(swiftest_particle), intent(inout) :: self !! Generic Swiftest particle object
+      end subroutine swiftest_particle_deallocate
 
    end interface
 
@@ -187,7 +185,6 @@ module swiftest_data_structures
       real(DP),     dimension(:,:), allocatable :: vb     !! Barycentric velocity
    contains
       procedure, public :: alloc => swiftest_tp_allocate
-      procedure, public :: set_from_file => io_read_tp_in 
       procedure, public :: spill => swiftest_tp_spill !! Method to remove the inactive test particles and spill them to a discard object 
       procedure, public :: h2b => coord_h2b_tp
       procedure, public :: vb2vh => coord_vb2vh_tp
@@ -214,7 +211,7 @@ module swiftest_data_structures
       module subroutine swiftest_tp_spill(self,discard)
          implicit none
          class(swiftest_tp), intent(inout)    :: self    !! Swiftest test particle object to input
-         class(swiftest_tp), intent(inout)    :: discard !! Discarded body list
+         class(swiftest_particle), intent(inout)    :: discard !! Discarded body list
       end subroutine swiftest_tp_spill
 
       !> Basic Swiftest test particle destructor/finalizer
@@ -236,7 +233,6 @@ module swiftest_data_structures
       real(DP), dimension(:), allocatable :: rhill  !! Hill's sphere radius
    contains
       procedure, public :: alloc => swiftest_pl_allocate
-      procedure, public :: set_from_file => io_read_pl_in 
       procedure, public :: spill => swiftest_pl_spill !! Method to remove the inactive massive bodies and spill them to a discard object 
       procedure, public :: h2b => coord_h2b_pl
       procedure, public :: vb2vh => coord_vb2vh_pl
@@ -264,7 +260,7 @@ module swiftest_data_structures
       module subroutine swiftest_pl_spill(self,discard)
          implicit none
          class(swiftest_pl), intent(inout)    :: self    !! Swiftest massive body particle object to input
-         class(swiftest_pl), intent(inout)    :: discard !! Discarded body list
+         class(swiftest_particle), intent(inout)    :: discard !! Discarded body list
       end subroutine swiftest_pl_spill
 
       !> Basic Swiftest massive body destructor/finalizer
