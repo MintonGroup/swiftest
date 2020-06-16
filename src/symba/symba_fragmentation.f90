@@ -41,7 +41,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Arguments
      INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-     INTEGER(I4B), INTENT(INOUT)                      :: npl, nmergeadd, nmergesub, nplplenc, fragmax
+     INTEGER(I4B), INTENT(IN)                         :: npl, nplplenc
+     INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs
@@ -59,7 +60,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
      INTEGER(I4B)                   :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
      INTEGER(I4B)                   :: name1, name2, index_big1, index_big2, stat1, stat2
      REAL(DP)                       :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
-     REAL(DP)                       :: rad1, rad2, m1, m2, den1, den2, denchild, dentarg, denproj, dentot, Mcenter
+     REAL(DP)                       :: rad1, rad2, m1, m2, den1, den2, vol1, vol2, vchild, dentarg, denproj, dentot, Mcenter
      REAL(DP)                       :: mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
      REAL(DP), DIMENSION(NDIM)      :: xr, vr, x1, v1, x2, v2, x1_si, x2_si, v1_si, v2_si, xproj, xtarg, vproj, vtarg
      REAL(DP)                       :: den1_si, den2_si, rad1_si, rad2_si, rproj, rtarg
@@ -138,12 +139,12 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           stat1 = symba_plA%helio%swiftest%status(index1_parent)
           array_index1_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
           
-          den1 = (m1**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_parent)**3)
+          vol1 =  ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_parent)**3.0_DP)
           DO i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children
                index1_child = array_index1_child(i)
                mtmp = symba_plA%helio%swiftest%mass(index1_child)
-               denchild = (mtmp**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_child)**3)
-               den1 = den1 + denchild
+               vchild = ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index1_child)**3.0_DP)
+               vol1 = vol1 + vchild
                IF (mtmp > mmax) THEN
                     mmax = mtmp
                     name1 = symba_plA%helio%swiftest%name(index1_child)
@@ -154,7 +155,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                x1(:) = x1(:) + mtmp*symba_plA%helio%swiftest%xh(:,index1_child)
                v1(:) = v1(:) + mtmp*symba_plA%helio%swiftest%vb(:,index1_child)
           END DO
-          den1 = den1 / m1
+          den1 =  m1 / vol1
           rad1 = ((3.0_DP * m1) / (den1 * 4.0_DP * PI)) ** (1.0_DP / 3.0_DP)
           x1(:) = x1(:)/m1
           v1(:) = v1(:)/m1
@@ -171,12 +172,12 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           stat2 = symba_plA%helio%swiftest%status(index2_parent)
           array_index2_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
 
-          den2 = (m2**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_parent)**3)
+          vol2 = ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_parent)**3.0_DP)
           DO i = 1, symba_plA%nchild(index2_parent)
                index2_child = array_index2_child(i)
                mtmp = symba_plA%helio%swiftest%mass(index2_child)
-               denchild = (mtmp**2) / ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_child)**3)
-               den2 = den2 + denchild
+               vchild =  ((4.0_DP / 3.0_DP) * PI * symba_plA%helio%swiftest%radius(index2_child)**3.0_DP)
+               vol2 = vol2 + vchild
                IF (mtmp > mmax) THEN
                     mmax = mtmp
                     name2 = symba_plA%helio%swiftest%name(index2_child)
@@ -187,7 +188,8 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                x2(:) = x2(:) + mtmp*symba_plA%helio%swiftest%xh(:,index2_child)
                v2(:) = v2(:) + mtmp*symba_plA%helio%swiftest%vb(:,index2_child)
           END DO
-          den2 = den2 / m2
+          GU = GC / (DU2M**3 / (MU2KG * TU2S**2))
+          den2 =  m2 / vol2
           rad2 = ((3.0_DP * m2) / (den2 * 4.0_DP * PI)) ** (1.0_DP / 3.0_DP)
           x2(:) = x2(:)/m2
           v2(:) = v2(:)/m2
@@ -236,7 +238,7 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
                vproj(:) = v1_si(:)
           END IF
           mtot = m1_si + m2_si
-          dentot = (m1_si *den1 +m2_si*den2 )/ mtot
+          dentot = (m1_si *den1_si +m2_si*den2_si )/ mtot
           Mcenter = symba_plA%helio%swiftest%mass(1) * MU2KG / GU
 
           !regime = collresolve_resolve(model,mtarg,mproj,rtarg,rproj,xtarg,xproj, vtarg,vproj, nres, mres, rres, pres, vres)
@@ -247,8 +249,9 @@ SUBROUTINE symba_fragmentation (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
           mres(2) = Mslr 
           mres(3) = mtot - Mlr - Mslr
           rres(1) = (3.0_DP * mres(1)  / (4.0_DP * PI * dentarg)) *(1.0_DP/3.0_DP)
-          rres(2) = (3.0_DP * mres(2)  / (4.0_DP * PI * denproj)) *(1.0_DP/3.0_DP)
-          rres(3) = (3.0_DP * mres(2)  / (4.0_DP * PI * dentot)) *(1.0_DP/3.0_DP)
+          rres(1) = (3.0_DP * mres(1)  / (4.0_DP * PI * dentarg)) ** (1.0_DP/3.0_DP)
+          rres(2) = (3.0_DP * mres(2)  / (4.0_DP * PI * denproj)) ** (1.0_DP/3.0_DP)
+          rres(3) = (3.0_DP * mres(2)  / (4.0_DP * PI * dentot)) ** (1.0_DP/3.0_DP)
 
           mres(:) = (mres(:) / MU2KG) * GU
           rres(:) = rres(:) / DU2M

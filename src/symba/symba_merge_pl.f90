@@ -51,8 +51,8 @@ SUBROUTINE symba_merge_pl(t, dt, index_enc, nplplenc, plplenc_list, nmergeadd, n
      IMPLICIT NONE
 
 ! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc
-     INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, npl
+     INTEGER(I4B), INTENT(IN)                         :: index_enc, nplplenc, npl
+     INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
      REAL(DP), INTENT(IN)                             :: t, dt
      REAL(DP), INTENT(INOUT)                          :: eoffset
      REAL(DP), DIMENSION(NDIM), INTENT(IN)            :: vbs

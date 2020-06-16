@@ -41,7 +41,8 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
 
 ! Arguments
    INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-   INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, fragmax
+   INTEGER(I4B), INTENT(IN)                         :: nplplenc
+   INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
    REAL(DP), INTENT(IN)                             :: t, dt
    REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
    REAL(DP), DIMENSION(:), INTENT(INOUT)            :: mres, rres
@@ -104,10 +105,10 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
       xh_rm = x1
       vh_keep = v2
       vh_rm = v1
-      index_keep_parent = symba_plA%index_parent(index_keep)
-      index_rm_parent = symba_plA%index_parent(index_rm)
-      name_keep = symba_plA%helio%swiftest%name(index_keep)
-      name_rm = symba_plA%helio%swiftest%name(index_rm)
+      index_keep_parent = index2_parent
+      index_rm_parent = index1_parent
+      name_keep = name2
+      name_rm = name1
    ELSE
       index_keep = index1
       index_rm = index2
@@ -119,10 +120,10 @@ SUBROUTINE symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd
       xh_rm = x2
       vh_keep = v1
       vh_rm = v2
-      index_keep_parent = symba_plA%index_parent(index_keep)
-      index_rm_parent = symba_plA%index_parent(index_rm)
-      name_keep = symba_plA%helio%swiftest%name(index_keep)
-      name_rm = symba_plA%helio%swiftest%name(index_rm)
+      index_keep_parent = index1_parent
+      index_rm_parent = index2_parent
+      name_keep = name1
+      name_rm = name2
    END IF
 
    ! Find COM

@@ -41,7 +41,8 @@ SUBROUTINE symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergead
 
 ! Arguments
    INTEGER(I4B), INTENT(IN)                         :: index_enc, nplmax, ntpmax
-   INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, nplplenc, fragmax
+   INTEGER(I4B), INTENT(IN)                         :: nplplenc
+   INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub, fragmax
    REAL(DP), INTENT(IN)                             :: t, dt
    REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
    REAL(DP), DIMENSION(:), INTENT(INOUT)            :: mres, rres
