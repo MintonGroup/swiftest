@@ -18,8 +18,6 @@ module helio
    contains
       private
       procedure, public     :: alloc => helio_allocate_tp     !! Allocates new components of the helio class and recursively calls parent allocations
-      procedure, public     :: set_vec => swiftest_set_vec    !! Method used to construct the vectorized form of the central body mass
-      !procedure, public     :: spill => helio_spill_tp        
       procedure, public     :: getacch => helio_getacch_tp    !! Compute heliocentric accelerations of test particles
       procedure, public     :: step => helio_step_tp          !! Step active test particles ahead using Democratic Heliocentric method
       procedure, public     :: drift => helio_drift_tp        !! Loop through test particles and call Danby drift routine
@@ -59,7 +57,6 @@ module helio
    type, public, extends(helio_tp) :: helio_pl
    contains
       procedure, public :: alloc => helio_allocate_pl     !! Constructor method - Allocates space for number of particles
-      !procedure, public :: set_from_file => io_read_pl_in !! Override helio_tp io reader with the pl reader
       procedure, public :: getacch => helio_getacch_pl    !! Compute heliocentric accelerations of massive bodies
       procedure, public :: step => helio_step_pl          !! Step massive bodies ahead Democratic Heliocentric method
       procedure, public :: drift => helio_drift_pl        !! Loop through massive bodies and call Danby drift routine
@@ -103,7 +100,7 @@ interface
       type(swiftest_configuration),intent(in)       :: config    !! Input collection of user-defined parameter
       real(DP), intent(in)                          :: t         !! Current time. This is passed to the user-defined acceleration function.
       logical, intent(in)                           :: lflag     !! Logical flag indicating whether to recompute direct cross term accelrations
-      class(helio_pl), optional, intent(inout)      :: helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
+      class(helio_pl), optional, intent(in)         :: helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
       real(DP), dimension(:,:), optional,intent(in) :: xh        !! Dummy argument to make this method polymorphic with the tp class
    end subroutine helio_getacch_pl
 
@@ -114,7 +111,7 @@ interface
       type(swiftest_configuration),intent(in)        :: config    !! Input collection of user-defined parameter
       real(DP), intent(in)                           :: t         !! Current time. This is passed to the user-defined acceleration function.
       logical, intent(in)                            :: lflag     !! Logical flag indicating whether to recompute direct cross term accelrations
-      class(helio_pl), optional, intent(inout)       :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
+      class(helio_pl), optional, intent(in)          :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
       real(DP), dimension(:,:), optional, intent(in) :: xh        !! Heliocentric positions of massive bodies at time t
    end subroutine helio_getacch_tp
 
@@ -134,14 +131,14 @@ interface
 
    module subroutine helio_getacch_int_pl(self, helio_plA)
       implicit none
-      class(helio_pl), intent(inout)           :: self      !! Helio massive body particle data structure.
-      class(helio_pl), optional, intent(inout) :: helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
+      class(helio_pl), intent(inout)        :: self      !! Helio massive body particle data structure.
+      class(helio_pl), optional, intent(in) :: helio_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
    end subroutine helio_getacch_int_pl
 
    module subroutine helio_getacch_int_tp(self, helio_plA)
       implicit none
-      class(helio_tp), intent(inout)           :: self      !! Helio test particle data structure
-      class(helio_pl), optional, intent(inout) :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
+      class(helio_tp), intent(inout)        :: self      !! Helio test particle data structure
+      class(helio_pl), optional, intent(in) :: helio_plA !! Helio massive body particle data structure. Optional to allow this method to be polymorphic for pl and tp classes
    end subroutine helio_getacch_int_tp
 
    module subroutine helio_kickvb_pl(self, dt)

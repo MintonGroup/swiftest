@@ -7,6 +7,7 @@ contains
    !!
    !! Adapted from David E. Kaufmann's Swifter routine io_dump_config.f90
    !! Adapted from Martin Duncan's Swift routine io_dump_config.f
+   use swiftest
    implicit none
 
                                                              !! In user-defined derived-type output, we need newline characters at the end of each format statement

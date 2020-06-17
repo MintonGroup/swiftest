@@ -8,35 +8,32 @@ contains
    integer(I4B) :: nspill, ntp
 
    ntp = self%nbody
-   if (.not. self%lspill) then  ! Only calculate the number of spilled particles if this method is called directly. It won't recompute if this method
-                                ! is called from higher up in the class heirarchy 
-      self%lspill_list(1:ntp) = (self%status(:) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
-      nspill = count(self%lspill_list)
-      call discard%alloc(nspill) ! Create the discard object
+   nspill = self%nspill
+   if (.not. self%lspill) then
+      call discard%alloc(nspill) ! Create the discard object for this type
       self%lspill = .true.
-    end if
-
+   end if
 
    ! Pack the discarded bodies into the discard object
    discard%peri(:)   = pack(self%peri(1:ntp),   self%lspill_list(1:ntp))
    discard%atp(:)    = pack(self%atp(1:ntp),    self%lspill_list(1:ntp))
    discard%isperi(:) = pack(self%isperi(1:ntp), self%lspill_list(1:ntp))
-   discard%xh(:)     = pack(self%xh(1:ntp),     self%lspill_list(1:ntp))
-   discard%vh(:)     = pack(self%vh(1:ntp),     self%lspill_list(1:ntp))
-   discard%xb(:)     = pack(self%xb(1:ntp),     self%lspill_list(1:ntp))
-   discard%vb(:)     = pack(self%vb(1:ntp),     self%lspill_list(1:ntp))
 
    ! Pack the kept bodies back into the original object
    self%peri(:)   = pack(self%peri(1:ntp),   .not. self%lspill_list(1:ntp))
    self%atp(:)    = pack(self%atp(1:ntp),    .not. self%lspill_list(1:ntp))
    self%isperi(:) = pack(self%isperi(1:ntp), .not. self%lspill_list(1:ntp))
-   self%xh(:)     = pack(self%xh(1:ntp),     .not. self%lspill_list(1:ntp))
-   self%vh(:)     = pack(self%vh(1:ntp),     .not. self%lspill_list(1:ntp))
-   self%xb(:)     = pack(self%xb(1:ntp),     .not. self%lspill_list(1:ntp))
-   self%vb(:)     = pack(self%vb(1:ntp),     .not. self%lspill_list(1:ntp)))
 
-   ! Call the spill method for the parent class (the base class in this case)
-   call self%swiftest_body%spill(discard)
+   do concurrent (i = 1:NDIM)
+      discard%xh(i,:) = pack(self%xh(i,1:ntp), self%lspill_list(1:ntp))
+      discard%vh(i,:) = pack(self%vh(i,1:ntp), self%lspill_list(1:ntp))
+      discard%xb(i,:) = pack(self%xb(i,1:ntp), self%lspill_list(1:ntp))
+      discard%vb(i,:) = pack(self%vb(i,1:ntp), self%lspill_list(1:ntp))
+      self%xh(i,:)    = pack(self%xh(i,1:ntp), .not. self%lspill_list(1:ntp))
+      self%vh(i,:)    = pack(self%vh(i,1:ntp), .not. self%lspill_list(1:ntp))
+      self%xb(i,:)    = pack(self%xb(i,1:ntp), .not. self%lspill_list(1:ntp))
+      self%vb(i,:)    = pack(self%vb(i,1:ntp), .not. self%lspill_list(1:ntp)))
+   end do
 
    end procedure swiftest_spill_tp
 end submodule s_swiftest_spill_tp

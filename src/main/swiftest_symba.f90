@@ -264,12 +264,12 @@ program swiftest_symba
    end if
 
    call symba_deallocate_pl(symba_plA)
-   call symba_merger_deallocate(mergeadd_list)
-   call symba_merger_deallocate(mergesub_list)
-   call symba_plplenc_deallocate(plplenc_list)
+   call symba_deallocate_merger(mergeadd_list)
+   call symba_deallocate_merger(mergesub_list)
+   call symba_deallocate_plplenc(plplenc_list)
    if (ntp > 0) then
       call symba_deallocate_tp(symba_tpA)
-      call symba_pltpenc_deallocate(pltpenc_list)
+      call symba_deallocate_pltpenc(pltpenc_list)
    end if
    call cpu_time(finish)
    write(*,*) 'Time: ', finish - start

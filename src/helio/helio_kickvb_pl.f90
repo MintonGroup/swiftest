@@ -9,10 +9,13 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine helio_kickvb.f90
    !! Adapted from Hal Levison's Swift routine kickvh.f 
    use swiftest
-   integer(I4B)          :: i, npl
+   implicit none
 
-   npl = self%nbody
-   self%vb(:,2:npl) = self%vb(:,2:npl) + self%ah(:,2:npl) * dt
+   integer(I4B)          :: i
+
+   associate(npl => self%nbody)
+      self%vb(:,2:npl) = self%vb(:,2:npl) + self%ah(:,2:npl) * dt
+   end associate
 
    return
 

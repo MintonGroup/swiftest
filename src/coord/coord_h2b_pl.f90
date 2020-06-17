@@ -32,5 +32,5 @@ contains
 
    return
 
-     end procedure coord_h2b_pl
+   end procedure coord_h2b_pl
 end submodule s_coord_h2b_pl

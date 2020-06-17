@@ -6,7 +6,7 @@ module obl
          use swiftest_globals
          use swiftest_data_structures
          implicit none
-         class(swiftest_pl), intent(inout)     :: swiftest_plA
+         class(swiftest_pl), intent(in)     :: swiftest_plA
          real(DP), intent(in)        :: j2rp2, j4rp4
          real(DP), dimension(:), intent(in)   :: irh
          real(DP), dimension(:, :), intent(in)  :: xh
@@ -27,7 +27,7 @@ module obl
          use swiftest_globals
          use swiftest_data_structures
          implicit none
-         class(swiftest_pl), intent(inout)    :: swiftest_plA
+         class(swiftest_pl), intent(in)    :: swiftest_plA
          real(DP), intent(in)       :: j2rp2, j4rp4
          real(DP), intent(out)        :: oblpot
          real(DP), dimension(:), intent(in)   :: irh

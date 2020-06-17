@@ -8,8 +8,11 @@ module procedure helio_step_tp
    !! Adapted from David E. Kaufmann's Swifter routine helio_step_tp.f90
    !! Adapted from Hal Levison's Swift routine helio_step_tp.f
    use swiftest
-   logical  :: lflag
-   real(DP) :: dth, mu
+   implicit none
+
+   logical  :: lflag !! Flag to indicate that this is the first call
+   real(DP) :: dth   !! Half step size
+   real(DP) :: mu    !! Central mass term
 
 ! executable code
    dth = 0.5_DP * dt

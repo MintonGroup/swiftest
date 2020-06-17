@@ -1,4 +1,4 @@
-submodule (helio_data_structures) s_helio_allocate_pl
+submodule (helio) s_helio_allocate_pl
 contains
    module procedure helio_allocate_pl
    !! author: David A. Minton
@@ -8,22 +8,17 @@ contains
    use swiftest
    implicit none
 
-   class(helio_pl), intent(inout) :: self !! Swiftest massive body object
-   integer, intent(in)            :: n    !! Number of massive bodies to allocate
-
    if (self%is_allocated) then
-      write(*,*) 'Helio massive body particle structure already allocated'
+      !write(*,*) 'Helio massive body particle structure already allocated'
       return
    end if
-   write(*,*) 'Allocating the Helio massive body particle structure'
-   
-   call self%swiftest_tp%alloc(n)
+   !write(*,*) 'Allocating the Helio massive body particle structure'
+  
+   !> Call allocation method for parent clas
+   call self%helio_tp%alloc(n)
    if (n <= 0) return
-   allocate(self%ah(NDIM,n))
-   allocate(self%ahi(NDIM,n))
-
-   self%ah(:,:) = 0.0_DP
-   self%ahi(:,:) = 0.0_DP
+   ! No new structures to allocate and initialize
+   
    return
    end procedure helio_allocate_pl
 end submodule s_helio_allocate_pl

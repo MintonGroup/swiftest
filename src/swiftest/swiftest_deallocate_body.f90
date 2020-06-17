@@ -9,8 +9,8 @@ contains
    if (self%is_allocated) then
       deallocate(self%name)
       deallocate(self%status)
-      self%is_allocated = .false.
       if (allocated(self%lspill_list)) deallocate(self%lspill_list)
+      self%is_allocated = .false.
    end if
    return
    end procedure swiftest_body_deallocate

@@ -10,15 +10,14 @@ contains
    class(swiftest_pl), intent(inout)    :: self !! Swiftest massive body object
    integer, intent(in)                  :: n    !! Number of massive bodies to allocate
 
-   call self%swiftest_body%alloc(n)
-   if (n <= 0) return
-
    if (self%is_allocated) then
       !write(*,*) 'Swiftest massive body structure already alllocated'
       return
    end if
 
+   !> Call allocation method for parent class
    call self%swiftest_tp%alloc(n)
+   if (n <= 0) return 
 
    allocate(self%mass(n))
    allocate(self%radius(n))

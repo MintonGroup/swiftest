@@ -17,10 +17,14 @@ contains
    allocate(self%status(n))
    allocate(self%mu_vec(n))
    allocate(self%dt_vec(n))
+   allocate(self%lspill_list(n))
 
    self%name(:) = 0
    self%status(:) = 0
    self%is_allocated = .true.
+   self%lspill = .false.
+   self%ldiscard = .false.
+
 
    return
    end procedure swiftest_body_allocate

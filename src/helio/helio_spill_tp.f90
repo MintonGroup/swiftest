@@ -5,28 +5,29 @@ contains
    !!
    !! Move spilled (discarded) Swiftest test particle structure from active list to discard list
    use swiftest
-   integer(I4B) :: nspill,ntp
+   implicit none
+
+   integer(I4B) :: nspill, ntp, i
 
    ntp = self%nbody
-   if (.not. self%lspill) then  ! Only calculate the number of spilled particles if this method is called directly. It won't recompute if this method
-                                ! is called from higher up in the class heirarchy 
-      self%lspill_list(:) = (self%status(:) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
-      nspill = count(self%lspill_list(:))
-      call discard%alloc(nspill) ! Create the discard object
+   nspill = self%nspill
+   if (.not. self%lspill) then
+      call discard%alloc(nspill) ! Create the discard object for this type
       self%lspill = .true.
-    end if
+   end if
 
+   do concurrent (i = 1:NDIM)
+      ! Pack the discarded bodies into the discard object
+      discard%ah(i,:)  = pack(self%ah(i,1:ntp),  self%lspill_list(1:ntp))
+      discard%ahi(i,:) = pack(self%ahi(i,1:ntp), self%lspill_list(1:ntp))
 
-   ! Pack the discarded bodies into the discard object
-   discard%ah(:)  = pack(self%ah(1:ntp),  self%lspill_list(1:ntp))
-   discard%ahi(:) = pack(self%ahi(1:ntp), self%lspill_list(1:ntp))
-
-   ! Pack the kept bodies back into the original object
-   self%ah(:) = pack(self%ah(1:ntp),  .not. self%lspill_list(1:ntp))
-   self%ahi(:)= pack(self%ahi(1:ntp), .not. self%lspill_list(1:ntp))
+      ! Pack the kept bodies back into the original object
+      self%ah(i,:)  = pack(self%ah(i,1:ntp),  .not. self%lspill_list(1:ntp))
+      self%ahi(i,:) = pack(self%ahi(i,1:ntp), .not. self%lspill_list(1:ntp))
+   end do
 
    ! Call the spill method for the parent class (the base class in this case)
-   call self%swiftest_pl%spill(discard)
+   call swiftest_spill_pl(self,discard)
 
    return
 

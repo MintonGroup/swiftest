@@ -7,18 +7,26 @@ contains
    use swiftest    
    integer(I4B) :: nspill, np
 
+   np = self%nbody
+   self%lspill_list(1:np) = (self%status(1:np) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
+   self%nspill = count(self%lspill_list(1:np))
 
    select type(self)
    class is (swiftest_tp)
-      call swiftest_spill_tp(self)
-
-   np = self%nbody
-   if (.not. self%lspill) then  ! Only calculate the number of spilled particles if this method is called directly. It won't recompute if this method
-                                ! is called from higher up in the class heirarchy 
-      self%lspill_list(1:np) = (self%status(1:np) /= ACTIVE) ! Use automatic allocation to allocate this logical flag
-      nspill = count(self%lspill_list(1:np))
-      call discard%alloc(nspill) ! Create the discard object
-   end if
+      call swiftest_spill_tp(self, discard)
+   class is (swiftest_pl)
+      call swiftest_spill_pl(self, discard)
+   class is (helio_tp)
+      call helio_spill_tp(self, discard)
+   class is (helio_pl)
+      call helio_spill_pl(self, discard)
+   class is (symba_tp)
+      call symba_spill_tp(self, discard)
+   class is (symba_pl)
+      call symba_spill_pl(self, discard)
+   class default
+      call discard%alloc(nspill)
+   end select
 
    ! Pack the discarded bodies into the discard object
    discard%name(:)   = pack(self%name(1:np),   self%lspill_list(1:np))
@@ -34,7 +42,7 @@ contains
 
    ! This is the base class, so will be the last to be called. Therefore we must reset spill flag for the next discard operation.
    self%lspill = .false.
-   self%nbody = self%nbody - discard%nbody
+   self%nbody = np - nspill
    
    end procedure swiftest_body_spill
 end submodule s_swiftest_body_spill

@@ -39,7 +39,7 @@ SUBROUTINE obl_pot(swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
      IMPLICIT NONE
 
 ! Arguments
-     class(swiftest_pl), INTENT(INOUT)          :: swiftest_plA
+     class(swiftest_pl), INTENT(IN)          :: swiftest_plA
      REAL(DP), INTENT(IN)                       :: j2rp2, j4rp4
      REAL(DP), INTENT(OUT)                      :: oblpot
      REAL(DP), DIMENSION(:), INTENT(IN)         :: irh

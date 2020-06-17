@@ -8,6 +8,8 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine helio_step.f90
    !! Adapted from Hal Levison's Swift routine helio_step.f
    use swiftest
+   implicit none
+
    logical                                :: lfirsttp
    logical, save                          :: lmalloc = .true.
    real(DP), dimension(NDIM)              :: ptb, pte

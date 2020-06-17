@@ -6,12 +6,14 @@ contains
    !! Call discard routine to determine spilled test particles, then remove them from ACTIVE list
    !!
    !! Adapted from David E. Kaufmann's Swifter helio_discard.f90
-     integer(I4B)    :: i
+   use swiftest
+   implicit none
 
-! executable code
-     call discard(helio_plA, helio_tpA, config, t, dt)
-     call helio_tpA%spill(helio_tp_discard)
+   integer(I4B)    :: i
 
-     return
-     end procedure helio_discard
+   call discard(helio_plA, helio_tpA, config, t, dt)
+   call helio_tpA%spill(helio_tp_discard)
+
+   return
+   end procedure helio_discard
 end submodule s_helio_discard

@@ -8,6 +8,8 @@ module procedure helio_step_pl
    !! Adapted from David E. Kaufmann's Swifter helio_step_pl.f90
    !! Adapted from Hal Levison's Swift routine helio_step_pl.f
    use swiftest
+   implicit none
+
    logical(lgt)     :: lflag
    integer(I4B)     :: i,npl
    real(DP)         :: dth, msys

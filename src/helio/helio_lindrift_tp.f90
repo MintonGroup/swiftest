@@ -9,7 +9,9 @@ module procedure helio_lindrift_tp
    !! Adapted from David E. Kaufmann's Swifter routine helio_lindrift_tp.f90
    !! Adapted from Hal Levison's Swift routine helio_lindrift_tp.f
    use swiftest
-   integer(I4B)          :: ntp
+   implicit none
+
+   integer(I4B) :: ntp
 
    ntp = self%nbody
    where (self%status(1:ntp) == ACTIVE)

@@ -10,14 +10,15 @@ contains
    class(swiftest_tp), intent(inout)    :: self !! Swiftest test particle object
    integer, intent(in)                  :: n    !! Number of test particles to allocate
   
-   call self%swiftest_body%alloc(n)
-   if (n <= 0) return
-
    if (self%is_allocated) then
       !write(*,*) 'Swiftest test particle structure already alllocated'
       return
    end if
-   write(*,*) 'Allocating the Swiftest test particle'
+   !write(*,*) 'Allocating the Swiftest test particle'
+
+   !> Call allocation method for parent class
+   call self%swiftest_body%alloc(n)
+   if (n <= 0) return
 
    allocate(self%peri(n))
    allocate(self%atp(n))

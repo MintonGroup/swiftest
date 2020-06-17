@@ -10,6 +10,7 @@ contains
    !!
    !! Adapted from David E. Kaufmann's Swifter routine io_init_config.f90
    !! Adapted from Martin Duncan's Swift routine io_init_config.f
+   use swiftest
    !$ use omp_lib
    !use util, only: util_exit ! IMPLEMENTATION TBD
    implicit none
@@ -259,13 +260,13 @@ contains
          write(*,*) 'MU2KG: ',MU2KG
          write(*,*) 'TU2S: ',TU2S
          write(*,*) 'DU2M: ',DU2M
-         ierr = -1
+         iostat = -1
       end if
    end if 
    !Added mtiny to the argument list rather than from the terminal
    if (config%mtiny < 0.0_DP) then
       write(*,*) "Invalid MTINY: ",config%mtiny
-      ierr = -1
+      iostat = -1
    else
       write(*,*) "MTINY          = ",config%mtiny   
    end if

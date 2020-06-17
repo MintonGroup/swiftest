@@ -54,9 +54,9 @@ module symba
       logical     , dimension(:),     allocatable :: lvdotr !! relative vdotr flag
       integer(I4B), dimension(:),     allocatable :: level  !! encounter recursion level
    contains
-      procedure :: alloc => symba_encounter_allocate
+      procedure :: alloc => symba_allocate_encounter
       procedure :: set_from_file => symba_encounter_dummy_input
-      final :: symba_encounter_deallocate
+      final :: symba_deallocate_encounter
    end type symba_encounter
 
    !********************************************************************************************************************************
@@ -70,8 +70,8 @@ module symba
       integer(I4B), dimension(:), allocatable :: enc_child    !! the child of the encounter
       integer(I4B), dimension(:), allocatable :: enc_parent   !! the child of the encounter
    contains
-      procedure :: alloc => symba_plplenc_allocate
-      final :: symba_plplenc_deallocate
+      procedure :: alloc => symba_allocate_plplenc
+      final :: symba_deallocate_plplenc
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -84,7 +84,7 @@ module symba
       integer(I4B), dimension(:), allocatable :: indextp    !! Index position within the main symba structure for the second massive body in an encounter
    contains
       procedure :: alloc => symba_pltpenc_allocate
-      final :: symba_pltpenc_deallocate
+      final :: symba_deallocate_pltpenc
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -93,10 +93,11 @@ module symba
 
    !! Class structure for merger structure
    type, public, extends(swiftest_pl) :: symba_merger
-      integer(I4B), dimension(:), allocatable :: index_ps   ! Index position within the main symba structure for the body being merged
+      integer(I4B), dimension(:), allocatable :: index_ps  !! Index position within the main symba structure for the body being merged
+      integer(I4B)                            :: ncomp = 0 !! Number of component bodies in this one during this merger
    contains
-      procedure :: alloc => symba_merger_allocate
-      final :: symba_merger_deallocate
+      procedure :: alloc => symba_allocate_merger
+      final :: symba_deallocate_merger
    end type symba_merger 
 
 !> Only the constructor and destructor method implementations are listed here. All other methods are implemented in the symba submodules.
@@ -525,6 +526,20 @@ interface
       type(symba_tp), pointer          :: symba_tp1p
    end subroutine symba_setup
 
+   !> Method to remove the inactive symba test particles and spill them to a discard object
+   module subroutine symba_spill_tp(self,discard)
+      implicit none
+      class(symba_tp), intent(inout) :: self    !! Swiftest test particle object to input
+      class(symba_tp), intent(inout) :: discard !! Discarded body list
+   end subroutine symba_spill_tp
+
+   !> Method to remove the inactive symba massive bodies and spill them to a discard object
+   module subroutine symba_spill_pl(self,discard)
+      implicit none
+      class(symba_pl), intent(inout) :: self    !! Swiftest test particle object to input
+      class(symba_pl), intent(inout) :: discard !! Discarded body list
+   end subroutine symba_spill_pl
+
    subroutine symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,&
       dt,nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,&
       mtiny,encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
@@ -773,7 +788,7 @@ contains
       return
    end subroutine symba_deallocate_pl
 
-   subroutine symba_encounter_allocate(self,n)
+   subroutine symba_allocate_encounter(self,n)
       !! Basic Symba encounter structure constructor method
       implicit none
 
@@ -796,9 +811,9 @@ contains
       self%level(:) = 0
 
       return
-   end subroutine symba_encounter_allocate
+   end subroutine symba_allocate_encounter
    
-   subroutine symba_encounter_deallocate(self)
+   subroutine symba_deallocate_encounter(self)
       !! SyMBA encounter superclass destructor/finalizer
       implicit none
 
@@ -809,7 +824,7 @@ contains
          deallocate(self%level)
       end if
       return
-   end subroutine symba_encounter_deallocate
+   end subroutine symba_deallocate_encounter
 
    subroutine symba_encounter_dummy_input(self,config) 
       !! This method is needed in order to extend the abstract type swiftest_body. It does nothing
@@ -842,7 +857,7 @@ contains
       self%indextp(:) = 1
    end subroutine symba_pltpenc_allocate
 
-   subroutine symba_pltpenc_deallocate(self)
+   subroutine symba_deallocate_pltpenc(self)
       !! SyMBA massive body-test particle encounter destructor/finalizer
       implicit none
 
@@ -853,9 +868,9 @@ contains
          deallocate(self%indextp)
       end if
       return
-   end subroutine symba_pltpenc_deallocate
+   end subroutine symba_deallocate_pltpenc
 
-   subroutine symba_plplenc_allocate(self,n)
+   subroutine symba_allocate_plplenc(self,n)
       !! SyMBA massive body-massive body particle encounter structure constructor method
       implicit none
 
@@ -882,9 +897,9 @@ contains
       self%enc_parent(:) = 1
 
       return
-   end subroutine symba_plplenc_allocate
+   end subroutine symba_allocate_plplenc
 
-   subroutine symba_plplenc_deallocate(self)
+   subroutine symba_deallocate_plplenc(self)
       !! SyMBA massive body-massive body encounter destructor/finalizer
       implicit none
 
@@ -897,9 +912,9 @@ contains
          deallocate(self%enc_parent)
       end if
       return
-   end subroutine symba_plplenc_deallocate
+   end subroutine symba_deallocate_plplenc
 
-   subroutine symba_merger_allocate(self,n)
+   subroutine symba_allocate_merger(self,n)
       !! SyMBA merger encounter structure constructor method
       implicit none
 
@@ -918,10 +933,11 @@ contains
       allocate(self%index_ps(n))
       
       self%index_ps(:) = 1
+      self%ncomp = 0
 
-   end subroutine symba_merger_allocate
+   end subroutine symba_allocate_merger
 
-   subroutine symba_merger_deallocate(self)
+   subroutine symba_deallocate_merger(self)
       !! SyMBA merger destructor/finalizer
       implicit none
 
@@ -931,6 +947,6 @@ contains
          deallocate(self%index_ps)
       end if
       return
-   end subroutine symba_merger_deallocate
+   end subroutine symba_deallocate_merger
 
 end module symba

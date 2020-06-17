@@ -108,28 +108,30 @@ module swiftest_data_structures
    !                                    swiftest_body class definitions and method interfaces
    !********************************************************************************************************************************
 
+   !! TODO: Move central body into its own set of constructs rather than being the first "planet"ererewq 
    !! A superclass for a generic Swiftest particle. All particle types are derived from this class
    type, public :: swiftest_body           
       !! Superclass that defines the generic elements of a Swiftest particle 
       !private
-      integer(I4B)                            :: nbody = 0          !! Number of bodies
-      integer(I4B), dimension(:), allocatable :: name               !! External identifier (hash)
-      integer(I4B), dimension(:), allocatable :: status             !! An integrator-specific status indicator 
-      real(DP),     dimension(:), allocatable :: mu_vec             !! Vectorized central body mass term used for elemental functions
-      real(DP),     dimension(:), allocatable :: dt_vec             !! Vectorized stepsize used for elemental functions
-      real(DP)                                :: msys = 0.0_DP      !! Total system mass - used for barycentric coordinate conversion
-      logical,      dimension(:), allocatable :: lspill_list        !! Logical array of bodies to spill
-      logical                                 :: lspill = .false.   !! Logical flag to determine whether the spilled particle list has been computed
-      logical                                 :: ldiscard = .false. !! If true, then proceed to discard spilled pl and complete discard.out file.
+      integer(I4B)                            :: nbody = 0              !! Number of bodies
+      integer(I4B), dimension(:), allocatable :: name                   !! External identifier (hash)
+      integer(I4B), dimension(:), allocatable :: status                 !! An integrator-specific status indicator 
+      real(DP),     dimension(:), allocatable :: mu_vec                 !! Vectorized central body mass term used for elemental functions
+      real(DP),     dimension(:), allocatable :: dt_vec                 !! Vectorized stepsize used for elemental functions
+      real(DP)                                :: msys = 0.0_DP          !! Total system mass - used for barycentric coordinate conversion
+      integer(I4B)                            :: nspill = 0             !! Number of bodies to spill during a discard step
+      logical,      dimension(:), allocatable :: lspill_list            !! Logical array of bodies to spill during a discard step
+      logical                                 :: lspill = .false.       !! Flag to indicate whether the spill list has been allocated yet
+      logical                                 :: ldiscard = .false.     !! If true, then proceed to discard bodies into the spill list
       logical                                 :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
    contains
       private
-      procedure, public     :: alloc => swiftest_allocate_body       !! A base constructor that sets nbody and allocates the common components
-      procedure, public     :: set_from_file => swiftest_read_body_input_file !! Method used to read initial conditions from a file
-      procedure, public     :: set_vec => swiftest_set_vec           !! Method used to construct the vectorized form of the central body mass
-      procedure, public     :: spill => swiftest_body_spill          !! Method to remove the inactive particles and spill them to a discard object 
-      procedure, public     :: set_msys => swiftest_set_msys         !! Method to set the msys value
-      final                 :: swiftest_deallocate_body              !! A destructor/finalizer that deallocates everything 
+      procedure, public :: alloc => swiftest_allocate_body                !! A base constructor that sets nbody and allocates the common components
+      procedure, public :: set_from_file => swiftest_read_body_input_file !! Method used to read initial conditions from a file
+      procedure, public :: set_vec => swiftest_set_vec                    !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: spill => swiftest_spill_body                   !! Method to remove the inactive particles and spill them to a discard object 
+      procedure, public :: set_msys => swiftest_set_msys                  !! Method to set the msys value
+      final             :: swiftest_deallocate_body                       !! A destructor/finalizer that deallocates everything 
    end type swiftest_body
 
    !> Interfaces type-bound procedures for swiftest_body class
@@ -236,7 +238,6 @@ module swiftest_data_structures
    contains
       private
       procedure, public     :: alloc => swiftest_allocate_pl
-      !procedure, public     :: spill => swiftest_spill_pl !! Method to remove the inactive massive bodies and spill them to a discard object 
       procedure, public     :: h2b => coord_h2b_pl
       procedure, public     :: vb2vh => coord_vb2vh_pl
       procedure, public     :: vh2vb => coord_vh2vb_pl

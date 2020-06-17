@@ -37,7 +37,7 @@ SUBROUTINE obl_acc(swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
      IMPLICIT NONE
 
 ! Arguments
-     class(swiftest_pl), INTENT(INOUT)             :: swiftest_plA
+     class(swiftest_pl), INTENT(IN)             :: swiftest_plA
      REAL(DP), INTENT(IN)                         :: j2rp2, j4rp4
      REAL(DP), DIMENSION(:), INTENT(IN)         :: irh
      REAL(DP), DIMENSION(:,:), INTENT(IN)   :: xh

@@ -8,9 +8,10 @@ module procedure helio_lindrift_pl
    !! Adapted from David E. Kaufmann's Swifter routine helio_lindrift.f90
    !! Adapted from Hal Levison's Swift routine helio_lindrift.f
    use swiftest
-   integer(I4B)          :: i, npl
+   implicit none
 
-   real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't plAy nicely 
+   integer(I4B)          :: i, npl
+   real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't play nicely 
                                      !with openmp's reduction for some reason
 
    npl = self%nbody
