@@ -1,10 +1,13 @@
-submodule (swiftest_data_structures) s_swiftest_body_allocate
+submodule (swiftest_data_structures) s_swiftest_allocate_body
 contains
-   module procedure swiftest_body_allocate
+   module procedure swiftest_allocate_body
    !! author: David A. Minton
    !!
    !! Constructor for base Swiftest particle class. Allocates space for all particles and
    !! initializes all components with a value. Also sets the is_allocated flag to true.
+   use swiftest
+   implicit none
+
    self%nbody = n
    if (n <= 0) return
 
@@ -27,5 +30,5 @@ contains
 
 
    return
-   end procedure swiftest_body_allocate
-end submodule s_swiftest_body_allocate
+   end procedure swiftest_allocate_body
+end submodule s_swiftest_allocate_body

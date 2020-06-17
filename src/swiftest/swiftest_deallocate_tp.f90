@@ -5,9 +5,8 @@ contains
    !!
    !! Finalizer for base Swiftest particle class.
    !! Basic Swiftest test particle destructor/finalizer
+   use swiftest
    implicit none
-
-   type(swiftest_tp), intent(inout)    :: self
 
    if (self%is_allocated) then
       deallocate(self%isperi)

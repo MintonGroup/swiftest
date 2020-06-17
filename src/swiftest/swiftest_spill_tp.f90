@@ -5,36 +5,37 @@ contains
    !!
    !! Move spilled (discarded) Swiftest test particle structure from active list to discard list
    use swiftest
-   integer(I4B) :: nspill, ntp
+   implicit none
 
-   ntp = self%nbody
-   nspill = self%nspill
-   if (.not. self%lspill) then
-      call discard%alloc(nspill) ! Create the discard object for this type
-      self%lspill = .true.
-   end if
+   associate(ntp => self%nbody, nspill => self%nspill)
+      if (.not. self%lspill) then
+         call discard%alloc(nspill) ! Create the discard object for this type
+         self%lspill = .true.
+      end if
 
-   ! Pack the discarded bodies into the discard object
-   discard%peri(:)   = pack(self%peri(1:ntp),   self%lspill_list(1:ntp))
-   discard%atp(:)    = pack(self%atp(1:ntp),    self%lspill_list(1:ntp))
-   discard%isperi(:) = pack(self%isperi(1:ntp), self%lspill_list(1:ntp))
+      ! Pack the discarded bodies into the discard object
+      discard%peri(:)   = pack(self%peri(1:ntp),   self%lspill_list(1:ntp))
+      discard%atp(:)    = pack(self%atp(1:ntp),    self%lspill_list(1:ntp))
+      discard%isperi(:) = pack(self%isperi(1:ntp), self%lspill_list(1:ntp))
 
-   ! Pack the kept bodies back into the original object
-   self%peri(:)   = pack(self%peri(1:ntp),   .not. self%lspill_list(1:ntp))
-   self%atp(:)    = pack(self%atp(1:ntp),    .not. self%lspill_list(1:ntp))
-   self%isperi(:) = pack(self%isperi(1:ntp), .not. self%lspill_list(1:ntp))
+      ! Pack the kept bodies back into the original object
+      self%peri(:)   = pack(self%peri(1:ntp),   .not. self%lspill_list(1:ntp))
+      self%atp(:)    = pack(self%atp(1:ntp),    .not. self%lspill_list(1:ntp))
+      self%isperi(:) = pack(self%isperi(1:ntp), .not. self%lspill_list(1:ntp))
 
-   do concurrent (i = 1:NDIM)
-      discard%xh(i,:) = pack(self%xh(i,1:ntp), self%lspill_list(1:ntp))
-      discard%vh(i,:) = pack(self%vh(i,1:ntp), self%lspill_list(1:ntp))
-      discard%xb(i,:) = pack(self%xb(i,1:ntp), self%lspill_list(1:ntp))
-      discard%vb(i,:) = pack(self%vb(i,1:ntp), self%lspill_list(1:ntp))
-      self%xh(i,:)    = pack(self%xh(i,1:ntp), .not. self%lspill_list(1:ntp))
-      self%vh(i,:)    = pack(self%vh(i,1:ntp), .not. self%lspill_list(1:ntp))
-      self%xb(i,:)    = pack(self%xb(i,1:ntp), .not. self%lspill_list(1:ntp))
-      self%vb(i,:)    = pack(self%vb(i,1:ntp), .not. self%lspill_list(1:ntp)))
-   end do
+      do concurrent (i = 1:NDIM)
+         discard%xh(i,:) = pack(self%xh(i,1:ntp), self%lspill_list(1:ntp))
+         discard%vh(i,:) = pack(self%vh(i,1:ntp), self%lspill_list(1:ntp))
+         discard%xb(i,:) = pack(self%xb(i,1:ntp), self%lspill_list(1:ntp))
+         discard%vb(i,:) = pack(self%vb(i,1:ntp), self%lspill_list(1:ntp))
+         self%xh(i,:)    = pack(self%xh(i,1:ntp), .not. self%lspill_list(1:ntp))
+         self%vh(i,:)    = pack(self%vh(i,1:ntp), .not. self%lspill_list(1:ntp))
+         self%xb(i,:)    = pack(self%xb(i,1:ntp), .not. self%lspill_list(1:ntp))
+         self%vb(i,:)    = pack(self%vb(i,1:ntp), .not. self%lspill_list(1:ntp)))
+      end do
 
+   end associate
+   return
    end procedure swiftest_spill_tp
 end submodule s_swiftest_spill_tp
 

@@ -5,10 +5,8 @@ contains
    !!
    !! Constructor for base Swiftest massive body class. Allocates space for all particles and
    !! initializes all components with a value. 
+   use swiftest
    implicit none
-
-   class(swiftest_pl), intent(inout)    :: self !! Swiftest massive body object
-   integer, intent(in)                  :: n    !! Number of massive bodies to allocate
 
    if (self%is_allocated) then
       !write(*,*) 'Swiftest massive body structure already alllocated'

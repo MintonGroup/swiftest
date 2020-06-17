@@ -1,9 +1,10 @@
 module rmvs
+   use swiftest_globals
+   use swiftest_data_structures
    implicit none
    interface
 
-      subroutine rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
-         use swiftest_globals
+      module subroutine rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
          implicit none
          real(DP), intent(in)      :: dt, r2crit
          real(DP), dimension(ndim), intent(in) :: xr, vr

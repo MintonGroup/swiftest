@@ -6,7 +6,6 @@ contains
    !! Calculates the total system mass for a generic Swiftest system
    use swiftest
    implicit none
-   integer(I4B) :: i
 
    self%msys = sum(swiftest_plA%mass(1:swiftest_plA%nbody))
 

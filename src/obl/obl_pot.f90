@@ -1,4 +1,4 @@
-submodule (swfitest_data_structures) s_obl_pot
+submodule (swiftest_data_structures) s_obl_pot
 contains
    module procedure obl_pot
    !! author: David A. Minton

@@ -6,6 +6,9 @@ contains
    !! Finalizer for base Swiftest massive body class. Deallocates all components and sets 
    !! is_allocated flag to false. Mostly this is redundant, so this serves as a placeholder
    !! in case future updates include pointers as part of the class.
+   use swiftest
+   implicit none
+
    if (self%is_allocated) then
    deallocate(self%mass)
       deallocate(self%radius)

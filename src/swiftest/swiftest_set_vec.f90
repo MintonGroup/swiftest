@@ -4,6 +4,7 @@ contains
    !! author: David A. Minton
    !!
    !! Converts certain scalar values to arrays so that they can be used in elemental functions
+   use swiftest
    implicit none
 
    self%mu_vec(:) = mu

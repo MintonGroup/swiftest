@@ -5,11 +5,9 @@ contains
    !!
    !! Constructor for base Swiftest test particle particle class. Allocates space for 
    !! all particles and initializes all components with a value. 
+   use swiftest
    implicit none
 
-   class(swiftest_tp), intent(inout)    :: self !! Swiftest test particle object
-   integer, intent(in)                  :: n    !! Number of test particles to allocate
-  
    if (self%is_allocated) then
       !write(*,*) 'Swiftest test particle structure already alllocated'
       return

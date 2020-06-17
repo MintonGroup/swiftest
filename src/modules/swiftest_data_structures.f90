@@ -185,7 +185,7 @@ module swiftest_data_structures
       module subroutine swiftest_spill_body(self,discard)
          implicit none
          class(swiftest_body), intent(inout) :: self    !! Swiftest particle object to input
-         class(swiftest_body), intent(inout) :: discard !! Discarded body list
+         class(*), intent(inout) :: discard !! Discarded body list
       end subroutine swiftest_spill_body
 
          !> Basic Swiftest particle constructor method
