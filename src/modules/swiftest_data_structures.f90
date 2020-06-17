@@ -79,18 +79,18 @@ module swiftest_data_structures
 
       !> Interface for type-bound procedure to write out the configuration parameters into a dump file in case the run needs to be restarted
       module subroutine io_dump_config(config,t)
-         class(swiftest_configuration),intent(in)  :: config  !! Output collection of user-defined parameters
-         real(DP),intent(in)                       :: t       !! Current simulation time
+         class(swiftest_configuration),intent(in) :: config  !! Output collection of user-defined parameters
+         real(DP),intent(in)                      :: t       !! Current simulation time
       end subroutine io_dump_config
 
       !> Interface for type-bound procedure for user-defined derived-type IO for reading
       module subroutine io_config_reader(config, unit, iotype, v_list, iostat, iomsg) 
-         class(swiftest_configuration), intent(inout)  :: config   !! Input collection of user-defined parameters
-         integer, intent(in)                    :: unit        
-         character(len=*), intent(in)           :: iotype
-         integer, intent(in)                    :: v_list(:)
-         integer, intent(out)                   :: iostat
-         character(len=*), intent(inout)        :: iomsg
+         class(swiftest_configuration), intent(inout) :: config   !! Input collection of user-defined parameters
+         integer, intent(in)                          :: unit        
+         character(len=*), intent(in)                 :: iotype
+         integer, intent(in)                          :: v_list(:)
+         integer, intent(out)                         :: iostat
+         character(len=*), intent(inout)              :: iomsg
       end subroutine io_config_reader
 
       !> Interface for type-bound procedure for user-defined derived-type IO for writing
@@ -124,27 +124,27 @@ module swiftest_data_structures
       logical                                 :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
    contains
       private
-      procedure, public     :: alloc => swiftest_body_allocate  !! A base constructor that sets nbody and allocates the common components
-      procedure, public     :: set_from_file => swiftest_read_body_input_file
-      procedure, public     :: set_vec => swiftest_set_vec !! Method used to construct the vectorized form of the central body mass
-      procedure, public     :: spill => swiftest_body_spill !! Method to remove the inactive particles and spill them to a discard object 
-      procedure, public     :: set_msys => swiftest_set_msys !! Method to set the msys value
-      final                 :: swiftest_body_deallocate  !! A destructor/finalizer that deallocates everything 
+      procedure, public     :: alloc => swiftest_allocate_body       !! A base constructor that sets nbody and allocates the common components
+      procedure, public     :: set_from_file => swiftest_read_body_input_file !! Method used to read initial conditions from a file
+      procedure, public     :: set_vec => swiftest_set_vec           !! Method used to construct the vectorized form of the central body mass
+      procedure, public     :: spill => swiftest_body_spill          !! Method to remove the inactive particles and spill them to a discard object 
+      procedure, public     :: set_msys => swiftest_set_msys         !! Method to set the msys value
+      final                 :: swiftest_deallocate_body              !! A destructor/finalizer that deallocates everything 
    end type swiftest_body
 
    !> Interfaces type-bound procedures for swiftest_body class
    interface
       !> Basic Swiftest particle constructor method
-      module subroutine swiftest_body_allocate(self,n)
+      module subroutine swiftest_allocate_body(self,n)
          implicit none
          class(swiftest_body), intent(inout) :: self !! Swiftest particle object
-         integer, intent(in)                     :: n    !! Number of particles to allocate space for
-      end subroutine swiftest_body_allocate
+         integer, intent(in)                 :: n    !! Number of particles to allocate space for
+      end subroutine swiftest_allocate_body
 
       !> Basic interface for the set_from_file method (only implemented in extended classes)
       module subroutine swiftest_read_body_input_file(self,config) 
          implicit none
-         class(swiftest_body), intent(inout) :: self  !! Swiftest particle object
+         class(swiftest_body), intent(inout)     :: self   !! Swiftest particle object
          type(swiftest_configuration),intent(in) :: config !! User-defined configuration parameters
       end subroutine swiftest_read_body_input_file
 
@@ -152,8 +152,8 @@ module swiftest_data_structures
       module subroutine swiftest_set_vec(self,mu,dt)
          implicit none
          class(swiftest_body), intent(inout)  :: self !! Swiftest particle object
-         real(DP),intent(in) :: mu                        !! Input scalar central body mass term
-         real(DP),intent(in) :: dt                        !! Input scalar stepsize
+         real(DP),intent(in) :: mu                    !! Input scalar central body mass term
+         real(DP),intent(in) :: dt                    !! Input scalar stepsize
       end subroutine swiftest_set_vec
 
       !> Basic Swiftest particle destructor/finalizer
@@ -164,10 +164,10 @@ module swiftest_data_structures
       end subroutine swiftest_spill_body
 
          !> Basic Swiftest particle constructor method
-      module  subroutine swiftest_body_deallocate(self)
+      module  subroutine swiftest_deallocate_body(self)
          implicit none
          type(swiftest_body), intent(inout) :: self !! Swiftest particle object
-      end subroutine swiftest_body_deallocate
+      end subroutine swiftest_deallocate_body
 
    end interface
 
@@ -187,11 +187,11 @@ module swiftest_data_structures
       real(DP),     dimension(:,:), allocatable :: vb     !! Barycentric velocity
    contains
       private
-      procedure, public     :: alloc => swiftest_tp_allocate
-      procedure, public     :: h2b => coord_h2b_tp
-      procedure, public     :: vb2vh => coord_vb2vh_tp
-      procedure, public     :: vh2vb => coord_vh2vb_tp
-      final                 :: swiftest_tp_deallocate
+      procedure, public :: alloc => swiftest_tp_allocate
+      procedure, public :: h2b => coord_h2b_tp
+      procedure, public :: vb2vh => coord_vb2vh_tp
+      procedure, public :: vh2vb => coord_vh2vb_tp
+      final             :: swiftest_tp_deallocate
    end type swiftest_tp
 
    !> Interfaces type-bound procedures for swiftest_tp class
