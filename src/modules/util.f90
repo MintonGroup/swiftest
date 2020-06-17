@@ -101,4 +101,29 @@ module util
       end function
 
    end interface
+
+   interface 
+      module function calc_qrd_pstar(mtarg,mp,alpha) result(ans)
+         implicit none
+         real(DP),intent(in) :: mtarg, mp, alpha
+         real(DP)        :: ans
+      end function calc_qrd_pstar
+
+      module function calc_qrd_rev(mp,mtarg,mint,den1,den2, vimp) result(ans)
+         implicit none
+         real(DP),intent(in) :: mp, mtarg, mint, den1, den2, vimp
+         real(DP) :: ans
+      end function calc_qrd_rev
+
+      module function calc_b(mp_pos, mp_vel, mp_r, mtarg_pos, mtarg_vel, mtarg_r) result(b)
+         implicit none
+         real(DP), intent(in), dimension(3) :: mp_pos, mp_vel, mtarg_pos, mtarg_vel
+         real(DP), intent(in) :: mp_r, mtarg_r
+         real(DP) :: b
+      end function calc_b
+
+   end interface
+
+
+      
 end module util

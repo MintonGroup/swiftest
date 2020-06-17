@@ -115,14 +115,12 @@ contains
     end if 
     return 
 
+   end procedure util_regime
 
-! Internal functions
-contains
-   function calc_qrd_pstar(mtarg,mp,alpha) result(ans)
+   module procedure calc_qrd_pstar
+      use swiftest
       implicit none
-      real(DP),intent(in) :: mtarg, mp, alpha
       real(DP)        :: qrd_star1, mu_alpha, mu, qrd_star, qrd_pstar
-      real(DP)        :: ans
       ! calc mu, mu_alpha
       mu = (mtarg * mp) / (mtarg + mp)  ! [kg]
       mu_alpha = (mtarg * alpha * mp) / (mtarg + alpha * mp)  ! [kg]
@@ -135,12 +133,12 @@ contains
       
       ans = qrd_pstar
       return
-   end function calc_qrd_pstar
+   end procedure calc_qrd_pstar
 
-   function calc_qrd_rev(mp,mtarg,mint,den1,den2, vimp) result(ans)
+   module procedure calc_qrd_rev
+      use swiftest
       implicit none
-      real(DP),intent(in) :: mp, mtarg, mint, den1, den2, vimp
-      real(DP) :: ans, mtot_rev, mu_rev, gamma_rev, qrd_star1, qrd_star, mu_alpha_rev
+      real(DP) :: mtot_rev, mu_rev, gamma_rev, qrd_star1, qrd_star, mu_alpha_rev
       real(DP) :: qrd_pstar, rc1, qr_rev, qrd_pstar_rev, mslr, qr_supercat_rev
       ! calc mtlr, rc1, mu, gammalr
       mtot_rev =  mint + mp
@@ -171,13 +169,12 @@ contains
       ans = mslr
 
       return
-   end function calc_qrd_rev
+   end procedure calc_qrd_rev
 
-   function calc_b(mp_pos, mp_vel, mp_r, mtarg_pos, mtarg_vel, mtarg_r) result(b)
+   module procedure calc_b
+      use swiftest
       implicit none
-      real(DP), intent(in), dimension(3) :: mp_pos, mp_vel, mtarg_pos, mtarg_vel
-      real(DP), intent(in) :: mp_r, mtarg_r
-      real(DP) :: h_sq, b, dvel_sq
+      real(DP) :: h_sq, dvel_sq
       real(DP), dimension(3) :: DPos, dvel, h
 
       DPos(1) = mtarg_pos(1) - mp_pos(1)
@@ -198,7 +195,6 @@ contains
       b = (h_sq / (((mp_r + mtarg_r) ** 2.0_DP) * dvel_sq)) ** (1.0_DP / 2.0_DP)
 
       return
-   end function calc_b
+   end procedure calc_b
 
-   end procedure util_regime
 end submodule s_util_regime
