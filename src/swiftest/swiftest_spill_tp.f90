@@ -36,7 +36,7 @@ contains
    self%vb(:)     = pack(self%vb(1:ntp),     .not. self%lspill_list(1:ntp)))
 
    ! Call the spill method for the parent class (the base class in this case)
-   call self%swiftest_particle%spill(discard)
+   call self%swiftest_body%spill(discard)
 
    end procedure swiftest_tp_spill
 end submodule s_swiftest_tp_spill

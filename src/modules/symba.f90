@@ -50,7 +50,7 @@ module symba
 
 
    !! Generic abstract class structure for a SyMBA encounter class
-   type, private, extends(swiftest_particle) :: symba_encounter
+   type, private, extends(swiftest_body) :: symba_encounter
       logical     , dimension(:),     allocatable :: lvdotr !! relative vdotr flag
       integer(I4B), dimension(:),     allocatable :: level  !! encounter recursion level
    contains
@@ -780,7 +780,7 @@ contains
       class(symba_encounter), intent(inout) :: self !! SyMBA encounter super class
       integer, intent(in)                   :: n    !! Number of test particles to allocate
      
-      call self%swiftest_particle%alloc(n)
+      call self%swiftest_body%alloc(n)
       if (n <= 0) return
 
       if (self%is_allocated) then
@@ -812,7 +812,7 @@ contains
    end subroutine symba_encounter_deallocate
 
    subroutine symba_encounter_dummy_input(self,config) 
-      !! This method is needed in order to extend the abstract type swiftest_particle. It does nothing
+      !! This method is needed in order to extend the abstract type swiftest_body. It does nothing
       implicit none
       class(symba_encounter), intent(inout)  :: self  !! SyMBA encounter data structure 
       type(swiftest_configuration),intent(in) :: config !! Input collection of user-defined parameters

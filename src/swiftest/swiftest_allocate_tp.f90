@@ -10,7 +10,7 @@ contains
    class(swiftest_tp), intent(inout)    :: self !! Swiftest test particle object
    integer, intent(in)                  :: n    !! Number of test particles to allocate
   
-   call self%swiftest_particle%alloc(n)
+   call self%swiftest_body%alloc(n)
    if (n <= 0) return
 
    if (self%is_allocated) then

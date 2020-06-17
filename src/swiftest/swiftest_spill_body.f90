@@ -1,11 +1,16 @@
-submodule (swiftest_data_structures) s_swiftest_particle_spill
+submodule (swiftest_data_structures) s_swiftest_body_spill
 contains
-   module procedure swiftest_particle_spill
+   module procedure swiftest_body_spill
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Move spilled (discarded) Swiftest particle structure from active list to discard list
    use swiftest    
    integer(I4B) :: nspill, np
+
+
+   select type(self)
+   class is (swiftest_tp)
+      call swiftest_tp_spill(self)
 
    np = self%nbody
    if (.not. self%lspill) then  ! Only calculate the number of spilled particles if this method is called directly. It won't recompute if this method
@@ -31,8 +36,8 @@ contains
    self%lspill = .false.
    self%nbody = self%nbody - discard%nbody
    
-   end procedure swiftest_particle_spill
-end submodule s_swiftest_particle_spill
+   end procedure swiftest_body_spill
+end submodule s_swiftest_body_spill
 
 
 

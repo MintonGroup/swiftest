@@ -16,36 +16,37 @@ module helio
       real(DP), dimension(:,:), allocatable :: ah  !! Total heliocentric acceleration
       real(DP), dimension(:,:), allocatable :: ahi !! Heliocentric acceleration due to interactions
    contains
-      procedure, public :: alloc => helio_tp_allocate
-      !procedure, public :: set_from_file => io_read_tp_in !! Override swiftest_pl io reader with the tp reader
-      procedure, public :: spill => helio_spill_tp           !! Method to remove the inactive Helio particles (tp or pl) and spill them to a discard object 
-      procedure, public :: getacch => helio_getacch_tp    !! Compute heliocentric accelerations of test particles
-      procedure, public :: step => helio_step_tp          !! Step active test particles ahead using Democratic Heliocentric method
-      procedure, public :: drift => helio_drift_tp        !! Loop through test particles and call Danby drift routine
-      procedure, public :: lindrift => helio_lindrift_tp  !! Perform linear drift of test particles due to barycentric momentum of Sun
-      procedure, public :: kick => helio_kickvb_tp        !! Kick barycentric velocities of active test particles
-      final :: helio_tp_deallocate
+      private
+      procedure, public     :: alloc => helio_allocate_tp     !! Allocates new components of the helio class and recursively calls parent allocations
+      procedure, public     :: set_vec => swiftest_set_vec    !! Method used to construct the vectorized form of the central body mass
+      !procedure, public     :: spill => helio_spill_tp        
+      procedure, public     :: getacch => helio_getacch_tp    !! Compute heliocentric accelerations of test particles
+      procedure, public     :: step => helio_step_tp          !! Step active test particles ahead using Democratic Heliocentric method
+      procedure, public     :: drift => helio_drift_tp        !! Loop through test particles and call Danby drift routine
+      procedure, public     :: lindrift => helio_lindrift_tp  !! Perform linear drift of test particles due to barycentric momentum of Sun
+      procedure, public     :: kick => helio_kickvb_tp        !! Kick barycentric velocities of active test particles
+      final :: helio_deallocate_tp
    end type helio_tp
 
    interface
       !> Helio constructor and desctructor methods
-      module subroutine helio_tp_allocate(self,n)
+      module subroutine helio_allocate_tp(self,n)
          implicit none
          class(helio_tp), intent(inout) :: self !! Swiftest test particle object
          integer, intent(in)            :: n    !! Number of test particles to allocate
-      end subroutine helio_tp_allocate
+      end subroutine helio_allocate_tp
 
       !> Helio test particle destructor/finalizer
-      module subroutine helio_tp_deallocate(self)
+      module subroutine helio_deallocate_tp(self)
          implicit none
-         type(helio_tp), intent(inout)    :: self
-      end subroutine helio_tp_deallocate
+         type(helio_tp), intent(inout)  :: self
+      end subroutine helio_deallocate_tp
 
       !> Method to remove the inactive bodies and spill them to a discard object
       module subroutine helio_spill_tp(self,discard)
          implicit none
-         class(helio_tp), intent(inout)           :: self    !! Swiftest test particle object to input
-         class(swiftest_particle), intent(inout)  :: discard !! Discarded body list
+         class(helio_tp), intent(inout) :: self    !! Swiftest test particle object to input
+         class(helio_tp), intent(inout) :: discard !! Discarded body list
       end subroutine helio_spill_tp
   
    end interface

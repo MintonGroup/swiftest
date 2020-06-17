@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_particle_deallocate
+submodule (swiftest_data_structures) s_swiftest_body_deallocate
 contains
-   module procedure swiftest_particle_deallocate
+   module procedure swiftest_body_deallocate
    !! author: David A. Minton
    !!
    !! Finalizer for base Swiftest particle class. Deallocates all components and sets 
@@ -13,5 +13,5 @@ contains
       if (allocated(self%lspill_list)) deallocate(self%lspill_list)
    end if
    return
-   end procedure swiftest_particle_deallocate
-end submodule s_swiftest_particle_deallocate
+   end procedure swiftest_body_deallocate
+end submodule s_swiftest_body_deallocate
