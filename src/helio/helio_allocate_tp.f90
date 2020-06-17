@@ -22,7 +22,6 @@ contains
 
    self%ah(:,:) = 0.0_DP
    self%ahi(:,:) = 0.0_DP
-   
    return
    end procedure helio_allocate_tp
 end submodule s_helio_allocate_tp

@@ -1,173 +1,129 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_casemerge
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Merge massive bodies
-!
-!  Input
-!    Arguments : t            : time
-!                npl          : number of massive bodies
-!                nsppl        : number of spilled massive bodies
-!                symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
-!                symba_pld1P  : pointer to head of discard SyMBA massive body structure linked-list
-!                nplplenc     : number of massive body-massive body encounters
-!                plplenc_list : array of massive body-massive body encounter structures
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : npl          : number of massive bodies
-!                nsppl        : number of spilled massive bodies
-!                symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
-!                symba_pld1P  : pointer to head of discard SyMBA massive body structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL symba_casemerge(t, npl, nsppl, symba_pl1P, symba_pld1P, nplplenc, plplenc_list)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine discard_mass_merge.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_casemerge (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-     npl, symba_plA, nplplenc, plplenc_list, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
-
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_casemerge
-     IMPLICIT NONE
-
-! Arguments
-     INTEGER(I4B), INTENT(IN)                         :: index_enc, npl, nplplenc
-     INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
-     REAL(DP), INTENT(IN)                             :: t
-     REAL(DP), INTENT(INOUT)                          :: eoffset, m1, m2, rad1, rad2
-     REAL(DP), DIMENSION(:), INTENT(IN)            :: vbs
-     REAL(DP), DIMENSION(:), INTENT(INOUT)         :: x1, x2, v1, v2
-     TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-     TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-     TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-     INTEGER(I4B), DIMENSION(npl), INTENT(INOUT)      :: array_index1_child, array_index2_child
-
-! Internals
+submodule (symba) s_symba_casemerge 
+contains
+   module procedure symba_casemerge 
+   !! author: Jennifer L. L. Pouplin and Carlisle A. Wishard
+   !!
+   !! Merge planetss
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_merge_pl .f90
+   !! Adapted from Hal Levison's Swift routine symba5_merge.f
+use swiftest
+implicit none
  
-     INTEGER(I4B)                 :: i, j, k, stat1, stat2, index1, index2, indexchild
-     INTEGER(I4B)                 :: index1_child, index2_child, index1_parent, index2_parent
-     INTEGER(I4B)                 :: name1, name2
-     REAL(DP)                     :: mtot
-     REAL(DP)                     :: eold, enew, mass1, mass2
-     REAL(DP), DIMENSION(NDIM)    :: xr, xnew, vnew
-     INTEGER(I4B), DIMENSION(npl) :: array_keep_child, array_rm_child
+   integer(I4B)           :: i, j, k, stat1, stat2, index1, index2, indexchild
+   integer(I4B)           :: index1_child, index2_child, index1_parent, index2_parent
+   integer(I4B)           :: name1, name2
+   real(DP)             :: mtot
+   real(DP)             :: eold, enew, mass1, mass2
+   real(DP), dimension(ndim)    :: xr, xnew, vnew
+   integer(I4B), dimension(npl) :: array_keep_child, array_rm_child
 
-! Executable code
-               index1 = plplenc_list%index1(index_enc)
-               index2 = plplenc_list%index2(index_enc)
-               index1_parent = symba_plA%index_parent(index1)
-               index2_parent = symba_plA%index_parent(index2)
-               mtot = m1 + m2
-               xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
-               vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
-               name1 = symba_plA%helio%swiftest%name(index1)
-               name2 = symba_plA%helio%swiftest%name(index2)
-               mass1 = symba_plA%helio%swiftest%mass(index1)
-               mass2 = symba_plA%helio%swiftest%mass(index2)
-               stat1 = symba_plA%helio%swiftest%status(index1)
-               stat2 = symba_plA%helio%swiftest%status(index2)
-               WRITE(*, *) "Merging particles ", name1, " and ", name2, " at time t = ",t
-               nmergesub = nmergesub + 1
-               mergesub_list%name(nmergesub) = name1
-               mergesub_list%status(nmergesub) = MERGED
-               mergesub_list%xh(:,nmergesub) = x1(:)
-               mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
-               mergesub_list%mass(nmergesub) = mass1
-               mergesub_list%radius(nmergesub) = rad1
-               nmergesub = nmergesub + 1
-               mergesub_list%name(nmergesub) = name2
-               mergesub_list%status(nmergesub) = MERGED
-               mergesub_list%xh(:,nmergesub) = x2(:)
-               mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
-               mergesub_list%mass(nmergesub) = mass2
-               mergesub_list%radius(nmergesub) = rad2
-               nmergeadd = nmergeadd + 1
-               IF (m2 > m1) THEN
-                    mergeadd_list%name(nmergeadd) = name2
-                    mergeadd_list%status(nmergeadd) = stat2
+! executable code
+         index1 = plplenc_list%index1(index_enc)
+         index2 = plplenc_list%index2(index_enc)
+         index1_parent = symba_pla%index_parent(index1)
+         index2_parent = symba_pla%index_parent(index2)
+         mtot = m1 + m2
+         xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
+         vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
+         name1 = symba_pla%helio%swiftest%name(index1)
+         name2 = symba_pla%helio%swiftest%name(index2)
+         mass1 = symba_pla%helio%swiftest%mass(index1)
+         mass2 = symba_pla%helio%swiftest%mass(index2)
+         stat1 = symba_pla%helio%swiftest%status(index1)
+         stat2 = symba_pla%helio%swiftest%status(index2)
+         write(*, *) "merging particles ", name1, " and ", name2, " at time t = ",t
+         nmergesub = nmergesub + 1
+         mergesub_list%name(nmergesub) = name1
+         mergesub_list%status(nmergesub) = merged
+         mergesub_list%xh(:,nmergesub) = x1(:)
+         mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
+         mergesub_list%mass(nmergesub) = mass1
+         mergesub_list%radius(nmergesub) = rad1
+         nmergesub = nmergesub + 1
+         mergesub_list%name(nmergesub) = name2
+         mergesub_list%status(nmergesub) = merged
+         mergesub_list%xh(:,nmergesub) = x2(:)
+         mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
+         mergesub_list%mass(nmergesub) = mass2
+         mergesub_list%radius(nmergesub) = rad2
+         nmergeadd = nmergeadd + 1
+         if (m2 > m1) then
+            mergeadd_list%name(nmergeadd) = name2
+            mergeadd_list%status(nmergeadd) = stat2
 
-               ELSE
-                    mergeadd_list%name(nmergeadd) = name1
-                    mergeadd_list%status(nmergeadd) = stat1
+         else
+            mergeadd_list%name(nmergeadd) = name1
+            mergeadd_list%status(nmergeadd) = stat1
 
-               END IF
-               mergeadd_list%ncomp(nmergeadd) = 2
-               mergeadd_list%xh(:,nmergeadd) = xnew(:)
-               mergeadd_list%vh(:,nmergeadd) = vnew(:) - vbs(:)
-               eold = 0.5_DP*(m1*DOT_PRODUCT(v1(:), v1(:)) + m2*DOT_PRODUCT(v2(:), v2(:)))
-               xr(:) = x2(:) - x1(:)
-               eold = eold - m1*m2/SQRT(DOT_PRODUCT(xr(:), xr(:)))
-               enew = 0.5_DP*mtot*DOT_PRODUCT(vnew(:), vnew(:))
-               eoffset = eoffset + eold - enew
+         end if
+         mergeadd_list%ncomp(nmergeadd) = 2
+         mergeadd_list%xh(:,nmergeadd) = xnew(:)
+         mergeadd_list%vh(:,nmergeadd) = vnew(:) - vbs(:)
+         eold = 0.5_DP*(m1*dot_product(v1(:), v1(:)) + m2*dot_product(v2(:), v2(:)))
+         xr(:) = x2(:) - x1(:)
+         eold = eold - m1*m2/sqrt(dot_product(xr(:), xr(:)))
+         enew = 0.5_DP*mtot*dot_product(vnew(:), vnew(:))
+         eoffset = eoffset + eold - enew
 
-               DO k = 1, nplplenc
-                    IF (plplenc_list%status(k) == ACTIVE) THEN
-                         DO i = 0, symba_plA%nchild(index1_parent)
-                              IF (i == 0) THEN 
-                                   index1_child = index1_parent
-                              ELSE
-                                   index1_child = array_index1_child(i)
-                              END IF 
-                              DO j = 0, symba_plA%nchild(index2_parent)
-                                   IF (j == 0) THEN
-                                        index2_child = index2_parent
-                                   ELSE
-                                        index2_child = array_index2_child(j)
-                                   END IF
-                                   IF ((index1_child == plplenc_list%index1(k)) .AND. (index2_child == plplenc_list%index2(k))) THEN
-                                        plplenc_list%status(k) = MERGED
-                                   ELSE IF ((index1_child == plplenc_list%index2(k)) .AND. &
-                                        (index2_child == plplenc_list%index1(k))) THEN
-                                        plplenc_list%status(k) = MERGED
-                                   END IF
-                              END DO
-                         END DO
-                    END IF
-               END DO
+         do k = 1, nplplenc
+            if (plplenc_list%status(k) == active) then
+               do i = 0, symba_pla%nchild(index1_parent)
+                  if (i == 0) then 
+                     index1_child = index1_parent
+                  else
+                     index1_child = array_index1_child(i)
+                  end if 
+                  do j = 0, symba_pla%nchild(index2_parent)
+                     if (j == 0) then
+                        index2_child = index2_parent
+                     else
+                        index2_child = array_index2_child(j)
+                     end if
+                     if ((index1_child == plplenc_list%index1(k)) .and. (index2_child == plplenc_list%index2(k))) then
+                        plplenc_list%status(k) = merged
+                     else if ((index1_child == plplenc_list%index2(k)) .and. &
+                        (index2_child == plplenc_list%index1(k))) then
+                        plplenc_list%status(k) = merged
+                     end if
+                  end do
+               end do
+            end if
+         end do
 
-               symba_plA%helio%swiftest%xh(:,index1_parent) = xnew(:)
-               symba_plA%helio%swiftest%vb(:,index1_parent) = vnew(:)
-               symba_plA%helio%swiftest%xh(:,index2_parent) = xnew(:) 
-               symba_plA%helio%swiftest%vb(:,index2_parent) = vnew(:)
+         symba_pla%helio%swiftest%xh(:,index1_parent) = xnew(:)
+         symba_pla%helio%swiftest%vb(:,index1_parent) = vnew(:)
+         symba_pla%helio%swiftest%xh(:,index2_parent) = xnew(:) 
+         symba_pla%helio%swiftest%vb(:,index2_parent) = vnew(:)
 
-               ! The children of parent one are the children we are keeping
-               array_keep_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
-               ! Go through the children of the kept parent and add those children to the array of kept children
-               DO i = 1, symba_plA%nchild(index1_parent)
-                    indexchild = array_keep_child(i)
-                    symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
-                    symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
-               END DO
-               ! the removed parent is assigned as a new child to the list of children of the kept parent
-               ! gives kept parent a new child 
-               symba_plA%index_child((symba_plA%nchild(index1_parent)+1),index1_parent) = index2_parent
-               array_rm_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
-               ! the parent of the removed parent is assigned to be the kept parent 
-               ! gives removed parent a new parent
-               symba_plA%index_parent(index2) = index1_parent
-               ! go through the children of the removed parent and add those children to the array of removed children 
-               DO i = 1, symba_plA%nchild(index2_parent)
-                    symba_plA%index_parent(array_rm_child(i)) = index1_parent
-                    indexchild = array_rm_child(i)
-                    symba_plA%helio%swiftest%xh(:,indexchild) = xnew(:)
-                    symba_plA%helio%swiftest%vb(:,indexchild) = vnew(:)
-               END DO
-               ! go through the children of the removed parent and add those children to the list of children of the kept parent
-               DO i = 1, symba_plA%nchild(index2_parent)
-                    symba_plA%index_child(symba_plA%nchild(index1_parent)+i+1,index1_parent)= array_rm_child(i)
-               END DO 
-               ! updates the number of children of the kept parent
-               symba_plA%nchild(index1_parent) = symba_plA%nchild(index1_parent) + symba_plA%nchild(index2_parent) + 1
+         ! the children of parent one are the children we are keeping
+         array_keep_child(1:npl) = symba_pla%index_child(1:npl,index1_parent)
+         ! go through the children of the kept parent and add those children to the array of kept children
+         do i = 1, symba_pla%nchild(index1_parent)
+            indexchild = array_keep_child(i)
+            symba_pla%helio%swiftest%xh(:,indexchild) = xnew(:)
+            symba_pla%helio%swiftest%vb(:,indexchild) = vnew(:)
+         end do
+         ! the removed parent is assigned as a new child to the list of children of the kept parent
+         ! gives kept parent a new child 
+         symba_pla%index_child((symba_pla%nchild(index1_parent)+1),index1_parent) = index2_parent
+         array_rm_child(1:npl) = symba_pla%index_child(1:npl,index2_parent)
+         ! the parent of the removed parent is assigned to be the kept parent 
+         ! gives removed parent a new parent
+         symba_pla%index_parent(index2) = index1_parent
+         ! go through the children of the removed parent and add those children to the array of removed children 
+         do i = 1, symba_pla%nchild(index2_parent)
+            symba_pla%index_parent(array_rm_child(i)) = index1_parent
+            indexchild = array_rm_child(i)
+            symba_pla%helio%swiftest%xh(:,indexchild) = xnew(:)
+            symba_pla%helio%swiftest%vb(:,indexchild) = vnew(:)
+         end do
+         ! go through the children of the removed parent and add those children to the list of children of the kept parent
+         do i = 1, symba_pla%nchild(index2_parent)
+            symba_pla%index_child(symba_pla%nchild(index1_parent)+i+1,index1_parent)= array_rm_child(i)
+         end do 
+         ! updates the number of children of the kept parent
+         symba_pla%nchild(index1_parent) = symba_pla%nchild(index1_parent) + symba_pla%nchild(index2_parent) + 1
 
-     RETURN 
-END SUBROUTINE symba_casemerge
-
+   return 
+   end procedure symba_casemerge
+end submodule s_symba_casemerge

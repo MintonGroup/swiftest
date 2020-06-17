@@ -18,7 +18,7 @@ contains
    call self%helio_tp%alloc(n)
    if (n <= 0) return
    ! No new structures to allocate and initialize
-   
+
    return
    end procedure helio_allocate_pl
 end submodule s_helio_allocate_pl

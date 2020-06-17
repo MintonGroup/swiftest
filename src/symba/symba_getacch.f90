@@ -1,146 +1,91 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_getacch
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Compute heliocentric accelerations of massive bodies
-!
-!  Input
-!    Arguments : lextra_force : logical flag indicating whether to include user-supplied accelerations
-!                t            : time
-!                npl          : number of massive bodies
-!                nplm         : number of massive bodies with mass > mtiny
-!                nplmax       : maximum allowed number of massive bodies
-!                symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
-!                j2rp2        : J2 * R**2 for the Sun
-!                j4rp4        : J4 * R**4 for the Sun
-!                nplplenc     : number of massive body-massive body encounters
-!                plplenc_list : array of massive body-test particle encounter structures
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, j4rp4, nplplenc, plplenc_list)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine symba5_getacch.f
-!
-!                Accelerations in an encounter are not included here
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_getacch(lextra_force, t, npl, nplm, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list)
+submodule (symba) s_symba_getacch
+contains
+   module procedure symba_getacch
+   !! author: David A. Minton
+   !!
+   !! Compute heliocentric accelerations of planets
+   !!      Accelerations in an encounter are not included here
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_getacch.f90
+   !! Adapted from Hal Levison's Swift routine symba5_getacch.f
+use swiftest
+implicit none
+   integer(I4B)                     :: i, j, index_i, index_j
+   real(DP)                       :: rji2, irij3, faci, facj, r2
+   real(DP), dimension(ndim)            :: dx
+   real(DP), dimension(npl)             :: irh
+   real(DP), dimension(ndim, npl)         :: aobl
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_getacch
-     IMPLICIT NONE
+! executable code
 
-! Arguments
-     LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-     INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplplenc
-     REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
-     TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
-     TYPE(symba_plplenc), INTENT(INOUT)            :: plplenc_list
+   do i = 2, npl
+      symba_pla%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+   end do
 
-! Internals
-     INTEGER(I4B)                                 :: i, j, index_i, index_j
-     REAL(DP)                                     :: rji2, irij3, faci, facj, r2
-     REAL(DP), DIMENSION(NDIM)                    :: dx
-     REAL(DP), DIMENSION(npl)                     :: irh
-     REAL(DP), DIMENSION(NDIM, npl)               :: aobl
+   do i = 2, nplm
+      do j = i + 1, npl
+         if ((.not. symba_pla%lmerged(i)) .or. (.not. symba_pla%lmerged(j)) .or. &
+             (symba_pla%index_parent(i) /= symba_pla%index_parent(j))) then
+            dx(:) = symba_pla%helio%swiftest%xh(:,j) - symba_pla%helio%swiftest%xh(:,i)
+            rji2 = dot_product(dx(:), dx(:))
+            irij3 = 1.0_DP/(rji2*sqrt(rji2))
+            if (irij3  .ne. irij3 ) then 
+               write(*,*) "dx==0 for pl: ", i, "name:", symba_pla%helio%swiftest%name(i), &
+            "and pl:", j, "name:", symba_pla%helio%swiftest%name(j)
+            write(*,*) "dx==0 for pl: ", i, "xh:", symba_pla%helio%swiftest%xh(1,i), &
+            "and pl:", j, "xh:", symba_pla%helio%swiftest%xh(1,j)
+               write(*,*) "parent pl 1:", symba_pla%helio%swiftest%name(symba_pla%index_parent(i))
+               write(*,*) "parent pl 2:", symba_pla%helio%swiftest%name(symba_pla%index_parent(j))
+               stop
+            end if
+            faci = symba_pla%helio%swiftest%mass(i)*irij3
+            facj = symba_pla%helio%swiftest%mass(j)*irij3
+            symba_pla%helio%ah(:,i) = symba_pla%helio%ah(:,i) + facj*dx(:)
+            symba_pla%helio%ah(:,j) = symba_pla%helio%ah(:,j) - faci*dx(:)
+         end if
+      end do
+   end do
 
-! Executable code
+   do i = 1, nplplenc
+      index_i = plplenc_list%index1(i)
+      index_j = plplenc_list%index2(i)
+      if ((.not. symba_pla%lmerged(index_i)) .or. (.not. symba_pla%lmerged(index_j))  &
+          .or. (symba_pla%index_parent(index_i) /= symba_pla%index_parent(index_j))) then !need to update parent/children
+         dx(:) = symba_pla%helio%swiftest%xh(:,index_j) - symba_pla%helio%swiftest%xh(:,index_i)
+         rji2 = dot_product(dx(:), dx(:))
+         irij3 = 1.0_DP/(rji2*sqrt(rji2))
+         if (irij3  .ne. irij3 ) then 
+               write(*,*) "dx==0 for pl: ", i, "name:", symba_pla%helio%swiftest%name(i), &
+            "and pl:", j, "name:", symba_pla%helio%swiftest%name(j)
+            write(*,*) "dx==0 for pl: ", i, "xh:", symba_pla%helio%swiftest%xh(1,i), &
+            "and pl:", j, "xh:", symba_pla%helio%swiftest%xh(1,j)
+               write(*,*) "parent pl 1:", symba_pla%helio%swiftest%name(symba_pla%index_parent(i))
+               write(*,*) "parent pl 2:", symba_pla%helio%swiftest%name(symba_pla%index_parent(j))
+               stop
+         end if
+         faci = symba_pla%helio%swiftest%mass(index_i)*irij3
+         facj = symba_pla%helio%swiftest%mass(index_j)*irij3
+         symba_pla%helio%ah(:,index_i) = symba_pla%helio%ah(:,index_i) - facj*dx(:)
+         symba_pla%helio%ah(:,index_j) = symba_pla%helio%ah(:,index_j) + faci*dx(:)
+      end if
+   end do
+   if (j2rp2 /= 0.0_DP) then
+      !if (lmalloc) then
+          !allocate(xh(ndim, npl),aobl(ndim, npl), irh(npl))
+         !lmalloc = .false.
+      !end if
+      do i = 2, npl
+         r2 = dot_product(symba_pla%helio%swiftest%xh(:,i), symba_pla%helio%swiftest%xh(:,i))
+         irh(i) = 1.0_DP/sqrt(r2)
+      end do
+      call obl_acc(symba_pla%helio%swiftest, j2rp2, j4rp4, symba_pla%helio%swiftest%xh(:,:), irh, aobl)
+      do i = 2, npl
+         symba_pla%helio%ah(:,i) = symba_pla%helio%ah(:,i) + aobl(:, i) - aobl(:, 1)
+      end do
+   end if
+   if (lextra_force) call symba_user_getacch(t, npl, symba_pla)
 
-     DO i = 2, npl
-          symba_plA%helio%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     END DO
+   return
 
-     DO i = 2, nplm
-          DO j = i + 1, npl
-               IF ((.NOT. symba_plA%lmerged(i)) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
-                   (symba_plA%index_parent(i) /= symba_plA%index_parent(j))) THEN
-                    dx(:) = symba_plA%helio%swiftest%xh(:,j) - symba_plA%helio%swiftest%xh(:,i)
-                    rji2 = DOT_PRODUCT(dx(:), dx(:))
-                    irij3 = 1.0_DP/(rji2*SQRT(rji2))
-                    IF (irij3  .NE. irij3 ) then 
-                         WRITE(*,*) "dx==0 for pl: ", i, "name:", symba_plA%helio%swiftest%name(i), &
-                    "and pl:", j, "name:", symba_plA%helio%swiftest%name(j)
-                    WRITE(*,*) "dx==0 for pl: ", i, "xh:", symba_plA%helio%swiftest%xh(1,i), &
-                    "and pl:", j, "xh:", symba_plA%helio%swiftest%xh(1,j)
-                         WRITE(*,*) "parent pl 1:", symba_plA%helio%swiftest%name(symba_plA%index_parent(i))
-                         WRITE(*,*) "parent pl 2:", symba_plA%helio%swiftest%name(symba_plA%index_parent(j))
-                         STOP
-                    END IF
-                    faci = symba_plA%helio%swiftest%mass(i)*irij3
-                    facj = symba_plA%helio%swiftest%mass(j)*irij3
-                    symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + facj*dx(:)
-                    symba_plA%helio%ah(:,j) = symba_plA%helio%ah(:,j) - faci*dx(:)
-               END IF
-          END DO
-     END DO
-
-     DO i = 1, nplplenc
-          index_i = plplenc_list%index1(i)
-          index_j = plplenc_list%index2(i)
-          IF ((.NOT. symba_plA%lmerged(index_i)) .OR. (.NOT. symba_plA%lmerged(index_j))  &
-                .OR. (symba_plA%index_parent(index_i) /= symba_plA%index_parent(index_j))) THEN !need to update parent/children
-               dx(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
-               rji2 = DOT_PRODUCT(dx(:), dx(:))
-               irij3 = 1.0_DP/(rji2*SQRT(rji2))
-               IF (irij3  .NE. irij3 ) then 
-                         WRITE(*,*) "dx==0 for pl: ", i, "name:", symba_plA%helio%swiftest%name(i), &
-                    "and pl:", j, "name:", symba_plA%helio%swiftest%name(j)
-                    WRITE(*,*) "dx==0 for pl: ", i, "xh:", symba_plA%helio%swiftest%xh(1,i), &
-                    "and pl:", j, "xh:", symba_plA%helio%swiftest%xh(1,j)
-                         WRITE(*,*) "parent pl 1:", symba_plA%helio%swiftest%name(symba_plA%index_parent(i))
-                         WRITE(*,*) "parent pl 2:", symba_plA%helio%swiftest%name(symba_plA%index_parent(j))
-                         STOP
-               END IF
-               faci = symba_plA%helio%swiftest%mass(index_i)*irij3
-               facj = symba_plA%helio%swiftest%mass(index_j)*irij3
-               symba_plA%helio%ah(:,index_i) = symba_plA%helio%ah(:,index_i) - facj*dx(:)
-               symba_plA%helio%ah(:,index_j) = symba_plA%helio%ah(:,index_j) + faci*dx(:)
-          END IF
-     END DO
-     IF (j2rp2 /= 0.0_DP) THEN
-          !IF (lmalloc) THEN
-              !ALLOCATE(xh(NDIM, npl),aobl(NDIM, npl), irh(npl))
-               !lmalloc = .FALSE.
-          !END IF
-          DO i = 2, npl
-               r2 = DOT_PRODUCT(symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%xh(:,i))
-               irh(i) = 1.0_DP/SQRT(r2)
-          END DO
-          CALL obl_acc(symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)
-          DO i = 2, npl
-               symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + aobl(:, i) - aobl(:, 1)
-          END DO
-     END IF
-     IF (lextra_force) CALL symba_user_getacch(t, npl, symba_plA)
-
-     RETURN
-
-END SUBROUTINE symba_getacch
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_getacch
+end submodule s_symba_getacch

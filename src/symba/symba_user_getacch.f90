@@ -1,63 +1,17 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_user_getacch
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Add user-supplied heliocentric accelerations to massive bodies
-!
-!  Input
-!    Arguments : t          : time
-!                npl        : number of massive bodies
-!                symba_pl1P : pointer to head of SyMBA massive body structure linked-list
-!    Terminal  : TBS as needed by user
-!    File      : TBS as needed by user
-!
-!  Output
-!    Arguments : symba_pl1P : pointer to head of SyMBA massive body structure linked-list
-!    Terminal  : TBS as needed by user
-!    File      : TBS as needed by user
-!
-!  Invocation  : CALL symba_user_getacch(t, npl, symba_pl1P)
-!
-!  Notes       : Carlisle was here
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_user_getacch(t, npl, symba_plA)
+submodule (symba) s_symba_user_getacch
+contains
+   module procedure symba_user_getacch
+   !! author: David A. Minton
+   !!
+   !! Add user-supplied heliocentric accelerations to planetss
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_user_getacch.f90
+use swiftest
+implicit none
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_user_getacch
-     IMPLICIT NONE
+! executable code
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)                     :: npl
-     REAL(DP), INTENT(IN)                         :: t
-     TYPE(symba_pl), INTENT(INOUT)                :: symba_plA
+   return
 
-! Internals
-
-! Executable code
-
-     RETURN
-
-END SUBROUTINE symba_user_getacch
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_user_getacch
+end submodule s_symba_user_getacch

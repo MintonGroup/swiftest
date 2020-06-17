@@ -93,13 +93,6 @@ module util
          implicit none
       end subroutine util_version
 
-      module function util_kahan_sum(xsum_current, xi, xerror) 
-         implicit none
-         real(DP)     :: util_kahan_sum
-         real(DP), intent(in)   :: xsum_current, xi
-         real(DP), intent(inout) :: xerror
-      end function
-
    end interface
 
    interface 

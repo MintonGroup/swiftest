@@ -1,164 +1,73 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_step_interp_eucl
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Step massive bodies and active test particles ahead in democratic heliocentric coordinates, calling the recursive
-!                subroutine to descend to the appropriate level to handle close encounters
-!
-!  Input
-!    Arguments : lextra_force   : logical flag indicating whether to include user-supplied accelerations
-!                lclose         : logical flag indicating whether to check for mergers
-!                t              : time
-!                npl            : number of massive bodies
-!                nplm           : number of massive bodies with mass > mtiny
-!                nplmax         : maximum allowed number of massive bodies
-!                ntp            : number of active test particles
-!                ntpmax         : maximum allowed number of test particles
-!                symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
-!                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
-!                j2rp2          : J2 * R**2 for the Sun
-!                j4rp4          : J4 * R**4 for the Sun
-!                dt             : time step
-!                eoffset        : energy offset (net energy lost in mergers)
-!                mtiny          : smallest self-gravitating mass
-!                nplplenc       : number of massive body-massive body encounters
-!                npltpenc       : number of massive body-test particle encounters
-!                plplenc_list   : array of massive body-massive body encounter structures
-!                pltpenc_list   : array of massive body-test particle encounter structures
-!                nmergeadd      : number of merged massive bodies to add
-!                nmergesub      : number of merged massive bodies to subtract
-!                mergeadd_list  : array of structures of merged massive bodies to add
-!                mergesub_list  : array of structures of merged massive bodies to subtract
-!                encounter_file : name of output file for encounters
-!                out_type       : binary format of output file
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
-!                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
-!                eoffset        : energy offset (net energy lost in mergers)
-!                plplenc_list   : array of massive body-massive body encounter structures
-!                pltpenc_list   : array of massive body-test particle encounter structures
-!                nmergeadd      : number of merged massive bodies to add
-!                nmergesub      : number of merged massive bodies to subtract
-!                mergeadd_list  : array of structures of merged massive bodies to add
-!                mergesub_list  : array of structures of merged massive bodies to subtract
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2,
-!                                       j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd,
-!                                       nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine symba5_step_interp.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,&
-     eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,&
-     encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
+submodule (symba) s_symba_step_interp_eucl
+contains
+   module procedure symba_step_interp_eucl
+   !! author: Jacob R. Elliott
+   !!
+   !! Same as symba_step_interp, but with th new single loop-blocking Euclidean distance matrix evaluation
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_step_interp.f90
+   !! Adapted from Hal Levison's Swift routine symba5_step_interp.f
+   use swiftest
+   implicit none
+   logical(lgt), save                 :: lmalloc = .true.
+   integer(I4B)                     :: i, irec
+   real(DP)                       :: dth, msys
+   real(DP), dimension(ndim)            :: ptb, pte
+   real(DP), dimension(:, :), allocatable, save :: xbeg, xend
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_step_interp_eucl
-     IMPLICIT NONE
+! executable code
 
-! Arguments
-     LOGICAL(LGT), INTENT(IN)                         :: lextra_force, lclose
-     INTEGER(I4B), INTENT(IN)                         :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc
-     INTEGER(I4B), INTENT(INOUT)                      :: nmergeadd, nmergesub
-     REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
-     REAL(DP), INTENT(INOUT)                          :: eoffset
-     CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-     TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-     TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-     TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
-     TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-     INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons, num_pltp_comparisons
-     INTEGER(I4B), DIMENSION(2,num_plpl_comparisons),INTENT(IN) :: k_plpl 
-     INTEGER(I4B), DIMENSION(2,num_pltp_comparisons),INTENT(IN) :: k_pltp
+   if (lmalloc) then
+      allocate(xbeg(ndim, nplmax), xend(ndim, nplmax))
+      lmalloc = .false.
+   end if
+   dth = 0.5_DP*dt
 
-! Internals
-     LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i, irec
-     REAL(DP)                                     :: dth, msys
-     REAL(DP), DIMENSION(NDIM)                    :: ptb, pte
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xbeg, xend
+   call coord_vh2vb(npl, symba_pla%helio%swiftest, msys)
 
-! Executable code
+   call helio_lindrift(npl, symba_pla%helio%swiftest, dth, ptb)
+   if (ntp > 0) then
+      call coord_vh2vb_tp(ntp, symba_tpa%helio%swiftest, -ptb)
+      call helio_lindrift_tp(ntp, symba_tpa%helio%swiftest, dth, ptb) 
+      do i = 2, npl
+         xbeg(:, i) = symba_pla%helio%swiftest%xh(:,i)
+      end do
+   end if
 
-     IF (lmalloc) THEN
-          ALLOCATE(xbeg(NDIM, nplmax), xend(NDIM, nplmax))
-          lmalloc = .FALSE.
-     END IF
-     dth = 0.5_DP*dt
+   call symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_pla, j2rp2, j4rp4, nplplenc, plplenc_list, &
+      num_plpl_comparisons, k_plpl)
+   if (ntp > 0) call symba_getacch_tp_eucl(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_pla, symba_tpa, xbeg, j2rp2,&
+      j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
 
-     CALL coord_vh2vb(npl, symba_plA%helio%swiftest, msys)
+   call helio_kickvb(npl, symba_pla%helio, dth)
+   if (ntp > 0) call helio_kickvb_tp(ntp, symba_tpa%helio, dth)
+   irec = -1
 
-     CALL helio_lindrift(npl, symba_plA%helio%swiftest, dth, ptb)
-     IF (ntp > 0) THEN
-          CALL coord_vh2vb_tp(ntp, symba_tpA%helio%swiftest, -ptb)
-          CALL helio_lindrift_tp(ntp, symba_tpA%helio%swiftest, dth, ptb) 
-          DO i = 2, npl
-               xbeg(:, i) = symba_plA%helio%swiftest%xh(:,i)
-          END DO
-     END IF
+   call symba_helio_drift(irec, npl, symba_pla, dt)
+   if (ntp > 0) call symba_helio_drift_tp(irec, ntp, symba_tpa, symba_pla%helio%swiftest%mass(1), dt)
+   irec = 0
 
-     CALL symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
-          num_plpl_comparisons, k_plpl)
-     IF (ntp > 0) CALL symba_getacch_tp_eucl(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xbeg, j2rp2,&
-          j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
+   call symba_step_recur(lclose, t, irec, npl, nplm, ntp, symba_pla, symba_tpa, dt, eoffset, nplplenc, npltpenc,&
+      plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
+   if (ntp > 0) then
+      do i = 2, npl
+         xend(:, i) = symba_pla%helio%swiftest%xh(:,i)
+      end do
+   end if
+   call symba_getacch_eucl(lextra_force, t+dt, npl, nplm, nplmax, symba_pla, j2rp2, j4rp4, nplplenc, plplenc_list, &
+      num_plpl_comparisons, k_plpl)
+   if (ntp > 0) call symba_getacch_tp_eucl(lextra_force, t+dt, npl, nplm, nplmax, ntp, ntpmax, symba_pla, symba_tpa, xend, &
+      j2rp2,j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
+   call helio_kickvb(npl, symba_pla%helio, dth)
+   if (ntp > 0) call helio_kickvb_tp(ntp, symba_tpa%helio, dth)
+   call coord_vb2vh(npl, symba_pla%helio%swiftest)
+   call helio_lindrift(npl, symba_pla%helio%swiftest, dth, pte)
+   if (ntp > 0) then
+      call coord_vb2vh_tp(ntp, symba_tpa%helio%swiftest, -pte)
+      call helio_lindrift_tp(ntp, symba_tpa%helio%swiftest, dth, pte)
+   end if
 
-     CALL helio_kickvb(npl, symba_plA%helio, dth)
-     IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
-     irec = -1
+   return
 
-     CALL symba_helio_drift(irec, npl, symba_plA, dt)
-     IF (ntp > 0) CALL symba_helio_drift_tp(irec, ntp, symba_tpA, symba_plA%helio%swiftest%mass(1), dt)
-     irec = 0
-
-     CALL symba_step_recur(lclose, t, irec, npl, nplm, ntp, symba_plA, symba_tpA, dt, eoffset, nplplenc, npltpenc,&
-          plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type)
-     IF (ntp > 0) THEN
-          DO i = 2, npl
-               xend(:, i) = symba_plA%helio%swiftest%xh(:,i)
-          END DO
-     END IF
-     CALL symba_getacch_eucl(lextra_force, t+dt, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
-          num_plpl_comparisons, k_plpl)
-     IF (ntp > 0) CALL symba_getacch_tp_eucl(lextra_force, t+dt, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, xend, &
-          j2rp2,j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
-     CALL helio_kickvb(npl, symba_plA%helio, dth)
-     IF (ntp > 0) CALL helio_kickvb_tp(ntp, symba_tpA%helio, dth)
-     CALL coord_vb2vh(npl, symba_plA%helio%swiftest)
-     CALL helio_lindrift(npl, symba_plA%helio%swiftest, dth, pte)
-     IF (ntp > 0) THEN
-          CALL coord_vb2vh_tp(ntp, symba_tpA%helio%swiftest, -pte)
-          CALL helio_lindrift_tp(ntp, symba_tpA%helio%swiftest, dth, pte)
-     END IF
-
-     RETURN
-
-END SUBROUTINE symba_step_interp_eucl
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_step_interp_eucl
+end submodule s_symba_step_interp_eucl

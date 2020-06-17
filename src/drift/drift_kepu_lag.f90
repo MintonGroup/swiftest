@@ -1,100 +1,45 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : drift_kepu_lag
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : drift
-!  Language    : Fortran 90/95
-!
-!  Description : Solve Kepler's equation in universal variables using Laguerre's method
-!
-!  Input
-!    Arguments : s     : universal variable
-!                dt    : time step
-!                r0    : distance between two bodies
-!                mu    : G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-!                alpha : twice the binding energy
-!                u     : dot product of position and velocity vectors
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : s     : universal variable
-!                fp    : first derivative of Kepler's equation in universal variables with respect to s (see Danby, p. 175)
-!                c1    : Stumpff function c1 times s
-!                c2    : Stumpff function c2 times s**2
-!                c3    : Stumpff function c3 times s**3
-!                iflag : error status flag for convergence (0 = CONVERGED, nonzero = NOT CONVERGED)
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine drift_kepu_lag.f
-!
-!                Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 178 - 180.
-!
-!**********************************************************************************************************************************
-PURE SUBROUTINE drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+submodule (swiftest_data_structures) s_drift_kepu_lag
+contains
+   module procedure drift_kepu_lag
+   !! author: David A. Minton
+   !!
+   !! Solve Kepler's equation in universal variables using Laguerre's method
+   !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 178 - 180.
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: drift_kepu_lag.f90
+   !! Adapted from Hal Levison's Swift routine drift_kepu_lag.f
+   use swiftest
+   implicit none
+   integer(i4b) :: nc, ncmax
+   real(DP)   :: ln, x, fpp, ds, c0, f, fdt
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => drift_kepu_lag
-     IMPLICIT NONE
+! executable code
+   if (alpha < 0.0_DP) then
+      ncmax = nlag2
+   else
+      ncmax = nlag1
+   end if
+   ln = 5.0_DP
+   do nc = 0, ncmax
+      x = s * s * alpha
+      call drift_kepu_stumpff(x, c0, c1, c2, c3)
+      c1 = c1 * s
+      c2 = c2 * s * s
+      c3 = c3 * s * s * s
+      f = r0 * c1 + u * c2 + mu * c3 - dt
+      fp = r0 * c0 + u * c1 + mu * c2
+      fpp = (-r0 * alpha + mu) * c1 + u * c0
+      ds = -ln * f/(fp + sign(1.0_DP, fp) * sqrt(abs((ln - 1.0_DP) * (ln - 1.0_DP) * fp * fp - (ln - 1.0_DP) * ln * f * fpp)))
+      s = s + ds
+      fdt = f / dt
+      if (fdt * fdt < danbyb * danbyb) then
+         iflag = 0
+         return
+      end if
+   end do
+   iflag = 2
 
-! Arguments
-     INTEGER(I4B), INTENT(OUT) :: iflag
-     REAL(DP), INTENT(IN)      :: dt, r0, mu, alpha, u
-     REAL(DP), INTENT(INOUT)   :: s
-     REAL(DP), INTENT(OUT)     :: fp, c1, c2, c3
+   return
 
-! Internals
-     INTEGER(I4B) :: nc, ncmax
-     REAL(DP)     :: ln, x, fpp, ds, c0, f, fdt
-
-! Executable code
-     IF (alpha < 0.0_DP) THEN
-          ncmax = NLAG2
-     ELSE
-          ncmax = NLAG1
-     END IF
-     ln = 5.0_DP
-     DO nc = 0, ncmax
-          x = s*s*alpha
-          CALL drift_kepu_stumpff(x, c0, c1, c2, c3)
-          c1 = c1*s
-          c2 = c2*s*s
-          c3 = c3*s*s*s
-          f = r0*c1 + u*c2 + mu*c3 - dt
-          fp = r0*c0 + u*c1 + mu*c2
-          fpp = (-r0*alpha + mu)*c1 + u*c0
-          ds = -ln*f/(fp + SIGN(1.0_DP, fp)*SQRT(ABS((ln - 1.0_DP)*(ln - 1.0_DP)*fp*fp - (ln - 1.0_DP)*ln*f*fpp)))
-          s = s + ds
-          fdt = f/dt
-          IF (fdt*fdt < DANBYB*DANBYB) THEN
-               iflag = 0
-               RETURN
-          END IF
-     END DO
-     iflag = 2
-
-     RETURN
-
-END SUBROUTINE drift_kepu_lag
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure drift_kepu_lag
+end submodule s_drift_kepu_lag

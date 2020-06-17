@@ -1,13 +1,12 @@
 submodule (util) s_util_dist_index_plpl
 contains
    module procedure util_dist_index_plpl
-   !! author: Jacob Elliott and David A. Minton
+   !! author: Jacob R. Elliott
    !!
    !! Turns i,j indices into k index for use in the Euclidean distance matrix
    use swiftest
    integer(I4B)          :: i,j,counter
 
-! executable code
    num_comparisons = ((npl - 1) * (npl - 2) / 2) - ( (npl-nplm-1) * ((npl-nplm-1)+1)/2 )! number of entries in a strict lower triangle, nplm x npl, minus first column
    allocate(k_plpl(2,num_comparisons))
    ! this is a 'fancier' code, but so far i think it runs slower
@@ -34,8 +33,8 @@ contains
          k_plpl(1,counter) = i
          k_plpl(2,counter) = j
          counter = counter + 1
-      enddo
-   enddo
+      end do
+   end do
   !$omp end parallel do
 
    return

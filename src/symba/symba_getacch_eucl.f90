@@ -1,154 +1,96 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_getacch
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Compute heliocentric accelerations of massive bodies
-!
-!  Input
-!    Arguments : lextra_force : logical flag indicating whether to include user-supplied accelerations
-!                t            : time
-!                npl          : number of massive bodies
-!                nplm         : number of massive bodies with mass > mtiny
-!                nplmax       : maximum allowed number of massive bodies
-!                symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
-!                j2rp2        : J2 * R**2 for the Sun
-!                j4rp4        : J4 * R**4 for the Sun
-!                nplplenc     : number of massive body-massive body encounters
-!                plplenc_list : array of massive body-test particle encounter structures
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : symba_pl1P   : pointer to head of SyMBA massive body structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_pl1P, j2rp2, j4rp4, nplplenc, plplenc_list)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine symba5_getacch.f
-!
-!                Accelerations in an encounter are not included here
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, plplenc_list, &
-     num_plpl_comparisons, k_plpl)
-
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_getacch_eucl
-     IMPLICIT NONE
-
-! Arguments
-     LOGICAL(LGT), INTENT(IN)                      :: lextra_force
-     INTEGER(I4B), INTENT(IN)                      :: npl, nplm, nplmax, nplplenc, num_plpl_comparisons
-     REAL(DP), INTENT(IN)                          :: t, j2rp2, j4rp4
-     TYPE(symba_pl), INTENT(INOUT)                 :: symba_plA
-     TYPE(symba_plplenc), INTENT(INOUT)            :: plplenc_list
-     INTEGER(I4B), DIMENSION(2,num_plpl_comparisons), INTENT(IN) :: k_plpl
+submodule (symba) s_symba_getacch_eucl
+contains
+   module procedure symba_getacch_eucl
+   !! author: Jacob R. Elliott
+   !!
+   !! Same as symba_getacch but now uses the single-loop blocking to evaluate the Euclidean distance matrix
+   !!      Accelerations in an encounter are not included here
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_getacch.f90
+   !! Adapted from Hal Levison's Swift routine symba5_getacch.f
+use swiftest
+implicit none
+   logical(lgt), save                 :: lmalloc = .true.
+   integer(I4B)                     :: i, j, index_i, index_j, k, counter
+   real(DP)                       :: rji2, irij3, faci, facj, r2, fac
+   real(DP), dimension(ndim)            :: dx
+   real(DP), dimension(ndim, npl)         :: ah
+   real(DP), dimension(:), allocatable, save    :: irh
+   real(DP), dimension(:, :), allocatable, save :: xh, aobl
+   ! real(DP), allocatable, dimension(:,:) :: dist_plpl_array
 
 
-! Internals
-     LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i, j, index_i, index_j, k, counter
-     REAL(DP)                                     :: rji2, irij3, faci, facj, r2, fac
-     REAL(DP), DIMENSION(NDIM)                    :: dx
-     REAL(DP), DIMENSION(NDIM, npl)               :: ah
-     REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
-     ! REAL(DP), ALLOCATABLE, DIMENSION(:,:) :: dist_plpl_array
-
-
-!Executable code
+!executable code
  
-     symba_plA%helio%ah(:,2:npl) = 0.0_DP
-     ah(:,2:npl) = 0.0_DP
-     
-     ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) ! does not care about mtiny
+   symba_pla%helio%ah(:,2:npl) = 0.0_DP
+   ah(:,2:npl) = 0.0_DP
+   
+   ! call util_dist_eucl_plpl(npl,symba_pla%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) ! does not care about mtiny
 
-! There is floating point arithmetic round off error in this loop
-! For now, we will keep it in the serial operation, so we can easily compare
+! there is floating point arithmetic round off error in this loop
+! for now, we will keep it in the serial operation, so we can easily compare
 ! it to the older swifter versions
 
 !$omp parallel do default(none) schedule(static) &
 !$omp num_threads(min(omp_get_max_threads(),ceiling(num_plpl_comparisons/10000.))) &
-!$omp shared (num_plpl_comparisons, k_plpl, symba_plA) &
+!$omp shared (num_plpl_comparisons, k_plpl, symba_pla) &
 !$omp private (i, j, k, dx, rji2, irij3, faci, facj) &
 !$omp reduction(+:ah)
-     DO k = 1, num_plpl_comparisons
-          i = k_plpl(1,k)
-          j = k_plpl(2,k)
-          
-          IF ((.NOT. symba_plA%lmerged(i) .OR. (.NOT. symba_plA%lmerged(j)) .OR. &
-               (symba_plA%index_parent(i) /= symba_plA%index_parent(j)))) THEN
-               
-               dx(:) = symba_plA%helio%swiftest%xh(:,k_plpl(2,k)) - symba_plA%helio%swiftest%xh(:,k_plpl(1,k))
-               rji2 = DOT_PRODUCT(dx(:), dx(:))
-               irij3 = 1.0_DP/(rji2*SQRT(rji2))
-               faci = symba_plA%helio%swiftest%mass(i)*irij3
-               facj = symba_plA%helio%swiftest%mass(j)*irij3
-               ah(:,i) = ah(:,i) + facj*dx(:)
-               ah(:,j) = ah(:,j) - faci*dx(:)
+   do k = 1, num_plpl_comparisons
+      i = k_plpl(1,k)
+      j = k_plpl(2,k)
+      
+      if ((.not. symba_pla%lmerged(i) .or. (.not. symba_pla%lmerged(j)) .or. &
+         (symba_pla%index_parent(i) /= symba_pla%index_parent(j)))) then
+         
+         dx(:) = symba_pla%helio%swiftest%xh(:,k_plpl(2,k)) - symba_pla%helio%swiftest%xh(:,k_plpl(1,k))
+         rji2 = dot_product(dx(:), dx(:))
+         irij3 = 1.0_DP/(rji2*sqrt(rji2))
+         faci = symba_pla%helio%swiftest%mass(i)*irij3
+         facj = symba_pla%helio%swiftest%mass(j)*irij3
+         ah(:,i) = ah(:,i) + facj*dx(:)
+         ah(:,j) = ah(:,j) - faci*dx(:)
 
-          ENDIF
-     END DO
+      endif
+   end do
 !$omp end parallel do
 
-     symba_plA%helio%ah(:,2:npl) = ah(:,2:npl)
+   symba_pla%helio%ah(:,2:npl) = ah(:,2:npl)
 
-     DO i = 1, nplplenc
-          index_i = plplenc_list%index1(i)
-          index_j = plplenc_list%index2(i)
-          IF ((.NOT. symba_plA%lmerged(index_i)) .OR. (.NOT. symba_plA%lmerged(index_j))  &
-                .OR. (symba_plA%index_parent(index_i) /= symba_plA%index_parent(index_j))) THEN !need to update parent/children
-               dx(:) = symba_plA%helio%swiftest%xh(:,index_j) - symba_plA%helio%swiftest%xh(:,index_i)
-               rji2 = DOT_PRODUCT(dx(:), dx(:))
-               irij3 = 1.0_DP/(rji2*SQRT(rji2))
-               faci = symba_plA%helio%swiftest%mass(index_i)*irij3
-               facj = symba_plA%helio%swiftest%mass(index_j)*irij3
-               symba_plA%helio%ah(:,index_i) = symba_plA%helio%ah(:,index_i) - facj*dx(:)
-               symba_plA%helio%ah(:,index_j) = symba_plA%helio%ah(:,index_j) + faci*dx(:)
-          END IF
-     END DO
+   do i = 1, nplplenc
+      index_i = plplenc_list%index1(i)
+      index_j = plplenc_list%index2(i)
+      if ((.not. symba_pla%lmerged(index_i)) .or. (.not. symba_pla%lmerged(index_j))  &
+          .or. (symba_pla%index_parent(index_i) /= symba_pla%index_parent(index_j))) then !need to update parent/children
+         dx(:) = symba_pla%helio%swiftest%xh(:,index_j) - symba_pla%helio%swiftest%xh(:,index_i)
+         rji2 = dot_product(dx(:), dx(:))
+         irij3 = 1.0_DP/(rji2*sqrt(rji2))
+         faci = symba_pla%helio%swiftest%mass(index_i)*irij3
+         facj = symba_pla%helio%swiftest%mass(index_j)*irij3
+         symba_pla%helio%ah(:,index_i) = symba_pla%helio%ah(:,index_i) - facj*dx(:)
+         symba_pla%helio%ah(:,index_j) = symba_pla%helio%ah(:,index_j) + faci*dx(:)
+      end if
+   end do
 
-     IF (j2rp2 /= 0.0_DP) THEN
-          IF (lmalloc) THEN
-               ALLOCATE(xh(NDIM, npl), aobl(NDIM, npl), irh(npl))
-               lmalloc = .FALSE.
-          END IF
-          DO i = 2, npl
-               
-               r2 = DOT_PRODUCT(symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%xh(:,i))
-               irh(i) = 1.0_DP/SQRT(r2)
-          END DO
-          CALL obl_acc(symba_plA%helio%swiftest, j2rp2, j4rp4, symba_plA%helio%swiftest%xh(:,:), irh, aobl)
-          DO i = 2, npl
-               symba_plA%helio%ah(:,i) = symba_plA%helio%ah(:,i) + aobl(:, i) - aobl(:, 1)
-          END DO
-     END IF
+   if (j2rp2 /= 0.0_DP) then
+      if (lmalloc) then
+         allocate(xh(ndim, npl), aobl(ndim, npl), irh(npl))
+         lmalloc = .false.
+      end if
+      do i = 2, npl
+         
+         r2 = dot_product(symba_pla%helio%swiftest%xh(:,i), symba_pla%helio%swiftest%xh(:,i))
+         irh(i) = 1.0_DP/sqrt(r2)
+      end do
+      call obl_acc(symba_pla%helio%swiftest, j2rp2, j4rp4, symba_pla%helio%swiftest%xh(:,:), irh, aobl)
+      do i = 2, npl
+         symba_pla%helio%ah(:,i) = symba_pla%helio%ah(:,i) + aobl(:, i) - aobl(:, 1)
+      end do
+   end if
 
-     IF (lextra_force) CALL symba_user_getacch(t, npl, symba_plA)
+   if (lextra_force) call symba_user_getacch(t, npl, symba_pla)
 
-     RETURN
+   return
 
-END SUBROUTINE symba_getacch_eucl
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_getacch_eucl
+end submodule s_symba_getacch_eucl

@@ -1,87 +1,35 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : obl_pot
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : obl
-!  Language    : Fortran 90/95
-!
-!  Description : Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-!
-!  Input
-!    Arguments : npl          : number of massive bodies
-!                swifter_pl1P : pointer to head of Swifter massive body structure linked-list
-!                j2rp2        : J2 * R**2 for the Sun
-!                j4rp4        : J4 * R**4 for the Sun
-!                xh           : heliocentric positions of the massive bodies
-!                irh          : inverse heliocentric radii of the massive bodies
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : oblpot       : total gravitational potential due to J2 and J4 oblateness terms for the central body
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL obl_pot(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, oblpot)
-!
-!  Notes       : Adapted from Martin Duncan's Swift routine obl_pot.f
-!
-!                Returned value does not include monopole term or terms higher than J4
-!
-!                Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
-!
-!**********************************************************************************************************************************
-SUBROUTINE obl_pot(swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
+submodule (util) s_obl_pot
+contains
+   module procedure obl_pot
+   !! author: David A. Minton
+   !!
+   !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+   !!
+   !!      Returned value does not include monopole term or terms higher than J4
+   !!      Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: obl_pot.f90
+   !! Adapted from Hal Levison's Swift routine obl_pot.f
+   use swiftest
+   implicit none
+   integer(I4B)          :: i, npl
+   real(DP)            :: rinv2, t0, t1, t2, t3, p2, p4, mu
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => obl_pot
-     IMPLICIT NONE
+   oblpot = 0.0_DP
+   mu = swiftest_pla%mass(1)
+   npl = swiftest_pla%nbody
+   do i = 2, npl
+      rinv2 = irh(i)**2
+      t0 = mu * swiftest_pla%mass(i) * rinv2 * irh(i)
+      t1 = j2rp2
+      t2 = xh(3, i) * xh(3, i) * rinv2
+      t3 = j4rp4 * rinv2
+      p2 = 0.5_DP * (3 * t2 - 1.0_DP)
+      p4 = 0.125_DP * ((35 * t2 - 30.0_DP) * t2 + 3.0_DP)
+      oblpot = oblpot + t0 * (t1 * p2 + t3 * p4)
+   end do
 
-! Arguments
-     class(swiftest_pl), INTENT(IN)          :: swiftest_plA
-     REAL(DP), INTENT(IN)                       :: j2rp2, j4rp4
-     REAL(DP), INTENT(OUT)                      :: oblpot
-     REAL(DP), DIMENSION(:), INTENT(IN)         :: irh
-     REAL(DP), DIMENSION(:, :), INTENT(IN)      :: xh
+   return
 
-! Internals
-     INTEGER(I4B)              :: i, npl
-     REAL(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4, mu
-
-! Executable code
-     oblpot = 0.0_DP
-     mu = swiftest_plA%mass(1)
-     npl = swiftest_plA%nbody
-     DO i = 2, npl
-          rinv2 = irh(i)**2
-          t0 = mu*swiftest_plA%mass(i)*rinv2*irh(i)
-          t1 = j2rp2
-          t2 = xh(3, i)*xh(3, i)*rinv2
-          t3 = j4rp4*rinv2
-          p2 = 0.5_DP*(3.0_DP*t2 - 1.0_DP)
-          p4 = 0.125_DP*((35.0_DP*t2 - 30.0_DP)*t2 + 3.0_DP)
-          oblpot = oblpot + t0*(t1*p2 + t3*p4)
-     END DO
-
-     RETURN
-
-END SUBROUTINE obl_pot
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure obl_pot
+end submodule s_obl_pot

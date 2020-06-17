@@ -1,84 +1,38 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_helio_drift
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Loop through massive bodies and call Danby drift routine
-!
-!  Input
-!    Arguments : irec       : input recursion level
-!                npl        : number of massive bodies
-!                symba_pl1P : pointer to head of SyMBA massive body structure linked-list
-!                dt         : time step
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : symba_pl1P : pointer to head of SyMBA massive body structure linked-list
-!    Terminal  : error message
-!    File      : none
-!
-!  Invocation  : CALL symba_helio_drift(irec, npl, symba_pl1P, dt)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine symba5_helio_drift.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_helio_drift(irec, npl, symba_plA, dt)
+submodule (symba) s_symba_helio_drift
+contains
+   module procedure symba_helio_drift
+   !! author: David A. Minton
+   !!
+   !! Loop through planets and call Danby drift routine
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_helio_drift.f90
+   !! Adapted from Hal Levison's Swift routine symba5_helio_drift.f
+use swiftest
+implicit none
+   integer(I4B)          :: i, iflag
+   real(DP)            :: mu
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_helio_drift
-     IMPLICIT NONE
-
-! Arguments
-     INTEGER(I4B), INTENT(IN)       :: irec, npl
-     REAL(DP), INTENT(IN)           :: dt
-     TYPE(symba_pl), INTENT(INOUT)  :: symba_plA
-
-! Internals
-     INTEGER(I4B)              :: i, iflag
-     REAL(DP)                  :: mu
-
-! Executable code
-     mu = symba_plA%helio%swiftest%mass(1)
+! executable code
+   mu = symba_pla%helio%swiftest%mass(1)
 !$omp parallel do default(none) &
-!$omp shared (symba_plA, npl, mu, dt, irec) &
+!$omp shared (symba_pla, npl, mu, dt, irec) &
 !$omp private (i, iflag)
-     DO i = 2, npl
-          IF ((symba_plA%levelg(i) == irec) .AND. (symba_plA%helio%swiftest%status(i) == ACTIVE)) THEN
-               CALL drift_one(mu, symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%vb(:,i), dt, iflag)
-               IF (iflag /= 0) THEN
-                    WRITE(*, *) " massive body ", symba_plA%helio%swiftest%name(i), " is lost!!!!!!!!!!"
-                    WRITE(*, *) mu, dt
-                    WRITE(*, *) symba_plA%helio%swiftest%xh(:,i)
-                    WRITE(*, *) symba_plA%helio%swiftest%vb(:,i)
-                    WRITE(*, *) " STOPPING "
-                    CALL util_exit(FAILURE)
-               END IF
-          END IF
-     END DO
+   do i = 2, npl
+      if ((symba_pla%levelg(i) == irec) .and. (symba_pla%helio%swiftest%status(i) == active)) then
+         call drift_one(mu, symba_pla%helio%swiftest%xh(:,i), symba_pla%helio%swiftest%vb(:,i), dt, iflag)
+         if (iflag /= 0) then
+            write(*, *) " massive body ", symba_pla%helio%swiftest%name(i), " is lost!!!!!!!!!!"
+            write(*, *) mu, dt
+            write(*, *) symba_pla%helio%swiftest%xh(:,i)
+            write(*, *) symba_pla%helio%swiftest%vb(:,i)
+            write(*, *) " stopping "
+            call util_exit(failure)
+         end if
+      end if
+   end do
 !$omp end parallel do
 
-     RETURN
+   return
 
-END SUBROUTINE symba_helio_drift
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_helio_drift
+end submodule s_symba_helio_drift

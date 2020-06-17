@@ -1,102 +1,50 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_helio_getacch
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Compute heliocentric accelerations of massive bodies
-!
-!  Input
-!    Arguments : lflag        : logical flag indicating whether to recompute direct cross term heliocentric accelerations
-!                lextra_force : logical flag indicating whether to include user-supplied accelerations
-!                t            : time
-!                npl          : number of massive bodies
-!                nplm         : number of massive bodies with mass > mtiny
-!                nplmax       : maximum allowed number of massive bodies
-!                helio_pl1P   : pointer to head of helio massive body structure linked-list
-!                j2rp2        : J2 * R**2 for the Sun
-!                j4rp4        : J4 * R**4 for the Sun
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : helio_pl1P   : pointer to head of helio massive body structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_pl1P, j2rp2, j4rp4)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine symba5_helio_getacch.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4)
-
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_helio_getacch
-     IMPLICIT NONE
-
-! Arguments
-     LOGICAL(LGT), INTENT(IN)                     :: lflag, lextra_force
-     INTEGER(I4B), INTENT(IN)                     :: npl, nplm, nplmax
-     REAL(DP), INTENT(IN)                         :: t, j2rp2, j4rp4
-     TYPE(helio_pl), INTENT(INOUT)                :: helio_plA
-
-! Internals
-     LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i
-     REAL(DP)                                     :: r2
-     REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
+submodule (symba) s_symba_helio_getacch
+contains
+   module procedure symba_helio_getacch
+   !! author: David A. Minton
+   !!
+   !! Compute heliocentric accelerations of planets
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_helio_getacch.f90
+   !! Adapted from Hal Levison's Swift routine symba5_helio_getacch.f
+use swiftest
+implicit none
+   logical(lgt), save                 :: lmalloc = .true.
+   integer(I4B)                     :: i
+   real(DP)                       :: r2
+   real(DP), dimension(:), allocatable, save    :: irh
+   real(DP), dimension(:, :), allocatable, save :: xh, aobl
 
 
-! Executable code
-     IF (lflag) THEN
-          DO i = 2, npl
-               helio_plA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-          END DO
-          CALL symba_helio_getacch_int(npl, nplm, helio_plA) 
-     END IF
-     IF (j2rp2 /= 0.0_DP) THEN
-          IF (lmalloc) THEN
-               ALLOCATE(xh(NDIM, nplmax), aobl(NDIM, nplmax), irh(nplmax))
-               lmalloc = .FALSE.
-          END IF
-          DO i = 2, npl
-               xh(:, i) = helio_plA%xh(:,i)
-               r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
-               irh(i) = 1.0_DP/SQRT(r2)
-          END DO
-          CALL obl_acc(helio_plA, j2rp2, j4rp4, xh, irh, aobl) 
-          DO i = 2, npl
-               helio_plA%ah(:,i) = helio_plA%ahi(:,i) + aobl(:, i) - aobl(:, 1)
-          END DO
-     ELSE
-          DO i = 2, npl
-               helio_plA%ah(:,i) = helio_plA%ahi(:,i)
-          END DO
-     END IF
-     IF (lextra_force) CALL helio_user_getacch(t, npl, helio_plA) 
+! executable code
+   if (lflag) then
+      do i = 2, npl
+         helio_pla%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      end do
+      call symba_helio_getacch_int(npl, nplm, helio_pla) 
+   end if
+   if (j2rp2 /= 0.0_DP) then
+      if (lmalloc) then
+         allocate(xh(ndim, nplmax), aobl(ndim, nplmax), irh(nplmax))
+         lmalloc = .false.
+      end if
+      do i = 2, npl
+         xh(:, i) = helio_pla%xh(:,i)
+         r2 = dot_product(xh(:, i), xh(:, i))
+         irh(i) = 1.0_DP/sqrt(r2)
+      end do
+      call obl_acc(helio_pla, j2rp2, j4rp4, xh, irh, aobl) 
+      do i = 2, npl
+         helio_pla%ah(:,i) = helio_pla%ahi(:,i) + aobl(:, i) - aobl(:, 1)
+      end do
+   else
+      do i = 2, npl
+         helio_pla%ah(:,i) = helio_pla%ahi(:,i)
+      end do
+   end if
+   if (lextra_force) call helio_user_getacch(t, npl, helio_pla) 
 
-     RETURN
+   return
 
-END SUBROUTINE symba_helio_getacch
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_helio_getacch
+end submodule s_symba_helio_getacch

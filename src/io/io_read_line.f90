@@ -1,113 +1,53 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : io_read_line
-!  Unit Type   : function
-!  Project     : Swifter
-!  Package     : io
-!  Language    : Fortran 90/95
-!
-!  Description : Read a line (record) from input binary file
-!
-!  Input
-!    Arguments : iu       : unit number associated with input binary file
-!                out_type : format of input binary file
-!    Terminal  : none
-!    File      : id                  : massive body or test particle identifier
-!                smass (or MASS)     : optional mass (omitted for massless test particle)
-!                sradius (or RADIUS) : optional radius (omitted for massless test particle)
-!                svec (or dvec)      : 6-vector of orbital elements or position and velocity components
-!
-!  Output
-!    Arguments : id       : massive body or test particle identifier
-!                d1       : first quantity  (semimajor axis (pericentric distance for a parabola) or heliocentric x )
-!                d2       : second quantity (eccentricity                                         or heliocentric y )
-!                d3       : third quantity  (inclination                                          or heliocentric z )
-!                d4       : fourth quantity (longitude of the ascending node                      or heliocentric vx)
-!                d5       : fifth quantity  (argument of pericenter                               or heliocentric vy)
-!                d6       : sixth quantity  (mean anomaly                                         or heliocentric vz)
-!                MASS     : optional mass (omitted for massless test particle)
-!                RADIUS   : optional radius (omitted for massless test particle)
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : istat = io_read_line(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
-!
-!  Notes       : Adapted from Hal Levison's Swift function io_read_line
-!
-!                Function returns read error status (0 = OK, nonzero = ERROR)
-!
-!**********************************************************************************************************************************
-FUNCTION io_read_line(iu, name, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
+submodule (swiftest_data_structures) s_io_read_line
+contains
+   module procedure io_read_line
+   !! author: David A. Minton
+   !!
+   !! Read a line (record) from input binary files
+   !!     Function returns read error status (0 = OK, nonzero = ERROR)
+   !! Adapted from David E. Kaufmann's Swifter modules: io_read_line.f90
+   !! Adapted from Hal Levison's Swift routine io_read_line.f
+use swiftest
+implicit none
+   logical(lgt)       :: lmass, lradius
+   integer(i4b)       :: ierr
+   real(sp)         :: smass, sradius
+   real(sp), dimension(6) :: svec
+   real(DP), dimension(6) :: dvec
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => io_read_line
-     IMPLICIT NONE
+! executable code
+   lmass = present(mass)
+   if (lmass) then
+      lradius = present(radius)
+      if (.not. lradius) then
+         write(*, *) "swifter error:"
+         write(*, *) "   function io_read_line called with optional mass but without optional radius"
+         call util_exit(failure)
+      end if
+   end if
+   select case (out_type)
+      case (real4_type, swifter_real4_type)
+         if (lmass) then
+            read(iu, iostat = ierr) name, smass, sradius, svec
+         else
+            read(iu, iostat = ierr) name, svec
+         end if
+         io_read_line = ierr
+         if (ierr /= 0) return
+         if (lmass) mass = smass
+         d1 = svec(1); d2 = svec(2); d3 = svec(3); d4 = svec(4); d5 = svec(5); d6 = svec(6)
+      case (real8_type, swifter_real8_type)
+         if (lmass) then
+            read(iu, iostat = ierr) name, mass, radius, dvec
+         else
+            read(iu, iostat = ierr) name, dvec
+         end if
+         io_read_line = ierr
+         if (ierr /= 0) return
+         d1 = dvec(1); d2 = dvec(2); d3 = dvec(3); d4 = dvec(4); d5 = dvec(5); d6 = dvec(6)
+   end select
 
-! Arguments
-     INTEGER(I4B)                    :: io_read_line
-     INTEGER(I4B), INTENT(IN)        :: iu
-     INTEGER(I4B), INTENT(OUT)       :: name
-     REAL(DP), INTENT(OUT)           :: d1, d2, d3, d4, d5, d6
-     REAL(DP), OPTIONAL, INTENT(OUT) :: MASS, RADIUS
-     CHARACTER(*), INTENT(IN)        :: out_type
+   return
 
-! Internals
-     LOGICAL(LGT)           :: lmass, lradius
-     INTEGER(I4B)           :: ierr
-     REAL(SP)               :: smass, sradius
-     REAL(SP), DIMENSION(6) :: svec
-     REAL(DP), DIMENSION(6) :: dvec
-
-! Executable code
-     lmass = PRESENT(MASS)
-     IF (lmass) THEN
-          lradius = PRESENT(RADIUS)
-          IF (.NOT. lradius) THEN
-               WRITE(*, *) "SWIFTER Error:"
-               WRITE(*, *) "   Subroutine io_read_line called with optional MASS but without optional RADIUS"
-               CALL util_exit(FAILURE)
-          END IF
-     END IF
-     SELECT CASE (out_type)
-          CASE (REAL4_TYPE, SWIFTER_REAL4_TYPE)
-               IF (lmass) THEN
-                    READ(iu, IOSTAT = ierr) name, smass, sradius, svec
-               ELSE
-                    READ(iu, IOSTAT = ierr) name, svec
-               END IF
-               io_read_line = ierr
-               IF (ierr /= 0) RETURN
-               IF (lmass) MASS = smass
-               d1 = svec(1); d2 = svec(2); d3 = svec(3); d4 = svec(4); d5 = svec(5); d6 = svec(6)
-          CASE (REAL8_TYPE, SWIFTER_REAL8_TYPE)
-               IF (lmass) THEN
-                    READ(iu, IOSTAT = ierr) name, MASS, RADIUS, dvec
-               ELSE
-                    READ(iu, IOSTAT = ierr) name, dvec
-               END IF
-               io_read_line = ierr
-               IF (ierr /= 0) RETURN
-               d1 = dvec(1); d2 = dvec(2); d3 = dvec(3); d4 = dvec(4); d5 = dvec(5); d6 = dvec(6)
-     END SELECT
-
-     RETURN
-
-END FUNCTION io_read_line
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure io_read_line
+end submodule s_io_read_line

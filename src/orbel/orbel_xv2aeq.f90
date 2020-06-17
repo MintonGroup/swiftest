@@ -1,106 +1,59 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : orbel_xv2aeq
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : orbel
-!  Language    : Fortran 90/95
-!
-!  Description : Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
-!
-!  Input
-!    Arguments : x  : relative position
-!                v  : relative velocity
-!                mu : G * (m1 + m2)
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : a  : semimajor axis (pericentric distance for a parabolic orbit)
-!                e  : eccentricity
-!                q  : pericentric distance
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL orbel_xv2aeq(x, v, mu, a, e, q)
-!
-!  Notes       : Adapted from Luke Dones' Swift routine orbel_xv2aeq.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE orbel_xv2aeq(x, v, mu, a, e, q)
+submodule (swiftest_data_structures) s_orbel_xv2aeq
+contains
+   module procedure orbel_xv2aeq
+   !! author: David A. Minton
+   !!
+   !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: orbel_xv2aeq.f90
+   !! Adapted from Luke Dones' Swift routine orbel_xv2aeq.f
+use swiftest
+implicit none
+   integer(I4B) :: iorbit_type
+   real(DP)   :: r, v2, hx, hy, hz, h2, energy, fac
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => orbel_xv2aeq
-     IMPLICIT NONE
+! executable code
+   a = 0.0_DP
+   e = 0.0_DP
+   q = 0.0_DP
+   r = sqrt(dot_product(x(:), x(:)))
+   v2 = dot_product(v(:), v(:))
+   hx = x(2)*v(3) - x(3)*v(2)
+   hy = x(3)*v(1) - x(1)*v(3)
+   hz = x(1)*v(2) - x(2)*v(1)
+   h2 = hx*hx + hy*hy + hz*hz
+   if (h2 == 0.0_DP) return
+   energy = 0.5_DP*v2 - mu/r
+   if (abs(energy*r/mu) < sqrt(tiny)) then
+      iorbit_type = parabola
+   else
+      a = -0.5_DP*mu/energy
+      if (a < 0.0_DP) then
+         fac = -h2/(mu*a)
+         if (fac > tiny) then
+            iorbit_type = hyperbola
+         else
+            iorbit_type = parabola
+         end if
+      else
+         iorbit_type = ellipse
+      end if
+   end if
+   select case (iorbit_type)
+      case (ellipse)
+         fac = 1.0_DP - h2/(mu*a)
+         if (fac > tiny) e = sqrt(fac)
+         q = a*(1.0_DP - e)
+      case (parabola)
+         a = 0.5_DP*h2/mu
+         e = 1.0_DP
+         q = a
+      case (hyperbola)
+         e = sqrt(1.0_DP + fac)
+         q = a*(1.0_DP - e)
+   end select
 
-! Arguments
-     REAL(DP), INTENT(IN)                  :: mu
-     REAL(DP), DIMENSION(NDIM), INTENT(IN) :: x, v
-     REAL(DP), INTENT(OUT)                 :: a, e, q
+   return
 
-! Internals
-     INTEGER(I4B) :: iorbit_type
-     REAL(DP)     :: r, v2, hx, hy, hz, h2, energy, fac
-
-! Executable code
-     a = 0.0_DP
-     e = 0.0_DP
-     q = 0.0_DP
-     r = SQRT(DOT_PRODUCT(x(:), x(:)))
-     v2 = DOT_PRODUCT(v(:), v(:))
-     hx = x(2)*v(3) - x(3)*v(2)
-     hy = x(3)*v(1) - x(1)*v(3)
-     hz = x(1)*v(2) - x(2)*v(1)
-     h2 = hx*hx + hy*hy + hz*hz
-     IF (h2 == 0.0_DP) RETURN
-     energy = 0.5_DP*v2 - mu/r
-     IF (ABS(energy*r/mu) < SQRT(TINY)) THEN
-          iorbit_type = PARABOLA
-     ELSE
-          a = -0.5_DP*mu/energy
-          IF (a < 0.0_DP) THEN
-               fac = -h2/(mu*a)
-               IF (fac > TINY) THEN
-                    iorbit_type = HYPERBOLA
-               ELSE
-                    iorbit_type = PARABOLA
-               END IF
-          ELSE
-               iorbit_type = ELLIPSE
-          END IF
-     END IF
-     SELECT CASE (iorbit_type)
-          CASE (ELLIPSE)
-               fac = 1.0_DP - h2/(mu*a)
-               IF (fac > TINY) e = SQRT(fac)
-               q = a*(1.0_DP - e)
-          CASE (PARABOLA)
-               a = 0.5_DP*h2/mu
-               e = 1.0_DP
-               q = a
-          CASE (HYPERBOLA)
-               e = SQRT(1.0_DP + fac)
-               q = a*(1.0_DP - e)
-     END SELECT
-
-     RETURN
-
-END SUBROUTINE orbel_xv2aeq
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure orbel_xv2aeq
+end submodule s_orbel_xv2aeq

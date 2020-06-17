@@ -1,249 +1,156 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_step_eucl
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Step massive bodies and active test particles ahead in democratic heliocentric coordinates, descending the recursive
-!                branch if necessary to handle possible close encounters
-!
-!  Input
-!    Arguments : lfirst         : logical flag indicating whether current invocation is the first
-!                lextra_force   : logical flag indicating whether to include user-supplied accelerations
-!                lclose         : logical flag indicating whether to check for mergers
-!                t              : time
-!                npl            : number of massive bodies
-!                nplmax         : maximum allowed number of massive bodies
-!                ntp            : number of active test particles
-!                ntpmax         : maximum allowed number of test particles
-!                symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
-!                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
-!                j2rp2          : J2 * R**2 for the Sun
-!                j4rp4          : J4 * R**4 for the Sun
-!                dt             : time step
-!                nplplenc       : number of massive body-massive body encounters
-!                npltpenc       : number of massive body-test particle encounters
-!                plplenc_list   : array of massive body-massive body encounter structures
-!                pltpenc_list   : array of massive body-test particle encounter structures
-!                nmergeadd      : number of merged massive bodies to add
-!                nmergesub      : number of merged massive bodies to subtract
-!                mergeadd_list  : array of structures of merged massive bodies to add
-!                mergesub_list  : array of structures of merged massive bodies to subtract
-!                eoffset        : energy offset (net energy lost in mergers)
-!                mtiny          : smallest self-gravitating mass
-!                encounter_file : name of output file for encounters
-!                out_type       : binary format of output file
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : lfirst         : logical flag indicating whether current invocation is the first
-!                symba_pl1P     : pointer to head of SyMBA massive body structure linked-list
-!                symba_tp1P     : pointer to head of active SyMBA test particle structure linked-list
-!                nplplenc       : number of massive body-massive body encounters
-!                npltpenc       : number of massive body-test particle encounters
-!                plplenc_list   : array of massive body-massive body encounter structures
-!                pltpenc_list   : array of massive body-test particle encounter structures
-!                nmergeadd      : number of merged massive bodies to add
-!                nmergesub      : number of merged massive bodies to subtract
-!                mergeadd_list  : array of structures of merged massive bodies to add
-!                mergesub_list  : array of structures of merged massive bodies to subtract
-!                eoffset        : energy offset (net energy lost in mergers)
-!    Terminal  : error message
-!    File      : none
-!
-!  Invocation  : CALL symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_pl1P, symba_tp1P, j2rp2, j4rp4,
-!                                dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,
-!                                mergesub_list, eoffset, mtiny, encounter_file, out_type)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine symba5_step_pl.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4, dt,&
-     nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny,&
-     encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
+submodule (symba) s_symba_step_eucl
+contains
+   module procedure symba_step_eucl
+   !! author: Jacob R. Elliott
+   !!
+   !! Step planets and active test particles ahead in democratic heliocentric coordinates, descending the recursive 
+   !!   branch if necessary to handle possible close encounters. 
+   !! Uses the single-loop blocking to evaluate the Euclidean distance matri
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_step.f90
+   !! Adapted from Hal Levison's Swift routine symba5_step_pl.f
+use swiftest
+implicit none
+   logical(lgt)          :: lencounter, lvdotr
+   integer(I4B)          :: i, j, irec, nplm, k, counter
+   integer(I4B), allocatable :: plpl_encounters_indices(:), pltp_encounters_indices(:)
+   real(DP), dimension(ndim) :: xr, vr
+   
+   integer(I4B), allocatable, dimension(:) :: pltp_encounters, pltp_lvdotr
+   integer(I4B), allocatable, dimension(:) :: plpl_encounters, plpl_lvdotr
+   
+! executable code
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_step_eucl
-     IMPLICIT NONE
+   ! initialize massive bodies
+   symba_pla%nplenc(1:npl) = 0 ! number of massive body encounters this particular massive body has
+   symba_pla%ntpenc(1:npl) = 0 ! number of test particle encounters this particle massive body has
+   symba_pla%levelg(1:npl) = -1 ! 
+   symba_pla%levelm(1:npl) = -1 ! 
+   symba_pla%index_parent(1:npl) = (/ (i, i=1,npl)/)
+   symba_pla%index_child(:,1:npl) = 0
 
-! Arguments
-     LOGICAL(LGT), INTENT(IN)                         :: lextra_force, lclose
-     LOGICAL(LGT), INTENT(INOUT)                      :: lfirst
-     INTEGER(I4B), INTENT(IN)                         :: npl, nplmax, ntp, ntpmax
-     INTEGER(I4B), INTENT(INOUT)                      :: nplplenc, npltpenc, nmergeadd, nmergesub
-     REAL(DP), INTENT(IN)                             :: t, j2rp2, j4rp4, dt, mtiny
-     REAL(DP), INTENT(INOUT)                          :: eoffset
-     CHARACTER(*), INTENT(IN)                         :: encounter_file, out_type
-     TYPE(symba_pl), INTENT(INOUT)                    :: symba_plA
-     TYPE(symba_tp), INTENT(INOUT)                    :: symba_tpA
-     TYPE(symba_plplenc), INTENT(INOUT)               :: plplenc_list
-     TYPE(symba_pltpenc), INTENT(INOUT)               :: pltpenc_list
-     TYPE(symba_merger), INTENT(INOUT)                :: mergeadd_list, mergesub_list
-     INTEGER(I4B), INTENT(IN)                         :: num_plpl_comparisons, num_pltp_comparisons
-     INTEGER(I4B), DIMENSION(2,num_plpl_comparisons), INTENT(IN) :: k_plpl
-     INTEGER(I4B), DIMENSION(2,num_pltp_comparisons), INTENT(IN)  :: k_pltp
+   ! initialize test particles
+   symba_tpa%nplenc(1:ntp) = 0 
+   symba_tpa%levelg(1:ntp) = -1
+   symba_tpa%levelm(1:ntp) = -1
 
-! Internals
-     LOGICAL(LGT)              :: lencounter, lvdotr
-     INTEGER(I4B)              :: i, j, irec, nplm, k, counter
-     INTEGER(I4B), ALLOCATABLE :: plpl_encounters_indices(:), pltp_encounters_indices(:)
-     REAL(DP), DIMENSION(NDIM) :: xr, vr
-     
-     INTEGER(I4B), ALLOCATABLE, DIMENSION(:) :: pltp_encounters, pltp_lvdotr
-     INTEGER(I4B), ALLOCATABLE, DIMENSION(:) :: plpl_encounters, plpl_lvdotr
-     
-! Executable code
+   nplplenc = 0 ! number of encounters in the entire run 
+   npltpenc = 0
 
-     ! initialize massive bodies
-     symba_plA%nplenc(1:npl) = 0 ! number of massive body encounters this particular massive body has
-     symba_plA%ntpenc(1:npl) = 0 ! number of test particle encounters this particle massive body has
-     symba_plA%levelg(1:npl) = -1 ! 
-     symba_plA%levelm(1:npl) = -1 ! 
-     symba_plA%index_parent(1:npl) = (/ (i, i=1,npl)/)
-     symba_plA%index_child(:,1:npl) = 0
+! all this needs to be changed to the tree search function for encounters
+   allocate(plpl_encounters(num_plpl_comparisons))
+   allocate(plpl_lvdotr(num_plpl_comparisons))
+   plpl_encounters = 0
+   plpl_lvdotr = 0
 
-     ! initialize test particles
-     symba_tpA%nplenc(1:ntp) = 0 
-     symba_tpA%levelg(1:ntp) = -1
-     symba_tpA%levelm(1:ntp) = -1
+   ! call util_dist_eucl_plpl(npl,symba_pla%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) 
+   ! call util_dist_eucl_plpl(npl,symba_pla%helio%swiftest%vh, num_plpl_comparisons, k_plpl, vel_plpl_array) 
+   call symba_chk_eucl(num_plpl_comparisons, k_plpl, symba_pla, dt, plpl_encounters, plpl_lvdotr, nplplenc)
 
-     nplplenc = 0 ! number of encounters in the entire run 
-     npltpenc = 0
+   ! here i'll order the encounters
+   ! nplplenc = count(plpl_encounters > 0)
+   ! print *,'step nplplenc: ',nplplenc
+   if(nplplenc>0)then
 
-! ALL THIS NEEDS TO BE CHANGED TO THE TREE SEARCH FUNCTION FOR ENCOUNTERS
-     allocate(plpl_encounters(num_plpl_comparisons))
-     allocate(plpl_lvdotr(num_plpl_comparisons))
-     plpl_encounters = 0
-     plpl_lvdotr = 0
+      allocate(plpl_encounters_indices(nplplenc))
 
-     ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%xh, num_plpl_comparisons, k_plpl, dist_plpl_array) 
-     ! CALL util_dist_eucl_plpl(npl,symba_plA%helio%swiftest%vh, num_plpl_comparisons, k_plpl, vel_plpl_array) 
-     CALL symba_chk_eucl(num_plpl_comparisons, k_plpl, symba_plA, dt, plpl_encounters, plpl_lvdotr, nplplenc)
+      ! plpl_encounters_indices = pack(plpl_encounters,plpl_encounters > 0)
+      ! so it turns out this is significantly faster than the pack command
+      counter = 1
+      do k = 1,num_plpl_comparisons
+         if(plpl_encounters(k).gt.0)then
+            plpl_encounters_indices(counter) = k
+            counter = counter + 1
+         endif
+      enddo
 
-     ! here i'll order the encounters
-     ! nplplenc = count(plpl_encounters > 0)
-     ! print *,'step nplplenc: ',nplplenc
-     if(nplplenc>0)then
+      symba_pla%lmerged(k_plpl(1,plpl_encounters_indices)) = .false. ! they have not merged yet
+      symba_pla%nplenc(k_plpl(1,plpl_encounters_indices)) = symba_pla%nplenc(k_plpl(1,plpl_encounters_indices)) + 1 ! number of particles that massive body "i" has close encountered
+      symba_pla%levelg(k_plpl(1,plpl_encounters_indices)) = 0 ! recursion level
+      symba_pla%levelm(k_plpl(1,plpl_encounters_indices)) = 0 ! recursion level
+      symba_pla%nchild(k_plpl(1,plpl_encounters_indices)) = 0 
+      ! for the j particle
+      symba_pla%lmerged(k_plpl(2,plpl_encounters_indices)) = .false.
+      symba_pla%nplenc(k_plpl(2,plpl_encounters_indices)) = symba_pla%nplenc(k_plpl(2,plpl_encounters_indices)) + 1
+      symba_pla%levelg(k_plpl(2,plpl_encounters_indices)) = 0
+      symba_pla%levelm(k_plpl(2,plpl_encounters_indices)) = 0
+      symba_pla%nchild(k_plpl(2,plpl_encounters_indices)) = 0
 
-          allocate(plpl_encounters_indices(nplplenc))
+      plplenc_list%status(1:nplplenc) = active ! you are in an encounter
+      plplenc_list%lvdotr(1:nplplenc) = plpl_lvdotr(plpl_encounters_indices)! flag of relative accelerations to say if there will be a close encounter in next timestep 
+      plplenc_list%level(1:nplplenc)  = 0 ! recursion level
+      plplenc_list%index1(1:nplplenc) = k_plpl(1,plpl_encounters_indices) ! index of first massive body in encounter
+      plplenc_list%index2(1:nplplenc) = k_plpl(2,plpl_encounters_indices) ! index of second massive body in encounter
+      deallocate(plpl_encounters_indices)
+   endif
+   
+   deallocate(plpl_encounters, plpl_lvdotr)
 
-          ! plpl_encounters_indices = pack(plpl_encounters,plpl_encounters > 0)
-          ! so it turns out this is significantly faster than the pack command
-          counter = 1
-          do k = 1,num_plpl_comparisons
-               if(plpl_encounters(k).gt.0)then
-                    plpl_encounters_indices(counter) = k
-                    counter = counter + 1
-               endif
-          enddo
-
-          symba_plA%lmerged(k_plpl(1,plpl_encounters_indices)) = .FALSE. ! they have not merged YET
-          symba_plA%nplenc(k_plpl(1,plpl_encounters_indices)) = symba_plA%nplenc(k_plpl(1,plpl_encounters_indices)) + 1 ! number of particles that massive body "i" has close encountered
-          symba_plA%levelg(k_plpl(1,plpl_encounters_indices)) = 0 ! recursion level
-          symba_plA%levelm(k_plpl(1,plpl_encounters_indices)) = 0 ! recursion level
-          symba_plA%nchild(k_plpl(1,plpl_encounters_indices)) = 0 
-          ! for the j particle
-          symba_plA%lmerged(k_plpl(2,plpl_encounters_indices)) = .FALSE.
-          symba_plA%nplenc(k_plpl(2,plpl_encounters_indices)) = symba_plA%nplenc(k_plpl(2,plpl_encounters_indices)) + 1
-          symba_plA%levelg(k_plpl(2,plpl_encounters_indices)) = 0
-          symba_plA%levelm(k_plpl(2,plpl_encounters_indices)) = 0
-          symba_plA%nchild(k_plpl(2,plpl_encounters_indices)) = 0
-
-          plplenc_list%status(1:nplplenc) = ACTIVE ! you are in an encounter
-          plplenc_list%lvdotr(1:nplplenc) = plpl_lvdotr(plpl_encounters_indices)! flag of relative accelerations to say if there will be a close encounter in next timestep 
-          plplenc_list%level(1:nplplenc)  = 0 ! recursion level
-          plplenc_list%index1(1:nplplenc) = k_plpl(1,plpl_encounters_indices) ! index of first massive body in encounter
-          plplenc_list%index2(1:nplplenc) = k_plpl(2,plpl_encounters_indices) ! index of second massive body in encounter
-          deallocate(plpl_encounters_indices)
-     endif
-     
-     deallocate(plpl_encounters, plpl_lvdotr)
-
-     if(ntp>0)then
-         allocate(pltp_encounters(num_pltp_comparisons))
-         allocate(pltp_lvdotr(num_pltp_comparisons))
+   if(ntp>0)then
+       allocate(pltp_encounters(num_pltp_comparisons))
+       allocate(pltp_lvdotr(num_pltp_comparisons))
 
 
-         pltp_encounters = 0
-         pltp_lvdotr = 0
+       pltp_encounters = 0
+       pltp_lvdotr = 0
 
-          ! CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%xh, symba_tpA%helio%swiftest%xh, &
-          !      num_pltp_comparisons, k_pltp, dist_pltp_array)
-          ! CALL util_dist_eucl_pltp(npl, ntp, symba_plA%helio%swiftest%vh, symba_tpA%helio%swiftest%vh, &
-          !      num_pltp_comparisons, k_pltp, vel_pltp_array)
-          CALL symba_chk_eucl_pltp(num_pltp_comparisons, k_pltp, symba_plA, symba_tpA, dt, pltp_encounters, pltp_lvdotr, npltpenc)
-     
-          ! npltpenc = count(pltp_encounters > 0)
-          ! print *,'step npltpenc: ',npltpenc
-          if(npltpenc>0)then
+      ! call util_dist_eucl_pltp(npl, ntp, symba_pla%helio%swiftest%xh, symba_tpa%helio%swiftest%xh, &
+      !    num_pltp_comparisons, k_pltp, dist_pltp_array)
+      ! call util_dist_eucl_pltp(npl, ntp, symba_pla%helio%swiftest%vh, symba_tpa%helio%swiftest%vh, &
+      !    num_pltp_comparisons, k_pltp, vel_pltp_array)
+      call symba_chk_eucl_pltp(num_pltp_comparisons, k_pltp, symba_pla, symba_tpa, dt, pltp_encounters, pltp_lvdotr, npltpenc)
+   
+      ! npltpenc = count(pltp_encounters > 0)
+      ! print *,'step npltpenc: ',npltpenc
+      if(npltpenc>0)then
 
-               allocate(pltp_encounters_indices(npltpenc))
+         allocate(pltp_encounters_indices(npltpenc))
 
-               counter = 1
-               do k = 1,num_pltp_comparisons
-                    if(pltp_encounters(k).gt.0)then
-                         pltp_encounters_indices(counter) = k
-                         counter = counter + 1
-                    endif
-               enddo
+         counter = 1
+         do k = 1,num_pltp_comparisons
+            if(pltp_encounters(k).gt.0)then
+               pltp_encounters_indices(counter) = k
+               counter = counter + 1
+            endif
+         enddo
 
-               symba_plA%ntpenc(k_pltp(1,pltp_encounters_indices)) = symba_plA%ntpenc(k_pltp(1,pltp_encounters_indices)) + 1
-               symba_plA%levelg(k_pltp(1,pltp_encounters_indices)) = 0
-               symba_plA%levelm(k_pltp(1,pltp_encounters_indices)) = 0
+         symba_pla%ntpenc(k_pltp(1,pltp_encounters_indices)) = symba_pla%ntpenc(k_pltp(1,pltp_encounters_indices)) + 1
+         symba_pla%levelg(k_pltp(1,pltp_encounters_indices)) = 0
+         symba_pla%levelm(k_pltp(1,pltp_encounters_indices)) = 0
 
-               symba_tpA%nplenc(k_pltp(2,pltp_encounters_indices)) = symba_tpA%nplenc(k_pltp(2,pltp_encounters_indices)) + 1
-               symba_tpA%levelg(k_pltp(2,pltp_encounters_indices)) = 0
-               symba_tpA%levelm(k_pltp(2,pltp_encounters_indices)) = 0
+         symba_tpa%nplenc(k_pltp(2,pltp_encounters_indices)) = symba_tpa%nplenc(k_pltp(2,pltp_encounters_indices)) + 1
+         symba_tpa%levelg(k_pltp(2,pltp_encounters_indices)) = 0
+         symba_tpa%levelm(k_pltp(2,pltp_encounters_indices)) = 0
 
-               pltpenc_list%status(1:npltpenc) = ACTIVE
-               pltpenc_list%lvdotr(1:npltpenc) = pltp_lvdotr(pltp_encounters_indices)
-               pltpenc_list%level(1:npltpenc) = 0
-               pltpenc_list%indexpl(1:npltpenc) = k_pltp(1,pltp_encounters_indices)
-               pltpenc_list%indextp(1:npltpenc) = k_pltp(1,pltp_encounters_indices)
+         pltpenc_list%status(1:npltpenc) = active
+         pltpenc_list%lvdotr(1:npltpenc) = pltp_lvdotr(pltp_encounters_indices)
+         pltpenc_list%level(1:npltpenc) = 0
+         pltpenc_list%indexpl(1:npltpenc) = k_pltp(1,pltp_encounters_indices)
+         pltpenc_list%indextp(1:npltpenc) = k_pltp(1,pltp_encounters_indices)
 
-               deallocate(pltp_encounters_indices)
-          endif
+         deallocate(pltp_encounters_indices)
+      endif
 
-          deallocate(pltp_encounters, pltp_lvdotr)
-     endif
-     
-! END OF THINGS THAT NEED TO BE CHANGED IN THE TREE
+      deallocate(pltp_encounters, pltp_lvdotr)
+   endif
+   
+! end of things that need to be changed in the tree
 
-     nplm = count(symba_plA%helio%swiftest%mass > mtiny)
-     ! flag to see if there was an encounter
-     lencounter = ((nplplenc > 0) .OR. (npltpenc > 0))
+   nplm = count(symba_pla%helio%swiftest%mass > mtiny)
+   ! flag to see if there was an encounter
+   lencounter = ((nplplenc > 0) .or. (npltpenc > 0))
 
-     IF (lencounter) THEN ! if there was an encounter, we need to enter symba_step_interp to see if we need recursion
-          CALL symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,&
-               dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
-               mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
-          lfirst = .TRUE.
-     ELSE ! otherwise we can just advance the particles
-          CALL symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA%helio, symba_tpA%helio, &
-               j2rp2, j4rp4, dt)
-     END IF
+   if (lencounter) then ! if there was an encounter, we need to enter symba_step_interp to see if we need recursion
+      call symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_pla, symba_tpa, j2rp2, j4rp4,&
+         dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
+         mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
+      lfirst = .true.
+   else ! otherwise we can just advance the particles
+      call symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_pla%helio, symba_tpa%helio, &
+         j2rp2, j4rp4, dt)
+   end if
 
-     RETURN
+   return
 
-END SUBROUTINE symba_step_eucl
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_step_eucl
+end submodule s_symba_step_eucl

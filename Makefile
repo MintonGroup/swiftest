@@ -50,7 +50,6 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
                      helio.f90 \
                      io.f90 \
                      module_nrutil.f90 \
-                     obl.f90 \
                      orbel.f90 \
                      rmvs.f90 \
                      symba.f90 \
@@ -90,27 +89,27 @@ lib:
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir2
+	  make libdir
 	cd $(SWIFTEST_HOME)/src/discard; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir2
+	  make libdir
 	cd $(SWIFTEST_HOME)/src/drift; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir2
+	  make libdir
 	cd $(SWIFTEST_HOME)/src/helio; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir2
+	  make libdir
 	cd $(SWIFTEST_HOME)/src/io; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir2
+	  make libdir
 	cd $(SWIFTEST_HOME)/src/obl; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -130,7 +129,7 @@ lib:
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir2
+	  make libdir
 	cd $(SWIFTEST_HOME)/src/symba; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -143,11 +142,6 @@ lib:
 	  make libdir
 
 libdir:
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90
-	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o 
-	rm -f *.o 
-
-libdir2:
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90; \
 	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
 	$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \

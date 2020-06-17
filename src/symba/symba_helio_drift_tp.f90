@@ -1,75 +1,27 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_helio_drift_tp
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Loop through test particles and call Danby drift routine
-!
-!  Input
-!    Arguments : irec       : input recursion level
-!                ntp        : number of active test particles
-!                symba_tp1P : pointer to head of active SyMBA test particle structure linked-list
-!                mu         : mass of the Sun
-!                dt         : time step
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : symba_tp1P : pointer to head of active SyMBA test particle structure linked-list
-!    Terminal  : error message
-!    File      : none
-!
-!  Invocation  : CALL symba_helio_drift_tp(irec, ntp, symba_tp1P, mu, dt)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine symba5_helio_drift.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_helio_drift_tp(irec, ntp, symba_tpA, mu, dt)
+submodule (symba) s_symba_helio_drift_tp
+contains
+   module procedure symba_helio_drift_tp
+   !! author: David A. Minton
+   !!
+   !! Loop through test particles and call Danby drift routine
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_helio_drift_tp.f90
+   !! Adapted from Hal Levison's Swift routine symba5_helio_drift.f
+   use swiftest
+   implicit none
+   integer(I4B)          :: i, iflag
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_helio_drift_tp
-     IMPLICIT NONE
+   do i = 1, ntp
+      if ((symba_tpA%levelg(i) == irec) .and. (symba_tpA%status(i) == active)) then
+         call drift_one(mu, symba_tpA%xh(:,i), symba_tpA%vb(:,i), dt, iflag)
+         if (iflag /= 0) then
+            symba_tpA%status(i) = discarded_drifterr
+            write(*, *) "particle ", symba_tpA%name(i), " lost due to error in danby drift"
+         end if
+      end if
+   end do
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)      :: irec, ntp
-     REAL(DP), INTENT(IN)          :: mu, dt
-     TYPE(symba_tp), INTENT(INOUT) :: symba_tpA
+   return
 
-! Internals
-     INTEGER(I4B)              :: i, iflag
-
-! Executable code
-     DO i = 1, ntp
-          IF ((symba_tpA%levelg(i) == irec) .AND. (symba_tpA%helio%swiftest%status(i) == ACTIVE)) THEN
-               CALL drift_one(mu, symba_tpA%helio%swiftest%xh(:,i), symba_tpA%helio%swiftest%vb(:,i), dt, iflag)
-               IF (iflag /= 0) THEN
-                    symba_tpA%helio%swiftest%status(i) = DISCARDED_DRIFTERR
-                    WRITE(*, *) "Particle ", symba_tpA%helio%swiftest%name(i), " lost due to error in Danby drift"
-               END IF
-          END IF
-     END DO
-
-     RETURN
-
-END SUBROUTINE symba_helio_drift_tp
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_helio_drift_tp
+end submodule s_symba_helio_drift_tp

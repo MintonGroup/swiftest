@@ -1,139 +1,89 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_peri
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Determine system pericenter passages for massive bodies in SyMBA
-!
-!  Input
-!    Arguments : lfirst     : logical flag indicating whether current invocation is the first
-!                npl        : number of massive bodies
-!                symba_pl1P : pointer to head of SyMBA massive body structure linked-list
-!                msys       : total system mass
-!                qmin_coord : coordinate frame for qmin
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : symba_pl1P : pointer to head of SyMBA massive body structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL symba_peri(lfirst, npl, symba_pl1P, msys, qmin_coord)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine util_mass_peri.f
-!
-!                If the coordinate system used is barycentric, then this routine assumes that the barycentric coordinates in the
-!                massive body structures are up-to-date and are not recomputed
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
+submodule (symba) s_symba_peri
+contains
+   module procedure symba_peri
+   !! author: David A. Minton
+   !!
+   !! Determine system pericenter passages for planets in SyMBA
+   !!      If the coordinate system used is barycentric, then this routine assumes that the barycentric coordinates in the
+   !!      massive body structures are up-to-date and are not recomputed
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_peri.f90
+   !! Adapted from Hal Levison's Swift routine util_mass_peri.f
+use swiftest
+implicit none
+   integer(I4B)          :: i
+   real(DP)            :: vdotr, e, mu, msun
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_peri
-     IMPLICIT NONE
+! executable code
+   msun = symba_pla%helio%swiftest%mass(1)
+   if (lfirst) then
+      if (qmin_coord == "helio") then
+         do i = 2, npl
+            if (symba_pla%helio%swiftest%status(i) == active) then
+               vdotr = dot_product(symba_pla%helio%swiftest%xh(:,i), symba_pla%helio%swiftest%vh(:,i))
+               if (vdotr > 0.0_DP) then
+                  symba_pla%isperi(i) = 1
+               else
+                  symba_pla%isperi(i) = -1
+               end if
+            end if
+         end do
+      else
+         do i = 2, npl
+            if (symba_pla%helio%swiftest%status(i) == active) then
+               vdotr = dot_product(symba_pla%helio%swiftest%xb(:,i), symba_pla%helio%swiftest%vb(:,i))
+               if (vdotr > 0.0_DP) then
+                  symba_pla%isperi(i) = 1
+               else
+                  symba_pla%isperi(i) = -1
+               end if
+            end if
+         end do
+      end if
+   else
+      if (qmin_coord == "helio") then
+         do i = 2, npl
+            if (symba_pla%helio%swiftest%status(i) == active) then
+               vdotr = dot_product(symba_pla%helio%swiftest%xh(:,i), symba_pla%helio%swiftest%vh(:,i))
+               if (symba_pla%isperi(i) == -1) then
+                  if (vdotr >= 0.0_DP) then
+                     symba_pla%isperi(i) = 0
+                     mu = msun + symba_pla%helio%swiftest%mass(i)
+                     call orbel_xv2aeq(symba_pla%helio%swiftest%xh(:,i), &
+                        symba_pla%helio%swiftest%vh(:,i), mu, symba_pla%atp(i), e, symba_pla%peri(i))
+                  end if
+               else
+                  if (vdotr > 0.0_DP) then
+                     symba_pla%isperi(i) = 1
+                  else
+                     symba_pla%isperi(i) = -1
+                  end if
+               end if
+            end if
+         end do
+      else
+         do i = 2, npl
+            if (symba_pla%helio%swiftest%status(i) == active) then
+               vdotr = dot_product(symba_pla%helio%swiftest%xb(:,i), symba_pla%helio%swiftest%vb(:,i))
+               if (symba_pla%isperi(i) == -1) then
+                  if (vdotr >= 0.0_DP) then
+                     symba_pla%isperi(i) = 0
+                     call orbel_xv2aeq(symba_pla%helio%swiftest%xb(:,i), & 
+                        symba_pla%helio%swiftest%vb(:,i), msys, symba_pla%atp(i), e, symba_pla%peri(i))
+                  end if
+               else
+                  if (vdotr > 0.0_DP) then
+                     symba_pla%isperi(i) = 1
+                  else
+                     symba_pla%isperi(i) = -1
+                  end if
+               end if
+            end if
+         end do
+      end if
+   end if
 
-! Arguments
-     LOGICAL(LGT), INTENT(IN)       :: lfirst
-     INTEGER(I4B), INTENT(IN)       :: npl
-     REAL(DP), INTENT(IN)           :: msys
-     CHARACTER(*), INTENT(IN)       :: qmin_coord
-     TYPE(symba_pl), INTENT(INOUT)  :: symba_plA
+   return
 
-! Internals
-     INTEGER(I4B)              :: i
-     REAL(DP)                  :: vdotr, e, mu, msun
-
-! Executable code
-     msun = symba_plA%helio%swiftest%mass(1)
-     IF (lfirst) THEN
-          IF (qmin_coord == "HELIO") THEN
-               DO i = 2, npl
-                    IF (symba_plA%helio%swiftest%status(i) == ACTIVE) THEN
-                         vdotr = DOT_PRODUCT(symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%vh(:,i))
-                         IF (vdotr > 0.0_DP) THEN
-                              symba_plA%isperi(i) = 1
-                         ELSE
-                              symba_plA%isperi(i) = -1
-                         END IF
-                    END IF
-               END DO
-          ELSE
-               DO i = 2, npl
-                    IF (symba_plA%helio%swiftest%status(i) == ACTIVE) THEN
-                         vdotr = DOT_PRODUCT(symba_plA%helio%swiftest%xb(:,i), symba_plA%helio%swiftest%vb(:,i))
-                         IF (vdotr > 0.0_DP) THEN
-                              symba_plA%isperi(i) = 1
-                         ELSE
-                              symba_plA%isperi(i) = -1
-                         END IF
-                    END IF
-               END DO
-          END IF
-     ELSE
-          IF (qmin_coord == "HELIO") THEN
-               DO i = 2, npl
-                    IF (symba_plA%helio%swiftest%status(i) == ACTIVE) THEN
-                         vdotr = DOT_PRODUCT(symba_plA%helio%swiftest%xh(:,i), symba_plA%helio%swiftest%vh(:,i))
-                         IF (symba_plA%isperi(i) == -1) THEN
-                              IF (vdotr >= 0.0_DP) THEN
-                                   symba_plA%isperi(i) = 0
-                                   mu = msun + symba_plA%helio%swiftest%mass(i)
-                                   CALL orbel_xv2aeq(symba_plA%helio%swiftest%xh(:,i), &
-                                        symba_plA%helio%swiftest%vh(:,i), mu, symba_plA%atp(i), e, symba_plA%peri(i))
-                              END IF
-                         ELSE
-                              IF (vdotr > 0.0_DP) THEN
-                                   symba_plA%isperi(i) = 1
-                              ELSE
-                                   symba_plA%isperi(i) = -1
-                              END IF
-                         END IF
-                    END IF
-               END DO
-          ELSE
-               DO i = 2, npl
-                    IF (symba_plA%helio%swiftest%status(i) == ACTIVE) THEN
-                         vdotr = DOT_PRODUCT(symba_plA%helio%swiftest%xb(:,i), symba_plA%helio%swiftest%vb(:,i))
-                         IF (symba_plA%isperi(i) == -1) THEN
-                              IF (vdotr >= 0.0_DP) THEN
-                                   symba_plA%isperi(i) = 0
-                                   CALL orbel_xv2aeq(symba_plA%helio%swiftest%xb(:,i), & 
-                                        symba_plA%helio%swiftest%vb(:,i), msys, symba_plA%atp(i), e, symba_plA%peri(i))
-                              END IF
-                         ELSE
-                              IF (vdotr > 0.0_DP) THEN
-                                   symba_plA%isperi(i) = 1
-                              ELSE
-                                   symba_plA%isperi(i) = -1
-                              END IF
-                         END IF
-                    END IF
-               END DO
-          END IF
-     END IF
-
-     RETURN
-
-END SUBROUTINE symba_peri
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_peri
+end submodule s_symba_peri

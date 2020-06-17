@@ -1,127 +1,72 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : io_write_encounter
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : io
-!  Language    : Fortran 90/95
-!
-!  Description : Write close encounter data to output binary file
-!
-!  Input
-!    Arguments : t              : time
-!                id1            : identifier of first massive body / particle
-!                id2            : identifier of second massive body / particle
-!                mass1          : mass of first massive body / particle
-!                mass2          : mass of second massive body / particle
-!                radius1        : radius of first massive body / particle
-!                radius2        : radius of second massive body / particle
-!                xh1            : heliocentric position of first massive body / particle
-!                xh2            : heliocentric position of second massive body / particle
-!                vh1            : heliocentric velocity of first massive body / particle
-!                vh2            : heliocentric velocity of second massive body / particle
-!                encounter_file : name of output binary file for encounters
-!                out_type       : format of output binary file
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : none
-!    Terminal  : error message
-!    File      : none
-!
-!  Invocation  : CALL io_write_encounter(t, id1, id2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, encounter_file, out_type)
-!
-!  Notes       : There is no direct file output from this subroutine
-!
-!**********************************************************************************************************************************
-SUBROUTINE io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, encounter_file, out_type)
+submodule (swiftest_data_structures) s_io_write_encounter
+contains
+   module procedure io_write_encounter
+   !! author: David A. Minton
+   !!
+   !! Write close encounter data to output binary files
+   !!  There is no direct file output from this subroutine
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: io_write_encounter.f90
+   !! Adapted from Hal Levison's Swift routine io_write_encounter.f
+use swiftest
+implicit none
+   logical(lgt)        :: lxdr
+   logical(lgt), save    :: lfirst = .true.
+   integer(I4B), parameter :: lun = 30
+   integer(I4B)        :: ierr
+   integer(I4B), save    :: iu = lun
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => io_write_encounter
-     IMPLICIT NONE
+! executable code
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)              :: name1, name2
-     REAL(DP), INTENT(IN)                  :: t, mass1, mass2, radius1, radius2
-     REAL(DP), DIMENSION(:), INTENT(IN)    :: xh1, xh2, vh1, vh2
-     CHARACTER(*), INTENT(IN)              :: encounter_file, out_type
+   !lxdr = ((out_type == swifter_real4_type) .or. (out_type == swifter_real8_type))
+   !if (lxdr) then
+   !   call io_open_fxdr(encounter_file, "a", .true., iu, ierr)
+   !   if ((ierr /= 0) .and. lfirst) then
+   !      call io_open_fxdr(encounter_file, "w", .true., iu, ierr)
+   !      lfirst = .false.
+   !   end if
+   !   if (ierr /= 0) then
+   !      write(*, *) "swifter error:"
+   !      write(*, *) "   unable to open binary encounter file"
+   !      call util_exit(failure)
+   !   end if
+   !   ierr = ixdrdouble(iu, t)
+   !   if (ierr < 0) then
+   !      write(*, *) "swifter error:"
+   !      write(*, *) "   unable to write binary file record"
+   !      call util_exit(failure)
+   !   end if
+   !   call io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), swifter_real8_type, mass = mass1, radius = radius1)
+   !   call io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), swifter_real8_type, mass = mass2, radius = radius2)
+   !   ierr = ixdrclose(iu)
+   !else
+      call io_open(iu, encounter_file, "append", "unformatted", ierr)
+      if ((ierr /= 0) .and. lfirst) then
+         call io_open(iu, encounter_file, "new", "unformatted", ierr)
+         lfirst = .false.
+      end if
+      if (ierr /= 0) then
+         write(*, *) "swifter error:"
+         write(*, *) "   unable to open binary encounter file"
+         call util_exit(failure)
+      end if
+      write(iu, iostat = ierr) t
+      if (ierr < 0) then
+         write(*, *) "swifter error:"
+         write(*, *) "   unable to write binary file record"
+         call util_exit(failure)
+      end if
+      call io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), real8_type, mass = mass1, radius = radius1)
+      call io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), real8_type, mass = mass2, radius = radius2)
+      close(unit = iu, iostat = ierr)
+   !end if
+   if (ierr /= 0) then
+      write(*, *) "swifter error:"
+      write(*, *) "   unable to close binary encounter file"
+      call util_exit(failure)
+   end if
 
-! Internals
-     LOGICAL(LGT)            :: lxdr
-     LOGICAL(LGT), SAVE      :: lfirst = .TRUE.
-     INTEGER(I4B), PARAMETER :: LUN = 30
-     INTEGER(I4B)            :: ierr
-     INTEGER(I4B), SAVE      :: iu = LUN
+   return
 
-! Executable code
-
-     !lxdr = ((out_type == SWIFTER_REAL4_TYPE) .OR. (out_type == SWIFTER_REAL8_TYPE))
-     !IF (lxdr) THEN
-     !     CALL io_open_fxdr(encounter_file, "A", .TRUE., iu, ierr)
-     !     IF ((ierr /= 0) .AND. lfirst) THEN
-     !          CALL io_open_fxdr(encounter_file, "W", .TRUE., iu, ierr)
-     !          lfirst = .FALSE.
-     !     END IF
-     !     IF (ierr /= 0) THEN
-     !          WRITE(*, *) "SWIFTER Error:"
-     !          WRITE(*, *) "   Unable to open binary encounter file"
-     !          CALL util_exit(FAILURE)
-     !     END IF
-     !     ierr = ixdrdouble(iu, t)
-     !     IF (ierr < 0) THEN
-     !          WRITE(*, *) "SWIFTER Error:"
-     !          WRITE(*, *) "   Unable to write binary file record"
-     !          CALL util_exit(FAILURE)
-     !     END IF
-     !     CALL io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), SWIFTER_REAL8_TYPE, MASS = mass1, RADIUS = radius1)
-     !     CALL io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), SWIFTER_REAL8_TYPE, MASS = mass2, RADIUS = radius2)
-     !     ierr = ixdrclose(iu)
-     !ELSE
-          CALL io_open(iu, encounter_file, "APPEND", "UNFORMATTED", ierr)
-          IF ((ierr /= 0) .AND. lfirst) THEN
-               CALL io_open(iu, encounter_file, "NEW", "UNFORMATTED", ierr)
-               lfirst = .FALSE.
-          END IF
-          IF (ierr /= 0) THEN
-               WRITE(*, *) "SWIFTER Error:"
-               WRITE(*, *) "   Unable to open binary encounter file"
-               CALL util_exit(FAILURE)
-          END IF
-          WRITE(iu, IOSTAT = ierr) t
-          IF (ierr < 0) THEN
-               WRITE(*, *) "SWIFTER Error:"
-               WRITE(*, *) "   Unable to write binary file record"
-               CALL util_exit(FAILURE)
-          END IF
-          CALL io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), REAL8_TYPE, MASS = mass1, RADIUS = radius1)
-          CALL io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), REAL8_TYPE, MASS = mass2, RADIUS = radius2)
-          CLOSE(UNIT = iu, IOSTAT = ierr)
-     !END IF
-     IF (ierr /= 0) THEN
-          WRITE(*, *) "SWIFTER Error:"
-          WRITE(*, *) "   Unable to close binary encounter file"
-          CALL util_exit(FAILURE)
-     END IF
-
-     RETURN
-
-END SUBROUTINE io_write_encounter
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure io_write_encounter
+end submodule s_io_write_encounter

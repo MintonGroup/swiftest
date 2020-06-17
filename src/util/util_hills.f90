@@ -3,7 +3,7 @@ contains
    module procedure util_hills
    !! author: David A. Minton
    !!
-   !! Compute Hill sphere radii of massive bodies
+   !! Compute Hill sphere radii of planets
    !!
    !! Adapted from David E. Kaufmann's Swifter modules: util_hills.f90
    !! Adapted from Hal Levison's Swift routine util_hills.f

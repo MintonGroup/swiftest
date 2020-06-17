@@ -1,96 +1,42 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_discard_peri_pl
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Check to see if massive bodies should be discarded based on their pericenter distances
-!
-!  Input
-!    Arguments : t          : time
-!                npl        : number of massive bodies
-!                symba_pl1P : pointer to head of SyMBA massive body structure linked-list
-!                msys       : total system mass
-!                qmin       : minimum allowed pericenter distance
-!                qmin_alo   : minimum semimajor axis for qmin
-!                qmin_ahi   : maximum semimajor axis for qmin
-!                qmin_coord : coordinate frame for qmin
-!                ldiscards  : logical flag indicating whether any massive bodies are discarded
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : symba_pl1P : pointer to head of SyMBA massive body structure linked-list
-!                ldiscards  : logical flag indicating whether any massive bodies are discarded
-!    Terminal  : status message
-!    File      : none
-!
-!  Invocation  : CALL symba_discard_peri_pl(t, npl, symba_pl1P, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine discard_mass_peri.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
-
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_discard_peri_pl
-     IMPLICIT NONE
-
-! Arguments
-     LOGICAL(LGT), INTENT(INOUT)   :: ldiscards
-     INTEGER(I4B), INTENT(IN)      :: npl
-     REAL(DP), INTENT(IN)          :: t, msys, qmin, qmin_alo, qmin_ahi
-     CHARACTER(*), INTENT(IN)      :: qmin_coord
-     TYPE(symba_pl), INTENT(INOUT) :: symba_plA
-
-! Internals
-     LOGICAL(LGT), SAVE        :: lfirst = .TRUE.
-     INTEGER(I4B)              :: i, j, ih
-     REAL(DP)                  :: r2
-     REAL(DP), DIMENSION(NDIM) :: dx
+submodule (symba) s_symba_discard_peri_pl
+contains
+   module procedure symba_discard_peri_pl
+   !! author: David A. Minton
+   !!
+   !! Check to see if planets should be discarded based on their pericenter distances
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_discard_peri_pl.f90
+   !! Adapted from Hal Levison's Swift routine discard_mass_peri.f
+use swiftest
+implicit none
+   logical(lgt), save      :: lfirst = .true.
+   integer(I4B)          :: i, j, ih
+   real(DP)            :: r2
+   real(DP), dimension(ndim) :: dx
 
 
-! Executable code
-     IF (lfirst) THEN
-          CALL symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
-          lfirst = .FALSE.
-     ELSE
-          CALL symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
-          DO i = 2, npl
-               IF (symba_plA%helio%swiftest%status(i) == ACTIVE) THEN
-                    IF ((symba_plA%isperi(i) == 0) .AND. (symba_plA%nplenc(i)== 0)) THEN
-                         IF ((symba_plA%atp(i) >= qmin_alo) .AND. (symba_plA%atp(i) <= qmin_ahi) &
-                          .AND. (symba_plA%peri(i) <= qmin)) THEN
-                              ldiscards = .TRUE.
-                              symba_plA%helio%swiftest%status(i) = DISCARDED_PERI
-                              WRITE(*, *) "Particle ", symba_plA%helio%swiftest%name(i), &
-                               " perihelion distance too small at t = ", t
-                         END IF
-                    END IF
-               END IF
-          END DO
-     END IF
+! executable code
+   if (lfirst) then
+      call symba_peri(lfirst, npl, symba_pla, msys, qmin_coord)
+      lfirst = .false.
+   else
+      call symba_peri(lfirst, npl, symba_pla, msys, qmin_coord)
+      do i = 2, npl
+         if (symba_pla%helio%swiftest%status(i) == active) then
+            if ((symba_pla%isperi(i) == 0) .and. (symba_pla%nplenc(i)== 0)) then
+               if ((symba_pla%atp(i) >= qmin_alo) .and. (symba_pla%atp(i) <= qmin_ahi) &
+                .and. (symba_pla%peri(i) <= qmin)) then
+                  ldiscards = .true.
+                  symba_pla%helio%swiftest%status(i) = discarded_peri
+                  write(*, *) "particle ", symba_pla%helio%swiftest%name(i), &
+                   " perihelion distance too small at t = ", t
+               end if
+            end if
+         end if
+      end do
+   end if
 
-     RETURN
+   return
 
-END SUBROUTINE symba_discard_peri_pl
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_discard_peri_pl
+end submodule s_symba_discard_peri_pl

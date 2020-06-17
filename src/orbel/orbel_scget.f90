@@ -1,71 +1,27 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : orbel_scget
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : orbel
-!  Language    : Fortran 90/95
-!
-!  Description : Efficiently compute the sine and cosine of an input angle
-!
-!  Input
-!    Arguments : angle : input angle
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : sx    : sine of the angle
-!                cx    : cosine of the angle
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL orbel_scget(angle, sx, cx)
-!
-!  Notes       : Adapted from Martin Duncan's Swift routine orbel_scget.f
-!
-!                Input angle must be in radians
-!
-!**********************************************************************************************************************************
-pure SUBROUTINE orbel_scget(angle, sx, cx)
+submodule (swiftest_data_structures) s_orbel_scget
+contains
+   module procedure orbel_scget
+   !! author: David A. Minton
+   !!
+   !! Efficiently compute the sine and cosine of an input angle
+   !!      Input angle must be in radians
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: orbel_scget.f90
+   !! Adapted from Hal Levison's Swift routine orbel_scget.f
+use swiftest
+implicit none
+   integer(i4b) :: nper
+   real(DP)   :: x
 
-! Modules
-     USE swiftest, EXCEPT_THIS_ONE => orbel_scget
-     IMPLICIT NONE
+! executable code
+   nper = angle/twopi
+   x = angle - nper*twopi
+   if (x < 0.0_DP) x = x + twopi
+   sx = sin(x)
+   cx = sqrt(1.0_DP - sx*sx)
+   if ((x > piby2) .and. (x < pi3by2)) cx = -cx
 
-! Arguments
-     REAL(DP), INTENT(IN)  :: angle
-     REAL(DP), INTENT(OUT) :: sx, cx
+   return
 
-! Internals
-     INTEGER(I4B) :: nper
-     REAL(DP)     :: x
-
-! Executable code
-     nper = angle/TWOPI
-     x = angle - nper*TWOPI
-     IF (x < 0.0_DP) x = x + TWOPI
-     sx = SIN(x)
-     cx = SQRT(1.0_DP - sx*sx)
-     IF ((x > PIBY2) .AND. (x < PI3BY2)) cx = -cx
-
-     RETURN
-
-END SUBROUTINE orbel_scget
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure orbel_scget
+end submodule s_orbel_scget

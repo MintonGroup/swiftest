@@ -1,75 +1,31 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : symba_helio_getacch_int
-!  Unit Type   : subroutine
-!  Project     : Swiftest
-!  Package     : symba
-!  Language    : Fortran 90/95
-!
-!  Description : Compute direct cross term heliocentric accelerations of massive bodies
-!
-!  Input
-!    Arguments : npl        : number of massive bodies
-!                nplm       : number of massive bodies with mass > mtiny
-!                helio_pl1P : pointer to head of helio massive body structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : helio_pl1P : pointer to head of helio massive body structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL symba_helio_getacch_int(npl, nplm, helio_pl1P)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine symba5_helio_getacch.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE symba_helio_getacch_int(npl, nplm, helio_plA)
+submodule (symba) s_symba_helio_getacch_int
+contains
+   module procedure symba_helio_getacch_int
+   !! author: David A. Minton
+   !!
+   !! Compute direct cross term heliocentric accelerations of planets
+   !!
+   !! Adapted from David E. Kaufmann's Swifter modules: symba_helio_getacch_int.f90
+   !! Adapted from Hal Levison's Swift routine symba5_helio_getacch.f
+use swiftest
+implicit none
+   integer(I4B)                    :: i, j
+   real(DP)                      :: rji2, irij3, faci, facj
+   real(DP), dimension(ndim)             :: dx
 
-! Modules
-     use swiftest, EXCEPT_THIS_ONE => symba_helio_getacch_int
-     IMPLICIT NONE
+! executable code
+   do i = 2, nplm
+      do j = i + 1, npl
+         dx(:) = helio_pla%swiftest%xh(:,j) - helio_pla%swiftest%xh(:,i)
+         rji2 = dot_product(dx(:), dx(:))
+         irij3 = 1.0_DP/(rji2*sqrt(rji2))
+         faci = helio_pla%swiftest%mass(i)*irij3
+         facj = helio_pla%swiftest%mass(j)*irij3
+         helio_pla%ahi(:,i) = helio_pla%ahi(:,i) + facj*dx(:)
+         helio_pla%ahi(:,j) = helio_pla%ahi(:,j) - faci*dx(:)
+      end do
+   end do
+   return
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)                    :: npl, nplm
-     TYPE(helio_pl), INTENT(INOUT)               :: helio_plA
-
-! Internals
-     INTEGER(I4B)                                :: i, j
-     REAL(DP)                                    :: rji2, irij3, faci, facj
-     REAL(DP), DIMENSION(NDIM)                   :: dx
-
-! Executable code
-     DO i = 2, nplm
-          DO j = i + 1, npl
-               dx(:) = helio_plA%swiftest%xh(:,j) - helio_plA%swiftest%xh(:,i)
-               rji2 = DOT_PRODUCT(dx(:), dx(:))
-               irij3 = 1.0_DP/(rji2*SQRT(rji2))
-               faci = helio_plA%swiftest%mass(i)*irij3
-               facj = helio_plA%swiftest%mass(j)*irij3
-               helio_plA%ahi(:,i) = helio_plA%ahi(:,i) + facj*dx(:)
-               helio_plA%ahi(:,j) = helio_plA%ahi(:,j) - faci*dx(:)
-          END DO
-     END DO
-     RETURN
-
-END SUBROUTINE symba_helio_getacch_int
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure symba_helio_getacch_int
+end submodule s_symba_helio_getacch_int
