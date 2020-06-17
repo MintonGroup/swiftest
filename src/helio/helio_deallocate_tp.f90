@@ -1,6 +1,6 @@
-submodule (helio_data_structures) s_helio_tp_deallocate
+submodule (helio_data_structures) s_helio_deallocate_tp
 contains
-   module procedure helio_tp_deallocate
+   module procedure helio_deallocate_tp
    !! author: David A. Minton
    !!
    !! Finalizer for base Helio particle class.
@@ -13,5 +13,5 @@ contains
    end if
    return
 
-   end procedure helio_tp_deallocate
-end submodule s_helio_tp_deallocate
+   end procedure helio_deallocate_tp
+end submodule s_helio_deallocate_tp

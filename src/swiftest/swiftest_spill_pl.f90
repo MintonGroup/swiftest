@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_tp_spill
+submodule (swiftest_data_structures) s_swiftest_spill_tp
 contains
-   module procedure swiftest_pl_spill
+   module procedure swiftest_spill_pl
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Move spilled (discarded) Swiftest massive body particle structure from active list to discard list
@@ -31,8 +31,8 @@ contains
    call self%swiftest_tp%spill(discard)
 
    return
-   end procedure swiftest_pl_spill
-end submodule s_swiftest_pl_spill
+   end procedure swiftest_spill_pl
+end submodule s_swiftest_spill_pl
 
 
 

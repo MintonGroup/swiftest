@@ -187,21 +187,21 @@ module swiftest_data_structures
       real(DP),     dimension(:,:), allocatable :: vb     !! Barycentric velocity
    contains
       private
-      procedure, public :: alloc => swiftest_tp_allocate
+      procedure, public :: alloc => swiftest_allocate_tp
       procedure, public :: h2b => coord_h2b_tp
       procedure, public :: vb2vh => coord_vb2vh_tp
       procedure, public :: vh2vb => coord_vh2vb_tp
-      final             :: swiftest_tp_deallocate
+      final             :: swiftest_deallocate_tp
    end type swiftest_tp
 
    !> Interfaces type-bound procedures for swiftest_tp class
    interface
       !> Basic Swiftest test particle constructor method
-      module subroutine swiftest_tp_allocate(self,n)
+      module subroutine swiftest_allocate_tp(self,n)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          integer, intent(in)               :: n    !! Number of test particles to allocate
-      end subroutine swiftest_tp_allocate
+      end subroutine swiftest_allocate_tp
 
       !> Interface for type-bound procedure to read in the input test particle initial condition file
       module subroutine io_read_tp_in(self, config) 
@@ -236,7 +236,7 @@ module swiftest_data_structures
    contains
       private
       procedure, public     :: alloc => swiftest_allocate_pl
-      !procedure, public     :: spill => swiftest_pl_spill !! Method to remove the inactive massive bodies and spill them to a discard object 
+      !procedure, public     :: spill => swiftest_spill_pl !! Method to remove the inactive massive bodies and spill them to a discard object 
       procedure, public     :: h2b => coord_h2b_pl
       procedure, public     :: vb2vh => coord_vb2vh_pl
       procedure, public     :: vh2vb => coord_vh2vb_pl

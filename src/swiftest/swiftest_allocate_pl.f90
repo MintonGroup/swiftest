@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_pl_allocate
+submodule (swiftest_data_structures) s_swiftest_allocate_pl
 contains
-   module procedure swiftest_pl_allocate
+   module procedure swiftest_allocate_pl
    !! author: David A. Minton
    !!
    !! Constructor for base Swiftest massive body class. Allocates space for all particles and
@@ -28,5 +28,5 @@ contains
    self%radius(:) = 0.0_DP
    self%rhill(:) = 0.0_DP
    return
-   end procedure swiftest_pl_allocate
-end submodule s_swiftest_pl_allocate
+   end procedure swiftest_allocate_pl
+end submodule s_swiftest_allocate_pl

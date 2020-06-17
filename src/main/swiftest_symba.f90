@@ -250,8 +250,8 @@ program swiftest_symba
          mergesub_list%radius(:) = 0
       end if
 
-      if (allocated(discard_plA%name)) call swiftest_pl_deallocate(discard_plA)
-      if (allocated(discard_tpA%name)) call swiftest_tp_deallocate(discard_tpA)
+      if (allocated(discard_plA%name)) call swiftest_deallocate_pl(discard_plA)
+      if (allocated(discard_tpA%name)) call swiftest_deallocate_tp(discard_tpA)
 
    end do
    call config%dump_to_file(t)
@@ -263,12 +263,12 @@ program swiftest_symba
       close(egyiu)
    end if
 
-   call symba_pl_deallocate(symba_plA)
+   call symba_deallocate_pl(symba_plA)
    call symba_merger_deallocate(mergeadd_list)
    call symba_merger_deallocate(mergesub_list)
    call symba_plplenc_deallocate(plplenc_list)
    if (ntp > 0) then
-      call symba_tp_deallocate(symba_tpA)
+      call symba_deallocate_tp(symba_tpA)
       call symba_pltpenc_deallocate(pltpenc_list)
    end if
    call cpu_time(finish)

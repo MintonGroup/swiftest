@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_tp_deallocate
+submodule (swiftest_data_structures) s_swiftest_deallocate_tp
 contains
-   module procedure swiftest_tp_deallocate
+   module procedure swiftest_deallocate_tp
    !! author: David A. Minton
    !!
    !! Finalizer for base Swiftest particle class.
@@ -19,5 +19,5 @@ contains
       deallocate(self%vb)
    end if
    return
-   end procedure swiftest_tp_deallocate
-end submodule s_swiftest_tp_deallocate
+   end procedure swiftest_deallocate_tp
+end submodule s_swiftest_deallocate_tp

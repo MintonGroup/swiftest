@@ -1,6 +1,6 @@
-submodule (helio_data_structures) s_helio_tp_allocate
+submodule (helio_data_structures) s_helio_allocate_tp
 contains
-   module procedure helio_tp_allocate
+   module procedure helio_allocate_tp
    !! author: David A. Minton
    !!
    !! Constructor for Helio test particle particle class. Allocates space for 
@@ -24,6 +24,6 @@ contains
    self%ah(:,:) = 0.0_DP
    self%ahi(:,:) = 0.0_DP
    return
-   end procedure helio_tp_allocate
-end submodule s_helio_tp_allocate
+   end procedure helio_allocate_tp
+end submodule s_helio_allocate_tp
 

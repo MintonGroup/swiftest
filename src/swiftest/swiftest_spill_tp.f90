@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_tp_spill
+submodule (swiftest_data_structures) s_swiftest_spill_tp
 contains
-   module procedure swiftest_tp_spill
+   module procedure swiftest_spill_tp
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Move spilled (discarded) Swiftest test particle structure from active list to discard list
@@ -38,8 +38,8 @@ contains
    ! Call the spill method for the parent class (the base class in this case)
    call self%swiftest_body%spill(discard)
 
-   end procedure swiftest_tp_spill
-end submodule s_swiftest_tp_spill
+   end procedure swiftest_spill_tp
+end submodule s_swiftest_spill_tp
 
 
 

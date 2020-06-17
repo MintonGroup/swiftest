@@ -10,7 +10,7 @@ contains
 
    select type(self)
    class is (swiftest_tp)
-      call swiftest_tp_spill(self)
+      call swiftest_spill_tp(self)
 
    np = self%nbody
    if (.not. self%lspill) then  ! Only calculate the number of spilled particles if this method is called directly. It won't recompute if this method

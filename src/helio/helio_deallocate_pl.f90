@@ -1,6 +1,6 @@
-submodule (helio_data_structures) s_helio_pl_deallocate
+submodule (helio_data_structures) s_helio_deallocate_pl
 contains
-   module procedure helio_pl_deallocate
+   module procedure helio_deallocate_pl
    !! author: David A. Minton
    !!
    !! Finalizer for base Helio massive body class. Deallocates all components and sets 
@@ -12,5 +12,5 @@ contains
       deallocate(self%rhill)
    end if
    return
-   end procedure helio_pl_deallocate
-end submodule s_helio_pl_deallocate
+   end procedure helio_deallocate_pl
+end submodule s_helio_deallocate_pl

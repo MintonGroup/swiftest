@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_tp_allocate
+submodule (swiftest_data_structures) s_swiftest_allocate_tp
 contains
-   module procedure swiftest_tp_allocate
+   module procedure swiftest_allocate_tp
    !! author: David A. Minton
    !!
    !! Constructor for base Swiftest test particle particle class. Allocates space for 
@@ -36,6 +36,6 @@ contains
    self%vb(:,:) = 0.0_DP
 
    return
-   end procedure swiftest_tp_allocate
-end submodule s_swiftest_tp_allocate
+   end procedure swiftest_allocate_tp
+end submodule s_swiftest_allocate_tp
 

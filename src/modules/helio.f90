@@ -58,29 +58,29 @@ module helio
    !! Helio massive body particle class
    type, public, extends(helio_tp) :: helio_pl
    contains
-      procedure, public :: alloc => helio_pl_allocate     !! Constructor method - Allocates space for number of particles
+      procedure, public :: alloc => helio_allocate_pl     !! Constructor method - Allocates space for number of particles
       !procedure, public :: set_from_file => io_read_pl_in !! Override helio_tp io reader with the pl reader
       procedure, public :: getacch => helio_getacch_pl    !! Compute heliocentric accelerations of massive bodies
       procedure, public :: step => helio_step_pl          !! Step massive bodies ahead Democratic Heliocentric method
       procedure, public :: drift => helio_drift_pl        !! Loop through massive bodies and call Danby drift routine
       procedure, public :: lindrift => helio_lindrift_pl  !! Perform linear drift of massive bodies due to barycentric momentum of Sun
       procedure, public :: kick => helio_kickvb_pl        !! Kick barycentric velocities of active massive bodies
-      final :: helio_pl_deallocate                        !! Finalizer method - Deallocates all allocatables 
+      final :: helio_deallocate_pl                        !! Finalizer method - Deallocates all allocatables 
    end type helio_pl
 
    interface
       !> Helio massive body constructor method
-      module subroutine helio_pl_allocate(self,n)
+      module subroutine helio_allocate_pl(self,n)
          implicit none
          class(helio_pl), intent(inout)    :: self !! Swiftest test particle object
          integer, intent(in)               :: n    !! Number of test particles to allocate
-      end subroutine helio_pl_allocate
+      end subroutine helio_allocate_pl
 
       !> Helio massive body destructor/finalizer
-      module subroutine helio_pl_deallocate(self)
+      module subroutine helio_deallocate_pl(self)
          implicit none
          type(helio_pl), intent(inout)    :: self
-      end subroutine helio_pl_deallocate
+      end subroutine helio_deallocate_pl
    end interface
 
 !> Interfaces for all non-type bound helio methods that are implemented in separate submodules 

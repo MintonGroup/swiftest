@@ -24,8 +24,8 @@ module symba
       integer(I4B), dimension(:),     allocatable :: levelg  !! level at which this particle should be moved
       integer(I4B), dimension(:),     allocatable :: levelm  !! deepest encounter level achieved this time step
    contains
-      procedure, public :: alloc => symba_tp_allocate
-      final :: symba_tp_deallocate
+      procedure, public :: alloc => symba_allocate_tp
+      final :: symba_deallocate_tp
    end type symba_tp
 
    !********************************************************************************************************************************
@@ -40,8 +40,8 @@ module symba
       integer(I4B), dimension(:),   allocatable :: index_parent !! position of the parent of id
       integer(I4B), dimension(:,:), allocatable :: index_child  !! position of the children of id
    contains
-      procedure, public :: alloc => symba_pl_allocate
-      final :: symba_pl_deallocate
+      procedure, public :: alloc => symba_allocate_pl
+      final :: symba_deallocate_pl
    end type symba_pl
 
    !********************************************************************************************************************************
@@ -680,7 +680,7 @@ end interface
 
 contains
    !! SyMBA constructor and desctructor methods
-   subroutine symba_tp_allocate(self,n)
+   subroutine symba_allocate_tp(self,n)
       !! SyMBA test particle constructor method
       implicit none
 
@@ -704,9 +704,9 @@ contains
       self%levelg(:) = 0
       self%levelm(:) = 0
       return
-   end subroutine symba_tp_allocate
+   end subroutine symba_allocate_tp
 
-   subroutine symba_tp_deallocate(self)
+   subroutine symba_deallocate_tp(self)
       !! SyMBA test particle destructor/finalizer
       implicit none
 
@@ -718,9 +718,9 @@ contains
          deallocate(self%levelm)
       end if
       return
-   end subroutine symba_tp_deallocate
+   end subroutine symba_deallocate_tp
 
-   subroutine symba_pl_allocate(self,n)
+   subroutine symba_allocate_pl(self,n)
       !! SyMBA massive body constructor method
       implicit none
 
@@ -753,9 +753,9 @@ contains
       self%index_child(:,:) = 1
 
       return
-   end subroutine symba_pl_allocate
+   end subroutine symba_allocate_pl
 
-   subroutine symba_pl_deallocate(self)
+   subroutine symba_deallocate_pl(self)
       !! SyMBA massive body destructor/finalizer
       implicit none
 
@@ -771,7 +771,7 @@ contains
          deallocate(self%index_child)
       end if
       return
-   end subroutine symba_pl_deallocate
+   end subroutine symba_deallocate_pl
 
    subroutine symba_encounter_allocate(self,n)
       !! Basic Symba encounter structure constructor method
