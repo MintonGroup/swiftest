@@ -1,4 +1,4 @@
-submodule (drift) s_drift_kepu_guess
+submodule (swiftest_data_structures) s_drift_kepu_guess
 contains
    module procedure drift_kepu_guess
    !! author: David A. Minton

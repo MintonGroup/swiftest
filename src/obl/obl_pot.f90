@@ -1,4 +1,4 @@
-submodule (util) s_obl_pot
+submodule (swfitest_data_structures) s_obl_pot
 contains
    module procedure obl_pot
    !! author: David A. Minton
@@ -18,7 +18,7 @@ contains
    oblpot = 0.0_DP
    mu = swiftest_pla%mass(1)
    npl = swiftest_pla%nbody
-   do i = 2, npl
+   do concurrent (i = 2:npl)
       rinv2 = irh(i)**2
       t0 = mu * swiftest_pla%mass(i) * rinv2 * irh(i)
       t1 = j2rp2

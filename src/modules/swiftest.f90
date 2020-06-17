@@ -5,11 +5,7 @@ module swiftest
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
    use swiftest_globals
    use swiftest_data_structures
-   use drift
    use helio
-   use io
-   use obl
-   use orbel
    use rmvs
    use symba
    use util

@@ -1,4 +1,4 @@
-submodule (drift) s_drift_kepu_p3solve
+submodule (swiftest_data_structures) s_drift_kepu_p3solve
 contains
    module procedure drift_kepu_p3solve
    !! author: David A. Minton

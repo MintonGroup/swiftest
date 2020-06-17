@@ -1,4 +1,4 @@
-submodule(io) s_io_get_token
+submodule(swiftest_data_structures) s_io_get_token
 contains
    module procedure io_get_token
    !! author: David A. Minton

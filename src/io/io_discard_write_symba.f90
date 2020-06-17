@@ -32,8 +32,7 @@ implicit none
  300    format(3(e23.16, 1x))
       write(lun, 300) mergeadd_list%vh(:,i)
       ncomp = mergeadd_list%ncomp(i)
-      do index = 1, ncomp !j=0 -> index=1
-         !index = index + 1
+      do index = 1, ncomp 
          write(lun, 200) sub, mergesub_list%name(index), mergesub_list%status(index)
          write(lun, 300) mergesub_list%xh(:,index)
          write(lun, 300) mergesub_list%vh(:,index)

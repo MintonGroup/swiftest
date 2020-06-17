@@ -1,4 +1,4 @@
-submodule (drift) s_drift_kepu_stumpff
+submodule (swiftest_data_structures) s_drift_kepu_stumpff
 contains
    module procedure drift_kepu_stumpff
    !! author: David A. Minton
@@ -10,7 +10,7 @@ contains
    !! Adapted from Hal Levison's Swift routine drift_kepu_stumpff.f
    use swiftest
    implicit none
-   integer(i4b) :: i, n
+   integer(I4B) :: i, n
    real(DP)   :: xm
 
 ! executable code

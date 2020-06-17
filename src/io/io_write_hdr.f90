@@ -1,4 +1,4 @@
-submodule (io) s_io_write_hdr
+submodule (swiftest_data_structures) s_io_write_hdr
 contains   
    module procedure io_write_hdr
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott

@@ -46,11 +46,8 @@
 
 SWIFTEST_MODULES =   swiftest_globals.f90 \
                      swiftest_data_structures.f90 \
-                     drift.f90 \
                      helio.f90 \
-                     io.f90 \
                      module_nrutil.f90 \
-                     orbel.f90 \
                      rmvs.f90 \
                      symba.f90 \
                      util.f90 \
