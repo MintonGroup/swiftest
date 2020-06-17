@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_drift_kepu_stumpff
+submodule (drift) s_drift_kepu_stumpff
 contains
    module procedure drift_kepu_stumpff
    !! author: David A. Minton

@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_drift_kepu_fchk
+submodule (drift) s_drift_kepu_fchk
 contains
    module procedure drift_kepu_fchk
    !! author: David A. Minton

@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_drift_dan
+submodule (drift) s_drift_dan
 contains
    module procedure drift_dan
    !! author: David A. Minton

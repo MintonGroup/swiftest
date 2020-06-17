@@ -177,7 +177,6 @@ clean:
 	cd $(SWIFTEST_HOME)/src/coord;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTEST_HOME)/src/drift_vec;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/helio;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/io;      rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/obl;     rm -f Makefile.Defines Makefile *.gc*
