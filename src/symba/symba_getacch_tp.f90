@@ -25,16 +25,16 @@ contains
       !added by d. minton
       !helio_tpp => symba_tp1p%symba_tppa(i)%thisp
       !^^^^^^^^^^^^^^^^^^
-      symba_tpa%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      if (symba_tpa%status(i) == active) then
+      symba_tpA%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      if (symba_tpA%status(i) == active) then
          !swifter_plp => swifter_pl1p
          !do j = 2, nplm
          do j = 2, nplm
             !swifter_plp => swifter_plp%nextp
-            dx(:) = symba_tpa%xh(:,i) - xh(:, j)
+            dx(:) = symba_tpA%xh(:,i) - xh(:, j)
             r2 = dot_product(dx(:), dx(:))
-            fac = symba_pla%mass(j)/(r2*sqrt(r2))
-            symba_tpa%ah(:,i) = symba_tpa%ah(:,i) - fac*dx(:)
+            fac = symba_plA%mass(j)/(r2*sqrt(r2))
+            symba_tpA%ah(:,i) = symba_tpA%ah(:,i) - fac*dx(:)
          end do
       end if
       !removed by d. minton
@@ -46,36 +46,36 @@ contains
       !helio_tpp => pltpenc_list(i)%tpp
       index_pl = pltpenc_list%indexpl(i)
       index_tp = pltpenc_list%indextp(i)
-      if (symba_tpa%status(index_tp) == active) then
-         dx(:) = symba_tpa%xh(:,index_tp) - symba_pla%xh(:,index_pl)
+      if (symba_tpA%status(index_tp) == active) then
+         dx(:) = symba_tpA%xh(:,index_tp) - symba_plA%xh(:,index_pl)
          r2 = dot_product(dx(:), dx(:))
-         fac = symba_pla%mass(index_pl)/(r2*sqrt(r2))
-         symba_tpa%ah(:,index_tp) = symba_tpa%ah(:,index_tp) + fac*dx(:)
+         fac = symba_plA%mass(index_pl)/(r2*sqrt(r2))
+         symba_tpA%ah(:,index_tp) = symba_tpA%ah(:,index_tp) + fac*dx(:)
       end if
    end do
-   if (j2rp2 /= 0.0_DP) then
+   if (config%j2rp2 /= 0.0_DP) then
       if (lmalloc) then
-         allocate(aobl(ndim, nplmax), irh(nplmax), xht(ndim, ntpmax), aoblt(ndim, ntpmax), irht(ntpmax))
+         allocate(aobl(ndim, config%nplmax), irh(config%nplmax), xht(ndim, config%ntpmax), aoblt(ndim, config%ntpmax), irht(config%ntpmax))
          lmalloc = .false.
       end if
       do i = 2, npl
          r2 = dot_product(xh(:, i), xh(:, i))
          irh(i) = 1.0_DP/sqrt(r2)
       end do
-      call obl_acc(symba_pla, j2rp2, j4rp4, symba_pla%xh(:,:), irh, aobl)
-      mu = symba_pla%mass(1)
+      call obl_acc(symba_plA, config%j2rp2, config%j4rp4, symba_plA%xh(:,:), irh, aobl)
+      mu = symba_plA%mass(1)
       do i = 1, ntp
-         xht(:, i) = symba_tpa%xh(:,i) !optimize
+         xht(:, i) = symba_tpA%xh(:,i) !optimize
          r2 = dot_product(xht(:, i), xht(:, i))
          irht(i) = 1.0_DP/sqrt(r2)
       end do
-      call obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, mu)
+      call obl_acc_tp(ntp, xht, config%j2rp2, config%j4rp4, irht, aoblt, mu)
       do i = 1, ntp
-         if (symba_tpa%status(i) == active) &
-         symba_tpa%ah(:,i) = symba_tpa%ah(:,i) + aoblt(:, i) - aobl(:, 1)
+         if (symba_tpA%status(i) == active) &
+         symba_tpA%ah(:,i) = symba_tpA%ah(:,i) + aoblt(:, i) - aobl(:, 1)
       end do
    end if
-   if (lextra_force) call symba_user_getacch_tp(t, ntp, symba_tpa)
+   if (lextra_force) call symba_user_getacch_tp(t, ntp, symba_tpA)
 
    return
 

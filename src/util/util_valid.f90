@@ -14,10 +14,10 @@ contains
 ! executable code
    allocate(idarr(npl+ntp))
    do i = 1, npl
-      idarr(i) = swiftest_pla%name(i)
+      idarr(i) = swiftest_plA%name(i)
    end do
    do i = 1, ntp
-      idarr(npl+i) = swiftest_tpa%name(i)
+      idarr(npl+i) = swiftest_tpA%name(i)
    end do
    call util_sort(idarr)
    do i = 1, npl + ntp - 1

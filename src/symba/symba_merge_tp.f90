@@ -20,17 +20,17 @@ implicit none
    indexpl = pltpenc_list%indexpl(index_enc)
    indextp = pltpenc_list%indextp(index_enc)
 
-   rlim = symba_pla%helio%swiftest%radius(indexpl)
-   xr(:) = symba_tpa%helio%swiftest%xh(:,indextp) - symba_pla%helio%swiftest%xh(:,indexpl)
+   rlim = symba_plA%radius(indexpl)
+   xr(:) = symba_tpA%xh(:,indextp) - symba_plA%xh(:,indexpl)
    r2 = dot_product(xr(:), xr(:))
    rlim2 = rlim*rlim
    if (rlim2 >= r2) then
       lmerge = .true.
    else
-      vr(:) = symba_tpa%helio%swiftest%vb(:,indextp) - symba_pla%helio%swiftest%vb(:,indexpl)
+      vr(:) = symba_tpA%vb(:,indextp) - symba_plA%vb(:,indexpl)
       vdotr = dot_product(xr(:), vr(:))
       if (pltpenc_list%lvdotr(index_enc) .and. (vdotr > 0.0_DP)) then
-         mu = symba_pla%helio%swiftest%mass(indexpl)
+         mu = symba_plA%mass(indexpl)
          tcr2 = r2/dot_product(vr(:), vr(:))
          dt2 = dt*dt
          if (tcr2 <= dt2) then
@@ -39,13 +39,13 @@ implicit none
          end if
          if (.not. lmerge) then
             if (encounter_file /= "") then
-               name1 = symba_pla%helio%swiftest%name(indexpl)
-               rad1 = symba_pla%helio%swiftest%radius(indexpl)
-               xh1(:) = symba_pla%helio%swiftest%xh(:,indexpl)
-               vh1(:) = symba_pla%helio%swiftest%vb(:,indexpl) - vbs(:)
-               name2 = symba_tpa%helio%swiftest%name(indextp)
-               xh2(:) = symba_tpa%helio%swiftest%xh(:,indextp)
-               vh2(:) = symba_tpa%helio%swiftest%vb(:,indextp) - vbs(:)
+               name1 = symba_plA%name(indexpl)
+               rad1 = symba_plA%radius(indexpl)
+               xh1(:) = symba_plA%xh(:,indexpl)
+               vh1(:) = symba_plA%vb(:,indexpl) - vbs(:)
+               name2 = symba_tpA%name(indextp)
+               xh2(:) = symba_tpA%xh(:,indextp)
+               vh2(:) = symba_tpA%vb(:,indextp) - vbs(:)
                call io_write_encounter(t, name1, name2, mu, 0.0_DP, rad1, 0.0_DP, &
                   xh1(:), xh2(:), vh1(:), vh2(:), encounter_file, out_type)
             end if
@@ -54,9 +54,9 @@ implicit none
    end if
    if (lmerge) then
       pltpenc_list%status(index_enc) = merged
-      symba_tpa%helio%swiftest%status = discarded_plr
-      write(*, *) "particle ", symba_tpa%helio%swiftest%name, " too close to massive body ", &
-      symba_pla%helio%swiftest%name, " at t = ", t
+      symba_tpA%status = discarded_plr
+      write(*, *) "particle ", symba_tpA%name, " too close to massive body ", &
+      symba_plA%name, " at t = ", t
    end if
 
    return

@@ -64,7 +64,7 @@ contains
          arr(j) = a
          jstack = jstack + 2
          if (jstack > NSTACK) then
-            write(*, *) "swifter error:"
+            write(*, *) "Swiftest Error:"
             write(*, *) "   NSTACK too small in util_sort_I4B"
             call util_exit(failure)
          end if

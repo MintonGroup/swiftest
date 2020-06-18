@@ -14,14 +14,14 @@ implicit none
    real(DP)            :: rinv2, t0, t1, t2, t3, fac1, fac2, msun
 
 ! executable code
-   msun = swiftest_pla%mass(1)
-   npl = swiftest_pla%nbody
+   msun = swiftest_plA%mass(1)
+   npl = swiftest_plA%nbody
    do concurrent (i = 2:npl)
       rinv2 = irh(i)**2
       t0 = -msun * rinv2 * rinv2 *irh(i)
-      t1 = 1.5_DP * j2rp2
+      t1 = 1.5_DP * config%j2rp2
       t2 = xh(3, i) * xh(3, i) * rinv2
-      t3 = 1.875_DP * j4rp4 * rinv2
+      t3 = 1.875_DP * config%j4rp4 * rinv2
       fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21 * t2) * t3) * t2)
       fac2 = 2 * t0 * (t1 - (2.0_DP - (14 * t2 / 3.0_DP)) * t3)
       aobl(:, i) = fac1*xh(:, i)
@@ -29,7 +29,7 @@ implicit none
    end do
    aobl(:, 1) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
    do concurrent (i = 2:npl)
-      aobl(:, 1) = aobl(:, 1) - swiftest_pla%mass(i) * aobl(:, i) / msun
+      aobl(:, 1) = aobl(:, 1) - swiftest_plA%mass(i) * aobl(:, i) / msun
    end do
 
    return

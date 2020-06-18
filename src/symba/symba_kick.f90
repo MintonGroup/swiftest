@@ -23,22 +23,22 @@ implicit none
    do i = 1, nplplenc
       index_i  = plplenc_list%index1(i)
       index_j  = plplenc_list%index2(i)
-      symba_pla%helio%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      symba_pla%helio%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      symba_plA%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      symba_plA%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
    end do
    do i = 1, npltpenc
       index_tp  = pltpenc_list%indextp(i)
-      symba_tpa%helio%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      symba_tpA%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
    end do
    do i = 1, nplplenc
       if (plplenc_list%status(i) == active) then
          index_i  = plplenc_list%index1(i) 
          index_j  = plplenc_list%index2(i) 
-         if ((symba_pla%levelg(index_i) >= irm1) .and. (symba_pla%levelg(index_j) >= irm1)) then
-            ri = ((symba_pla%helio%swiftest%rhill(index_i) &
-               + symba_pla%helio%swiftest%rhill(index_j))**2)*(rhscale**2)*(rshell**(2*irecl))
+         if ((symba_plA%levelg(index_i) >= irm1) .and. (symba_plA%levelg(index_j) >= irm1)) then
+            ri = ((symba_plA%rhill(index_i) &
+               + symba_plA%rhill(index_j))**2)*(rhscale**2)*(rshell**(2*irecl))
             rim1 = ri*(rshell**2)
-            dx(:) = symba_pla%helio%swiftest%xh(:,index_j) - symba_pla%helio%swiftest%xh(:,index_i)
+            dx(:) = symba_plA%xh(:,index_j) - symba_plA%xh(:,index_i)
             r2 = dot_product(dx(:), dx(:))
             if (r2 < rim1) then
                fac = 0.0_DP
@@ -51,10 +51,10 @@ implicit none
                ir3 = 1.0_DP/(r2*sqrt(r2))
                fac = ir3
             end if
-            faci = fac*symba_pla%helio%swiftest%mass(index_i)
-            facj = fac*symba_pla%helio%swiftest%mass(index_j)
-            symba_pla%helio%ah(:,index_i) = symba_pla%helio%ah(:,index_i) + facj*dx(:)
-            symba_pla%helio%ah(:,index_j) = symba_pla%helio%ah(:,index_j) - faci*dx(:)
+            faci = fac*symba_plA%mass(index_i)
+            facj = fac*symba_plA%mass(index_j)
+            symba_plA%ah(:,index_i) = symba_plA%ah(:,index_i) + facj*dx(:)
+            symba_plA%ah(:,index_j) = symba_plA%ah(:,index_j) - faci*dx(:)
          end if
       end if
    end do
@@ -62,10 +62,10 @@ implicit none
       if (pltpenc_list%status(i) == active) then
          index_pl  = pltpenc_list%indexpl(i) 
          index_tp  = pltpenc_list%indextp(i) 
-         if ((symba_pla%levelg(index_pl) >= irm1) .and. (symba_tpa%levelg(index_tp) >= irm1)) then
-            ri = ((symba_pla%helio%swiftest%rhill(index_pl))**2)*(rhscale**2)*(rshell**(2*irecl))
+         if ((symba_plA%levelg(index_pl) >= irm1) .and. (symba_tpA%levelg(index_tp) >= irm1)) then
+            ri = ((symba_plA%rhill(index_pl))**2)*(rhscale**2)*(rshell**(2*irecl))
             rim1 = ri*(rshell**2)
-            dx(:) = symba_tpa%helio%swiftest%xh(:,index_tp) - symba_pla%helio%swiftest%xh(:,index_pl)
+            dx(:) = symba_tpA%xh(:,index_tp) - symba_plA%xh(:,index_pl)
             r2 = dot_product(dx(:), dx(:))
             if (r2 < rim1) then
                fac = 0.0_DP
@@ -78,24 +78,24 @@ implicit none
                ir3 = 1.0_DP/(r2*sqrt(r2))
                fac = ir3
             end if
-            faci = fac*symba_pla%helio%swiftest%mass(index_pl)
-            symba_tpa%helio%ah(:,index_tp) = symba_tpa%helio%ah(:,index_tp) - faci*dx(:)
+            faci = fac*symba_plA%mass(index_pl)
+            symba_tpA%ah(:,index_tp) = symba_tpA%ah(:,index_tp) - faci*dx(:)
          end if
       end if
    end do
    do i = 1, nplplenc
       index_i  = plplenc_list%index1(i) 
       index_j  = plplenc_list%index2(i) 
-      symba_pla%helio%swiftest%vb(:,index_i) = symba_pla%helio%swiftest%vb(:,index_i) + sgn*dt*symba_pla%helio%ah(:,index_i)
-      symba_pla%helio%swiftest%vb(:,index_j) = symba_pla%helio%swiftest%vb(:,index_j) + sgn*dt*symba_pla%helio%ah(:,index_j)
-      symba_pla%helio%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      symba_pla%helio%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      symba_plA%vb(:,index_i) = symba_plA%vb(:,index_i) + sgn*dt*symba_plA%ah(:,index_i)
+      symba_plA%vb(:,index_j) = symba_plA%vb(:,index_j) + sgn*dt*symba_plA%ah(:,index_j)
+      symba_plA%ah(:,index_i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      symba_plA%ah(:,index_j) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
    end do
    do i = 1, npltpenc
       index_tp  = pltpenc_list%indextp(i)
-      if (symba_tpa%helio%swiftest%status(index_tp) == active)   &
-      symba_tpa%helio%swiftest%vb(:,index_tp) = symba_tpa%helio%swiftest%vb(:,index_tp) + sgn*dt*symba_tpa%helio%ah(:,index_tp)
-      symba_tpa%helio%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      if (symba_tpA%status(index_tp) == active)   &
+      symba_tpA%vb(:,index_tp) = symba_tpA%vb(:,index_tp) + sgn*dt*symba_tpA%ah(:,index_tp)
+      symba_tpA%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
    end do
 
    return

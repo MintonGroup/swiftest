@@ -20,12 +20,12 @@ contains
       call util_exit(failure)
    end if
    write(LUN) npl
-   write(LUN) swiftest_pla%name(:)
-   write(LUN) swiftest_pla%mass(:)
-   if (lrhill_present) write(LUN) swiftest_pla%rhill(:) 
-   if (lclose) write(LUN) swiftest_pla%radius(:) 
-   write(LUN) swiftest_pla%xh(:,:)
-   write(LUN) swiftest_pla%vh(:,:)
+   write(LUN) swiftest_plA%name(:)
+   write(LUN) swiftest_plA%mass(:)
+   if (lrhill_present) write(LUN) swiftest_plA%rhill(:) 
+   if (lclose) write(LUN) swiftest_plA%radius(:) 
+   write(LUN) swiftest_plA%xh(:,:)
+   write(LUN) swiftest_plA%vh(:,:)
    close(LUN)
    idx = idx + 1
    if (idx > 2) idx = 1

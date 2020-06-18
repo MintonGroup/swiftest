@@ -21,9 +21,9 @@ contains
       call util_exit(failure)
    end if
    write(LUN) ntp
-   write(LUN) swiftest_tpa%name(:)
-   write(LUN) swiftest_tpa%xh(:,:)
-   write(LUN) swiftest_tpa%vh(:,:)
+   write(LUN) swiftest_tpA%name(:)
+   write(LUN) swiftest_tpA%xh(:,:)
+   write(LUN) swiftest_tpA%vh(:,:)
    close(LUN)
    idx = idx + 1
    if (idx > 2) idx = 1

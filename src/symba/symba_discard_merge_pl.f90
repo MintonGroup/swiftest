@@ -15,38 +15,38 @@ implicit none
    integer(I4B), dimension(npl)  :: array_child
 
 ! executable code
-   msun = symba_pla%helio%swiftest%mass(1)
-   vbs(:) = symba_pla%helio%swiftest%vb(:,1)
+   msun = symba_plA%mass(1)
+   vbs(:) = symba_plA%vb(:,1)
    do i = 1, nplplenc
       if (plplenc_list%status(i) == merged) then
          index1 = plplenc_list%index1(i)
          index2 = plplenc_list%index2(i)
          ! this if statement is for if lfragmentation = false
-         if ((symba_pla%helio%swiftest%status(index1) == active) .and.                                &
-             (symba_pla%helio%swiftest%status(index2) == active)) then
+         if ((symba_plA%status(index1) == active) .and.                                &
+             (symba_plA%status(index2) == active)) then
 
             enc_big = plplenc_list%index1(i)
 
-            m = symba_pla%helio%swiftest%mass(enc_big)
-            r = symba_pla%helio%swiftest%radius(enc_big)
+            m = symba_plA%mass(enc_big)
+            r = symba_plA%radius(enc_big)
             r3 = r**3
             mmax = m
             mtot = m
-            x(:) = m*symba_pla%helio%swiftest%xh(:,enc_big)
-            v(:) = m*symba_pla%helio%swiftest%vb(:,enc_big)
+            x(:) = m*symba_plA%xh(:,enc_big)
+            v(:) = m*symba_plA%vb(:,enc_big)
             indexk = enc_big
 
-            nchild = symba_pla%nchild(enc_big)
-            array_child(1:npl) = symba_pla%index_child(1:npl,enc_big)
+            nchild = symba_plA%nchild(enc_big)
+            array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
 
             do j = 1, nchild
                indexchild = array_child(j)
-               m = symba_pla%helio%swiftest%mass(indexchild)
-               r = symba_pla%helio%swiftest%radius(indexchild)
+               m = symba_plA%mass(indexchild)
+               r = symba_plA%radius(indexchild)
                r3 = r3 + r**3
                mtot = mtot + m
-               x(:) = x(:) + m*symba_pla%helio%swiftest%xh(:,indexchild)
-               v(:) = v(:) + m*symba_pla%helio%swiftest%vb(:,indexchild)
+               x(:) = x(:) + m*symba_plA%xh(:,indexchild)
+               v(:) = v(:) + m*symba_plA%vb(:,indexchild)
                if (m > mmax) then
                   mmax = m
                   indexk = indexchild
@@ -55,66 +55,66 @@ implicit none
             x(:) = x(:)/mtot
             v(:) = v(:)/mtot
             r = r3**(1.0_DP/3.0_DP)
-            symba_pla%helio%swiftest%mass(indexk) = mtot
-            symba_pla%helio%swiftest%radius(indexk) = r
-            symba_pla%helio%swiftest%xh(:,indexk) = x(:)
-            symba_pla%helio%swiftest%vb(:,indexk) = v(:)
-            symba_pla%helio%swiftest%vh(:,indexk) = v(:) - vbs(:)
+            symba_plA%mass(indexk) = mtot
+            symba_plA%radius(indexk) = r
+            symba_plA%xh(:,indexk) = x(:)
+            symba_plA%vb(:,indexk) = v(:)
+            symba_plA%vh(:,indexk) = v(:) - vbs(:)
             mu = msun*mtot/(msun + mtot)
             r = sqrt(dot_product(x(:), x(:)))
-            v(:) = symba_pla%helio%swiftest%vh(:,indexk)
+            v(:) = symba_plA%vh(:,indexk)
             v2 = dot_product(v(:), v(:))
             energy = -1.0_DP*msun*mtot/r + 0.5_DP*mu*v2
             ap = -1.0_DP*msun*mtot/(2.0_DP*energy)
-            symba_pla%helio%swiftest%rhill(indexk) = ap*(((mu/msun)/3.0_DP)**(1.0_DP/3.0_DP))
-            array_child(1:npl) = symba_pla%index_child(1:npl,enc_big)
+            symba_plA%rhill(indexk) = ap*(((mu/msun)/3.0_DP)**(1.0_DP/3.0_DP))
+            array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             indexchild = enc_big
             ldiscard = .true.
             do j = 0, nchild
                if (indexchild /= indexk) then
-                  symba_pla%helio%swiftest%status(indexchild) = merged
+                  symba_plA%status(indexchild) = merged
                end if
                indexchild = array_child(j+1)
             end do
 
-         else if ((symba_pla%helio%swiftest%status(index1) == disruption) .and.    &                              
-             (symba_pla%helio%swiftest%status(index2) == disruption)) then 
+         else if ((symba_plA%status(index1) == disruption) .and.    &                              
+             (symba_plA%status(index2) == disruption)) then 
 
             enc_big = plplenc_list%index1(i)
-            nchild = symba_pla%nchild(enc_big)
-            array_child(1:npl) = symba_pla%index_child(1:npl,enc_big)
+            nchild = symba_plA%nchild(enc_big)
+            array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             do j = 1, nchild
-               symba_pla%helio%swiftest%status(array_child(j)) = inactive
+               symba_plA%status(array_child(j)) = inactive
             end do
             ldiscard = .true.
-         else if ((symba_pla%helio%swiftest%status(index1) == supercatastrophic) .and.   &                               
-             (symba_pla%helio%swiftest%status(index2) == supercatastrophic)) then 
+         else if ((symba_plA%status(index1) == supercatastrophic) .and.   &                               
+             (symba_plA%status(index2) == supercatastrophic)) then 
             
             enc_big = plplenc_list%index1(i)
-            nchild = symba_pla%nchild(enc_big)
-            array_child(1:npl) = symba_pla%index_child(1:npl,enc_big)
+            nchild = symba_plA%nchild(enc_big)
+            array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             do j = 1, nchild
-               symba_pla%helio%swiftest%status(array_child(j)) = inactive
+               symba_plA%status(array_child(j)) = inactive
             end do
             ldiscard = .true.
-         else if ((symba_pla%helio%swiftest%status(index1) == hit_and_run) .and.    &                            
-             (symba_pla%helio%swiftest%status(index2) == hit_and_run)) then 
+         else if ((symba_plA%status(index1) == hit_and_run) .and.    &                            
+             (symba_plA%status(index2) == hit_and_run)) then 
 
             enc_big = plplenc_list%index1(i)
-            nchild = symba_pla%nchild(enc_big)
-            array_child(1:npl) = symba_pla%index_child(1:npl,enc_big)
+            nchild = symba_plA%nchild(enc_big)
+            array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             do j = 1, nchild
-               symba_pla%helio%swiftest%status(array_child(j)) = inactive
+               symba_plA%status(array_child(j)) = inactive
             end do
             ldiscard = .true.
-         else if ((symba_pla%helio%swiftest%status(index1) == graze_and_merge) .and.  &                              
-             (symba_pla%helio%swiftest%status(index2) == graze_and_merge)) then 
+         else if ((symba_plA%status(index1) == graze_and_merge) .and.  &                              
+             (symba_plA%status(index2) == graze_and_merge)) then 
 
             enc_big = plplenc_list%index1(i)
-            nchild = symba_pla%nchild(enc_big)
-            array_child(1:npl) = symba_pla%index_child(1:npl,enc_big)
+            nchild = symba_plA%nchild(enc_big)
+            array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             do j = 1, nchild
-               symba_pla%helio%swiftest%status(array_child(j)) = inactive
+               symba_plA%status(array_child(j)) = inactive
             end do
             ldiscard = .true.
          end if

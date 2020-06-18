@@ -16,13 +16,13 @@ implicit none
 ! executable code
    do i = 2, nplm
       do j = i + 1, npl
-         dx(:) = helio_pla%swiftest%xh(:,j) - helio_pla%swiftest%xh(:,i)
+         dx(:) = helio_plA%swiftest%xh(:,j) - helio_plA%swiftest%xh(:,i)
          rji2 = dot_product(dx(:), dx(:))
          irij3 = 1.0_DP/(rji2*sqrt(rji2))
-         faci = helio_pla%swiftest%mass(i)*irij3
-         facj = helio_pla%swiftest%mass(j)*irij3
-         helio_pla%ahi(:,i) = helio_pla%ahi(:,i) + facj*dx(:)
-         helio_pla%ahi(:,j) = helio_pla%ahi(:,j) - faci*dx(:)
+         faci = helio_plA%swiftest%mass(i)*irij3
+         facj = helio_plA%swiftest%mass(j)*irij3
+         helio_plA%ahi(:,i) = helio_plA%ahi(:,i) + facj*dx(:)
+         helio_plA%ahi(:,j) = helio_plA%ahi(:,j) - faci*dx(:)
       end do
    end do
    return

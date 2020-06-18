@@ -34,15 +34,15 @@ implicit none
    ! pull in the information about the two particles involved in the collision 
    index1 = plplenc_list%index1(index_enc)
    index2 = plplenc_list%index2(index_enc)
-   index1_parent = symba_pla%index_parent(index1)
-   index2_parent = symba_pla%index_parent(index2)
-   name1 = symba_pla%helio%swiftest%name(index1)
-   name2 = symba_pla%helio%swiftest%name(index2)
-   mass1 = symba_pla%helio%swiftest%mass(index1) ! the mass of the first particle in the collision not including all it's children
-   mass2 = symba_pla%helio%swiftest%mass(index2)
-   radius1 = symba_pla%helio%swiftest%radius(index1)
-   radius2 = symba_pla%helio%swiftest%radius(index2)
-   msun = symba_pla%helio%swiftest%mass(1)
+   index1_parent = symba_plA%index_parent(index1)
+   index2_parent = symba_plA%index_parent(index2)
+   name1 = symba_plA%name(index1)
+   name2 = symba_plA%name(index2)
+   mass1 = symba_plA%mass(index1) ! the mass of the first particle in the collision not including all it's children
+   mass2 = symba_plA%mass(index2)
+   radius1 = symba_plA%radius(index1)
+   radius2 = symba_plA%radius(index2)
+   msun = symba_plA%mass(1)
 
    ! find com
    x_com = ((x1(1) * m1) + (x2(1) * m2)) / (m1 + m2)
@@ -89,16 +89,16 @@ implicit none
     end if
    end do
 
-   ! set the status of the particles in symba_pla to disruption
-   symba_pla%helio%swiftest%status(index1) = disruption
-   symba_pla%helio%swiftest%status(index2) = disruption
+   ! set the status of the particles in symba_plA to disruption
+   symba_plA%status(index1) = disruption
+   symba_plA%status(index2) = disruption
 
    l(:) = (v2(:) - v1(:)) / norm2(v2(:)-v1(:))
    p(:) = cross_product_disruption(xr(:) / norm2(xr(:)), l(:))
    kk(:) = cross_product_disruption(l(:),p(:))
 
-   rhill_p1 = symba_pla%helio%swiftest%rhill(index1_parent)
-   rhill_p2 = symba_pla%helio%swiftest%rhill(index2_parent)
+   rhill_p1 = symba_plA%rhill(index1_parent)
+   rhill_p2 = symba_plA%rhill(index2_parent)
    r_smallestcircle = (rhscale * rhill_p1 + rhscale * rhill_p2) / (2.0_DP * sin(pi / 2.0_DP))
 
    ! check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
@@ -127,7 +127,7 @@ implicit none
        nmergeadd = nmergeadd + 1
        mergeadd_list%status(nmergeadd) = disruption
        mergeadd_list%ncomp(nmergeadd) = 2
-       mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+       mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
        mergeadd_list%mass(nmergeadd) = mres(1)
        mergeadd_list%radius(nmergeadd) = rres(1)
        mtot = mtot + mergeadd_list%mass(nmergeadd)                   
@@ -142,7 +142,7 @@ implicit none
        nmergeadd = nmergeadd + 1
        mergeadd_list%status(nmergeadd) = disruption
        mergeadd_list%ncomp(nmergeadd) = 2
-       mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+       mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
        mergeadd_list%mass(nmergeadd) = mres(2)
        mergeadd_list%radius(nmergeadd) = rres(2)
        mtot = mtot + mergeadd_list%mass(nmergeadd)
@@ -152,7 +152,7 @@ implicit none
         nmergeadd = nmergeadd + 1
         mergeadd_list%status(nmergeadd) = disruption
         mergeadd_list%ncomp(nmergeadd) = 2
-        mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+        mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
         m_rem = (m1 + m2) - (mres(1) + mres(2))
         mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
         mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * pi * avg_d))  & 
@@ -168,7 +168,7 @@ implicit none
         m_rem = (m1 + m2) - mres(1)
         frags_added = frags_added + 1
         nmergeadd = nmergeadd + 1
-        mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+        mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
         mergeadd_list%status(nmergeadd) = disruption
         mergeadd_list%ncomp(nmergeadd) = 2
         mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
@@ -187,7 +187,7 @@ implicit none
        !nmergeadd = nmergeadd + 1
        !mergeadd_list%status(nmergeadd) = disruption
        !mergeadd_list%ncomp(nmergeadd) = 2
-       !mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i
+       !mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
        !m_rem = (m1 + m2) - (mres(1) + mres(2))
        !mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
        !mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * pi * avg_d))  & 

@@ -29,7 +29,7 @@ contains
    !!    as the newline characters are ignored in the input file when compiled in ifort.
 
    !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) config
-   call config%config_reader(LUN,iotype="none",v_list=(/0/),iostat=ierr,iomsg=error_message)
+   call config_reader(LUN,iotype="none",v_list=(/0/),iostat=ierr,iomsg=error_message)
    if (ierr /= 0) then
       write(*,*) 'Swiftest error reading ', trim(adjustl(inparfile))
       write(*,*) ierr,trim(adjustl(error_message))

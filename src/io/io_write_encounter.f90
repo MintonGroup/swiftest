@@ -26,13 +26,13 @@ implicit none
    !      lfirst = .false.
    !   end if
    !   if (ierr /= 0) then
-   !      write(*, *) "swifter error:"
+   !      write(*, *) "Swiftest Error:"
    !      write(*, *) "   unable to open binary encounter file"
    !      call util_exit(failure)
    !   end if
    !   ierr = ixdrdouble(iu, t)
    !   if (ierr < 0) then
-   !      write(*, *) "swifter error:"
+   !      write(*, *) "Swiftest Error:"
    !      write(*, *) "   unable to write binary file record"
    !      call util_exit(failure)
    !   end if
@@ -46,13 +46,13 @@ implicit none
          lfirst = .false.
       end if
       if (ierr /= 0) then
-         write(*, *) "swifter error:"
+         write(*, *) "Swiftest Error:"
          write(*, *) "   unable to open binary encounter file"
          call util_exit(failure)
       end if
       write(iu, iostat = ierr) t
       if (ierr < 0) then
-         write(*, *) "swifter error:"
+         write(*, *) "Swiftest Error:"
          write(*, *) "   unable to write binary file record"
          call util_exit(failure)
       end if
@@ -61,7 +61,7 @@ implicit none
       close(unit = iu, iostat = ierr)
    !end if
    if (ierr /= 0) then
-      write(*, *) "swifter error:"
+      write(*, *) "Swiftest Error:"
       write(*, *) "   unable to close binary encounter file"
       call util_exit(failure)
    end if

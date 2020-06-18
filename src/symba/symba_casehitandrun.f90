@@ -36,15 +36,15 @@ implicit none
    ! pull in the information about the two particles involved in the collision 
    index1 = plplenc_list%index1(index_enc)
    index2 = plplenc_list%index2(index_enc)
-   index1_parent = symba_pla%index_parent(index1)
-   index2_parent = symba_pla%index_parent(index2)
-   name1 = symba_pla%helio%swiftest%name(index1)
-   name2 = symba_pla%helio%swiftest%name(index2)
-   mass1 = symba_pla%helio%swiftest%mass(index1) ! the mass of the first particle in the collision not including all it's children
-   mass2 = symba_pla%helio%swiftest%mass(index2)
-   radius1 = symba_pla%helio%swiftest%radius(index1)
-   radius2 = symba_pla%helio%swiftest%radius(index2)
-   msun = symba_pla%helio%swiftest%mass(1)
+   index1_parent = symba_plA%index_parent(index1)
+   index2_parent = symba_plA%index_parent(index2)
+   name1 = symba_plA%name(index1)
+   name2 = symba_plA%name(index2)
+   mass1 = symba_plA%mass(index1) ! the mass of the first particle in the collision not including all it's children
+   mass2 = symba_plA%mass(index2)
+   radius1 = symba_plA%radius(index1)
+   radius2 = symba_plA%radius(index2)
+   msun = symba_plA%mass(1)
 
    ! determine which of the two particles in the collision is larger where mass includes the mass of all their children
    if (m2 > m1) then
@@ -125,9 +125,9 @@ implicit none
     end if
    end do
 
-   ! set the status of the particles in symba_pla to hit_and_run
-   symba_pla%helio%swiftest%status(index1) = hit_and_run
-   symba_pla%helio%swiftest%status(index2) = hit_and_run
+   ! set the status of the particles in symba_plA to hit_and_run
+   symba_plA%status(index1) = hit_and_run
+   symba_plA%status(index2) = hit_and_run
 
    l(:) = (v2(:) - v1(:)) / norm2(v2(:)-v1(:))
    p(:) = cross_product_hitandrun(xr(:) / norm2(xr(:)), l(:))
@@ -139,8 +139,8 @@ implicit none
    nstart = nmergeadd + 1 ! start of new fragments in mergeadd_list
    ! increment around the circle for positions of fragments
    ! calculate the positions of the new fragments in a circle of radius rhill_keep
-   rhill_keep = symba_pla%helio%swiftest%rhill(index_keep_parent)
-   rhill_rm = symba_pla%helio%swiftest%rhill(index_rm_parent)
+   rhill_keep = symba_plA%rhill(index_keep_parent)
+   rhill_rm = symba_plA%rhill(index_rm_parent)
    r_smallestcircle = (rhscale * rhill_rm + rhscale * rhill_keep) / (2.0_DP * sin(pi / 2.0_DP))
 
    ! check that no fragments will be added interior of the smallest orbit that the timestep can reliably resolve
@@ -155,7 +155,7 @@ implicit none
    nmergeadd = nmergeadd + 1
    mergeadd_list%status(nmergeadd) = hit_and_run
    mergeadd_list%ncomp(nmergeadd) = 2
-   mergeadd_list%name(nmergeadd) = symba_pla%helio%swiftest%name(index_keep)
+   mergeadd_list%name(nmergeadd) = symba_plA%name(index_keep)
    mergeadd_list%mass(nmergeadd) = mass_keep
    mergeadd_list%radius(nmergeadd) = rad_keep
    mergeadd_list%xh(:,nmergeadd) = xh_keep
@@ -169,7 +169,7 @@ implicit none
     nmergeadd = nmergeadd + 1
     mergeadd_list%status(nmergeadd) = hit_and_run
     mergeadd_list%ncomp(nmergeadd) = 2
-    mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i - 1
+    mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i - 1
     mergeadd_list%mass(nmergeadd) = mass_rm
     mergeadd_list%radius(nmergeadd) = rad_rm
     mergeadd_list%xh(:,nmergeadd) = xh_rm(:)
@@ -192,7 +192,7 @@ implicit none
        nmergeadd = nmergeadd + 1
        mergeadd_list%status(nmergeadd) = hit_and_run
        mergeadd_list%ncomp(nmergeadd) = 2
-       mergeadd_list%name(nmergeadd) = nplmax + ntpmax + fragmax + i - 1
+       mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i - 1
        mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
        mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * pi * d_rm))  & 
         ** (1.0_DP / 3.0_DP) 
@@ -203,7 +203,7 @@ implicit none
         ! if yes, update the mass of the slr to be the mass of the removed particle and give it all the
         ! characteristics of the removed particle
        
-       !   mergeadd_list%name(nmergeadd) = symba_pla%helio%swiftest%name(index_rm)
+       !   mergeadd_list%name(nmergeadd) = symba_plA%name(index_rm)
        !   mergeadd_list%mass(nmergeadd) = mass_rm
        !   mergeadd_list%radius(nmergeadd) = rad_rm
        !   mergeadd_list%xh(:,nmergeadd) = xh_rm

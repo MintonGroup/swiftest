@@ -13,18 +13,18 @@ implicit none
    real(DP)            :: mu
 
 ! executable code
-   mu = symba_pla%helio%swiftest%mass(1)
+   mu = symba_plA%mass(1)
 !$omp parallel do default(none) &
-!$omp shared (symba_pla, npl, mu, dt, irec) &
+!$omp shared (symba_plA, npl, mu, dt, irec) &
 !$omp private (i, iflag)
    do i = 2, npl
-      if ((symba_pla%levelg(i) == irec) .and. (symba_pla%helio%swiftest%status(i) == active)) then
-         call drift_one(mu, symba_pla%helio%swiftest%xh(:,i), symba_pla%helio%swiftest%vb(:,i), dt, iflag)
+      if ((symba_plA%levelg(i) == irec) .and. (symba_plA%status(i) == active)) then
+         call drift_one(mu, symba_plA%xh(:,i), symba_plA%vb(:,i), dt, iflag)
          if (iflag /= 0) then
-            write(*, *) " massive body ", symba_pla%helio%swiftest%name(i), " is lost!!!!!!!!!!"
+            write(*, *) " massive body ", symba_plA%name(i), " is lost!!!!!!!!!!"
             write(*, *) mu, dt
-            write(*, *) symba_pla%helio%swiftest%xh(:,i)
-            write(*, *) symba_pla%helio%swiftest%vb(:,i)
+            write(*, *) symba_plA%xh(:,i)
+            write(*, *) symba_plA%vb(:,i)
             write(*, *) " stopping "
             call util_exit(failure)
          end if

@@ -117,9 +117,9 @@ interface
    end subroutine io_discard_write_symba
 
    module subroutine symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-      symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+      symba_plA, nplplenc, plplenc_list, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2, config)
       implicit none
-      integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+      integer(I4B), intent(in)       :: index_enc
       integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, fragmax
       real(DP), intent(in)          :: t, dt
       real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
@@ -129,13 +129,14 @@ interface
       type(symba_plplenc), intent(inout)      :: plplenc_list
       type(symba_merger), intent(inout)     :: mergeadd_list, mergesub_list
       type(symba_pl), intent(inout)      :: symba_plA
+      type(swiftest_configuration)        :: config
 
    end subroutine symba_casedisruption
 
    module subroutine symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-      symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+      symba_plA, nplplenc, plplenc_list, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2, config)
       implicit none
-      integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+      integer(I4B), intent(in)       :: index_enc, config%nplmax, config%ntpmax
       integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, fragmax
       real(DP), intent(in)          :: t, dt
       real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
@@ -165,10 +166,10 @@ interface
 
    module subroutine symba_caseresolve (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
       eoffset, vbs, & 
-      npl, symba_plA, nplplenc, plplenc_list, regime, nplmax, ntpmax, fragmax, mres, rres, array_index1_child, &
+      npl, symba_plA, nplplenc, plplenc_list, regime, config%nplmax, config%ntpmax, fragmax, mres, rres, array_index1_child, &
       array_index2_child, m1, m2, rad1, rad2, x1, x2, v1, v2)
       implicit none
-      integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+      integer(I4B), intent(in)       :: index_enc, config%nplmax, config%ntpmax
       integer(I4B), intent(inout)        :: npl, nmergeadd, nmergesub, nplplenc, fragmax
       real(DP), intent(in)          :: t, dt
       real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
@@ -184,9 +185,9 @@ interface
 
    module subroutine symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
       eoffset, vbs, & 
-      symba_plA, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+      symba_plA, nplplenc, plplenc_list, config%nplmax, config%ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
       implicit none
-      integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+      integer(I4B), intent(in)       :: index_enc, config%nplmax, config%ntpmax
       integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, fragmax
       real(DP), intent(in)          :: t, dt
       real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2
@@ -245,41 +246,41 @@ interface
       type(symba_pl), intent(inout)   :: symba_plA
    end subroutine symba_discard_peri_pl
 
-   module subroutine symba_discard_pl(t, npl, nplmax, nsp, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord,   &
-      qmin_alo, qmin_ahi, j2rp2, j4rp4, eoffset)
+   module subroutine symba_discard_pl(t, npl, config%nplmax, nsp, symba_plA, rmin, rmax, config%rmaxu, qmin, qmin_coord,   &
+      qmin_alo, qmin_ahi, config%j2rp2, config%j4rp4, eoffset)
       implicit none
-      integer(I4B), intent(in)   :: nplmax
+      integer(I4B), intent(in)   :: config%nplmax
       integer(I4B), intent(inout) :: npl, nsp
-      real(DP), intent(in)   :: t, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi, j2rp2, j4rp4
+      real(DP), intent(in)   :: t, rmin, rmax, config%rmaxu, qmin, qmin_alo, qmin_ahi, config%j2rp2, config%j4rp4
       real(DP), intent(inout)   :: eoffset
       character(*), intent(in)   :: qmin_coord
       type(symba_pl), intent(inout)   :: symba_plA
    end subroutine symba_discard_pl
 
-   module subroutine symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, rmaxu, ldiscards)
+   module subroutine symba_discard_sun_pl(t, npl, msys, swiftest_plA, rmin, rmax, config%rmaxu, ldiscards)
       implicit none
       logical(lgt), intent(inout) :: ldiscards
       integer(I4B), intent(in)   :: npl
-      real(DP), intent(in)   :: t, msys, rmin, rmax, rmaxu
+      real(DP), intent(in)   :: t, msys, rmin, rmax, config%rmaxu
       type(swiftest_pl), intent(inout)   :: swiftest_plA
    end subroutine symba_discard_sun_pl
 
    module subroutine symba_discard_tp(t, npl, ntp, nsp, symba_plA, symba_tpA, dt, &
-      rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, lclose, lrhill_present)
+      rmin, rmax, config%rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi, lclose, lrhill_present)
       implicit none
       logical(lgt), intent(in)   :: lclose, lrhill_present
       integer(I4B), intent(in)   :: npl
       integer(I4B), intent(inout) :: ntp, nsp
-      real(DP), intent(in)   :: t, dt, rmin, rmax, rmaxu, qmin, qmin_alo, qmin_ahi
+      real(DP), intent(in)   :: t, dt, rmin, rmax, config%rmaxu, qmin, qmin_alo, qmin_ahi
       character(*), intent(in)   :: qmin_coord
       type(symba_pl), intent(inout)   :: symba_plA
       type(symba_tp), intent(inout)   :: symba_tpA
    end subroutine symba_discard_tp
 
-   module subroutine symba_energy(npl, nplmax, swiftest_plA, j2rp2, j4rp4, ke, pe, te, htot)
+   module subroutine symba_energy(npl, config%nplmax, swiftest_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
       implicit none
-      integer(I4B), intent(in)      :: npl, nplmax
-      real(DP), intent(in)       :: j2rp2, j4rp4
+      integer(I4B), intent(in)      :: npl, config%nplmax
+      real(DP), intent(in)       :: config%j2rp2, config%j4rp4
       real(DP), intent(out)      :: ke, pe, te
       real(DP), dimension(ndim), intent(out) :: htot
       type(swiftest_pl), intent(inout)      :: swiftest_plA
@@ -288,9 +289,9 @@ interface
    module subroutine symba_fragmentation(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, &
       mergesub_list, eoffset, vbs, encounter_file, out_type, npl, ntp, &
       symba_plA, symba_tpA, nplplenc, npltpenc, pltpenc_list, plplenc_list, &
-      nplmax, ntpmax, fragmax)
+      config%nplmax, config%ntpmax, fragmax)
       implicit none
-      integer(I4B), intent(in)       :: index_enc, nplmax, ntpmax
+      integer(I4B), intent(in)       :: index_enc, config%nplmax, config%ntpmax
       integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, npltpenc, fragmax
       integer(I4B), intent(inout)        :: npl, ntp
       real(DP), intent(in)          :: t, dt
@@ -304,46 +305,46 @@ interface
       type(symba_tp), intent(inout)      :: symba_tpA
    end subroutine symba_fragmentation
 
-   module subroutine symba_getacch(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+   module subroutine symba_getacch(lextra_force, t, npl, nplm, config%nplmax, symba_plA, config%j2rp2, config%j4rp4, nplplenc, &
       plplenc_list)
       implicit none
       logical(lgt), intent(in)        :: lextra_force
-      integer(I4B), intent(in)        :: npl, nplm, nplmax, nplplenc
-      real(DP), intent(in)        :: t, j2rp2, j4rp4
+      integer(I4B), intent(in)        :: npl, nplm, config%nplmax, nplplenc
+      real(DP), intent(in)        :: t, config%j2rp2, config%j4rp4
       type(symba_pl), intent(inout)      :: symba_plA
       type(symba_plplenc), intent(in)      :: plplenc_list
    end subroutine symba_getacch
 
-   module subroutine symba_getacch_tp(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
-      xh, j2rp2, j4rp4,  &
+   module subroutine symba_getacch_tp(lextra_force, t, npl, nplm, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, &
+      xh, config%j2rp2, config%j4rp4,  &
       npltpenc, pltpenc_list)
       implicit none
       logical(lgt), intent(in)        :: lextra_force
-      integer(I4B), intent(in)        :: npl, nplm, nplmax, ntp, ntpmax, npltpenc
-      real(DP), intent(in)        :: t, j2rp2, j4rp4
+      integer(I4B), intent(in)        :: npl, nplm, config%nplmax, ntp, config%ntpmax, npltpenc
+      real(DP), intent(in)        :: t, config%j2rp2, config%j4rp4
       real(DP), dimension(ndim, npl), intent(in)   :: xh
       type(symba_pl), intent(inout)      :: symba_plA
       type(symba_tp), intent(inout)      :: symba_tpA
       type(symba_pltpenc), intent(in)      :: pltpenc_list
    end subroutine symba_getacch_tp
 
-   module subroutine symba_getacch_eucl(lextra_force, t, npl, nplm, nplmax, symba_plA, j2rp2, j4rp4, nplplenc, &
+   module subroutine symba_getacch_eucl(lextra_force, t, npl, nplm, config%nplmax, symba_plA, config%j2rp2, config%j4rp4, nplplenc, &
       plplenc_list, num_plpl_comparisons, k_plpl)
       implicit none
       logical(lgt), intent(in)        :: lextra_force
-      integer(I4B), intent(in)        :: npl, nplm, nplmax, nplplenc, num_plpl_comparisons
-      real(DP), intent(in)        :: t, j2rp2, j4rp4
+      integer(I4B), intent(in)        :: npl, nplm, config%nplmax, nplplenc, num_plpl_comparisons
+      real(DP), intent(in)        :: t, config%j2rp2, config%j4rp4
       type(symba_pl), intent(inout)      :: symba_plA
       type(symba_plplenc), intent(in)      :: plplenc_list
       integer(I4B), dimension(num_plpl_comparisons,2),intent(in) :: k_plpl
    end subroutine symba_getacch_eucl
 
-   module subroutine symba_getacch_tp_eucl(lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, &
-      xh, j2rp2, j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
+   module subroutine symba_getacch_tp_eucl(lextra_force, t, npl, nplm, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, &
+      xh, config%j2rp2, config%j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
       implicit none
       logical(lgt), intent(in)        :: lextra_force
-      integer(I4B), intent(in)        :: npl, nplm, nplmax, ntp, ntpmax, npltpenc, num_pltp_comparisons
-      real(DP), intent(in)        :: t, j2rp2, j4rp4
+      integer(I4B), intent(in)        :: npl, nplm, config%nplmax, ntp, config%ntpmax, npltpenc, num_pltp_comparisons
+      real(DP), intent(in)        :: t, config%j2rp2, config%j4rp4
       real(DP), dimension(ndim, npl), intent(in)   :: xh
       type(symba_pl), intent(inout)      :: symba_plA
       type(symba_tp), intent(inout)      :: symba_tpA
@@ -365,11 +366,11 @@ interface
       type(symba_tp), intent(inout) :: symba_tpA
    end subroutine symba_helio_drift_tp
 
-   module subroutine symba_helio_getacch(lflag, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4)
+   module subroutine symba_helio_getacch(lflag, lextra_force, t, npl, nplm, config%nplmax, helio_plA, config%j2rp2, config%j4rp4)
       implicit none
       logical(lgt), intent(in)   :: lflag, lextra_force
-      integer(I4B), intent(in)   :: npl, nplm, nplmax
-      real(DP), intent(in)    :: t, j2rp2, j4rp4
+      integer(I4B), intent(in)   :: npl, nplm, config%nplmax
+      real(DP), intent(in)    :: t, config%j2rp2, config%j4rp4
       type(helio_pl), intent(inout)  :: helio_plA
    end subroutine symba_helio_getacch
 
@@ -427,10 +428,10 @@ interface
    end subroutine symba_peri
 
    module subroutine symba_rearray(t, npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, &
-      mergeadd_list, discard_plA, discard_tpA, nplmax, j2rp2, j4rp4)
+      mergeadd_list, discard_plA, discard_tpA, config%nplmax, config%j2rp2, config%j4rp4)
       implicit none
-      integer(I4B), intent(inout)        :: npl, ntp, nsppl, nsptp, nmergeadd, nplmax !change to fragadd
-      real(DP), intent(in)          :: t, j2rp2, j4rp4
+      integer(I4B), intent(inout)        :: npl, ntp, nsppl, nsptp, nmergeadd, config%nplmax !change to fragadd
+      real(DP), intent(in)          :: t, config%j2rp2, config%j4rp4
       type(symba_pl), intent(inout)      :: symba_plA
       type(symba_tp), intent(inout)      :: symba_tpA
       type(swiftest_tp), intent(inout)      :: discard_tpA
@@ -476,15 +477,15 @@ interface
       class(symba_pl), intent(inout) :: discard !! Discarded body list
    end subroutine symba_spill_pl
 
-   module subroutine symba_step_eucl(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2, j4rp4,&
+   module subroutine symba_step_eucl(lfirst, lextra_force, lclose, t, npl, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, config%j2rp2, config%j4rp4,&
       dt,nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset,&
       mtiny,encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
       implicit none
       logical(lgt), intent(in)    :: lextra_force, lclose
       logical(lgt), intent(inout)   :: lfirst
-      integer(I4B), intent(in)    :: npl, nplmax, ntp, ntpmax
+      integer(I4B), intent(in)    :: npl, config%nplmax, ntp, config%ntpmax
       integer(I4B), intent(inout)   :: nplplenc, npltpenc, nmergeadd, nmergesub
-      real(DP), intent(in)      :: t, j2rp2, j4rp4, dt, mtiny
+      real(DP), intent(in)      :: t, config%j2rp2, config%j4rp4, dt, mtiny
       real(DP), intent(inout)     :: eoffset
       character(*), intent(in)    :: encounter_file, out_type
       type(symba_pl), intent(inout)   :: symba_plA
@@ -497,16 +498,16 @@ interface
       integer(I4B), dimension(2,num_pltp_comparisons),intent(in) :: k_pltp
    end subroutine symba_step_eucl
 
-   module subroutine symba_step(lfirst, lextra_force, lclose, t, npl, nplmax, ntp, ntpmax, symba_plA, &
-      symba_tpA, j2rp2, j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
+   module subroutine symba_step(lfirst, lextra_force, lclose, t, npl, config%nplmax, ntp, config%ntpmax, symba_plA, &
+      symba_tpA, config%j2rp2, config%j4rp4, dt, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
       nmergesub, mergeadd_list, mergesub_list, eoffset, mtiny, encounter_file, out_type, &
       fragmax)
       implicit none
       logical(lgt), intent(in)    :: lextra_force, lclose
       logical(lgt), intent(inout)   :: lfirst
-      integer(I4B), intent(in)    :: npl, nplmax, ntp, ntpmax
+      integer(I4B), intent(in)    :: npl, config%nplmax, ntp, config%ntpmax
       integer(I4B), intent(inout)   :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
-      real(DP), intent(in)      :: t, j2rp2, j4rp4, dt, mtiny
+      real(DP), intent(in)      :: t, config%j2rp2, config%j4rp4, dt, mtiny
       real(DP), intent(inout)     :: eoffset
       character(*), intent(in)    :: encounter_file, out_type
       type(symba_pl), intent(inout)   :: symba_plA
@@ -517,37 +518,37 @@ interface
    end subroutine symba_step
 
    ! for testing purposes only _ use with symba_step_test
-   module subroutine symba_step_helio(lfirst, lextra_force, t, npl, nplm, nplmax, ntp, ntpmax, helio_plA, helio_tpA, j2rp2,   &
-      j4rp4, dt)
+   module subroutine symba_step_helio(lfirst, lextra_force, t, npl, nplm, config%nplmax, ntp, config%ntpmax, helio_plA, helio_tpA, config%j2rp2,   &
+      config%j4rp4, dt)
       implicit none
       logical(lgt), intent(in)   :: lextra_force
       logical(lgt), intent(inout)   :: lfirst
-      integer(I4B), intent(in)   :: npl, nplm, nplmax, ntp, ntpmax
-      real(DP), intent(in)   :: t, j2rp2, j4rp4, dt
+      integer(I4B), intent(in)   :: npl, nplm, config%nplmax, ntp, config%ntpmax
+      real(DP), intent(in)   :: t, config%j2rp2, config%j4rp4, dt
       type(helio_pl), intent(inout) :: helio_plA
       type(helio_tp), intent(inout) :: helio_tpA
    end subroutine symba_step_helio
 
-   module subroutine symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_plA, j2rp2, j4rp4, dt, xbeg, xend,   &
+   module subroutine symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, config%nplmax, helio_plA, config%j2rp2, config%j4rp4, dt, xbeg, xend,   &
       ptb, pte)
       implicit none
       logical(lgt), intent(in)       :: lextra_force
       logical(lgt), intent(inout)      :: lfirst
-      integer(I4B), intent(in)       :: npl, nplm, nplmax
-      real(DP), intent(in)       :: t, j2rp2, j4rp4, dt
+      integer(I4B), intent(in)       :: npl, nplm, config%nplmax
+      real(DP), intent(in)       :: t, config%j2rp2, config%j4rp4, dt
       real(DP), dimension(ndim, nplm), intent(out) :: xbeg, xend
       real(DP), dimension(ndim), intent(out)   :: ptb, pte
       type(helio_pl), intent(inout)     :: helio_plA
    end subroutine symba_step_helio_pl
 
-   module subroutine symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,&
-      j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
+   module subroutine symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, config%j2rp2,&
+      config%j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
       mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
       implicit none
       logical(lgt), intent(in)    :: lextra_force, lclose
-      integer(I4B), intent(in)    :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc, num_pltp_comparisons
+      integer(I4B), intent(in)    :: npl, nplm, config%nplmax, ntp, config%ntpmax, nplplenc, npltpenc, num_pltp_comparisons
       integer(I4B), intent(inout)   :: nmergeadd, nmergesub
-      real(DP), intent(in)      :: t, j2rp2, j4rp4, dt, mtiny
+      real(DP), intent(in)      :: t, config%j2rp2, config%j4rp4, dt, mtiny
       real(DP), intent(inout)     :: eoffset
       character(*), intent(in)    :: encounter_file, out_type
       type(symba_pl), intent(inout)   :: symba_plA
@@ -560,14 +561,14 @@ interface
       integer(I4B), dimension(2,num_pltp_comparisons),intent(in) :: k_pltp
    end subroutine symba_step_interp_eucl
 
-   module subroutine symba_step_interp(lextra_force, lclose, t, npl, nplm, nplmax, ntp, ntpmax, symba_plA, symba_tpA, j2rp2,   &
-      j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,   &
+   module subroutine symba_step_interp(lextra_force, lclose, t, npl, nplm, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, config%j2rp2,   &
+      config%j4rp4, dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,   &
       mergesub_list, encounter_file, out_type, fragmax)
       implicit none
       logical(lgt), intent(in)    :: lextra_force, lclose
-      integer(I4B), intent(in)    :: npl, nplm, nplmax, ntp, ntpmax, nplplenc, npltpenc
+      integer(I4B), intent(in)    :: npl, nplm, config%nplmax, ntp, config%ntpmax, nplplenc, npltpenc
       integer(I4B), intent(inout)   :: nmergeadd, nmergesub, fragmax
-      real(DP), intent(in)      :: t, j2rp2, j4rp4, dt, mtiny
+      real(DP), intent(in)      :: t, config%j2rp2, config%j4rp4, dt, mtiny
       real(DP), intent(inout)     :: eoffset
       character(*), intent(in)    :: encounter_file, out_type
       type(symba_pl), intent(inout)   :: symba_plA
@@ -579,10 +580,10 @@ interface
 
    recursive module subroutine symba_step_recur(lclose, t, ireci, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
       npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, & 
-      out_type, nplmax, ntpmax, fragmax)
+      out_type, config%nplmax, config%ntpmax, fragmax)
       implicit none
       logical(lgt), intent(in)    :: lclose
-      integer(I4B), intent(in)    :: ireci, npl, nplm, ntp, nplplenc, npltpenc, nplmax, ntpmax, fragmax
+      integer(I4B), intent(in)    :: ireci, npl, nplm, ntp, nplplenc, npltpenc, config%nplmax, config%ntpmax, fragmax
       integer(I4B), intent(inout)   :: nmergeadd, nmergesub
       real(DP), intent(in)      :: t, dt0
       real(DP), intent(inout)     :: eoffset

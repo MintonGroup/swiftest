@@ -11,48 +11,23 @@ program swiftest_symba
    implicit none
 
    ! Arguments
-   type(swiftest_configuration)  :: param    ! derived type containing user-defined parameters
-   integer(I4B)      :: nplmax         ! maximum number of massive bodies
-   integer(I4B)      :: ntpmax         ! maximum number of test particles
-   integer(I4B)      :: istep_out      ! time steps between binary outputs
-   integer(I4B)      :: istep_dump     ! time steps between dumps
-   real(DP)          :: t0             ! integration start time
-   real(DP)          :: tstop          ! integration stop time
-   real(DP)          :: dt             ! time step
-   real(DP)          :: j2rp2          ! j2*r^2 term for central body
-   real(DP)          :: j4rp4          ! j4*r^4 term for central body
-   real(DP)          :: rmin           ! minimum heliocentric radius for test particle
-   real(DP)          :: rmax           ! maximum heliocentric radius for test particle
-   real(DP)          :: rmaxu          ! maximum unbound heliocentric radius for test particle
-   real(DP)          :: qmin           ! minimum pericenter distance for test particle
-   real(DP)          :: qmin_alo       ! minimum semimajor axis for qmin
-   real(DP)          :: qmin_ahi       ! maximum semimajor axis for qmin
-   character(strmax) :: qmin_coord     ! coordinate frame to use for qmin
-   character(strmax) :: encounter_file ! name of output file for encounters
-   character(strmax) :: inplfile       ! name of input file for massive bodies
-   character(strmax) :: intpfile       ! name of input file for test particles
-   character(strmax) :: in_type        ! format of input data files
-   character(strmax) :: outfile        ! name of output binary file
-   character(strmax) :: out_type       ! binary format of output file
-   character(strmax) :: out_form       ! data to write to output file
-   character(strmax) :: out_stat       ! open status for output binary file
+   type(swiftest_configuration)  :: config ! derived type containing user-defined parameters
 
    ! Internals
-   logical                       :: lfrag_add
-   integer(I4B)                  :: npl, ntp, ntp0, nsppl, nsptp, iout, idump, iloop
-   integer(I4B)                  :: nplplenc, npltpenc, nmergeadd, nmergesub, fragmax
-   real(DP)                      :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
-   real(DP), dimension(ndim)     :: htot
-   character(strmax)             :: inparfile
-   type(symba_pl)                :: symba_plA
-   type(symba_tp)                :: symba_tpA
-   type(swiftest_tp)             :: discard_tpA
-   type(swiftest_pl)             :: discard_plA
-   type(symba_plplenc)           :: plplenc_list
-   type(symba_pltpenc)           :: pltpenc_list
-   type(symba_merger)            :: mergeadd_list, mergesub_list
-   integer(I4B), parameter       :: egyiu = 72
-   real(DP)                      :: start, finish
+   logical                   :: lfrag_add
+   integer(I4B)              :: iout, idump, iloop
+   real(DP)                  :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
+   real(DP), dimension(NDIM) :: htot
+   character(STRMAX)         :: inparfile
+   type(symba_pl)            :: symba_plA
+   type(symba_tp)            :: symba_tpA
+   type(symba_tp)            :: discard_tpA
+   type(symba_pl)            :: discard_plA
+   type(symba_plplenc)       :: plplenc_list
+   type(symba_pltpenc)       :: pltpenc_list
+   type(symba_merger)        :: mergeadd_list, mergesub_list
+   integer(I4B), parameter   :: egyiu = 72
+   real(DP)                  :: start, finish
 
    ! Executable code
    call cpu_time(start)
@@ -66,32 +41,6 @@ program swiftest_symba
    call config%read_from_file(inparfile)
    config%lmtiny = .true. ! Turn this on for SyMBA
 
-   ! temporary until the conversion to the derived type argument list is complete
-   nplmax = config%nplmax
-   ntpmax = config%ntpmax
-   t0 = config%t0
-   tstop = config%tstop
-   dt = config%dt
-   inplfile = config%inplfile
-   intpfile = config%intpfile
-   in_type = config%in_type
-   istep_out = config%istep_out
-   outfile = config%outfile
-   out_type = config%out_type
-   out_form = config%out_form
-   out_stat = config%out_stat
-   istep_dump = config%istep_dump
-   j2rp2 = config%j2rp2
-   j4rp4 = config%j4rp4
-   rmin = config%rmin
-   rmax = config%rmax
-   rmaxu = config%rmaxu
-   qmin = config%qmin
-   qmin_coord = config%qmin_coord
-   qmin_alo = config%qmin_alo
-   qmin_ahi = config%qmin_ahi
-   encounter_file = config%encounter_file
-   mtiny = config%mtiny
    !^^^^^^^^^^^^^^^^^^^^^^^^^
    if (.not. config%lrhill_present) then
       write(*, *) "Swiftest error:"
@@ -100,8 +49,8 @@ program swiftest_symba
    end if
    ! read in the total number of bodies from the input files
 
-   call symba_plA%read_from_file(param)
-   call symba_tpA%read_from_file(param)
+   call symba_plA%read_from_file(config)
+   call symba_tpA%read_from_file(config)
 
    ! Save central body mass in vector form so that elemental functions can be evaluated with it
    call symba_tpA%set_vec(symba_plA%mass(1),config%dt)
@@ -110,10 +59,6 @@ program swiftest_symba
    ! Save system mass to both objects
    call symba_plA%set_msys(symba_plA)
    call symba_tpA%set_msys(symba_plA)
-
-   !Temporary until everything get switched over
-   npl = symba_plA%nbody
-   ntp = symba_tpA%nbody
 
    ! create arrays of data structures big enough to store the number of bodies we are adding
    call mergeadd_list%alloc(10*npl)!DM: Why 10*npl?
@@ -124,8 +69,7 @@ program swiftest_symba
    ! reads in initial conditions of all massive bodies from input file
    ! reorder by mass 
    call symba_reorder_pl(npl, symba_plA)
-   call util_valid(npl, ntp, symba_plA%helio%swiftest, symba_tpA%helio%swiftest)
-   ntp0 = ntp
+   call util_valid(npl, ntp, symba_plA, symba_tpA)
    t = t0
    tbase = t0
    iloop = 0
@@ -138,7 +82,7 @@ program swiftest_symba
    eoffset = 0.0_DP
    fragmax = 0 
    if (istep_out > 0) then
-      call io_write_frame(t, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
+      call io_write_frame(t, symba_plA, symba_tpA, outfile, out_type, out_form, out_stat)
    end if
    if (out_stat == "old") then
       open(unit = egyiu, file = energy_file, form = "formatted", status = "old", action = "write", position = "append")
@@ -148,14 +92,12 @@ program swiftest_symba
    300 format(7(1x, e23.16))
    write(*, *) " *************** Main Loop *************** "
    if (config%lenergy) then 
-      call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+      call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
       write(egyiu,300) t, ke, pe, te, htot
    end if
-   call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
-   do while ((t < tstop) .and. ((ntp0 == 0) .or. (ntp > 0)))
-      call symba_step(t, dt, param,npl,ntp,symba_plA, symba_tpA,nplplenc, npltpenc,&
-            plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-            eoffset, fragmax)
+   call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
+   do while ((t < config%tstop) .and. ((ntp0 == 0) .or. (ntp > 0)))
+      call symba_step(t, dt, symba_plA, symba_tpA, plplenc_list, pltpenc_list, mergeadd_list, mergesub_list, eoffset, config)
       iloop = iloop + 1
       if (iloop == loopmax) then
           tbase = tbase + iloop*dt
@@ -166,9 +108,9 @@ program swiftest_symba
       ldiscard_tp = .false.
       lfrag_add = .false.
       call symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)                                  ! check this 
-      call symba_discard_pl(t, npl, nplmax, nsppl, symba_plA, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo,    &    ! check this 
-            qmin_ahi, j2rp2, j4rp4, eoffset)
-      call symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, rmaxu, qmin, qmin_coord, &    ! check this 
+      call symba_discard_pl(t, npl, config%nplmax, nsppl, symba_plA, rmin, rmax, config%rmaxu, qmin, qmin_coord, qmin_alo,    &    ! check this 
+            qmin_ahi, config%j2rp2, config%j4rp4, eoffset)
+      call symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, config%rmaxu, qmin, qmin_coord, &    ! check this 
             qmin_alo, qmin_ahi, config%lclose, config%lrhill_present)
       if ((ldiscard .eqv. .true.) .or. (ldiscard_tp .eqv. .true.) .or. (lfrag_add .eqv. .true.)) then
          call symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
@@ -182,31 +124,31 @@ program swiftest_symba
             nsptp = 0
          end if 
          if (config%lenergy) then 
-            call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+            call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
             write(egyiu,300) t, ke, pe, te, htot
          end if
       end if
       if (istep_out > 0) then
          iout = iout - 1
          if (iout == 0) then
-            call io_write_frame(t, symba_plA%helio%swiftest, symba_tpA%helio%swiftest, outfile, out_type, out_form, out_stat)
+            call io_write_frame(t, symba_plA, symba_tpA, outfile, out_type, out_form, out_stat)
             iout = istep_out
             if (config%lenergy) then 
-               call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+               call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
                write(egyiu,300) t, ke, pe, te, htot
             end if
-            call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+            call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
          end if
       end if
       if (istep_dump > 0) then
          idump = idump - 1
          if (idump == 0) then
-            tfrac = (t - t0)/(tstop - t0)
+            tfrac = (t - t0)/(config%tstop - t0)
             write(*, 200) t, tfrac, npl, ntp
 200         format(" Time = ", es12.5, "; fraction done = ", f5.3, "; number of active pl, tp = ", i5, ", ", i5)
             call config%dump_to_file(t)
-            call io_dump_pl(npl, symba_plA%helio%swiftest, config%lclose, config%lrhill_present)
-            if (ntp > 0) call io_dump_tp(ntp, symba_tpA%helio%swiftest)
+            call io_dump_pl(npl, symba_plA, config%lclose, config%lrhill_present)
+            if (ntp > 0) call io_dump_tp(ntp, symba_tpA)
             idump = istep_dump
          end if
       end if
@@ -255,10 +197,10 @@ program swiftest_symba
 
    end do
    call config%dump_to_file(t)
-   call io_dump_pl(npl, symba_plA%helio%swiftest, config%lclose, config%lrhill_present)
-   if (ntp > 0) call io_dump_tp(ntp, symba_tpA%helio%swiftest)
+   call io_dump_pl(npl, symba_plA, config%lclose, config%lrhill_present)
+   if (ntp > 0) call io_dump_tp(ntp, symba_tpA)
    if (config%lenergy) then 
-      call symba_energy(npl, symba_plA%helio%swiftest, j2rp2, j4rp4, ke, pe, te, htot)
+      call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
       write(egyiu,300) t, ke, pe, te, htot
       close(egyiu)
    end if

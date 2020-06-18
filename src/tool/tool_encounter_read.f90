@@ -32,18 +32,18 @@ PROGRAM tool_encounter_read
 
 ! Arguments
    type(swiftest_configuration)  :: param    ! derived type containing user-defined parameters
-     INTEGER(I4B)      :: nplmax         ! Maximum number of massive bodies
-     INTEGER(I4B)      :: ntpmax         ! Maximum number of test particles
+     INTEGER(I4B)      :: config%nplmax         ! Maximum number of massive bodies
+     INTEGER(I4B)      :: config%ntpmax         ! Maximum number of test particles
      INTEGER(I4B)      :: istep_out      ! Time steps between binary outputs
      INTEGER(I4B)      :: istep_dump     ! Time steps between dumps
      REAL(DP)          :: t0             ! Integration start time
      REAL(DP)          :: tstop          ! Integration stop time
      REAL(DP)          :: dt             ! Time step
-     REAL(DP)          :: j2rp2          ! J2*R^2 term for central body
-     REAL(DP)          :: j4rp4          ! J4*R^4 term for central body
+     REAL(DP)          :: config%j2rp2          ! J2*R^2 term for central body
+     REAL(DP)          :: config%j4rp4          ! J4*R^4 term for central body
      REAL(DP)          :: rmin           ! Minimum heliocentric radius for test particle
      REAL(DP)          :: rmax           ! Maximum heliocentric radius for test particle
-     REAL(DP)          :: rmaxu          ! Maximum unbound heliocentric radius for test particle
+     REAL(DP)          :: config%rmaxu          ! Maximum unbound heliocentric radius for test particle
      REAL(DP)          :: qmin           ! Minimum pericenter distance for test particle
      REAL(DP)          :: qmin_alo       ! Minimum semimajor axis for qmin
      REAL(DP)          :: qmin_ahi       ! Maximum semimajor axis for qmin
@@ -73,8 +73,8 @@ PROGRAM tool_encounter_read
    call config%read_from_file(inparfile)
 
    ! temporary until the conversion to the derived type argument list is complete
-   nplmax = config%nplmax
-   ntpmax = config%ntpmax
+   config%nplmax = config%nplmax
+   config%ntpmax = config%ntpmax
    t0 = config%t0
    tstop = config%tstop
    dt = config%dt
@@ -87,11 +87,11 @@ PROGRAM tool_encounter_read
    out_form = config%out_form
    out_stat = config%out_stat
    istep_dump = config%istep_dump
-   j2rp2 = config%j2rp2
-   j4rp4 = config%j4rp4
+   config%j2rp2 = config%j2rp2
+   config%j4rp4 = config%j4rp4
    rmin = config%rmin
    rmax = config%rmax
-   rmaxu = config%rmaxu
+   config%rmaxu = config%rmaxu
    qmin = config%qmin
    qmin_coord = config%qmin_coord
    qmin_alo = config%qmin_alo

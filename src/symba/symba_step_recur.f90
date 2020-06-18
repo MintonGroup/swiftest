@@ -32,17 +32,17 @@ implicit none
          if ((plplenc_list%status(i) == active) .and. (plplenc_list%level(i) == ireci)) then
             index_i  = plplenc_list%index1(i)
             index_j  = plplenc_list%index2(i)
-            xr(:) = symba_pla%helio%swiftest%xh(:,index_j) - symba_pla%helio%swiftest%xh(:,index_i)
-            vr(:) = symba_pla%helio%swiftest%vb(:,index_j) - symba_pla%helio%swiftest%vb(:,index_i)
-            call symba_chk(xr(:), vr(:), symba_pla%helio%swiftest%rhill(index_i),   &  
-               symba_pla%helio%swiftest%rhill(index_j), dtl, irecp, lencounter,            &
+            xr(:) = symba_plA%xh(:,index_j) - symba_plA%xh(:,index_i)
+            vr(:) = symba_plA%vb(:,index_j) - symba_plA%vb(:,index_i)
+            call symba_chk(xr(:), vr(:), symba_plA%rhill(index_i),   &  
+               symba_plA%rhill(index_j), dtl, irecp, lencounter,            &
                plplenc_list%lvdotr(i))
             if (lencounter) then
                icflg = 1
-               symba_pla%levelg(index_i) = irecp
-               symba_pla%levelm(index_i) = max(irecp, symba_pla%levelm(index_i))
-               symba_pla%levelg(index_j) = irecp
-               symba_pla%levelm(index_j) = max(irecp, symba_pla%levelm(index_j))
+               symba_plA%levelg(index_i) = irecp
+               symba_plA%levelm(index_i) = max(irecp, symba_plA%levelm(index_i))
+               symba_plA%levelg(index_j) = irecp
+               symba_plA%levelm(index_j) = max(irecp, symba_plA%levelm(index_j))
                plplenc_list%level(i) = irecp
             end if
          end if
@@ -52,49 +52,49 @@ implicit none
             index_pl  = pltpenc_list%indexpl(i)
             index_tp  = pltpenc_list%indextp(i)
             
-            xr(:) = symba_tpa%helio%swiftest%xh(:,index_tp) - symba_pla%helio%swiftest%xh(:,index_pl)
-            vr(:) = symba_tpa%helio%swiftest%vb(:,index_tp) - symba_pla%helio%swiftest%vb(:,index_pl)
-            call symba_chk(xr(:), vr(:), symba_pla%helio%swiftest%rhill(index_pl), 0.0_DP,   &
+            xr(:) = symba_tpA%xh(:,index_tp) - symba_plA%xh(:,index_pl)
+            vr(:) = symba_tpA%vb(:,index_tp) - symba_plA%vb(:,index_pl)
+            call symba_chk(xr(:), vr(:), symba_plA%rhill(index_pl), 0.0_DP,   &
                dtl, irecp, lencounter, pltpenc_list%lvdotr(i))
             if (lencounter) then
                icflg = 1
-               symba_pla%levelg(index_pl) = irecp
-               symba_pla%levelm(index_pl) = max(irecp, symba_pla%levelm(index_pl))
-               symba_tpa%levelg(index_tp) = irecp
-               symba_tpa%levelm(index_tp) = max(irecp, symba_tpa%levelm(index_tp))
+               symba_plA%levelg(index_pl) = irecp
+               symba_plA%levelm(index_pl) = max(irecp, symba_plA%levelm(index_pl))
+               symba_tpA%levelg(index_tp) = irecp
+               symba_tpA%levelm(index_tp) = max(irecp, symba_tpA%levelm(index_tp))
                pltpenc_list%level(i) = irecp
             end if
          end if
       end do
       lencounter = (icflg == 1)
       sgn = 1.0_DP
-      call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_pla, symba_tpa)
-      call symba_helio_drift(ireci, npl, symba_pla, dtl)
-      if (ntp > 0) call symba_helio_drift_tp(ireci, ntp, symba_tpa, symba_pla%helio%swiftest%mass(1), dtl)
-      if (lencounter) call symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_pla, symba_tpa, dt0, eoffset, nplplenc, &
+      call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA)
+      call symba_helio_drift(ireci, npl, symba_plA, dtl)
+      if (ntp > 0) call symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%mass(1), dtl)
+      if (lencounter) call symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
          npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type, &
-         nplmax, ntpmax, fragmax, param)
+         config%nplmax, config%ntpmax, fragmax, param)
       sgn = 1.0_DP
-      call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_pla, symba_tpa) 
+      call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
       if (lclose) then
-         vbs(:) = symba_pla%helio%swiftest%vb(:,1)
+         vbs(:) = symba_plA%vb(:,1)
          do i = 1, nplplenc
             index_i  = plplenc_list%index1(i) 
             index_j  = plplenc_list%index2(i)
             if (((plplenc_list%status(i) == active) .and.                                       &
-                (symba_pla%levelg(index_i) >= ireci) .and.                                      &
-                (symba_pla%levelg(index_j) >= ireci))) then
+                (symba_plA%levelg(index_i) >= ireci) .and.                                      &
+                (symba_plA%levelg(index_j) >= ireci))) then
                 ! create if statement to check for collisions (ls12) or merger depending on flag lfrag in param.in
                 ! determines collisional regime if lfrag=.true. for close encounter massive bodies
                 ! call symba_frag_pl(...)
                 ! determines if close encounter leads to merger if lfrag=.false.   
                if (config%lfragmentation) then
                   call symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-                        eoffset, vbs, encounter_file, out_type, npl, symba_pla, nplplenc, plplenc_list, nplmax, &
-                        ntpmax, fragmax)
+                        eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, config%nplmax, &
+                        config%ntpmax, fragmax)
                else
                   call symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
-                  mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_pla)
+                  mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA)
                end if
              end if
          end do
@@ -102,24 +102,24 @@ implicit none
             index_pl  = pltpenc_list%indexpl(i) 
             index_tp  = pltpenc_list%indextp(i) 
             if ((pltpenc_list%status(i) == active) .and.                          &
-                (symba_pla%levelg(index_pl) >= ireci) .and.                         &
-                (symba_tpa%levelg(index_tp) >= ireci)) then                          
-               call symba_merge_tp(t, dtl, i, pltpenc_list, vbs, encounter_file, out_type, symba_pla, symba_tpa)            !check later 
+                (symba_plA%levelg(index_pl) >= ireci) .and.                         &
+                (symba_tpA%levelg(index_tp) >= ireci)) then                          
+               call symba_merge_tp(t, dtl, i, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)            !check later 
             end if
          end do
       end if
       do i = 1, nplplenc
          index_i  = plplenc_list%index1(i) 
          index_j  = plplenc_list%index2(i) 
-         if (symba_pla%levelg(index_i) == irecp) symba_pla%levelg(index_i) = ireci
-         if (symba_pla%levelg(index_j) == irecp) symba_pla%levelg(index_j) = ireci
+         if (symba_plA%levelg(index_i) == irecp) symba_plA%levelg(index_i) = ireci
+         if (symba_plA%levelg(index_j) == irecp) symba_plA%levelg(index_j) = ireci
          if (plplenc_list%level(i) == irecp) plplenc_list%level(i) = ireci
       end do
       do i = 1, npltpenc
          index_pl  = pltpenc_list%indexpl(i) 
          index_tp  = pltpenc_list%indextp(i) 
-         if (symba_pla%levelg(index_pl) == irecp) symba_pla%levelg(index_pl) = ireci
-         if (symba_tpa%levelg(index_tp) == irecp) symba_tpa%levelg(index_tp) = ireci
+         if (symba_plA%levelg(index_pl) == irecp) symba_plA%levelg(index_pl) = ireci
+         if (symba_tpA%levelg(index_tp) == irecp) symba_tpA%levelg(index_tp) = ireci
          if (pltpenc_list%level(i) == irecp) pltpenc_list%level(i) = ireci
       end do
    else
@@ -129,17 +129,17 @@ implicit none
             if ((plplenc_list%status(i) == active) .and. (plplenc_list%level(i) == ireci)) then
                index_i  = plplenc_list%index1(i) 
                index_j  = plplenc_list%index2(i) 
-               xr(:) = symba_pla%helio%swiftest%xh(:,index_j) - symba_pla%helio%swiftest%xh(:,index_i)
-               vr(:) = symba_pla%helio%swiftest%vb(:,index_j) - symba_pla%helio%swiftest%vb(:,index_i)
-               call symba_chk(xr(:), vr(:), symba_pla%helio%swiftest%rhill(index_i),    &
-                  symba_pla%helio%swiftest%rhill(index_j), dtl, irecp, lencounter,         &
+               xr(:) = symba_plA%xh(:,index_j) - symba_plA%xh(:,index_i)
+               vr(:) = symba_plA%vb(:,index_j) - symba_plA%vb(:,index_i)
+               call symba_chk(xr(:), vr(:), symba_plA%rhill(index_i),    &
+                  symba_plA%rhill(index_j), dtl, irecp, lencounter,         &
                   plplenc_list%lvdotr(i))
                if (lencounter) then
                   icflg = 1
-                  symba_pla%levelg(index_i) = irecp
-                  symba_pla%levelm(index_i) = max(irecp, symba_pla%levelm(index_i))
-                  symba_pla%levelg(index_j) = irecp
-                  symba_pla%levelm(index_j) = max(irecp, symba_pla%levelm(index_j))
+                  symba_plA%levelg(index_i) = irecp
+                  symba_plA%levelm(index_i) = max(irecp, symba_plA%levelm(index_i))
+                  symba_plA%levelg(index_j) = irecp
+                  symba_plA%levelm(index_j) = max(irecp, symba_plA%levelm(index_j))
                   plplenc_list%level(i) = irecp
                end if
             end if
@@ -148,49 +148,49 @@ implicit none
             if ((pltpenc_list%status(i) == active) .and. (pltpenc_list%level(i) == ireci)) then
                index_pl  = pltpenc_list%indexpl(i) 
                index_tp  = pltpenc_list%indextp(i) 
-               xr(:) = symba_tpa%helio%swiftest%xh(:,index_tp) - symba_pla%helio%swiftest%xh(:,index_pl)
-               vr(:) = symba_tpa%helio%swiftest%vb(:,index_tp)  - symba_pla%helio%swiftest%vb(:,index_pl) 
-               call symba_chk(xr(:), vr(:), symba_pla%helio%swiftest%rhill(index_pl), 0.0_DP, &   
+               xr(:) = symba_tpA%xh(:,index_tp) - symba_plA%xh(:,index_pl)
+               vr(:) = symba_tpA%vb(:,index_tp)  - symba_plA%vb(:,index_pl) 
+               call symba_chk(xr(:), vr(:), symba_plA%rhill(index_pl), 0.0_DP, &   
                   dtl, irecp, lencounter, pltpenc_list%lvdotr(i))
                if (lencounter) then
                   icflg = 1
-                  symba_pla%levelg(index_pl) = irecp
-                  symba_pla%levelm(index_pl) = max(irecp, symba_pla%levelm(index_pl))
-                  symba_tpa%levelg(index_tp) = irecp
-                  symba_tpa%levelm(index_tp) = max(irecp, symba_tpa%levelm(index_tp))
+                  symba_plA%levelg(index_pl) = irecp
+                  symba_plA%levelm(index_pl) = max(irecp, symba_plA%levelm(index_pl))
+                  symba_tpA%levelg(index_tp) = irecp
+                  symba_tpA%levelm(index_tp) = max(irecp, symba_tpA%levelm(index_tp))
                   pltpenc_list%level(i) = irecp
                end if
             end if
          end do
          lencounter = (icflg == 1)
          sgn = 1.0_DP
-         call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_pla, symba_tpa) 
+         call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
          sgn = -1.0_DP
-         call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_pla, symba_tpa)
-         call symba_helio_drift(ireci, npl, symba_pla, dtl)
-         if (ntp > 0) call symba_helio_drift_tp(ireci, ntp, symba_tpa, symba_pla%helio%swiftest%mass(1), dtl)
-         if (lencounter) call symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_pla, symba_tpa, dt0, eoffset,    &
+         call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA)
+         call symba_helio_drift(ireci, npl, symba_plA, dtl)
+         if (ntp > 0) call symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%mass(1), dtl)
+         if (lencounter) call symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset,    &
             nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,       &
-            encounter_file, out_type, nplmax, ntpmax, fragmax, param)
+            encounter_file, out_type, config%nplmax, config%ntpmax, fragmax, param)
          sgn = 1.0_DP
-         call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_pla, symba_tpa) 
+         call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
          sgn = -1.0_DP
-         call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_pla, symba_tpa)
+         call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA)
          if (lclose) then
-            vbs(:) = symba_pla%helio%swiftest%vb(:,1)
+            vbs(:) = symba_plA%vb(:,1)
             do i = 1, nplplenc
                index_i  = plplenc_list%index1(i) 
                index_j  = plplenc_list%index2(i) 
                if ((plplenc_list%status(i) == active) .and.                                     &
-                   (symba_pla%levelg(index_i) >= ireci) .and.                                   &
-                   (symba_pla%levelg(index_j) >= ireci))  then    
+                   (symba_plA%levelg(index_i) >= ireci) .and.                                   &
+                   (symba_plA%levelg(index_j) >= ireci))  then    
                   if (config%lfragmentation) then
                      call symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-                        eoffset, vbs, encounter_file, out_type, npl, symba_pla, nplplenc, plplenc_list, nplmax, &
-                        ntpmax, fragmax)
+                        eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, config%nplmax, &
+                        config%ntpmax, fragmax)
                   else
                      call symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
-                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_pla)
+                        mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA)
                   end if
                end if
             end do
@@ -198,23 +198,23 @@ implicit none
                index_pl  = pltpenc_list%indexpl(i) 
                index_tp  = pltpenc_list%indextp(i) 
                if ((pltpenc_list%status(i) == active) .and.                                     &
-                   (symba_pla%levelg(index_pl) >= ireci) .and.                                    &
-                   (symba_tpa%levelg(index_tp) >= ireci))                                       &
-                  call symba_merge_tp(t, dtl, i, pltpenc_list, vbs, encounter_file, out_type, symba_pla, symba_tpa)          !check that later
+                   (symba_plA%levelg(index_pl) >= ireci) .and.                                    &
+                   (symba_tpA%levelg(index_tp) >= ireci))                                       &
+                  call symba_merge_tp(t, dtl, i, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)          !check that later
             end do
          end if
          do i = 1, nplplenc
             index_i  = plplenc_list%index1(i) 
             index_j  = plplenc_list%index2(i) 
-            if (symba_pla%levelg(index_i) == irecp) symba_pla%levelg(index_i) = ireci
-            if (symba_pla%levelg(index_j) == irecp) symba_pla%levelg(index_j) = ireci
+            if (symba_plA%levelg(index_i) == irecp) symba_plA%levelg(index_i) = ireci
+            if (symba_plA%levelg(index_j) == irecp) symba_plA%levelg(index_j) = ireci
             if (plplenc_list%level(i) == irecp) plplenc_list%level(i) = ireci
          end do
          do i = 1, npltpenc
             index_pl  = pltpenc_list%indexpl(i) 
             index_tp  = pltpenc_list%indextp(i) 
-            if (symba_pla%levelg(index_pl) == irecp) symba_pla%levelg(index_pl) = ireci
-            if (symba_tpa%levelg(index_tp) == irecp) symba_tpa%levelg(index_tp) = ireci
+            if (symba_plA%levelg(index_pl) == irecp) symba_plA%levelg(index_pl) = ireci
+            if (symba_tpA%levelg(index_tp) == irecp) symba_tpA%levelg(index_tp) = ireci
             if (pltpenc_list%level(i) == irecp) pltpenc_list%level(i) = ireci
          end do
       end do

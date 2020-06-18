@@ -10,34 +10,34 @@ contains
 use swiftest
 implicit none
    integer(I4B)          :: i
-   real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
+   real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, config%rmaxu2
 
 
 ! executable code
    rmin2 = rmin*rmin
    rmax2 = rmax*rmax
-   rmaxu2 = rmaxu*rmaxu
+   config%rmaxu2 = config%rmaxu*config%rmaxu
    do i = 2, npl
-      if (swiftest_pla%status(i) == active) then
-         rh2 = dot_product(swiftest_pla%xh(:,i), swiftest_pla%xh(:,i))
+      if (swiftest_plA%status(i) == active) then
+         rh2 = dot_product(swiftest_plA%xh(:,i), swiftest_plA%xh(:,i))
          if ((rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
             ldiscards = .true.
-            swiftest_pla%status(i) = discarded_rmax
-            write(*, *) "particle ",  swiftest_pla%name(i), " too far from sun at t = ", t
+            swiftest_plA%status(i) = discarded_rmax
+            write(*, *) "particle ",  swiftest_plA%name(i), " too far from sun at t = ", t
             print *,'rmax: ',rmax
             print *,'rh2: ',rh2
          else if ((rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
             ldiscards = .true.
-            swiftest_pla%status(i) = discarded_rmin
-            write(*, *) "particle ", swiftest_pla%name(i), " too close to sun at t = ", t
-         else if (rmaxu >= 0.0_DP) then
-            rb2 = dot_product(swiftest_pla%xb(:,i), swiftest_pla%xb(:,i))
-            vb2 = dot_product(swiftest_pla%vb(:,i), swiftest_pla%vb(:,i))
+            swiftest_plA%status(i) = discarded_rmin
+            write(*, *) "particle ", swiftest_plA%name(i), " too close to sun at t = ", t
+         else if (config%rmaxu >= 0.0_DP) then
+            rb2 = dot_product(swiftest_plA%xb(:,i), swiftest_plA%xb(:,i))
+            vb2 = dot_product(swiftest_plA%vb(:,i), swiftest_plA%vb(:,i))
             energy = 0.5_DP*vb2 - msys/sqrt(rb2)
-            if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
+            if ((energy > 0.0_DP) .and. (rb2 > config%rmaxu2)) then
                ldiscards = .true.
-               swiftest_pla%status(i) = discarded_rmaxu
-               write(*, *) "particle ", swiftest_pla%name(i), " is unbound and too far from barycenter at t = ", t
+               swiftest_plA%status(i) = discarded_config%rmaxu
+               write(*, *) "particle ", swiftest_plA%name(i), " is unbound and too far from barycenter at t = ", t
             end if
          end if
       end if

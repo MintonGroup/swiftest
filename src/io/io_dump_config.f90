@@ -32,7 +32,7 @@ contains
    !! todo: Currently this procedure does not work in user-defined derived-type input mode 
    !!    due to compiler incompatabilities
    !write(LUN,'(DT)') config
-   call dump_config%config_writer(LUN, iotype="none",v_list=(/0/),iostat=ierr,iomsg=error_message)
+   call dump_config_writer(LUN, iotype="none",v_list=(/0/),iostat=ierr,iomsg=error_message)
 
    idx = idx + 1
    if (idx > 2) idx = 1

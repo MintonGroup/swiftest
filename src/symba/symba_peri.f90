@@ -15,27 +15,27 @@ implicit none
    real(DP)            :: vdotr, e, mu, msun
 
 ! executable code
-   msun = symba_pla%helio%swiftest%mass(1)
+   msun = symba_plA%mass(1)
    if (lfirst) then
       if (qmin_coord == "helio") then
          do i = 2, npl
-            if (symba_pla%helio%swiftest%status(i) == active) then
-               vdotr = dot_product(symba_pla%helio%swiftest%xh(:,i), symba_pla%helio%swiftest%vh(:,i))
+            if (symba_plA%status(i) == active) then
+               vdotr = dot_product(symba_plA%xh(:,i), symba_plA%vh(:,i))
                if (vdotr > 0.0_DP) then
-                  symba_pla%isperi(i) = 1
+                  symba_plA%isperi(i) = 1
                else
-                  symba_pla%isperi(i) = -1
+                  symba_plA%isperi(i) = -1
                end if
             end if
          end do
       else
          do i = 2, npl
-            if (symba_pla%helio%swiftest%status(i) == active) then
-               vdotr = dot_product(symba_pla%helio%swiftest%xb(:,i), symba_pla%helio%swiftest%vb(:,i))
+            if (symba_plA%status(i) == active) then
+               vdotr = dot_product(symba_plA%xb(:,i), symba_plA%vb(:,i))
                if (vdotr > 0.0_DP) then
-                  symba_pla%isperi(i) = 1
+                  symba_plA%isperi(i) = 1
                else
-                  symba_pla%isperi(i) = -1
+                  symba_plA%isperi(i) = -1
                end if
             end if
          end do
@@ -43,39 +43,39 @@ implicit none
    else
       if (qmin_coord == "helio") then
          do i = 2, npl
-            if (symba_pla%helio%swiftest%status(i) == active) then
-               vdotr = dot_product(symba_pla%helio%swiftest%xh(:,i), symba_pla%helio%swiftest%vh(:,i))
-               if (symba_pla%isperi(i) == -1) then
+            if (symba_plA%status(i) == active) then
+               vdotr = dot_product(symba_plA%xh(:,i), symba_plA%vh(:,i))
+               if (symba_plA%isperi(i) == -1) then
                   if (vdotr >= 0.0_DP) then
-                     symba_pla%isperi(i) = 0
-                     mu = msun + symba_pla%helio%swiftest%mass(i)
-                     call orbel_xv2aeq(symba_pla%helio%swiftest%xh(:,i), &
-                        symba_pla%helio%swiftest%vh(:,i), mu, symba_pla%atp(i), e, symba_pla%peri(i))
+                     symba_plA%isperi(i) = 0
+                     mu = msun + symba_plA%mass(i)
+                     call orbel_xv2aeq(symba_plA%xh(:,i), &
+                        symba_plA%vh(:,i), mu, symba_plA%atp(i), e, symba_plA%peri(i))
                   end if
                else
                   if (vdotr > 0.0_DP) then
-                     symba_pla%isperi(i) = 1
+                     symba_plA%isperi(i) = 1
                   else
-                     symba_pla%isperi(i) = -1
+                     symba_plA%isperi(i) = -1
                   end if
                end if
             end if
          end do
       else
          do i = 2, npl
-            if (symba_pla%helio%swiftest%status(i) == active) then
-               vdotr = dot_product(symba_pla%helio%swiftest%xb(:,i), symba_pla%helio%swiftest%vb(:,i))
-               if (symba_pla%isperi(i) == -1) then
+            if (symba_plA%status(i) == active) then
+               vdotr = dot_product(symba_plA%xb(:,i), symba_plA%vb(:,i))
+               if (symba_plA%isperi(i) == -1) then
                   if (vdotr >= 0.0_DP) then
-                     symba_pla%isperi(i) = 0
-                     call orbel_xv2aeq(symba_pla%helio%swiftest%xb(:,i), & 
-                        symba_pla%helio%swiftest%vb(:,i), msys, symba_pla%atp(i), e, symba_pla%peri(i))
+                     symba_plA%isperi(i) = 0
+                     call orbel_xv2aeq(symba_plA%xb(:,i), & 
+                        symba_plA%vb(:,i), msys, symba_plA%atp(i), e, symba_plA%peri(i))
                   end if
                else
                   if (vdotr > 0.0_DP) then
-                     symba_pla%isperi(i) = 1
+                     symba_plA%isperi(i) = 1
                   else
-                     symba_pla%isperi(i) = -1
+                     symba_plA%isperi(i) = -1
                   end if
                end if
             end if

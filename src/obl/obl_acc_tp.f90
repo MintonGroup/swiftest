@@ -16,9 +16,9 @@ contains
    do concurrent (i = 1:ntp)
       rinv2 = irht(i)**2
       t0 = -msun * rinv2 * rinv2 * irht(i)
-      t1 = 1.5_DP * j2rp2
+      t1 = 1.5_DP * config%j2rp2
       t2 = xht(3, i) * xht(3, i) * rinv2
-      t3 = 1.875_DP * j4rp4 * rinv2
+      t3 = 1.875_DP * config%j4rp4 * rinv2
       fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21 * t2) * t3) * t2)
       fac2 = 2 * t0 * (t1 - (2.0_DP - (14 * t2 / 3.0_DP)) * t3)
       aoblt(:, i) = fac1 * xht(:, i)

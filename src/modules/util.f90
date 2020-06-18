@@ -54,7 +54,7 @@ module util
          real(DP), dimension(:), intent(in)   :: arr
       end subroutine util_index
 
-      module subroutine util_peri(lfirst, ntp, swiftest_tpa, mu, msys, qmin_coord)
+      module subroutine util_peri(lfirst, ntp, swiftest_tpA, mu, msys, qmin_coord)
          logical, intent(in)               :: lfirst       !! Logical flag indicating whether current invocation is the first
          integer(I4B), intent(in)          :: ntp          !! Number of active test particles
          class(swiftest_tp), intent(inout) :: swiftest_tpA !! Swiftest test particle class

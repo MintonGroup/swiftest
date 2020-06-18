@@ -40,33 +40,33 @@ implicit none
       end do
    end do
    do i = 1, nsppl
-      if (discard_pla%status(i) /= merged) then
-         write(lun, 200) sub, discard_pla%name(i), discard_pla%status(i)
-         write(lun, 300) discard_pla%xh(1,i),discard_pla%xh(2,i), discard_pla%xh(3,i)
-         write(lun, 300) discard_pla%vh(1,i),discard_pla%vh(2,i), discard_pla%vh(3,i)
-         write(lun, 500) discard_pla%name(i),discard_pla%mass(i), discard_pla%radius(i)
+      if (discard_plA%status(i) /= merged) then
+         write(lun, 200) sub, discard_plA%name(i), discard_plA%status(i)
+         write(lun, 300) discard_plA%xh(1,i),discard_plA%xh(2,i), discard_plA%xh(3,i)
+         write(lun, 300) discard_plA%vh(1,i),discard_plA%vh(2,i), discard_plA%vh(3,i)
+         write(lun, 500) discard_plA%name(i),discard_plA%mass(i), discard_plA%radius(i)
       end if
    end do
    do i = 1, nsptp
-      write(lun, 200) sub, discard_tpa%name(i), discard_tpa%status(i)
-      write(lun, 300) discard_tpa%xh(1,i),discard_tpa%xh(2,i), discard_tpa%xh(3,i)
-      write(lun, 300) discard_tpa%vh(1,i),discard_tpa%vh(2,i), discard_tpa%vh(3,i)
+      write(lun, 200) sub, discard_tpA%name(i), discard_tpA%status(i)
+      write(lun, 300) discard_tpA%xh(1,i),discard_tpA%xh(2,i), discard_tpA%xh(3,i)
+      write(lun, 300) discard_tpA%vh(1,i),discard_tpA%vh(2,i), discard_tpA%vh(3,i)
    end do
    if (lbig_discard) then
       nplm = 0
       do i = 1, npl
-         if (symba_pla%mass(i) < mtiny) exit
+         if (symba_plA%mass(i) < mtiny) exit
          nplm = nplm + 1
       end do
       if (nplm > 1) then
          write(lun, 400) nplm
  400       format(i8)
          do i = 2, nplm
-            write(lun, 500) symba_pla%name(i), symba_pla%mass(i),& 
-             symba_pla%radius(i)
+            write(lun, 500) symba_plA%name(i), symba_plA%mass(i),& 
+             symba_plA%radius(i)
  500          format(i8, 2(1x, e23.16))
-            write(lun, 300) symba_pla%xh(:,i)
-            write(lun, 300) symba_pla%vh(:,i)
+            write(lun, 300) symba_plA%xh(:,i)
+            write(lun, 300) symba_plA%vh(:,i)
          end do
       end if
    end if

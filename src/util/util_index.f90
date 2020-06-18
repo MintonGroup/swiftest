@@ -16,7 +16,7 @@ contains
 
    n = size(arr)
    if (n /= size(index)) then
-      write(*, *) "swifter error:"
+      write(*, *) "Swiftest Error:"
       write(*, *) "   array size mismatch in util_index"
       call util_exit(failure)
    end if
@@ -76,7 +76,7 @@ contains
          index(j) = indext
          jstack = jstack + 2
          if (jstack > nstack) then
-            write(*, *) "swifter error:"
+            write(*, *) "Swiftest Error:"
             write(*, *) "   nstack too small in util_sort"
             call util_exit(failure)
          end if

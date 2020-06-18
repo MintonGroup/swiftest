@@ -24,8 +24,8 @@ contains
    index1 = plplenc_list%index1(index_enc)
    index2 = plplenc_list%index2(index_enc)
 
-   rlim = symba_pla%helio%swiftest%radius(index1) + symba_pla%helio%swiftest%radius(index2)
-   xr(:) = symba_pla%helio%swiftest%xh(:,index2) - symba_pla%helio%swiftest%xh(:,index1)
+   rlim = symba_plA%radius(index1) + symba_plA%radius(index2)
+   xr(:) = symba_plA%xh(:,index2) - symba_plA%xh(:,index1)
    r2 = dot_product(xr(:), xr(:))
    rlim2 = rlim*rlim
    ! checks if bodies are actively colliding in this time step
@@ -34,29 +34,29 @@ contains
    ! if they are not actively colliding in  this time step, 
    !checks if they are going to collide next time step based on velocities and q
    else 
-      vr(:) = symba_pla%helio%swiftest%vb(:,index2) - symba_pla%helio%swiftest%vb(:,index1)
+      vr(:) = symba_plA%vb(:,index2) - symba_plA%vb(:,index1)
       vdotr = dot_product(xr(:), vr(:))
       if (plplenc_list%lvdotr(index_enc) .and. (vdotr > 0.0_DP)) then 
          tcr2 = r2/dot_product(vr(:), vr(:))
          dt2 = dt*dt
          if (tcr2 <= dt2) then
-            mtot = symba_pla%helio%swiftest%mass(index1) + symba_pla%helio%swiftest%mass(index2)
+            mtot = symba_plA%mass(index1) + symba_plA%mass(index2)
             call orbel_xv2aeq(xr(:), vr(:), mtot, a, e, q)
             if (q < rlim) lmerge = .true.
          end if
          ! if no collision is going to happen, write as close encounter, not  merger
          if (.not. lmerge) then
             if (encounter_file /= "") then
-               name1 = symba_pla%helio%swiftest%name(index1)
-               m1 = symba_pla%helio%swiftest%mass(index1)
-               rad1 = symba_pla%helio%swiftest%radius(index1)
-               x1(:) = symba_pla%helio%swiftest%xh(:,index1)
-               v1(:) = symba_pla%helio%swiftest%vb(:,index1) - vbs(:)
-               name2 = symba_pla%helio%swiftest%name(index2)
-               m2 = symba_pla%helio%swiftest%mass(index2)
-               rad2 = symba_pla%helio%swiftest%radius(index2)
-               x2(:) = symba_pla%helio%swiftest%xh(:,index2)
-               v2(:) = symba_pla%helio%swiftest%vb(:,index2) - vbs(:)
+               name1 = symba_plA%name(index1)
+               m1 = symba_plA%mass(index1)
+               rad1 = symba_plA%radius(index1)
+               x1(:) = symba_plA%xh(:,index1)
+               v1(:) = symba_plA%vb(:,index1) - vbs(:)
+               name2 = symba_plA%name(index2)
+               m2 = symba_plA%mass(index2)
+               rad2 = symba_plA%radius(index2)
+               x2(:) = symba_plA%xh(:,index2)
+               v2(:) = symba_plA%vb(:,index2) - vbs(:)
 
                call io_write_encounter(t, name1, name2, m1, m2, rad1, rad2, x1(:), x2(:), &
                   v1(:), v2(:), encounter_file, out_type)
@@ -66,57 +66,57 @@ contains
    end if
    !set up the merger for symba_discard_merge_pl 
    if (lmerge) then
-      symba_pla%lmerged(index1) = .true.
-      symba_pla%lmerged(index2) = .true.
-      index1_parent = symba_pla%index_parent(index1)
-      m1 = symba_pla%helio%swiftest%mass(index1_parent)
+      symba_plA%lmerged(index1) = .true.
+      symba_plA%lmerged(index2) = .true.
+      index1_parent = symba_plA%index_parent(index1)
+      m1 = symba_plA%mass(index1_parent)
       mass1 = m1 
-      rad1 = symba_pla%helio%swiftest%radius(index1_parent)
-      x1(:) = m1*symba_pla%helio%swiftest%xh(:,index1_parent)
-      v1(:) = m1*symba_pla%helio%swiftest%vb(:,index1_parent)
+      rad1 = symba_plA%radius(index1_parent)
+      x1(:) = m1*symba_plA%xh(:,index1_parent)
+      v1(:) = m1*symba_plA%vb(:,index1_parent)
       mmax = m1
-      name1 = symba_pla%helio%swiftest%name(index1_parent)
+      name1 = symba_plA%name(index1_parent)
       index_big1 = index1_parent
-      stat1 = symba_pla%helio%swiftest%status(index1_parent)
-      array_index1_child(1:npl) = symba_pla%index_child(1:npl,index1_parent)
-      do i = 1, symba_pla%nchild(index1_parent) ! initialize an array of children
+      stat1 = symba_plA%status(index1_parent)
+      array_index1_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
+      do i = 1, symba_plA%nchild(index1_parent) ! initialize an array of children
          index1_child = array_index1_child(i)
-         mtmp = symba_pla%helio%swiftest%mass(index1_child)
+         mtmp = symba_plA%mass(index1_child)
          if (mtmp > mmax) then
             mmax = mtmp
-            name1 = symba_pla%helio%swiftest%name(index1_child)
+            name1 = symba_plA%name(index1_child)
             index_big1 = index1_child
-            stat1 = symba_pla%helio%swiftest%status(index1_child)
+            stat1 = symba_plA%status(index1_child)
          end if
          m1 = m1 + mtmp
-         x1(:) = x1(:) + mtmp*symba_pla%helio%swiftest%xh(:,index1_child)
-         v1(:) = v1(:) + mtmp*symba_pla%helio%swiftest%vb(:,index1_child)
+         x1(:) = x1(:) + mtmp*symba_plA%xh(:,index1_child)
+         v1(:) = v1(:) + mtmp*symba_plA%vb(:,index1_child)
       end do
       x1(:) = x1(:)/m1
       v1(:) = v1(:)/m1
-      index2_parent = symba_pla%index_parent(index2)
-      m2 = symba_pla%helio%swiftest%mass(index2_parent)
+      index2_parent = symba_plA%index_parent(index2)
+      m2 = symba_plA%mass(index2_parent)
       mass2 = m2
-      rad2 = symba_pla%helio%swiftest%radius(index2_parent)
-      x2(:) = m2*symba_pla%helio%swiftest%xh(:,index2_parent)
-      v2(:) = m2*symba_pla%helio%swiftest%vb(:,index2_parent)
+      rad2 = symba_plA%radius(index2_parent)
+      x2(:) = m2*symba_plA%xh(:,index2_parent)
+      v2(:) = m2*symba_plA%vb(:,index2_parent)
       mmax = m2
-      name2 = symba_pla%helio%swiftest%name(index2_parent)
+      name2 = symba_plA%name(index2_parent)
       index_big2 = index2_parent
-      stat2 = symba_pla%helio%swiftest%status(index2_parent)
-      array_index2_child(1:npl) = symba_pla%index_child(1:npl,index2_parent)
-      do i = 1, symba_pla%nchild(index2_parent)
+      stat2 = symba_plA%status(index2_parent)
+      array_index2_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
+      do i = 1, symba_plA%nchild(index2_parent)
          index2_child = array_index2_child(i)
-         mtmp = symba_pla%helio%swiftest%mass(index2_child)
+         mtmp = symba_plA%mass(index2_child)
          if (mtmp > mmax) then
             mmax = mtmp
-            name2 = symba_pla%helio%swiftest%name(index2_child)
+            name2 = symba_plA%name(index2_child)
             index_big2 = index2_child
-            stat2 = symba_pla%helio%swiftest%status(index2_child)
+            stat2 = symba_plA%status(index2_child)
          end if
          m2 = m2 + mtmp
-         x2(:) = x2(:) + mtmp*symba_pla%helio%swiftest%xh(:,index2_child)
-         v2(:) = v2(:) + mtmp*symba_pla%helio%swiftest%vb(:,index2_child)
+         x2(:) = x2(:) + mtmp*symba_plA%xh(:,index2_child)
+         v2(:) = v2(:) + mtmp*symba_plA%vb(:,index2_child)
       end do
       x2(:) = x2(:)/m2
       v2(:) = v2(:)/m2
@@ -167,13 +167,13 @@ contains
       !write(*,*) "symba_merge_pl.f90 eoffset", eoffset
       do k = 1, nplplenc                          !go through the encounter list and for particles actively encoutering, get their children
          if (plplenc_list%status(k) == active) then
-            do i = 0, symba_pla%nchild(index1_parent)
+            do i = 0, symba_plA%nchild(index1_parent)
                if (i == 0) then 
                   index1_child = index1_parent
                else
                   index1_child = array_index1_child(i)
                end if 
-               do j = 0, symba_pla%nchild(index2_parent)
+               do j = 0, symba_plA%nchild(index2_parent)
                   if (j == 0) then
                      index2_child = index2_parent
                   else
@@ -188,31 +188,31 @@ contains
             end do
          end if
       end do
-      symba_pla%helio%swiftest%xh(:,index1_parent) = xnew(:)
-      symba_pla%helio%swiftest%vb(:,index1_parent) = vnew(:)
-      symba_pla%helio%swiftest%xh(:,index2_parent) = xnew(:) 
-      symba_pla%helio%swiftest%vb(:,index2_parent) = vnew(:) 
-      array_keep_child(1:npl) = symba_pla%index_child(1:npl,index1_parent)
-      do i = 1, symba_pla%nchild(index1_parent)
+      symba_plA%xh(:,index1_parent) = xnew(:)
+      symba_plA%vb(:,index1_parent) = vnew(:)
+      symba_plA%xh(:,index2_parent) = xnew(:) 
+      symba_plA%vb(:,index2_parent) = vnew(:) 
+      array_keep_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
+      do i = 1, symba_plA%nchild(index1_parent)
          indexchild = array_keep_child(i)
-         symba_pla%helio%swiftest%xh(:,indexchild) = xnew(:)
-         symba_pla%helio%swiftest%vb(:,indexchild) = vnew(:)
+         symba_plA%xh(:,indexchild) = xnew(:)
+         symba_plA%vb(:,indexchild) = vnew(:)
       end do
 
-      symba_pla%index_child((symba_pla%nchild(index1_parent)+1),index1_parent) = index2_parent
-      array_rm_child(1:npl) = symba_pla%index_child(1:npl,index2_parent)
-      symba_pla%index_parent(index2) = index1_parent
+      symba_plA%index_child((symba_plA%nchild(index1_parent)+1),index1_parent) = index2_parent
+      array_rm_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
+      symba_plA%index_parent(index2) = index1_parent
 
-      do i = 1, symba_pla%nchild(index2_parent)
-         symba_pla%index_parent(array_rm_child(i)) = index1_parent
+      do i = 1, symba_plA%nchild(index2_parent)
+         symba_plA%index_parent(array_rm_child(i)) = index1_parent
          indexchild = array_rm_child(i)
-         symba_pla%helio%swiftest%xh(:,indexchild) = xnew(:)
-         symba_pla%helio%swiftest%vb(:,indexchild) = vnew(:)
+         symba_plA%xh(:,indexchild) = xnew(:)
+         symba_plA%vb(:,indexchild) = vnew(:)
       end do
-      do i = 1, symba_pla%nchild(index2_parent)
-         symba_pla%index_child(symba_pla%nchild(index1_parent)+i+1,index1_parent)= array_rm_child(i)
+      do i = 1, symba_plA%nchild(index2_parent)
+         symba_plA%index_child(symba_plA%nchild(index1_parent)+i+1,index1_parent)= array_rm_child(i)
       end do 
-      symba_pla%nchild(index1_parent) = symba_pla%nchild(index1_parent) + symba_pla%nchild(index2_parent) + 1
+      symba_plA%nchild(index1_parent) = symba_plA%nchild(index1_parent) + symba_plA%nchild(index2_parent) + 1
    end if
 
    return

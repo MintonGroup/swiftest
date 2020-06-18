@@ -21,22 +21,22 @@ implicit none
    
    term2 = rhscale*(rshell**0)
 
-   rcritmax = symba_pla%helio%swiftest%rhill(2) * term2
+   rcritmax = symba_plA%rhill(2) * term2
    r2critmax = rcritmax * rcritmax
 
 !$omp parallel do default(none) schedule(static) &
 !$omp private(k, rcrit, r2crit, r2, vdotr, v2, tmin, r2min, xr, vr) &
-!$omp shared(num_encounters, lvdotr, lencounter, k_pltp, dt, term2, r2critmax, symba_pla, symba_tpa) &
+!$omp shared(num_encounters, lvdotr, lencounter, k_pltp, dt, term2, r2critmax, symba_plA, symba_tpA) &
 !$omp reduction(+:npltpenc)
 
    do k = 1,num_encounters
-      xr(:) = symba_tpa%helio%swiftest%xh(:,k_pltp(2,k)) - symba_pla%helio%swiftest%xh(:,k_pltp(1,k))
+      xr(:) = symba_tpA%xh(:,k_pltp(2,k)) - symba_plA%xh(:,k_pltp(1,k))
       r2 = dot_product(xr(:), xr(:)) 
       if (r2<r2critmax) then
 
-         rcrit = symba_pla%helio%swiftest%rhill(k_pltp(1,k))*term2
+         rcrit = symba_plA%rhill(k_pltp(1,k))*term2
          r2crit = rcrit*rcrit 
-         vr(:) = symba_tpa%helio%swiftest%vh(:,k_pltp(2,k)) - symba_pla%helio%swiftest%vh(:,k_pltp(1,k))
+         vr(:) = symba_tpA%vh(:,k_pltp(2,k)) - symba_plA%vh(:,k_pltp(1,k))
 
          vdotr = dot_product(vr(:), xr(:))
 

@@ -20,7 +20,7 @@ implicit none
    if (lmass) then
       lradius = present(radius)
       if (.not. lradius) then
-         write(*, *) "swifter error:"
+         write(*, *) "Swiftest Error:"
          write(*, *) "   function io_read_line called with optional mass but without optional radius"
          call util_exit(failure)
       end if

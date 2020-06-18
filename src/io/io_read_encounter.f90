@@ -19,7 +19,7 @@ implicit none
    if (lfirst) then
        call io_open(iu, encounter_file, "old", "unformatted", ierr)
       if (ierr /= 0) then
-         write(*, *) "swifter error:"
+         write(*, *) "Swiftest Error:"
          write(*, *) "   unable to open binary encounter file"
          call util_exit(failure)
       end if

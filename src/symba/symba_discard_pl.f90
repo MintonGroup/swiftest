@@ -16,11 +16,11 @@ implicit none
 
 ! executable code
    ldiscards = .false.
-   if ((rmin >= 0.0_DP) .or. (rmax >= 0.0_DP) .or. (rmaxu >= 0.0_DP) .or. ((qmin >= 0.0_DP) .and. (qmin_coord == "bary")))    &
-      call coord_h2b(npl, symba_pla%helio%swiftest, msys)
-   if ((rmin >= 0.0_DP) .or. (rmax >= 0.0_DP) .or. (rmaxu >= 0.0_DP))                                     &
-      call symba_discard_sun_pl(t, npl, msys, symba_pla%helio%swiftest, rmin, rmax, rmaxu, ldiscards)
-   if (qmin >= 0.0_DP) call symba_discard_peri_pl(t, npl, symba_pla, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
+   if ((rmin >= 0.0_DP) .or. (rmax >= 0.0_DP) .or. (config%rmaxu >= 0.0_DP) .or. ((qmin >= 0.0_DP) .and. (qmin_coord == "bary")))    &
+      call coord_h2b(npl, symba_plA, msys)
+   if ((rmin >= 0.0_DP) .or. (rmax >= 0.0_DP) .or. (config%rmaxu >= 0.0_DP))                                     &
+      call symba_discard_sun_pl(t, npl, msys, symba_plA, rmin, rmax, config%rmaxu, ldiscards)
+   if (qmin >= 0.0_DP) call symba_discard_peri_pl(t, npl, symba_plA, msys, qmin, qmin_alo, qmin_ahi, qmin_coord, ldiscards)
 
    return
 

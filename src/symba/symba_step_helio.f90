@@ -14,8 +14,8 @@ contains
 
 ! executable code
    lfirsttp = lfirst
-   call symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, nplmax, helio_pla, j2rp2, j4rp4, dt, xbeg, xend, ptb, pte)
-   if (ntp > 0) call helio_step_tp(lfirsttp, lextra_force, t, nplm, nplmax, ntp, ntpmax, helio_pla, helio_tpa, j2rp2, j4rp4,  &
+   call symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, config%nplmax, helio_plA, config%j2rp2, config%j4rp4, dt, xbeg, xend, ptb, pte)
+   if (ntp > 0) call helio_step_tp(lfirsttp, lextra_force, t, nplm, config%nplmax, ntp, config%ntpmax, helio_plA, helio_tpA, config%j2rp2, config%j4rp4,  &
       dt, xbeg, xend, ptb, pte)
 
    return

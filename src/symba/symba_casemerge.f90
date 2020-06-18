@@ -20,17 +20,17 @@ implicit none
 ! executable code
          index1 = plplenc_list%index1(index_enc)
          index2 = plplenc_list%index2(index_enc)
-         index1_parent = symba_pla%index_parent(index1)
-         index2_parent = symba_pla%index_parent(index2)
+         index1_parent = symba_plA%index_parent(index1)
+         index2_parent = symba_plA%index_parent(index2)
          mtot = m1 + m2
          xnew(:) = (m1*x1(:) + m2*x2(:))/mtot
          vnew(:) = (m1*v1(:) + m2*v2(:))/mtot
-         name1 = symba_pla%helio%swiftest%name(index1)
-         name2 = symba_pla%helio%swiftest%name(index2)
-         mass1 = symba_pla%helio%swiftest%mass(index1)
-         mass2 = symba_pla%helio%swiftest%mass(index2)
-         stat1 = symba_pla%helio%swiftest%status(index1)
-         stat2 = symba_pla%helio%swiftest%status(index2)
+         name1 = symba_plA%name(index1)
+         name2 = symba_plA%name(index2)
+         mass1 = symba_plA%mass(index1)
+         mass2 = symba_plA%mass(index2)
+         stat1 = symba_plA%status(index1)
+         stat2 = symba_plA%status(index2)
          write(*, *) "merging particles ", name1, " and ", name2, " at time t = ",t
          nmergesub = nmergesub + 1
          mergesub_list%name(nmergesub) = name1
@@ -67,13 +67,13 @@ implicit none
 
          do k = 1, nplplenc
             if (plplenc_list%status(k) == active) then
-               do i = 0, symba_pla%nchild(index1_parent)
+               do i = 0, symba_plA%nchild(index1_parent)
                   if (i == 0) then 
                      index1_child = index1_parent
                   else
                      index1_child = array_index1_child(i)
                   end if 
-                  do j = 0, symba_pla%nchild(index2_parent)
+                  do j = 0, symba_plA%nchild(index2_parent)
                      if (j == 0) then
                         index2_child = index2_parent
                      else
@@ -90,39 +90,39 @@ implicit none
             end if
          end do
 
-         symba_pla%helio%swiftest%xh(:,index1_parent) = xnew(:)
-         symba_pla%helio%swiftest%vb(:,index1_parent) = vnew(:)
-         symba_pla%helio%swiftest%xh(:,index2_parent) = xnew(:) 
-         symba_pla%helio%swiftest%vb(:,index2_parent) = vnew(:)
+         symba_plA%xh(:,index1_parent) = xnew(:)
+         symba_plA%vb(:,index1_parent) = vnew(:)
+         symba_plA%xh(:,index2_parent) = xnew(:) 
+         symba_plA%vb(:,index2_parent) = vnew(:)
 
          ! the children of parent one are the children we are keeping
-         array_keep_child(1:npl) = symba_pla%index_child(1:npl,index1_parent)
+         array_keep_child(1:npl) = symba_plA%index_child(1:npl,index1_parent)
          ! go through the children of the kept parent and add those children to the array of kept children
-         do i = 1, symba_pla%nchild(index1_parent)
+         do i = 1, symba_plA%nchild(index1_parent)
             indexchild = array_keep_child(i)
-            symba_pla%helio%swiftest%xh(:,indexchild) = xnew(:)
-            symba_pla%helio%swiftest%vb(:,indexchild) = vnew(:)
+            symba_plA%xh(:,indexchild) = xnew(:)
+            symba_plA%vb(:,indexchild) = vnew(:)
          end do
          ! the removed parent is assigned as a new child to the list of children of the kept parent
          ! gives kept parent a new child 
-         symba_pla%index_child((symba_pla%nchild(index1_parent)+1),index1_parent) = index2_parent
-         array_rm_child(1:npl) = symba_pla%index_child(1:npl,index2_parent)
+         symba_plA%index_child((symba_plA%nchild(index1_parent)+1),index1_parent) = index2_parent
+         array_rm_child(1:npl) = symba_plA%index_child(1:npl,index2_parent)
          ! the parent of the removed parent is assigned to be the kept parent 
          ! gives removed parent a new parent
-         symba_pla%index_parent(index2) = index1_parent
+         symba_plA%index_parent(index2) = index1_parent
          ! go through the children of the removed parent and add those children to the array of removed children 
-         do i = 1, symba_pla%nchild(index2_parent)
-            symba_pla%index_parent(array_rm_child(i)) = index1_parent
+         do i = 1, symba_plA%nchild(index2_parent)
+            symba_plA%index_parent(array_rm_child(i)) = index1_parent
             indexchild = array_rm_child(i)
-            symba_pla%helio%swiftest%xh(:,indexchild) = xnew(:)
-            symba_pla%helio%swiftest%vb(:,indexchild) = vnew(:)
+            symba_plA%xh(:,indexchild) = xnew(:)
+            symba_plA%vb(:,indexchild) = vnew(:)
          end do
          ! go through the children of the removed parent and add those children to the list of children of the kept parent
-         do i = 1, symba_pla%nchild(index2_parent)
-            symba_pla%index_child(symba_pla%nchild(index1_parent)+i+1,index1_parent)= array_rm_child(i)
+         do i = 1, symba_plA%nchild(index2_parent)
+            symba_plA%index_child(symba_plA%nchild(index1_parent)+i+1,index1_parent)= array_rm_child(i)
          end do 
          ! updates the number of children of the kept parent
-         symba_pla%nchild(index1_parent) = symba_pla%nchild(index1_parent) + symba_pla%nchild(index2_parent) + 1
+         symba_plA%nchild(index1_parent) = symba_plA%nchild(index1_parent) + symba_plA%nchild(index2_parent) + 1
 
    return 
    end procedure symba_casemerge

@@ -17,18 +17,18 @@ implicit none
 
 ! executable code
    if (lfirst) then
-      call symba_peri(lfirst, npl, symba_pla, msys, qmin_coord)
+      call symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
       lfirst = .false.
    else
-      call symba_peri(lfirst, npl, symba_pla, msys, qmin_coord)
+      call symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
       do i = 2, npl
-         if (symba_pla%helio%swiftest%status(i) == active) then
-            if ((symba_pla%isperi(i) == 0) .and. (symba_pla%nplenc(i)== 0)) then
-               if ((symba_pla%atp(i) >= qmin_alo) .and. (symba_pla%atp(i) <= qmin_ahi) &
-                .and. (symba_pla%peri(i) <= qmin)) then
+         if (symba_plA%status(i) == active) then
+            if ((symba_plA%isperi(i) == 0) .and. (symba_plA%nplenc(i)== 0)) then
+               if ((symba_plA%atp(i) >= qmin_alo) .and. (symba_plA%atp(i) <= qmin_ahi) &
+                .and. (symba_plA%peri(i) <= qmin)) then
                   ldiscards = .true.
-                  symba_pla%helio%swiftest%status(i) = discarded_peri
-                  write(*, *) "particle ", symba_pla%helio%swiftest%name(i), &
+                  symba_plA%status(i) = discarded_peri
+                  write(*, *) "particle ", symba_plA%name(i), &
                    " perihelion distance too small at t = ", t
                end if
             end if

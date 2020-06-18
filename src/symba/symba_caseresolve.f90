@@ -13,27 +13,27 @@ implicit none
 
       case (collresolve_regime_disruption)
          call symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-         symba_pla, nplplenc, plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         symba_plA, nplplenc, plplenc_list, config%nplmax, config%ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
       case (collresolve_regime_supercatastrophic)
          call symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-         eoffset, vbs, symba_pla, nplplenc, &
-         plplenc_list, nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, &
+         eoffset, vbs, symba_plA, nplplenc, &
+         plplenc_list, config%nplmax, config%ntpmax, fragmax, mres, rres, m1, m2, rad1, &
          rad2, x1, x2, v1, v2)
 
       case (collresolve_regime_graze_and_merge)
          call symba_casemerge (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-         npl, symba_pla, nplplenc, plplenc_list, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, &
+         npl, symba_plA, nplplenc, plplenc_list, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, &
          x2, v1, v2)
 
       case (collresolve_regime_hit_and_run)
          call symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-         symba_pla, nplplenc, plplenc_list, &
-         nplmax, ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         symba_plA, nplplenc, plplenc_list, &
+         config%nplmax, config%ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
       case (collresolve_regime_merge)
          call symba_casemerge (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-         npl, symba_pla, nplplenc, plplenc_list, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, &
+         npl, symba_plA, nplplenc, plplenc_list, array_index1_child, array_index2_child, m1, m2, rad1, rad2, x1, &
          x2, v1, v2)
       
       case default 
