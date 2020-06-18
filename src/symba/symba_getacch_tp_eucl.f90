@@ -44,41 +44,7 @@ implicit none
 
    symba_tpA%ah(:,1:ntp) = ah(:,1:ntp)
 
-   !removed by d. minton
-   !helio_tpp => symba_tp1p%helio
-   !^^^^^^^^^^^^^^^^^^^^
-   ! openmp parallelization added by d. minton
-   ! $omp parallel do schedule(static) default(none) &
-   ! $omp private(i,helio_tpp,swifter_tpp,swifter_plp,dx,r2,fac) &
-   ! $omp shared(ntp,npl,symba_tp1p,swifter_pl1p,xh) 
-   ! do i = 1, ntp
-   !    !added by d. minton
-   !    !helio_tpp => symba_tp1p%symba_tppa(i)%thisp%helio
-   !    !^^^^^^^^^^^^^^^^^^
-   !    symba_tpA%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-   !    if (symba_tpA%status(i) == active) then
-   !       !swifter_plp => swifter_pl1p
-   !       !do j = 2, nplm
-   !       do j = 2, nplm
-   !          !swifter_plp => swifter_plp%nextp
-   !          dx(:) = symba_tpA%xh(:,i) - xh(:, j)
-   !          r2 = dot_product(dx(:), dx(:))
-   !          fac = symba_plA%mass(j)/(r2*sqrt(r2))
-   !          symba_tpA%ah(:,i) = symba_tpA%ah(:,i) - fac*dx(:)
-   !       end do
-   !    end if
-   !    !removed by d. minton
-   !    !helio_tpp => helio_tpp%nextp
-   !    !^^^^^^^^^^^^^^^^^^^^
-   ! end do
-   ! $omp end parallel do
-   ! openmp parallelization added by d. minton
-   ! $omp parallel do schedule (static) default(none) &
-   ! $omp private(i,swifter_plp,helio_tpp,dx,r2,fac) &
-   ! $omp shared(pltpenc_list,npltpenc)
    do i = 1, npltpenc
-      !swifter_plp => pltpenc_list(i)%plp%helio%swifter
-      !helio_tpp => pltpenc_list(i)%tpp%helio
       index_pl = pltpenc_list%indexpl(i)
       index_tp = pltpenc_list%indextp(i)
       if (symba_tpA%status(index_tp) == active) then

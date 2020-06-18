@@ -69,7 +69,8 @@ program swiftest_symba
    ! reads in initial conditions of all massive bodies from input file
    ! reorder by mass 
    call symba_reorder_pl(npl, symba_plA)
-   call util_valid(npl, ntp, symba_plA, symba_tpA)
+   call util_valid(symba_plA, symba_tpA)
+
    t = t0
    tbase = t0
    iloop = 0
@@ -95,7 +96,7 @@ program swiftest_symba
       call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
       write(egyiu,300) t, ke, pe, te, htot
    end if
-   call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
+   call symba_energy(symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
    do while ((t < config%tstop) .and. ((ntp0 == 0) .or. (ntp > 0)))
       call symba_step(t, dt, symba_plA, symba_tpA, plplenc_list, pltpenc_list, mergeadd_list, mergesub_list, eoffset, config)
       iloop = iloop + 1
@@ -103,21 +104,16 @@ program swiftest_symba
           tbase = tbase + iloop*dt
           iloop = 0
       end if
-      t = tbase + iloop*dt
-      ldiscard = .false. 
-      ldiscard_tp = .false.
-      lfrag_add = .false.
-      call symba_discard_merge_pl(t, npl, symba_plA, nplplenc, plplenc_list)                                  ! check this 
-      call symba_discard_pl(t, npl, config%nplmax, nsppl, symba_plA, rmin, rmax, config%rmaxu, qmin, qmin_coord, qmin_alo,    &    ! check this 
-            qmin_ahi, config%j2rp2, config%j4rp4, eoffset)
-      call symba_discard_tp(t, npl, ntp, nsptp, symba_plA, symba_tpA, dt, rmin, rmax, config%rmaxu, qmin, qmin_coord, &    ! check this 
-            qmin_alo, qmin_ahi, config%lclose, config%lrhill_present)
-      if ((ldiscard .eqv. .true.) .or. (ldiscard_tp .eqv. .true.) .or. (lfrag_add .eqv. .true.)) then
+      t = tbase + iloop * dt
+      call symba_discard_merge_pl(t, symba_plA, plplenc_list)                                  
+      call symba_plA%discard(t, dt, eoffset, config)
+      call symba_tpA%discard(t, dt, symba_plA, config) 
+      if ((symba_plA%ldiscard) .or. (symba_tpA%ldiscard) .or. (lfrag_add .eqv. .true.)) then
          call symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
             discard_tpA,param)
-         if ((lspill_list .eqv. .true.) .or. (ldiscard_tp .eqv. .true.)) then
-            call io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
-               discard_plA, discard_tpA, mergeadd_list, mergesub_list, discard_file, config%lbig_discard) 
+         if ((lspill_list) .or. (ldiscard_tpt
+            !call io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
+            !   discard_plA, discard_tpA, mergeadd_list, mergesub_list, discard_file, config%lbig_discard) 
             nmergeadd = 0
             nmergesub = 0
             nsppl = 0

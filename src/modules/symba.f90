@@ -19,9 +19,9 @@ module symba
 
    !! SyMBA test particle class
    type, public, extends(helio_pl) :: symba_tp
-      integer(I4B), dimension(:),     allocatable :: nplenc  !! number of encounters with massive bodies this time step
-      integer(I4B), dimension(:),     allocatable :: levelg  !! level at which this particle should be moved
-      integer(I4B), dimension(:),     allocatable :: levelm  !! deepest encounter level achieved this time step
+      integer(I4B), dimension(:),     allocatable :: nplenc  !! Number of encounters with massive bodies this time step
+      integer(I4B), dimension(:),     allocatable :: levelg  !! Level at which this particle should be moved
+      integer(I4B), dimension(:),     allocatable :: levelm  !! Deepest encounter level achieved this time step
    contains
       procedure, public :: alloc => symba_allocate_tp
       final :: symba_deallocate_tp
@@ -33,11 +33,12 @@ module symba
 
    !! SyMBA massive body particle class
    type, public, extends(symba_tp) :: symba_pl
-      logical, dimension(:),        allocatable :: lmerged      !! flag indicating whether body has merged with another this time step
-      integer(I4B), dimension(:),   allocatable :: ntpenc       !! number of encounters with test particles this time step
-      integer(I4B), dimension(:),   allocatable :: nchild       !! number of children in merger list
-      integer(I4B), dimension(:),   allocatable :: index_parent !! position of the parent of id
-      integer(I4B), dimension(:,:), allocatable :: index_child  !! position of the children of id
+      real(DP)                                  :: eoffset      !! Energy offset (net energy lost in mergers)
+      logical, dimension(:),        allocatable :: lmerged      !! Flag indicating whether body has merged with another this time step
+      integer(I4B), dimension(:),   allocatable :: ntpenc       !! Number of encounters with test particles this time step
+      integer(I4B), dimension(:),   allocatable :: nchild       !! Number of children in merger list
+      integer(I4B), dimension(:),   allocatable :: index_parent !! Position of the parent of id
+      integer(I4B), dimension(:,:), allocatable :: index_child  !! Position of the children of id
    contains
       procedure, public :: alloc => symba_allocate_pl
       final :: symba_deallocate_pl
@@ -50,8 +51,8 @@ module symba
 
    !! Generic abstract class structure for a SyMBA encounter class
    type, private, extends(swiftest_body) :: symba_encounter
-      logical     , dimension(:),     allocatable :: lvdotr !! relative vdotr flag
-      integer(I4B), dimension(:),     allocatable :: level  !! encounter recursion level
+      logical     , dimension(:),     allocatable :: lvdotr !! Relative vdotr flag
+      integer(I4B), dimension(:),     allocatable :: level  !! Encounter recursion level
    contains
       procedure :: alloc => symba_allocate_encounter
       procedure :: set_from_file => symba_encounter_dummy_input
@@ -64,10 +65,10 @@ module symba
 
    !! Class structure for a massive body-massive body encounter
    type, public, extends(symba_encounter) :: symba_plplenc
-      integer(I4B), dimension(:), allocatable :: index1       !! position of the first massive body in encounter
-      integer(I4B), dimension(:), allocatable :: index2       !! position of the second massive body in encounter
-      integer(I4B), dimension(:), allocatable :: enc_child    !! the child of the encounter
-      integer(I4B), dimension(:), allocatable :: enc_parent   !! the child of the encounter
+      integer(I4B), dimension(:), allocatable :: index1       !! Position of the first massive body in encounter
+      integer(I4B), dimension(:), allocatable :: index2       !! Position of the second massive body in encounter
+      integer(I4B), dimension(:), allocatable :: enc_child    !! The child of the encounter
+      integer(I4B), dimension(:), allocatable :: enc_parent   !! The child of the encounter
    contains
       procedure :: alloc => symba_allocate_plplenc
       final :: symba_deallocate_plplenc
@@ -92,7 +93,7 @@ module symba
 
    !! Class structure for merger structure
    type, public, extends(swiftest_pl) :: symba_merger
-      integer(I4B), dimension(:), allocatable :: index_ps  !! Index position within the main symba structure for the body being merged
+      integer(I4B), dimension(:), allocatable :: index_ps !! Index position within the main symba structure for the body being merged
       integer(I4B), dimension(:), allocatable :: ncomp    !! Number of component bodies in this one during this merger
    contains
       procedure :: alloc => symba_allocate_merger
@@ -136,7 +137,7 @@ interface
    module subroutine symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
       symba_plA, nplplenc, plplenc_list, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2, config)
       implicit none
-      integer(I4B), intent(in)       :: index_enc, config%nplmax, config%ntpmax
+      integer(I4B), intent(in)       :: index_enc
       integer(I4B), intent(inout)        :: nmergeadd, nmergesub, nplplenc, fragmax
       real(DP), intent(in)          :: t, dt
       real(DP), intent(inout)        :: eoffset, m1, m2, rad1, rad2

@@ -71,11 +71,29 @@ module swiftest_data_structures
    end type swiftest_configuration
 
    !********************************************************************************************************************************
+   !                                    swiftest_conservation class definitions and method interfaces
+   !********************************************************************************************************************************
+
+   !>This class calculates and stores energy and conservation quantities 
+   type, public :: swiftest_conservation
+      private
+      real(DP)                 :: eoffset   
+      real(DP)                 :: ke         !! Kinetic energy
+      real(DP)                 :: pe         !! Potential energy
+      real(DP)                 :: te         !! Potential energy
+      real(DP),dimension(NDIM) :: htot       !! Angular momentum vector
+   contains
+      private
+      procedure, public :: calc => swiftest_calc_energy_momentum
+      procedure, public :: get_eoffset => swiftest_get_eoffset
+   end type swiftest_conservation
+
+   !********************************************************************************************************************************
    !                                    swiftest_body class definitions and method interfaces
    !********************************************************************************************************************************
 
    !! TODO: Move central body into its own set of constructs rather than being the first "planet"ererewq 
-   !! A superclass for a generic Swiftest particle. All particle types are derived from this class
+   !> A superclass for a generic Swiftest particle. All particle types are derived from this class
    type, public :: swiftest_body           
       !! Superclass that defines the generic elements of a Swiftest particle 
       !private
