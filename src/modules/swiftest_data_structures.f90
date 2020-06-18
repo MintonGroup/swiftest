@@ -95,7 +95,7 @@ module swiftest_data_structures
       procedure, public :: alloc => swiftest_allocate_body                !! A base constructor that sets nbody and allocates the common components
       procedure, public :: set_from_file => swiftest_read_body_input_file !! Method used to read initial conditions from a file
       procedure, public :: set_vec => swiftest_set_vec                    !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: spill => swiftest_spill_body                   !! Method to remove the inactive particles and spill them to a discard object 
+      generic, public :: spill => swiftest_spill                        !! Method to remove the inactive particles and spill them to a discard object 
       procedure, public :: set_msys => swiftest_set_msys                  !! Method to set the msys value
       final             :: swiftest_deallocate_body                       !! A destructor/finalizer that deallocates everything 
    end type swiftest_body
@@ -120,6 +120,7 @@ module swiftest_data_structures
       procedure, public :: h2b => coord_h2b_tp
       procedure, public :: vb2vh => coord_vb2vh_tp
       procedure, public :: vh2vb => coord_vh2vb_tp
+      generic, public       :: spill => swiftest_spill_tp
       final             :: swiftest_deallocate_tp
    end type swiftest_tp
 
@@ -139,6 +140,7 @@ module swiftest_data_structures
       procedure, public     :: h2b => coord_h2b_pl
       procedure, public     :: vb2vh => coord_vb2vh_pl
       procedure, public     :: vh2vb => coord_vh2vb_pl
+      generic, public       :: spill => swiftest_spill_pl
       final :: swiftest_deallocate_pl
    end type swiftest_pl
 
@@ -159,7 +161,7 @@ module swiftest_data_structures
          integer, intent(in)               :: n    !! Number of test particles to allocate
       end subroutine swiftest_allocate_tp
 
-            !> Basic Swiftest particle constructor method
+      !> Basic Swiftest particle constructor method
       module subroutine swiftest_allocate_body(self,n)
          implicit none
          class(swiftest_body), intent(inout) :: self !! Swiftest particle object
@@ -181,18 +183,32 @@ module swiftest_data_structures
          real(DP),intent(in) :: dt                    !! Input scalar stepsize
       end subroutine swiftest_set_vec
 
-      !> Basic Swiftest particle destructor/finalizer
-      module subroutine swiftest_spill_body(self,discard)
-         implicit none
-         class(swiftest_body), intent(inout) :: self    !! Swiftest particle object to input
-         class(*), intent(inout) :: discard !! Discarded body list
-      end subroutine swiftest_spill_body
-
-         !> Basic Swiftest particle constructor method
+      !> Basic Swiftest particle constructor method
       module  subroutine swiftest_deallocate_body(self)
          implicit none
          type(swiftest_body), intent(inout) :: self !! Swiftest particle object
       end subroutine swiftest_deallocate_body
+
+      !> Basic Swiftest particle destructor/finalizer
+      module subroutine swiftest_spill(self,discard)
+         implicit none
+         class(swiftest_body), intent(inout) :: self    !! Swiftest particle object to input
+         class(swiftest_body), intent(inout) :: discard !! Discarded body list
+      end subroutine swiftest_spill
+
+      !!> Basic Swiftest particle destructor/finalizer
+      !module subroutine swiftest_spill_body(self,discard)
+      !   implicit none
+      !   class(swiftest_body), intent(inout) :: self    !! Swiftest particle object to input
+      !   class(swiftest_body), intent(inout) :: discard !! Discarded body list
+      !end subroutine swiftest_spill_body
+
+      !> Basic Swiftest particle destructor/finalizer
+      module subroutine swiftest_spill_pl(self,discard)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self    !! Swiftest massive body particle object to input
+         class(swiftest_pl), intent(inout) :: discard !! Discarded body list
+      end subroutine swiftest_spill_pl
 
       !> Basic Swiftest particle destructor/finalizer
       module subroutine swiftest_spill_tp(self,discard)
@@ -206,13 +222,6 @@ module swiftest_data_structures
          implicit none
          type(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       end subroutine swiftest_deallocate_tp
-
-      !> Basic Swiftest particle destructor/finalizer
-      module subroutine swiftest_spill_pl(self,discard)
-         implicit none
-         class(swiftest_pl), intent(inout) :: self    !! Swiftest massive body particle object to input
-         class(swiftest_pl), intent(inout) :: discard !! Discarded body list
-      end subroutine swiftest_spill_pl
 
       !> Basic Swiftest massive body destructor/finalizer
       module subroutine swiftest_deallocate_pl(self)
