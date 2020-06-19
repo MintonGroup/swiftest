@@ -7,7 +7,7 @@ module rmvs
       module subroutine rmvs_chk_ind(xr, vr, dt, r2crit, iflag)
          implicit none
          real(DP), intent(in)      :: dt, r2crit
-         real(DP), dimension(ndim), intent(in) :: xr, vr
+         real(DP), dimension(NDIM), intent(in) :: xr, vr
          integer(I4B), intent(out)      :: iflag
       end subroutine rmvs_chk_ind
 

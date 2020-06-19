@@ -12,7 +12,7 @@ contains
 
    integer(I4B)              :: i, j, isp, ntp, npl
    real(DP)                  :: r2min, radius
-   real(DP), dimension(ndim) :: dx, dv
+   real(DP), dimension(NDIM) :: dx, dv
 
    ntp = swiftest_tpA%nbody
    npl = swiftest_plA%nbody

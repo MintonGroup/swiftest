@@ -9,16 +9,16 @@ implicit none
  
    integer(I4B)             :: model, nres, i, itarg, iproj
    real(DP), dimension(3)       :: mres, rres
-   real(DP), dimension(ndim, 3)   :: pres, vres
+   real(DP), dimension(NDIM, 3)   :: pres, vres
    integer(I4B)             :: regime 
    integer(I4B)             :: index1, index2, index1_child, index2_child, index1_parent, index2_parent
    integer(I4B)             :: name1, name2, index_big1, index_big2, stat1, stat2
    real(DP)               :: r2, rlim, rlim2, vdotr, tcr2, dt2, a, e, q
    real(DP)               :: rad1, rad2, m1, m2, den1, den2, vol1, vol2, vchild, dentarg, denproj, dentot, mcenter
    real(DP)               :: mass1, mass2, mmax, mtmp, mtot, m1_si, m2_si
-   real(DP), dimension(ndim)    :: xr, vr, x1, v1, x2, v2, x1_si, x2_si, v1_si, v2_si, xproj, xtarg, vproj, vtarg
+   real(DP), dimension(NDIM)    :: xr, vr, x1, v1, x2, v2, x1_si, x2_si, v1_si, v2_si, xproj, xtarg, vproj, vtarg
    real(DP)               :: den1_si, den2_si, rad1_si, rad2_si, rproj, rtarg
-   logical(lgt)             :: lfrag_add, lmerge
+   logical              :: lfrag_add, lmerge
    integer(I4B), dimension(npl)   :: array_index1_child, array_index2_child
    real(DP)               :: mlr, mslr, mtarg, mproj
    !real(DP)               :: k2 = 2.959122082855911e-4 ! in si units
@@ -142,22 +142,22 @@ implicit none
          x2(:) = x2(:) + mtmp*symba_plA%xh(:,index2_child)
          v2(:) = v2(:) + mtmp*symba_plA%vb(:,index2_child)
       end do
-      gu = gc / (du2m**3 / (mu2kg * tu2s**2))
+      GU = GC / (DU2M**3 / (MU2KG * TU2S**2))
       den2 =  m2 / vol2
       rad2 = ((3.0_DP * m2) / (den2 * 4.0_DP * pi)) ** (1.0_DP / 3.0_DP)
       x2(:) = x2(:)/m2
       v2(:) = v2(:)/m2
 
-      m1_si = (m1 / gu) * mu2kg 
-      m2_si = (m2 / gu) * mu2kg
-      rad1_si = rad1 * du2m
-      rad2_si = rad2 * du2m
-      x1_si(:) = x1(:) * du2m
-      x2_si(:) = x2(:) * du2m
-      v1_si(:) = v1(:) * du2m / tu2s
-      v2_si(:) = v2(:) * du2m / tu2s
-      den1_si = (den1 / gu) * mu2kg / (du2m ** 3.0_DP)
-      den2_si = (den2 / gu) * mu2kg / (du2m ** 3.0_DP)
+      m1_si = (m1 / GU) * MU2KG 
+      m2_si = (m2 / GU) * MU2KG
+      rad1_si = rad1 * DU2M
+      rad2_si = rad2 * DU2M
+      x1_si(:) = x1(:) * DU2M
+      x2_si(:) = x2(:) * DU2M
+      v1_si(:) = v1(:) * DU2M / TU2S
+      v2_si(:) = v2(:) * DU2M / TU2S
+      den1_si = (den1 / GU) * MU2KG / (DU2M ** 3.0_DP)
+      den2_si = (den2 / GU) * MU2KG / (DU2M ** 3.0_DP)
 
       mres(:) = 0.0_DP
       rres(:) = 0.0_DP
@@ -193,7 +193,7 @@ implicit none
       end if
       mtot = m1_si + m2_si
       dentot = (m1_si *den1_si +m2_si*den2_si )/ mtot
-      mcenter = symba_plA%mass(1) * mu2kg / gu
+      mcenter = symba_plA%mass(1) * MU2KG / GU
 
       !regime = collresolve_resolve(model,mtarg,mproj,rtarg,rproj,xtarg,xproj, vtarg,vproj, nres, mres, rres, pres, vres)
 
@@ -207,8 +207,8 @@ implicit none
       rres(2) = (3.0_DP * mres(2)  / (4.0_DP * pi * denproj)) ** (1.0_DP/3.0_DP)
       rres(3) = (3.0_DP * mres(2)  / (4.0_DP * pi * dentot)) ** (1.0_DP/3.0_DP)
 
-      mres(:) = (mres(:) / mu2kg) * gu
-      rres(:) = rres(:) / du2m
+      mres(:) = (mres(:) / MU2KG) * GU
+      rres(:) = rres(:) / DU2M
 
       call symba_caseresolve(t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
       npl, symba_plA, nplplenc, plplenc_list, regime, fragmax, mres, rres, array_index1_child, &

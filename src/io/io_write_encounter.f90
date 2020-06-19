@@ -10,8 +10,8 @@ contains
    !! Adapted from Hal Levison's Swift routine io_write_encounter.f
 use swiftest
 implicit none
-   logical(lgt)        :: lxdr
-   logical(lgt), save    :: lfirst = .true.
+   logical         :: lxdr
+   logical , save    :: lfirst = .true.
    integer(I4B), parameter :: lun = 30
    integer(I4B)        :: ierr
    integer(I4B), save    :: iu = lun

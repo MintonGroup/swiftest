@@ -11,7 +11,7 @@ use swiftest
 implicit none
    integer(I4B)                    :: i, j
    real(DP)                      :: rji2, irij3, faci, facj
-   real(DP), dimension(ndim)             :: dx
+   real(DP), dimension(NDIM)             :: dx
 
 ! executable code
    do i = 2, nplm

@@ -11,7 +11,7 @@ contains
    implicit none
    integer(I4B)         :: ierr
    integer(I4B), dimension(3) :: nn
-   real(sp)             :: ttmp
+   real(SP)             :: ttmp
 
 ! executable code
    select case (out_type)

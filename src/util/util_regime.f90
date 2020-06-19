@@ -80,38 +80,38 @@ contains
     bcrit = rad1/(rad1+rad2)
 
     if( vimp < vescp) then
-      regime = collresolve_regime_merge !perfect merging regime
+      regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
        mlr = mtot
        mslr = 0.0_DP
     else if (vimp < verosion) then 
       if (b<bcrit) then
-      regime = collresolve_regime_merge !partial accretion regime"
+      regime = COLLRESOLVE_REGIME_MERGE !partial accretion regime"
        mlr = mtot
        mslr = 0.0_DP
       else if ((b>bcrit) .and. (vimp < vcr)) then
-      regime = collresolve_regime_merge ! graze and merge
+      regime = COLLRESOLVE_REGIME_MERGE ! graze and merge
        mlr = mtot
        mslr = 0.0_DP
       else
        mlr = m1
        mslr = calc_qrd_rev(m2,m1,mint,den1,den2,vimp)
-       regime = collresolve_regime_hit_and_run !hit and run
+       regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
       end if 
     else if (vimp > verosion .and. vimp < vsupercat) then
       if ((m2 < 0.001_DP * m1)) then 
-      regime = collresolve_regime_merge !cratering regime"
+      regime = COLLRESOLVE_REGIME_MERGE !cratering regime"
        mlr = mtot
        mslr = 0.0_DP
       else 
        mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (n1 * mlr / mtot)))) / (n2 * beta)  ! (eq 37)
-       regime = collresolve_regime_disruption !disruption
+       regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
       end if 
     else if (vimp > vsupercat) then 
        mlr = mtot * (0.1_DP * ((qr / (qrd_pstar * 1.8_DP)) ** (-1.5_DP)))   !eq (44)
        mslr = (mtot * ((3.0_DP - beta) * (1.0_DP - (n1 * mlr / mtot)))) / (n2 * beta)  ! (eq 37)
-      regime = collresolve_regime_supercatastrophic ! supercatastrophic
+      regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC ! supercatastrophic
     else 
-      write(*,*) "error no regime found in util_regime"
+      write(*,*) "Error no regime found in util_regime"
     end if 
     return 
 

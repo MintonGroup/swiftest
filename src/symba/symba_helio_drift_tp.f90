@@ -12,10 +12,10 @@ contains
    integer(I4B)          :: i, iflag
 
    do i = 1, ntp
-      if ((symba_tpA%levelg(i) == irec) .and. (symba_tpA%status(i) == active)) then
+      if ((symba_tpA%levelg(i) == irec) .and. (symba_tpA%status(i) == ACTIVE)) then
          call drift_one(mu, symba_tpA%xh(:,i), symba_tpA%vb(:,i), dt, iflag)
          if (iflag /= 0) then
-            symba_tpA%status(i) = discarded_drifterr
+            symba_tpA%status(i) = DISCARDED_DRIFTERR
             write(*, *) "particle ", symba_tpA%name(i), " lost due to error in danby drift"
          end if
       end if

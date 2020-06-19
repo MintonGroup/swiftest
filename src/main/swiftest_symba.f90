@@ -82,9 +82,9 @@ program swiftest_symba
    end if
    ! TODO: Replace with subroutine call
    !if (out_stat == "old") then
-   !   open(unit = egyiu, file = energy_file, form = "formatted", status = "old", action = "write", position = "append")
+   !   open(unit = egyiu, file = ENERGY_FILE, form = "formatted", status = "old", action = "write", position = "append")
    !else 
-   !   open(unit = egyiu, file = energy_file, form = "formatted", status = "replace", action = "write")
+   !   open(unit = egyiu, file = ENERGY_FILE, form = "formatted", status = "replace", action = "write")
    !end if
    !300 format(7(1x, e23.16))
 
@@ -96,7 +96,7 @@ program swiftest_symba
    do while (t < config%tstop)
       call symba_step(t, dt, symba_plA, symba_tpA, plplenc_list, pltpenc_list, mergeadd_list, mergesub_list, config)
       iloop = iloop + 1
-      if (iloop == loopmax) then
+      if (iloop == LOOPMAX) then
           tbase = tbase + iloop*dt
           iloop = 0
       end if

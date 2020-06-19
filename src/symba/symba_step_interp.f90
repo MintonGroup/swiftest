@@ -10,16 +10,16 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_step_interp.f
    use swiftest
    implicit none
-   logical(lgt), save                 :: lmalloc = .true.
-   integer(i4b)                     :: i, irec
+   logical , save                 :: lmalloc = .true.
+   integer( I4B)                     :: i, irec
    real(DP)                       :: dth, msys
-   real(DP), dimension(ndim)            :: ptb, pte
+   real(DP), dimension(NDIM)            :: ptb, pte
    real(DP), dimension(:, :), allocatable, save :: xbeg, xend
 
 ! executable code
 
    if (lmalloc) then
-      allocate(xbeg(ndim, config%nplmax), xend(ndim, config%nplmax))
+      allocate(xbeg(NDIM, config%nplmax), xend(NDIM, config%nplmax))
       lmalloc = .false.
    end if
    dth = 0.5_DP*dt

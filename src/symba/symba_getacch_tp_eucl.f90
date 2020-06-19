@@ -11,13 +11,13 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_getacch.f
 use swiftest
 implicit none
-   logical(lgt), save                 :: lmalloc = .true.
+   logical , save                 :: lmalloc = .true.
    integer(I4B)                     :: i, j, k, index_pl, index_tp
    real(DP)                       :: rji2, irij3, faci, facj, r2, fac, mu
-   real(DP), dimension(ndim)            :: dx
+   real(DP), dimension(NDIM)            :: dx
    real(DP), dimension(:), allocatable, save    :: irh, irht
    real(DP), dimension(:, :), allocatable, save :: aobl, xht, aoblt
-   real(DP), dimension(ndim, ntp)         :: ah
+   real(DP), dimension(NDIM, ntp)         :: ah
 
 ! executable code
 
@@ -32,7 +32,7 @@ implicit none
 !$omp reduction(+:ah)
    do k = 1,num_pltp_comparisons
       j = k_pltp(2,k)
-      if (symba_tpA%status(j) == active) then
+      if (symba_tpA%status(j) == ACTIVE) then
          i = k_pltp(1,k)
          dx(:) = symba_tpA%xh(:,k_pltp(2,k)) - symba_plA%xh(:,k_pltp(1,k))
          r2 = dot_product(dx(:), dx(:))
@@ -47,7 +47,7 @@ implicit none
    do i = 1, npltpenc
       index_pl = pltpenc_list%indexpl(i)
       index_tp = pltpenc_list%indextp(i)
-      if (symba_tpA%status(index_tp) == active) then
+      if (symba_tpA%status(index_tp) == ACTIVE) then
          dx(:) = symba_tpA%xh(:,index_tp) - symba_plA%xh(:,index_pl)
          r2 = dot_product(dx(:), dx(:))
          fac = symba_plA%mass(index_pl)/(r2*sqrt(r2))
@@ -57,7 +57,7 @@ implicit none
    ! $omp end parallel do
    if (config%j2rp2 /= 0.0_DP) then
       if (lmalloc) then
-         allocate(aobl(ndim, config%nplmax), irh(config%nplmax), xht(ndim, config%ntpmax), aoblt(ndim, config%ntpmax), irht(config%ntpmax))
+         allocate(aobl(NDIM, config%nplmax), irh(config%nplmax), xht(NDIM, config%ntpmax), aoblt(NDIM, config%ntpmax), irht(config%ntpmax))
          lmalloc = .false.
       end if
       do i = 2, npl
@@ -73,7 +73,7 @@ implicit none
       end do
       call obl_acc_tp(ntp, xht, config%j2rp2, config%j4rp4, irht, aoblt, mu)
       do i = 1, ntp
-         if (symba_tpA%status(i) == active) &
+         if (symba_tpA%status(i) == ACTIVE) &
          symba_tpA%ah(:,i) = symba_tpA%ah(:,i) + aoblt(:, i) - aobl(:, 1)
       end do
    end if

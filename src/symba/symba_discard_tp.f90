@@ -3,12 +3,12 @@ contains
    module procedure symba_discard_tp
    !! author: David A. Minton
    !!
-   !! Call discard routine to determine spilled test particles, then remove them from active list
+   !! Call discard routine to determine spilled test particles, then remove them from ACTIVE list
    !!
    !! Adapted from David E. Kaufmann's Swifter modules: symba_discard_tp.f90
 use swiftest
 implicit none
-   logical(lgt)          :: lclosel = .false.
+   logical           :: lclosel = .false.
    integer(I4B)          :: i
 
 ! executable code

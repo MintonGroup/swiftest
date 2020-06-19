@@ -9,13 +9,13 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_merge.f
    use swiftest
    implicit none
-   logical(lgt)           :: lmerge
+   logical            :: lmerge
    integer(I4B)           :: i, j, k, stat1, stat2, index1, index2, index_keep, index_rm, indexchild
    integer(I4B)           :: index1_child, index2_child, index1_parent, index2_parent, index_big1, index_big2
    integer(I4B)           :: name1, name2
    real(DP)             :: r2, rlim, rlim2, vdotr, tcr2, dt2, mtot, a, e, q, m1, m2, mtmp, mmax 
    real(DP)             :: eold, enew, rad1, rad2, mass1, mass2
-   real(DP), dimension(ndim)    :: xr, vr, x1, v1, x2, v2, xnew, vnew
+   real(DP), dimension(NDIM)    :: xr, vr, x1, v1, x2, v2, xnew, vnew
    integer(I4B), dimension(npl) :: array_index1_child, array_index2_child, array_keep_child, array_rm_child
 
 ! executable code
@@ -126,14 +126,14 @@ contains
       write(*, *) "merging particles ", name1, " and ", name2, " at time t = ",t
       nmergesub = nmergesub + 1
       mergesub_list%name(nmergesub) = name1
-      mergesub_list%status(nmergesub) = merged
+      mergesub_list%status(nmergesub) = MERGED
       mergesub_list%xh(:,nmergesub) = x1(:)
       mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
       mergesub_list%mass(nmergesub) = mass1
       mergesub_list%radius(nmergesub) = rad1
       nmergesub = nmergesub + 1
       mergesub_list%name(nmergesub) = name2
-      mergesub_list%status(nmergesub) = merged
+      mergesub_list%status(nmergesub) = MERGED
       mergesub_list%xh(:,nmergesub) = x2(:)
       mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
       mergesub_list%mass(nmergesub) = mass2
@@ -166,7 +166,7 @@ contains
       !write(*,*) "symba_merge_pl.f90 vh", mergeadd_list%vh(:,nmergeadd)
       !write(*,*) "symba_merge_pl.f90 eoffset", eoffset
       do k = 1, nplplenc                          !go through the encounter list and for particles actively encoutering, get their children
-         if (plplenc_list%status(k) == active) then
+         if (plplenc_list%status(k) == ACTIVE) then
             do i = 0, symba_plA%nchild(index1_parent)
                if (i == 0) then 
                   index1_child = index1_parent
@@ -180,9 +180,9 @@ contains
                      index2_child = array_index2_child(j)
                   end if
                   if ((index1_child == plplenc_list%index1(k)) .and. (index2_child == plplenc_list%index2(k))) then
-                     plplenc_list%status(k) = merged
+                     plplenc_list%status(k) = MERGED
                   else if ((index1_child == plplenc_list%index2(k)) .and. (index2_child == plplenc_list%index1(k))) then
-                     plplenc_list%status(k) = merged
+                     plplenc_list%status(k) = MERGED
                   end if
                end do
             end do

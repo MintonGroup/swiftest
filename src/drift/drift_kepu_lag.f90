@@ -10,14 +10,14 @@ contains
    !! Adapted from Hal Levison's Swift routine drift_kepu_lag.f
    use swiftest
    implicit none
-   integer(i4b) :: nc, ncmax
+   integer( I4B) :: nc, ncmax
    real(DP)   :: ln, x, fpp, ds, c0, f, fdt
 
 ! executable code
    if (alpha < 0.0_DP) then
-      ncmax = nlag2
+      ncmax = NLAG2
    else
-      ncmax = nlag1
+      ncmax = NLAG1
    end if
    ln = 5.0_DP
    do nc = 0, ncmax
@@ -32,7 +32,7 @@ contains
       ds = -ln * f/(fp + sign(1.0_DP, fp) * sqrt(abs((ln - 1.0_DP) * (ln - 1.0_DP) * fp * fp - (ln - 1.0_DP) * ln * f * fpp)))
       s = s + ds
       fdt = f / dt
-      if (fdt * fdt < danbyb * danbyb) then
+      if (fdt * fdt < DANBYB * DANBYB) then
          iflag = 0
          return
       end if

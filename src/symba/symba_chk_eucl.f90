@@ -9,10 +9,10 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_chk.f
 use swiftest
 implicit none
-   ! logical(lgt) :: iflag lvdotr_flag
+   ! logical  :: iflag lvdotr_flag
    real(DP)   :: rcrit, r2crit, vdotr, r2, v2, tmin, r2min, term2, rcritmax, r2critmax
    integer(I4B) :: k
-   real(DP), dimension(ndim):: xr, vr
+   real(DP), dimension(NDIM):: xr, vr
 
 ! executable code
 

@@ -10,7 +10,7 @@ contains
    !!      Vetterling, and Flannery, 2nd ed., pp. 1169-70
    use swiftest
    integer(I4B), parameter       :: NN = 15, NSTACK = 50
-   real(sp)                :: a, dum
+   real(SP)                :: a, dum
    integer(I4B)            :: n, k, i, j, jstack, l, r
    integer(I4B), dimension(NSTACK) :: istack
 

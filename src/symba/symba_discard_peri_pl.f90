@@ -9,10 +9,10 @@ contains
    !! Adapted from Hal Levison's Swift routine discard_mass_peri.f
 use swiftest
 implicit none
-   logical(lgt), save      :: lfirst = .true.
+   logical , save      :: lfirst = .true.
    integer(I4B)          :: i, j, ih
    real(DP)            :: r2
-   real(DP), dimension(ndim) :: dx
+   real(DP), dimension(NDIM) :: dx
 
 
 ! executable code
@@ -22,12 +22,12 @@ implicit none
    else
       call symba_peri(lfirst, npl, symba_plA, msys, qmin_coord)
       do i = 2, npl
-         if (symba_plA%status(i) == active) then
+         if (symba_plA%status(i) == ACTIVE) then
             if ((symba_plA%isperi(i) == 0) .and. (symba_plA%nplenc(i)== 0)) then
                if ((symba_plA%atp(i) >= qmin_alo) .and. (symba_plA%atp(i) <= qmin_ahi) &
                 .and. (symba_plA%peri(i) <= qmin)) then
                   ldiscards = .true.
-                  symba_plA%status(i) = discarded_peri
+                  symba_plA%status(i) = DISCARDED_PERI
                   write(*, *) "particle ", symba_plA%name(i), &
                    " perihelion distance too small at t = ", t
                end if

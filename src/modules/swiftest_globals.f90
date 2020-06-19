@@ -14,8 +14,6 @@ module swiftest_globals
    integer, parameter :: SP = KIND(1.0) !! Symbolic name for kind types of single-precision reals
    integer, parameter :: DP = KIND(1.0D0) !! Symbolic name for kind types of double-precision reals
 
-   integer, parameter :: LGT = KIND(.TRUE.) !! Symbolic name for kind type of default logical
-
    real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP !! Definition of /(\pi / 2\)
    real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP !! Definition of /(\pi\)
    real(DP), parameter :: PI3BY2 = 4.712388980384689857693965074919254326296_DP !! Definition of /(3 \pi / 2\)
@@ -92,8 +90,8 @@ module swiftest_globals
    character(*), dimension(2), parameter :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
    character(*), dimension(2), parameter :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
    character(*), parameter :: ENERGY_FILE = "energy.out"
-   character(*), parameter :: pl_outfile = "pl_out.dat"
-   character(*), parameter :: tp_outfile = "tp_out.dat"
+   character(*), parameter :: PL_OUTFILE = "pl_out.dat"
+   character(*), parameter :: TP_OUTFILE = "tp_out.dat"
 
 
    !> Integration control parameters:

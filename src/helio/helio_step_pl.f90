@@ -10,7 +10,7 @@ module procedure helio_step_pl
    use swiftest
    implicit none
 
-   logical(lgt)     :: lflag
+   logical      :: lflag
    integer(I4B)     :: i,npl
    real(DP)         :: dth, msys
 

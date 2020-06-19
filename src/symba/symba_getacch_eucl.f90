@@ -10,11 +10,11 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_getacch.f
 use swiftest
 implicit none
-   logical(lgt), save                 :: lmalloc = .true.
+   logical , save                 :: lmalloc = .true.
    integer(I4B)                     :: i, j, index_i, index_j, k, counter
    real(DP)                       :: rji2, irij3, faci, facj, r2, fac
-   real(DP), dimension(ndim)            :: dx
-   real(DP), dimension(ndim, npl)         :: ah
+   real(DP), dimension(NDIM)            :: dx
+   real(DP), dimension(NDIM, npl)         :: ah
    real(DP), dimension(:), allocatable, save    :: irh
    real(DP), dimension(:, :), allocatable, save :: xh, aobl
    ! real(DP), allocatable, dimension(:,:) :: dist_plpl_array
@@ -74,7 +74,7 @@ implicit none
 
    if (config%j2rp2 /= 0.0_DP) then
       if (lmalloc) then
-         allocate(xh(ndim, npl), aobl(ndim, npl), irh(npl))
+         allocate(xh(NDIM, npl), aobl(NDIM, npl), irh(npl))
          lmalloc = .false.
       end if
       do i = 2, npl

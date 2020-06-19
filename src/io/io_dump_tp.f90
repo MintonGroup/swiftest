@@ -13,11 +13,11 @@ contains
    integer(I4B), save            :: idx = 1
    integer(I4B), parameter         :: LUN = 7
 
-   open(unit = LUN, file = dump_tp_file(idx), form = "unformatted", status = 'replace', iostat = ierr)
+   open(unit = LUN, file = DUNMP_TP_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
 
    if (ierr /= 0) then
       write(*, *) "Swiftest error:"
-      write(*, *) "   Unable to open binary dump file ", trim(dump_tp_file(idx))
+      write(*, *) "   Unable to open binary dump file ", trim(DUNMP_TP_FILE(idx))
       call util_exit(failure)
    end if
    write(LUN) ntp
