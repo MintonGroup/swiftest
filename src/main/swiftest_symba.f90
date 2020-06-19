@@ -184,8 +184,8 @@ program swiftest_symba
          mergesub_list%radius(:) = 0
       end if
 
-      if (allocated(discard_plA%name)) call swiftest_deallocate_pl(discard_plA)
-      if (allocated(discard_tpA%name)) call swiftest_deallocate_tp(discard_tpA)
+      if (allocated(discard_plA%name)) call nbody_deallocate_pl(discard_plA)
+      if (allocated(discard_tpA%name)) call nbody_deallocate_tp(discard_tpA)
 
    end do
    call config%dump_to_file(t)

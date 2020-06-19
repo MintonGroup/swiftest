@@ -27,7 +27,7 @@ contains
    end do
 
    ! Call the spill method for the parent class (the base class in this case)
-   call swiftest_spill_pl(self,discard)
+   call nbody_spill_pl(self,discard)
 
    return
 

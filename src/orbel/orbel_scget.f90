@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_orbel_scget
+submodule (nbody_data_structures) s_orbel_scget
 contains
    module procedure orbel_scget
    !! author: David A. Minton

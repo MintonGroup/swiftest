@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_obl_acc
+submodule (nbody_data_structures) s_obl_acc
 contains
    module procedure obl_acc
    !! author: David A. Minton

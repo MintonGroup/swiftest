@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_discard_peri
+submodule (nbody_data_structures) s_discard_peri
 contains
    module procedure discard_peri
    !! author: David A. Minton

@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_read_body_input_file
+submodule (nbody_data_structures) s_nbody_read_initial_conditions_file
 contains
-   module procedure swiftest_read_body_input_file
+   module procedure nbody_read_initial_conditions_file
    !! author: David A. Minton
    !!
    !! Reads the input file, selecting whether to use the tp or pl method depending on type
@@ -19,7 +19,7 @@ contains
    end select
 
    return
-   end procedure swiftest_read_body_input_file
+   end procedure nbody_read_initial_conditions_file
 
-end submodule s_swiftest_read_body_input_file
+end submodule s_nbody_read_initial_conditions_file
 

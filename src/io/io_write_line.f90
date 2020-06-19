@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_io_write_line
+submodule (nbody_data_structures) s_io_write_line
 contains
    module procedure io_write_line
    !! author: David A. Minton

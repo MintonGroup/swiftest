@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_deallocate_pl
+submodule (nbody_data_structures) s_nbody_deallocate_pl
 contains
-   module procedure swiftest_deallocate_pl
+   module procedure nbody_deallocate_pl
    !! author: David A. Minton
    !!
    !! Finalizer for base Swiftest massive body class. Deallocates all components and sets 
@@ -15,5 +15,5 @@ contains
       deallocate(self%rhill)
    end if
    return
-   end procedure swiftest_deallocate_pl
-end submodule s_swiftest_deallocate_pl
+   end procedure nbody_deallocate_pl
+end submodule s_nbody_deallocate_pl

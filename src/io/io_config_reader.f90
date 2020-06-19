@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_io_config_reader
+submodule (nbody_data_structures) s_io_config_reader
 contains
    module procedure io_config_reader
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott

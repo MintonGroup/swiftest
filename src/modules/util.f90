@@ -1,6 +1,6 @@
 module util
    use swiftest_globals
-   use swiftest_data_structures
+   use nbody_data_structures
    implicit none
    interface
 

@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_io_read_line
+submodule (nbody_data_structures) s_io_read_line
 contains
    module procedure io_read_line
    !! author: David A. Minton

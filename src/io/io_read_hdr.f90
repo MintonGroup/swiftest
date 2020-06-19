@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_io_read_hdr
+submodule (nbody_data_structures) s_io_read_hdr
 contains
    module procedure io_read_hdr
    !! author: David A. Minton

@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_discard_pl
+submodule (nbody_data_structures) s_discard_pl
 contains
    module procedure discard_pl
    !! author: David A. Minton

@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_io_read_encounter
+submodule (nbody_data_structures) s_io_read_encounter
 contains
    module procedure io_read_encounter
    !! author: David A. Minton

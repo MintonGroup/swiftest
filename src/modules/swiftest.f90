@@ -4,7 +4,7 @@ module swiftest
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
    use swiftest_globals
-   use swiftest_data_structures
+   use nbody_data_structures
    use helio
    use rmvs
    use symba

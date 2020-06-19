@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_coord_h2b_tp
+submodule (nbody_data_structures) s_coord_h2b_tp
 contains
    module procedure coord_h2b_tp
    !! author: David A. Minton

@@ -1,6 +1,6 @@
-submodule (swiftest_data_structures) s_swiftest_calc_conserved
+submodule (nbody_data_structures) s_nbody_calc_conserved
 contains
-   module procedure swiftest_calc_conserved
+   module procedure nbody_calc_conserved
    !! author: David A. Minton
    !!
    !! Compute total system angular momentum vector and kinetic, potential and total system energy
@@ -66,5 +66,5 @@ contains
 
    return
 
-   end procedure swiftest_calc_conserved
-end submodule s_swiftest_calc_conserved
+   end procedure nbody_calc_conserved
+end submodule s_nbody_calc_conserved

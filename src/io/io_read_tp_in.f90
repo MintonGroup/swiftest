@@ -1,4 +1,4 @@
-submodule (swiftest_data_structures) s_io_read_tp_in
+submodule (nbody_data_structures) s_io_read_tp_in
 contains
    module procedure io_read_tp_in
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
