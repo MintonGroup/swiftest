@@ -71,24 +71,6 @@ module swiftest_data_structures
    end type swiftest_configuration
 
    !********************************************************************************************************************************
-   !                                    swiftest_conservation class definitions and method interfaces
-   !********************************************************************************************************************************
-
-   !>This class calculates and stores energy and conservation quantities 
-   type, public :: swiftest_conservation
-      private
-      real(DP)                 :: eoffset   
-      real(DP)                 :: ke         !! Kinetic energy
-      real(DP)                 :: pe         !! Potential energy
-      real(DP)                 :: te         !! Potential energy
-      real(DP),dimension(NDIM) :: htot       !! Angular momentum vector
-   contains
-      private
-      procedure, public :: calc => swiftest_calc_energy_momentum
-      procedure, public :: get_eoffset => swiftest_get_eoffset
-   end type swiftest_conservation
-
-   !********************************************************************************************************************************
    !                                    swiftest_body class definitions and method interfaces
    !********************************************************************************************************************************
 
@@ -152,6 +134,10 @@ module swiftest_data_structures
       real(DP), dimension(:), allocatable :: mass   !! Mass
       real(DP), dimension(:), allocatable :: radius !! Radius
       real(DP), dimension(:), allocatable :: rhill  !! Hill's sphere radius
+      real(DP)                            :: ke     !! System kinetic energy
+      real(DP)                            :: pe     !! System potential energy
+      real(DP)                            :: te     !! System total energy
+      real(DP),dimension(NDIM)            :: htot   !! System angular momentum vector
    contains
       private
       procedure, public     :: alloc => swiftest_allocate_pl
@@ -159,6 +145,7 @@ module swiftest_data_structures
       procedure, public     :: vb2vh => coord_vb2vh_pl
       procedure, public     :: vh2vb => coord_vh2vb_pl
       generic, public       :: spill => swiftest_spill_pl
+      procedure, public     :: calc_conserved => swiftest_calc_conserved
       final :: swiftest_deallocate_pl
    end type swiftest_pl
 
@@ -185,6 +172,12 @@ module swiftest_data_structures
          class(swiftest_body), intent(inout) :: self !! Swiftest particle object
          integer, intent(in)                 :: n    !! Number of particles to allocate space for
       end subroutine swiftest_allocate_body
+
+      !> Method for calculating the energy and angular momentum of the system
+      module subroutine swiftest_calc_energy_momentum(self)
+         implicit none
+         class(swiftest_pl) :: self
+      end subroutine
 
       !> Basic or the set_from_file method (only implemented in extended classes)
       module subroutine swiftest_read_body_input_file(self,config) 
@@ -336,7 +329,7 @@ module swiftest_data_structures
 
       module subroutine io_dump_pl(npl, swiftest_plA, lclose, lrhill_present)
          implicit none
-         logical(lgt), intent(in)   :: lclose, lrhill_present
+         logical, intent(in)   :: lclose, lrhill_present
          integer(I4B), intent(in)   :: npl
          type(swiftest_pl), intent(inout):: swiftest_plA
       end subroutine io_dump_pl
@@ -405,15 +398,11 @@ module swiftest_data_structures
          character(*), intent(in)     :: encounter_file, out_type
       end subroutine io_write_encounter
 
-      module subroutine io_write_frame(t, swiftest_plA, swiftest_tpA, outfile, out_type, out_form, out_stat)
-         real(DP), intent(in)             :: t              !! Current time of simulation
-         type(swiftest_pl), intent(inout) :: swiftest_plA   !! Swiftest massive body structure
-         type(swiftest_tp), intent(inout) :: swiftest_tpA   !! Swiftest test particle structure
-         character(*), intent(in)         :: outfile        !! Name of output file
-         character(*), intent(in)         :: out_type       !! Output file format type (REAL4, REAL8 - see swiftest module for 
-                                                            !!    symbolic name definitions)
-         character(*), intent(in)         :: out_form       !! Output format type (EL, XV,- see swiftest module for symbolic name definitions)
-         character(*), intent(in)         :: out_stat       !! Output status code (NEW, APPEND)
+      module subroutine io_write_frame(t, swiftest_plA, swiftest_tpA, config)
+         real(DP), intent(in)             :: t               !! Current time of simulation
+         type(swiftest_pl), intent(inout) :: swiftest_plA    !! Swiftest massive body structure
+         type(swiftest_tp), intent(inout) :: swiftest_tpA    !! Swiftest test particle structure
+         class(swiftest_configuration), intent(in) :: config !! User-defined configuration parameters
       end subroutine io_write_frame
 
       module subroutine io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
@@ -443,25 +432,28 @@ module swiftest_data_structures
          real(DP), intent(out) :: sx, cx
       end subroutine orbel_scget
 
-      pure module subroutine orbel_xv2aeq(x, v, mu, a, e, q)
+      elemental module subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
          implicit none
-         real(DP), intent(in)      :: mu
-         real(DP), dimension(NDIM), intent(in) :: x, v
-         real(DP), intent(out)      :: a, e, q
+         real(DP), intent(in)  :: mu
+         real(DP), intent(in)  :: px, py, pz
+         real(DP), intent(in)  :: vx, vy, vz
+         real(DP), intent(out) :: a, e, q
       end subroutine orbel_xv2aeq
 
-      pure module subroutine orbel_xv2aqt(x, v, mu, a, q, capm, tperi)
+      elemental module subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, mu, a, q, capm, tperi)
          implicit none
-         real(DP), intent(in)      :: mu
-         real(DP), dimension(NDIM), intent(in) :: x, v
-         real(DP), intent(out)      :: a, q, capm, tperi
+         real(DP), intent(in)  :: mu
+         real(DP), intent(in)  :: px, py, pz
+         real(DP), intent(in)  :: vx, vy, vz
+         real(DP), intent(out) :: a, q, capm, tperi
       end subroutine orbel_xv2aqt
 
-      pure module subroutine orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
+      elemental module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
          implicit none
-         real(DP), intent(in)      :: mu
-         real(DP), dimension(NDIM), intent(in) :: x, v
-         real(DP), intent(out)      :: a, e, inc, capom, omega, capm
+         real(DP), intent(in)  :: mu
+         real(DP), intent(in)  :: px, py, pz
+         real(DP), intent(in)  :: vx, vy, vz
+         real(DP), intent(out) :: a, e, inc, capom, omega, capm
       end subroutine orbel_xv2el
 
    end interface

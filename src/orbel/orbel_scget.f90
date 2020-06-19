@@ -8,18 +8,18 @@ contains
    !!
    !! Adapted from David E. Kaufmann's Swifter modules: orbel_scget.f90
    !! Adapted from Hal Levison's Swift routine orbel_scget.f
-use swiftest
-implicit none
-   integer(i4b) :: nper
+   use swiftest
+   implicit none
+   integer(I4B) :: nper
    real(DP)   :: x
 
 ! executable code
-   nper = angle/twopi
-   x = angle - nper*twopi
-   if (x < 0.0_DP) x = x + twopi
+   nper = angle / TWOPI
+   x = angle - nper * TWOPI
+   if (x < 0.0_DP) x = x + TWOPI
    sx = sin(x)
-   cx = sqrt(1.0_DP - sx*sx)
-   if ((x > piby2) .and. (x < pi3by2)) cx = -cx
+   cx = sqrt(1.0_DP - sx * sx)
+   if ((x > PIBY2) .and. (x < PI3BY2)) cx = -cx
 
    return
 

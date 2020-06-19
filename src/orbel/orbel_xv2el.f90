@@ -15,110 +15,110 @@ contains
    !!
    !! Adapted from David E. Kaufmann's Swifter modules: orbel_xv2el.f90
    !! Adapted from Martin Duncan's Swift routine orbel_xv2el.f
-use swiftest
-implicit none
+   use swiftest
+   implicit none
    integer(I4B) :: iorbit_type
-   real(DP)   :: r, v2, hx, hy, hz, h2, h, rdotv, energy, fac, u, w, cw, sw, face, cape, tmpf, capf
+   real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, cape, tmpf, capf
+   real(DP), dimension(NDIM) :: x, v, hvec
 
-! executable code
    a = 0.0_DP
    e = 0.0_DP
    inc = 0.0_DP
    capom = 0.0_DP
    omega = 0.0_DP
    capm = 0.0_DP
+   x = (/px, py, pz/)
+   v = (/vx, vy, vz/)
    r = sqrt(dot_product(x(:), x(:)))
    v2 = dot_product(v(:), v(:))
-   hx = x(2)*v(3) - x(3)*v(2)
-   hy = x(3)*v(1) - x(1)*v(3)
-   hz = x(1)*v(2) - x(2)*v(1)
-   h2 = hx*hx + hy*hy + hz*hz
+   call util_crossproduct(x,v,hvec)
+   h2 = dot_product(hvec(:), hvec(:))
    h = sqrt(h2)
    if (h2 == 0.0_DP) return
    rdotv = dot_product(x(:), v(:))
-   energy = 0.5_DP*v2 - mu/r
-   fac = hz/h
+   energy = 0.5_DP * v2 - mu / r
+   fac = hvec(3) / h
    if (fac < -1.0_DP) then
-      inc = pi
+      inc = PI
    else if (fac < 1.0_DP) then
       inc = acos(fac)
    end if
-   fac = sqrt(hx*hx + hy*hy)/h
-   if (fac < tiny) then
+   fac = sqrt(hvec(1) * hvec(1) + hvec(2) * hvec(2)) / h
+   if (fac < VSMALL) then
       u = atan2(x(2), x(1))
-      if (hz < 0.0_DP) u = -u
+      if (hvec(3) < 0.0_DP) u = -u
    else
-      capom = atan2(hx, -hy)
-      u = atan2(x(3)/sin(inc), x(1)*cos(capom) + x(2)*sin(capom))
+      capom = atan2(hvec(1), -hved(2))
+      u = atan2(x(3) / sin(inc), x(1) * cos(capom) + x(2) * sin(capom))
    end if
-   if (capom < 0.0_DP) capom = capom + twopi
-   if (u < 0.0_DP) u = u + twopi
-   if (abs(energy*r/mu) < sqrt(tiny)) then
+   if (capom < 0.0_DP) capom = capom + TWOPI
+   if (u < 0.0_DP) u = u + TWOPI
+   if (abs(energy * r / mu) < sqrt(VSMALL)) then
       iorbit_type = parabola
    else
-      a = -0.5_DP*mu/energy
+      a = -0.5_DP * mu / energy
       if (a < 0.0_DP) then
-         fac = -h2/(mu*a)
-         if (fac > tiny) then
-            iorbit_type = hyperbola
+         fac = -h2 / (mu * a)
+         if (fac > VSMALL) then
+            iorbit_type = HYPERBOLA
          else
-            iorbit_type = parabola
+            iorbit_type = PARABOLA
          end if
       else
-         iorbit_type = ellipse
+         iorbit_type = ELLIPSE
       end if
    end if
    select case (iorbit_type)
-      case (ellipse)
-         fac = 1.0_DP - h2/(mu*a)
-         if (fac > tiny) then
+      case (ELLIPSE)
+         fac = 1.0_DP - h2 / (mu * a)
+         if (fac > VSMALL) then
             e = sqrt(fac)
             cape = 0.0_DP
-            face = (a - r)/(a*e)
+            face = (a - r) / (a * e)
             if (face < -1.0_DP) then
-               cape = pi
+               cape = PI
             else if (face < 1.0_DP) then
                cape = acos(face)
             end if
-            if (rdotv < 0.0_DP) cape = twopi - cape
-            fac = 1.0_DP - e*cos(cape)
-            cw = (cos(cape) - e)/fac
-            sw = sqrt(1.0_DP - e*e)*sin(cape)/fac
+            if (rdotv < 0.0_DP) cape = TWOPI - cape
+            fac = 1.0_DP - e * cos(cape)
+            cw = (cos(cape) - e) / fac
+            sw = sqrt(1.0_DP - e * e) * sin(cape) / fac
             w = atan2(sw, cw)
-            if (w < 0.0_DP) w = w + twopi
+            if (w < 0.0_DP) w = w + TWOPI
          else
             cape = u
             w = u
          end if
-         capm = cape - e*sin(cape)
-      case (parabola)
-         a = 0.5_DP*h2/mu
+         capm = cape - e * sin(cape)
+      case (PARABOLA)
+         a = 0.5_DP * h2 / mu
          e = 1.0_DP
          w = 0.0_DP
-         fac = 2.0_DP*a/r - 1.0_DP
+         fac = 2 * a / r - 1.0_DP
          if (fac < -1.0_DP) then
-            w = pi
+            w = PI
          else if (fac < 1.0_DP) then
             w = acos(fac)
          end if
-         if (rdotv < 0.0_DP) w = twopi - w
+         if (rdotv < 0.0_DP) w = TWOPI - w
          tmpf = tan(0.5_DP*w)
-         capm = tmpf*(1.0_DP + tmpf*tmpf/3.0_DP)
-      case (hyperbola)
+         capm = tmpf * (1.0_DP + tmpf * tmpf / 3.0_DP)
+      case (HYPERBOLA)
          e = sqrt(1.0_DP + fac)
-         tmpf = (a - r)/(a*e)
+         tmpf = (a - r) / (a * e)
          if (tmpf < 1.0_DP) tmpf = 1.0_DP
-         capf = log(tmpf + sqrt(tmpf*tmpf - 1.0_DP))
+         capf = log(tmpf + sqrt(tmpf * tmpf - 1.0_DP))
          if (rdotv < 0.0_DP) capf = -capf
-         fac = e*cosh(capf) - 1.0_DP
-         cw = (e - cosh(capf))/fac
-         sw = sqrt(e*e - 1.0_DP)*sinh(capf)/fac
+         fac = e * cosh(capf) - 1.0_DP
+         cw = (e - cosh(capf)) / fac
+         sw = sqrt(e * e - 1.0_DP) * sinh(capf) / fac
          w = atan2(sw, cw)
-         if (w < 0.0_DP) w = w + twopi
-         capm = e*sinh(capf) - capf
+         if (w < 0.0_DP) w = w + TWOPI
+         capm = e * sinh(capf) - capf
    end select
    omega = u - w
-   if (omega < 0.0_DP) omega = omega + twopi
+   if (omega < 0.0_DP) omega = omega + TWOPI
 
    return
 

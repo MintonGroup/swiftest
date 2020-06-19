@@ -16,7 +16,7 @@ program swiftest_symba
    ! Internals
    logical                   :: lfrag_add
    integer(I4B)              :: iout, idump, iloop
-   real(DP)                  :: t, tfrac, tbase, mtiny, ke, pe, te, eoffset
+   real(DP)                  :: t, tfrac, tbase
    real(DP), dimension(NDIM) :: htot
    character(STRMAX)         :: inparfile
    type(symba_pl)            :: symba_plA
@@ -68,37 +68,33 @@ program swiftest_symba
 
    ! reads in initial conditions of all massive bodies from input file
    ! reorder by mass 
-   call symba_reorder_pl(npl, symba_plA)
+   call symba_plA%reorder()
    call util_valid(symba_plA, symba_tpA)
 
    t = t0
    tbase = t0
    iloop = 0
-   iout = istep_out
-   idump = istep_dump
-   nmergeadd = 0
-   nmergesub = 0
-   nsppl = 0
-   nsptp = 0
+   iout = config%istep_out
+   idump = config%istep_dump
    eoffset = 0.0_DP
-   fragmax = 0 
    if (istep_out > 0) then
-      call io_write_frame(t, symba_plA, symba_tpA, outfile, out_type, out_form, out_stat)
+      call io_write_frame(t, symba_plA, symba_tpA, config)
    end if
-   if (out_stat == "old") then
-      open(unit = egyiu, file = energy_file, form = "formatted", status = "old", action = "write", position = "append")
-   else 
-      open(unit = egyiu, file = energy_file, form = "formatted", status = "replace", action = "write")
-   end if
-   300 format(7(1x, e23.16))
+   ! TODO: Replace with subroutine call
+   !if (out_stat == "old") then
+   !   open(unit = egyiu, file = energy_file, form = "formatted", status = "old", action = "write", position = "append")
+   !else 
+   !   open(unit = egyiu, file = energy_file, form = "formatted", status = "replace", action = "write")
+   !end if
+   !300 format(7(1x, e23.16))
+
+
    write(*, *) " *************** Main Loop *************** "
-   if (config%lenergy) then 
-      call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
-      write(egyiu,300) t, ke, pe, te, htot
-   end if
-   call symba_energy(symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
-   do while ((t < config%tstop) .and. ((ntp0 == 0) .or. (ntp > 0)))
-      call symba_step(t, dt, symba_plA, symba_tpA, plplenc_list, pltpenc_list, mergeadd_list, mergesub_list, eoffset, config)
+   call symba_plA%calc_conserved()
+   !if (config%lenergy) write(egyiu,300) t, ke, pe, te, htot
+
+   do while (t < config%tstop)
+      call symba_step(t, dt, symba_plA, symba_tpA, plplenc_list, pltpenc_list, mergeadd_list, mergesub_list, config)
       iloop = iloop + 1
       if (iloop == loopmax) then
           tbase = tbase + iloop*dt
@@ -111,18 +107,18 @@ program swiftest_symba
       if ((symba_plA%ldiscard) .or. (symba_tpA%ldiscard) .or. (lfrag_add .eqv. .true.)) then
          call symba_rearray(npl, ntp, nsppl, nsptp, symba_plA, symba_tpA, nmergeadd, mergeadd_list, discard_plA, &
             discard_tpA,param)
-         if ((lspill_list) .or. (ldiscard_tpt
+         !if ((lspill_list) .or. (ldiscard_tpt
             !call io_discard_write_symba(t, mtiny, npl, ntp, nsppl, nsptp, nmergeadd, symba_plA, &
             !   discard_plA, discard_tpA, mergeadd_list, mergesub_list, discard_file, config%lbig_discard) 
-            nmergeadd = 0
-            nmergesub = 0
-            nsppl = 0
-            nsptp = 0
+            !nmergeadd = 0
+            !nmergesub = 0
+            !nsppl = 0
+            !nsptp = 0
          end if 
-         if (config%lenergy) then 
-            call symba_energy(npl, symba_plA, config%j2rp2, config%j4rp4, ke, pe, te, htot)
-            write(egyiu,300) t, ke, pe, te, htot
-         end if
+         !if (config%lenergy) then 
+         !   call symba_plA%calc_conserved()
+         !   write(egyiu,300) t, ke, pe, te, htot
+         !end if
       end if
       if (istep_out > 0) then
          iout = iout - 1

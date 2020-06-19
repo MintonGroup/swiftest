@@ -108,7 +108,7 @@ module swiftest_globals
    integer(I4B), parameter :: NDIM    = 3          !! Number of dimensions in our reality
    integer(I4B), parameter :: NDIM2   = 2 * NDIM   !! 2x the number of dimensions
    integer(I4B), parameter :: LOOPMAX = 2147483647 !! Maximum loop limit /(2^{31} - 1\)
-   real(DP),     parameter :: TINY    = 4.0E-15_DP
+   real(DP),     parameter :: VSMALL    = 4.0E-15_DP
 
    ! Added by D. Minton
    real(DP), save :: MU2KG = -1.0_DP       !! Converts mass units to grams

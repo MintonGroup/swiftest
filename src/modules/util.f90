@@ -9,6 +9,12 @@ module util
          integer(I4B), intent(in) :: code
       end subroutine util_exit
 
+      pure module subroutine util_crossproduct(ar1, ar2, ans)
+         implicit none
+         real(DP),dimension(:),intent(in)  :: ar1,ar2
+         real(DP),dimension(:),intent(out) :: ans
+      end subroutine util_crossproduct
+
      module subroutine util_dist_index_plpl(npl, nplm, num_comparisons, k_plpl)
          implicit none
          integer(I4B), intent(in)  :: npl, nplm

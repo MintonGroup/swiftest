@@ -11,89 +11,90 @@ contains
    !! Adapted from David E. Kaufmann's Swifter modules: orbel_xv2aqt.f90
 use swiftest
 implicit none
-   integer(i4b) :: iorbit_type
-   real(DP)   :: r, v2, hx, hy, hz, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm
+   integer(I4B) :: iorbit_type
+   real(DP)   :: r, v2, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm
+   real(DP), dimension(NDIM) :: x, v, hvec
 
 ! executable code
    a = 0.0_DP
    q = 0.0_DP
    capm = 0.0_DP
    tperi = 0.0_DP
+   x  = (/px, py, pz/)
+   v = (/vx, vy, vz/)
    r = sqrt(dot_product(x(:), x(:)))
    v2 = dot_product(v(:), v(:))
-   hx = x(2)*v(3) - x(3)*v(2)
-   hy = x(3)*v(1) - x(1)*v(3)
-   hz = x(1)*v(2) - x(2)*v(1)
-   h2 = hx*hx + hy*hy + hz*hz
+   call util_crossproduct(x,v,hvec)
+   h2 = dot_product(hvec(:), hvec(:))
    if (h2 == 0.0_DP) return
    rdotv = dot_product(x(:), v(:))
-   energy = 0.5_DP*v2 - mu/r
-   if (abs(energy*r/mu) < sqrt(tiny)) then
-      iorbit_type = parabola
+   energy = 0.5_DP * v2 - mu / r
+   if (abs(energy * r / mu) < sqrt(VSMALL)) then
+      iorbit_type = PARABOLA
    else
-      a = -0.5_DP*mu/energy
+      a = -0.5_DP * mu / energy
       if (a < 0.0_DP) then
-         fac = -h2/(mu*a)
-         if (fac > tiny) then
-            iorbit_type = hyperbola
+         fac = -h2 / (mu * a)
+         if (fac > VSMALL) then
+            iorbit_type = HYPERBOLA
          else
-            iorbit_type = parabola
+            iorbit_type = PARABOLA
          end if
       else
-         iorbit_type = ellipse
+         iorbit_type = ELLIPSE
       end if
    end if
    select case (iorbit_type)
-      case (ellipse)
-         fac = 1.0_DP - h2/(mu*a)
-         if (fac > tiny) then
+      case (ELLIPSE)
+         fac = 1.0_DP - h2 / (mu * a)
+         if (fac > VSMALL) then
             e = sqrt(fac)
             cape = 0.0_DP
-            face = (a - r)/(a*e)
+            face = (a - r) / (a * e)
             if (face < -1.0_DP) then
-               cape = pi
+               cape = PI
             else if (face < 1.0_DP) then
                cape = acos(face)
             end if
-            if (rdotv < 0.0_DP) cape = twopi - cape
+            if (rdotv < 0.0_DP) cape = TWOPI - cape
          else
             e = 0.0_DP
             cape = 0.0_DP
          end if
-         capm = cape - e*sin(cape)
-         q = a*(1.0_DP - e)
-         mm = sqrt(mu/(a**3))
-         if (capm < pi) then
-            tperi = -1.0_DP*capm/mm
+         capm = cape - e * sin(cape)
+         q = a * (1.0_DP - e)
+         mm = sqrt(mu / a**3)
+         if (capm < PI) then
+            tperi = -1.0_DP * capm / mm
          else
-            tperi = -1.0_DP*(capm - twopi)/mm
+            tperi = -1.0_DP * (capm - TWOPI) / mm
          end if
-      case (parabola)
-         a = 0.5_DP*h2/mu
+      case (PARABOLA)
+         a = 0.5_DP * h2 / mu
          e = 1.0_DP
          w = 0.0_DP
-         fac = 2.0_DP*a/r - 1.0_DP
+         fac = 2 * a / r - 1.0_DP
          if (fac < -1.0_DP) then
-            w = pi
+            w = PI
          else if (fac < 1.0_DP) then
             w = acos(fac)
          end if
-         if (rdotv < 0.0_DP) w = twopi - w
-         tmpf = tan(0.5_DP*w)
-         capm = tmpf*(1.0_DP + tmpf*tmpf/3.0_DP)
+         if (rdotv < 0.0_DP) w = TWOPI - w
+         tmpf = tan(0.5_DP * w)
+         capm = tmpf*(1.0_DP + tmpf * tmpf / 3.0_DP)
          q = a
-         mm = sqrt(0.5_DP*mu/(q**3))
-         tperi = -1.0_DP*capm/mm
-      case (hyperbola)
+         mm = sqrt(0.5_DP * mu / q**3)
+         tperi = -1.0_DP * capm / mm
+      case (HYPERBOLA)
          e = sqrt(1.0_DP + fac)
-         tmpf = (a - r)/(a*e)
+         tmpf = (a - r) / (a * e)
          if (tmpf < 1.0_DP) tmpf = 1.0_DP
-         capf = log(tmpf + sqrt(tmpf*tmpf - 1.0_DP))
+         capf = log(tmpf + sqrt(tmpf * tmpf - 1.0_DP))
          if (rdotv < 0.0_DP) capf = -capf
          capm = e*sinh(capf) - capf
-         q = a*(1.0_DP - e)
-         mm = sqrt(-mu/(a**3))
-         tperi = -1.0_DP*capm/mm
+         q = a * (1.0_DP - e)
+         mm = sqrt(-mu / a**3)
+         tperi = -1.0_DP * capm / mm
    end select
 
    return

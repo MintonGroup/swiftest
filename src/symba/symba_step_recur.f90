@@ -18,7 +18,7 @@ implicit none
 ! executable code
    dtl = dt0/(ntenc**ireci)
    dth = 0.5_DP*dtl
-   if (dtl/dt0 < tiny) then
+   if (dtl/dt0 < VSMALL) then
       write(*, *) "swiftest warning:"
       write(*, *) "   in symba_step_recur, local time step is too small"
       write(*, *) "   roundoff error will be important!"

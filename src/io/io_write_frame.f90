@@ -12,7 +12,6 @@ contains
    implicit none
    
 
-   logical                   :: lxdr
    logical, save             :: lfirst = .true.
    integer(I4B), parameter   :: lun = 20
    integer(I4B)              :: i, j, ierr

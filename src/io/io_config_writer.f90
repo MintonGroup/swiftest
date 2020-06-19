@@ -51,9 +51,9 @@ contains
    else
       write(unit, Pfmt) "!ISTEP_DUMP" 
    end if
-   if (config%j2rp2 > TINY) then
+   if (config%j2rp2 > VSMALL) then
       write(unit, Rfmt) "J2 ",config%j2rp2
-      if (config%j4rp4 > TINY) then
+      if (config%j4rp4 > VSMALL) then
          write(unit, Rfmt) "J4 ",config%j4rp4
       else
          write(unit, Pfmt) "!J4 "
