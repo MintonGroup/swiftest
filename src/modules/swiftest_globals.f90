@@ -26,15 +26,15 @@ module swiftest_globals
 
    real(SP), parameter :: VERSION_NUMBER = 0.1_SP !! swiftest version
 
-   !> Symbolic name for swiftest types
-   !integer(I4B), parameter  :: SWIFTEST = 1
-   !integer(I4B), parameter  :: BS       = 2
-   !integer(I4B), parameter :: HELIO    = 3
-   !integer(I4B), parameter :: RA15     = 4
-   !integer(I4B), parameter :: TU4      = 5
-   !integer(I4B), parameter :: WHM      = 6
-   !integer(I4B), parameter :: RMVS     = 7
-   !integer(I4B), parameter  :: SYMBA    = 8
+   !> Symbolic name for integrator types
+   integer(I4B), parameter :: UNKNOWN_INTEGRATOR = 1
+   integer(I4B), parameter :: BS                 = 2
+   integer(I4B), parameter :: HELIO              = 3
+   integer(I4B), parameter :: RA15               = 4
+   integer(I4B), parameter :: TU4                = 5
+   integer(I4B), parameter :: WHM                = 6
+   integer(I4B), parameter :: RMVS               = 7
+   integer(I4B), parameter :: SYMBA              = 8
 
    integer(I4B), parameter :: STRMAX = 128 !! Maximum size of character strings
 
@@ -51,7 +51,7 @@ module swiftest_globals
    integer(I4B), save :: nthreads = 1 !! Number of OpenMP threads
    integer(I4B), parameter :: NTHERSHOLD = 1000 !! Threshold value for OpenMP loop parallelization
 
-   integer(I4B), parameter :: SUCCESS =  0 !! Symbolic name for function return/flag code for success
+   integer(I4B), parameter :: SUCCESS =  0 !! Symbolic name for function return/flag code for SUCCESS
    integer(I4B), parameter :: FAILURE = -1 !! Symbolic name for function return/flag code for failure
 
    integer(I4B), parameter :: ELLIPSE   = -1 !! Symbolic names for orbit types - ellipse

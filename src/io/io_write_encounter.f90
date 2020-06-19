@@ -28,13 +28,13 @@ implicit none
    !   if (ierr /= 0) then
    !      write(*, *) "Swiftest Error:"
    !      write(*, *) "   unable to open binary encounter file"
-   !      call util_exit(failure)
+   !      call util_exit(FAILURE)
    !   end if
    !   ierr = ixdrdouble(iu, t)
    !   if (ierr < 0) then
    !      write(*, *) "Swiftest Error:"
    !      write(*, *) "   unable to write binary file record"
-   !      call util_exit(failure)
+   !      call util_exit(FAILURE)
    !   end if
    !   call io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), swifter_real8_type, mass = mass1, radius = radius1)
    !   call io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), swifter_real8_type, mass = mass2, radius = radius2)
@@ -48,13 +48,13 @@ implicit none
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
          write(*, *) "   unable to open binary encounter file"
-         call util_exit(failure)
+         call util_exit(FAILURE)
       end if
       write(iu, iostat = ierr) t
       if (ierr < 0) then
          write(*, *) "Swiftest Error:"
          write(*, *) "   unable to write binary file record"
-         call util_exit(failure)
+         call util_exit(FAILURE)
       end if
       call io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), real8_type, mass = mass1, radius = radius1)
       call io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), real8_type, mass = mass2, radius = radius2)
@@ -63,7 +63,7 @@ implicit none
    if (ierr /= 0) then
       write(*, *) "Swiftest Error:"
       write(*, *) "   unable to close binary encounter file"
-      call util_exit(failure)
+      call util_exit(FAILURE)
    end if
 
    return

@@ -6,64 +6,31 @@ program swifter_helio
    !! Adapted from Swifter by David E. Kaufmanna swiftert_helio.f90
    !! Adapted from Hal Levison and Martin Duncan's Swift program swift_helio.f
    !! Reference: Duncan, M. J., Levison, H. F. & Lee, M. H. 1998. Astron. J., 116, 2067.
-
-! modules
    use swiftest
    implicit none
 
-! arguments
-   logical     :: lclose       ! check for planet-test particle encounters
-   logical     :: lextra_force   ! use user-supplied force routines
-   logical     :: lbig_discard   ! dump planet data with discards
-   logical     :: lrhill_present ! hill's sphere radius present
-   integer(I4B)    :: nplmax       ! maximum number of planets
-   integer(I4B)    :: ntpmax       ! maximum number of test particles
-   integer(I4B)    :: istep_out    ! time steps between binary outputs
-   integer(I4B)    :: istep_dump   ! time steps between dumps
-   real(DP)      :: t0         ! integration start time
-   real(DP)      :: tstop      ! integration stop time
-   real(DP)      :: dt         ! time step
-   real(DP)      :: j2rp2      ! j2*r^2 term for central body
-   real(DP)      :: j4rp4      ! j4*r^4 term for central body
-   real(DP)      :: rmin       ! minimum heliocentric radius for test particle
-   real(DP)      :: rmax       ! maximum heliocentric radius for test particle
-   real(DP)      :: rmaxu      ! maximum unbound heliocentric radius for test particle
-   real(DP)      :: qmin       ! minimum pericenter distance for test particle
-   real(DP)      :: qmin_alo     ! minimum semimajor axis for qmin
-   real(DP)      :: qmin_ahi     ! maximum semimajor axis for qmin
-   character(STRMAX) :: qmin_coord   ! coordinate frame to use for qmin
-   character(STRMAX) :: encounter_file ! name of output file for encounters
-   character(STRMAX) :: inplfile     ! name of input file for planets
-   character(STRMAX) :: intpfile     ! name of input file for test particles
-   character(STRMAX) :: in_type      ! format of input data files
-   character(STRMAX) :: outfile      ! name of output binary file
-   character(STRMAX) :: out_type     ! binary format of output file
-   character(STRMAX) :: out_form     ! data to write to output file
-   character(STRMAX) :: out_stat     ! open status for output binary file
+   type(swiftest_configuration)  :: config !! Object containing user-defined configuration parameters
+   integer(I4B)                  :: narg   !! Number of command line arguments passed
+   integer(I4B)                  :: ierr   !! I/O error code 
+   logical                       :: lfirst !! Flag indicating that this is the first time through the main loop
+   integer(I4B)                  :: iout   
+   integer(I4B)                  :: idump
+   integer(I4B)                  :: iloop  
+   real(DP)                      :: t
+   real(DP)                      :: tfrac
+   real(DP)                      :: tbase
+   character(len=:),allocatable  :: config_file_name
+   type(helio_pl)                :: helio_pla !! 
+   type(helio_tp)                :: helio_tpa
+   real(DP)                      :: start_cpu_time, finish_cpu_time
 
-! internals
-   logical                         :: lfirst
-   integer(I4B)                        :: npl, ntp, ntp0, nsp, iout, idump, iloop
-   real(DP)                          :: t, tfrac, tbase, eoffset
-   character(STRMAX)                     :: inparfile
-   type(swifter_pl), pointer               :: swifter_pl1p
-   type(swifter_tp), pointer               :: swifter_tp1p, swifter_tpd1p
-   type(helio_pl), dimension(:), allocatable, target :: helio_pla
-   type(helio_tp), dimension(:), allocatable, target :: helio_tpa
-   type(helio_pl), pointer                 :: helio_pl1p
-   type(helio_tp), pointer                 :: helio_tp1p, helio_tpd1p
 
-! executable code
-   call util_version
-   write(*, 100, advance = "no") "enter name of parameter data file: "
-   read(*, 100) inparfile
- 100 format(a)
-   inparfile = trim(adjustl(inparfile))
-   call io_init_param(inparfile, nplmax, ntpmax, t0, tstop, dt, inplfile, intpfile, in_type, istep_out, outfile, out_type,    &
-      out_form, out_stat, istep_dump, j2rp2, j4rp4, lclose, rmin, rmax, rmaxu, qmin, qmin_coord, qmin_alo, qmin_ahi,      &
-      encounter_file, lextra_force, lbig_discard, lrhill_present)
-   call io_getn(inplfile, intpfile, in_type, npl, nplmax, ntp, ntpmax)
-   allocate(helio_pla(nplmax))
+   call cpu_time(start_cpu_time)
+   call util_version ! Splash screen
+   config_file_name = io_read_config_file_name()
+   call config%read_from_file(config_file_name, integrator = HELIO)
+
+
    call set_point(helio_pla)
    if (ntp > 0) then
       allocate(helio_tpa(ntpmax))
@@ -131,7 +98,11 @@ program swifter_helio
    if (ntp > 0) call io_dump_tp(ntp, swifter_tp1p)
    if (allocated(helio_pla)) deallocate(helio_pla)
    if (allocated(helio_tpa)) deallocate(helio_tpa)
-   call util_exit(success)
+
+
+   call cpu_time(finish_cpu_time)
+   write(*,*) 'Time: ', finish_cpu_time - start_cpu_time
+   call util_exit(SUCCESS)
 
    stop
 

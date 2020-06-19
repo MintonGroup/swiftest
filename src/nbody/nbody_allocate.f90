@@ -1,4 +1,5 @@
 submodule (nbody_data_structures) s_nbody_allocate
+
 contains
 
    module procedure nbody_allocate_body

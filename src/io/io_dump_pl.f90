@@ -17,7 +17,7 @@ contains
    if (ierr /= 0) then
       write(*, *) "Swiftest error:"
       write(*, *) "   Unable to open binary dump file ", trim(DUNMP_PL_FILE(idx))
-      call util_exit(failure)
+      call util_exit(FAILURE)
    end if
    write(LUN) npl
    write(LUN) swiftest_plA%name(:)

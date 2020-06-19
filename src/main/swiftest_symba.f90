@@ -10,15 +10,12 @@ program swiftest_symba
 
    implicit none
 
-   ! Arguments
-   type(swiftest_configuration)  :: config ! derived type containing user-defined parameters
-
-   ! Internals
+   type(swiftest_configuration)  :: config !! derived type containing user-defined parameters
    logical                   :: lfrag_add
    integer(I4B)              :: iout, idump, iloop
    real(DP)                  :: t, tfrac, tbase
    real(DP), dimension(NDIM) :: htot
-   character(STRMAX)         :: inparfile
+   character(STRMAX)         :: config_file_name
    type(symba_pl)            :: symba_plA
    type(symba_tp)            :: symba_tpA
    type(symba_tp)            :: discard_tpA
@@ -27,49 +24,14 @@ program swiftest_symba
    type(symba_pltpenc)       :: pltpenc_list
    type(symba_merger)        :: mergeadd_list, mergesub_list
    integer(I4B), parameter   :: egyiu = 72
-   real(DP)                  :: start, finish
+   real(DP)                  :: start_cpu_time, finish_cpu_time
 
-   ! Executable code
-   call cpu_time(start)
-   call util_version
-   nthreads = 1                        
-   write(*, 100, advance = "no") "Enter name of parameter data file: "
-   read(*, 100) inparfile
-   100 format(a)
-   inparfile = trim(adjustl(inparfile))
-   ! read in the param.in file and get simulation parameters
-   call config%read_from_file(inparfile)
-   config%lmtiny = .true. ! Turn this on for SyMBA
+   call cpu_time(start_cpu_time)
+   call util_version ! Splash screen
+   config_file_name = io_read_config_file_name()
+   call config%read_from_file(config_file_name, integrator = SYMBA)
 
-   !^^^^^^^^^^^^^^^^^^^^^^^^^
-   if (.not. config%lrhill_present) then
-      write(*, *) "Swiftest error:"
-      write(*, *) "   Integrator SyMBA requires massive body Hill sphere radii on input"
-      call util_exit(failure)
-   end if
-   ! read in the total number of bodies from the input files
-
-   call symba_plA%read_from_file(config)
-   call symba_tpA%read_from_file(config)
-
-   ! Save central body mass in vector form so that elemental functions can be evaluated with it
-   call symba_tpA%set_vec(symba_plA%mass(1),config%dt)
-   call symba_plA%set_vec(symba_plA%mass(1),config%dt)
-
-   ! Save system mass to both objects
-   call symba_plA%set_msys(symba_plA)
-   call symba_tpA%set_msys(symba_plA)
-
-   ! create arrays of data structures big enough to store the number of bodies we are adding
-   call mergeadd_list%alloc(10*npl)!DM: Why 10*npl?
-   call mergesub_list%alloc(npl)
-   call plplenc_list%alloc(10*npl)!DM: See ^
-   call pltpenc_list%alloc(ntp)!DM: See ^
-
-   ! reads in initial conditions of all massive bodies from input file
-   ! reorder by mass 
-   call symba_plA%reorder()
-   call util_valid(symba_plA, symba_tpA)
+   call symba_set_initial_conditions(symba_plA, symba_tpA, config)
 
    t = t0
    tbase = t0
@@ -205,8 +167,8 @@ program swiftest_symba
       call symba_deallocate_tp(symba_tpA)
       call symba_deallocate_pltpenc(pltpenc_list)
    end if
-   call cpu_time(finish)
-   write(*,*) 'Time: ', finish - start
+   call cpu_time(finish_cpu_time)
+   write(*,*) 'Time: ', finish_cpu_time - start_cpu_time
    call util_exit(SUCCESS)
 
    stop

@@ -43,6 +43,7 @@ module nbody_data_structures
       real(DP)             :: MU2KG = -1.0_DP      !! Converts mass units to grams
       real(DP)             :: TU2S  = -1.0_DP      !! Converts time units to seconds
       real(DP)             :: DU2M = -1.0_DP       !! Converts distance unit to centimeters
+      integer(I4B)         :: integrator = UNKNOWN_INTEGRATOR   !! Symbolic name of the nbody integrator  used
 
       !Logical flags to turn on or off various features of the code
       logical :: lextra_force = .false.            !! User defined force function turned on
@@ -312,14 +313,15 @@ module nbody_data_structures
    !> Interfaces for input/output methods   
    interface
       !> Type-bound procedure to read in the input parameters from a file
-      module subroutine io_read_config_in(config, inparfile) 
-         class(swiftest_configuration),intent(out) :: config     !! Input collection of user-defined parameters
-         character(*), intent(in)                  :: inparfile  !! Parameter input file name (i.e. param.in)
+      module subroutine io_read_config_in(config, config_file_name) 
+         class(swiftest_configuration),intent(out) :: config           !! Input collection of user-defined configuration parameters
+         character(*), intent(in)                  :: config_file_name !! Parameter input file name (i.e. param.in)
+         integer(I4B), intent(in)                  :: integrator       !! Symbolic name of integrator to use
       end subroutine io_read_config_in
 
       !> Type-bound procedure for user-defined derived-type IO for reading
       module subroutine io_config_reader(config, unit, iotype, v_list, iostat, iomsg) 
-         class(swiftest_configuration), intent(inout) :: config   !! Input collection of user-defined parameters
+         class(swiftest_configuration), intent(inout) :: config   !! Input collection of user-defined configuration parameters
          integer, intent(in)                          :: unit        
          character(len=*), intent(in)                 :: iotype
          integer, intent(in)                          :: v_list(:)
@@ -364,6 +366,13 @@ module nbody_data_structures
          character(len=:),allocatable     :: token          !! Returned token string
       end function io_get_token
 
+      !> Subroutine for reading in the name of the configuration file from the command line either as an argument or as the 
+      !>    response to a prompt
+      module function io_read_config_file_name() result(config_file_name)
+         implicit none
+         character(len=:), allocatable :: config_file_name !! Name of the input configuration file
+      end function io_read_config_file_name
+
       module function io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
          implicit none
          integer(I4B)         :: io_read_encounter
@@ -396,7 +405,7 @@ module nbody_data_structures
       module subroutine io_read_pl_in(self, config) 
          implicit none
          class(swiftest_pl), intent(inout)        :: self   !! Swiftest data structure to store massive body initial conditions
-         type(swiftest_configuration), intent(in) :: config !! Input collection of user-defined parameters
+         type(swiftest_configuration), intent(in) :: config !! Input collection of user-defined configuration parameters
       end subroutine io_read_pl_in
 
       !> Type-bound procedure to read in the input test particle initial condition file

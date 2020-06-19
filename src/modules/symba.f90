@@ -452,17 +452,13 @@ interface
       integer(I4B), dimension(:,:), allocatable :: symba_plwkspa_id_status
    end subroutine symba_reorder_pl
 
-   module subroutine symba_setup(npl, ntp, symba_plA, symba_tpA, symba_pl1p, symba_tp1p, swiftest_pl1p, &
-      swiftest_tp1p)
+   !> Initializes the SyMBA aprticles 
+   module subroutine symba_set_initial_conditions(symba_plA, symba_tpA, config)
       implicit none
-      integer(I4B), intent(in)         :: npl, ntp
-      type(swiftest_pl), pointer         :: swiftest_pl1p
-      type(swiftest_tp), pointer         :: swiftest_tp1p
-      type(symba_pl), intent(inout) :: symba_plA
-      type(symba_tp), intent(inout) :: symba_tpA
-      type(symba_pl), pointer          :: symba_pl1p
-      type(symba_tp), pointer          :: symba_tp1p
-   end subroutine symba_setup
+      type(symba_pl), intent(inout) :: symba_plA  !! SyMBA massive body structure
+      type(symba_tp), intent(inout) :: symba_tpA  !! SyMBA test particle structure
+      type(swiftest_configuration)  :: config     !! Input collection of user-defined configuration parameters
+   end subroutine symba_set_initial_conditions
 
    !> Method to remove the inactive symba test particles and spill them to a discard object
    module subroutine symba_spill_tp(self,discard)
@@ -749,7 +745,7 @@ contains
       !! This method is needed in order to extend the abstract type swiftest_body. It does nothing
       implicit none
       class(symba_encounter), intent(inout)  :: self  !! SyMBA encounter data structure 
-      type(swiftest_configuration),intent(in) :: config !! Input collection of user-defined parameters
+      type(swiftest_configuration),intent(in) :: config !! Input collection of user-defined configuration parameters
       return
    end subroutine symba_encounter_dummy_input
 

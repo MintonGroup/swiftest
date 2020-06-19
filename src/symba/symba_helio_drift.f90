@@ -26,7 +26,7 @@ implicit none
             write(*, *) symba_plA%xh(:,i)
             write(*, *) symba_plA%vb(:,i)
             write(*, *) " stopping "
-            call util_exit(failure)
+            call util_exit(FAILURE)
          end if
       end if
    end do

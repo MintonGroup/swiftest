@@ -62,15 +62,15 @@ PROGRAM tool_encounter_read
      INTEGER(I4B)              :: i,ierr,id1,id2
      REAL(DP)                  :: t,mass1,mass2
      REAL(DP), DIMENSION(NDIM) :: xh1,xh2,vh1,vh2
-     CHARACTER(STRMAX)         :: inparfile
+     CHARACTER(STRMAX)         :: config_file_name
     
 
 ! Executable code
      WRITE(*,100,ADVANCE="NO")"Enter name of parameter data file: "
-     READ(*,100)inparfile
+     READ(*,100)config_file_name
  100 FORMAT(A)
-     inparfile=TRIM(ADJUSTL(inparfile))
-   call config%read_from_file(inparfile)
+     config_file_name=TRIM(ADJUSTL(config_file_name))
+   call config%read_from_file(config_file_name)
 
    ! temporary until the conversion to the derived type argument list is complete
    config%nplmax = config%nplmax

@@ -24,7 +24,7 @@ contains
       if (idarr(i) == idarr(i+1)) then
          write(*, *) "Swiftest error:"
          write(*, *) "   more than one body/particle has id = ", idarr(i)
-         call util_exit(failure)
+         call util_exit(FAILURE)
       end if
    end do
    deallocate(idarr)

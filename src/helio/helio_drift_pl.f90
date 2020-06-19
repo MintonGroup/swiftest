@@ -30,7 +30,7 @@ contains
             end if
          end do
          deallocate(iflag)
-         call util_exit(failure)
+         call util_exit(FAILURE)
       end if
       deallocate(iflag)
    end associate

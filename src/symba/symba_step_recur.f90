@@ -22,7 +22,7 @@ implicit none
       write(*, *) "swiftest warning:"
       write(*, *) "   in symba_step_recur, local time step is too small"
       write(*, *) "   roundoff error will be important!"
-      call util_exit(failure)
+      call util_exit(FAILURE)
    end if
    irecp = ireci + 1
 

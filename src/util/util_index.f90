@@ -18,7 +18,7 @@ contains
    if (n /= size(index)) then
       write(*, *) "Swiftest Error:"
       write(*, *) "   array size mismatch in util_index"
-      call util_exit(failure)
+      call util_exit(FAILURE)
    end if
    index = arth(1, 1, n)
    jstack = 0
@@ -78,7 +78,7 @@ contains
          if (jstack > nstack) then
             write(*, *) "Swiftest Error:"
             write(*, *) "   nstack too small in util_sort"
-            call util_exit(failure)
+            call util_exit(FAILURE)
          end if
          if ((r - i + 1) >= (j - l)) then
             istack(jstack) = r

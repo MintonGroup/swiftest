@@ -19,7 +19,7 @@ implicit none
       if (ierr /= 0) then
          write(*, *) "swiftest error:"
          write(*, *) "   unable to open discard output file, ", fname
-         call util_exit(failure)
+         call util_exit(FAILURE)
       end if
    end if
    write(lun, 100) t, nsppl + nsptp + 2*nmergeadd, lbig_discard 

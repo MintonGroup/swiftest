@@ -66,7 +66,7 @@ contains
          if (jstack > NSTACK) then
             write(*, *) "Swiftest Error:"
             write(*, *) "   NSTACK too small in util_sort_I4B"
-            call util_exit(failure)
+            call util_exit(FAILURE)
          end if
          if ((r - i + 1) >= (j - l)) then
             istack(jstack) = r

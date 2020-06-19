@@ -59,7 +59,7 @@ implicit none
                write(*, *) "Swiftest Error:"
                write(*, *) "   pl-pl encounter list is full."
                write(*, *) "   stopping..."
-               call util_exit(failure)
+               call util_exit(FAILURE)
             end if
             plplenc_list%status(nplplenc) = ACTIVE
             plplenc_list%lvdotr(nplplenc) = lvdotr
@@ -94,7 +94,7 @@ implicit none
                write(*, *) "Swiftest Error:"
                write(*, *) "   pl-tp encounter list is full."
                write(*, *) "   stopping..."
-               call util_exit(failure)
+               call util_exit(FAILURE)
             end if
             pltpenc_list%status(npltpenc) = ACTIVE
             pltpenc_list%lvdotr(npltpenc) = lvdotr

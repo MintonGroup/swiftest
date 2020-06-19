@@ -24,7 +24,7 @@ implicit none
       if (.not. lradius) then
          write(*, *) "swiftest error:"
          write(*, *) "   io_write_line called with optional mass but without optional radius"
-         call util_exit(failure)
+         call util_exit(FAILURE)
       end if
       smass = mass
       sradius = radius
@@ -39,7 +39,7 @@ implicit none
          if (ierr < 0) then
             write(*, *) "swiftest error:"
             write(*, *) "   unable to write binary file record"
-            call util_exit(failure)
+            call util_exit(FAILURE)
          end if
       case (real8_type, swifter_real8_type)
          if (lmass) then
@@ -50,7 +50,7 @@ implicit none
          if (ierr < 0) then
             write(*, *) "swiftest error:"
             write(*, *) "   unable to write binary file record"
-            call util_exit(failure)
+            call util_exit(FAILURE)
          end if
    end select
 

@@ -21,7 +21,7 @@ implicit none
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
          write(*, *) "   unable to open binary encounter file"
-         call util_exit(failure)
+         call util_exit(FAILURE)
       end if
       lfirst = .false.
    end if

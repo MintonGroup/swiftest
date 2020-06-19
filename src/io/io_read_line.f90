@@ -22,7 +22,7 @@ implicit none
       if (.not. lradius) then
          write(*, *) "Swiftest Error:"
          write(*, *) "   function io_read_line called with optional mass but without optional radius"
-         call util_exit(failure)
+         call util_exit(FAILURE)
       end if
    end if
    select case (out_type)
