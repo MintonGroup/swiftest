@@ -61,7 +61,7 @@ contains
          end do
       else
          do i = 1, ntp
-            if (swiftest_tpA%status(i) == active) then
+            if (swiftest_tpA%status(i) == ACTIVE) then
                vdotr = dot_product(swiftest_tpA%xb(:,i), swiftest_tpA%vb(:,i))
                if (swiftest_tpA%isperi(i) == -1) then
                   if (vdotr >= 0.0_DP) then

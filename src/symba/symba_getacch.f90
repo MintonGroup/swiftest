@@ -12,9 +12,9 @@ use swiftest
 implicit none
    integer(I4B)                     :: i, j, index_i, index_j
    real(DP)                       :: rji2, irij3, faci, facj, r2
-   real(DP), dimension(ndim)            :: dx
+   real(DP), dimension(NDIM)            :: dx
    real(DP), dimension(npl)             :: irh
-   real(DP), dimension(ndim, npl)         :: aobl
+   real(DP), dimension(NDIM, npl)         :: aobl
 
 ! executable code
 
@@ -71,7 +71,7 @@ implicit none
    end do
    if (config%j2rp2 /= 0.0_DP) then
       !if (lmalloc) then
-          !allocate(xh(ndim, npl),aobl(ndim, npl), irh(npl))
+          !allocate(xh(NDIM, npl),aobl(NDIM, npl), irh(npl))
          !lmalloc = .false.
       !end if
       do i = 2, npl

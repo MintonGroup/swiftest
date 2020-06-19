@@ -9,10 +9,10 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_merge.f
 use swiftest
 implicit none
-   logical(lgt)          :: lmerge
+   logical           :: lmerge
    integer(I4B)          :: name1, name2, indexpl, indextp
    real(DP)            :: r2, rlim, rlim2, vdotr, tcr2, dt2, mu, a, e, q, rad1
-   real(DP), dimension(ndim) :: xr, vr, xh1, vh1, xh2, vh2
+   real(DP), dimension(NDIM) :: xr, vr, xh1, vh1, xh2, vh2
 
 ! executable code
    lmerge = .false.
@@ -53,8 +53,8 @@ implicit none
       end if
    end if
    if (lmerge) then
-      pltpenc_list%status(index_enc) = merged
-      symba_tpA%status = discarded_plr
+      pltpenc_list%status(index_enc) = MERGED
+      symba_tpA%status = DISCARDED_PLR
       write(*, *) "particle ", symba_tpA%name, " too close to massive body ", &
       symba_plA%name, " at t = ", t
    end if

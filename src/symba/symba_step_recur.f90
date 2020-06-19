@@ -10,10 +10,10 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_step_recur.F
 use swiftest
 implicit none
-   logical(lgt)          :: lencounter
+   logical           :: lencounter
    integer(I4B)          :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp
    real(DP)            :: dtl, dth, sgn
-   real(DP), dimension(ndim) :: xr, vr, vbs
+   real(DP), dimension(NDIM) :: xr, vr, vbs
 
 ! executable code
    dtl = dt0/(ntenc**ireci)
@@ -29,7 +29,7 @@ implicit none
    if (ireci == 0) then
       icflg = 0
       do i = 1, nplplenc
-         if ((plplenc_list%status(i) == active) .and. (plplenc_list%level(i) == ireci)) then
+         if ((plplenc_list%status(i) == ACTIVE) .and. (plplenc_list%level(i) == ireci)) then
             index_i  = plplenc_list%index1(i)
             index_j  = plplenc_list%index2(i)
             xr(:) = symba_plA%xh(:,index_j) - symba_plA%xh(:,index_i)
@@ -48,7 +48,7 @@ implicit none
          end if
       end do
       do i = 1, npltpenc
-         if ((pltpenc_list%status(i) == active) .and. (pltpenc_list%level(i) == ireci)) then
+         if ((pltpenc_list%status(i) == ACTIVE) .and. (pltpenc_list%level(i) == ireci)) then
             index_pl  = pltpenc_list%indexpl(i)
             index_tp  = pltpenc_list%indextp(i)
             
@@ -81,7 +81,7 @@ implicit none
          do i = 1, nplplenc
             index_i  = plplenc_list%index1(i) 
             index_j  = plplenc_list%index2(i)
-            if (((plplenc_list%status(i) == active) .and.                                       &
+            if (((plplenc_list%status(i) == ACTIVE) .and.                                       &
                 (symba_plA%levelg(index_i) >= ireci) .and.                                      &
                 (symba_plA%levelg(index_j) >= ireci))) then
                 ! create if statement to check for collisions (ls12) or merger depending on flag lfrag in param.in
@@ -101,7 +101,7 @@ implicit none
          do i = 1, npltpenc
             index_pl  = pltpenc_list%indexpl(i) 
             index_tp  = pltpenc_list%indextp(i) 
-            if ((pltpenc_list%status(i) == active) .and.                          &
+            if ((pltpenc_list%status(i) == ACTIVE) .and.                          &
                 (symba_plA%levelg(index_pl) >= ireci) .and.                         &
                 (symba_tpA%levelg(index_tp) >= ireci)) then                          
                call symba_merge_tp(t, dtl, i, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)            !check later 
@@ -126,7 +126,7 @@ implicit none
       do j = 1, ntenc
          icflg = 0
          do i = 1, nplplenc
-            if ((plplenc_list%status(i) == active) .and. (plplenc_list%level(i) == ireci)) then
+            if ((plplenc_list%status(i) == ACTIVE) .and. (plplenc_list%level(i) == ireci)) then
                index_i  = plplenc_list%index1(i) 
                index_j  = plplenc_list%index2(i) 
                xr(:) = symba_plA%xh(:,index_j) - symba_plA%xh(:,index_i)
@@ -145,7 +145,7 @@ implicit none
             end if
          end do
          do i = 1, npltpenc
-            if ((pltpenc_list%status(i) == active) .and. (pltpenc_list%level(i) == ireci)) then
+            if ((pltpenc_list%status(i) == ACTIVE) .and. (pltpenc_list%level(i) == ireci)) then
                index_pl  = pltpenc_list%indexpl(i) 
                index_tp  = pltpenc_list%indextp(i) 
                xr(:) = symba_tpA%xh(:,index_tp) - symba_plA%xh(:,index_pl)
@@ -181,7 +181,7 @@ implicit none
             do i = 1, nplplenc
                index_i  = plplenc_list%index1(i) 
                index_j  = plplenc_list%index2(i) 
-               if ((plplenc_list%status(i) == active) .and.                                     &
+               if ((plplenc_list%status(i) == ACTIVE) .and.                                     &
                    (symba_plA%levelg(index_i) >= ireci) .and.                                   &
                    (symba_plA%levelg(index_j) >= ireci))  then    
                   if (config%lfragmentation) then
@@ -197,7 +197,7 @@ implicit none
             do i = 1, npltpenc
                index_pl  = pltpenc_list%indexpl(i) 
                index_tp  = pltpenc_list%indextp(i) 
-               if ((pltpenc_list%status(i) == active) .and.                                     &
+               if ((pltpenc_list%status(i) == ACTIVE) .and.                                     &
                    (symba_plA%levelg(index_pl) >= ireci) .and.                                    &
                    (symba_tpA%levelg(index_tp) >= ireci))                                       &
                   call symba_merge_tp(t, dtl, i, pltpenc_list, vbs, encounter_file, out_type, symba_plA, symba_tpA)          !check that later

@@ -18,17 +18,17 @@ implicit none
    rmax2 = rmax*rmax
    config%rmaxu2 = config%rmaxu*config%rmaxu
    do i = 2, npl
-      if (swiftest_plA%status(i) == active) then
+      if (swiftest_plA%status(i) == ACTIVE) then
          rh2 = dot_product(swiftest_plA%xh(:,i), swiftest_plA%xh(:,i))
          if ((rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
             ldiscards = .true.
-            swiftest_plA%status(i) = discarded_rmax
+            swiftest_plA%status(i) = DISCARDED_RMAX
             write(*, *) "particle ",  swiftest_plA%name(i), " too far from sun at t = ", t
             print *,'rmax: ',rmax
             print *,'rh2: ',rh2
          else if ((rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
             ldiscards = .true.
-            swiftest_plA%status(i) = discarded_rmin
+            swiftest_plA%status(i) = DISCARDED_RMIN
             write(*, *) "particle ", swiftest_plA%name(i), " too close to sun at t = ", t
          else if (config%rmaxu >= 0.0_DP) then
             rb2 = dot_product(swiftest_plA%xb(:,i), swiftest_plA%xb(:,i))

@@ -14,7 +14,7 @@ implicit none
    integer(I4B)           :: name1, name2
    real(DP)             :: mtot
    real(DP)             :: eold, enew, mass1, mass2
-   real(DP), dimension(ndim)    :: xr, xnew, vnew
+   real(DP), dimension(NDIM)    :: xr, xnew, vnew
    integer(I4B), dimension(npl) :: array_keep_child, array_rm_child
 
 ! executable code
@@ -34,14 +34,14 @@ implicit none
          write(*, *) "merging particles ", name1, " and ", name2, " at time t = ",t
          nmergesub = nmergesub + 1
          mergesub_list%name(nmergesub) = name1
-         mergesub_list%status(nmergesub) = merged
+         mergesub_list%status(nmergesub) = MERGED
          mergesub_list%xh(:,nmergesub) = x1(:)
          mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
          mergesub_list%mass(nmergesub) = mass1
          mergesub_list%radius(nmergesub) = rad1
          nmergesub = nmergesub + 1
          mergesub_list%name(nmergesub) = name2
-         mergesub_list%status(nmergesub) = merged
+         mergesub_list%status(nmergesub) = MERGED
          mergesub_list%xh(:,nmergesub) = x2(:)
          mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
          mergesub_list%mass(nmergesub) = mass2
@@ -66,7 +66,7 @@ implicit none
          eoffset = eoffset + eold - enew
 
          do k = 1, nplplenc
-            if (plplenc_list%status(k) == active) then
+            if (plplenc_list%status(k) == ACTIVE) then
                do i = 0, symba_plA%nchild(index1_parent)
                   if (i == 0) then 
                      index1_child = index1_parent
@@ -80,10 +80,10 @@ implicit none
                         index2_child = array_index2_child(j)
                      end if
                      if ((index1_child == plplenc_list%index1(k)) .and. (index2_child == plplenc_list%index2(k))) then
-                        plplenc_list%status(k) = merged
+                        plplenc_list%status(k) = MERGED
                      else if ((index1_child == plplenc_list%index2(k)) .and. &
                         (index2_child == plplenc_list%index1(k))) then
-                        plplenc_list%status(k) = merged
+                        plplenc_list%status(k) = MERGED
                      end if
                   end do
                end do

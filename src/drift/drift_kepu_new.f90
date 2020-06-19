@@ -10,7 +10,7 @@ contains
    !! Adapted from Hal Levison's Swift routine drift_kepu_new.f
    use swiftest
    implicit none
-   integer(i4b) :: nc
+   integer( I4B) :: nc
    real(DP)   :: x, c0, ds, f, fpp, fppp, fdt
 
 ! executable code
@@ -29,7 +29,7 @@ contains
       ds = -f / (fp + ds * fpp / 2.0_DP + ds * ds * fppp / 6.0_DP)
       s = s + ds
       fdt = f / dt
-      if (fdt * fdt < danbyb * danbyb) then
+      if (fdt * fdt < DANBYB * DANBYB) then
          iflag = 0
          return
       end if

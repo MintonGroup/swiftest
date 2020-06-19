@@ -9,10 +9,10 @@ contains
    !! Adapted from Hal Levison's Swift routine discard_massive5.f
 use swiftest
 implicit none
-   logical(lgt)          :: ldiscards
+   logical           :: ldiscards
    integer(I4B)          :: i
    real(DP)            :: msys, ke, pe, tei, tef
-   real(DP), dimension(ndim) :: htot
+   real(DP), dimension(NDIM) :: htot
 
 ! executable code
    ldiscards = .false.

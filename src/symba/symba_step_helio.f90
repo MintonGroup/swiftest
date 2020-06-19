@@ -8,9 +8,9 @@ contains
    !! Adapted from David E. Kaufmann's Swifter modules: symba_step_helio.f90
    use swiftest
    implicit none
-   logical(lgt)                     :: lfirsttp
-   real(DP), dimension(ndim)              :: ptb, pte
-   real(DP), dimension(ndim, nplm)          :: xbeg, xend
+   logical                      :: lfirsttp
+   real(DP), dimension(NDIM)              :: ptb, pte
+   real(DP), dimension(NDIM, nplm)          :: xbeg, xend
 
 ! executable code
    lfirsttp = lfirst

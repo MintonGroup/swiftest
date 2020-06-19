@@ -9,7 +9,7 @@ contains
    !! Adapted from Hal Levison's Swift routines symba5_step_helio.f and helio_step_pl.f
 use swiftest
 implicit none
-   logical(lgt)          :: lflag
+   logical           :: lflag
    integer(I4B)          :: i
    real(DP)            :: dth, msys
 

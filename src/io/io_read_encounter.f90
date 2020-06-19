@@ -9,8 +9,8 @@ contains
    !! Adapted from David E. Kaufmann's Swifter modules: io_read_encounter.f90
 use swiftest
 implicit none
-   logical(lgt)        :: lxdr
-   logical(lgt), save    :: lfirst = .true.
+   logical         :: lxdr
+   logical , save    :: lfirst = .true.
    integer(I4B), parameter :: lun = 30
    integer(I4B)        :: ierr
    integer(I4B), save    :: iu = lun

@@ -11,19 +11,19 @@ use swiftest
 implicit none
    integer(I4B)            :: i, j, nchild, indexchild, enc_big, index1, index2, indexk 
    real(DP)              :: m, mmax, mtot, r, r3, mu, energy, ap, v2, msun
-   real(DP), dimension(ndim)   :: x, v, vbs
+   real(DP), dimension(NDIM)   :: x, v, vbs
    integer(I4B), dimension(npl)  :: array_child
 
 ! executable code
    msun = symba_plA%mass(1)
    vbs(:) = symba_plA%vb(:,1)
    do i = 1, nplplenc
-      if (plplenc_list%status(i) == merged) then
+      if (plplenc_list%status(i) == MERGED) then
          index1 = plplenc_list%index1(i)
          index2 = plplenc_list%index2(i)
          ! this if statement is for if lfragmentation = false
-         if ((symba_plA%status(index1) == active) .and.                                &
-             (symba_plA%status(index2) == active)) then
+         if ((symba_plA%status(index1) == ACTIVE) .and.                                &
+             (symba_plA%status(index2) == ACTIVE)) then
 
             enc_big = plplenc_list%index1(i)
 
@@ -72,49 +72,49 @@ implicit none
             ldiscard = .true.
             do j = 0, nchild
                if (indexchild /= indexk) then
-                  symba_plA%status(indexchild) = merged
+                  symba_plA%status(indexchild) = MERGED
                end if
                indexchild = array_child(j+1)
             end do
 
-         else if ((symba_plA%status(index1) == disruption) .and.    &                              
-             (symba_plA%status(index2) == disruption)) then 
+         else if ((symba_plA%status(index1) == DISRUPTION) .and.    &                              
+             (symba_plA%status(index2) == DISRUPTION)) then 
 
             enc_big = plplenc_list%index1(i)
             nchild = symba_plA%nchild(enc_big)
             array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             do j = 1, nchild
-               symba_plA%status(array_child(j)) = inactive
+               symba_plA%status(array_child(j)) = INACTIVE
             end do
             ldiscard = .true.
-         else if ((symba_plA%status(index1) == supercatastrophic) .and.   &                               
-             (symba_plA%status(index2) == supercatastrophic)) then 
+         else if ((symba_plA%status(index1) == SUPERCATASTROPHIC) .and.   &                               
+             (symba_plA%status(index2) == SUPERCATASTROPHIC)) then 
             
             enc_big = plplenc_list%index1(i)
             nchild = symba_plA%nchild(enc_big)
             array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             do j = 1, nchild
-               symba_plA%status(array_child(j)) = inactive
+               symba_plA%status(array_child(j)) = INACTIVE
             end do
             ldiscard = .true.
-         else if ((symba_plA%status(index1) == hit_and_run) .and.    &                            
-             (symba_plA%status(index2) == hit_and_run)) then 
+         else if ((symba_plA%status(index1) == HIT_AND_RUN) .and.    &                            
+             (symba_plA%status(index2) == HIT_AND_RUN)) then 
 
             enc_big = plplenc_list%index1(i)
             nchild = symba_plA%nchild(enc_big)
             array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             do j = 1, nchild
-               symba_plA%status(array_child(j)) = inactive
+               symba_plA%status(array_child(j)) = INACTIVE
             end do
             ldiscard = .true.
-         else if ((symba_plA%status(index1) == graze_and_merge) .and.  &                              
-             (symba_plA%status(index2) == graze_and_merge)) then 
+         else if ((symba_plA%status(index1) == GRAZE_AND_MERGE) .and.  &                              
+             (symba_plA%status(index2) == GRAZE_AND_MERGE)) then 
 
             enc_big = plplenc_list%index1(i)
             nchild = symba_plA%nchild(enc_big)
             array_child(1:npl) = symba_plA%index_child(1:npl,enc_big)
             do j = 1, nchild
-               symba_plA%status(array_child(j)) = inactive
+               symba_plA%status(array_child(j)) = INACTIVE
             end do
             ldiscard = .true.
          end if

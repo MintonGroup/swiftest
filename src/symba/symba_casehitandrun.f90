@@ -15,7 +15,7 @@ implicit none
    real(DP)                         :: x_com, y_com, z_com, vx_com, vy_com, vz_com, mass_keep, mass_rm, rhill_rm
    real(DP)                         :: x_frag, y_frag, z_frag, vx_frag, vy_frag, vz_frag, rad_keep, rad_rm
    real(DP)                         :: r_smallestcircle
-   real(DP), dimension(ndim)                :: vnew, xr, mv, xh_keep, xh_rm, vh_keep, vh_rm, l, kk, p
+   real(DP), dimension(NDIM)                :: vnew, xr, mv, xh_keep, xh_rm, vh_keep, vh_rm, l, kk, p
 
    !temporary
    interface 
@@ -102,14 +102,14 @@ implicit none
    ! add both particles involved in the collision to mergesub_list
    nmergesub = nmergesub + 1
    mergesub_list%name(nmergesub) = name1
-   mergesub_list%status(nmergesub) = hit_and_run 
+   mergesub_list%status(nmergesub) = HIT_AND_RUN 
    mergesub_list%xh(:,nmergesub) = x1(:)
    mergesub_list%vh(:,nmergesub) = v1(:) - vbs(:)
    mergesub_list%mass(nmergesub) = mass1
    mergesub_list%radius(nmergesub) = rad1
    nmergesub = nmergesub + 1
    mergesub_list%name(nmergesub) = name2
-   mergesub_list%status(nmergesub) = hit_and_run
+   mergesub_list%status(nmergesub) = HIT_AND_RUN
    mergesub_list%xh(:,nmergesub) = x2(:)
    mergesub_list%vh(:,nmergesub) = v2(:) - vbs(:)
    mergesub_list%mass(nmergesub) = mass2
@@ -118,16 +118,16 @@ implicit none
    ! go through the encounter list and look for particles actively encoutering in this timestep
    ! prevent them from having further encounters in this timestep by setting status in plplenc_list to merged
    do k = 1, nplplenc 
-    if ((plplenc_list%status(k) == active) .and. &
+    if ((plplenc_list%status(k) == ACTIVE) .and. &
        ((index1 == plplenc_list%index1(k) .or. index2 == plplenc_list%index2(k)) .or. &
        (index2 == plplenc_list%index1(k) .or. index1 == plplenc_list%index2(k)))) then
-        plplenc_list%status(k) = merged
+        plplenc_list%status(k) = MERGED
     end if
    end do
 
    ! set the status of the particles in symba_plA to hit_and_run
-   symba_plA%status(index1) = hit_and_run
-   symba_plA%status(index2) = hit_and_run
+   symba_plA%status(index1) = HIT_AND_RUN
+   symba_plA%status(index2) = HIT_AND_RUN
 
    l(:) = (v2(:) - v1(:)) / norm2(v2(:)-v1(:))
    p(:) = cross_product_hitandrun(xr(:) / norm2(xr(:)), l(:))
@@ -153,7 +153,7 @@ implicit none
 
    ! the largest fragment = the kept parent particle
    nmergeadd = nmergeadd + 1
-   mergeadd_list%status(nmergeadd) = hit_and_run
+   mergeadd_list%status(nmergeadd) = HIT_AND_RUN
    mergeadd_list%ncomp(nmergeadd) = 2
    mergeadd_list%name(nmergeadd) = symba_plA%name(index_keep)
    mergeadd_list%mass(nmergeadd) = mass_keep
@@ -167,7 +167,7 @@ implicit none
    if (mres(2) > m2 * 0.9_DP) then
     frags_added = frags_added + 1
     nmergeadd = nmergeadd + 1
-    mergeadd_list%status(nmergeadd) = hit_and_run
+    mergeadd_list%status(nmergeadd) = HIT_AND_RUN
     mergeadd_list%ncomp(nmergeadd) = 2
     mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i - 1
     mergeadd_list%mass(nmergeadd) = mass_rm
@@ -190,7 +190,7 @@ implicit none
        m_rem = m_rm - mres(2)
        frags_added = frags_added + 1
        nmergeadd = nmergeadd + 1
-       mergeadd_list%status(nmergeadd) = hit_and_run
+       mergeadd_list%status(nmergeadd) = HIT_AND_RUN
        mergeadd_list%ncomp(nmergeadd) = 2
        mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i - 1
        mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 

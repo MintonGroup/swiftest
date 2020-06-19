@@ -94,7 +94,6 @@ module nbody_data_structures
       private
       procedure, public :: alloc => nbody_allocate_body                !! A base constructor that sets nbody and allocates the common components
       procedure, public :: set_from_file => nbody_read_initial_conditions_file !! Method used to read initial conditions from a file
-      procedure, public :: set_vec => nbody_set_vec                    !! Method used to construct the vectorized form of the central body mass
       generic, public :: spill => nbody_spill                        !! Method to remove the inactive particles and spill them to a discard object 
       procedure, public :: set_msys => nbody_set_msys                  !! Method to set the msys value
    
@@ -121,6 +120,7 @@ module nbody_data_structures
       procedure, public :: h2b => coord_h2b_tp
       procedure, public :: vb2vh => coord_vb2vh_tp
       procedure, public :: vh2vb => coord_vh2vb_tp
+      procedure, public :: set_vec => nbody_set_vec_tp  !! Method used to construct the vectorized form of the central body mass
       !procedure, public :: el2xv => swiftest_xv2el
       generic, public       :: spill => nbody_spill_tp
       final             :: nbody_deallocate_tp
@@ -142,11 +142,12 @@ module nbody_data_structures
       real(DP),dimension(NDIM)            :: htot   !! System angular momentum vector
    contains
       private
-      procedure, public     :: alloc => nbody_allocate_pl
-      procedure, public     :: h2b => coord_h2b_pl
-      procedure, public     :: vb2vh => coord_vb2vh_pl
-      procedure, public     :: vh2vb => coord_vh2vb_pl
-      generic, public       :: spill => nbody_spill_pl
+      procedure, public :: alloc => nbody_allocate_pl
+      procedure, public :: h2b => coord_h2b_pl
+      procedure, public :: vb2vh => coord_vb2vh_pl
+      procedure, public :: vh2vb => coord_vh2vb_pl
+      generic, public   :: spill => nbody_spill_pl
+      procedure, public :: set_vec => nbody_set_vec_pl  !! Method used to construct the vectorized form of the central body mass
       procedure, public :: xv2el => swiftest_xv2el
       procedure, public     :: calc_conserved => nbody_calc_conserved
       final :: nbody_deallocate_pl
@@ -190,12 +191,18 @@ module nbody_data_structures
       end subroutine nbody_read_initial_conditions_file
 
       !> Interface for a method used to store scalar quantities as vectors for use in vectorized (elemental) procedures
-      module subroutine nbody_set_vec(self,mu,dt)
+      module subroutine nbody_set_vec_tp(self,dt)
          implicit none
          class(swiftest_body), intent(inout)  :: self !! Swiftest particle object
-         real(DP),intent(in) :: mu                    !! Input scalar central body mass term
          real(DP),intent(in) :: dt                    !! Input scalar stepsize
-      end subroutine nbody_set_vec
+      end subroutine nbody_set_vec_tp
+
+         !> Interface for a method used to store scalar quantities as vectors for use in vectorized (elemental) procedures
+      module subroutine nbody_set_vec_pl(self,dt)
+         implicit none
+         class(swiftest_body), intent(inout)  :: self !! Swiftest particle object
+         real(DP),intent(in) :: dt                    !! Input scalar stepsize
+      end subroutine nbody_set_vec_pl
 
       !> Basic Swiftest particle constructor method
       module  subroutine nbody_deallocate_body(self)
@@ -284,7 +291,7 @@ module nbody_data_structures
       pure module subroutine coord_vb2vh_tp(self, vs)
          implicit none
          class(swiftest_tp), intent(inout)            :: self
-         real(dp), dimension(:), optional, intent(in) :: vs
+         real(DP), dimension(:), optional, intent(in) :: vs
       end subroutine coord_vb2vh_tp
 
       !> Convert Convert from heliocentric to barycentric coordinates, massive body velocities only
@@ -362,7 +369,7 @@ module nbody_data_structures
          integer(I4B)         :: io_read_encounter
          integer(I4B), intent(out)     :: name1, name2
          real(DP), intent(out)      :: t, mass1, mass2
-         real(DP), dimension(ndim), intent(out) :: xh1, xh2, vh1, vh2
+         real(DP), dimension(NDIM), intent(out) :: xh1, xh2, vh1, vh2
          character(*), intent(in)      :: encounter_file,out_type
       end function io_read_encounter
 
@@ -403,7 +410,7 @@ module nbody_data_structures
          implicit none
          integer(I4B), intent(in)     :: name1, name2
          real(DP), intent(in)      :: t, mass1, mass2, radius1, radius2
-         real(DP), dimension(ndim), intent(in) :: xh1, xh2, vh1, vh2
+         real(DP), dimension(NDIM), intent(in) :: xh1, xh2, vh1, vh2
          character(*), intent(in)     :: encounter_file, out_type
       end subroutine io_write_encounter
 

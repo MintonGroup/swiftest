@@ -9,10 +9,10 @@ contains
    !! Adapted from Hal Levison's Swift routine io_read_line.f
 use swiftest
 implicit none
-   logical(lgt)       :: lmass, lradius
-   integer(i4b)       :: ierr
-   real(sp)         :: smass, sradius
-   real(sp), dimension(6) :: svec
+   logical        :: lmass, lradius
+   integer( I4B)       :: ierr
+   real(SP)         :: smass, sradius
+   real(SP), dimension(6) :: svec
    real(DP), dimension(6) :: dvec
 
 ! executable code

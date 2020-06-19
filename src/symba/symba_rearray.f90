@@ -16,17 +16,17 @@ contains
     if (ldiscard) then 
       nsppl = 0
       nkpl = 0
-      discard_l_pl(1:npl) = (symba_plA%status(1:npl) /= active) 
+      discard_l_pl(1:npl) = (symba_plA%status(1:npl) /= ACTIVE) 
       nsppl = count(discard_l_pl)
       nkpl = npl - nsppl
       frag_l_add = [(.false.,i=1,npl)]
       if (config%lfragmentation) then
         do i = 1, npl
-          if (mergeadd_list%status(i) == disruption) then
+          if (mergeadd_list%status(i) == DISRUPTION) then
             frag_l_add(i) = .true.
-          else if (mergeadd_list%status(i) == hit_and_run) then
+          else if (mergeadd_list%status(i) == HIT_AND_RUN) then
             frag_l_add(i) = .true.
-          else if (mergeadd_list%status(i) == supercatastrophic) then
+          else if (mergeadd_list%status(i) == SUPERCATASTROPHIC) then
             frag_l_add(i) = .true.
           else
             frag_l_add(i) = .false.
@@ -81,7 +81,7 @@ contains
         npl = nkpl  + nfrag
         !add fragments 
         symba_plA%name(nkpl+1:npl) = pack(mergeadd_list%name(1:nmergeadd), frag_l_add)
-        symba_plA%status(nkpl+1:npl) = [(active,i=1,nfrag)]!array of active status 
+        symba_plA%status(nkpl+1:npl) = [(ACTIVE,i=1,nfrag)]!array of ACTIVE status 
         symba_plA%mass(nkpl+1:npl) = pack(mergeadd_list%mass(1:nmergeadd), frag_l_add)
         symba_plA%radius(nkpl+1:npl) = pack(mergeadd_list%radius(1:nmergeadd), frag_l_add)
         symba_plA%xh(1,nkpl+1:npl) = pack(mergeadd_list%xh(1,1:nmergeadd), frag_l_add)
@@ -130,7 +130,7 @@ contains
       nktp = 0
       nsptp = 0  
 
-      discard_l_tp(1:ntp) = (symba_tpA%status(1:ntp) /= active)
+      discard_l_tp(1:ntp) = (symba_tpA%status(1:ntp) /= ACTIVE)
       nsptp = count(discard_l_tp)
       nktp = ntp - nsptp
 

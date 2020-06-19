@@ -11,10 +11,10 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_step_pl.f
 use swiftest
 implicit none
-   logical(lgt)          :: lencounter, lvdotr
+   logical           :: lencounter, lvdotr
    integer(I4B)          :: i, j, irec, nplm, k, counter
    integer(I4B), allocatable :: plpl_encounters_indices(:), pltp_encounters_indices(:)
-   real(DP), dimension(ndim) :: xr, vr
+   real(DP), dimension(NDIM) :: xr, vr
    
    integer(I4B), allocatable, dimension(:) :: pltp_encounters, pltp_lvdotr
    integer(I4B), allocatable, dimension(:) :: plpl_encounters, plpl_lvdotr
@@ -76,7 +76,7 @@ implicit none
       symba_plA%levelm(k_plpl(2,plpl_encounters_indices)) = 0
       symba_plA%nchild(k_plpl(2,plpl_encounters_indices)) = 0
 
-      plplenc_list%status(1:nplplenc) = active ! you are in an encounter
+      plplenc_list%status(1:nplplenc) = ACTIVE ! you are in an encounter
       plplenc_list%lvdotr(1:nplplenc) = plpl_lvdotr(plpl_encounters_indices)! flag of relative accelerations to say if there will be a close encounter in next timestep 
       plplenc_list%level(1:nplplenc)  = 0 ! recursion level
       plplenc_list%index1(1:nplplenc) = k_plpl(1,plpl_encounters_indices) ! index of first massive body in encounter
@@ -122,7 +122,7 @@ implicit none
          symba_tpA%levelg(k_pltp(2,pltp_encounters_indices)) = 0
          symba_tpA%levelm(k_pltp(2,pltp_encounters_indices)) = 0
 
-         pltpenc_list%status(1:npltpenc) = active
+         pltpenc_list%status(1:npltpenc) = ACTIVE
          pltpenc_list%lvdotr(1:npltpenc) = pltp_lvdotr(pltp_encounters_indices)
          pltpenc_list%level(1:npltpenc) = 0
          pltpenc_list%indexpl(1:npltpenc) = k_pltp(1,pltp_encounters_indices)

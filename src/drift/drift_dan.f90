@@ -11,7 +11,7 @@ contains
    implicit none
    real(DP)            :: dt, f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
    real(DP)            :: v0s, a, asq, en, dm, ec, es, esq, xkep, fchk, s, c
-   real(DP), dimension(ndim) :: x, v
+   real(DP), dimension(NDIM) :: x, v
 
 ! executable code
    iflag = 0
@@ -29,13 +29,13 @@ contains
       esq = ec*ec + es*es
       dm = dt*en - int(dt*en/twopi)*twopi
       dt = dm/en
-      if ((esq < e2max) .and. (dm*dm < dm2max) .and. (esq*dm*dm < e2dm2max)) then
+      if ((esq < E2MAX) .and. (dm*dm < DM2MAX) .and. (esq*dm*dm < e2DM2MAX)) then
          call drift_kepmd(dm, es, ec, xkep, s, c)
          fchk = (xkep - ec*s + es*(1.0_DP - c) - dm)
-! dek - original code compared fchk*fchk with danbyb, but i think it should
-! dek - be compared with danbyb*danbyb, and i changed it accordingly - please
+! dek - original code compared fchk*fchk with DANBYB, but i think it should
+! dek - be compared with DANBYB*DANBYB, and i changed it accordingly - please
 ! dek - check with hal and/or martin about this
-         if (fchk*fchk > danbyb*danbyb) then
+         if (fchk*fchk > DANBYB*DANBYB) then
             iflag = 1
             return
          end if

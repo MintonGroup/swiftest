@@ -9,7 +9,7 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_helio_getacch.f
 use swiftest
 implicit none
-   logical(lgt), save                 :: lmalloc = .true.
+   logical , save                 :: lmalloc = .true.
    integer(I4B)                     :: i
    real(DP)                       :: r2
    real(DP), dimension(:), allocatable, save    :: irh
@@ -25,7 +25,7 @@ implicit none
    end if
    if (config%j2rp2 /= 0.0_DP) then
       if (lmalloc) then
-         allocate(xh(ndim, config%nplmax), aobl(ndim, config%nplmax), irh(config%nplmax))
+         allocate(xh(NDIM, config%nplmax), aobl(NDIM, config%nplmax), irh(config%nplmax))
          lmalloc = .false.
       end if
       do i = 2, npl

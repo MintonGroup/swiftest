@@ -160,7 +160,7 @@ CONTAINS
      FUNCTION upper_triangle(j, k, extra)
           INTEGER(I4B), INTENT(IN)           :: j, k
           INTEGER(I4B), OPTIONAL, INTENT(IN) :: extra
-          LOGICAL(LGT), DIMENSION(j, k)      :: upper_triangle
+          LOGICAL , DIMENSION(j, k)      :: upper_triangle
           INTEGER(I4B)                       :: n
           n = 0
           IF (PRESENT(extra)) n = extra

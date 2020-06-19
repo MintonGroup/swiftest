@@ -19,7 +19,7 @@ implicit none
    if (lfirst) then
       if (qmin_coord == "helio") then
          do i = 2, npl
-            if (symba_plA%status(i) == active) then
+            if (symba_plA%status(i) == ACTIVE) then
                vdotr = dot_product(symba_plA%xh(:,i), symba_plA%vh(:,i))
                if (vdotr > 0.0_DP) then
                   symba_plA%isperi(i) = 1
@@ -30,7 +30,7 @@ implicit none
          end do
       else
          do i = 2, npl
-            if (symba_plA%status(i) == active) then
+            if (symba_plA%status(i) == ACTIVE) then
                vdotr = dot_product(symba_plA%xb(:,i), symba_plA%vb(:,i))
                if (vdotr > 0.0_DP) then
                   symba_plA%isperi(i) = 1
@@ -43,7 +43,7 @@ implicit none
    else
       if (qmin_coord == "helio") then
          do i = 2, npl
-            if (symba_plA%status(i) == active) then
+            if (symba_plA%status(i) == ACTIVE) then
                vdotr = dot_product(symba_plA%xh(:,i), symba_plA%vh(:,i))
                if (symba_plA%isperi(i) == -1) then
                   if (vdotr >= 0.0_DP) then
@@ -63,7 +63,7 @@ implicit none
          end do
       else
          do i = 2, npl
-            if (symba_plA%status(i) == active) then
+            if (symba_plA%status(i) == ACTIVE) then
                vdotr = dot_product(symba_plA%xb(:,i), symba_plA%vb(:,i))
                if (symba_plA%isperi(i) == -1) then
                   if (vdotr >= 0.0_DP) then

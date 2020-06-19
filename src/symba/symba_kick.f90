@@ -3,7 +3,7 @@ contains
    module procedure symba_kick
    !! author: David A. Minton
    !!
-   !! Kick barycentric velocities of planets and active test particles within SyMBA recursion
+   !! Kick barycentric velocities of planets and ACTIVE test particles within SyMBA recursion
    !!
    !! Adapted from David E. Kaufmann's Swifter modules: symba_kick.f90
    !! Adapted from Hal Levison's Swift routine symba5_kick.f
@@ -11,7 +11,7 @@ use swiftest
 implicit none
    integer(I4B)          :: i, irm1, irecl, index_i,index_j,index_tp,index_pl
    real(DP)            :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
-   real(DP), dimension(ndim) :: dx
+   real(DP), dimension(NDIM) :: dx
 
 ! executable code
    irm1 = irec - 1
@@ -31,7 +31,7 @@ implicit none
       symba_tpA%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
    end do
    do i = 1, nplplenc
-      if (plplenc_list%status(i) == active) then
+      if (plplenc_list%status(i) == ACTIVE) then
          index_i  = plplenc_list%index1(i) 
          index_j  = plplenc_list%index2(i) 
          if ((symba_plA%levelg(index_i) >= irm1) .and. (symba_plA%levelg(index_j) >= irm1)) then
@@ -59,7 +59,7 @@ implicit none
       end if
    end do
    do i = 1, npltpenc
-      if (pltpenc_list%status(i) == active) then
+      if (pltpenc_list%status(i) == ACTIVE) then
          index_pl  = pltpenc_list%indexpl(i) 
          index_tp  = pltpenc_list%indextp(i) 
          if ((symba_plA%levelg(index_pl) >= irm1) .and. (symba_tpA%levelg(index_tp) >= irm1)) then
@@ -93,7 +93,7 @@ implicit none
    end do
    do i = 1, npltpenc
       index_tp  = pltpenc_list%indextp(i)
-      if (symba_tpA%status(index_tp) == active)   &
+      if (symba_tpA%status(index_tp) == ACTIVE)   &
       symba_tpA%vb(:,index_tp) = symba_tpA%vb(:,index_tp) + sgn*dt*symba_tpA%ah(:,index_tp)
       symba_tpA%ah(:,index_tp) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
    end do

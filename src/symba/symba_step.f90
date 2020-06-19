@@ -10,9 +10,9 @@ contains
    !! Adapted from Hal Levison's Swift routine symba5_step_pl.f
 use swiftest
 implicit none
-   logical(lgt)          :: lencounter, lvdotr
+   logical           :: lencounter, lvdotr
    integer(I4B)          :: i, j, irec, nplm
-   real(DP), dimension(ndim) :: xr, vr
+   real(DP), dimension(NDIM) :: xr, vr
    logical, save         :: lfirst = .true.
    
 ! executable code
@@ -61,7 +61,7 @@ implicit none
                write(*, *) "   stopping..."
                call util_exit(failure)
             end if
-            plplenc_list%status(nplplenc) = active
+            plplenc_list%status(nplplenc) = ACTIVE
             plplenc_list%lvdotr(nplplenc) = lvdotr
             plplenc_list%level(nplplenc) = irec
             plplenc_list%index1(nplplenc) = i
@@ -96,7 +96,7 @@ implicit none
                write(*, *) "   stopping..."
                call util_exit(failure)
             end if
-            pltpenc_list%status(npltpenc) = active
+            pltpenc_list%status(npltpenc) = ACTIVE
             pltpenc_list%lvdotr(npltpenc) = lvdotr
             pltpenc_list%level(npltpenc) = irec
             pltpenc_list%indexpl(npltpenc) = i

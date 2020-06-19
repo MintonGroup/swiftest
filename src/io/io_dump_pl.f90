@@ -13,10 +13,10 @@ contains
    integer(I4B), save         :: idx = 1
    integer(I4B),parameter         :: LUN = 7
 
-   open(unit = LUN, file = dump_pl_file(idx), form = "unformatted", status = 'replace', iostat = ierr)
+   open(unit = LUN, file = DUNMP_PL_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
    if (ierr /= 0) then
       write(*, *) "Swiftest error:"
-      write(*, *) "   Unable to open binary dump file ", trim(dump_pl_file(idx))
+      write(*, *) "   Unable to open binary dump file ", trim(DUNMP_PL_FILE(idx))
       call util_exit(failure)
    end if
    write(LUN) npl

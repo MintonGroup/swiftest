@@ -40,7 +40,7 @@ implicit none
       end do
    end do
    do i = 1, nsppl
-      if (discard_plA%status(i) /= merged) then
+      if (discard_plA%status(i) /= MERGED) then
          write(lun, 200) sub, discard_plA%name(i), discard_plA%status(i)
          write(lun, 300) discard_plA%xh(1,i),discard_plA%xh(2,i), discard_plA%xh(3,i)
          write(lun, 300) discard_plA%vh(1,i),discard_plA%vh(2,i), discard_plA%vh(3,i)

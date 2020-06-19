@@ -9,11 +9,11 @@ contains
    !! Adapted from Hal Levison's Swift routine io_write_line.f
 use swiftest
 implicit none
-   integer(i4b)       :: ierr
+   integer( I4B)       :: ierr
    real(DP), dimension(6) :: dvec
-   real(sp), dimension(6) :: svec
-   real(sp)         :: smass, sradius
-   logical(lgt)       :: lmass, lradius
+   real(SP), dimension(6) :: svec
+   real(SP)         :: smass, sradius
+   logical        :: lmass, lradius
 
 ! executable code
    dvec(1) = d1; dvec(2) = d2; dvec(3) = d3; dvec(4) = d4; dvec(5) = d5; dvec(6) = d6
