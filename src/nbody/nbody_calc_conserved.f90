@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_nbody_calc_conserved
+submodule (swiftest_classes) s_nbody_calc_conserved
 contains
    module procedure nbody_calc_conserved
    !! author: David A. Minton

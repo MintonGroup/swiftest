@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_drift_kepu
+submodule (swiftest_classes) s_drift_kepu
 contains
    module procedure drift_kepu
    !! author: David A. Minton

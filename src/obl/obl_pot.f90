@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_obl_pot
+submodule (swiftest_classes) s_obl_pot
 contains
    module procedure obl_pot
    !! author: David A. Minton

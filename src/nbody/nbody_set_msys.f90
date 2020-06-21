@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_nbody_set_msys
+submodule (swiftest_classes) s_nbody_set_msys
 contains
    module procedure nbody_set_msys
       !! author: David A. Minton

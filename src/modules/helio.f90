@@ -4,7 +4,7 @@ module helio
    !! Definition of classes and methods specific to the Democratic Heliocentric Method
    !! Adapted from David E. Kaufmann's Swifter modules: helio.f90
    use swiftest_globals
-   use nbody_data_structures
+   use swiftest_classes
    implicit none
 
    !********************************************************************************************************************************

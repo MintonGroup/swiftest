@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_coord_h2b_pl
+submodule (swiftest_classes) s_coord_h2b_pl
 contains
    module procedure coord_h2b_pl
    !! author: David A. Minton

@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_nbody_set_vec
+submodule (swiftest_classes) s_nbody_set_vec
 contains
 
    module procedure nbody_set_vec_pl

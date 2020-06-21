@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_obl_acc_tp
+submodule (swiftest_classes) s_obl_acc_tp
 contains
    module procedure obl_acc_tp
    !! author: David A. Minton

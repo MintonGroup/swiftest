@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_discard_pl_close
+submodule (swiftest_classes) s_discard_pl_close
 contains
    module procedure discard_pl_close
    !! author: David A. Minton

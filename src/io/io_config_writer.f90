@@ -1,4 +1,4 @@
-submodule(nbody_data_structures) s_io_config_writer
+submodule(swiftest_classes) s_io_config_writer
 contains
    module procedure io_config_writer
    !! author: David A. Minton

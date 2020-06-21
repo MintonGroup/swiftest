@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_drift_one
+submodule (swiftest_classes) s_drift_one
 contains
 
     module procedure drift_one

@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_nbody_read_initial_conditions_file
+submodule (swiftest_classes) s_nbody_read_initial_conditions_file
 contains
    module procedure nbody_read_initial_conditions_file
       !! author: David A. Minton

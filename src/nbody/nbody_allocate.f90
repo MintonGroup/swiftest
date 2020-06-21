@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_nbody_allocate
+submodule (swiftest_classes) s_nbody_allocate
 
 contains
 

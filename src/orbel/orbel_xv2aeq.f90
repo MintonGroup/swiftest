@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_orbel_xv2aeq
+submodule (swiftest_classes) s_orbel_xv2aeq
 contains
    module procedure orbel_xv2aeq
    !! author: David A. Minton

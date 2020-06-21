@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_io_write_encounter
+submodule (swiftest_classes) s_io_write_encounter
 contains
    module procedure io_write_encounter
    !! author: David A. Minton

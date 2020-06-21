@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_discard_sun
+submodule (swiftest_classes) s_discard_sun
 contains
    module procedure discard_sun
    !! author: David A. Minton

@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_io_dump_tp
+submodule (swiftest_classes) s_io_dump_tp
 contains
    module procedure io_dump_tp
    !! author: David A. Minton

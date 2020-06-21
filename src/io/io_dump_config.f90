@@ -1,4 +1,4 @@
-submodule(nbody_data_structures) s_io_dump_config
+submodule(swiftest_classes) s_io_dump_config
 contains
    module procedure io_dump_config
    !! author: David A. Minton

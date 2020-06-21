@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_orbel_el2xv
+submodule (swiftest_classes) s_orbel_el2xv
 contains
    module procedure orbel_el2xv
    !! author: David A. Minton

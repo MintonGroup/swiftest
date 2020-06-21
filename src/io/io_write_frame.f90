@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_io_write_frame
+submodule (swiftest_classes) s_io_write_frame
 contains
    module procedure io_write_frame
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott

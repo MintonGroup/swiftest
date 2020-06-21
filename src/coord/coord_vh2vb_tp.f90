@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_coord_vh2vb_tp
+submodule (swiftest_classes) s_coord_vh2vb_tp
 contains
    module procedure coord_vh2vb_tp
    !! author: David A. Minton

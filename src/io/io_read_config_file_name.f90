@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_io_read_config_file_name
+submodule (swiftest_classes) s_io_read_config_file_name
 
 contains
 

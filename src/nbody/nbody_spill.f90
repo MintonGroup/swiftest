@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_nbody_spill
+submodule (swiftest_classes) s_nbody_spill
 !! This submodule contains the methods spill, spill_body, spill_pl, and spill_tp for basic swiftest particles
 contains
    module procedure nbody_spill

@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_orbel_xv2aqt
+submodule (swiftest_classes) s_orbel_xv2aqt
 contains
    module procedure orbel_xv2aqt
    !! author: David A. Minton

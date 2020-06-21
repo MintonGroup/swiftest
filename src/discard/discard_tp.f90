@@ -1,4 +1,4 @@
-submodule (nbody_data_structures) s_discard_tp
+submodule (swiftest_classes) s_discard_tp
 contains
    module procedure discard_tp
    !! author: David A. Minton

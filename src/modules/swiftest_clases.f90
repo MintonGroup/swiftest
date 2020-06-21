@@ -1,4 +1,4 @@
-module nbody_data_structures
+module swiftest_classes
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Definition of data and structures generic to all integrators.
@@ -72,16 +72,134 @@ module nbody_data_structures
    end type swiftest_configuration
 
    !********************************************************************************************************************************
-   !                                    swiftest_body class definitions and method interfaces
+   !                                    swiftest_base class definitions and method abstract interfaces
    !********************************************************************************************************************************
+   type, abstract, private :: swiftest_base
+      !! An superclass for a generic Swiftest object
+   contains
+      !! The minimal methods that all systems must have
+      procedure(abstract_initialize), deferred  :: initialize
+      !procedure(abstract_step), deferred        :: step 
+   end type swiftest_base
 
-   !! TODO: Move central body into its own set of constructs rather than being the first "planet"ererewq 
-   !> A superclass for a generic Swiftest particle. All particle types are derived from this class
-   type, public :: swiftest_body           
+   abstract interface
+      ! subroutine abstract_construct(self, intype)
+      !    import swiftest_base
+      !    class(swiftest_base), intent(inout) :: self
+      !    integer(I4B), intent(in)                    :: intype
+      ! end subroutine abstract_construct
+
+      subroutine abstract_initialize(self, config) 
+         import swiftest_base
+         class(swiftest_base), intent(inout) :: self
+         class(swiftest_configuration), intent(in)   :: config
+      end subroutine abstract_initialize
+
+!      subroutine abstract_step(self, t, dt, config) 
+!         import swiftest_base
+!         class(swiftest_base), intent(inout) :: self
+!         real(DP), intent(in)                        :: t
+!         real(DP), intent(in)                        :: dt
+!         class(swiftest_configuration), intent(in)   :: config
+!      end subroutine abstract_step
+
+      ! subroutine abstract_discard(self, t, dt, config) 
+      !    import swiftest_base
+      !    class(swiftest_base), intent(inout) :: self
+      !    real(DP), intent(in)                        :: t
+      !    real(DP), intent(in)                        :: dt
+      !    class(swiftest_configuration), intent(in)   :: config
+      ! end subroutine abstract_discard
+
+      ! subroutine abstract_dump(self, t, dt, config) 
+      !    import swiftest_base
+      !    class(swiftest_base), intent(inout) :: self
+      !    real(DP), intent(in)                        :: t
+      !    real(DP), intent(in)                        :: dt
+      !    class(swiftest_configuration), intent(in)   :: config
+      ! end subroutine abstract_dump
+
+      ! subroutine abstract_write_frame(self, t, dt, config) 
+      !    import swiftest_base
+      !    class(swiftest_base), intent(inout) :: self
+      !    real(DP), intent(in)                        :: t
+      !    real(DP), intent(in)                        :: dt
+      !    class(swiftest_configuration), intent(in)   :: config
+      ! end subroutine abstract_write_frame
+   end interface
+   
+   !********************************************************************************************************************************
+   !                            swiftest_central_body class definitions and method abstract interfaces
+   !********************************************************************************************************************************
+   !> A concrete lass for the central body in a Swiftest simulation
+   type, abstract, public, extends(swiftest_base) :: swiftest_central_body           
+      !private
+      real(DP)                  :: mass  
+      real(DP), dimension(NDIM) :: xb       !! Barycentric position
+      real(DP), dimension(NDIM) :: vb       !! Barycentric velocity
+   contains
+      private
+      procedure, public           :: initialize => io_read_central_body !! A base constructor that sets nbody and allocates the common components
+   end type swiftest_central_body
+
+   interface
+      !> Minimal method for initializing a swiftest body
+      subroutine abstract_initialize(self,config) 
+         implicit none
+         class(swiftest_body), intent(inout)     :: self   !! Swiftest particle object
+         type(swiftest_configuration),intent(in) :: config !! User-defined configuration parameters
+      end subroutine abstract_initialize
+   end interface
+
+
+
+
+   !> A concrete lass for the central body in a Swiftest simulation
+   type, abstract, public, extends(swiftest_base) :: swiftest_central_body           
       !! Superclass that defines the generic elements of a Swiftest particle 
       !private
-      integer(I4B)                            :: nbody = 0              !! Number of bodies
-      integer(I4B), dimension(:), allocatable :: name                   !! External identifier (hash)
+      integer(I4B)                            :: nbody = 0  !! Number of bodies
+      integer(I4B), dimension(:), allocatable :: name       !! External identifier (hash)
+      real(DP),     dimension(:,:), allocatable :: xb       !! Barycentric position
+      real(DP),     dimension(:,:), allocatable :: vb       !! Barycentric velocity
+   contains
+      private
+      procedure, public           :: alloc => nbody_allocate_body    !! A base constructor that sets nbody and allocates the common components
+      procedure(abstract_initialize), public, deferred :: initialize !! Method used to read initial conditions from a file
+   end type swiftest_body
+
+   abstract interface
+      !> Minimal method for initializing a swiftest body
+      subroutine abstract_initialize(self,config) 
+         implicit none
+         class(swiftest_body), intent(inout)     :: self   !! Swiftest particle object
+         type(swiftest_configuration),intent(in) :: config !! User-defined configuration parameters
+      end subroutine abstract_initialize
+   end interface
+
+
+
+      
+   type, public, extends(swiftest_base) :: swiftest_nbody_system
+   !!  This superclass contains a minimial system is a set of test particles (tp) massive bodies (pl) and a central body (cb)
+      class(swiftest_body), allocatable :: cb  !! Central body data structure
+      class(swiftest_body), allocatable :: pl  !! Massive body data structure
+      class(swiftest_body), allocatable :: tp  !! Test particle data structure
+   contains
+      procedure :: construct => nbody_construct
+      procedure :: initialize => nbody_system_initialize
+      procedure :: step => nbody_system_step
+      procedure :: discard => nbody_system_discard 
+      procedure :: dump => nbody_system_dump
+      procedure :: write_frame => nbody_system_write_frame
+   end type swiftest_nbody_system
+
+   !********************************************************************************************************************************
+   !                                    swiftest_tp class definitions and method interfaces
+   !********************************************************************************************************************************
+
+   !! Basic Swiftest test particle class
+   type, public, extends(swiftest_body) :: swiftest_tp 
       integer(I4B), dimension(:), allocatable :: status                 !! An integrator-specific status indicator 
       real(DP),     dimension(:), allocatable :: mu_vec                 !! Vectorized central body mass term used for elemental functions
       real(DP),     dimension(:), allocatable :: dt_vec                 !! Vectorized stepsize used for elemental functions
@@ -91,36 +209,21 @@ module nbody_data_structures
       logical                                 :: lspill = .false.       !! Flag to indicate whether the spill list has been allocated yet
       logical                                 :: ldiscard = .false.     !! If true, then proceed to discard bodies into the spill list
       logical                                 :: is_allocated = .false. !! Flag to indicate whether or not the components are allocated
-   contains
-      private
-      procedure, public :: alloc => nbody_allocate_body                !! A base constructor that sets nbody and allocates the common components
-      procedure, public :: set_from_file => nbody_read_initial_conditions_file !! Method used to read initial conditions from a file
-      generic, public :: spill => nbody_spill                        !! Method to remove the inactive particles and spill them to a discard object 
-      procedure, public :: set_msys => nbody_set_msys                  !! Method to set the msys value
-   
-      final             :: nbody_deallocate_body                       !! A destructor/finalizer that deallocates everything 
-   end type swiftest_body
 
-   !********************************************************************************************************************************
-   !                                    swiftest_tp class definitions and method interfaces
-   !********************************************************************************************************************************
-
-   !! Basic Swiftest test particle class
-   type, public, extends(swiftest_body) :: swiftest_tp 
       !private
       integer(I4B), dimension(:),   allocatable :: isperi !! Perihelion passage flag
       real(DP),     dimension(:),   allocatable :: peri   !! Perihelion distance
       real(DP),     dimension(:),   allocatable :: atp    !! Semimajor axis following perihelion passage
       real(DP),     dimension(:,:), allocatable :: xh     !! Heliocentric position
       real(DP),     dimension(:,:), allocatable :: vh     !! Heliocentric velocity
-      real(DP),     dimension(:,:), allocatable :: xb     !! Barycentric position
-      real(DP),     dimension(:,:), allocatable :: vb     !! Barycentric velocity
    contains
       private
+      generic, public :: spill => nbody_spill                        !! Method to remove the inactive particles and spill them to a discard object 
       procedure, public :: alloc => nbody_allocate_tp
       procedure, public :: h2b => coord_h2b_tp
       procedure, public :: vb2vh => coord_vb2vh_tp
       procedure, public :: vh2vb => coord_vh2vb_tp
+      procedure, public :: set_msys => nbody_set_msys                  !! Method to set the msys value
       procedure, public :: set_vec => nbody_set_vec_tp  !! Method used to construct the vectorized form of the central body mass
       !procedure, public :: el2xv => swiftest_xv2el
       generic, public       :: spill => nbody_spill_tp
@@ -157,6 +260,14 @@ module nbody_data_structures
 
    !> Interfaces type-bound procedures for swiftest_pl class
    interface
+
+      !> Basic Swiftest particle constructor method
+      module subroutine nbody_allocate_body(self,n)
+         implicit none
+         class(swiftest_body), intent(inout) :: self !! Swiftest particle object
+         integer, intent(in)                 :: n    !! Number of particles to allocate space for
+      end subroutine nbody_allocate_body
+
       !> Basic Swiftest massive body constructor method
       module subroutine nbody_allocate_pl(self,n)
          implicit none
@@ -171,12 +282,6 @@ module nbody_data_structures
          integer, intent(in)               :: n    !! Number of test particles to allocate
       end subroutine nbody_allocate_tp
 
-      !> Basic Swiftest particle constructor method
-      module subroutine nbody_allocate_body(self,n)
-         implicit none
-         class(swiftest_body), intent(inout) :: self !! Swiftest particle object
-         integer, intent(in)                 :: n    !! Number of particles to allocate space for
-      end subroutine nbody_allocate_body
 
       !> Method for calculating the energy and angular momentum of the system
       module subroutine nbody_calc_energy_momentum(self)
@@ -184,12 +289,11 @@ module nbody_data_structures
          class(swiftest_pl) :: self
       end subroutine
 
-      !> Basic or the set_from_file method (only implemented in extended classes)
-      module subroutine nbody_read_initial_conditions_file(self,config) 
+      !> Basic Swiftest particle constructor method
+      module  subroutine nbody_deallocate_body(self)
          implicit none
-         class(swiftest_body), intent(inout)     :: self   !! Swiftest particle object
-         type(swiftest_configuration),intent(in) :: config !! User-defined configuration parameters
-      end subroutine nbody_read_initial_conditions_file
+         type(swiftest_body), intent(inout) :: self !! Swiftest particle object
+      end subroutine nbody_deallocate_body
 
       !> Interface for a method used to store scalar quantities as vectors for use in vectorized (elemental) procedures
       module subroutine nbody_set_vec_tp(self,dt)
@@ -204,12 +308,6 @@ module nbody_data_structures
          class(swiftest_body), intent(inout)  :: self !! Swiftest particle object
          real(DP),intent(in) :: dt                    !! Input scalar stepsize
       end subroutine nbody_set_vec_pl
-
-      !> Basic Swiftest particle constructor method
-      module  subroutine nbody_deallocate_body(self)
-         implicit none
-         type(swiftest_body), intent(inout) :: self !! Swiftest particle object
-      end subroutine nbody_deallocate_body
 
       !> Basic Swiftest particle destructor/finalizer
       module subroutine nbody_spill(self,discard)
@@ -258,10 +356,12 @@ module nbody_data_structures
          class(swiftest_pl), intent(in)       :: swiftest_plA  !! Swiftest massive body object
       end subroutine nbody_set_msys
 
-      module subroutine swiftest_xv2el_pl(self)
+      module subroutine nbody_xv2el_pl(self)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      end subroutine swiftest_xv2el_pl
+      end subroutine nbody_xv2el_pl
+
+
 
    end interface
 
@@ -691,4 +791,4 @@ module nbody_data_structures
 !      !^^^^^^^^^^^^^^^^^^^
 !   END TYPE swifter_tp
 !
-end module nbody_data_structures
+end module swiftest_classes

@@ -26,7 +26,7 @@
 module helio
 
    use swiftest_globals
-   use nbody_data_structures
+   use swiftest_classes
    implicit none
 
    type helio_pl
