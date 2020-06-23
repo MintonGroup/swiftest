@@ -48,6 +48,11 @@ module util
          real(DP), dimension(:, :),intent(inout) :: outvar
       end subroutine
 
+      module subroutine util_get_energy_and_momentum(self)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
+      end subroutine util_get_energy_and_momentum
+
       module subroutine util_hills(npl, swiftest_plA)
          implicit none
          integer(I4B), intent(in)    :: npl

@@ -5,9 +5,10 @@ module swiftest
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
    use swiftest_globals
    use swiftest_classes
-   use helio
-   use rmvs
-   use symba
+   use whm_classes
+   !use helio_classes
+   !use rmvs_classes
+   !use symba_classes
    use util
    use module_nrutil
 

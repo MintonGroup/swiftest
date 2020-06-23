@@ -193,7 +193,6 @@ module swiftest_classes
          class(swiftest_central_body),  intent(inout) :: self
          class(swiftest_configuration), intent(in)    :: config
       end subroutine io_read_cb
-
    end interface
       
    !********************************************************************************************************************************
@@ -319,17 +318,18 @@ module swiftest_classes
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: alloc       => setup_allocate_pl !! A base constructor that sets the number of bodies and 
-      procedure, public :: b2h         => coord_b2h_pl     !! Convert position vectors from barycentric to heliocentric coordinates
+      procedure, public :: b2h         => coord_b2h_pl      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: dump        => io_dump_pl        !! Dump the current state of the test particles to file
-      procedure, public :: h2b         => coord_h2b_pl     !! Convert position vectors from heliocentric to barycentric coordinates
-      procedure, public :: h2j         => coord_h2j_pl     !! Convert posiition vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: j2h         => coord_j2h_pl     !! Convert position vectors from Jacobi to helliocentric coordinates 
-      procedure, public :: set_vec     => util_set_vec_pl !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: spill       => discard_spill_pl   !! A base constructor that sets the number of bodies and 
-      procedure, public :: vb2vh       => coord_vb2vh_pl   !! Convert velocity vectors from barycentric to heliocentric coordinates 
-      procedure, public :: vh2vb       => coord_vh2vb_pl   !! Convert velocity vectors from heliocentric to barycentric coordinates 
-      procedure, public :: vh2vj       => coord_vh2vj_pl   !! Convert posiition vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: vj2vh       => coord_vj2vh_pl   !! Convert position vectors from Jacobi to helliocentric coordinates 
+      procedure, public :: h2b         => coord_h2b_pl      !! Convert position vectors from heliocentric to barycentric coordinates
+      procedure, public :: h2j         => coord_h2j_pl      !! Convert posiition vectors from heliocentric to Jacobi coordinates 
+      procedure, public :: initialize  => io_read_pl_in     !! Read in massive body initial conditions from a file
+      procedure, public :: j2h         => coord_j2h_pl      !! Convert position vectors from Jacobi to helliocentric coordinates 
+      procedure, public :: set_vec     => util_set_vec_pl   !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: spill       => discard_spill_pl  !! A base constructor that sets the number of bodies and 
+      procedure, public :: vb2vh       => coord_vb2vh_pl    !! Convert velocity vectors from barycentric to heliocentric coordinates 
+      procedure, public :: vh2vb       => coord_vh2vb_pl    !! Convert velocity vectors from heliocentric to barycentric coordinates 
+      procedure, public :: vh2vj       => coord_vh2vj_pl    !! Convert posiition vectors from heliocentric to Jacobi coordinates 
+      procedure, public :: vj2vh       => coord_vj2vh_pl    !! Convert position vectors from Jacobi to helliocentric coordinates 
       procedure, public :: write_frame => io_write_frame_pl !! Write out a frame of test particle data to output file
    end type swiftest_pl
 
@@ -398,6 +398,13 @@ module swiftest_classes
          real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
       end subroutine io_dump_pl
 
+      !> Type-bound procedure to read in the input massive body initial condition file
+      module subroutine io_read_pl_in(self, config) 
+         implicit none
+         class(swiftest_pl),            intent(inout) :: self   !! Swiftest data structure to store massive body initial conditions
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters
+      end subroutine io_read_pl_in
+
       module subroutine io_write_frame_pl(self, config, t, dt) 
          implicit none
          class(swiftest_pl),            intent(in)    :: self
@@ -441,6 +448,7 @@ module swiftest_classes
       procedure, public :: spill       => discard_spill_tp  !! Spill the list of discarded test particles into a new object
       procedure, public :: discard     => discard_tp        !! Dump the current state of the test particles to file
       procedure, public :: dump        => io_dump_tp        !! Dump the current state of the test particles to file
+      procedure, public :: initialize  => io_read_tp_in     !! Read in massive body initial conditions from a file
       procedure, public :: write_frame => io_write_frame_tp !! Write out a frame of test particle data to output file
       procedure, public :: alloc       => setup_allocate_tp !! A base constructor that sets the number of bodies and 
       procedure, public :: set_vec     => util_set_vec_tp   !! Method used to construct the vectorized form of the central body mass
@@ -496,6 +504,12 @@ module swiftest_classes
          real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
       end subroutine io_dump_tp
 
+      !> Type-bound procedure to read in the input test particle initial condition file
+      module subroutine io_read_tp_in(self, config) 
+         class(swiftest_tp),            intent(inout) :: self   !! Swiftest data structure to store test particle initial conditions
+         class(swiftest_configuration), intent(in)    :: config !! User-defined configuration parameters
+      end subroutine io_read_tp_in
+
       module subroutine io_write_frame_tp(self, config, t, dt) 
          implicit none
          class(swiftest_tp),            intent(in)    :: self
@@ -536,65 +550,21 @@ module swiftest_classes
       logical                                   :: ldiscard = .false.   !! Flag indicating that bodies need to be discarded in the current step
    contains
       private
-      ! Each integrator will have its own version of the following methods
-      procedure(abstract_discard_nbody_system), public, deferred :: discard       !! Perform a discard operation and spill any discarded bodies to list for output.  
-      procedure(abstract_io_initialize_system), public, deferred :: initialize    !! Initialize the system from an input file
-      procedure(abstract_io_write_discard),     public, deferred :: write_discard !! Write out the discard bodies to a file.
-      procedure(abstract_io_write_frame),       public, deferred :: write_frame   !! Append a frame of output data to file
-      procedure(abstract_io_dump),              public, deferred :: dump          !! Dump the state of the system to a file
+      ! Each integrator will have its own version of the step
       procedure(abstract_step_nbody_system),    public, deferred :: step          !! Method to advance the system one step in time given by the step size dt
-      procedure(abstract_get_energy_and_momentum), public, deferred :: get_energy_and_momentum !! Calculate total energy and angular momentum of system
-      procedure(abstract_set_msys),             public, deferred :: set_msys      !! Sets the total system mass value 
 
-      ! Concrete classes
-      procedure, public :: construct                => setup_construct_system 
-
+      ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
+      procedure, public :: construct              => setup_construct_system       !! Constructs the basic system  
+      procedure, public :: discard                => discard_nbody                !! Dump the state of the system to a file
+      procedure, public :: dump                   => io_dump                      !! Dump the state of the system to a file
+      procedure, public :: get_energy_and_momenum => util_get_energy_and_momentum !! Calculate total energy and angular momentum of system
+      procedure, public :: initialize             => io_initialize_system         !! Initialize the system from an input file
+      procedure, public :: set_msys               => setup_set_msys               !! Sets the total system mass value 
+      procedure, public :: write_discard          => io_write_discard             !! Append a frame of output data to file
+      procedure, public :: write_frame            => io_write_frame               !! Append a frame of output data to file
    end type swiftest_nbody_system
 
    abstract interface
-      !> Evaluate which bodies need to be discarded and "spill" them to a special discard object (integrator-dependent)
-      subroutine abstract_discard_nbody_system(self, config, t, dt)
-         import DP, swiftest_nbody_system, swiftest_configuration
-         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-      end subroutine abstract_discard_nbody_system
-
-      !> Method to dump the state of the whole system to file
-      subroutine abstract_io_dump(self, config, t, dt, tfrac) 
-         import DP, swiftest_nbody_system, swiftest_configuration
-         class(swiftest_nbody_system),  intent(in)    :: self     !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t        !! Current simulation time
-         real(DP),                      intent(in)    :: dt       !! Stepsize
-         real(DP),                      intent(in)    :: tfrac    !! Fraction of total time completed (displayed on the screen)
-      end subroutine abstract_io_dump
-
-      subroutine abstract_io_initialize_system(self, config) 
-         import swiftest_nbody_system, swiftest_configuration
-         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
-      end subroutine abstract_io_initialize_system
-
-      !> Method to write out the discard bodies to a file
-      subroutine abstract_io_write_discard(self, config, t, dt)
-         import DP, swiftest_nbody_system, swiftest_configuration
-         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-      end subroutine abstract_io_write_discard
-
-      !> Method to write out a single frame of the simulation to file
-      subroutine abstract_io_write_frame(self, config, t, dt)
-         import DP, swiftest_nbody_system, swiftest_configuration
-         class(swiftest_nbody_system),  intent(in)    :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-      end subroutine abstract_io_write_frame
-
       !> Steps the Swiftest nbody system forward in time one stepsize
       subroutine abstract_step_nbody_system(self, config, t, dt) 
          import DP, swiftest_nbody_system, swiftest_configuration
@@ -603,22 +573,54 @@ module swiftest_classes
          real(DP),                      intent(in)    :: t       !! Current simulation time
          real(DP),                      intent(in)    :: dt      !! Stepsize
       end subroutine abstract_step_nbody_system
-
-      !> Method for calculating the energy and angular momentum of the system
-      subroutine abstract_get_energy_and_momentum(self)
-         import  swiftest_nbody_system
-         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
-      end subroutine abstract_get_energy_and_momentum
-
-      !> Interface for a method used to calculate the total system mass
-      pure subroutine abstract_set_msys(self)
-         import swiftest_nbody_system
-         class(swiftest_nbody_system), intent(inout)  :: self    !! Swiftest system object
-      end subroutine abstract_set_msys
    end interface
 
    !> Interfaces for concrete type-bound procedures for the Swiftest nbody system class
    interface
+
+      !> Perform a discard step on a system in which only test particles are considered for discard
+      module subroutine discard_nbody(self, config, t, dt)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)   :: config  !! User-defined configuration parameters
+         real(DP), intent(in)                        :: t       !! Current simulation time
+         real(DP), intent(out)                       :: dt      !! Stepsize 
+      end subroutine discard_nbody
+
+      !> Method to dump the state of the whole system to file
+      module subroutine io_dump(self, config, t, dt, tfrac) 
+         implicit none
+         class(swiftest_nbody_system),  intent(in)    :: self     !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters
+         real(DP),                      intent(in)    :: t        !! Current simulation time
+         real(DP),                      intent(in)    :: dt       !! Stepsize
+         real(DP),                      intent(in)    :: tfrac    !! Fraction of total time completed (displayed on the screen)
+      end subroutine io_dump
+
+      module subroutine io_initialize_system(self, config) 
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
+      end subroutine io_initialize_system
+
+      !> Method to write out a single frame of the simulation to file
+      module subroutine io_write_frame(self, config, t, dt)
+         implicit none
+         class(swiftest_nbody_system),  intent(in)    :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
+         real(DP),                      intent(in)    :: t       !! Current simulation time
+         real(DP),                      intent(in)    :: dt      !! Stepsize
+      end subroutine io_write_frame
+
+      !> Method to write out the discard bodies to a file
+      module subroutine io_write_discard(self, config, t, dt)
+         implicit none
+         class(swiftest_nbody_system),  intent(in)    :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
+         real(DP),                      intent(in)    :: t       !! Current simulation time
+         real(DP),                      intent(in)    :: dt      !! Stepsize
+      end subroutine io_write_discard
+
       !> Constructs an nbody system
       module subroutine setup_construct_system(self, config, integrator)
          implicit none
@@ -626,6 +628,18 @@ module swiftest_classes
          class(swiftest_configuration), intent(out)   :: config     !! Input collection of user-defined configuration parameters
          integer, intent(in)                          :: integrator !! Integrator type code
       end subroutine setup_construct_system
+
+      !> Interface for a method used to calculate the total system mass
+      module subroutine setup_set_msys(self)
+         implicit none
+         class(swiftest_nbody_system), intent(inout)  :: self    !! Swiftest system object
+      end subroutine setup_set_msys
+
+      !> Method for calculating the energy and angular momentum of the system
+      module subroutine util_get_energy_and_momentum(self)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
+      end subroutine util_get_energy_and_momentum
    end interface
 
    !********************************************************************************************************************************
@@ -634,7 +648,6 @@ module swiftest_classes
 
    !> Interfaces for particle discard methods
    interface
-
       !> Check to see if test particles should be discarded based on their positions relative to the planets
       module subroutine discard_tp_pl(swiftest_plA, swiftest_tpA, config, t, dt) 
          implicit none
@@ -675,6 +688,17 @@ module swiftest_classes
          class(swiftest_configuration), intent(in) :: config       !! User-defined configuration parameters
          real(DP), intent(in)                      :: t            !! Current simulation time
       end subroutine discard_sun
+
+
+      !> Perform a discard step on a system in which test particles are discarded and massive bodies are merged
+      module subroutine discard_and_merge_nbody(self, config, t, dt)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)   :: config  !! User-defined configuration parameters
+         real(DP), intent(in)                        :: t       !! Current simulation time
+         real(DP), intent(out)                       :: dt      !! Stepsize 
+      end subroutine discard_and_merge_nbody
+
    end interface
 
    !> Interfaces for the Keplerian drift methods
@@ -786,18 +810,7 @@ module swiftest_classes
          character(*), intent(in)   :: out_type
       end function io_read_hdr
 
-      !> Type-bound procedure to read in the input massive body initial condition file
-      module subroutine io_read_pl_in(self, config) 
-         implicit none
-         class(swiftest_pl), intent(inout)        :: self   !! Swiftest data structure to store massive body initial conditions
-         type(swiftest_configuration), intent(in) :: config !! Input collection of user-defined configuration parameters
-      end subroutine io_read_pl_in
 
-      !> Type-bound procedure to read in the input test particle initial condition file
-      module subroutine io_read_tp_in(self, config) 
-         class(swiftest_tp), intent(inout)        :: self   !! Swiftest data structure to store test particle initial conditions
-         type(swiftest_configuration), intent(in) :: config !! User-defined configuration parameters
-      end subroutine io_read_tp_in
 
       module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
          xh1, xh2, vh1, vh2, encounter_file, out_type)
@@ -816,10 +829,7 @@ module swiftest_classes
          integer(I4B), intent(in) :: iout_form     !! Output format type (EL, XV,- see swiftest module for symbolic name definitions)
          character(*), intent(in) :: out_type      !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
       end subroutine io_write_hdr
-
    end interface
-
-
 
    !> Interfaces for the methods that convert between cartesian and orbital elements
    interface
