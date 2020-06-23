@@ -31,6 +31,7 @@ program swiftest_driver
    ierr = io_get_command_line_arguments(integrator, config_file_name)
    if (ierr == 0) then
       !$ start_wall_time = omp_get_wtime()
+      !> Read in the user-defined parameter file and the initial conditions of the system
       call config%read_from_file(config_file_name, integrator)
       call nbody_system%construct(config, integrator)
       call nbody_system%initialize(config)
@@ -44,15 +45,23 @@ program swiftest_driver
       if (istep_out > 0) call nbody_system%write_frame(config, t, dt)
       write(*, *) " *************** Main Loop *************** "
       do while ((t < config%tstop) .and. nbody_system%lkeep_going) 
+
+         !> Step the system forward in time
          call nbody_system%step(config, t, dt)
+
+         !> Advance the loop counter and time value
          iloop = iloop + 1
-         if (iloop == LOOPMAX) then
+         if (iloop == LOOPMAX) then  !! Reset loop counter if necessary (this should be rare, as iloop is an 8-byte integer)
             tbase = tbase + iloop * dt
             iloop = 0
          end if
          t = tbase + iloop * dt
+
+         !> Evaluate any discards or mergers
          call nbody_system%discard(config, t, dt)
          if (nbody_system%ldiscard) call nbody_system%write_discard(config, t, ct)
+
+         !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
@@ -60,6 +69,8 @@ program swiftest_driver
                iout = istep_out
             end if
          end if
+
+         !> If the loop counter is at the dump cadence value, dump the state of the system to a file in case it needs to be restarted
          if (istep_dump > 0) then
             idump = idump - 1
             if (idump == 0) then
@@ -70,6 +81,8 @@ program swiftest_driver
             end if
          end if
       end do
+
+      !> Dump the final state of the system to file
       call nbody_system%dump(config, t, dt, tfrac)
       call config%dump(t)
       !$ finsih_wall_time = omp_get_wtime()
