@@ -442,8 +442,8 @@ module swiftest_classes
       procedure, public :: discard     => discard_tp        !! Dump the current state of the test particles to file
       procedure, public :: dump        => io_dump_tp        !! Dump the current state of the test particles to file
       procedure, public :: write_frame => io_write_frame_tp !! Write out a frame of test particle data to output file
-      procedure, public :: alloc       => setup_allocate_tp    !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_vec     => util_set_vec_tp  !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: alloc       => setup_allocate_tp !! A base constructor that sets the number of bodies and 
+      procedure, public :: set_vec     => util_set_vec_tp   !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp
