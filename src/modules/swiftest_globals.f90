@@ -4,15 +4,18 @@ module swiftest_globals
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
    !! Adapted from David E. Kaufmann's Swifter modules: swiftest_globals.f90 and module_swifter.f90
+   use, intrinsic :: iso_fortran_env  ! Use the intrinsic kind definitions
    implicit none
    public
 
-   integer, parameter :: I4B = SELECTED_INT_KIND(9) !! Symbolic name for kind types of 4-byte integers
-   integer, parameter :: I2B = SELECTED_INT_KIND(4) !! Symbolic name for kind types of 2-byte integers
-   integer, parameter :: I1B = SELECTED_INT_KIND(2) !! Symbolic name for kind types of 1-byte integers
+   integer, parameter :: I8B = int64 !! Symbolic name for kind types of 8-byte integers
+   integer, parameter :: I4B = int32 !! Symbolic name for kind types of 4-byte integers
+   integer, parameter :: I2B = int16 !! Symbolic name for kind types of 2-byte integers
+   integer, parameter :: I1B = int8  !! Symbolic name for kind types of 1-byte integers
 
-   integer, parameter :: SP = KIND(1.0) !! Symbolic name for kind types of single-precision reals
-   integer, parameter :: DP = KIND(1.0D0) !! Symbolic name for kind types of double-precision reals
+   integer, parameter :: SP = real32  !! Symbolic name for kind types of single-precision reals
+   integer, parameter :: DP = real64  !! Symbolic name for kind types of double-precision reals
+   integer, parameter :: QP = real128 !! Symbolic name for kind types of quad-precision reals 
 
    real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP !! Definition of /(\pi / 2\)
    real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP !! Definition of /(\pi\)
@@ -20,9 +23,9 @@ module swiftest_globals
    real(DP), parameter :: TWOPI  = 6.283185307179586476925286766559005768394_DP !! Definition of /(2\pi)
    real(DP), parameter :: DEGRAD = 180.0_DP/PI !! Definition of conversion factor from degrees to radians
 
-   integer(I4B), parameter :: LOWERCASE_BEGIN  = IACHAR('a') !! ASCII character set parameter for lower to upper conversion - start of lowercase
-   integer(I4B), parameter :: LOWERCASE_END    = IACHAR('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
-   integer(I4B), parameter :: UPPERCASE_OFFSET = IACHAR('A') - IACHAR('a') !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
+   integer(I4B), parameter :: LOWERCASE_BEGIN  = iachar('a') !! ASCII character set parameter for lower to upper conversion - start of lowercase
+   integer(I4B), parameter :: LOWERCASE_END    = iachar('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
+   integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
 
    real(SP), parameter :: VERSION_NUMBER = 0.1_SP !! swiftest version
 
@@ -35,6 +38,7 @@ module swiftest_globals
    integer(I4B), parameter :: WHM                = 6
    integer(I4B), parameter :: RMVS               = 7
    integer(I4B), parameter :: SYMBA              = 8
+   integer(I4B), parameter :: RINGMOONS          = 9
 
    integer(I4B), parameter :: STRMAX = 128 !! Maximum size of character strings
 
@@ -105,7 +109,6 @@ module swiftest_globals
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM    = 3          !! Number of dimensions in our reality
    integer(I4B), parameter :: NDIM2   = 2 * NDIM   !! 2x the number of dimensions
-   integer(I4B), parameter :: LOOPMAX = 2147483647 !! Maximum loop limit /(2^{31} - 1\)
    real(DP),     parameter :: VSMALL    = 4.0E-15_DP
 
    ! Added by D. Minton

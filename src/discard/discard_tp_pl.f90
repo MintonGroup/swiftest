@@ -1,6 +1,6 @@
-submodule (swiftest_classes) s_discard_pl
+submodule (swiftest_classes) s_discard_tp_pl
 contains
-   module procedure discard_pl
+   module procedure discard_tp_pl
    !! author: David A. Minton
    !!
    !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
@@ -36,5 +36,5 @@ contains
 
    return
 
-   end procedure discard_pl
-end submodule s_discard_pl
+   end procedure discard_tp_pl
+end submodule s_discard_tp_pl

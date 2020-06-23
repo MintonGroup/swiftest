@@ -9,7 +9,6 @@ contains
    use swiftest
    integer(I4B) :: i, length, idx
 
-! executable code
    length = len(string)
    do i = 1, length
       idx = iachar(string(i:i))
