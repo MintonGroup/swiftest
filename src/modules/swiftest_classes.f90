@@ -543,10 +543,10 @@ module swiftest_classes
    end interface
 
    !********************************************************************************************************************************
-   !                            swiftest_setup_system class definitions and method interfaces
+   !                            swiftest_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    !> A concrete class for a basic 
-   type, public, extends(swiftest_base) :: swiftest_setup_system
+   type, public, extends(swiftest_base) :: swiftest_nbody_system
    !!  This superclass contains a minimial system is a set of test particles (tp) massive bodies (pl) and a central body (cb)
       class(swiftest_central_body), allocatable :: cb              !! Central body data structure
       class(swiftest_pl), allocatable           :: pl              !! Massive body data structure
@@ -566,14 +566,14 @@ module swiftest_classes
       procedure, public :: initialize               => setup_initialize
       procedure, public :: set_msys                 => util_set_msys   
       procedure, public :: step                     => setup_step
-   end type swiftest_setup_system
+   end type swiftest_nbody_system
 
    !> Interfaces type-bound procedures for Swiftest nbody system class
    interface
       !> Method to dump the state of the whole system to file
       module subroutine io_dump(self, config, t, dt) 
          implicit none
-         class(swiftest_setup_system),  intent(in)    :: self
+         class(swiftest_nbody_system),  intent(in)    :: self
          class(swiftest_configuration), intent(in)    :: config
          real(DP),                      intent(in)    :: t
          real(DP),                      intent(in)    :: dt
@@ -582,7 +582,7 @@ module swiftest_classes
       !> Method to dump the state of the whole system to file
       module subroutine io_write_frame(self, config, t, dt) 
          implicit none
-         class(swiftest_setup_system),  intent(in)    :: self
+         class(swiftest_nbody_system),  intent(in)    :: self
          class(swiftest_configuration), intent(in)    :: config
          real(DP),                      intent(in)    :: t
          real(DP),                      intent(in)    :: dt
@@ -591,13 +591,13 @@ module swiftest_classes
       !> Method for calculating the energy and angular momentum of the system
       module subroutine util_calc_energy_and_momentum(self)
          implicit none
-         class(swiftest_setup_system), intent(inout) :: self !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
       end subroutine util_calc_energy_and_momentum
 
       !> Constructs an nbody system
       module subroutine setup_construct(self, config, integrator)
          implicit none
-         class(swiftest_setup_system),  intent(inout) :: self       !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self       !! Swiftest system object
          class(swiftest_configuration), intent(out)   :: config     !! Input collection of user-defined configuration parameters
          integer, intent(in)                          :: integrator !! Integrator type code
       end subroutine setup_construct
@@ -605,20 +605,20 @@ module swiftest_classes
       !> Basic Swiftest particle constructor method
       module subroutine setup_discard(self, config)
          implicit none
-         class(swiftest_setup_system), intent(inout)  :: self    !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout)  :: self    !! Swiftest system object
          class(swiftest_configuration), intent(out)   :: config  !! Input collection of user-defined configuration parameters
       end subroutine setup_discard
 
       module subroutine setup_initialize(self, config) 
          implicit none
-         class(swiftest_setup_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
       end subroutine setup_initialize
 
       !> Steps the Swiftest nbody system forward in time one stepsize
       module subroutine setup_step(self, config,t, dt) 
          implicit none
-         class(swiftest_setup_system),  intent(inout) :: self
+         class(swiftest_nbody_system),  intent(inout) :: self
          class(swiftest_configuration), intent(inout) :: config
          real(DP),                      intent(in)    :: t
          real(DP),                      intent(in)    :: dt
@@ -627,7 +627,7 @@ module swiftest_classes
       !> Interface for a method used to calculate the total system mass
       module pure subroutine util_set_msys(self)
          implicit none
-         class(swiftest_setup_system), intent(inout)  :: self    !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout)  :: self    !! Swiftest system object
       end subroutine util_set_msys
    end interface
 
