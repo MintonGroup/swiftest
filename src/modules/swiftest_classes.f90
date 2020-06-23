@@ -229,20 +229,20 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: vh         !! Heliocentric velocity
       real(DP),     dimension(:,:), allocatable :: xb         !! Barycentric position
       real(DP),     dimension(:,:), allocatable :: vb         !! Barycentric velocity
+      real(DP),     dimension(:),   allocatable :: mu_vec     !! Vectorized central mass term used for elemental functions
+      real(DP),     dimension(:),   allocatable :: dt_vec     !! Vectorized stepsize used for elemental functions
       real(DP),     dimension(:),   allocatable :: a          !! Semimajor axis (pericentric distance for a parabolic orbit)
       real(DP),     dimension(:),   allocatable :: e          !! Eccentricity
       real(DP),     dimension(:),   allocatable :: inc        !! Inclination
       real(DP),     dimension(:),   allocatable :: capom      !! Longitude of ascending node
       real(DP),     dimension(:),   allocatable :: omega      !! Argument of pericenter
       real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
-      real(DP),     dimension(:),   allocatable :: mu_vec     !! Vectorized central mass term used for elemental functions
-      real(DP),     dimension(:),   allocatable :: dt_vec     !! Vectorized stepsize used for elemental functions
 
    contains
       private
       ! These are concrete because the implementation is the same for all types of particles
       procedure, public  :: spill => discard_spill_body  !! A constructor that sets the number of bodies and allocates all allocatable arrays
-      procedure, public  :: alloc => nbody_allocate_body  !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure, public  :: alloc => nbody_alloc_body  !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure, public  :: el2xv => orbel_el2xv_vec !! Convert orbital elements to position and velocity  vectors
       procedure, public  :: xv2el => orbel_xv2el_vec !! Convert position and velocity vectors to orbital  elements 
 
@@ -302,11 +302,11 @@ module swiftest_classes
          class(swiftest_body), allocatable, intent(inout) :: discards !! Discarded body object 
       end subroutine discard_spill_body
 
-      module subroutine nbody_allocate_body(self,n)
+      module subroutine nbody_alloc_body(self,n)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
          integer,                      intent(in)    :: n    !! Number of particles to allocate space for
-      end subroutine nbody_allocate_body
+      end subroutine nbody_alloc_body
 
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
@@ -330,7 +330,6 @@ module swiftest_classes
       !private
       real(DP),     dimension(:),   allocatable :: mass                   !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: Gmass                  !! Mass gravitational term G * mass (units GU * MU)
-      real(DP),     dimension(:),   allocatable :: rhill                  !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: radius                 !! Body radius (units DU)
       real(DP),     dimension(:),   allocatable :: density                !! Body mass density - calculated internally (units MU / DU**3)
       real(DP),     dimension(:,:), allocatable :: Ip                     !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
@@ -354,9 +353,9 @@ module swiftest_classes
       procedure, public :: vh2vj       => coord_vh2vj_pl   !! Convert posiition vectors from heliocentric to Jacobi coordinates 
       procedure, public :: vj2vh       => coord_vj2vh_pl   !! Convert position vectors from Jacobi to helliocentric coordinates 
       procedure, public :: spill       => discard_spill_pl   !! A base constructor that sets the number of bodies and 
-      procedure, public :: dump        => io_dump_pl        !! Dump the current state of the test particles to file
+      procedure, public :: dump        => io_dump_pl           !! Dump the current state of the test particles to file
       procedure, public :: write_frame => io_write_frame_pl !! Write out a frame of test particle data to output file
-      procedure, public :: alloc       => nbody_allocate_pl !! A base constructor that sets the number of bodies and 
+      procedure, public :: alloc       => nbody_alloc_pl   !! A base constructor that sets the number of bodies and 
       procedure, public :: set_vec     => nbody_set_vec_pl !! Method used to construct the vectorized form of the central body mass
    end type swiftest_pl
 
@@ -452,11 +451,11 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
       end subroutine nbody_set_vec_pl
 
-      module subroutine nbody_allocate_pl(self,n)
+      module subroutine nbody_alloc_pl(self,n)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
          integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
-      end subroutine nbody_allocate_pl
+      end subroutine nbody_alloc_pl
    end interface
 
    !********************************************************************************************************************************
@@ -481,7 +480,7 @@ module swiftest_classes
       procedure, public :: spill       => discard_spill_tp  !! Spill the list of discarded test particles into a new object
       procedure, public :: dump        => io_dump_tp        !! Dump the current state of the test particles to file
       procedure, public :: write_frame => io_write_frame_tp !! Write out a frame of test particle data to output file
-      procedure, public :: alloc       => nbody_allocate_tp    !! A base constructor that sets the number of bodies and 
+      procedure, public :: alloc       => nbody_alloc_tp    !! A base constructor that sets the number of bodies and 
       procedure, public :: set_vec     => nbody_set_vec_tp  !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
 
@@ -553,11 +552,11 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
       end subroutine nbody_set_vec_tp
 
-      module subroutine nbody_allocate_tp(self,n)
+      module subroutine nbody_alloc_tp(self,n)
          implicit none
          class(swiftest_tp),           intent(inout) :: self !! Swiftest massive body object
          integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
-      end subroutine nbody_allocate_tp
+      end subroutine nbody_alloc_tp
    end interface
 
    !********************************************************************************************************************************
@@ -847,7 +846,35 @@ module swiftest_classes
 
    end interface
 
-
+   !> Interfaces for the accelrations due to the central body oblateness 
+   interface
+      module pure subroutine obl_acc(swiftest_plA, j2rp2, j4rp4, xh, irh, aobl)
+         implicit none
+         class(swiftest_pl), intent(in)         :: swiftest_plA
+         real(DP), intent(in)                   :: j2rp2, j4rp4
+         real(DP), dimension(:), intent(in)     :: irh
+         real(DP), dimension(:, :), intent(in)  :: xh
+         real(DP), dimension(:, :), intent(out) :: aobl
+      end subroutine obl_acc
+   
+      module pure subroutine obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, msun)
+         implicit none
+         integer(I4B), intent(in)               :: ntp
+         real(DP), intent(in)                   :: j2rp2, j4rp4, msun
+         real(DP), dimension(:), intent(in)     :: irht
+         real(DP), dimension(:, :), intent(in)  :: xht
+         real(DP), dimension(:, :), intent(out) :: aoblt
+      end subroutine obl_acc_tp
+   
+      module pure subroutine obl_pot(swiftest_plA, j2rp2, j4rp4, xh, irh, oblpot)
+         implicit none
+         class(swiftest_pl), intent(in)        :: swiftest_plA
+         real(DP), intent(in)                  :: j2rp2, j4rp4
+         real(DP), intent(out)                 :: oblpot
+         real(DP), dimension(:), intent(in)    :: irh
+         real(DP), dimension(:, :), intent(in) :: xh
+      end subroutine obl_pot
+   end interface
 
    !> Interfaces for the methods that convert between cartesian and orbital elements
    interface
