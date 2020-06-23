@@ -1,7 +1,7 @@
-submodule (swiftest_classes) s_nbody_spill
+submodule (swiftest_classes) s_discard_spill
 !! This submodule contains the methods spill, spill_body, spill_pl, and spill_tp for basic swiftest particles
 contains
-   module procedure nbody_spill
+   module procedure discard_spill
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) Swiftest particle structure from active list to discard list
@@ -14,9 +14,9 @@ contains
 
          select type(self)
          class is (swiftest_tp)
-            call nbody_spill_tp(self, discard)
+            call discard_spill_tp(self, discard)
          class is (swiftest_pl)
-            call nbody_spill_pl(self, discard)
+            call discard_spill_pl(self, discard)
          class is (helio_tp)
             call helio_spill_tp(self, discard)
          class is (helio_pl)
@@ -47,9 +47,9 @@ contains
          self%nbody = np - self%nspill
       end associate
       
-   end procedure nbody_spill
+   end procedure discard_spill
 
-   !module procedure nbody_spill_body
+   !module procedure discard_spill_body
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) Swiftest particle structure from active list to discard list
@@ -61,9 +61,9 @@ contains
    !
    !   end associate
    !   return 
-!   end procedure nbody_spill_body
+!   end procedure discard_spill_body
 
-   module procedure nbody_spill_pl
+   module procedure discard_spill_pl
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) Swiftest massive body particle structure from active list to discard list
@@ -87,13 +87,13 @@ contains
          self%rhill(:)  = pack(self%rhill(1:npl),  .not. self%lspill_list(1:npl))
 
          ! Call the spill method for the parent class 
-         call nbody_spill_tp(self,discard)
+         call discard_spill_tp(self,discard)
       end associate
       
       return
-   end procedure nbody_spill_pl
+   end procedure discard_spill_pl
 
-   module procedure nbody_spill_tp
+   module procedure discard_spill_tp
       !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Move spilled (discarded) Swiftest test particle structure from active list to discard list
@@ -131,8 +131,8 @@ contains
 
       end associate
       return
-   end procedure nbody_spill_tp
-end submodule s_nbody_spill
+   end procedure discard_spill_tp
+end submodule s_discard_spill
 
 
 

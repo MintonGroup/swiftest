@@ -1,6 +1,6 @@
-submodule (swiftest_classes) s_nbody_calc_energy_and_momentum
+submodule (swiftest_classes) s_util_calc_energy_and_momentum
 contains
-   module procedure nbody_calc_energy_and_momentum
+   module procedure util_calc_energy_and_momentum
       !! author: David A. Minton
       !!
       !! Compute total system angular momentum vector and kinetic, potential and total system energy
@@ -67,5 +67,5 @@ contains
 
       return
 
-   end procedure nbody_calc_energy_and_momentum
-end submodule s_nbody_calc_energy_and_momentum
+   end procedure util_calc_energy_and_momentum
+end submodule s_util_calc_energy_and_momentum

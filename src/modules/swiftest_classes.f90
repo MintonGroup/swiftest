@@ -560,7 +560,7 @@ module swiftest_classes
       private
       procedure, public :: dump                     => io_dump
       procedure, public :: write_frame              => io_write_frame
-      procedure, public :: calc_energy_and_momentum => setup_calc_energy_and_momentum
+      procedure, public :: calc_energy_and_momentum => util_calc_energy_and_momentum
       procedure, public :: construct                => setup_construct 
       procedure, public :: discard                  => setup_discard
       procedure, public :: initialize               => setup_initialize
@@ -589,10 +589,10 @@ module swiftest_classes
       end subroutine io_write_frame
 
       !> Method for calculating the energy and angular momentum of the system
-      module subroutine setup_calc_energy_and_momentum(self)
+      module subroutine util_calc_energy_and_momentum(self)
          implicit none
          class(swiftest_setup_system), intent(inout) :: self !! Swiftest system object
-      end subroutine setup_calc_energy_and_momentum
+      end subroutine util_calc_energy_and_momentum
 
       !> Constructs an nbody system
       module subroutine setup_construct(self, config, integrator)

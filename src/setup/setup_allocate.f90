@@ -1,8 +1,8 @@
-submodule (swiftest_classes) s_nbody_allocate
+submodule (swiftest_classes) s_setup_allocate
 
 contains
 
-   module procedure nbody_allocate_body
+   module procedure setup_allocate_body
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
@@ -46,9 +46,9 @@ contains
       self%dt_vec(:) = 0.0_DP
 
       return
-   end procedure nbody_allocate_body
+   end procedure setup_allocate_body
 
-   module procedure nbody_allocate_pl
+   module procedure setup_allocate_pl
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest massive body class. Allocates space for all particles and
@@ -82,9 +82,9 @@ contains
       self%density(:) = 0.0_DP
       self%Ip(:,):) = 0.0_DP
       return
-   end procedure nbody_allocate_pl
+   end procedure setup_allocate_pl
 
-   module procedure nbody_allocate_tp
+   module procedure setup_allocate_tp
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest test particle particle class. Allocates space for 
@@ -97,9 +97,9 @@ contains
       if (n <= 0) return
 
       return
-   end procedure nbody_allocate_tp
+   end procedure setup_allocate_tp
 
-   ! module procedure nbody_deallocate_body
+   ! module procedure setup_deallocate_body
    !    !! author: David A. Minton
    !    !!
    !    !! Finalizer for base Swiftest particle class. Deallocates all components and sets 
@@ -115,9 +115,9 @@ contains
    !       self%is_allocated = .false.
    !    end if
    !    return
-   ! end procedure nbody_deallocate_body
+   ! end procedure setup_deallocate_body
 
-   ! module procedure nbody_allocate_tp
+   ! module procedure setup_allocate_tp
    !    !! author: David A. Minton
    !    !!
    !    !! Constructor for base Swiftest test particle particle class. Allocates space for 
@@ -152,9 +152,9 @@ contains
    !    self%vb(:,:) = 0.0_DP
 
    !    return
-   ! end procedure nbody_allocate_tp
+   ! end procedure setup_allocate_tp
 
-   ! module procedure nbody_deallocate_tp
+   ! module procedure setup_deallocate_tp
    !    !! author: David A. Minton
    !    !!
    !    !! Finalizer for base Swiftest particle class.
@@ -172,6 +172,6 @@ contains
    !       deallocate(self%vb)
    !    end if
    !    return
-   ! end procedure nbody_deallocate_tp
+   ! end procedure setup_deallocate_tp
 
-end submodule s_nbody_allocate
+end submodule s_setup_allocate

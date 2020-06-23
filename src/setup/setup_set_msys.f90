@@ -1,6 +1,6 @@
-submodule (swiftest_classes) s_nbody_set_msys
+submodule (swiftest_classes) s_setup_set_msys
 contains
-   module procedure nbody_set_msys
+   module procedure setup_set_msys
       !! author: David A. Minton
       !!
       !! Calculates the total system mass for a generic Swiftest system
@@ -10,7 +10,7 @@ contains
       self%msys = sum(swiftest_plA%mass(1:swiftest_plA%nbody))
 
       return
-   end procedure nbody_set_msys
+   end procedure setup_set_msys
 
-end submodule s_nbody_set_msys
+end submodule s_setup_set_msys
 
