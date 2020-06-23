@@ -1,7 +1,7 @@
-submodule (swiftest_classes) s_setup_set_vec
+submodule (swiftest_classes) s_util_set_vec
 contains
 
-   module procedure setup_set_vec_pl
+   module procedure util_set_vec_pl
       !! author: David A. Minton
       !!
       !! Converts certain scalar values to arrays so that they can be used in elemental functions
@@ -12,9 +12,9 @@ contains
       self%dt_vec(:) = dt
 
       return
-   end procedure setup_set_vec_pl
+   end procedure util_set_vec_pl
 
-   module procedure setup_set_vec_tp
+   module procedure util_set_vec_tp
       !! author: David A. Minton
       !!
       !! Converts certain scalar values to arrays so that they can be used in elemental functions
@@ -25,8 +25,8 @@ contains
       self%dt_vec(:) = dt
 
       return
-   end procedure setup_set_vec_tp
+   end procedure util_set_vec_tp
 
 
-end submodule s_setup_set_vec
+end submodule s_util_set_vec
 

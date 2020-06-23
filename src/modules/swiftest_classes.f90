@@ -339,7 +339,7 @@ module swiftest_classes
       procedure, public :: dump        => io_dump_pl        !! Dump the current state of the test particles to file
       procedure, public :: write_frame => io_write_frame_pl !! Write out a frame of test particle data to output file
       procedure, public :: alloc       => setup_allocate_pl !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_vec     => setup_set_vec_pl !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: set_vec     => util_set_vec_pl !! Method used to construct the vectorized form of the central body mass
    end type swiftest_pl
 
    !> Interfaces for abstract type-bound procedures for swiftest_pl
@@ -427,12 +427,12 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt
       end subroutine io_write_frame_pl
 
-      module subroutine setup_set_vec_pl(self, cb, dt)
+      module subroutine util_set_vec_pl(self, cb, dt)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
          class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body objectt
          real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
-      end subroutine setup_set_vec_pl
+      end subroutine util_set_vec_pl
 
       module subroutine setup_allocate_pl(self,n)
          implicit none
@@ -464,7 +464,7 @@ module swiftest_classes
       procedure, public :: dump        => io_dump_tp        !! Dump the current state of the test particles to file
       procedure, public :: write_frame => io_write_frame_tp !! Write out a frame of test particle data to output file
       procedure, public :: alloc       => setup_allocate_tp    !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_vec     => setup_set_vec_tp  !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: set_vec     => util_set_vec_tp  !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
 
    !> Interfaces for abstract type-bound procedures for swiftest_tp
@@ -528,12 +528,12 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt
       end subroutine io_write_frame_tp
 
-      module subroutine setup_set_vec_tp(self, cb, dt)
+      module subroutine util_set_vec_tp(self, cb, dt)
          implicit none
          class(swiftest_tp),           intent(inout) :: self !! Swiftest particle object
          class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body objectt
          real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
-      end subroutine setup_set_vec_tp
+      end subroutine util_set_vec_tp
 
       module subroutine setup_allocate_tp(self,n)
          implicit none
@@ -564,7 +564,7 @@ module swiftest_classes
       procedure, public :: construct                => setup_construct 
       procedure, public :: discard                  => setup_discard
       procedure, public :: initialize               => setup_initialize
-      procedure, public :: set_msys                 => setup_set_msys   
+      procedure, public :: set_msys                 => util_set_msys   
       procedure, public :: step                     => setup_step
    end type swiftest_setup_system
 
@@ -625,10 +625,10 @@ module swiftest_classes
       end subroutine setup_step
 
       !> Interface for a method used to calculate the total system mass
-      module pure subroutine setup_set_msys(self)
+      module pure subroutine util_set_msys(self)
          implicit none
          class(swiftest_setup_system), intent(inout)  :: self    !! Swiftest system object
-      end subroutine setup_set_msys
+      end subroutine util_set_msys
    end interface
 
    !********************************************************************************************************************************
