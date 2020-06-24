@@ -1,89 +1,39 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : whm_getacch_ah3_tp
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : whm
-!  Language    : Fortran 90/95
-!
-!  Description : Compute direct cross (third) term heliocentric accelerations of test particles
-!
-!  Input
-!    Arguments : npl      : number of planets
-!                ntp      : number of active test particles
-!                whm_pl1P : pointer to head of WHM planet structure linked-list
-!                whm_tp1P : pointer to head of active WHM test particle structure linked-list
-!                xh       : heliocentric planet positions
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : whm_tp1P : pointer to head of active WHM test particle structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL whm_getacch_ah3_tp(npl, ntp, whm_pl1P, whm_tp1P, xh)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE whm_getacch_ah3_tp(npl, ntp, whm_pl1P, whm_tp1P, xh)
+submodule(whm) s_whm_getacch_ah3_tp
+contains
+   module procedure whm_getacch_ah3_tp(npl, ntp, whm_pl1p, whm_tp1p, xh)
+   !! author: David A. Minton
+   !!
+   !! Compute direct cross (third) term heliocentric accelerations of test particles
+   !!
+   !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
+   !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
+   use swiftest
+   implicit none
+   integer(I4B)          :: i, j
+   real(DP)            :: rji2, irij3, fac
+   real(DP), dimension(ndim) :: dx, acc, xht
+   type(whm_pl), pointer   :: whm_plp
+   type(whm_tp), pointer   :: whm_tpp
 
-! Modules
-     USE module_parameters
-     USE module_whm
-     USE module_interfaces, EXCEPT_THIS_ONE => whm_getacch_ah3_tp
-     IMPLICIT NONE
+! executable code
+   whm_tpp => whm_tp1p
+   do i = 1, ntp
+      acc(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      xht(:) = whm_tpp%swifter%xh(:)
+      whm_plp => whm_pl1p
+      do j = 2, npl
+         whm_plp => whm_plp%nextp
+         dx(:) = xht(:) - xh(:, j)
+         rji2 = dot_product(dx(:), dx(:))
+         irij3 = 1.0_DP/(rji2*sqrt(rji2))
+         fac = whm_plp%swifter%mass*irij3
+         acc(:) = acc(:) - fac*dx(:)
+      end do
+      whm_tpp%ah(:) = acc(:)
+      whm_tpp => whm_tpp%nextp
+   end do
 
-! Arguments
-     INTEGER(I4B), INTENT(IN)                   :: npl, ntp
-     REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
-     TYPE(whm_pl), POINTER                      :: whm_pl1P
-     TYPE(whm_tp), POINTER                      :: whm_tp1P
+   return
 
-! Internals
-     INTEGER(I4B)              :: i, j
-     REAL(DP)                  :: rji2, irij3, fac
-     REAL(DP), DIMENSION(NDIM) :: dx, acc, xht
-     TYPE(whm_pl), POINTER     :: whm_plP
-     TYPE(whm_tp), POINTER     :: whm_tpP
-
-! Executable code
-     whm_tpP => whm_tp1P
-     DO i = 1, ntp
-          acc(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-          xht(:) = whm_tpP%swifter%xh(:)
-          whm_plP => whm_pl1P
-          DO j = 2, npl
-               whm_plP => whm_plP%nextP
-               dx(:) = xht(:) - xh(:, j)
-               rji2 = DOT_PRODUCT(dx(:), dx(:))
-               irij3 = 1.0_DP/(rji2*SQRT(rji2))
-               fac = whm_plP%swifter%mass*irij3
-               acc(:) = acc(:) - fac*dx(:)
-          END DO
-          whm_tpP%ah(:) = acc(:)
-          whm_tpP => whm_tpP%nextP
-     END DO
-
-     RETURN
-
-END SUBROUTINE whm_getacch_ah3_tp
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure whm_getacch_ah3_tp
+end submodule s_whm_getacch_ah3_tp

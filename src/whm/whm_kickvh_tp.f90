@@ -1,75 +1,27 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : whm_kickvh_tp
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : whm
-!  Language    : Fortran 90/95
-!
-!  Description : Kick heliocentric velocities of active test particles
-!
-!  Input
-!    Arguments : ntp      : number of active test particles
-!                whm_tp1P : pointer to head of active WHM test particle structure linked-list
-!                dt       : time step
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : whm_tp1P : pointer to head of active WHM test particle structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL whm_kickvh_tp(ntp, whm_tp1P, dt)
-!
-!  Notes       : Adapted from Martin Duncan and Hal Levison's Swift routine kickvh_tp.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE whm_kickvh_tp(ntp, whm_tp1P, dt)
+submodule(whm) s_whm_kickvh_tp
+contains
+   module procedure whm_kickvh_tp(ntp, whm_tp1p, dt)
+   !! author: David A. Minton
+   !!
+   !! Kick heliocentric velocities of active test particles
+   !!
+   !! Adapted from Martin Duncan and Hal Levison's Swift routine kickvh_tp.f
+   !! Adapted from David E. Kaufmann's Swifter routine whm_kickvh_tp.f90
+   use swiftest
+   implicit none
+   integer(I4B)          :: i
+   type(whm_tp), pointer   :: whm_tpp
+   type(swifter_tp), pointer :: swifter_tpp
 
-! Modules
-     USE module_parameters
-     USE module_swifter
-     USE module_whm
-     USE module_interfaces, EXCEPT_THIS_ONE => whm_kickvh_tp
-     IMPLICIT NONE
+! executable code
+   whm_tpp => whm_tp1p
+   do i = 1, ntp
+      swifter_tpp => whm_tpp%swifter
+      if (swifter_tpp%status == active) swifter_tpp%vh(:) = swifter_tpp%vh(:) + whm_tpp%ah(:)*dt
+      whm_tpp => whm_tpp%nextp
+   end do
 
-! Arguments
-     INTEGER(I4B), INTENT(IN) :: ntp
-     REAL(DP), INTENT(IN)     :: dt
-     TYPE(whm_tp), POINTER    :: whm_tp1P
+   return
 
-! Internals
-     INTEGER(I4B)              :: i
-     TYPE(whm_tp), POINTER     :: whm_tpP
-     TYPE(swifter_tp), POINTER :: swifter_tpP
-
-! Executable code
-     whm_tpP => whm_tp1P
-     DO i = 1, ntp
-          swifter_tpP => whm_tpP%swifter
-          IF (swifter_tpP%status == ACTIVE) swifter_tpP%vh(:) = swifter_tpP%vh(:) + whm_tpP%ah(:)*dt
-          whm_tpP => whm_tpP%nextP
-     END DO
-
-     RETURN
-
-END SUBROUTINE whm_kickvh_tp
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure whm_kickvh_tp
+end submodule s_whm_kickvh_tp

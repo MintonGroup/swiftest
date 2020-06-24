@@ -217,6 +217,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
       real(DP),     dimension(:),   allocatable :: mu_vec     !! Vectorized central mass term used for elemental functions
       real(DP),     dimension(:),   allocatable :: dt_vec     !! Vectorized stepsize used for elemental functions
+      logical,      dimension(:),   allocatable :: ldiscard   !! Flag indicating that this particle needs to be discarded
 
    contains
       private
@@ -435,7 +436,7 @@ module swiftest_classes
       !! Superclass that defines the generic elements of a Swiftest test particle 
       !private
 
-      contains
+   contains
       private
       ! These are abstract because the implementation is integrator-dependent
 
@@ -547,7 +548,7 @@ module swiftest_classes
       real(DP)                                  :: te = 0.0_DP          !! System total energy
       real(DP),dimension(NDIM)                  :: htot = 0.0_DP        !! System angular momentum vector
       logical                                   :: lkeep_going = .true. !! Flag indicating that integration should continue
-      logical                                   :: ldiscard = .false.   !! Flag indicating that bodies need to be discarded in the current step
+      logical                                   :: lbody_discard = .false.   !! Flag indicating that bodies need to be discarded in the current step
    contains
       private
       ! Each integrator will have its own version of the step

@@ -1,130 +1,71 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : whm_getacch_tp
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : whm
-!  Language    : Fortran 90/95
-!
-!  Description : Compute heliocentric accelerations of test particles
-!
-!  Input
-!    Arguments : lextra_force : logical flag indicating whether to include user-supplied accelerations
-!                t            : time
-!                npl          : number of planets
-!                nplmax       : maximum allowed number of planets
-!                ntp          : number of active test particles
-!                ntpmax       : maximum allowed number of test particles
-!                whm_pl1P     : pointer to head of WHM planet structure linked-list
-!                whm_tp1P     : pointer to head of active WHM test particle structure linked-list
-!                xh           : heliocentric positions of planets at time t
-!                j2rp2        : J2 * R**2 for the Sun
-!                j4rp4        : J4 * R**4 for the Sun
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : whm_tp1P     : pointer to head of active WHM test particle structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL whm_getacch_tp(lextra_force, t, npl, nplmax, ntp, ntpmax, whm_pl1P, whm_tp1P, xh, j2rp2, j4rp4)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine getacch_tp.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE whm_getacch_tp(lextra_force, t, npl, nplmax, ntp, ntpmax, whm_pl1P, whm_tp1P, xh, j2rp2, j4rp4)
+submodule(whm) s_whm_getacch_tp
+contains
+   module procedure whm_getacch_tp(lextra_force, t, npl, nplmax, ntp, ntpmax, whm_pl1p, whm_tp1p, xh, j2rp2, j4rp4)
+   !! author: David A. Minton
+   !!
+   !! Compute heliocentric accelerations of test particles
+   !!
+   !! Adapted from Hal Levison's Swift routine getacch_tp.f
+   !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
+   use swiftest
+   implicit none
+   logical(lgt), save                 :: lmalloc = .true.
+   integer(I4B)                     :: i
+   real(DP)                       :: r2, fac, mu
+   real(DP), dimension(:), allocatable, save    :: irh, ir3h
+   real(DP), dimension(:), allocatable, save    :: irht
+   real(DP), dimension(:, :), allocatable, save :: aobl
+   real(DP), dimension(:, :), allocatable, save :: xht, aoblt
+   type(swifter_pl), pointer            :: swifter_pl1p, swifter_plp
+   type(swifter_tp), pointer            :: swifter_tp1p, swifter_tpp
+   type(whm_pl), pointer                :: whm_plp
+   type(whm_tp), pointer                :: whm_tpp
 
-! Modules
-     USE module_parameters
-     USE module_swifter
-     USE module_whm
-     USE module_interfaces, EXCEPT_THIS_ONE => whm_getacch_tp
-     IMPLICIT NONE
+! executable code
+   if (lmalloc) then
+      allocate(aobl(ndim, nplmax), irh(nplmax), ir3h(nplmax), xht(ndim, ntpmax), aoblt(ndim, ntpmax), irht(ntpmax))
+      lmalloc = .false.
+   end if
+   swifter_pl1p => whm_pl1p%swifter
+   swifter_tp1p => whm_tp1p%swifter
+   do i = 2, npl
+      r2 = dot_product(xh(:, i), xh(:, i))
+      irh(i) = 1.0_DP/sqrt(r2)
+      ir3h(i) = irh(i)/r2
+   end do
+   swifter_tpp => swifter_tp1p
+   do i = 1, ntp
+      xht(:, i) = swifter_tpp%xh(:)
+      r2 = dot_product(xht(:, i), xht(:, i))
+      irht(i) = 1.0_DP/sqrt(r2)
+      swifter_tpp => swifter_tpp%nextp
+   end do
+   ah0(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+   swifter_plp => swifter_pl1p
+   do i = 2, npl
+      swifter_plp => swifter_plp%nextp
+      fac = swifter_plp%mass*ir3h(i)
+      ah0(:) = ah0(:) - fac*xh(:, i)
+   end do
+   call whm_getacch_ah3_tp(npl, ntp, whm_pl1p, whm_tp1p, xh)
+   whm_tpp => whm_tp1p
+   do i = 1, ntp
+      whm_tpp%ah(:) = whm_tpp%ah(:) + ah0(:)
+      whm_tpp => whm_tpp%nextp
+   end do
+   if (j2rp2 /= 0.0_DP) then
+      call obl_acc(npl, swifter_pl1p, j2rp2, j4rp4, xh, irh, aobl)
+      mu = whm_pl1p%swifter%mass
+      call obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, mu)
+      whm_tpp => whm_tp1p
+      do i = 1, ntp
+         whm_tpp%ah(:) = whm_tpp%ah(:) + aoblt(:, i) - aobl(:, 1)
+         whm_tpp => whm_tpp%nextp
+      end do
+   end if
+   if (lextra_force) call whm_user_getacch_tp(t, ntp, whm_tp1p)
 
-! Arguments
-     LOGICAL(LGT), INTENT(IN)                   :: lextra_force
-     INTEGER(I4B), INTENT(IN)                   :: npl, nplmax, ntp, ntpmax
-     REAL(DP), INTENT(IN)                       :: t, j2rp2, j4rp4
-     REAL(DP), DIMENSION(NDIM, npl), INTENT(IN) :: xh
-     TYPE(whm_pl), POINTER                      :: whm_pl1P
-     TYPE(whm_tp), POINTER                      :: whm_tp1P
+   return
 
-! Internals
-     LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i
-     REAL(DP)                                     :: r2, fac, mu
-     REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh, ir3h
-     REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irht
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: aobl
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xht, aoblt
-     TYPE(swifter_pl), POINTER                    :: swifter_pl1P, swifter_plP
-     TYPE(swifter_tp), POINTER                    :: swifter_tp1P, swifter_tpP
-     TYPE(whm_pl), POINTER                        :: whm_plP
-     TYPE(whm_tp), POINTER                        :: whm_tpP
-
-! Executable code
-     IF (lmalloc) THEN
-          ALLOCATE(aobl(NDIM, nplmax), irh(nplmax), ir3h(nplmax), xht(NDIM, ntpmax), aoblt(NDIM, ntpmax), irht(ntpmax))
-          lmalloc = .FALSE.
-     END IF
-     swifter_pl1P => whm_pl1P%swifter
-     swifter_tp1P => whm_tp1P%swifter
-     DO i = 2, npl
-          r2 = DOT_PRODUCT(xh(:, i), xh(:, i))
-          irh(i) = 1.0_DP/SQRT(r2)
-          ir3h(i) = irh(i)/r2
-     END DO
-     swifter_tpP => swifter_tp1P
-     DO i = 1, ntp
-          xht(:, i) = swifter_tpP%xh(:)
-          r2 = DOT_PRODUCT(xht(:, i), xht(:, i))
-          irht(i) = 1.0_DP/SQRT(r2)
-          swifter_tpP => swifter_tpP%nextP
-     END DO
-     ah0(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     swifter_plP => swifter_pl1P
-     DO i = 2, npl
-          swifter_plP => swifter_plP%nextP
-          fac = swifter_plP%mass*ir3h(i)
-          ah0(:) = ah0(:) - fac*xh(:, i)
-     END DO
-     CALL whm_getacch_ah3_tp(npl, ntp, whm_pl1P, whm_tp1P, xh)
-     whm_tpP => whm_tp1P
-     DO i = 1, ntp
-          whm_tpP%ah(:) = whm_tpP%ah(:) + ah0(:)
-          whm_tpP => whm_tpP%nextP
-     END DO
-     IF (j2rp2 /= 0.0_DP) THEN
-          CALL obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
-          mu = whm_pl1P%swifter%mass
-          CALL obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, mu)
-          whm_tpP => whm_tp1P
-          DO i = 1, ntp
-               whm_tpP%ah(:) = whm_tpP%ah(:) + aoblt(:, i) - aobl(:, 1)
-               whm_tpP => whm_tpP%nextP
-          END DO
-     END IF
-     IF (lextra_force) CALL whm_user_getacch_tp(t, ntp, whm_tp1P)
-
-     RETURN
-
-END SUBROUTINE whm_getacch_tp
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure whm_getacch_tp
+end submodule s_whm_getacch_tp

@@ -1,65 +1,18 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : whm_user_getacch_tp
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : whm
-!  Language    : Fortran 90/95
-!
-!  Description : Add user-supplied heliocentric accelerations to test particles
-!
-!  Input
-!    Arguments : t        : time
-!                ntp      : number of active test particles
-!                whm_tp1P : pointer to head of active WHM test particle structure linked-list
-!    Terminal  : TBS as needed by user
-!    File      : TBS as needed by user
-!
-!  Output
-!    Arguments : whm_tp1P : pointer to head of active WHM test particle structure linked-list
-!    Terminal  : TBS as needed by user
-!    File      : TBS as needed by user
-!
-!  Invocation  : CALL whm_user_getacch_tp(t, ntp, whm_tp1P)
-!
-!  Notes       : 
-!
-!**********************************************************************************************************************************
-SUBROUTINE whm_user_getacch_tp(t, ntp, whm_tp1P)
+submodule(whm) s_whm_user_getacch_tp
+contains
+   module procedure whm_user_getacch_tp(t, ntp, whm_tp1p)
+   !! author: David A. Minton
+   !!
+   !! Add user-supplied heliocentric accelerations to test particles
+   !!
+   !! 
+   !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
+   use swiftest
+   implicit none
 
-! Modules
-     USE module_parameters
-     USE module_whm
-     USE module_interfaces, EXCEPT_THIS_ONE => whm_user_getacch_tp
-     IMPLICIT NONE
+! executable code
 
-! Arguments
-     INTEGER(I4B), INTENT(IN) :: ntp
-     REAL(DP), INTENT(IN)     :: t
-     TYPE(whm_tp), POINTER    :: whm_tp1P
+   return
 
-! Internals
-
-! Executable code
-
-     RETURN
-
-END SUBROUTINE whm_user_getacch_tp
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure whm_user_getacch_tp
+end submodule s_whm_user_getacch_tp

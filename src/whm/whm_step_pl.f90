@@ -1,90 +1,33 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : whm_step_pl
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : whm
-!  Language    : Fortran 90/95
-!
-!  Description : Step planets ahead using kick-drift-kick algorithm
-!
-!  Input
-!    Arguments : lfirst       : logical flag indicating whether current invocation is the first
-!                lextra_force : logical flag indicating whether to include user-supplied accelerations
-!                t            : time
-!                npl          : number of planets
-!                nplmax       : maximum allowed number of planets
-!                whm_pl1P     : pointer to head of WHM planet structure linked-list
-!                j2rp2        : J2 * R**2 for the Sun
-!                j4rp4        : J4 * R**4 for the Sun
-!                dt           : time step
-!                c2           : inverse speed of light squared
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : lfirst       : logical flag indicating whether current invocation is the first
-!                whm_pl1P     : pointer to head of WHM planet structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL whm_step_pl(lfirst, lextra_force, t, npl, nplmax, whm_pl1P, j2rp2, j4rp4, dt, c2)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine step_kdk_pl.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE whm_step_pl(lfirst, lextra_force, t, npl, nplmax, whm_pl1P, j2rp2, j4rp4, dt, c2)
+submodule(whm) s_whm_step_pl
+contains
+   module procedure whm_step_pl(lfirst, lextra_force, t, npl, nplmax, whm_pl1p, j2rp2, j4rp4, dt, c2)
+   !! author: David A. Minton
+   !!
+   !! Step planets ahead using kick-drift-kick algorithm
+   !!
+   !! Adapted from Hal Levison's Swift routine step_kdk_pl.f
+   !! Adapted from David E. Kaufmann's Swifter routine whm_step_pl.f90
+   use swiftest
+   implicit none
+   real(dp) :: dth
 
-! Modules
-     USE module_parameters
-     USE module_whm
-     USE module_interfaces, EXCEPT_THIS_ONE => whm_step_pl
-     IMPLICIT NONE
+! executable code
+   dth = 0.5_dp*dt
+   if (lfirst) then
+      call coord_h2j(npl, whm_pl1p)
+      call whm_getacch(lextra_force, t, npl, nplmax, whm_pl1p, j2rp2, j4rp4, c2)
+      lfirst = .false.
+   end if
+   call whm_kickvh(npl, whm_pl1p, dth)
+   call coord_vh2vj(npl, whm_pl1p)
+   call gr_whm_p4(npl, whm_pl1p, dth, c2)
+   call whm_drift(npl, whm_pl1p, dt, c2)
+   call gr_whm_p4(npl, whm_pl1p, dth, c2)
+   call coord_j2h(npl, whm_pl1p)
+   call whm_getacch(lextra_force, t+dt, npl, nplmax, whm_pl1p, j2rp2, j4rp4, c2)
+   call whm_kickvh(npl, whm_pl1p, dth)
 
-! Arguments
-     LOGICAL(LGT), INTENT(IN)    :: lextra_force
-     LOGICAL(LGT), INTENT(INOUT) :: lfirst
-     INTEGER(I4B), INTENT(IN)    :: npl, nplmax
-     REAL(DP), INTENT(IN)        :: t, j2rp2, j4rp4, dt, c2
-     TYPE(whm_pl), POINTER       :: whm_pl1P
+   return
 
-! Internals
-     REAL(DP) :: dth
-
-! Executable code
-     dth = 0.5_DP*dt
-     IF (lfirst) THEN
-          CALL coord_h2j(npl, whm_pl1P)
-          CALL whm_getacch(lextra_force, t, npl, nplmax, whm_pl1P, j2rp2, j4rp4, c2)
-          lfirst = .FALSE.
-     END IF
-     CALL whm_kickvh(npl, whm_pl1P, dth)
-     CALL coord_vh2vj(npl, whm_pl1P)
-     CALL gr_whm_p4(npl, whm_pl1P, dth, c2)
-     CALL whm_drift(npl, whm_pl1P, dt, c2)
-     CALL gr_whm_p4(npl, whm_pl1P, dth, c2)
-     CALL coord_j2h(npl, whm_pl1P)
-     CALL whm_getacch(lextra_force, t+dt, npl, nplmax, whm_pl1P, j2rp2, j4rp4, c2)
-     CALL whm_kickvh(npl, whm_pl1P, dth)
-
-     RETURN
-
-END SUBROUTINE whm_step_pl
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure whm_step_pl
+end submodule s_whm_step_pl

@@ -1,88 +1,38 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : whm_drift_tp
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : whm
-!  Language    : Fortran 90/95
-!
-!  Description : Loop through test particles and call Danby drift routine
-!
-!  Input
-!    Arguments : ntp      : number of active test particles
-!                whm_tp1P : pointer to head of active WHM test particle structure linked-list
-!                mu       : mass of the Sun
-!                dt       : time step
-!                c2       : inverse speed of light squared
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : whm_tp1P : pointer to head of active WHM test particle structure linked-list
-!    Terminal  : error message
-!    File      : none
-!
-!  Invocation  : CALL whm_drift_tp(ntp, whm_tp1P, mu, dt, c2)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine drift_tp.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE whm_drift_tp(ntp, whm_tp1P, mu, dt, c2)
+submodule(whm) s_whm_drift_tp
+contains
+   module procedure whm_drift_tp(ntp, whm_tp1p, mu, dt, c2)
+   !! author: David A. Minton
+   !!
+   !! Loop through test particles and call Danby drift routine
+   !!
+   !! Adapted from Hal Levison's Swift routine drift_tp.f
+   !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
+   use swiftest
+   implicit none
+   integer(I4B)          :: i, iflag
+   type(swifter_tp), pointer :: swifter_tpp
+   type(whm_tp), pointer   :: whm_tpp
+   real(DP)            :: dtp, energy, vmag2, rmag
 
-! Modules
-     USE module_parameters
-     USE module_swifter
-     USE module_whm
-     USE module_interfaces, EXCEPT_THIS_ONE => whm_drift_tp
-     IMPLICIT NONE
+! executable code
+   whm_tpp => whm_tp1p
+   do i = 1, ntp
+      swifter_tpp => whm_tpp%swifter
+      if (swifter_tpp%status == active) then
+         rmag = sqrt(dot_product(swifter_tpp%xh(:), swifter_tpp%xh(:)))
+         vmag2 = dot_product(swifter_tpp%vh(:), swifter_tpp%vh(:))
+         energy = 0.5_DP*vmag2 - mu/rmag
+         dtp = dt * (1.0_DP + 3 * c2 * energy)
+         call drift_one(mu, swifter_tpp%xh(:), swifter_tpp%vh(:), dt, iflag)
+         if (iflag /= 0) then
+            swifter_tpp%status = discarded_drifterr
+            write(*, *) "particle ", swifter_tpp%id, " lost due to error in danby drift"
+         end if
+      end if
+      whm_tpp => whm_tpp%nextp
+   end do
 
-! Arguments
-     INTEGER(I4B), INTENT(IN) :: ntp
-     REAL(DP), INTENT(IN)     :: mu, dt, c2
-     TYPE(whm_tp), POINTER    :: whm_tp1P
+   return
 
-! Internals
-     INTEGER(I4B)              :: i, iflag
-     TYPE(swifter_tp), POINTER :: swifter_tpP
-     TYPE(whm_tp), POINTER     :: whm_tpP
-     REAL(DP)                  :: dtp, energy, vmag2, rmag
-
-! Executable code
-     whm_tpP => whm_tp1P
-     DO i = 1, ntp
-          swifter_tpP => whm_tpP%swifter
-          IF (swifter_tpP%status == ACTIVE) THEN
-               rmag = SQRT(DOT_PRODUCT(swifter_tpP%xh(:), swifter_tpP%xh(:)))
-               vmag2 = DOT_PRODUCT(swifter_tpP%vh(:), swifter_tpP%vh(:))
-               energy = 0.5_DP*vmag2 - mu/rmag
-               dtp = dt * (1.0_DP + 3 * c2 * energy)
-               CALL drift_one(mu, swifter_tpP%xh(:), swifter_tpP%vh(:), dt, iflag)
-               IF (iflag /= 0) THEN
-                    swifter_tpP%status = DISCARDED_DRIFTERR
-                    WRITE(*, *) "Particle ", swifter_tpP%id, " lost due to error in Danby drift"
-               END IF
-          END IF
-          whm_tpP => whm_tpP%nextP
-     END DO
-
-     RETURN
-
-END SUBROUTINE whm_drift_tp
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure whm_drift_tp
+end submodule s_whm_drift_tp

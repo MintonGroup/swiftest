@@ -1,128 +1,75 @@
-!**********************************************************************************************************************************
-!
-!  Unit Name   : whm_getacch
-!  Unit Type   : subroutine
-!  Project     : Swifter
-!  Package     : whm
-!  Language    : Fortran 90/95
-!
-!  Description : Compute heliocentric accelerations of planets
-!
-!  Input
-!    Arguments : lextra_force : logical flag indicating whether to include user-supplied accelerations
-!                t            : time
-!                npl          : number of planets
-!                nplmax       : maximum allowed number of planets
-!                whm_pl1P     : pointer to head of WHM planet structure linked-list
-!                j2rp2        : J2 * R**2 for the Sun
-!                j4rp4        : J4 * R**4 for the Sun
-!    Terminal  : none
-!    File      : none
-!
-!  Output
-!    Arguments : whm_pl1P     : pointer to head of WHM planet structure linked-list
-!    Terminal  : none
-!    File      : none
-!
-!  Invocation  : CALL whm_getacch(lextra_force, t, npl, nplmax, whm_pl1P, j2rp2, j4rp4)
-!
-!  Notes       : Adapted from Hal Levison's Swift routine getacch.f
-!
-!**********************************************************************************************************************************
-SUBROUTINE whm_getacch(lextra_force, t, npl, nplmax, whm_pl1P, j2rp2, j4rp4, c2)
+submodule(whm) s_whm_getacch
+contains
+   module procedure whm_getacch(lextra_force, t, npl, nplmax, whm_pl1p, j2rp2, j4rp4, c2)
+   !! author: David A. Minton
+   !!
+   !! Compute heliocentric accelerations of planets
+   !!
+   !! Adapted from Hal Levison's Swift routine getacch.f
+   !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
+   use swiftest
+   implicit none
+   logical(lgt), save                 :: lmalloc = .true.
+   integer(I4B)                     :: i
+   real(DP)                       :: r2, fac
+   real(DP), dimension(:), allocatable, save    :: irh, irj, ir3h, ir3j
+   real(DP), dimension(:, :), allocatable, save :: xh, aobl
+   type(swifter_pl), pointer            :: swifter_pl1p, swifter_plp
+   type(whm_pl), pointer                :: whm_plp
 
-! Modules
-     USE module_parameters
-     USE module_swifter
-     USE module_whm
-     USE module_interfaces, EXCEPT_THIS_ONE => whm_getacch
-     IMPLICIT NONE
+! executable code
+   if (lmalloc) then
+      allocate(xh(ndim, nplmax), aobl(ndim, nplmax), irh(nplmax), irj(nplmax), ir3h(nplmax), ir3j(nplmax))
+      lmalloc = .false.
+   end if
+   swifter_pl1p => whm_pl1p%swifter
+   whm_plp => whm_pl1p
+   do i = 2, npl
+      whm_plp => whm_plp%nextp
+      r2 = dot_product(whm_plp%xj(:), whm_plp%xj(:))
+      irj(i) = 1.0_DP/sqrt(r2)
+      ir3j(i) = irj(i)/r2
+   end do
+   swifter_plp => swifter_pl1p
+   do i = 2, npl
+      swifter_plp => swifter_plp%nextp
+      r2 = dot_product(swifter_plp%xh(:), swifter_plp%xh(:))
+      irh(i) = 1.0_DP/sqrt(r2)
+      ir3h(i) = irh(i)/r2
+   end do
+   ah0(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+   swifter_plp => swifter_pl1p%nextp
+   do i = 3, npl
+      swifter_plp => swifter_plp%nextp
+      fac = swifter_plp%mass*ir3h(i)
+      ah0(:) = ah0(:) - fac*swifter_plp%xh(:)
+   end do
+   call whm_getacch_ah1(npl, whm_pl1p, ir3h, ir3j)
+   call whm_getacch_ah2(npl, whm_pl1p, ir3j)
+   call whm_getacch_ah3(npl, whm_pl1p)
+   whm_plp => whm_pl1p
+   whm_plp%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+   do i = 2, npl
+      whm_plp => whm_plp%nextp
+      whm_plp%ah(:) = ah0(:) + whm_plp%ah1(:) + whm_plp%ah2(:) + whm_plp%ah3(:)
+   end do
+   if (j2rp2 /= 0.0_DP) then
+      swifter_plp => swifter_pl1p
+      do i = 2, npl
+         swifter_plp => swifter_plp%nextp
+         xh(:, i) = swifter_plp%xh(:)
+      end do
+      call obl_acc(npl, swifter_pl1p, j2rp2, j4rp4, xh, irh, aobl)
+      whm_plp => whm_pl1p
+      do i = 2, npl
+         whm_plp => whm_plp%nextp
+         whm_plp%ah(:) = whm_plp%ah(:) + aobl(:, i) - aobl(:, 1)
+      end do
+   end if
+   if (lextra_force) call whm_user_getacch(t, npl, whm_pl1p)
+   call gr_whm_getacch(npl, whm_pl1p, c2)
 
-! Arguments
-     LOGICAL(LGT), INTENT(IN) :: lextra_force
-     INTEGER(I4B), INTENT(IN) :: npl, nplmax
-     REAL(DP), INTENT(IN)     :: t, j2rp2, j4rp4, c2
-     TYPE(whm_pl), POINTER    :: whm_pl1P
+   return
 
-! Internals
-     LOGICAL(LGT), SAVE                           :: lmalloc = .TRUE.
-     INTEGER(I4B)                                 :: i
-     REAL(DP)                                     :: r2, fac
-     REAL(DP), DIMENSION(:), ALLOCATABLE, SAVE    :: irh, irj, ir3h, ir3j
-     REAL(DP), DIMENSION(:, :), ALLOCATABLE, SAVE :: xh, aobl
-     TYPE(swifter_pl), POINTER                    :: swifter_pl1P, swifter_plP
-     TYPE(whm_pl), POINTER                        :: whm_plP
-
-! Executable code
-     IF (lmalloc) THEN
-          ALLOCATE(xh(NDIM, nplmax), aobl(NDIM, nplmax), irh(nplmax), irj(nplmax), ir3h(nplmax), ir3j(nplmax))
-          lmalloc = .FALSE.
-     END IF
-     swifter_pl1P => whm_pl1P%swifter
-     whm_plP => whm_pl1P
-     DO i = 2, npl
-          whm_plP => whm_plP%nextP
-          r2 = DOT_PRODUCT(whm_plP%xj(:), whm_plP%xj(:))
-          irj(i) = 1.0_DP/SQRT(r2)
-          ir3j(i) = irj(i)/r2
-     END DO
-     swifter_plP => swifter_pl1P
-     DO i = 2, npl
-          swifter_plP => swifter_plP%nextP
-          r2 = DOT_PRODUCT(swifter_plP%xh(:), swifter_plP%xh(:))
-          irh(i) = 1.0_DP/SQRT(r2)
-          ir3h(i) = irh(i)/r2
-     END DO
-     ah0(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     swifter_plP => swifter_pl1P%nextP
-     DO i = 3, npl
-          swifter_plP => swifter_plP%nextP
-          fac = swifter_plP%mass*ir3h(i)
-          ah0(:) = ah0(:) - fac*swifter_plP%xh(:)
-     END DO
-     CALL whm_getacch_ah1(npl, whm_pl1P, ir3h, ir3j)
-     CALL whm_getacch_ah2(npl, whm_pl1P, ir3j)
-     CALL whm_getacch_ah3(npl, whm_pl1P)
-     whm_plP => whm_pl1P
-     whm_plP%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-     DO i = 2, npl
-          whm_plP => whm_plP%nextP
-          whm_plP%ah(:) = ah0(:) + whm_plP%ah1(:) + whm_plP%ah2(:) + whm_plP%ah3(:)
-     END DO
-     IF (j2rp2 /= 0.0_DP) THEN
-          swifter_plP => swifter_pl1P
-          DO i = 2, npl
-               swifter_plP => swifter_plP%nextP
-               xh(:, i) = swifter_plP%xh(:)
-          END DO
-          CALL obl_acc(npl, swifter_pl1P, j2rp2, j4rp4, xh, irh, aobl)
-          whm_plP => whm_pl1P
-          DO i = 2, npl
-               whm_plP => whm_plP%nextP
-               whm_plP%ah(:) = whm_plP%ah(:) + aobl(:, i) - aobl(:, 1)
-          END DO
-     END IF
-     IF (lextra_force) CALL whm_user_getacch(t, npl, whm_pl1P)
-     CALL gr_whm_getacch(npl, whm_pl1P, c2)
-
-     RETURN
-
-END SUBROUTINE whm_getacch
-!**********************************************************************************************************************************
-!
-!  Author(s)   : David E. Kaufmann
-!
-!  Revision Control System (RCS) Information
-!
-!  Source File : $RCSfile$
-!  Full Path   : $Source$
-!  Revision    : $Revision$
-!  Date        : $Date$
-!  Programmer  : $Author$
-!  Locked By   : $Locker$
-!  State       : $State$
-!
-!  Modification History:
-!
-!  $Log$
-!**********************************************************************************************************************************
+   end procedure whm_getacch
+end submodule s_whm_getacch
