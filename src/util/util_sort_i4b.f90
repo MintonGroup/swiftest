@@ -5,7 +5,7 @@ contains
    !!
    !! Sort input double precision array into ascending numerical order using Quicksort algorithm
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: util_sort_i4b.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: util_sort_i4b.f90
    !! Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,
    !!      Vetterling, and Flannery, 2nd ed., pp. 1169-70
    use swiftest

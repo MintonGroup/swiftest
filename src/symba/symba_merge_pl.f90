@@ -5,7 +5,7 @@ contains
    !!
    !! Check whether or not bodies are colliding or on collision path
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_merge_pl.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_merge_pl.f90
    !! Adapted from Hal Levison's Swift routine symba5_merge.f
    use swiftest
    implicit none

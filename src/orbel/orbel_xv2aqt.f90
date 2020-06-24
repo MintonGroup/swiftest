@@ -8,7 +8,7 @@ contains
    !!      tperi > 0 means nearest pericenter passage is in the future
    !!      tperi < 0 means nearest pericenter passage is in the past
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: orbel_xv2aqt.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2aqt.f90
 use swiftest
 implicit none
    integer(I4B) :: iorbit_type

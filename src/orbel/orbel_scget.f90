@@ -6,7 +6,7 @@ contains
    !! Efficiently compute the sine and cosine of an input angle
    !!      Input angle must be in radians
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: orbel_scget.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: orbel_scget.f90
    !! Adapted from Hal Levison's Swift routine orbel_scget.f
    use swiftest
    implicit none

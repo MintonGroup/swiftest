@@ -5,7 +5,7 @@ contains
    !!
    !! Read a line (record) from input binary files
    !!     Function returns read error status (0 = OK, nonzero = ERROR)
-   !! Adapted from David E. Kaufmann's Swifter modules: io_read_line.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: io_read_line.f90
    !! Adapted from Hal Levison's Swift routine io_read_line.f
 use swiftest
 implicit none

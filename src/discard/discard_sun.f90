@@ -6,7 +6,7 @@ contains
    !!  Check to see if test particles should be discarded based on their positions relative to the Sun
    !!        or because they are unbound from the system
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: discard_sun.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: discard_sun.f90
    !! Adapted from Hal Levison's Swift routine discard_sun.f
    use swiftest
    integer(I4B)        :: i, ntp

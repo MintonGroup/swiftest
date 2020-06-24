@@ -5,7 +5,7 @@ contains
    !!
    !! Check for an encounter
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_chk.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_chk.f90
    !! Adapted from Hal Levison's Swift routine symba5_chk.f
 use swiftest
 implicit none

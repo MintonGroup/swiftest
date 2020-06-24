@@ -6,7 +6,7 @@ contains
    !! Write close encounter data to output binary files
    !!  There is no direct file output from this subroutine
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: io_write_encounter.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: io_write_encounter.f90
    !! Adapted from Hal Levison's Swift routine io_write_encounter.f
 use swiftest
 implicit none

@@ -6,7 +6,7 @@ contains
       !! Compute the barycentric accelerations of planets due to the oblateness of the central body
       !!      Returned values do not include monopole term or terms higher than J4
 
-      !! Adapted from David E. Kaufmann's Swifter modules: obl_acc.f90
+      !! Adapted from David E. Kaufmann's Swifter routine: obl_acc.f90
       !! Adapted from Hal Levison's Swift routine obl_acc.f
       use swiftest
       implicit none

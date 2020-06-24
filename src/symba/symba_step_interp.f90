@@ -6,7 +6,7 @@ contains
    !! Step planets and active test particles ahead in democratic heliocentric coordinates, calling the recursive
    !! subroutine to descend to the appropriate level to handle close encounters
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_step_interp.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_step_interp.f90
    !! Adapted from Hal Levison's Swift routine symba5_step_interp.f
    use swiftest
    implicit none

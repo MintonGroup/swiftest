@@ -5,7 +5,7 @@ contains
    !!
    !! Write a line (record) to output binary files
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: io_write_line.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: io_write_line.f90
    !! Adapted from Hal Levison's Swift routine io_write_line.f
 use swiftest
 implicit none

@@ -8,7 +8,7 @@ contains
    !!      Returned value does not include monopole term or terms higher than J4
    !!      Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: obl_pot.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: obl_pot.f90
    !! Adapted from Hal Levison's Swift routine obl_pot.f
    use swiftest
    implicit none

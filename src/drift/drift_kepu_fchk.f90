@@ -5,7 +5,7 @@ contains
    !!
    !! Computes the value of f, the function whose root we are trying to find in universal variables
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: drift_kepu_fchk.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_fchk.f90
    !! Adapted from Martin Duncan's Swift routine drift_kepu_fchk.f
    use swiftest
    implicit none

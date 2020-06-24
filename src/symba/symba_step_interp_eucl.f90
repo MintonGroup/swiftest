@@ -5,7 +5,7 @@ contains
    !!
    !! Same as symba_step_interp, but with th new single loop-blocking Euclidean distance matrix evaluation
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_step_interp.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_step_interp.f90
    !! Adapted from Hal Levison's Swift routine symba5_step_interp.f
    use swiftest
    implicit none

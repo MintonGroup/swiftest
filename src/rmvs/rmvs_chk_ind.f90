@@ -5,7 +5,7 @@ contains
    !!
    !! Determine whether a test particle and planet are having or will have an encounter within the next time step
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: rmvs_chk_ind.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: rmvs_chk_ind.f90
    !! Adapted from Hal Levison's Swift routine rmvs_chk_ind.f
 use swiftest
 implicit none

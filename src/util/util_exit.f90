@@ -5,7 +5,7 @@ contains
    !!
    !! Print termination message and exit program
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: util_exit.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90
    !! Adapted from Hal Levison's Swift routine util_exit.f
    use swiftest
 

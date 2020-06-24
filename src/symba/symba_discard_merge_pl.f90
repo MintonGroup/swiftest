@@ -5,7 +5,7 @@ contains
    !!
    !! Merge planets
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_discard_merge_pl.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_merge_pl.f90
    !! Adapted from Hal Levison's Swift routine discard_mass_merge.f
 use swiftest
 implicit none

@@ -5,7 +5,7 @@ contains
    !!
    !! Print program version information to terminale
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: util_version.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: util_version.f90
    use swiftest
 
    write(*, 200) VERSION_NUMBER

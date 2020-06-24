@@ -5,7 +5,7 @@ contains
    !!
    !! Add user-supplied heliocentric accelerations to planetss
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_user_getacch.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_user_getacch.f90
 use swiftest
 implicit none
 

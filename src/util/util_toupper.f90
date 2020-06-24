@@ -5,7 +5,7 @@ contains
    !!
    !! Convert string to uppercase
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: util_toupper.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: util_toupper.f90
    use swiftest
    integer(I4B) :: i, length, idx
 

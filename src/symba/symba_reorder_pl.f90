@@ -5,7 +5,7 @@ contains
    !!
    !! Rearrange SyMBA planet arrays in order of decreasing mass
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_reorder_pl.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_reorder_pl.f90
    use swiftest
    implicit none
    integer(I4B)                  :: i

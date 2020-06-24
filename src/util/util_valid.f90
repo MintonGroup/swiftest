@@ -6,7 +6,7 @@ contains
    !! Validate massive body and test particle ids
    !! Subroutine causes program to exit with error if any ids are not unique
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: util_valid.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: util_valid.f90
    use swiftest
    integer(I4B)                  :: i
    integer(I4B), dimension(:), allocatable :: idarr

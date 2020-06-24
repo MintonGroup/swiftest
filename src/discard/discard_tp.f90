@@ -5,7 +5,7 @@ contains
    !!
    !! Check to see if test particles should be discarded based on their positions or because they are unbound from the system.
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: discard.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: discard.f90
    !! Adapted from Hal Levison's Swift routine discard.f
    use swiftest
    if ((config%rmin  >= 0.0_DP) .or. &

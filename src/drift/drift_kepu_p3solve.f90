@@ -6,7 +6,7 @@ contains
    !! Computes real root of cubic involved in setting initial guess for solving Kepler's equation in universal variables
    !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 177 - 178.
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: drift_kepu_p3solve.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_p3solve.f90
    !! Adapted from Martin Duncan's Swift routine drift_kepu_p3solve.f
    use swiftest
    implicit none

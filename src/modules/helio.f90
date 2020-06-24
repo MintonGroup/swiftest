@@ -2,7 +2,7 @@ module helio
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Definition of classes and methods specific to the Democratic Heliocentric Method
-   !! Adapted from David E. Kaufmann's Swifter modules: helio.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: helio.f90
    use swiftest_globals
    use swiftest_classes
    implicit none

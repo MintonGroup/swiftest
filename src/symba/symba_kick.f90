@@ -5,7 +5,7 @@ contains
    !!
    !! Kick barycentric velocities of planets and ACTIVE test particles within SyMBA recursion
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_kick.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_kick.f90
    !! Adapted from Hal Levison's Swift routine symba5_kick.f
 use swiftest
 implicit none

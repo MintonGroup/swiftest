@@ -2,7 +2,7 @@ module swiftest_classes
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Definition of data and structures generic to all integrators.
-   !! Adapted from David E. Kaufmann's Swifter modules: module_swifter.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: module_swifter.f90
    use swiftest_globals
    implicit none
    private
@@ -187,11 +187,11 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt
       end subroutine io_write_frame_cb
 
-      module subroutine io_read_cb(self, config) 
+      module subroutine io_read_cb_in(self, config) 
          implicit none
          class(swiftest_central_body),  intent(inout) :: self
          class(swiftest_configuration), intent(in)    :: config
-      end subroutine io_read_cb
+      end subroutine io_read_cb_in
    end interface
       
    !********************************************************************************************************************************

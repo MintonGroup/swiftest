@@ -5,7 +5,7 @@ contains
    !!
    !! Loop through planets and call Danby drift routine
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_helio_drift.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_helio_drift.f90
    !! Adapted from Hal Levison's Swift routine symba5_helio_drift.f
 use swiftest
 implicit none

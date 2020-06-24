@@ -5,7 +5,7 @@ contains
    !!
    !! Dump test particle data to files
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: io_dump_tp.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: io_dump_tp.f90
    !! Adapted from Hal Levison's Swift routine io_dump_tp.f
    use swiftest
    implicit none

@@ -5,7 +5,7 @@ contains
    !!
    !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: discard_pl.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: discard_pl.f90
    !! Adapted from Hal Levison's Swift routine discard_pl.f
    use swiftest
    implicit none

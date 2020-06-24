@@ -5,7 +5,7 @@ contains
    !!
    !! Compute heliocentric accelerations of test particles
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_getacch_tp.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_getacch_tp.f90
    !! Adapted from Hal Levison's Swift routine symba5_getacch.f
    use swiftest
    implicit none

@@ -7,7 +7,7 @@ contains
    !!      Accelerations in an encounter are not included here
    !! Uses the single-loop blocking to evaluate the Euclidean distance matrix
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_getacch_tp_eucl.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_getacch_tp_eucl.f90
    !! Adapted from Hal Levison's Swift routine symba5_getacch.f
 use swiftest
 implicit none

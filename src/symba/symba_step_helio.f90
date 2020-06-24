@@ -5,7 +5,7 @@ contains
    !!
    !! Step planets and test particles ahead in democratic heliocentric coordinates
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_step_helio.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_step_helio.f90
    use swiftest
    implicit none
    logical                      :: lfirsttp

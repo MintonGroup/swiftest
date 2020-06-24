@@ -6,7 +6,7 @@ contains
    !! Read close encounter data from input binary files
    !!     Other than time t, there is no direct file input from this function
    !!     Function returns read error status (0 = OK, nonzero = ERROR)
-   !! Adapted from David E. Kaufmann's Swifter modules: io_read_encounter.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: io_read_encounter.f90
 use swiftest
 implicit none
    logical         :: lxdr

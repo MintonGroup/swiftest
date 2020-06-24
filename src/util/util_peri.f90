@@ -7,7 +7,7 @@ contains
    !! Note:  If the coordinate system used is barycentric, then this routine assumes that the barycentric coordinates in the
    !!        test particle structures are up-to-date and are not recomputed
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: util_peri.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: util_peri.f90
    !! Adapted from Hal Levison's Swift routine util_peri.f
    use swiftest
    implicit none

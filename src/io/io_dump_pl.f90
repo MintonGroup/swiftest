@@ -5,7 +5,7 @@ contains
    !!
    !! Dump planet data to files
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: io_dump_pl.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: io_dump_pl.f90
    !! Adapted from Hal Levison's Swift routine io_dump_pl.f
    use swiftest
    implicit none

@@ -5,7 +5,7 @@ contains
    !!
    !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: discard_peri.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: discard_peri.f90
    !! Adapted from Hal Levison's Swift routine discard_peri.f
    use swiftest
    logical, save             :: lfirst = .true.

@@ -3,7 +3,7 @@ module swiftest_globals
    !! graph: false
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
-   !! Adapted from David E. Kaufmann's Swifter modules: swiftest_globals.f90 and module_swifter.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: swiftest_globals.f90 and module_swifter.f90
    use, intrinsic :: iso_fortran_env  ! Use the intrinsic kind definitions
    implicit none
    public

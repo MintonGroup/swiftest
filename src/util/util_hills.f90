@@ -5,7 +5,7 @@ contains
    !!
    !! Compute Hill sphere radii of planets
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: util_hills.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: util_hills.f90
    !! Adapted from Hal Levison's Swift routine util_hills.f
    use swiftest
    integer(I4B)  :: i

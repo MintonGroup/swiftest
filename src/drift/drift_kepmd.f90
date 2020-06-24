@@ -7,7 +7,7 @@ contains
    !!      Original disclaimer: built for speed, does not check how well the original equation is solved
    !!      Can do that in calling routine by checking how close (x - ec*s + es*(1.0 - c) - dm) is to zero
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: drift_kepmd.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: drift_kepmd.f90
    !! Adapted from Martin Duncan's Swift routine drift_kepmd.f
    use swiftest
    implicit none

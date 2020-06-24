@@ -6,7 +6,7 @@ contains
    !! Solve Kepler's equation in universal variables using Newton's method
    !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 174 - 175.
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: drift_kepu_new.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_new.f90
    !! Adapted from Hal Levison's Swift routine drift_kepu_new.f
    use swiftest
    implicit none

@@ -7,7 +7,7 @@ contains
    !!      If the coordinate system used is barycentric, then this routine assumes that the barycentric coordinates in the
    !!      massive body structures are up-to-date and are not recomputed
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_peri.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_peri.f90
    !! Adapted from Hal Levison's Swift routine util_mass_peri.f
 use swiftest
 implicit none

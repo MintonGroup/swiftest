@@ -6,7 +6,7 @@ contains
    !!  Check to see if a test particle and massive body are having, or will have within the next time step, an encounter such
    !!          that the separation distance r is less than some critical radius rcrit (or r**2 < rcrit**2 = r2crit)
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: discard_pl_close.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: discard_pl_close.f90
    !! Adapted from Hal Levison's Swift routine discard_pl_close.f
    use swiftest
    real(DP) :: r2, v2, vdotr, tmin

@@ -5,7 +5,7 @@ contains
    !!
    !! Compute initial guess for solving Kepler's equation using universal variables
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: drift_kepu_guess.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_guess.f90
    !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_kepu_guess.f
    use swiftest
    implicit none

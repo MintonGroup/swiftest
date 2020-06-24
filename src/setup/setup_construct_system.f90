@@ -10,7 +10,6 @@ contains
       use swiftest
       implicit none
 
-
       select case(integrator)
       case (BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'

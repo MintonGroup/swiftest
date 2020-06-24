@@ -6,7 +6,7 @@ contains
    !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
    !!    recursion level, if applicable, and descend to the next deeper level if necessary
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_step_recur.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_step_recur.f90
    !! Adapted from Hal Levison's Swift routine symba5_step_recur.F
 use swiftest
 implicit none

@@ -5,7 +5,7 @@ contains
    !!
    !! Write out information about discarded and merged planets and test particles in SyMBA
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: io_discard_write_symba.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: io_discard_write_symba.f90
    !! Adapted from Hal Levison's Swift routine io_discard_mass.f and io_discard_merge.f
 use swiftest
 implicit none

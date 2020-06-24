@@ -3,7 +3,7 @@ module symba
    !!
    !! Definition of classes and methods specific to the Symplectic Massive Body Algorithm
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba.f90
    use swiftest_globals
    use helio
    implicit none

@@ -5,7 +5,7 @@ contains
    !!
    !! Call discard routine to determine spilled test particles, then remove them from ACTIVE list
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_discard_tp.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_tp.f90
 use swiftest
 implicit none
    logical           :: lclosel = .false.

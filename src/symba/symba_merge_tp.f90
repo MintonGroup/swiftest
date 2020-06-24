@@ -5,7 +5,7 @@ contains
    !!
    !! Check for merger between planet and test particle in SyMBAs
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_merge_tp.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_merge_tp.f90
    !! Adapted from Hal Levison's Swift routine symba5_merge.f
 use swiftest
 implicit none

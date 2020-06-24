@@ -5,7 +5,7 @@ contains
    !!
    !! Step planets ahead in democratic heliocentric coordinates
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_step_helio_pl.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_step_helio_pl.f90
    !! Adapted from Hal Levison's Swift routines symba5_step_helio.f and helio_step_pl.f
 use swiftest
 implicit none

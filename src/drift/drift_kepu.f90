@@ -5,7 +5,7 @@ contains
    !!
    !! Solve Kepler's equation in universal variables
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: drift_kepu.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu.f90
    !! Adapted from Hal Levison's Swift routine drift_kepu.f
   use swiftest
   implicit none

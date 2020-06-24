@@ -6,7 +6,7 @@ contains
    !! Compute the barycentric accelerations of test particles due to the oblateness of the central body
    !!      Returned values do not include monopole term or terms higher than J4
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: obl_acc_tp.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: obl_acc_tp.f90
    !! Adapted from Hal Levison's Swift routine obl_acc_tp.f
    use swiftest
    implicit none

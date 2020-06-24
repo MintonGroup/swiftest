@@ -5,7 +5,7 @@ contains
    !!
    !! Compute heliocentric accelerations of planets
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: symba_helio_getacch.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: symba_helio_getacch.f90
    !! Adapted from Hal Levison's Swift routine symba5_helio_getacch.f
 use swiftest
 implicit none

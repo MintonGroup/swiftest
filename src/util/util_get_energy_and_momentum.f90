@@ -5,7 +5,7 @@ contains
       !!
       !! Compute total system angular momentum vector and kinetic, potential and total system energy
       !!
-      !! Adapted from David E. Kaufmann's Swifter modules: symba_energy.f90
+      !! Adapted from David E. Kaufmann's Swifter routine: symba_energy.f90
       !! Adapted from Martin Duncan's Swift routine anal_energy.f 
       use swiftest
       implicit none

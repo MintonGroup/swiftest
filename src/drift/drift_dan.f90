@@ -5,7 +5,7 @@ contains
    !!
    !! Perform Kepler drift, solving Kepler's equation in appropriate variables
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: drift_dan.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: drift_dan.f90
    !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_dan.f
    use swiftest
    implicit none

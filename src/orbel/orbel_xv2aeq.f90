@@ -5,7 +5,7 @@ contains
    !!
    !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: orbel_xv2aeq.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2aeq.f90
    !! Adapted from Luke Dones' Swift routine orbel_xv2aeq.f
 use swiftest
 implicit none

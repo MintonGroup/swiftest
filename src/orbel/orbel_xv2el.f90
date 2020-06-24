@@ -13,7 +13,7 @@ contains
    !!              Fitzpatrick, P. M. 1970. Principles of Celestial Mechanics, (Academic Press), 69 - 73.
    !!              Roy, A. E. 1982. Orbital Motion, (Adam Hilger, Ltd.), 75 - 95
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: orbel_xv2el.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2el.f90
    !! Adapted from Martin Duncan's Swift routine orbel_xv2el.f
    use swiftest
    implicit none

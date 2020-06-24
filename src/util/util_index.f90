@@ -5,7 +5,7 @@ contains
    !!
    !! Index input real array into ascending numerical order using Quicksort algorithm
    !!
-   !! Adapted from David E. Kaufmann's Swifter modules: util_index.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: util_index.f90
    !! Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,
    !!      Vetterling, and Flannery, 2nd ed., pp. 1173-4
    use swiftest
