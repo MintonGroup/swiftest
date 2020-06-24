@@ -13,19 +13,21 @@ contains
    integer(I4B), save         :: idx = 1
    integer(I4B),parameter         :: LUN = 7
 
-   open(unit = LUN, file = DUNMP_PL_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
+   open(unit = LUN, file = DUMP_PL_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
    if (ierr /= 0) then
       write(*, *) "Swiftest error:"
       write(*, *) "   Unable to open binary dump file ", trim(DUNMP_PL_FILE(idx))
       call util_exit(FAILURE)
    end if
    write(LUN) npl
-   write(LUN) swiftest_plA%name(:)
-   write(LUN) swiftest_plA%mass(:)
-   if (lrhill_present) write(LUN) swiftest_plA%rhill(:) 
-   if (lclose) write(LUN) swiftest_plA%radius(:) 
-   write(LUN) swiftest_plA%xh(:,:)
-   write(LUN) swiftest_plA%vh(:,:)
+   if (npl > 0) then
+      write(LUN) swiftest_plA%name(1:npl)
+         write(LUN) swiftest_plA%mass(npl:)
+      if (lrhill_present) write(LUN) swiftest_plA%rhill(1:npl) 
+      if (lclose) write(LUN) swiftest_plA%radius(1:npl) 
+      write(LUN) swiftest_plA%xh(:,1:npl)
+      write(LUN) swiftest_plA%vh(:,1:npl)
+   end if
    close(LUN)
    idx = idx + 1
    if (idx > 2) idx = 1

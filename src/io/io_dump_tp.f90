@@ -13,7 +13,7 @@ contains
    integer(I4B), save            :: idx = 1
    integer(I4B), parameter         :: LUN = 7
 
-   open(unit = LUN, file = DUNMP_TP_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
+   open(unit = LUN, file = DUMP_TP_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
 
    if (ierr /= 0) then
       write(*, *) "Swiftest error:"
@@ -21,9 +21,11 @@ contains
       call util_exit(FAILURE)
    end if
    write(LUN) ntp
-   write(LUN) swiftest_tpA%name(:)
-   write(LUN) swiftest_tpA%xh(:,:)
-   write(LUN) swiftest_tpA%vh(:,:)
+   if (ntp > 0) then
+      write(LUN) swiftest_tpA%name(1:ntp)
+      write(LUN) swiftest_tpA%xh(:,1:ntp)
+      write(LUN) swiftest_tpA%vh(:,1:ntp)
+   end if
    close(LUN)
    idx = idx + 1
    if (idx > 2) idx = 1
