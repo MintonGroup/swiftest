@@ -150,7 +150,6 @@ module swiftest_classes
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, public, extends(swiftest_base) :: swiftest_central_body           
-      !private
       real(DP)                  :: mass    = 0.0_DP !! Central body mass (units MU)
       real(DP)                  :: radius  = 0.0_DP !! Central body radius (units DU)
       real(DP)                  :: density = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
@@ -201,7 +200,6 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest bodies
    type, abstract, public, extends(swiftest_base) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
-      !private
       integer(I4B)                              :: nbody = 0  !! Number of bodies
       integer(I4B), dimension(:),   allocatable :: name       !! External identifier
       integer(I4B), dimension(:),   allocatable :: status     !! An integrator-specific status indicator 
@@ -217,19 +215,17 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
       real(DP),     dimension(:),   allocatable :: mu_vec     !! Vectorized central mass term used for elemental functions
       real(DP),     dimension(:),   allocatable :: dt_vec     !! Vectorized stepsize used for elemental functions
-      logical,      dimension(:),   allocatable :: ldiscard   !! Flag indicating that this particle needs to be discarded
-
+      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !!    component list, such as setup_body and discard_spill_body
    contains
       private
       ! These are concrete because the implementation is the same for all types of particles
-      procedure, public  :: spill => discard_spill_body   !! Removes bodies marked for discard and "spills" them into a new object. 
-                                                          !!   Also packs the remaining bodies back into the original object
-      procedure, public  :: alloc => setup_allocate_body  !! A constructor that sets the number of bodies and allocates all allocatable arrays
-      procedure, public  :: el2xv => orbel_el2xv_vec      !! Convert orbital elements to position and velocity  vectors
-      procedure, public  :: xv2el => orbel_xv2el_vec      !! Convert position and velocity vectors to orbital  elements 
+      procedure, public  :: setup => setup_body      !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure, public  :: el2xv => orbel_el2xv_vec !! Convert orbital elements to position and velocity  vectors
+      procedure, public  :: xv2el => orbel_xv2el_vec !! Convert position and velocity vectors to orbital  elements 
 
       ! Abstract coordinate transform methods that are common for all types of nbody particles
-      ! These are abtract because the implementation depends on the type of particle (tp vs pl)
+      ! These are abstract because the implementation depends on the type of particle (tp vs pl)
       procedure(abstract_b2h_body),     public, deferred :: b2h     !! Convert position vectors from barycentric to heliocentric coordinates 
       procedure(abstract_h2b_body),     public, deferred :: h2b     !! Convert position vectors from heliocentric to barycentric coordinates 
       procedure(abstract_vb2vh_body),   public, deferred :: vb2vh   !! Convert velocity vectors from barycentric to heliocentric coordinates 
@@ -273,17 +269,11 @@ module swiftest_classes
 
    !> Interfaces for concrete type-bound procedures for swiftest_body
    interface
-      module subroutine discard_spill_body(self, discards)
-         implicit none
-         class(swiftest_body),              intent(inout) :: self     !! Swiftest generic body object
-         class(swiftest_body), allocatable, intent(inout) :: discards !! Discarded body object 
-      end subroutine discard_spill_body
-
-      module subroutine setup_allocate_body(self,n)
+      module subroutine setup_body(self,n)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
          integer,                      intent(in)    :: n    !! Number of particles to allocate space for
-      end subroutine setup_allocate_body
+      end subroutine setup_body
 
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
@@ -304,7 +294,6 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest massive bodies
    type, abstract, public, extends(swiftest_body) :: swiftest_pl
       !! Superclass that defines the generic elements of a Swiftest particle 
-      !private
       real(DP),     dimension(:),   allocatable :: mass                   !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: Gmass                  !! Mass gravitational term G * mass (units GU * MU)
       real(DP),     dimension(:),   allocatable :: rhill                  !! Body mass (units MU)
@@ -314,11 +303,13 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: rot                    !! Body rotation vector in inertial coordinate frame (units rad / TU)
       real(DP),     dimension(:),   allocatable :: k2                     !! Tidal Love number
       real(DP),     dimension(:),   allocatable :: Q                      !! Tidal quality factor
+      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !!    component list, such as setup_pl and discard_spill_pl
    contains
       private
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: alloc       => setup_allocate_pl !! A base constructor that sets the number of bodies and 
+      procedure, public :: setup       => setup_pl          !! A base constructor that sets the number of bodies and 
       procedure, public :: b2h         => coord_b2h_pl      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: dump        => io_dump_pl        !! Dump the current state of the test particles to file
       procedure, public :: h2b         => coord_h2b_pl      !! Convert position vectors from heliocentric to barycentric coordinates
@@ -326,7 +317,6 @@ module swiftest_classes
       procedure, public :: initialize  => io_read_pl_in     !! Read in massive body initial conditions from a file
       procedure, public :: j2h         => coord_j2h_pl      !! Convert position vectors from Jacobi to helliocentric coordinates 
       procedure, public :: set_vec     => util_set_vec_pl   !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: spill       => discard_spill_pl  !! A base constructor that sets the number of bodies and 
       procedure, public :: vb2vh       => coord_vb2vh_pl    !! Convert velocity vectors from barycentric to heliocentric coordinates 
       procedure, public :: vh2vb       => coord_vh2vb_pl    !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure, public :: vh2vj       => coord_vh2vj_pl    !! Convert posiition vectors from heliocentric to Jacobi coordinates 
@@ -384,12 +374,6 @@ module swiftest_classes
          class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
       end subroutine coord_vh2vj_pl
 
-      module subroutine discard_spill_pl(self, discards)
-         implicit none
-         class(swiftest_pl),                intent(inout) :: self     !! Swiftest massive body object
-         class(swiftest_body), allocatable, intent(inout) :: discards !! Discarded body object 
-      end subroutine discard_spill_pl
-
       module subroutine io_dump_pl(self, config, t, dt, tfrac) 
          implicit none
          class(swiftest_pl),            intent(in)    :: self    !! Swiftest base object
@@ -421,11 +405,11 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
       end subroutine util_set_vec_pl
 
-      module subroutine setup_allocate_pl(self,n)
+      module subroutine setup_pl(self,n)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
          integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
-      end subroutine setup_allocate_pl
+      end subroutine setup_pl
    end interface
 
    !********************************************************************************************************************************
@@ -434,25 +418,22 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest test particles
    type, abstract, public, extends(swiftest_body) :: swiftest_tp
       !! Superclass that defines the generic elements of a Swiftest test particle 
-      !private
-
    contains
       private
-      ! These are abstract because the implementation is integrator-dependent
-
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: b2h         => coord_b2h_tp      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: h2b         => coord_h2b_tp      !! Convert position vectors from heliocentric to barycentric coordinates
       procedure, public :: vb2vh       => coord_vb2vh_tp    !! Convert velocity vectors from barycentric to heliocentric coordinates 
       procedure, public :: vh2vb       => coord_vh2vb_tp    !! Convert velocity vectors from heliocentric to barycentric coordinates 
-      procedure, public :: spill       => discard_spill_tp  !! Spill the list of discarded test particles into a new object
       procedure, public :: discard     => discard_tp        !! Dump the current state of the test particles to file
       procedure, public :: dump        => io_dump_tp        !! Dump the current state of the test particles to file
       procedure, public :: initialize  => io_read_tp_in     !! Read in massive body initial conditions from a file
       procedure, public :: write_frame => io_write_frame_tp !! Write out a frame of test particle data to output file
-      procedure, public :: alloc       => setup_allocate_tp !! A base constructor that sets the number of bodies and 
+      procedure, public :: setup       => setup_tp          !! A base constructor that sets the number of bodies and 
       procedure, public :: set_vec     => util_set_vec_tp   !! Method used to construct the vectorized form of the central body mass
+      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !!    component list, such as setup_tp and discard_spill_tp
    end type swiftest_tp
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp
@@ -490,12 +471,6 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Stepsize`
       end subroutine discard_tp
 
-      module subroutine discard_spill_tp(self, discards)
-         implicit none
-         class(swiftest_tp),                intent(inout) :: self     !! Swiftest massive body object
-         class(swiftest_body), allocatable, intent(inout) :: discards !! Discarded body object 
-      end subroutine discard_spill_tp
-
       module subroutine io_dump_tp(self, config, t, dt, tfrac) 
          implicit none
          class(swiftest_tp),            intent(in)    :: self    !! Swiftest base object
@@ -526,11 +501,11 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
       end subroutine util_set_vec_tp
 
-      module subroutine setup_allocate_tp(self,n)
+      module subroutine setup_tp(self,n)
          implicit none
          class(swiftest_tp),           intent(inout) :: self !! Swiftest massive body object
          integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
-      end subroutine setup_allocate_tp
+      end subroutine setup_tp
    end interface
 
    !********************************************************************************************************************************
@@ -578,7 +553,6 @@ module swiftest_classes
 
    !> Interfaces for concrete type-bound procedures for the Swiftest nbody system class
    interface
-
       !> Perform a discard step on a system in which only test particles are considered for discard
       module subroutine discard_nbody(self, config, t, dt)
          implicit none
@@ -649,6 +623,30 @@ module swiftest_classes
 
    !> Interfaces for particle discard methods
    interface
+      !> Move spilled (discarded) Swiftest basic body components from active list to discard list
+      module subroutine discard_spill_body(keeps, discards, lspill_list)
+         implicit none
+         class(swiftest_body), intent(inout) :: keeps       !! Swiftest generic body object
+         class(swiftest_body), intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)   :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine discard_spill_body
+
+      !> Move spilled (discarded) Swiftest test particle components from active list to discard list
+      module subroutine discard_spill_tp(keeps, discards, lspill_list)
+         implicit none
+         class(swiftest_tp), intent(inout) :: keeps       !! Swiftest test particle object
+         class(swiftest_tp), intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in) :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine discard_spill_tp
+
+      !> Move spilled (discarded) Swifteast massive body components from active list to discard list
+      module subroutine discard_spill_pl(keeps, discards, lspill_list)
+         implicit none
+         class(swiftest_pl), intent(inout) :: keeps       !! Swiftest massive body object
+         class(swiftest_pl), intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in) :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine discard_spill_pl
+
       !> Check to see if test particles should be discarded based on their positions relative to the planets
       module subroutine discard_tp_pl(swiftest_plA, swiftest_tpA, config, t, dt) 
          implicit none
@@ -699,7 +697,6 @@ module swiftest_classes
          real(DP), intent(in)                        :: t       !! Current simulation time
          real(DP), intent(out)                       :: dt      !! Stepsize 
       end subroutine discard_and_merge_nbody
-
    end interface
 
    !> Interfaces for the Keplerian drift methods

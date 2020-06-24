@@ -20,21 +20,23 @@ module whm_classes
       real(DP), dimension(:,:), allocatable :: ah2     ! Second term of heliocentric acceleration
       real(DP), dimension(:,:), allocatable :: ah3     ! Third term of heliocentric acceleration
       real(DP), dimension(:,:), allocatable :: ah      ! Total heliocentric acceleration
+      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !!    component list, such as whm_setup_pl and whm_discard_spill_pl
    contains
-      procedure, public :: alloc => whm_allocate_pl     !! Constructor method - Allocates space for number of particles
-      procedure, public :: getacch => whm_getacch_pl    !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: step => whm_step_pl          !! Step massive bodies ahead Democratic Heliocentric method
-      procedure, public :: drift => whm_drift_pl        !! Loop through massive bodies and call Danby drift routine
-      procedure, public :: kick => whm_kickvh_pl        !! Kick barycentric velocities of active massive bodies
+      procedure, public :: setup   => whm_setup_pl   !! Constructor method - Allocates space for number of particles
+      procedure, public :: getacch => whm_getacch_pl !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: step    => whm_step_pl    !! Step massive bodies ahead Democratic Heliocentric method
+      procedure, public :: drift   => whm_drift_pl   !! Loop through massive bodies and call Danby drift routine
+      procedure, public :: kick    => whm_kickvh_pl  !! Kick barycentric velocities of active massive bodies
    end type whm_pl
 
    interface
       !> WHM massive body constructor method
-      module subroutine whm_allocate_pl(self,n)
+      module subroutine whm_setup_pl(self,n)
          implicit none
          class(whm_pl), intent(inout)    :: self !! Swiftest test particle object
-         integer, intent(in)               :: n    !! Number of test particles to allocate
-      end subroutine whm_allocate_pl
+         integer, intent(in)             :: n    !! Number of test particles to allocate
+      end subroutine whm_setup_pl
 
       !> Get heliocentric accelration of massive bodies
       module subroutine whm_getacch_pl(self, config, t, lflag, whm_plA, xh)
@@ -87,22 +89,24 @@ module whm_classes
    !! WHM test particle class
    type, public, extends(swiftest_tp) :: whm_tp
       real(DP), dimension(:,:), allocatable :: ah  !! Total heliocentric acceleration
+      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !!    component list, such as whm_setup_tp and whm_discard_spill_tp
    contains
       private
-      procedure, public     :: alloc    => whm_allocate_tp  !! Allocates new components of the whm class and recursively calls parent allocations
-      procedure, public     :: getacch  => whm_getacch_tp   !! Compute heliocentric accelerations of test particles
-      procedure, public     :: step => whm_step_tp          !! Step active test particles ahead using Democratic Heliocentric method
-      procedure, public     :: drift => whm_drift_tp        !! Loop through test particles and call Danby drift routine
-      procedure, public     :: kick => whm_kickvh_tp        !! Kick barycentric velocities of active test particles
+      procedure, public :: setup    => whm_setup_tp   !! Allocates new components of the whm class and recursively calls parent allocations
+      procedure, public :: getacch  => whm_getacch_tp !! Compute heliocentric accelerations of test particles
+      procedure, public :: step     => whm_step_tp    !! Step active test particles ahead using Democratic Heliocentric method
+      procedure, public :: drift    => whm_drift_tp   !! Loop through test particles and call Danby drift routine
+      procedure, public :: kick     => whm_kickvh_tp  !! Kick barycentric velocities of active test particles
    end type whm_tp
 
    interface
       !> WHM test particle constructor 
-      module subroutine whm_allocate_tp(self,n)
+      module subroutine whm_setup_tp(self,n)
          implicit none
          class(whm_tp), intent(inout)           :: self !! Swiftest test particle object
          integer, intent(in)                    :: n    !! Number of test particles to allocate
-      end subroutine whm_allocate_tp
+      end subroutine whm_setup_tp
 
       module subroutine whm_drift_tp(self, dt, mu)
          implicit none
@@ -169,6 +173,14 @@ interface
       class(swiftest_configuration), intent(out)   :: config     !! Input collection of user-defined configuration parameters
       integer, intent(in)                          :: integrator !! Integrator type code
    end subroutine whm_construct_system
+
+   !> Move spilled (discarded) Swiftest basic body components from active list to discard list
+   module subroutine whm_discard_spill(keeps, discards, lspill_list)
+      implicit none
+      class(whm_tp),         intent(inout) :: keeps       !! WHM test particle object
+      class(whm_tp),         intent(inout) :: discards    !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+   end subroutine whm_discard_spill
 
    !> Steps the Swiftest nbody system forward in time one stepsize
    module subroutine whm_step(self, config, t, dt) 

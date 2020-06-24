@@ -2,11 +2,11 @@ submodule (swiftest_classes) s_setup_allocate
 
 contains
 
-   module procedure setup_allocate_body
+   module procedure setup_body
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
-      !! initializes all components with a value. Also sets the is_allocated flag to true.
+      !! initializes all components with a value. 
       use swiftest
       implicit none
 
@@ -28,8 +28,6 @@ contains
       allocate(self%capom(n))
       allocate(self%omega(n))
       allocate(self%capm(n))
-      allocate(self%ldiscard(n))
-
 
       self%name(:)   = 0
       self%status(:) = INACTIVE
@@ -46,23 +44,17 @@ contains
       self%a(:)      = 0.0_DP
       self%mu_vec(:) = 0.0_DP
       self%dt_vec(:) = 0.0_DP
-      ldiscard       = .false.
 
       return
-   end procedure setup_allocate_body
+   end procedure setup_body
 
-   module procedure setup_allocate_pl
+   module procedure setup_pl
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest massive body class. Allocates space for all particles and
       !! initializes all components with a value. 
       use swiftest
       implicit none
-
-      if (self%is_allocated) then
-         !write(*,*) 'Swiftest massive body structure already alllocated'
-         return
-      end if
 
       !> Call allocation method for parent class
       call self%swiftest_body%alloc(n)
@@ -85,21 +77,20 @@ contains
       self%density(:) = 0.0_DP
       self%Ip(:,:) = 0.0_DP
       return
-   end procedure setup_allocate_pl
+   end procedure setup_pl
 
-   module procedure setup_allocate_tp
+   module procedure setup_tp
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest test particle particle class. Allocates space for 
       !! all particles and initializes all components with a value. 
       use swiftest
       implicit none
-      
 
       !> Call allocation method for parent class
       call self%swiftest_body%alloc(n)
       if (n <= 0) return
       return
-   end procedure setup_allocate_tp
+   end procedure setup_tp
 
 end submodule s_setup_allocate

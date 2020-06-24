@@ -10,6 +10,12 @@ contains
    implicit none
    integer(I4B)          :: i
 
+   associate(ntp => keeps%nbody)
+      do i = 1, NDIM
+         discards%ah(i,:) = pack(keeps%ah(i,1:ntp),       lspill_list(1:ntp))
+         keeps%ah(i,:)    = pack(keeps%ah(i,1:ntp), .not. lspill_list(1:ntp))
+      end do
+   end associate
 
    return
 
