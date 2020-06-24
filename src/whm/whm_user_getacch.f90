@@ -1,4 +1,4 @@
-submodule(whm) s_whm_user_getacch
+submodule(whm_classes) s_whm_user_getacch
 contains
    module procedure whm_user_getacch(t, npl, whm_pl1p)
    !! author: David A. Minton

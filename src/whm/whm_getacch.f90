@@ -1,4 +1,4 @@
-submodule(whm) s_whm_getacch
+submodule(whm_classes) s_whm_getacch
 contains
    module procedure whm_getacch(lextra_force, t, npl, nplmax, whm_pl1p, j2rp2, j4rp4, c2)
    !! author: David A. Minton

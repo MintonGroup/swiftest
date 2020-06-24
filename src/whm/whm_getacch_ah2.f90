@@ -1,4 +1,4 @@
-submodule(whm) s_whm_getacch_ah2
+submodule(whm_classes) s_whm_getacch_ah2
 contains
    module procedure whm_getacch_ah2(npl, whm_pl1p, ir3j)
    !! author: David A. Minton

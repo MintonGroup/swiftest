@@ -1,4 +1,4 @@
-submodule(whm) s_whm_setup
+submodule(whm_classes) s_whm_setup
 contains
    module procedure whm_setup_pl
       !! author: David A. Minton

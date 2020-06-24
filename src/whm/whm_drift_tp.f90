@@ -1,4 +1,4 @@
-submodule(whm) s_whm_drift_tp
+submodule(whm_classes) s_whm_drift_tp
 contains
    module procedure whm_drift_tp(ntp, whm_tp1p, mu, dt, c2)
    !! author: David A. Minton

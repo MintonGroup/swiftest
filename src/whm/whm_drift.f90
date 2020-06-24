@@ -1,4 +1,4 @@
-submodule(whm) s_whm_drift
+submodule(whm_classes) s_whm_drift
 contains
    module procedure whm_drift
    !! author: David A. Minton

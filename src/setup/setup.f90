@@ -1,4 +1,4 @@
-submodule (swiftest_classes) s_setup_allocate
+submodule (swiftest_classes) s_setup
 
 contains
 
@@ -90,7 +90,16 @@ contains
       !> Call allocation method for parent class
       call self%swiftest_body%alloc(n)
       if (n <= 0) return
+
+      allocate(self%isperi(n))
+      allocate(self%peri(n))
+      allocate(self%atp(n))
+
+      self%isperi(:) = 0
+      self%peri(:)   = 0.0_DP
+      self%atp(:)    = 0.0_DP
+
       return
    end procedure setup_tp
 
-end submodule s_setup_allocate
+end submodule s_setup

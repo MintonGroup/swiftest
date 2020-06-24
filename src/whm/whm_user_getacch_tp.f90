@@ -1,4 +1,4 @@
-submodule(whm) s_whm_user_getacch_tp
+submodule(whm_classes) s_whm_user_getacch_tp
 contains
    module procedure whm_user_getacch_tp(t, ntp, whm_tp1p)
    !! author: David A. Minton

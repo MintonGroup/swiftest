@@ -1,4 +1,4 @@
-submodule(whm) s_whm_kickvh_tp
+submodule(whm_classes) s_whm_kickvh_tp
 contains
    module procedure whm_kickvh_tp(ntp, whm_tp1p, dt)
    !! author: David A. Minton

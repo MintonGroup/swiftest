@@ -1,4 +1,4 @@
-submodule(whm) s_whm_getacch_ah3
+submodule(whm_classes) s_whm_getacch_ah3
 contains
    module procedure whm_getacch_ah3(npl, whm_pl1p)
    !! author: David A. Minton

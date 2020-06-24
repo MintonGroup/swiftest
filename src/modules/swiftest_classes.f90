@@ -418,6 +418,11 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest test particles
    type, abstract, public, extends(swiftest_body) :: swiftest_tp
       !! Superclass that defines the generic elements of a Swiftest test particle 
+      integer(I4B), dimension(:), allocatable :: isperi ! Perihelion passage flag
+      real(DP),     dimension(:), allocatable :: peri   ! Perihelion distance
+      real(DP),     dimension(:), allocatable :: atp    ! Semimajor axis following perihelion passage
+      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !!    component list, such as setup_tp and discard_spill_tp
    contains
       private
       ! Test particle-specific concrete methods 
@@ -432,8 +437,6 @@ module swiftest_classes
       procedure, public :: write_frame => io_write_frame_tp !! Write out a frame of test particle data to output file
       procedure, public :: setup       => setup_tp          !! A base constructor that sets the number of bodies and 
       procedure, public :: set_vec     => util_set_vec_tp   !! Method used to construct the vectorized form of the central body mass
-      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as setup_tp and discard_spill_tp
    end type swiftest_tp
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp

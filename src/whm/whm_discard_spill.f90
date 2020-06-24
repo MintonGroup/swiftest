@@ -1,4 +1,4 @@
-submodule(whm) s_whm_discard_spill 
+submodule(whm_classes) s_whm_discard_spill 
 contains
    module procedure whm_discard_spill
    !! author: David A. Minton

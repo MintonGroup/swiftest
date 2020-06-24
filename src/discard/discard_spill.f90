@@ -17,7 +17,7 @@ contains
          discards%status(:)  = pack(keeps%status(1:n),        lspill_list(1:n))
          keeps%status(:)     = pack(keeps%status(1:n),  .not. lspill_list(1:n))
 
-         do i = 1, NDIM
+         do concurrent (i = 1:NDIM)
             discards%xh(i,:) = pack(keeps%xh(i,1:n),          lspill_list(1:n))
             keeps%xh(i,:)    = pack(keeps%xh(i,1:n),    .not. lspill_list(1:n))
 
@@ -57,7 +57,7 @@ contains
 
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nbody values for both the keeps and discareds
-         discards%nbody = count(lspll_list(1:n))
+         discards%nbody = count(lspill_list(1:n))
          keeps%nbody = n - discards%nbody
       end associate
       
@@ -116,32 +116,16 @@ contains
 
       integer(I4B) :: i
 
-      associate(ntp => keeps%nody, nspill => keeps%nspill)
-         if (.not. keeps%lspill) then
-            call discard%alloc(nspill) ! Create the discard object for this type
-            keeps%lspill = .true.
-         end if
+      associate(ntp => keeps%nbody)
 
-         ! Pack the discarded bodies into the discard object
-         discard%peri(:)   = pack(keeps%peri(1:ntp),   lspill_list(1:ntp))
-         discard%atp(:)    = pack(keeps%atp(1:ntp),    lspill_list(1:ntp))
-         discard%isperi(:) = pack(keeps%isperi(1:ntp), lspill_list(1:ntp))
+         discards%isperi(:) = pack(keeps%isperi(1:ntp),       lspill_list(1:ntp))
+         keeps%isperi(:)    = pack(keeps%isperi(1:ntp), .not. lspill_list(1:ntp))
 
-         ! Pack the kept bodies back into the original object
-         keeps%peri(:)   = pack(keeps%peri(1:ntp),   .not. lspill_list(1:ntp))
-         keeps%atp(:)    = pack(keeps%atp(1:ntp),    .not. lspill_list(1:ntp))
-         keeps%isperi(:) = pack(keeps%isperi(1:ntp), .not. lspill_list(1:ntp))
+         discards%peri(:)   = pack(keeps%peri(1:ntp),         lspill_list(1:ntp))
+         keeps%peri(:)      = pack(keeps%peri(1:ntp),   .not. lspill_list(1:ntp))
 
-         do concurrent (i = 1:NDIM)
-            discard%xh(i,:) = pack(keeps%xh(i,1:ntp), lspill_list(1:ntp))
-            discard%vh(i,:) = pack(keeps%vh(i,1:ntp), lspill_list(1:ntp))
-            discard%xb(i,:) = pack(keeps%xb(i,1:ntp), lspill_list(1:ntp))
-            discard%vb(i,:) = pack(keeps%vb(i,1:ntp), lspill_list(1:ntp))
-            keeps%xh(i,:)    = pack(keeps%xh(i,1:ntp), .not. lspill_list(1:ntp))
-            keeps%vh(i,:)    = pack(keeps%vh(i,1:ntp), .not. lspill_list(1:ntp))
-            keeps%xb(i,:)    = pack(keeps%xb(i,1:ntp), .not. lspill_list(1:ntp))
-            keeps%vb(i,:)    = pack(keeps%vb(i,1:ntp), .not. lspill_list(1:ntp))
-         end do
+         discards%atp(:)    = pack(keeps%atp(1:ntp),          lspill_list(1:ntp))
+         keeps%atp(:)       = pack(keeps%atp(1:ntp),    .not. lspill_list(1:ntp))
 
       end associate
       return

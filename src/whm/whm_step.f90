@@ -1,4 +1,4 @@
-submodule(whm) s_whm_step
+submodule(whm_classes) s_whm_step
 contains
    module procedure whm_step(lfirst, lextra_force, t, npl, nplmax, ntp, ntpmax, whm_pl1p, whm_tp1p, j2rp2, j4rp4, dt, c2)
    !! author: David A. Minton

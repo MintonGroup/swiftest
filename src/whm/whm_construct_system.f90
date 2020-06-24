@@ -1,4 +1,4 @@
-submodule (whm) s_whm_construct_system
+submodule (whm_classes) s_whm_construct_system
 
 contains
 
