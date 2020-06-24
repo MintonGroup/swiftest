@@ -10,7 +10,6 @@ contains
       use swiftest
       implicit none
 
-      ! self, config, integrator
 
       select case(integrator)
       case (BS)
@@ -38,12 +37,3 @@ contains
       end procedure setup_construct_system
 
    end submodule s_setup_construct_system
-
-   integer(I4B), parameter :: BS                 = 2
-   integer(I4B), parameter :: HELIO              = 3
-   integer(I4B), parameter :: RA15               = 4
-   integer(I4B), parameter :: TU4                = 5
-   integer(I4B), parameter :: WHM                = 6
-   integer(I4B), parameter :: RMVS               = 7
-   integer(I4B), parameter :: SYMBA              = 8
-   integer(I4B), parameter :: RINGMOONS          = 9
