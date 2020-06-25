@@ -91,9 +91,11 @@ module swiftest_globals
 
    !> Standard file names
    character(*), parameter :: DISCARD_FILE = "discard.out"
+   character(*), dimension(2), parameter :: DUMP_CB_FILE    = (/ "dump_cb1.bin",    "dump_cb2.bin"    /)
    character(*), dimension(2), parameter :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
    character(*), dimension(2), parameter :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
    character(*), parameter :: ENERGY_FILE = "energy.out"
+   character(*), parameter :: CB_OUTFILE = "cb_out.dat"
    character(*), parameter :: PL_OUTFILE = "pl_out.dat"
    character(*), parameter :: TP_OUTFILE = "tp_out.dat"
 

@@ -19,6 +19,7 @@ module swiftest_classes
       real(DP)             :: t0 = 0.0_DP          !! Integration start time
       real(DP)             :: tstop = 0.0_DP       !! Integration stop time
       real(DP)             :: dt = 0.0_DP          !! Time step
+      character(STRMAX)    :: incbfile = ''        !! Name of input file for the central body
       character(STRMAX)    :: inplfile = ''        !! Name of input file for massive bodies
       character(STRMAX)    :: intpfile = ''        !! Name of input file for test particles
       character(STRMAX)    :: in_type = 'ASCII'    !! Format of input data files
