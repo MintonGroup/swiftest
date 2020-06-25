@@ -3,9 +3,10 @@ module swiftest
    !! graph: false
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
+   !$ use omp_lib
    use swiftest_globals
    use swiftest_classes
-   use whm_classes
+   !use whm_classes
    !use helio_classes
    !use rmvs_classes
    !use symba_classes

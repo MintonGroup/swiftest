@@ -27,6 +27,12 @@ program swiftest_driver
    real(DP)                                  :: finish_wall_time !! Wall clock time when execution has finished
    !character(len=*), parameter               :: fmt_dump = '(" Time = ", es12.5, "; Fraction done = ", f5.3, "; Number of active pl, tp = ", i5, ", ", i5)'
 
+   !> Define the maximum number of threads
+   nthreads = 1            ! In the *serial* case
+   !$ nthreads = omp_get_max_threads() ! In the *parallel* case
+   !$ write(*,'(a)')   ' OpenMP parameters:'
+   !$ write(*,'(a)')   ' ------------------'
+   !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads  
 
    ierr = io_get_command_line_arguments(integrator, config_file_name)
    if (ierr == 0) then
@@ -44,8 +50,9 @@ program swiftest_driver
       idump = config%istep_dump
       if (istep_out > 0) call nbody_system%write_frame(config, t, dt)
       write(*, *) " *************** Main Loop *************** "
-      do while ((t < config%tstop) .and. nbody_system%lkeep_going) 
-
+      do iloop = 1, LOOPMAX 
+         t = config%t0 + iloop * dt
+         if (t > config%tstop) exit 
          !> Step the system forward in time
          call nbody_system%step(config, t, dt)
 
@@ -80,6 +87,8 @@ program swiftest_driver
                idump = istep_dump
             end if
          end if
+         if (nbody_system%lkeep_going) 
+
       end do
 
       !> Dump the final state of the system to file

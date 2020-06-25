@@ -42,17 +42,17 @@ module swiftest_globals
 
    integer(I4B), parameter :: STRMAX = 128 !! Maximum size of character strings
 
-   character(*), parameter :: REAL4_TYPE = "REAL4" !! Symbolic name for binary output file type REAL4
-   character(*), parameter :: REAL8_TYPE = "REAL8" !! Symbolic name for binary output file type REAL8
-   character(*), parameter :: SWIFTER_REAL4_TYPE  = "SWIFTER4" !! Symbolic name for binary output file type for the old style Swifter REAL4
-   character(*), parameter :: SWIFTER_REAL8_TYPE  = "SWIFTER8" !! Symbolic name for binary output file type for the old style Swifter REAL8
+   character(*), parameter :: ASCII_TYPE          = 'ASCII' !! Symbolic name for ASCII file type
+   character(*), parameter :: REAL4_TYPE          = 'REAL4' !! Symbolic name for binary file type REAL4
+   character(*), parameter :: REAL8_TYPE          = 'REAL8' !! Symbolic name for binary file type REAL8
+   character(*), parameter :: SWIFTER_REAL4_TYPE  = 'SWIFTER4' !! Symbolic name for binary file type for the old style Swifter REAL4
+   character(*), parameter :: SWIFTER_REAL8_TYPE  = 'SWIFTER8' !! Symbolic name for binary file type for the old style Swifter REAL8
 
-   integer(I4B), parameter :: EL   = 1 !! Symbolic name for binary output file contents for orbital element type
-   integer(I4B), parameter :: XV   = 2 !! Symbolic name for binary output file contents for cartesian position and velocity type
+   character(*), parameter :: EL  = 'EL' !! Symbolic name for binary output file contents for orbital element type
+   character(*), parameter :: XV  = 'XV' !! Symbolic name for binary output file contents for cartesian position and velocity type
 
-   ! OPENMP code added by D. Minton
    ! OpenMP Parameters
-   integer(I4B), save :: nthreads = 1 !! Number of OpenMP threads
+   integer(I4B)            :: nthreads = 1 !! Number of OpenMP threads
    integer(I4B), parameter :: NTHERSHOLD = 1000 !! Threshold value for OpenMP loop parallelization
 
    integer(I4B), parameter :: SUCCESS =  0 !! Symbolic name for function return/flag code for SUCCESS
@@ -86,19 +86,25 @@ module swiftest_globals
    integer(I4B), parameter :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
 
    !> String labels for body/particle addition/subtraction in discard file
-   character(*), parameter :: ADD = "+1"
-   character(*), parameter :: SUB = "-1"
+   character(*), parameter :: ADD = '+1'
+   character(*), parameter :: SUB = '-1'
 
    !> Standard file names
-   character(*), parameter :: DISCARD_FILE = "discard.out"
-   character(*), dimension(2), parameter :: DUMP_CB_FILE    = (/ "dump_cb1.bin",    "dump_cb2.bin"    /)
-   character(*), dimension(2), parameter :: DUMP_PL_FILE    = (/ "dump_pl1.bin",    "dump_pl2.bin"    /)
-   character(*), dimension(2), parameter :: DUMP_TP_FILE    = (/ "dump_tp1.bin",    "dump_tp2.bin"    /)
-   character(*), parameter :: ENERGY_FILE = "energy.out"
-   character(*), parameter :: CB_OUTFILE = "cb_out.dat"
-   character(*), parameter :: PL_OUTFILE = "pl_out.dat"
-   character(*), parameter :: TP_OUTFILE = "tp_out.dat"
+   integer(I4B), parameter :: NDUMPFILES = 2
+   character(*), dimension(2), parameter :: DUMP_CB_FILE     = (/ 'dump_cb1.bin',     'dump_cb2.bin'    /)
+   character(*), dimension(2), parameter :: DUMP_PL_FILE     = (/ 'dump_pl1.bin',     'dump_pl2.bin'    /)
+   character(*), dimension(2), parameter :: DUMP_TP_FILE     = (/ 'dump_tp1.bin',     'dump_tp2.bin'    /)
+   character(*), dimension(2), parameter :: DUMP_CONFIG_FILE = (/ 'dump_config1.dat', 'dump_config2.dat' /) 
 
+   !> Default file names that can be changed by the user in the configuration file
+   character(*), parameter :: ENC_OUTFILE  = 'encounter.out'
+   character(*), parameter :: DISCARD_FILE = 'discard.out'
+   character(*), parameter :: ENERGY_FILE  = 'energy.out'
+   character(*), parameter :: CB_INFILE    = 'cb_out.dat'
+   character(*), parameter :: PL_INFILE    = 'pl_out.dat'
+   character(*), parameter :: TP_INFILE    = 'tp_out.dat'
+   character(*), parameter :: BIN_OUTFILE  = 'bin.dat'
+   integer(I4B), parameter :: BINUNIT      = 20 !! File unit number for the binary output file
 
    !> Integration control parameters:
    real(DP), parameter :: E2MAX    = 0.36_DP      
