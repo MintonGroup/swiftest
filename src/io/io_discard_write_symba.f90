@@ -13,9 +13,9 @@ implicit none
    integer(I4B)          :: i, index, ncomp, ierr, nplm
 
 ! executable code
-   call io_open(lun, fname, "append", "formatted", ierr)
+   call io_open(lun, fname, "APPEND", "FORMATTED", ierr)
    if (ierr /= 0) then
-      call io_open(lun, fname, "new", "formatted", ierr)
+      call io_open(lun, fname, "NEW", "FORMATTED", ierr)
       if (ierr /= 0) then
          write(*, *) "swiftest error:"
          write(*, *) "   unable to open discard output file, ", fname

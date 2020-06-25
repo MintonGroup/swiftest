@@ -52,10 +52,10 @@ contains
             call util_exit(FAILURE)
          end if
       end if
-      call io_write_hdr(iu, t, self%pl%nbody, self%tp%nbodyp, config%out_form, config%out_type)
-      if (config%out_form == EL) then ! Convert scalar mu quantities to vector for the orbital element converstion code
-         self%pl%set_vec(self%cb, dt)
-         self%tp%set_vec(self%cb, dt)
+      call io_write_hdr(iu, t, self%pl%nbody, self%tp%nbody, config%out_form, config%out_type)
+      if (config%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
+         call self%pl%xv2el(self%cb)
+         call self%tp%xv2el(self%cb)
       end if
       call self%cb%write_frame(iu, config, t, dt)
       call self%pl%write_frame(iu, config, t, dt)
@@ -75,17 +75,17 @@ contains
    
       integer(I4B)               :: ierr !! Error code
    
-      select case (config%out_type)
+      select case (out_type)
          case (REAL4_TYPE,SWIFTER_REAL4_TYPE)
-            write(iu, iostat = ierr) real(t, kind=SP), npl, ntp, iout_form
-            if (ierr < 0) then
+            write(iu, iostat = ierr) real(t, kind=SP), npl, ntp, out_form
+            if (ierr /= 0) then
                write(*, *) "Swiftest error:"
                write(*, *) "   Unable to write binary file header"
                call util_exit(FAILURE)
             end if
          case (REAL8_TYPE,SWIFTER_REAL8_TYPE)
-            write(iu, iostat = ierr) t, npl, ntp, iout_form
-            if (ierr < 0) then
+            write(iu, iostat = ierr) t, npl, ntp, out_form
+            if (ierr /= 0) then
                write(*, *) "Swiftest error:"
                write(*, *) "   Unable to write binary file header"
                call util_exit(FAILURE)
@@ -114,7 +114,7 @@ contains
          write(iu) self%Ip(:)
          write(iu) self%rot(:)
       end if
-      if (config%tides) then
+      if (config%ltides) then
          write(iu) self%k2
          write(iu) self%Q
       end if
@@ -125,86 +125,52 @@ contains
    module procedure io_write_frame_body
       !! author: David A. Minton
       !!
-      !! Write a frame of output of massive body data to the binary output file
+      !! Write a frame of output of either test particle or massive body data to the binary output file
+      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
       !!
       !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
       use swiftest
       implicit none
 
-      associate(npl => self%nbody)
+      associate(n => self%nbody)
          select case (config%out_form)
-         case (EL)
-)
-            write(iu) a(:)
-            write(iu) e(:)
-            write(iu) inc(:)
-            write(iu) capom(:)
-            write(iu) omega(:)
-            write(iu) capm(:)
+         case (EL) 
+            write(iu) self%a(1:n)
+            write(iu) self%e(1:n)
+            write(iu) self%inc(1:n)
+            write(iu) self%capom(:)
+            write(iu) self%omega(:)
+            write(iu) self%capm(:)
          case (XV)
-            write(iu) self%xh(1,1:npl)
-            write(iu) self%xh(2,1:npl)
-            write(iu) self%xh(3,1:npl)
-            write(iu) self%vh(1,1:npl)
-            write(iu) self%vh(2,1:npl)
-            write(iu) self%vh(3,1:npl)
+            write(iu) self%xh(1,1:n)
+            write(iu) self%xh(2,1:n)
+            write(iu) self%xh(3,1:n)
+            write(iu) self%vh(1,1:n)
+            write(iu) self%vh(2,1:n)
+            write(iu) self%vh(3,1:n)
          end select
-         write(iu) self%mass(1:npl)
-         write(iu) self%radius(1:npl)
-         if (config%lrotation) then
-            write(iu) self%Ip(1:npl)
-            write(iu) self%rot(1:npl)
-         end if
-         if (config%tides) then
-            write(iu) self%k2(1:npl)
-            write(iu) self%Q(1:npl)
-         end if
-      end associate
-
-      return
-
-   end procedure io_write_frame_pl
-
-   module procedure io_write_frame_tp
-      !! author: David A. Minton
-      !!
-      !! Write a frame of output of test particle data to the binary output file
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
-      !! Adapted from Hal Levison's Swift routine io_write_frame.F
-      use swiftest
-      implicit none
-
-      associate(ntp => self%nbody)
-         select case (config%out_form)
-         case (EL)
-            call orbel_xv2el(mu_vec(1:ntp), self%xh(1,1:ntp), &
-                                            self%xh(2,1:ntp), &
-                                            self%xh(3,1:ntp), &
-                                            self%vh(1,1:ntp), &
-                                            self%vh(2,1:ntp), &
-                                            self%vh(3,1:ntp), &
-                                            a, e, inc, capom, omega, capm)
-            write(iu) a(:)
-            write(iu) e(:)
-            write(iu) inc(:)
-            write(iu) capom(:)
-            write(iu) omega(:)
-            write(iu) capm(:)
-         case (XV)
-            write(iu) self%xh(1,1:ntp)
-            write(iu) self%xh(2,1:ntp)
-            write(iu) self%xh(3,1:ntp)
-            write(iu) self%vh(1,1:ntp)
-            write(iu) self%vh(2,1:ntp)
-            write(iu) self%vh(3,1:ntp)
+         select type(self)  
+         class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
+            write(iu) self%mass(1:n)
+            write(iu) self%radius(1:n)
+            if (config%lrotation) then
+               write(iu) self%Ip(1,1:n)
+               write(iu) self%Ip(2,1:n)
+               write(iu) self%Ip(3,1:n)
+               write(iu) self%rot(1,1:n)
+               write(iu) self%rot(2,1:n)
+               write(iu) self%rot(3,1:n)
+            end if
+            if (config%ltides) then
+               write(iu) self%k2(1:n)
+               write(iu) self%Q(1:n)
+            end if
          end select
       end associate
 
       return
-
-   end procedure io_write_frame_tp
+   end procedure io_write_frame_body
 
    module procedure io_write_encounter
       !! author: David A. Minton
@@ -222,13 +188,13 @@ contains
       integer(I4B)        :: ierr
       integer(I4B), save    :: iu = lun
 
-      open(unit = iu, file = encounter_file, status = 'append', form = 'unformatted')
+      open(unit = iu, file = encounter_file, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED')
       if ((ierr /= 0) .and. lfirst) then
-         open(unit = iu, file = encounter_file, status = 'new', form = 'unformatted')
+         open(unit = iu, file = encounter_file, status = 'NEW', form = 'UNFORMATTED')
       end if
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
-         write(*, *) "   unable to open binary encounter file"
+         write(*, *) "   Unable to open binary encounter file"
          call util_exit(FAILURE)
       end if
       lfirst = .false.
@@ -238,13 +204,12 @@ contains
          write(*, *) "   Unable to write binary file record"
          call util_exit(FAILURE)
       end if
-      call io_write_line(iu, name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), REAL8_TYPE, mass = mass1, radius = radius1)
-      call io_write_line(iu, name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), vh2(3), REAL8_TYPE, mass = mass2, radius = radius2)
+      write(iu) name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), mass1, radius1
+      write(iu) name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), mass2, radius2
       close(unit = iu, iostat = ierr)
-      !end if
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
-         write(*, *) "   unable to close binary encounter file"
+         write(*, *) "   Unable to close binary encounter file"
          call util_exit(FAILURE)
       end if
 

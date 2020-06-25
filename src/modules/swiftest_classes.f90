@@ -26,7 +26,7 @@ module swiftest_classes
       character(STRMAX)    :: in_type        = ASCII_TYPE         !! Format of input data files
       integer(I4B)         :: istep_out      = -1                 !! Number of time steps between binary outputs
       character(STRMAX)    :: outfile        = BIN_OUTFILE        !! Name of output binary file
-      character(STRMAX)    :: out_type       = REAL4_TYPE         !! Binary format of output file
+      character(STRMAX)    :: out_type       = REAL8_TYPE         !! Binary format of output file
       character(STRMAX)    :: out_form       = XV                 !! Data to write to output file
       character(STRMAX)    :: out_stat       = 'NEW'              !! Open status for output binary file
       integer(I4B)         :: istep_dump     = -1                 !! Number of time steps between dumps
@@ -64,15 +64,15 @@ module swiftest_classes
       procedure :: dump           => io_dump_config
       procedure :: read_from_file => io_read_config_in
       !TODO: Figure out if user-defined derived-type io can be made to work properly
-      !generic   :: read(formatted) => config_reader
-      !generic   :: write(formatted) => config_writer
+      !generic   :: read(FORMATTED) => config_reader
+      !generic   :: write(FORMATTED) => config_writer
    end type swiftest_configuration
 
    !> Interfaces for concrete type-bound procedures for swiftest_configuration
    interface
       !> Type-bound procedure for user-defined derived-type IO for reading
-      module subroutine io_config_reader(config, unit, iotype, v_list, iostat, iomsg) 
-         class(swiftest_configuration), intent(inout) :: config     !! Collection of user-defined configuration parameters
+      module subroutine io_config_reader(self , unit, iotype, v_list, iostat, iomsg) 
+         class(swiftest_configuration), intent(inout) :: self       !! Collection of user-defined configuration parameters
          integer, intent(in)                          :: unit       !! File unit number
          character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the user-defined input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                     !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
@@ -82,8 +82,8 @@ module swiftest_classes
       end subroutine io_config_reader
 
       !> Type-bound procedure for user-defined derived-type IO for writing
-      module subroutine io_config_writer(config, unit, iotype, v_list, iostat, iomsg) 
-         class(swiftest_configuration),intent(in)  :: config       !! Collection of user-defined parameters
+      module subroutine io_config_writer(self, unit, iotype, v_list, iostat, iomsg) 
+         class(swiftest_configuration),intent(in)     :: self         !! Collection of user-defined parameters
          integer, intent(in)                          :: unit       !! File unit number
          character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the user-defined input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                     !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
@@ -93,15 +93,16 @@ module swiftest_classes
       end subroutine io_config_writer
 
       !> Type-bound procedure to write out the configuration parameters into a dump file in case the run needs to be restarted
-      module subroutine io_dump_config(config, t, dt)
-         class(swiftest_configuration),intent(in) :: config  !! Output collection of user-defined parameters
+      module subroutine io_dump_config(self, config_file_name, t, dt)
+         class(swiftest_configuration),intent(in) :: self    !! Output collection of user-defined parameters
+         character(len=*), intent(in)             :: config_file_name !! Parameter input file name (i.e. param.in)
          real(DP),intent(in)                      :: t       !! Current simulation time
          real(DP),intent(in)                      :: dt      !! Step size
       end subroutine io_dump_config
 
       !> Type-bound procedure to read in the input parameters from a file
-      module subroutine io_read_config_in(config, config_file_name, integrator) 
-         class(swiftest_configuration),intent(out) :: config           !! Input collection of user-defined configuration parameters
+      module subroutine io_read_config_in(self, config_file_name, integrator) 
+         class(swiftest_configuration),intent(out) :: self             !! Input collection of user-defined configuration parameters
          character(len=*), intent(in)              :: config_file_name !! Parameter input file name (i.e. param.in)
          integer(I4B), intent(in)                  :: integrator       !! Symbolic name of integrator to use
       end subroutine io_read_config_in
@@ -118,6 +119,7 @@ module swiftest_classes
       procedure(abstract_dump),        deferred  :: dump
       procedure(abstract_initialize),  deferred  :: initialize
       procedure(abstract_write_frame), deferred  :: write_frame
+      procedure(abstract_read_frame),  deferred  :: read_frame
    end type swiftest_base
 
    !> Interfaces for abstract type-bound procedures for swiftest_base
@@ -139,12 +141,21 @@ module swiftest_classes
 
       subroutine abstract_write_frame(self, iu, config, t, dt)
          import DP, I4B, swiftest_base, swiftest_configuration
-         class(swiftest_base),          intent(in)    :: self     !! Swiftest base object
+         class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
          integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
          class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)    :: t        !! Current simulation time
          real(DP),                      intent(in)    :: dt       !! Step size
       end subroutine abstract_write_frame
+
+      subroutine abstract_read_frame(self, iu, config, form, ierr)
+         import I4B, swiftest_base, swiftest_configuration
+         class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
+         integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
+         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
+         character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
+         integer(I4B),                  intent(out)   :: ierr     !! Error code
+      end subroutine abstract_read_frame
    end interface
 
    !********************************************************************************************************************************
@@ -169,6 +180,7 @@ module swiftest_classes
       procedure, public         :: dump        => io_dump_cb         !! I/O routine for dumping central body data to a file
       procedure, public         :: initialize  => io_read_cb_in      !! I/O routine for reading in central body data
       procedure, public         :: write_frame => io_write_frame_cb  !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public         :: read_frame  => io_read_frame_cb   !! I/O routine for reading out a single frame of time-series data for the central body
    end type swiftest_central_body
 
    interface              
@@ -183,12 +195,21 @@ module swiftest_classes
 
       module subroutine io_write_frame_cb(self, iu, config, t, dt)
          implicit none
-         class(swiftest_central_body),  intent(in)    :: self   !! Swiftest central body object 
+         class(swiftest_central_body),  intent(inout) :: self   !! Swiftest central body object 
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)    :: t      !! Current simulation time
          real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine io_write_frame_cb
+
+      module subroutine io_read_frame_cb(self, iu, config, form, ierr)
+         implicit none
+         class(swiftest_central_body),  intent(inout) :: self     !! Swiftest central body object
+         integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
+         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
+         character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
+         integer(I4B),                  intent(out)   :: ierr     !! Error code
+      end subroutine io_read_frame_cb
 
       module subroutine io_read_cb_in(self, config) 
          implicit none
@@ -227,6 +248,7 @@ module swiftest_classes
       procedure, public  :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity  vectors
       procedure, public  :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
       procedure, public  :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public  :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure          :: set_vec_dt  => util_set_vec_dt     !! Vectorizes scalar dt quantity for use in elemental procedures
 
       ! Abstract coordinate transform methods that are common for all types of nbody particles
@@ -277,12 +299,21 @@ module swiftest_classes
    interface
       module subroutine io_write_frame_body(self, iu, config, t, dt)
          implicit none
-         class(swiftest_body),          intent(in)    :: self   !! Swiftest particle object
+         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)    :: t      !! Current simulation time
          real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine io_write_frame_body
+
+      module subroutine io_read_frame_body(self, iu, config, form, ierr)
+         implicit none
+         class(swiftest_body),          intent(inout) :: self    !! Swiftest particle object
+         integer(I4B),                  intent(inout) :: iu      !! Unit number for the output file to write frame to
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+         character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
+         integer(I4B),                  intent(out)   :: ierr    !! Error code
+      end subroutine io_read_frame_body
 
       module subroutine setup_body(self,n)
          implicit none
@@ -292,7 +323,7 @@ module swiftest_classes
 
       module subroutine util_set_vec_dt(self, dt)
          implicit none
-         class(swiftest_body),           intent(inout) :: self !! Swiftest particle object
+         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
          real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
       end subroutine util_set_vec_dt
 
@@ -584,7 +615,7 @@ module swiftest_classes
       !> Method to write out a single frame of the simulation to file
       module subroutine io_write_frame_system(self, iu, config, t, dt)
          implicit none
-         class(swiftest_nbody_system),  intent(in)    :: self   !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters
          real(DP),                      intent(in)    :: t      !! Current simulation time
@@ -794,11 +825,11 @@ module swiftest_classes
          integer(I4B)                  :: ierr             !! I/O error code
       end function io_get_command_line_arguments
 
-      module function io_read_encounter(t, name1, name2, mass1, mass2, xh1, xh2, vh1, vh2, encounter_file, out_type)
+      module function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2 xh1, xh2, vh1, vh2, encounter_file, out_type)
          implicit none
          integer(I4B)         :: io_read_encounter
          integer(I4B), intent(out)     :: name1, name2
-         real(DP), intent(out)      :: t, mass1, mass2
+         real(DP), intent(out)      :: t, mass1, mass2, radkus1, radius2
          real(DP), dimension(NDIM), intent(out) :: xh1, xh2, vh1, vh2
          character(*), intent(in)      :: encounter_file,out_type
       end function io_read_encounter
@@ -838,13 +869,13 @@ module swiftest_classes
          character(*), intent(in)     :: encounter_file, out_type
       end subroutine io_write_encounter
 
-      module subroutine io_write_hdr(iu, t, npl, ntp, iout_form, out_type)
-         integer(I4B), intent(in) :: iu            !! Output file unit number
-         real(DP),     intent(in) :: t             !! Current time of simulation
-         integer(I4B), intent(in) :: npl           !! Number of massive bodies
-         integer(I4B), intent(in) :: ntp           !! Number of test particles
-         character(*), intent(in) :: iout_form     !! Output format type ("EL" or  "XV")
-         character(*), intent(in) :: out_type      !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
+      module subroutine io_write_hdr(iu, t, npl, ntp, out_form, out_type)
+         integer(I4B), intent(in) :: iu       !! Output file unit number
+         real(DP),     intent(in) :: t        !! Current time of simulation
+         integer(I4B), intent(in) :: npl      !! Number of massive bodies
+         integer(I4B), intent(in) :: ntp      !! Number of test particles
+         character(*), intent(in) :: out_form !! Output format type ("EL" or  "XV")
+         character(*), intent(in) :: out_type !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
       end subroutine io_write_hdr
 
       module function io_write_line_swifter(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)

@@ -5,10 +5,10 @@ contains
       !! author: David A. Minton
       !!
       !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
-      !! NOTE: Be sure that set_vec has been run prior to calling this subroutine in order to calculate the mu vectors
       use swiftest
       implicit none
      
+      call self%set_vec(cb)
       associate(n => self%nbody)
          call orbel_xv2el(self%mu_vec(1:n), self%xh(1,1:n),  self%xh(2,1:n),  self%xh(3,1:n), &
                                             self%vh(1,1:n),  self%vh(2,1:n),  self%vh(3,1:n), &
@@ -61,7 +61,7 @@ contains
          inc = acos(fac)
       end if
       fac = sqrt(hvec(1) * hvec(1) + hvec(2) * hvec(2)) / h
-      if (fac < VSMALL) then
+      if (fac**2 < VSMALL) then
          u = atan2(x(2), x(1))
          if (hvec(3) < 0.0_DP) u = -u
       else

@@ -38,7 +38,7 @@ contains
       !!    as the newline characters are ignored in the input file when compiled in ifort.
 
       !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) config
-      call config_reader(LUN, iotype= "none", v_list = [integrator], iostat = ierr, iomsg = error_message)
+      call self%config_reader(LUN, iotype= "none", v_list = [integrator], iostat = ierr, iomsg = error_message)
       if (ierr /= 0) then
          write(*,*) 'Swiftest error reading ', trim(adjustl(config_file_name))
          write(*,*) ierr,trim(adjustl(error_message))
@@ -89,100 +89,98 @@ contains
             config_value = io_get_token(line_trim, ifirst, ilast, iostat)
             select case (config_name)
             case ("NPLMAX")
-               read(config_value, *) config%nplmax
+               read(config_value, *) self%nplmax
             case ("NTPMAX")
-               read(config_value, *) config%ntpmax
+               read(config_value, *) self%ntpmax
             case ("T0")
-               read(config_value, *) config%t0
+               read(config_value, *) self%t0
                t0_set = .true.
             case ("TSTOP")
-               read(config_value, *) config%tstop
+               read(config_value, *) self%tstop
                tstop_set = .true.
             case ("DT")
-               read(config_value, *) config%dt
+               read(config_value, *) self%dt
             case ("CB_IN")
-               config%incbfile = config_value
+               self%incbfile = config_value
             case ("PL_IN")
-               config%inplfile = config_value
+               self%inplfile = config_value
             case ("TP_IN")
-               config%intpfile = config_value
+               self%intpfile = config_value
             case ("IN_TYPE")
                call util_toupper(config_value)
-               config%in_type = config_value
+               self%in_type = config_value
             case ("ISTEP_OUT")
-               read(config_value, *) config%istep_out
+               read(config_value, *) self%istep_out
             case ("BIN_OUT")
-               config%outfile = config_value
+               self%outfile = config_value
             case ("OUT_TYPE")
                call util_toupper(config_value)
-               config%out_type = config_value
+               self%out_type = config_value
             case ("OUT_FORM")
                call util_toupper(config_value)
-               config%out_form = config_value
+               self%out_form = config_value
             case ("OUT_STAT")
                call util_toupper(config_value)
-               config%out_stat = config_value
+               self%out_stat = config_value
             case ("ISTEP_DUMP")
-               read(config_value, *) config%istep_dump
+               read(config_value, *) self%istep_dump
             case ("CHK_CLOSE")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') config%lclose = .true.
+               if (config_value == "YES" .or. config_value == 'T') self%lclose = .true.
             case ("CHK_RMIN")
-               read(config_value, *) config%rmin
+               read(config_value, *) self%rmin
             case ("CHK_RMAX")
-               read(config_value, *) config%rmax
+               read(config_value, *) self%rmax
             case ("CHK_EJECT")
-               read(config_value, *) config%rmaxu
+               read(config_value, *) self%rmaxu
             case ("CHK_QMIN")
-               read(config_value, *) config%qmin
+               read(config_value, *) self%qmin
             case ("CHK_QMIN_COORD")
                call util_toupper(config_value)
-               config%qmin_coord = config_value
+               self%qmin_coord = config_value
             case ("CHK_QMIN_RANGE")
-               read(config_value, *) config%qmin_alo
+               read(config_value, *) self%qmin_alo
                ifirst = ilast + 1
                config_value = io_get_token(line, ifirst, ilast, iostat)
-               read(config_value, *) config%qmin_ahi
+               read(config_value, *) self%qmin_ahi
             case ("ENC_OUT")
-               config%encounter_file = config_value
+               self%encounter_file = config_value
             case ("EXTRA_FORCE")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') config%lextra_force = .true.
+               if (config_value == "YES" .or. config_value == 'T') self%lextra_force = .true.
             case ("BIG_DISCARD")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T' ) config%lbig_discard = .true.
+               if (config_value == "YES" .or. config_value == 'T' ) self%lbig_discard = .true.
             case ("FRAGMENTATION")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == "T") config%lfragmentation = .true.
+               if (config_value == "YES" .or. config_value == "T") self%lfragmentation = .true.
             case ("MU2KG")
-               read(config_value, *) config%MU2KG
+               read(config_value, *) self%MU2KG
             case ("TU2S")
-               read(config_value, *) config%TU2S
+               read(config_value, *) self%TU2S
             case ("DU2M")
-               read(config_value, *) config%DU2M
+               read(config_value, *) self%DU2M
             case ("MTINY")
-               read(config_value, *) config%mtiny
+               read(config_value, *) self%mtiny
                mtiny_set = .true.
             case ("ENERGY")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') config%lenergy = .true.
-            case ("RING_OUTFILE")
-               config%ring_outfile = config_value
+               if (config_value == "YES" .or. config_value == 'T') self%lenergy = .true.
             case ("ROTATION")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') config%lrotation = .true. 
+               if (config_value == "YES" .or. config_value == 'T') self%lrotation = .true. 
             case ("TIDES")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') config%ltides = .true. 
+               if (config_value == "YES" .or. config_value == 'T') self%ltides = .true. 
             case ("GR")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') config%lgr = .true. 
+               if (config_value == "YES" .or. config_value == 'T') self%lgr = .true. 
             case ("YARKOVSKY")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') config%lyarkovsky = .true. 
+               if (config_value == "YES" .or. config_value == 'T') self%lyarkovsky = .true. 
             case ("YORP")
                call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') config%lyorp = .true. 
+               if (config_value == "YES" .or. config_value == 'T') self%lyorp = .true. 
             case default
                write(iomsg,*) "Unknown parameter -> ",config_name
                iostat = -1
@@ -199,87 +197,87 @@ contains
          iostat = -1
          return
       end if
-      if (config%dt <= 0.0_DP) then
+      if (self%dt <= 0.0_DP) then
          write(iomsg,*) 'Invalid timestep: '
          iostat = -1
          return
       end if
-      if (config%inplfile == "") then
+      if (self%inplfile == "") then
          write(iomsg,*) 'No valid massive body file in input file'
          iostat = -1
          return
       end if
-      if ((config%in_type /= REAL8_TYPE) .and. (config%in_type /= "ASCII")) then
-         write(iomsg,*) 'Invalid input file type:',trim(adjustl(config%in_type))
+      if ((self%in_type /= REAL8_TYPE) .and. (self%in_type /= "ASCII")) then
+         write(iomsg,*) 'Invalid input file type:',trim(adjustl(self%in_type))
          iostat = -1
          return
       end if
-      if ((config%istep_out <= 0) .and. (config%istep_dump <= 0)) then
+      if ((self%istep_out <= 0) .and. (self%istep_dump <= 0)) then
          write(iomsg,*) 'Invalid istep'
          iostat = -1
          return
       end if
-      if ((config%istep_out > 0) .and. (config%outfile == "")) then
+      if ((self%istep_out > 0) .and. (self%outfile == "")) then
          write(iomsg,*) 'Invalid outfile'
          iostat = -1
          return
       end if
-      if (config%outfile /= "") then
-         if ((config%out_type /= REAL4_TYPE) .and. (config%out_type /= REAL8_TYPE) .and. &
-               (config%out_type /= SWIFTER_REAL4_TYPE)  .and. (config%out_type /= SWIFTER_REAL8_TYPE)) then
-            write(iomsg,*) 'Invalid out_type: ',trim(adjustl(config%out_type))
+      if (self%outfile /= "") then
+         if ((self%out_type /= REAL4_TYPE) .and. (self%out_type /= REAL8_TYPE) .and. &
+               (self%out_type /= SWIFTER_REAL4_TYPE)  .and. (self%out_type /= SWIFTER_REAL8_TYPE)) then
+            write(iomsg,*) 'Invalid out_type: ',trim(adjustl(self%out_type))
             iostat = -1
             return
          end if
-         if ((config%out_form /= "EL") .and. (config%out_form /= "XV")) then
-            write(iomsg,*) 'Invalid out_form: ',trim(adjustl(config%out_form))
+         if ((self%out_form /= "EL") .and. (self%out_form /= "XV")) then
+            write(iomsg,*) 'Invalid out_form: ',trim(adjustl(self%out_form))
             iostat = -1
             return
          end if
-         if ((config%out_stat /= "NEW") .and. (config%out_stat /= "REPLACE") .and. (config%out_stat /= "APPEND")) then
-            write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(config%out_stat))
+         if ((self%out_stat /= "NEW") .and. (self%out_stat /= "REPLACE") .and. (self%out_stat /= "APPEND")) then
+            write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(self%out_stat))
             iostat = -1
             return
          end if
       end if
-      if (config%qmin > 0.0_DP) then
-         if ((config%qmin_coord /= "HELIO") .and. (config%qmin_coord /= "BARY")) then
-            write(iomsg,*) 'Invalid qmin_coord: ',trim(adjustl(config%qmin_coord))
+      if (self%qmin > 0.0_DP) then
+         if ((self%qmin_coord /= "HELIO") .and. (self%qmin_coord /= "BARY")) then
+            write(iomsg,*) 'Invalid qmin_coord: ',trim(adjustl(self%qmin_coord))
             iostat = -1
             return
          end if
-         if ((config%qmin_alo <= 0.0_DP) .or. (config%qmin_ahi <= 0.0_DP)) then
+         if ((self%qmin_alo <= 0.0_DP) .or. (self%qmin_ahi <= 0.0_DP)) then
             write(iomsg,*) 'Invalid qmin vals'
             iostat = -1
             return
          end if
       end if
 
-      write(*,*) "NPLMAX         = ",config%nplmax
-      write(*,*) "NTPMAX         = ",config%ntpmax
-      write(*,*) "T0             = ",config%t0
-      write(*,*) "TSTOP          = ",config%tstop
-      write(*,*) "DT             = ",config%dt
-      write(*,*) "PL_IN          = ",trim(adjustl(config%inplfile))
-      write(*,*) "TP_IN          = ",trim(adjustl(config%intpfile))
-      write(*,*) "IN_TYPE        = ",trim(adjustl(config%in_type))
-      write(*,*) "ISTEP_OUT      = ",config%istep_out
-      write(*,*) "BIN_OUT        = ",trim(adjustl(config%outfile))
-      write(*,*) "OUT_TYPE       = ",trim(adjustl(config%out_type))
-      write(*,*) "OUT_FORM       = ",trim(adjustl(config%out_form))
-      write(*,*) "OUT_STAT       = ",trim(adjustl(config%out_stat))
-      write(*,*) "ISTEP_DUMP     = ",config%istep_dump
-      write(*,*) "CHK_CLOSE      = ",config%lclose
-      write(*,*) "CHK_RMIN       = ",config%rmin
-      write(*,*) "CHK_RMAX       = ",config%rmax
-      write(*,*) "CHK_EJECT      = ",config%rmaxu
-      write(*,*) "CHK_QMIN       = ",config%qmin
-      write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(config%qmin_coord))
-      write(*,*) "CHK_QMIN_RANGE = ",config%qmin_alo, config%qmin_ahi
-      write(*,*) "ENC_OUT        = ",trim(adjustl(config%encounter_file))
-      write(*,*) "EXTRA_FORCE    = ",config%lextra_force
-      write(*,*) "BIG_DISCARD    = ",config%lbig_discard
-      if (config%lenergy) write(*,*) "ENERGY         = ",config%lenergy
+      write(*,*) "NPLMAX         = ",self%nplmax
+      write(*,*) "NTPMAX         = ",self%ntpmax
+      write(*,*) "T0             = ",self%t0
+      write(*,*) "TSTOP          = ",self%tstop
+      write(*,*) "DT             = ",self%dt
+      write(*,*) "PL_IN          = ",trim(adjustl(self%inplfile))
+      write(*,*) "TP_IN          = ",trim(adjustl(self%intpfile))
+      write(*,*) "IN_TYPE        = ",trim(adjustl(self%in_type))
+      write(*,*) "ISTEP_OUT      = ",self%istep_out
+      write(*,*) "BIN_OUT        = ",trim(adjustl(self%outfile))
+      write(*,*) "OUT_TYPE       = ",trim(adjustl(self%out_type))
+      write(*,*) "OUT_FORM       = ",trim(adjustl(self%out_form))
+      write(*,*) "OUT_STAT       = ",trim(adjustl(self%out_stat))
+      write(*,*) "ISTEP_DUMP     = ",self%istep_dump
+      write(*,*) "CHK_CLOSE      = ",self%lclose
+      write(*,*) "CHK_RMIN       = ",self%rmin
+      write(*,*) "CHK_RMAX       = ",self%rmax
+      write(*,*) "CHK_EJECT      = ",self%rmaxu
+      write(*,*) "CHK_QMIN       = ",self%qmin
+      write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(self%qmin_coord))
+      write(*,*) "CHK_QMIN_RANGE = ",self%qmin_alo, self%qmin_ahi
+      write(*,*) "ENC_OUT        = ",trim(adjustl(self%encounter_file))
+      write(*,*) "EXTRA_FORCE    = ",self%lextra_force
+      write(*,*) "BIG_DISCARD    = ",self%lbig_discard
+      if (self%lenergy) write(*,*) "ENERGY         = ",self%lenergy
 
       if ((MU2KG < 0.0_DP) .or. (TU2S < 0.0_DP) .or. (DU2M < 0.0_DP)) then
          write(iomsg,*) 'Invalid unit conversion factor'
@@ -289,13 +287,13 @@ contains
 
       ! The fragmentation model requires the user to set the unit system explicitly.
       if ((integrator == SYMBA) .or. (integrator == RINGMOONS)) then 
-         write(*,*) "FRAGMENTATION  = ",config%lfragmentation
+         write(*,*) "FRAGMENTATION  = ",self%lfragmentation
          if (.not.mtiny_set) then
             write(iomsg,*) 'SyMBA requres an MTINY value'
             iostat = -1
          end if
       else
-         if (config%lfragmentation) then
+         if (self%lfragmentation) then
             write(iomsg,*) 'This integrator does not support fragmentation.'
             iostat = -1
             return
@@ -308,7 +306,7 @@ contains
       end if
 
       if ((integrator == SYMBA) .or. (integrator == RINGMOONS) .or. (integrator == RMVS)) then
-         if (.not.config%lclose) then
+         if (.not.self%lclose) then
             write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled'
             iostat = -1
             return
@@ -316,12 +314,12 @@ contains
       end if
 
       if (mtiny_set) then
-         if (config%mtiny < 0.0_DP) then
-            write(iomsg,*) "Invalid MTINY: ",config%mtiny
+         if (self%mtiny < 0.0_DP) then
+            write(iomsg,*) "Invalid MTINY: ",self%mtiny
             iostat = -1
             return
          else
-            write(*,*) "MTINY          = ",config%mtiny   
+            write(*,*) "MTINY          = ",self%mtiny   
          end if
       end if
 
@@ -330,42 +328,124 @@ contains
       return 
    end procedure io_config_reader
 
+   module procedure io_read_frame_cb
+      !! author: David A. Minton
+      !!
+      !! Reads a frame of output of central body data to the binary output file
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine  io_read_frame.f90
+      !! Adapted from Hal Levison's Swift routine io_read_frame.F
+      use swiftest
+      implicit none
+
+      read(iu, iostat = ierr) self%mass
+      read(iu, iostat = ierr) self%radius
+      read(iu, iostat = ierr) self%j2rp2 
+      read(iu, iostat = ierr) self%j4rp4 
+      if (config%lrotation) then
+         read(iu, iostat = ierr) self%Ip(:)
+         read(iu, iostat = ierr) self%rot(:)
+      end if
+      if (config%ltides) then
+         read(iu, iostat = ierr) self%k2
+         read(iu, iostat = ierr) self%Q
+      end if
+      if (ierr /=0) then
+         write(*,*) 'Error reading central body data'
+         call util_exit(FAIULRE)
+      end if
+
+      return
+   end procedure io_read_frame_cb
+
+   module procedure io_read_frame_body
+      !! author: David A. Minton
+      !!
+      !! Reads a frame of output of either test particle or massive body data to the binary output file
+      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine  io_read_frame.f90
+      !! Adapted from Hal Levison's Swift routine io_read_frame.F
+      use swiftest
+      implicit none
+
+      associate(n => self%nbody)
+         select case (form)
+         case (EL) 
+            read(iu, iostat = ierr) self%a(1:n)
+            read(iu, iostat = ierr) self%e(1:n)
+            read(iu, iostat = ierr) self%inc(1:n)
+            read(iu, iostat = ierr) self%capom(:)
+            read(iu, iostat = ierr) self%omega(:)
+            read(iu, iostat = ierr) self%capm(:)
+         case (XV)
+            read(iu, iostat = ierr) self%xh(1,1:npl)
+            read(iu, iostat = ierr) self%xh(2,1:npl)
+            read(iu, iostat = ierr) self%xh(3,1:npl)
+            read(iu, iostat = ierr) self%vh(1,1:npl)
+            read(iu, iostat = ierr) self%vh(2,1:npl)
+            read(iu, iostat = ierr) self%vh(3,1:npl)
+         end select
+         select type(self)  
+         class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
+            read(iu, iostat = ierr) self%mass(1:npl)
+            read(iu, iostat = ierr) self%radius
+            if (config%lrotation) then
+               read(iu, iostat = ierr) self%Ip(1:npl)
+               read(iu, iostat = ierr) self%rot(1:npl)
+            end if
+            if (config%ltides) then
+               read(iu, iostat = ierr) self%k2(1:npl)
+               read(iu, iostat = ierr) self%Q(1:npl)
+            end if
+         end select
+      end associate
+
+      if (ierr /=0) then
+         write(*,*) 'Error reading Swiftest body data'
+         call util_exit(FAIULRE)
+      end if
+
+      return
+   end procedure io_read_frame_body
+
    module procedure io_read_cb_in
       !! author: David A. Minton
       !!
-      !! Read in central body data 
+      !! Readsin central body data 
       !!
       !! Adapted from David E. Kaufmann's Swifter routine swiftest_init_pl.f90
       !! Adapted from Martin Duncan's Swift routine swiftest_init_pl.f
       implicit none
 
       integer(I4B), parameter :: LUN = 7              !! Unit number of input file
-      integer(I4B)            :: i, iu, ierr, npl
+      integer(I4B)            :: i, ierr, npl
       logical                 :: is_ascii 
 
       ierr = 0
-      is_ascii = (config%in_type == 'ASCII') 
+      is_ascii = (self%in_type == 'ASCII') 
       if (is_ascii) then
-         open(unit = LUN, file = config%incbfile, status = 'old', form = 'formatted', iostat = ierr)
+         open(unit = LUN, file = self%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
          read(LUN, *, iostat = ierr) self%mass
          read(LUN, *, iostat = ierr) self%radius
          read(LUN, *, iostat = ierr) self%j2rp2
          read(LUN, *, iostat = ierr) self%j4rp4
-         if (config%lrotation) then
+         if (self%lrotation) then
             read(LUN, *, iostat = ierr) self%Ip(:)
             read(LUN, *, iostat = ierr) self%rot(:)
          end if
-         if (config%tides) then
+         if (self%ltides) then
             read(LUN, *, iostat = ierr) self%k2
             read(LUN, *, iostat = ierr) self%Q
          end if
             
       else
-         open(unit = LUN, file = config%incbfile, status = 'old', form = 'unformatted', iostat = ierr)
+         open(unit = LUN, file = self%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
+         call self%read_frame(LUN, config, ierr)
       end if
       close(LUN)
       if (ierr /=  0) then
-         write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(config%inplfile))
+         write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(self%inplfile))
          call util_exit(FAILURE)
       end if
       return
@@ -385,17 +465,17 @@ contains
       logical                 :: is_ascii 
 
       ierr = 0
-      is_ascii = (config%in_type == 'ASCII') 
-      select case(config%in_type)
+      is_ascii = (self%in_type == 'ASCII') 
+      select case(self%in_type)
       case(ASCII_TYPE)
-         open(unit = LUN, file = config%inplfile, status = 'old', form = 'formatted', iostat = ierr)
+         open(unit = LUN, file = self%inplfile, status = 'old', form = 'FORMATTED', iostat = ierr)
          read(LUN, *, iostat = ierr) npl
          call self%alloc(npl)
          if (npl > 0) then
             do i = 1, npl
                read(LUN, *, iostat = ierr) self%name(i), self%mass(i)
                if (ierr /= 0 ) exit
-               if (config%lclose) then
+               if (self%lclose) then
                   read(LUN, *, iostat = ierr) self%radius(i)
                   if (ierr /= 0 ) exit
                else
@@ -407,34 +487,21 @@ contains
                self%status(i) = ACTIVE
             end do
          end if
-      case (REAL4_TYPE, REAL8_TYPE, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
-         open(unit = LUN, file = config%inplfile, status = 'old', form = 'unformatted', iostat = ierr)
+      case (REAL4_TYPE, REAL8_TYPE)  !, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
+         open(unit = LUN, file = self%inplfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
          read(LUN, iostat = ierr) npl
          call self%alloc(npl)
          if (npl > 0) then
-            read(LUN, iostat = ierr) self%name(1:npl)
-            read(LUN, iostat = ierr) self%mass(1:npl)
-            if (config%lclose) then
-               read(LUN, iostat = ierr) self%radius(1:npl)
-            else
-               self%radius(:) = 0.0_DP
-            end if
-            read(LUN, iostat = ierr) self%xh(1,1:npl)
-            read(LUN, iostat = ierr) self%xh(2,1:npl)
-            read(LUN, iostat = ierr) self%xh(3,1:npl)
-            read(LUN, iostat = ierr) self%vh(1,1:npl)
-            read(LUN, iostat = ierr) self%vh(2,1:npl)
-            read(LUN, iostat = ierr) self%vh(3,1:npl)
-            if (ierr /= 0 ) exit
+            self%read_frame(LUN, config, form = XV, ierr)
             self%status(:) = ACTIVE
          end if
       case default
-         write(*,*) trim(adjustl(config%in_type)) // ' is an unrecognized file type'
+         write(*,*) trim(adjustl(self%in_type)) // ' is an unrecognized file type'
          ierr = -1
       end select
       close(LUN)
       if (ierr /= 0 ) then
-         write(*,*) 'Error reading in massive body initial conditions from ',trim(adjustl(config%inplfile))
+         write(*,*) 'Error reading in massive body initial conditions from ',trim(adjustl(self%inplfile))
          call util_exit(FAILURE)
       end if
 
@@ -454,9 +521,9 @@ contains
       integer(I4B)             :: i, iu, ierr, ntp
    
       ierr = 0
-      select case(config%in_type)
+      select case(self%in_type)
       case(ASCII_TYPE)
-         open(unit = LUN, file = config%intpfile, status = 'old', form = 'formatted', iostat = ierr)
+         open(unit = LUN, file = self%intpfile, status = 'old', form = 'FORMATTED', iostat = ierr)
          read(LUN, *, iostat = ioerr) ntp
          call self%alloc(ntp)
          if (ntp > 0) then 
@@ -468,26 +535,20 @@ contains
             end do
          end if
       case (REAL4_TYPE, REAL8_TYPE, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
-         open(unit = LUN, file = config%intpfile, status = 'old', form = 'unformatted', iostat = ierr)
+         open(unit = LUN, file = self%intpfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
          read(LUN, iostat = ioerr) ntp
          call self%alloc(ntp)
-         if (ntp > 0) then 
-            read(LUN) self%name(1:ntp)
-            read(LUN) self%xh(1,1:ntp)
-            read(LUN) self%xh(2,1:ntp)
-            read(LUN) self%xh(3,1:ntp)
-            read(LUN) self%vh(1,1:ntp)
-            read(LUN) self%vh(2,1:ntp)
-            read(LUN) self%vh(3,1:ntp)
+         if (ntp > 0) then
+            self%read_frame(LUN, config, form = XV, ierr)
             self%status(:) = ACTIVE
-         end if
+         end if         
       case default
-         write(*,*) trim(adjustl(config%in_type)) // ' is an unrecognized file type'
+         write(*,*) trim(adjustl(self%in_type)) // ' is an unrecognized file type'
          ierr = -1
       end select
       close(LUN)
       if (ierr /=  0) then
-         write(*,*) 'Error opening test particle initial conditions file ',trim(adjustl(config%intpfile))
+         write(*,*) 'Error opening test particle initial conditions file ',trim(adjustl(self%intpfile))
          call util_exit(FAILURE)
       end if
    
@@ -506,7 +567,7 @@ contains
       integer(I4B)         :: ierr
       real(SP)             :: ttmp
 
-      select case (config%out_type)
+      select case (self%out_type)
       case (REAL4_TYPE, SWIFTER_REAL4_TYPE)
          read(iu, iostat = ierr) ttmp, npl, ntp, iout_form
          io_read_hdr = ierr
@@ -519,61 +580,12 @@ contains
          read(iu, iostat = ierr) iout_form
          io_read_hdr = ierr
       case default
-         write(*,*) trim(adjustl(config%in_type)) // ' is an unrecognized file type'
+         write(*,*) trim(adjustl(self%in_type)) // ' is an unrecognized file type'
          io_read_hder = -1
       end select
 
       return
    end procedure io_read_hdr
-
-   module procedure io_read_line
-      !! author: David A. Minton
-      !!
-      !! Read a line (record) from input binary files
-      !!     Function returns read error status (0 = OK, nonzero = ERROR)
-      !! Adapted from David E. Kaufmann's Swifter routine: io_read_line.f90
-      !! Adapted from Hal Levison's Swift routine io_read_line.f
-      use swiftest
-      implicit none
-      logical                    :: lmass, lradius
-      integer( I4B)              :: ierr
-      real(SP)                   :: smass, sradius
-      real(SP), dimension(NDIM2) :: svec
-      real(DP), dimension(NDIM2) :: dvec
-
-      lmass = present(mass)
-      if (lmass) then
-         lradius = present(radius)
-         if (.not. lradius) then
-            write(*, *) "Swiftest Error:"
-            write(*, *) "   function io_read_line called with optional mass but without optional radius"
-            call util_exit(FAILURE)
-         end if
-      end if
-      select case (config%out_type)
-         case (REAL4_TYPE, SWIFTER_REAL4_TYPE)
-            if (lmass) then
-               read(iu, iostat = ierr) name, smass, sradius, svec
-            else
-               read(iu, iostat = ierr) name, svec
-            end if
-            io_read_line = ierr
-            if (ierr /= 0) return
-            if (lmass) mass = smass
-            d1 = svec(1); d2 = svec(2); d3 = svec(3); d4 = svec(4); d5 = svec(5); d6 = svec(6)
-         case (REAL8_TYPE, SWIFTER_REAL8_TYPE)
-            if (lmass) then
-               read(iu, iostat = ierr) name, mass, radius, dvec
-            else
-               read(iu, iostat = ierr) name, dvec
-            end if
-            io_read_line = ierr
-            if (ierr /= 0) return
-            d1 = dvec(1); d2 = dvec(2); d3 = dvec(3); d4 = dvec(4); d5 = dvec(5); d6 = dvec(6)
-      end select
-
-      return
-   end procedure io_read_line
 
    module procedure io_read_line_swifter
       !! author: David A. Minton
@@ -599,7 +611,7 @@ contains
             call util_exit(FAILURE)
          end if
       end if
-      select case (config%out_type)
+      select case (self%out_type)
       case (SWIFTER_REAL4_TYPE)
          if (lmass) then
             read(iu, iostat = ierr) name, smass, sradius, svec
@@ -623,5 +635,50 @@ contains
 
       return
    end procedure io_read_line_swifter
+
+   module procedure io_read_encounter
+      !! author: David A. Minton
+      !!
+      !! Read close encounter data from input binary files
+      !!     Other than time t, there is no direct file input from this function
+      !!     Function returns read error status (0 = OK, nonzero = ERROR)
+      !! Adapted from David E. Kaufmann's Swifter routine: io_read_encounter.f90
+      use swiftest
+      implicit none
+      logical         :: lxdr
+      logical , save    :: lfirst = .true.
+      integer(I4B), parameter :: lun = 30
+      integer(I4B)        :: ierr
+      integer(I4B), save    :: iu = lun
+
+      if (lfirst) then
+         open(unit = iu, file = encounter_file, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+         if (ierr /= 0) then
+            write(*, *) "Swiftest Error:"
+            write(*, *) "   unable to open binary encounter file"
+            call util_exit(FAILURE)
+         end if
+         lfirst = .false.
+      end if
+      read(iu, iostat = ierr) t
+      io_read_encounter = ierr
+      if (ierr /= 0) then
+         close(unit = iu, iostat = ierr)
+         return
+      end if
+  
+      read(iu, iostat = ierr) name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), mass1, radius1
+      if (ierr /= 0) then
+         close(unit = iu, iostat = ierr)
+         return
+      end if
+      read(iu, iostat = ierr) name2, xh2(2), xh2(2), xh2(3), vh2(2), vh2(2), vh2(3), mass2, radius2
+      if (ierr /= 0) then
+         close(unit = iu, iostat = ierr)
+         return
+      end if
+
+      return
+   end procedure io_read_encounter
 
 end submodule io_read

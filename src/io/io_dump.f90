@@ -17,11 +17,25 @@ contains
       !! so that if a dump file gets corrupted during writing, the user can restart from the older one.
       use swiftest
       implicit none
+      type(swiftest_configuration) :: dump_config   !! Local configuration variable used to configuration change input file names 
+                                                    !!    to dump file-specific values without changing the user-defined values
+      integer(I4B), save           :: idx = 1       !! Index of current dump file. Output flips between 2 files for extra security
+                                                    !!    in case the program halts during writing
+      config_file_name = trim(adjustl(DUMP_CONFIG_FILE(idx)))
 
-      config%dump(config,t,dt)
-      self%cb%dump(config,t,dt)
-      self%pl%dump(config,t,dt)
-      self%tp%dump(config,t,dt)
+      dump_config%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
+      dump_config%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
+      dump_config%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
+      dump_config%out_form = XV
+      dump_config%out_stat = 'APPEND'
+      dump_config%dump(config_file_name,t,dt)
+
+      self%cb%dump(dump_config,t,dt)
+      self%pl%dump(dump_config,t,dt)
+      self%tp%dump(dump_config,t,dt)
+
+      idx = idx + 1
+      if (idx > NDUMPFILES) idx = 1
 
       return
    end procedure io_dump_system
@@ -36,42 +50,29 @@ contains
       use swiftest
       implicit none
 
-      type(swiftest_configuration) :: dump_config   !! Local configuration variable used to configuration change input file names 
-                                                    !!    to dump file-specific values without changing the user-defined values
       integer(I4B), parameter      :: LUN = 7       !! Unit number of output file
       integer(I4B)                 :: ierr          !! Error code
-      integer(I4B), save           :: idx = 1       !! Index of current dump file. Output flips between 2 files for extra security
-                                                    !!    in case the program halts during writing
       character(STRMAX)            :: error_message !! Error message in UDIO procedure
 
-      dump_config = config
-      dump_config%t0 = t
-      dump_config%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-      dump_config%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-      dump_config%intpfile = trim(adjustl(DUMP_TP_FILE(idx))) 
-      open(unit = LUN, file = DUMP_CONFIG_FILE(idx), status='replace', form = 'formatted', iostat =ierr)
+ 
+      open(unit = LUN, file = config_file_name, status='replace', form = 'FORMATTED', iostat =ierr)
       if (ierr /=0) then
          write(*,*) 'Swiftest error.'
-         write(*,*) '   Could not open dump file: ',trim(adjustl(DUMP_CONFIG_FILE(idx)))
+         write(*,*) '   Could not open dump file: ',trim(adjustl(config_file_name))
          call util_exit(FAILURE)
       end if
       
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    due to compiler incompatabilities
       !write(LUN,'(DT)') config
-      call dump_config_writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = error_message)
+      call self%config_writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = error_message)
       if (ierr /= 0) then
          write(*,*) trim(adjustl(error_message))
          call util_exit(FAILURE)
       end if
-
-      idx = idx + 1
-      if (idx > NDUMPFILES) idx = 1
-
       close(LUN)
 
       return
-
    end procedure io_dump_config
 
    module procedure io_config_writer
@@ -97,20 +98,20 @@ contains
       character(*),parameter :: Lfmt  = '(A20,1X,L1)'         !! Format label for logical values 
       character(*),parameter :: Pfmt  = '(A20)'               !! Format label for single parameter string
 
-      write(unit, Ifmt) "NPLMAX",                   config%nplmax
-      write(unit, Ifmt) "NTPMAX",                   config%ntpmax
-      write(unit, Rfmt) "T0",                       config%t0
-      write(unit, Rfmt) "TSTOP",                    config%tstop
-      write(unit, Rfmt) "DT",                       config%dt
-      write(unit, Sfmt) "CB_IN",                    trim(adjustl(config%incbfile))
-      write(unit, Sfmt) "PL_IN",                    trim(adjustl(config%inplfile))
-      write(unit, Sfmt) "TP_IN",                    trim(adjustl(config%intpfile))
-      write(unit, Sfmt) "IN_TYPE",                  trim(adjustl(config%out_type))
-      if (config%istep_out > 0) then
-         write(unit, Ifmt) "ISTEP_OUT",             config%istep_out
-         write(unit, Sfmt) "BIN_OUT",               trim(adjustl(config%outfile))
-         write(unit, Sfmt) "OUT_TYPE",              trim(adjustl(config%out_type))
-         write(unit, Sfmt) "OUT_FORM",              trim(adjustl(config%out_form))
+      write(unit, Ifmt) "NPLMAX",                   self%nplmax
+      write(unit, Ifmt) "NTPMAX",                   self%ntpmax
+      write(unit, Rfmt) "T0",                       self%t0
+      write(unit, Rfmt) "TSTOP",                    self%tstop
+      write(unit, Rfmt) "DT",                       self%dt
+      write(unit, Sfmt) "CB_IN",                    trim(adjustl(self%incbfile))
+      write(unit, Sfmt) "PL_IN",                    trim(adjustl(self%inplfile))
+      write(unit, Sfmt) "TP_IN",                    trim(adjustl(self%intpfile))
+      write(unit, Sfmt) "IN_TYPE",                  trim(adjustl(self%out_type))
+      if (self%istep_out > 0) then
+         write(unit, Ifmt) "ISTEP_OUT",             self%istep_out
+         write(unit, Sfmt) "BIN_OUT",               trim(adjustl(self%outfile))
+         write(unit, Sfmt) "OUT_TYPE",              trim(adjustl(self%out_type))
+         write(unit, Sfmt) "OUT_FORM",              trim(adjustl(self%out_form))
          write(unit, Sfmt) "OUT_STAT",              "APPEND"
       else
          write(unit, Pfmt) "!ISTEP_OUT "
@@ -119,39 +120,39 @@ contains
          write(unit, Pfmt) "!OUT_FORM"
          write(unit, Pfmt) "!OUT_STAT"
       end if
-      write(unit, Sfmt) "ENC_OUT",                  trim(adjustl(config%encounter_file))
-      if (config%istep_dump > 0) then
-         write(unit, Ifmt) "ISTEP_DUMP",            config%istep_dump
+      write(unit, Sfmt) "ENC_OUT",                  trim(adjustl(self%encounter_file))
+      if (self%istep_dump > 0) then
+         write(unit, Ifmt) "ISTEP_DUMP",            self%istep_dump
       else
          write(unit, Pfmt) "!ISTEP_DUMP" 
       end if
-      write(unit, Rfmt) "CHK_RMIN",                 config%rmin
-      write(unit, Rfmt) "CHK_RMAX",                 config%rmax
-      write(unit, Rfmt) "CHK_EJECT",                config%rmaxu
-      write(unit, Rfmt) "CHK_QMIN",                 config%qmin
-      if (config%qmin >= 0.0_DP) then
-         write(unit, Sfmt) "CHK_QMIN_COORD",        trim(adjustl(config%qmin_coord))
-         write(unit, R2fmt) "CHK_QMIN_RANGE",       config%qmin_alo, config%qmin_ahi
+      write(unit, Rfmt) "CHK_RMIN",                 self%rmin
+      write(unit, Rfmt) "CHK_RMAX",                 self%rmax
+      write(unit, Rfmt) "CHK_EJECT",                self%rmaxu
+      write(unit, Rfmt) "CHK_QMIN",                 self%qmin
+      if (self%qmin >= 0.0_DP) then
+         write(unit, Sfmt) "CHK_QMIN_COORD",        trim(adjustl(self%qmin_coord))
+         write(unit, R2fmt) "CHK_QMIN_RANGE",       self%qmin_alo, config%qmin_ahi
       else
          write(unit, Pfmt) "!CHK_QMIN_COORD"
          write(unit, Pfmt) "!CHK_QMIN_RANGE"
       end if
-      if (config%lmtiny) write(unit, Rfmt) "MTINY", config%mtiny
+      if (self%lmtiny) write(unit, Rfmt) "MTINY", config%mtiny
       write(unit, Rfmt) "MU2KG",                    MU2KG
       write(unit, Rfmt) "TU2S",                     TU2S 
       write(unit, Rfmt) "DU2M",                     DU2M
       
-      write(unit, Lfmt) "EXTRA_FORCE",              config%lextra_force
-      write(unit, Lfmt) "BIG_DISCARD",              config%lbig_discard
-      write(unit, Lfmt) "RHILL_PRESENT",            config%lrhill_present
-      write(unit, Lfmt) "CHK_CLOSE",                config%lclose
-      write(unit, Lfmt) "FRAGMENTATION",            config%lfragmentation
-      write(unit, Lfmt) "ROTATION",                 config%lrotation
-      write(unit, Lfmt) "TIDES",                    config%ltides
-      write(unit, Lfmt) "GR",                       config%lgr
-      write(unit, Lfmt) "ENERGY",                   config%lenergy
-      !write(unit, Lfmt) "YARKOVSKY", config%lyarkovsky
-      !write(unit, Lfmt) "YORP", config%lyorp
+      write(unit, Lfmt) "EXTRA_FORCE",              self%lextra_force
+      write(unit, Lfmt) "BIG_DISCARD",              self%lbig_discard
+      write(unit, Lfmt) "RHILL_PRESENT",            self%lrhill_present
+      write(unit, Lfmt) "CHK_CLOSE",                self%lclose
+      write(unit, Lfmt) "FRAGMENTATION",            self%lfragmentation
+      write(unit, Lfmt) "ROTATION",                 self%lrotation
+      write(unit, Lfmt) "TIDES",                    self%ltides
+      write(unit, Lfmt) "GR",                       self%lgr
+      write(unit, Lfmt) "ENERGY",                   self%lenergy
+      !write(unit, Lfmt) "YARKOVSKY", self%lyarkovsky
+      !write(unit, Lfmt) "YORP", self%lyorp
 
       return
    end procedure io_config_writer
@@ -165,36 +166,19 @@ contains
       !! Adapted from Hal Levison's Swift routine io_dump_pl.f
       use swiftest
       implicit none
-      integer(I4B)                :: i, iu, ierr
-      integer(I4B), save          :: idx = 1
-      integer(I4B), parameter     :: LUN = 7
+      integer(I4B)                   :: ierr    !! Error code
+      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
 
-      open(unit = LUN, file = DUMP_CB_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
-
+      open(unit = LUN, file = config%intpfile, form = "UNFORMATTED", status = 'replace', iostat = ierr)
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
-         write(*, *) "   Unable to open binary dump file ", trim(DUMP_CP_FILE(idx))
+         write(*, *) "   Unable to open binary dump file ", trim(adjustl(config%intpfile))
          call util_exit(FAILURE)
       end if
-      write(LUN) self%mass
-      write(LUN) self%radius
-      write(LUN) self%j2rp2 
-      write(LUN) self%j4rp4 
-      if (config%lrotation) then
-         write(LUN) self%Ip(:)
-         write(LUN) self%rot(:)
-      end if
-      if (config%tides) then
-         write(LUN) self%k2
-         write(LUN) self%Q
-      end if
-      
+      call self%write_frame(LUN, config, t, dt)
       close(LUN)
-      idx = idx + 1
-      if (idx > 2) idx = 1
 
       return
-
    end procedure io_dump_cb
 
    module procedure io_dump_pl
@@ -206,41 +190,19 @@ contains
       !! Adapted from Hal Levison's Swift routine io_dump_pl.f
       use swiftest
       implicit none
-      integer(I4B)             :: i, iu, ierr
-      integer(I4B), save         :: idx = 1
-      integer(I4B),parameter         :: LUN = 7
+      integer(I4B)                   :: ierr    !! Error code
+      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
 
-      open(unit = LUN, file = DUMP_PL_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
+      open(unit = LUN, file = config%inplfile, form = "UNFORMATTED", status = 'replace', iostat = ierr)
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
-         write(*, *) "   Unable to open binary dump file ", trim(DUMP_PL_FILE(idx))
+         write(*, *) "   Unable to open binary dump file ", trim(djustl(config%inplfile))
          call util_exit(FAILURE)
       end if
-      associate(npl => self%nbody)
-         write(LUN) npl
-         if (npl > 0) then
-            write(LUN) self%name(1:npl)
-            write(LUN) self%mass(1:npl)
-            if (config%lrhill_present) write(LUN) self%rhill(1:npl) 
-            if (config%lclose) write(LUN) self%radius(1:npl) 
-            write(LUN) self%xh(:,1:npl)
-            write(LUN) self%vh(:,1:npl)
-            if (config%lrotation) then
-               write(LUN) self%Ip(:,1:npl)
-               write(LUN) self%rot(:,1:npl)
-            end if
-            if (config%ltides) then
-               write(LUN) self%k2(1:npl)
-               write(LUN) self%Q(1:npl)
-            end if
-         end if
-      end associate
+      call self%write_frame(LUN, config, t, dt)
       close(LUN)
-      idx = idx + 1
-      if (idx > 2) idx = 1
 
       return
-
    end procedure io_dump_pl
 
    module procedure io_dump_tp
@@ -252,30 +214,19 @@ contains
       !! Adapted from Hal Levison's Swift routine io_dump_tp.f
       use swiftest
       implicit none
-      integer(I4B)            :: i, iu, ierr
-      integer(I4B), save      :: idx = 1
-      integer(I4B), parameter :: LUN = 7
+      integer(I4B)                   :: ierr    !! Error code
+      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
    
-      open(unit = LUN, file = DUMP_TP_FILE(idx), form = "unformatted", status = 'replace', iostat = ierr)
+      open(unit = LUN, file = config%intpfile, form = "UNFORMATTED", status = 'replace', iostat = ierr)
    
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
          write(*, *) "   Unable to open binary dump file ", trim(DUMP_TP_FILE(idx))
          call util_exit(FAILURE)
       end if
-      associate(ntp => self%nbody)
-         write(LUN) ntp
-         if (ntp > 0) then
-            write(LUN) self%name(1:ntp)
-            write(LUN) self%xh(:,1:ntp)
-            write(LUN) self%vh(:,1:ntp)
-         end if
-      end associate
+      call self%write_frame(LUN, config, t, dt)
       close(LUN)
-      idx = idx + 1
-      if (idx > 2) idx = 1
    
       return
-   
     end procedure io_dump_tp
 end submodule io_dump
