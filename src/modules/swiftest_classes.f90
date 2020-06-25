@@ -6,7 +6,6 @@ module swiftest_classes
    use swiftest_globals
    implicit none
    private
-   !public :: io_read_pl_in, io_read_tp_in
 
    !********************************************************************************************************************************
    !                                    swiftest_configuration class definitions and method interfaces
@@ -244,19 +243,20 @@ module swiftest_classes
    contains
       private
       ! These are concrete because the implementation is the same for all types of particles
-      procedure, public  :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure, public  :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity  vectors
-      procedure, public  :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
-      procedure, public  :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public  :: initialize  => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public  :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure          :: set_vec_dt  => util_set_vec_dt     !! Vectorizes scalar dt quantity for use in elemental procedures
+      procedure, public  :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure, public  :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public  :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
 
       ! Abstract coordinate transform methods that are common for all types of nbody particles
       ! These are abstract because the implementation depends on the type of particle (tp vs pl)
-      procedure(abstract_b2h_body),     public, deferred :: b2h     !! Convert position vectors from barycentric to heliocentric coordinates 
-      procedure(abstract_h2b_body),     public, deferred :: h2b     !! Convert position vectors from heliocentric to barycentric coordinates 
-      procedure(abstract_vb2vh_body),   public, deferred :: vb2vh   !! Convert velocity vectors from barycentric to heliocentric coordinates 
-      procedure(abstract_vh2vb_body),   public, deferred :: vh2vb   !! Convert velocity vectors from heliocentric to barycentric coordinates 
+      procedure(abstract_b2h_body),      public, deferred :: b2h     !! Convert position vectors from barycentric to heliocentric coordinates 
+      procedure(abstract_h2b_body),      public, deferred :: h2b     !! Convert position vectors from heliocentric to barycentric coordinates 
+      procedure(abstract_vb2vh_body),    public, deferred :: vb2vh   !! Convert velocity vectors from barycentric to heliocentric coordinates 
+      procedure(abstract_vh2vb_body),    public, deferred :: vh2vb   !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure(abstract_set_vec_mu_body), deferred :: set_vec_mu !! Vectorizes certain scalar quantities to use them in elemental procedures
       generic, public :: set_vec => set_vec_mu, set_vec_dt
    end type swiftest_body
@@ -297,6 +297,13 @@ module swiftest_classes
 
    !> Interfaces for concrete type-bound procedures for swiftest_body
    interface
+
+      module subroutine io_read_body_in(self, config) 
+         implicit none
+         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters
+      end subroutine io_read_body_in
+
       module subroutine io_write_frame_body(self, iu, config, t, dt)
          implicit none
          class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
@@ -366,7 +373,6 @@ module swiftest_classes
       procedure, public :: dump        => io_dump_pl         !! Dump the current state of the test particles to file
       procedure, public :: h2b         => coord_h2b_pl       !! Convert position vectors from heliocentric to barycentric coordinates
       procedure, public :: h2j         => coord_h2j_pl       !! Convert posiition vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: initialize  => io_read_pl_in      !! Read in massive body initial conditions from a file
       procedure, public :: j2h         => coord_j2h_pl       !! Convert position vectors from Jacobi to helliocentric coordinates 
       procedure, public :: vb2vh       => coord_vb2vh_pl     !! Convert velocity vectors from barycentric to heliocentric coordinates 
       procedure, public :: vh2vb       => coord_vh2vb_pl     !! Convert velocity vectors from heliocentric to barycentric coordinates 
@@ -434,13 +440,6 @@ module swiftest_classes
          real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
       end subroutine io_dump_pl
 
-      !> Type-bound procedure to read in the input massive body initial condition file
-      module subroutine io_read_pl_in(self, config) 
-         implicit none
-         class(swiftest_pl),            intent(inout) :: self   !! Swiftest data structure to store massive body initial conditions
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters
-      end subroutine io_read_pl_in
-
       module subroutine util_set_vec_mu_pl(self, cb)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
@@ -475,7 +474,6 @@ module swiftest_classes
       procedure, public :: vh2vb       => coord_vh2vb_tp    !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure, public :: discard     => discard_tp        !! Dump the current state of the test particles to file
       procedure, public :: dump        => io_dump_tp        !! Dump the current state of the test particles to file
-      procedure, public :: initialize  => io_read_tp_in     !! Read in massive body initial conditions from a file
       procedure, public :: setup       => setup_tp          !! A base constructor that sets the number of bodies and 
       procedure, public :: set_vec_mu  => util_set_vec_mu_tp   !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
@@ -523,12 +521,6 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt      !! Stepsize
          real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
       end subroutine io_dump_tp
-
-      !> Type-bound procedure to read in the input test particle initial condition file
-      module subroutine io_read_tp_in(self, config) 
-         class(swiftest_tp),            intent(inout) :: self   !! Swiftest data structure to store test particle initial conditions
-         class(swiftest_configuration), intent(in)    :: config !! User-defined configuration parameters
-      end subroutine io_read_tp_in
 
       module subroutine util_set_vec_mu_tp(self, cb)
          implicit none
@@ -825,21 +817,22 @@ module swiftest_classes
          integer(I4B)                  :: ierr             !! I/O error code
       end function io_get_command_line_arguments
 
-      module function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2 xh1, xh2, vh1, vh2, encounter_file, out_type)
+      module function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+                                           xh1, xh2, vh1, vh2, encounter_file, out_type)
          implicit none
          integer(I4B)         :: io_read_encounter
          integer(I4B), intent(out)     :: name1, name2
-         real(DP), intent(out)      :: t, mass1, mass2, radkus1, radius2
+         real(DP), intent(out)      :: t, mass1, mass2, radius1, radius2
          real(DP), dimension(NDIM), intent(out) :: xh1, xh2, vh1, vh2
          character(*), intent(in)      :: encounter_file,out_type
       end function io_read_encounter
 
-      module function io_read_hdr(iu, t, npl, ntp, iout_form, out_type)
+      module function io_read_hdr(iu, t, npl, ntp, out_form, out_type)
          implicit none
          integer(I4B)      :: io_read_hdr
          integer(I4B), intent(in)   :: iu
          integer(I4B), intent(out)  :: npl, ntp
-         character(*), intent(out)  ::  iout_form
+         character(*), intent(out)  ::  out_form
          real(DP), intent(out)   :: t
          character(*), intent(in)   :: out_type
       end function io_read_hdr
@@ -861,7 +854,7 @@ module swiftest_classes
       end function io_read_line_swifter
 
       module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-         xh1, xh2, vh1, vh2, encounter_file, out_type)
+                                              xh1, xh2, vh1, vh2, encounter_file, out_type)
          implicit none
          integer(I4B), intent(in)     :: name1, name2
          real(DP), intent(in)      :: t, mass1, mass2, radius1, radius2
