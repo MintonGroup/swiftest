@@ -24,6 +24,7 @@ program swiftest_driver
    real(DP)                                  :: tfrac            !! Fraction of time remaining in the integration
    real(DP)                                  :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                  :: finish_wall_time !! Wall clock time when execution has finished
+   integer(I4B)                              :: iu               !! Unit number of binary file
    !character(len=*), parameter               :: fmt_dump = '(" Time = ", es12.5, "; Fraction done = ", f5.3, "; Number of active pl, tp = ", i5, ", ", i5)'
 
    !> Define the maximum number of threads
@@ -46,7 +47,7 @@ program swiftest_driver
       iloop = 0
       iout = config%istep_out
       idump = config%istep_dump
-      if (istep_out > 0) call nbody_system%write_frame(config, t, dt)
+      if (istep_out > 0) call nbody_system%write_frame(iu, config, t, dt)
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, LOOPMAX 
          t = config%t0 + iloop * dt
@@ -66,7 +67,7 @@ program swiftest_driver
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
-               call nbody_system%write_frame(config, t, dt)
+               call nbody_system%write_frame(iu, config, t, dt)
                iout = istep_out
             end if
          end if
@@ -80,8 +81,7 @@ program swiftest_driver
                idump = istep_dump
             end if
          end if
-         if (nbody_system%lkeep_going) 
-
+         if (.not. nbody_system%lintegrate) exit
       end do
 
       !> Dump the final state of the system to file

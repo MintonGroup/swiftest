@@ -15,7 +15,7 @@ contains
       allocate(whm_tp :: self%tp)
       allocate(whm_tp :: self%tp_discards)
   
+      return 
+   end procedure whm_construct_system
 
-      end procedure whm_construct_system
-
-   end submodule s_whm_construct_system
+end submodule s_whm_construct_system

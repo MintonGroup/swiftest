@@ -83,10 +83,10 @@ module whm_classes
 
       module subroutine whm_step_pl(self, config, t, dt)
          implicit none
-         class(whm_pl), intent(inout)                   :: self   !! WHM massive body particle data structure.
-         type(swiftest_configuration),intent(in)        :: config !! Input collection of user-defined parameter
-         real(DP), intent(in)                           :: t      !! Current time
-         real(DP), intent(in)                           :: dt     !! Stepsize
+         class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure.
+         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined parameter
+         real(DP),                     intent(in)    :: t      !! Current time
+         real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_pl
 
       module subroutine whm_user_getacch_pl(self, t)
@@ -218,7 +218,7 @@ interface
    module subroutine whm_step(self, config, t, dt) 
       implicit none
       class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
-      class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
+      class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
       real(DP),                      intent(in)    :: t       !! Current simulation time
       real(DP),                      intent(in)    :: dt      !! Stepsize
    end subroutine whm_step
