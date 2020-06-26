@@ -48,7 +48,7 @@ contains
       v = (/vx, vy, vz/)
       r = sqrt(dot_product(x(:), x(:)))
       v2 = dot_product(v(:), v(:))
-      call util_crossproduct(x,v,hvec)
+      hvec = x .cross. v
       h2 = dot_product(hvec(:), hvec(:))
       h = sqrt(h2)
       if (h2 == 0.0_DP) return

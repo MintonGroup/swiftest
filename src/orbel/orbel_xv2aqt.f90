@@ -24,7 +24,7 @@ implicit none
    v = (/vx, vy, vz/)
    r = sqrt(dot_product(x(:), x(:)))
    v2 = dot_product(v(:), v(:))
-   call util_crossproduct(x,v,hvec)
+   hvec = x .cross. v
    h2 = dot_product(hvec(:), hvec(:))
    if (h2 == 0.0_DP) return
    rdotv = dot_product(x(:), v(:))
@@ -45,56 +45,56 @@ implicit none
       end if
    end if
    select case (iorbit_type)
-      case (ELLIPSE)
-         fac = 1.0_DP - h2 / (mu * a)
-         if (fac > VSMALL) then
-            e = sqrt(fac)
-            cape = 0.0_DP
-            face = (a - r) / (a * e)
-            if (face < -1.0_DP) then
-               cape = PI
-            else if (face < 1.0_DP) then
-               cape = acos(face)
-            end if
-            if (rdotv < 0.0_DP) cape = TWOPI - cape
-         else
-            e = 0.0_DP
-            cape = 0.0_DP
+   case (ELLIPSE)
+      fac = 1.0_DP - h2 / (mu * a)
+      if (fac > VSMALL) then
+         e = sqrt(fac)
+         cape = 0.0_DP
+         face = (a - r) / (a * e)
+         if (face < -1.0_DP) then
+            cape = PI
+         else if (face < 1.0_DP) then
+            cape = acos(face)
          end if
-         capm = cape - e * sin(cape)
-         q = a * (1.0_DP - e)
-         mm = sqrt(mu / a**3)
-         if (capm < PI) then
-            tperi = -1.0_DP * capm / mm
-         else
-            tperi = -1.0_DP * (capm - TWOPI) / mm
-         end if
-      case (PARABOLA)
-         a = 0.5_DP * h2 / mu
-         e = 1.0_DP
-         w = 0.0_DP
-         fac = 2 * a / r - 1.0_DP
-         if (fac < -1.0_DP) then
-            w = PI
-         else if (fac < 1.0_DP) then
-            w = acos(fac)
-         end if
-         if (rdotv < 0.0_DP) w = TWOPI - w
-         tmpf = tan(0.5_DP * w)
-         capm = tmpf*(1.0_DP + tmpf * tmpf / 3.0_DP)
-         q = a
-         mm = sqrt(0.5_DP * mu / q**3)
+         if (rdotv < 0.0_DP) cape = TWOPI - cape
+      else
+         e = 0.0_DP
+         cape = 0.0_DP
+      end if
+      capm = cape - e * sin(cape)
+      q = a * (1.0_DP - e)
+      mm = sqrt(mu / a**3)
+      if (capm < PI) then
          tperi = -1.0_DP * capm / mm
-      case (HYPERBOLA)
-         e = sqrt(1.0_DP + fac)
-         tmpf = (a - r) / (a * e)
-         if (tmpf < 1.0_DP) tmpf = 1.0_DP
-         capf = log(tmpf + sqrt(tmpf * tmpf - 1.0_DP))
-         if (rdotv < 0.0_DP) capf = -capf
-         capm = e*sinh(capf) - capf
-         q = a * (1.0_DP - e)
-         mm = sqrt(-mu / a**3)
-         tperi = -1.0_DP * capm / mm
+      else
+         tperi = -1.0_DP * (capm - TWOPI) / mm
+      end if
+   case (PARABOLA)
+      a = 0.5_DP * h2 / mu
+      e = 1.0_DP
+      w = 0.0_DP
+      fac = 2 * a / r - 1.0_DP
+      if (fac < -1.0_DP) then
+         w = PI
+      else if (fac < 1.0_DP) then
+         w = acos(fac)
+      end if
+      if (rdotv < 0.0_DP) w = TWOPI - w
+      tmpf = tan(0.5_DP * w)
+      capm = tmpf*(1.0_DP + tmpf * tmpf / 3.0_DP)
+      q = a
+      mm = sqrt(0.5_DP * mu / q**3)
+      tperi = -1.0_DP * capm / mm
+   case (HYPERBOLA)
+      e = sqrt(1.0_DP + fac)
+      tmpf = (a - r) / (a * e)
+      if (tmpf < 1.0_DP) tmpf = 1.0_DP
+      capf = log(tmpf + sqrt(tmpf * tmpf - 1.0_DP))
+      if (rdotv < 0.0_DP) capf = -capf
+      capm = e*sinh(capf) - capf
+      q = a * (1.0_DP - e)
+      mm = sqrt(-mu / a**3)
+      tperi = -1.0_DP * capm / mm
    end select
 
    return

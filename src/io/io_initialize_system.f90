@@ -3,9 +3,13 @@ contains
    module procedure io_initialize_system
    !! author: David A. Minton
    !!
-   !! Wrapper method to initialize a basic Swiftest nbody system from fiels
+   !! Wrapper method to initialize a basic Swiftest nbody system from files
    !!
    implicit none
+
+   call self%cb%initialize(config)
+   call self%pl%initialize(config)
+   call self%tp%initialize(config)
 
 end procedure io_initialize_system
 

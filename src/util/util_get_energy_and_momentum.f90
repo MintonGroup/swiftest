@@ -27,7 +27,7 @@ contains
          x(:) = self%pl%xb(:,i)
          v(:) = self%pl%vb(:,i)
          mass = self%pl%mass(i)
-         call util_crossproduct(x,v,h)
+         h = x .cross. v
          htot(:) = htot(:) + mass * h(:)
          v2 = dot_product(v(:), v(:))
          ke = ke + 0.5_DP * mass * v2
@@ -45,7 +45,7 @@ contains
       x(:) = self%cb%xb(:,i)
       v(:) = self%cb%vb(:,i)
       mass = self%cb%mass(i)
-      call util_crossproduct(x,v,h)
+      h = x .cross. v
       htot(:) = htot(:) + mass * h(:)
       v2 = dot_product(v(:), v(:))
       ke = ke + 0.5_DP * mass * v2

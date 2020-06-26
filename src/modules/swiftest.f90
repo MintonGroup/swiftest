@@ -5,6 +5,7 @@ module swiftest
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
    !$ use omp_lib
    use swiftest_globals
+   use custom_operators
    use swiftest_classes
    !use whm_classes
    !use helio_classes

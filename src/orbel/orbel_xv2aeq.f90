@@ -21,7 +21,7 @@ implicit none
    v = (/vx, vy, vz/)
    r = sqrt(dot_product(x(:), x(:)))
    v2 = dot_product(v(:), v(:))
-   call util_crossproduct(x,v,hvec)
+   hvec = x .cross. v
    h2 = dot_product(hvec(:), hvec(:))
    if (h2 == 0.0_DP) return
    energy = 0.5_DP * v2 - mu / r
@@ -41,17 +41,17 @@ implicit none
       end if
    end if
    select case (iorbit_type)
-      case (ELLIPSE)
-         fac = 1.0_DP - h2 / (mu * a)
-         if (fac > VSMALL) e = sqrt(fac)
-         q = a * (1.0_DP - e)
-      case (PARABOLA)
-         a = 0.5_DP * h2 / mu
-         e = 1.0_DP
-         q = a
-      case (HYPERBOLA)
-         e = sqrt(1.0_DP + fac)
-         q = a * (1.0_DP - e)
+   case (ELLIPSE)
+      fac = 1.0_DP - h2 / (mu * a)
+      if (fac > VSMALL) e = sqrt(fac)
+      q = a * (1.0_DP - e)
+   case (PARABOLA)
+      a = 0.5_DP * h2 / mu
+      e = 1.0_DP
+      q = a
+   case (HYPERBOLA)
+      e = sqrt(1.0_DP + fac)
+      q = a * (1.0_DP - e)
    end select
 
    return
