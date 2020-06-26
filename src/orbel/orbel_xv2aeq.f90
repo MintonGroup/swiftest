@@ -40,7 +40,7 @@ contains
       v = (/vx, vy, vz/)
       r = sqrt(dot_product(x(:), x(:)))
       v2 = dot_product(v(:), v(:))
-      hvec = x .cross. v
+      hvec(:) = x(:) .cross. v(:)
       h2 = dot_product(hvec(:), hvec(:))
       if (h2 == 0.0_DP) return
       energy = 0.5_DP * v2 - mu / r

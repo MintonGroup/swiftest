@@ -81,12 +81,13 @@ module whm_classes
          real(DP), intent(in)                           :: dt    !! Stepsize
       end subroutine whm_kickvh_pl
 
-      module subroutine whm_step_pl(self, config, t, dt)
+      module subroutine whm_step_pl(self, cb, config, t, dt)
          implicit none
-         class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure.
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure.
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structure.
          class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined parameter
-         real(DP),                     intent(in)    :: t      !! Current time
-         real(DP),                     intent(in)    :: dt     !! Stepsize
+         real(DP),                      intent(in)    :: t      !! Current time
+         real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_pl
 
       module subroutine whm_user_getacch_pl(self, t)
@@ -163,9 +164,10 @@ module whm_classes
          real(DP), intent(in)                    :: dt   !! Stepsize
       end subroutine whm_kickvh_tp
 
-      module subroutine whm_step_tp(self, pl, config, t, dt,  xbeg, xend)
+      module subroutine whm_step_tp(self, cb, pl, config, t, dt,  xbeg, xend)
          implicit none
          class(whm_tp), intent(inout)              :: self      !! WHM test particle data structure.
+         class(whm_central_body), intent(in)       :: cb        !! WHM central body particle data structure.
          class(whm_pl), intent(in)                 :: pl        !! WHM massive body particle data structure.
          type(swiftest_configuration),intent(in)   :: config    !! Input collection of user-defined parameter
          real(DP), intent(in)                      :: t         !! Current time
@@ -193,7 +195,7 @@ module whm_classes
       private
       !> Replace the abstract procedures with concrete ones
       procedure, public :: construct     => whm_construct_system   !! Perform a discard operation and spill any discarded bodies to list for output.  
-      procedure, public :: step          => whm_step               !! Method to advance the system one step in time given by the step size dt
+      procedure, public :: step          => whm_step_system        !! Method to advance the system one step in time given by the step size dt
    end type whm_nbody_system
 
 !> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
@@ -215,13 +217,13 @@ interface
    end subroutine whm_discard_spill
 
    !> Steps the Swiftest nbody system forward in time one stepsize
-   module subroutine whm_step(self, config, t, dt) 
+   module subroutine whm_step_system(self, config, t, dt) 
       implicit none
       class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
       class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
       real(DP),                      intent(in)    :: t       !! Current simulation time
       real(DP),                      intent(in)    :: dt      !! Stepsize
-   end subroutine whm_step
+   end subroutine whm_step_system
 end interface
 
 

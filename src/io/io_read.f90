@@ -9,6 +9,7 @@ submodule (swiftest_classes) io_read
    !!    io_read_cb_in
    !!    io_read_body_in
    !!    io_read_hdr
+   !!    io_read_frame_system
    !!    io_read_frame_cb
    !!    io_read_frame_body
    !!    io_read_encounter
@@ -558,6 +559,42 @@ contains
       return
    end procedure io_read_hdr
 
+   module procedure io_read_frame_system
+      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+      !!
+      !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
+      use swiftest
+      implicit none
+
+      logical, save             :: lfirst = .true.
+      integer(I4B)              :: i, j
+      real(DP),dimension(:),allocatable :: a, e, inc, capom, omega, capm
+      real(DP), dimension(NDIM) :: xtmp, vtmp
+
+      iu = BINUNIT
+      if (lfirst) then
+         open(unit = iu, file = config%outfile, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+         lfirst = .false.
+         if (ierr /= 0) then
+            write(*, *) "Swiftest error:"
+            write(*, *) "   Binary output file already exists or cannot be accessed"
+            return
+         end if
+      end if
+      ierr =  io_read_hdr(iu, t, self%pl%nbody, self%tp%nbody, config%out_form, config%out_type)
+      if (ierr /= 0) then
+         write(*, *) "Swiftest error:"
+         write(*, *) "   Binary output file already exists or cannot be accessed"
+         return
+      end if
+      call self%cb%read_frame(iu, config, form, t, ierr)
+      if (ierr /= 0) return
+      call self%pl%read_frame(iu, config, form, t, ierr)
+      if (ierr /= 0) return
+      call self%tp%read_frame(iu, config, form, t, ierr)
+      return
+   end procedure io_read_frame_system
+
    module procedure io_read_frame_cb
       !! author: David A. Minton
       !!
@@ -643,6 +680,7 @@ contains
       return
    end procedure io_read_frame_body
 
+
    module procedure io_read_encounter
       !! author: David A. Minton
       !!
@@ -687,42 +725,6 @@ contains
 
       return
    end procedure io_read_encounter
-
-   module procedure io_read_frame_system
-      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
-      !!
-      !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
-      use swiftest
-      implicit none
-
-      logical, save             :: lfirst = .true.
-      integer(I4B)              :: i, j
-      real(DP),dimension(:),allocatable :: a, e, inc, capom, omega, capm
-      real(DP), dimension(NDIM) :: xtmp, vtmp
-
-      iu = BINUNIT
-      if (lfirst) then
-         open(unit = iu, file = config%outfile, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
-         lfirst = .false.
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error:"
-            write(*, *) "   Binary output file already exists or cannot be accessed"
-            return
-         end if
-      end if
-      ierr =  io_read_hdr(iu, t, self%pl%nbody, self%tp%nbody, config%out_form, config%out_type)
-      if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   Binary output file already exists or cannot be accessed"
-         return
-      end if
-      call self%cb%read_frame(iu, config, form, t, ierr)
-      if (ierr /= 0) return
-      call self%pl%read_frame(iu, config, form, t, ierr)
-      if (ierr /= 0) return
-      call self%tp%read_frame(iu, config, form, t, ierr)
-      return
-   end procedure io_read_frame_system
 
 
 end submodule io_read

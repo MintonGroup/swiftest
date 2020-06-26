@@ -1,30 +1,39 @@
-submodule(whm_classes) s_whm_step
+submodule(whm_classes) whm_step
 contains
-   module procedure whm_step
+   module procedure whm_step_system
       !! author: David A. Minton
       !!
-      !! Step planets and active test particles ahead in heliocentric coordinates
-      !!
+      !! Step massive bodies and and active test particles ahead in heliocentric coordinates
+      !! 
       !! Adapted from Hal Levison's Swift routine step_kdk.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step.f90
       use swiftest
       implicit none
-      logical                       :: lfirsttp
-      logical, save                 :: lmalloc = .true.
-      integer(I4B)                     :: i
       real(DP), dimension(:, :), allocatable, save :: xbeg, xend
-      type(whm_pl), pointer                :: whm_plp
-   
-      lfirsttp = lfirst
+  
       associate(ntp => self%tp%nbody, npl => self%pl%nbody)
-         if (ntp > 0) xbeg(:, :) = self%pl%xh(:, 1:npl)
-         call self%pl%step(config, t, dt)
-         if (ntp > 0) then 
-            xend(:, :) = self%pl%xh(:, 1:npl)
-            call self%tp%step(config, t, dt, xbeg, xend)
-         end if
+         !> Note: The nesterd select statements serve to make this method a "bridge" between the polymorphic swiftest_nbody_system class
+         !> in which the cb, pl, and tp components are allocatable abstract classes and the actual integrator-specific methods that are
+         !> called internally. Before this point, the actual types of cb, pl, and tp are ambiguous. The select type constructs remove the 
+         !> ambiguity. - D. Minton
+         select type(cb => self%cb) 
+         class is (whm_central_body)
+            select type(pl => self%pl)
+            class is (whm_pl)
+               if (ntp > 0) xbeg(:, :) = pl%xh(:, 1:npl)
+               call pl%step(cb, config, t, dt)
+               if (ntp > 0) xend(:, :) = pl%xh(:, 1:npl)
+               select type(tp => self%tp)
+               class is (whm_tp)
+                  call tp%step(cb, pl, config, t, dt, xbeg, xend)
+               end select
+            end select
+         end select
       end associate
       self%lintegrate = .true.
       return
-   end procedure whm_step
-end submodule s_whm_step
+   end procedure whm_step_system
+
+
+
+end submodule whm_step

@@ -24,7 +24,7 @@ implicit none
    v = (/vx, vy, vz/)
    r = sqrt(dot_product(x(:), x(:)))
    v2 = dot_product(v(:), v(:))
-   hvec = x .cross. v
+   hvec(:) = x(:) .cross. v(:)
    h2 = dot_product(hvec(:), hvec(:))
    if (h2 == 0.0_DP) return
    rdotv = dot_product(x(:), v(:))
@@ -91,7 +91,7 @@ implicit none
       if (tmpf < 1.0_DP) tmpf = 1.0_DP
       capf = log(tmpf + sqrt(tmpf * tmpf - 1.0_DP))
       if (rdotv < 0.0_DP) capf = -capf
-      capm = e*sinh(capf) - capf
+      capm = e * sinh(capf) - capf
       q = a * (1.0_DP - e)
       mm = sqrt(-mu / a**3)
       tperi = -1.0_DP * capm / mm
