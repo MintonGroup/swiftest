@@ -22,7 +22,6 @@ program swiftest_driver
    real(DP)                                  :: t                !! Simulation time
    real(DP)                                  :: dt               !! Simulation step size
    real(DP)                                  :: tfrac            !! Fraction of time remaining in the integration
-   real(DP)                                  :: tbase            !! Resets the internal start time if the loop counter reaches its maximum
    real(DP)                                  :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                  :: finish_wall_time !! Wall clock time when execution has finished
    !character(len=*), parameter               :: fmt_dump = '(" Time = ", es12.5, "; Fraction done = ", f5.3, "; Number of active pl, tp = ", i5, ", ", i5)'
@@ -44,7 +43,6 @@ program swiftest_driver
 
       lfirst = .true.
       t = config%t0
-      tbase = config%t0
       iloop = 0
       iout = config%istep_out
       idump = config%istep_dump
@@ -58,11 +56,7 @@ program swiftest_driver
 
          !> Advance the loop counter and time value
          iloop = iloop + 1
-         if (iloop == LOOPMAX) then  !! Reset loop counter if necessary (this should be rare, as iloop is an 8-byte integer)
-            tbase = tbase + iloop * dt
-            iloop = 0
-         end if
-         t = tbase + iloop * dt
+         t = config%t0 + iloop * dt
 
          !> Evaluate any discards or mergers
          call nbody_system%discard(config, t, dt)
@@ -83,7 +77,6 @@ program swiftest_driver
             if (idump == 0) then
                tfrac = (t - t0) / (tstop - t0)
                call nbody_system%dump(config, t, dt, tfrac)
-               call config%dump(t)
                idump = istep_dump
             end if
          end if
@@ -93,7 +86,6 @@ program swiftest_driver
 
       !> Dump the final state of the system to file
       call nbody_system%dump(config, t, dt, tfrac)
-      call config%dump(t)
       !$ finsih_wall_time = omp_get_wtime()
       !$ write(*,*) 'Time: ', finish_wall_time - start_wall_time
    end if
