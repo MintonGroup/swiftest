@@ -116,10 +116,11 @@ module swiftest_classes
       logical :: lintegrate = .false.  !! Flag indicating that this object should be integrated in the current step 
    contains
       !! The minimal methods that all systems must have
+      private
       procedure :: dump => io_dump_swiftest 
-      procedure(abstract_initialize),  deferred  :: initialize
-      procedure(abstract_write_frame), deferred  :: write_frame
-      procedure(abstract_read_frame),  deferred  :: read_frame
+      procedure(abstract_initialize),  public, deferred :: initialize
+      procedure(abstract_write_frame), public, deferred :: write_frame
+      procedure(abstract_read_frame),  public, deferred :: read_frame
    end type swiftest_base
 
    !> Interfaces for abstract type-bound procedures for swiftest_base
@@ -446,21 +447,27 @@ module swiftest_classes
    contains
       private
       !> Each integrator will have its own version of the step
-      procedure(abstract_step_system), public, deferred :: step                   !! Method to advance the system one step in time given by the step size dt
+      procedure(abstract_construct_system), public, deferred :: construct  !! Method used to allocate the correct class types to each of the system 
+      procedure(abstract_step_system),      public, deferred :: step       !! Method to advance the system one step in time given by the step size dt
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure, public :: construct              => setup_construct_system       !! Constructs the basic system  
       procedure, public :: discard                => discard_system               !! Perform a discard step on the system
       procedure, public :: dump                   => io_dump_system               !! Dump the state of the system to a file
       procedure, public :: get_energy_and_momenum => util_get_energy_and_momentum !! Calculate total energy and angular momentum of system
       procedure, public :: initialize             => io_initialize_system         !! Initialize the system from an input file
-      procedure, public :: set_msys               => setup_set_msys               !! Sets the total system mass value 
       procedure, public :: write_discard          => io_write_discard             !! Append a frame of output data to file
       procedure, public :: write_frame            => io_write_frame_system        !! Append a frame of output data to file
       procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
    end type swiftest_nbody_system
 
    abstract interface
+      !> Allocates the correct class types to each of the system 
+      subroutine abstract_construct_system(self, config)
+         import swiftest_nbody_system, swiftest_configuration
+         class(swiftest_nbody_system),  intent(inout) :: self       !! Swiftest system object
+         class(swiftest_configuration), intent(out)   :: config     !! Input collection of user-defined configuration parameters
+      end subroutine abstract_construct_system
+
       !> Steps the Swiftest nbody system forward in time one stepsize
       subroutine abstract_step_system(self, config, t, dt) 
          import DP, swiftest_nbody_system, swiftest_configuration
@@ -527,20 +534,6 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt      !! Stepsize
       end subroutine io_write_discard
 
-      !> Constructs an nbody system
-      module subroutine setup_construct_system(self, config, integrator)
-         implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self       !! Swiftest system object
-         class(swiftest_configuration), intent(out)   :: config     !! Input collection of user-defined configuration parameters
-         integer, intent(in)                          :: integrator !! Integrator type code
-      end subroutine setup_construct_system
-
-      !> Interface for a method used to calculate the total system mass
-      module subroutine setup_set_msys(self)
-         implicit none
-         class(swiftest_nbody_system), intent(inout)  :: self    !! Swiftest system object
-      end subroutine setup_set_msys
-
       !> Method for calculating the energy and angular momentum of the system
       module subroutine util_get_energy_and_momentum(self)
          implicit none
@@ -551,6 +544,16 @@ module swiftest_classes
    !********************************************************************************************************************************
    !                            Interfaces for methods that are not type-bound 
    !********************************************************************************************************************************
+
+   interface
+      !> Constructs an nbody system
+      module subroutine setup_construct_system(system, config, integrator)
+         implicit none
+         class(swiftest_nbody_system), allocatable,  intent(inout) :: system     !! Swiftest system object
+         class(swiftest_configuration), intent(inout)              :: config     !! Input collection of user-defined configuration parameters
+         integer, intent(in)                                       :: integrator !! Integrator type code
+      end subroutine setup_construct_system
+   end interface
 
    !> Interfaces for particle discard methods
    interface

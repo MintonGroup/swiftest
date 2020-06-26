@@ -348,10 +348,10 @@ contains
          write(unit, Pfmt) "!CHK_QMIN_COORD"
          write(unit, Pfmt) "!CHK_QMIN_RANGE"
       end if
-      if (self%lmtiny) write(unit, Rfmt) "MTINY", self%mtiny
-      write(unit, Rfmt) "MU2KG",                    MU2KG
-      write(unit, Rfmt) "TU2S",                     TU2S 
-      write(unit, Rfmt) "DU2M",                     DU2M
+      if (self%lmtiny) write(unit, Rfmt) "MTINY",   self%mtiny
+      write(unit, Rfmt) "MU2KG",                    self%MU2KG
+      write(unit, Rfmt) "TU2S",                     self%TU2S 
+      write(unit, Rfmt) "DU2M",                     self%DU2M
       
       write(unit, Lfmt) "EXTRA_FORCE",              self%lextra_force
       write(unit, Lfmt) "BIG_DISCARD",              self%lbig_discard

@@ -7,7 +7,7 @@ module swiftest
    use swiftest_globals
    use custom_operators
    use swiftest_classes
-   !use whm_classes
+   use whm_classes
    !use helio_classes
    !use rmvs_classes
    !use symba_classes

@@ -5,12 +5,12 @@ contains
    module procedure whm_construct_system
       !! author: David A. Minton
       !!
-      !! Constructor for a WHM nbody system. Creates the nbody system object based on the user-input integrator
+      !! Constructor for a WHM nbody system. Creates the nbody system object with all of the WHM typed component object.
       !! 
       use swiftest
       implicit none
 
-      ! self, config, integrator
+      allocate(whm_central_body :: self%cb)
       allocate(whm_pl :: self%pl)
       allocate(whm_tp :: self%tp)
       allocate(whm_tp :: self%tp_discards)

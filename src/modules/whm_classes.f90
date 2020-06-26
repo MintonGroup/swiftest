@@ -201,11 +201,10 @@ module whm_classes
 !> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
 interface
    !> Constructs a WHM nbody system
-   module subroutine whm_construct_system(self, config, integrator)
+   module subroutine whm_construct_system(self, config)
       implicit none
       class(whm_nbody_system),       intent(inout) :: self       !! Swiftest system object
       class(swiftest_configuration), intent(out)   :: config     !! Input collection of user-defined configuration parameters
-      integer, intent(in)                          :: integrator !! Integrator type code
    end subroutine whm_construct_system
 
    !> Move spilled (discarded) Swiftest basic body components from active list to discard list

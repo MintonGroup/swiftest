@@ -39,7 +39,7 @@ program swiftest_driver
       !$ start_wall_time = omp_get_wtime()
       !> Read in the user-defined parameter file and the initial conditions of the system
       call config%read_from_file(config_file_name, integrator)
-      call nbody_system%construct(config, integrator)
+      call setup_construct_system(nbody_system, config, integrator)
       call nbody_system%initialize(config)
 
       lfirst = .true.

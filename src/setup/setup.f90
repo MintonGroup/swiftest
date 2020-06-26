@@ -1,6 +1,39 @@
-submodule (swiftest_classes) s_setup
+submodule (swiftest_classes) setup
 
 contains
+   module procedure setup_construct_system
+      !! author: David A. Minton
+      !!
+      !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
+      !! 
+      use swiftest
+      implicit none
+
+      select case(integrator)
+      case (BS)
+         write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
+      case (HELIO)
+         write(*,*) 'Democratic Heliocentric integrator not yet enabled'
+      case (RA15)
+         write(*,*) 'Radau integrator not yet enabled'
+      case (TU4)
+         write(*,*) 'TU4 integrator not yet enabled'
+      case (WHM)
+         allocate(whm_nbody_system :: system)
+         call system%construct(config)
+      case (RMVS)
+         write(*,*) 'RMVS integrator not yet enabled'
+      case (SYMBA)
+         write(*,*) 'SyMBA integrator not yet enabled'
+      case (RINGMOONS)
+         write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
+      case default
+         write(*,*) 'Unkown integrator',integrator
+         call util_exit(FAILURE)
+      end select
+
+      return
+   end procedure setup_construct_system
 
    module procedure setup_body
       !! author: David A. Minton
@@ -17,7 +50,7 @@ contains
       allocate(self%name(n))
       allocate(self%status(n))
       allocate(self%xh(NDIM,n))
-      allocate(self%vh(NDM,n))
+      allocate(self%vh(NDIM,n))
       allocate(self%xb(NDIM,n))
       allocate(self%vb(NDIM,n))
       allocate(self%mu_vec(n))
@@ -57,7 +90,8 @@ contains
       implicit none
 
       !> Call allocation method for parent class
-      call self%swiftest_body%alloc(n)
+      !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
+      call setup_body(self, n)
       if (n <= 0) return 
 
       allocate(self%mass(n))
@@ -88,7 +122,8 @@ contains
       implicit none
 
       !> Call allocation method for parent class
-      call self%swiftest_body%alloc(n)
+      !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
+      call setup_body(self, n)
       if (n <= 0) return
 
       allocate(self%isperi(n))
@@ -102,4 +137,4 @@ contains
       return
    end procedure setup_tp
 
-end submodule s_setup
+end submodule setup
