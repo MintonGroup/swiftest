@@ -283,11 +283,14 @@ contains
       write(*,*) "BIG_DISCARD    = ",self%lbig_discard
       if (self%lenergy) write(*,*) "ENERGY         = ",self%lenergy
 
-      if ((MU2KG < 0.0_DP) .or. (TU2S < 0.0_DP) .or. (DU2M < 0.0_DP)) then
+      if ((self%MU2KG < 0.0_DP) .or. (self%TU2S < 0.0_DP) .or. (self%DU2M < 0.0_DP)) then
          write(iomsg,*) 'Invalid unit conversion factor'
          iostat = -1
          return
       end if
+
+      ! Calculate the G for the system units
+      self%GU = GC / (self%DU2M**3 / (self%MU2KG * self%TU2S**2))
 
       ! The fragmentation model requires the user to set the unit system explicitly.
       if ((integrator == SYMBA) .or. (integrator == RINGMOONS)) then 
@@ -384,6 +387,7 @@ contains
       call self%cb%initialize(config)
       call self%pl%initialize(config)
       call self%tp%initialize(config)
+      call self%set_msys()
    
    end procedure io_initialize_system
 
@@ -400,6 +404,7 @@ contains
       integer(I4B)            :: iu = LUN
       integer(I4B)            :: i, ierr
       logical                 :: is_ascii 
+      real(DP)                :: t
 
       ierr = 0
       is_ascii = (config%in_type == 'ASCII') 
@@ -420,13 +425,15 @@ contains
             
       else
          open(unit = iu, file = config%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
-         call self%read_frame(iu, config, XV, ierr)
+         call self%read_frame(iu, config, XV, t, ierr)
       end if
       close(iu)
       if (ierr /=  0) then
          write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(config%incbfile))
          call util_exit(FAILURE)
       end if
+
+      self%Gmass = config%GU * self%mass
       return
    end procedure io_read_cb_in
 
@@ -444,6 +451,7 @@ contains
       integer(I4B)            :: i, ierr, nbody
       logical                 :: is_ascii, is_pl
       character(len=:), allocatable :: infile
+      real(DP)               :: t
 
 
       ! Select the appropriate polymorphic class (test particle or massive body)
@@ -497,7 +505,7 @@ contains
          read(iu, iostat = ierr) nbody
          call self%setup(nbody)
          if (nbody > 0) then
-            call self%read_frame(iu, config, XV, ierr)
+            call self%read_frame(iu, config, XV, t, ierr)
             self%status(:) = ACTIVE
          end if
       case default
@@ -509,6 +517,11 @@ contains
          write(*,*) 'Error reading in massive body initial conditions from ',trim(adjustl(infile))
          call util_exit(FAILURE)
       end if
+
+      select type(self)
+      class is (swiftest_pl)
+         self%Gmass(:) = config%GU * self%mass(:)
+      end select
 
       return
    end procedure io_read_body_in
@@ -674,5 +687,42 @@ contains
 
       return
    end procedure io_read_encounter
+
+   module procedure io_read_frame_system
+      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+      !!
+      !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
+      use swiftest
+      implicit none
+
+      logical, save             :: lfirst = .true.
+      integer(I4B)              :: i, j
+      real(DP),dimension(:),allocatable :: a, e, inc, capom, omega, capm
+      real(DP), dimension(NDIM) :: xtmp, vtmp
+
+      iu = BINUNIT
+      if (lfirst) then
+         open(unit = iu, file = config%outfile, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+         lfirst = .false.
+         if (ierr /= 0) then
+            write(*, *) "Swiftest error:"
+            write(*, *) "   Binary output file already exists or cannot be accessed"
+            return
+         end if
+      end if
+      ierr =  io_read_hdr(iu, t, self%pl%nbody, self%tp%nbody, config%out_form, config%out_type)
+      if (ierr /= 0) then
+         write(*, *) "Swiftest error:"
+         write(*, *) "   Binary output file already exists or cannot be accessed"
+         return
+      end if
+      call self%cb%read_frame(iu, config, form, t, ierr)
+      if (ierr /= 0) return
+      call self%pl%read_frame(iu, config, form, t, ierr)
+      if (ierr /= 0) return
+      call self%tp%read_frame(iu, config, form, t, ierr)
+      return
+   end procedure io_read_frame_system
+
 
 end submodule io_read

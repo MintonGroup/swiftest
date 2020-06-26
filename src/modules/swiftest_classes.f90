@@ -41,6 +41,7 @@ module swiftest_classes
       real(DP)             :: MU2KG          = -1.0_DP            !! Converts mass units to grams
       real(DP)             :: TU2S           = -1.0_DP            !! Converts time units to seconds
       real(DP)             :: DU2M           = -1.0_DP            !! Converts distance unit to centimeters
+      real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
 
       !Logical flags to turn on or off various features of the code
@@ -128,7 +129,7 @@ module swiftest_classes
       subroutine abstract_initialize(self, config) 
          import swiftest_base, swiftest_configuration
          class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
-         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(inout) :: config   !! Input collection of user-defined configuration parameters 
       end subroutine abstract_initialize
 
       subroutine abstract_write_frame(self, iu, config, t, dt)
@@ -140,12 +141,13 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt       !! Step size
       end subroutine abstract_write_frame
 
-      subroutine abstract_read_frame(self, iu, config, form, ierr)
-         import I4B, swiftest_base, swiftest_configuration
+      subroutine abstract_read_frame(self, iu, config, form, t, ierr)
+         import DP, I4B, swiftest_base, swiftest_configuration
          class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
          integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
-         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(inout) :: config   !! Input collection of user-defined configuration parameters 
          character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
+         real(DP),                      intent(out)   :: t        !! Simulation time
          integer(I4B),                  intent(out)   :: ierr     !! Error code
       end subroutine abstract_read_frame
    end interface
@@ -167,11 +169,11 @@ module swiftest_classes
    !> A concrete lass for the central body in a Swiftest simulation
    type, public, extends(swiftest_base) :: swiftest_central_body           
       real(DP)                  :: mass    = 0.0_DP !! Central body mass (units MU)
+      real(DP)                  :: Gmass   = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
       real(DP)                  :: radius  = 0.0_DP !! Central body radius (units DU)
       real(DP)                  :: density = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
       real(DP)                  :: j2rp2   = 0.0_DP !! J2*R^2 term for central body
       real(DP)                  :: j4rp4   = 0.0_DP !! J4*R^2 term for central body
-      real(DP)                  :: mu      = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
       real(DP), dimension(NDIM) :: xb      = 0.0_DP !! Barycentric position (units DU)
       real(DP), dimension(NDIM) :: vb      = 0.0_DP !! Barycentric velocity (units DU / TU)
       real(DP), dimension(NDIM) :: Ip      = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
@@ -195,19 +197,20 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine io_write_frame_cb
 
-      module subroutine io_read_frame_cb(self, iu, config, form, ierr)
+      module subroutine io_read_frame_cb(self, iu, config, form, t, ierr)
          implicit none
          class(swiftest_central_body),  intent(inout) :: self     !! Swiftest central body object
          integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
-         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(inout) :: config   !! Input collection of user-defined configuration parameters 
          character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
+         real(DP),                      intent(out)   :: t        !! Simulation time
          integer(I4B),                  intent(out)   :: ierr     !! Error code
       end subroutine io_read_frame_cb
 
       module subroutine io_read_cb_in(self, config) 
          implicit none
          class(swiftest_central_body),  intent(inout) :: self
-         class(swiftest_configuration), intent(in)    :: config
+         class(swiftest_configuration), intent(inout) :: config
       end subroutine io_read_cb_in
    end interface
       
@@ -237,65 +240,63 @@ module swiftest_classes
    contains
       private
       ! These are concrete because the implementation is the same for all types of particles
-      procedure, public  :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity  vectors
-      procedure, public  :: initialize  => io_read_body_in     !! Read in body initial conditions from a file
-      procedure, public  :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure          :: set_vec_dt  => util_set_vec_dt     !! Vectorizes scalar dt quantity for use in elemental procedures
-      procedure, public  :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
-      procedure, public  :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure, public  :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
+      procedure, public :: h2b         => coord_h2b_body     !! Convert position vectors from barycentric to heliocentric coordinates
+      procedure, public :: b2h         => coord_b2h_body     !! Convert position vectors from barycentric to heliocentric coordinates
+      procedure, public :: vb2vh       => coord_vb2vh_body   !! Convert velocity vectors from barycentric to heliocentric coordinates 
+      procedure, public :: vh2vb       => coord_vh2vb_body   !! Convert velocity vectors from heliocentric to barycentric coordinates 
+      procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity  vectors
+      procedure, public :: initialize  => io_read_body_in     !! Read in body initial conditions from a file
+      procedure, public :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure         :: set_vec_dt  => util_set_vec_dt     !! Vectorizes scalar dt quantity for use in elemental procedures
+      procedure, public :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure, public :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
 
       ! Abstract coordinate transform methods that are common for all types of nbody particles
       ! These are abstract because the implementation depends on the type of particle (tp vs pl)
-      procedure(abstract_b2h_body),      public, deferred :: b2h     !! Convert position vectors from barycentric to heliocentric coordinates 
-      procedure(abstract_h2b_body),      public, deferred :: h2b     !! Convert position vectors from heliocentric to barycentric coordinates 
-      procedure(abstract_vb2vh_body),    public, deferred :: vb2vh   !! Convert velocity vectors from barycentric to heliocentric coordinates 
-      procedure(abstract_vh2vb_body),    public, deferred :: vh2vb   !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure(abstract_set_vec_mu_body), deferred :: set_vec_mu !! Vectorizes certain scalar quantities to use them in elemental procedures
       generic, public :: set_vec => set_vec_mu, set_vec_dt
    end type swiftest_body
 
    !> Interfaces for abstract type-bound procedures for swiftest_body
    abstract interface
-      subroutine abstract_b2h_body(self, cb)
-         import swiftest_body, swiftest_central_body
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine abstract_b2h_body
-
-      subroutine abstract_h2b_body(self, cb)
-         import swiftest_body, swiftest_central_body
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine abstract_h2b_body
-
-      subroutine abstract_vb2vh_body(self, cb)
-         import swiftest_body, swiftest_central_body
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine abstract_vb2vh_body
-
-      subroutine abstract_vh2vb_body(self, cb)
-         import swiftest_body, swiftest_central_body
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine abstract_vh2vb_body
-
       subroutine abstract_set_vec_mu_body(self, cb)
          import DP, swiftest_body, swiftest_central_body
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
          class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
       end subroutine abstract_set_vec_mu_body
-
    end interface
 
    !> Interfaces for concrete type-bound procedures for swiftest_body
    interface
+      module subroutine coord_b2h_body(self, cb)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine coord_b2h_body
+
+      module subroutine coord_h2b_body(self, cb)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine coord_h2b_body
+
+      module subroutine coord_vb2vh_body(self, cb)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine coord_vb2vh_body
+
+      module subroutine coord_vh2vb_body(self, cb)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine coord_vh2vb_body
 
       module subroutine io_read_body_in(self, config) 
          implicit none
          class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters
+         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined configuration parameters
       end subroutine io_read_body_in
 
       module subroutine io_write_frame_body(self, iu, config, t, dt)
@@ -307,12 +308,13 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine io_write_frame_body
 
-      module subroutine io_read_frame_body(self, iu, config, form, ierr)
+      module subroutine io_read_frame_body(self, iu, config, form, t, ierr)
          implicit none
          class(swiftest_body),          intent(inout) :: self    !! Swiftest particle object
          integer(I4B),                  intent(inout) :: iu      !! Unit number for the output file to write frame to
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
-         character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
+         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
+         character(*),                  intent(in)    :: form    !! Input format code ("XV" or "EL")
+         real(DP),                      intent(out)   :: t       !! Simulation time
          integer(I4B),                  intent(out)   :: ierr    !! Error code
       end subroutine io_read_frame_body
 
@@ -362,68 +364,13 @@ module swiftest_classes
       private
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
+
       procedure, public :: setup       => setup_pl           !! A base constructor that sets the number of bodies and 
-      procedure, public :: b2h         => coord_b2h_pl       !! Convert position vectors from barycentric to heliocentric coordinates
-      procedure, public :: h2b         => coord_h2b_pl       !! Convert position vectors from heliocentric to barycentric coordinates
-      procedure, public :: h2j         => coord_h2j_pl       !! Convert posiition vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: j2h         => coord_j2h_pl       !! Convert position vectors from Jacobi to helliocentric coordinates 
-      procedure, public :: vb2vh       => coord_vb2vh_pl     !! Convert velocity vectors from barycentric to heliocentric coordinates 
-      procedure, public :: vh2vb       => coord_vh2vb_pl     !! Convert velocity vectors from heliocentric to barycentric coordinates 
-      procedure, public :: vh2vj       => coord_vh2vj_pl     !! Convert posiition vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: vj2vh       => coord_vj2vh_pl     !! Convert position vectors from Jacobi to helliocentric coordinates 
       procedure, public :: set_vec_mu  => util_set_vec_mu_pl !! Method used to construct the vectorized form of the central body mass
    end type swiftest_pl
 
    !> Interfaces for concrete type-bound procedures for swiftest_pl
    interface
-      module subroutine coord_b2h_pl(self, cb)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_b2h_pl
-
-      module subroutine coord_h2b_pl(self, cb)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_h2b_pl
-
-      module subroutine coord_h2j_pl(self, cb)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_h2j_pl
-
-      module subroutine coord_j2h_pl(self, cb)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_j2h_pl
-
-      module subroutine coord_vb2vh_pl(self, cb)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_vb2vh_pl
-
-      module subroutine coord_vh2vb_pl(self, cb)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_vh2vb_pl
-
-      module subroutine coord_vj2vh_pl(self, cb)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_vj2vh_pl
-
-      module subroutine coord_vh2vj_pl(self, cb)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_vh2vj_pl
-
       module subroutine util_set_vec_mu_pl(self, cb)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
@@ -452,10 +399,6 @@ module swiftest_classes
       private
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: b2h         => coord_b2h_tp      !! Convert position vectors from barycentric to heliocentric coordinates
-      procedure, public :: h2b         => coord_h2b_tp      !! Convert position vectors from heliocentric to barycentric coordinates
-      procedure, public :: vb2vh       => coord_vb2vh_tp    !! Convert velocity vectors from barycentric to heliocentric coordinates 
-      procedure, public :: vh2vb       => coord_vh2vb_tp    !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure, public :: discard     => discard_tp        !! Dump the current state of the test particles to file
       procedure, public :: setup       => setup_tp          !! A base constructor that sets the number of bodies and 
       procedure, public :: set_vec_mu  => util_set_vec_mu_tp   !! Method used to construct the vectorized form of the central body mass
@@ -463,30 +406,6 @@ module swiftest_classes
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp
    interface
-      module subroutine coord_b2h_tp(self, cb)
-         implicit none
-         class(swiftest_tp),           intent(inout) :: self !! Swiftest massive body object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_b2h_tp
-
-      module subroutine coord_h2b_tp(self, cb)
-         implicit none
-         class(swiftest_tp),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_h2b_tp
-
-      module subroutine coord_vb2vh_tp(self, cb)
-         implicit none
-         class(swiftest_tp),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_vb2vh_tp
-
-      module subroutine coord_vh2vb_tp(self, cb)
-         implicit none
-         class(swiftest_tp),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
-      end subroutine coord_vh2vb_tp
-
       module subroutine discard_tp(self, cb, config, t, dt)
          implicit none
          class(swiftest_tp),            intent(inout) :: self   !! Swiftest massive body object
@@ -538,6 +457,7 @@ module swiftest_classes
       procedure, public :: set_msys               => setup_set_msys               !! Sets the total system mass value 
       procedure, public :: write_discard          => io_write_discard             !! Append a frame of output data to file
       procedure, public :: write_frame            => io_write_frame_system        !! Append a frame of output data to file
+      procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
    end type swiftest_nbody_system
 
    abstract interface
@@ -575,7 +495,7 @@ module swiftest_classes
       module subroutine io_initialize_system(self, config) 
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
+         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
       end subroutine io_initialize_system
 
       !> Method to write out a single frame of the simulation to file
@@ -587,6 +507,16 @@ module swiftest_classes
          real(DP),                      intent(in)    :: t      !! Current simulation time
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine io_write_frame_system
+
+      module subroutine io_read_frame_system(self, iu, config, form, t, ierr)
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
+         integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
+         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined configuration parameters 
+         character(*),                  intent(in)    :: form   !! Input format code ("XV" or "EL")
+         real(DP),                      intent(out)   :: t      !! Simulation time
+         integer(I4B),                  intent(out)   :: ierr   !! Error code
+      end subroutine io_read_frame_system
 
       !> Method to write out the discard bodies to a file
       module subroutine io_write_discard(self, config, t, dt)

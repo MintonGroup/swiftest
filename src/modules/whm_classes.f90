@@ -8,10 +8,21 @@ module whm_classes
    implicit none
 
    !********************************************************************************************************************************
+   !                                    whm_central_body class definitions and method interfaces
+   !*******************************************************************************************************************************
+   !> WHM central body particle class
+   type, public, extends(swiftest_central_body) :: whm_central_body
+      real(DP) :: eta     ! Jacobi mass
+      real(DP), dimension(NDIM) :: xj      ! Jacobi position
+      real(DP), dimension(NDIM) :: vj      ! Jacobi velocity
+   contains
+   end type whm_central_body
+
+   !********************************************************************************************************************************
    !                                    whm_pl class definitions and method interfaces
    !*******************************************************************************************************************************
 
-   !! WHM massive body particle class
+   !> WHM massive body particle class
    type, public, extends(swiftest_pl) :: whm_pl
       real(DP), dimension(:),   allocatable :: eta     ! Jacobi mass
       real(DP), dimension(:,:), allocatable :: xj      ! Jacobi position
@@ -23,11 +34,14 @@ module whm_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_pl and whm_discard_spill_pl
    contains
-      procedure, public :: setup   => whm_setup_pl   !! Constructor method - Allocates space for number of particles
-      procedure, public :: getacch => whm_getacch_pl !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: step    => whm_step_pl    !! Step massive bodies ahead Democratic Heliocentric method
-      procedure, public :: drift   => whm_drift_pl   !! Loop through massive bodies and call Danby drift routine
-      procedure, public :: kick    => whm_kickvh_pl  !! Kick barycentric velocities of active massive bodies
+      procedure, public :: h2j     => coord_h2j_pl    !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
+      procedure, public :: j2h     => coord_j2h_pl    !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
+      procedure, public :: vh2vj   => coord_vh2vj_pl  !! Convert velocity vectors from heliocentric to Jacobi coordinates 
+      procedure, public :: setup   => whm_setup_pl    !! Constructor method - Allocates space for number of particles
+      procedure, public :: getacch => whm_getacch_pl  !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: step    => whm_step_pl     !! Step massive bodies ahead Democratic Heliocentric method
+      procedure, public :: drift   => whm_drift_pl    !! Loop through massive bodies and call Danby drift routine
+      procedure, public :: kick    => whm_kickvh_pl   !! Kick barycentric velocities of active massive bodies
    end type whm_pl
 
    interface
@@ -80,6 +94,24 @@ module whm_classes
          class(whm_pl), intent(inout)                   :: self   !! WHM massive body particle data structure
          real(DP), intent(in)                           :: t      !! Current time
       end subroutine whm_user_getacch_pl
+
+      module subroutine coord_h2j_pl(self, cb)
+         implicit none
+         class(whm_pl),           intent(inout) :: self !! Swiftest particle object
+         class(whm_central_body), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine coord_h2j_pl
+
+      module subroutine coord_j2h_pl(self, cb)
+         implicit none
+         class(whm_pl),           intent(inout) :: self !! Swiftest particle object
+         class(whm_central_body), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine coord_j2h_pl
+
+      module subroutine coord_vh2vj_pl(self, cb)
+         implicit none
+         class(whm_pl),           intent(inout) :: self !! Swiftest particle object
+         class(whm_central_body), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine coord_vh2vj_pl
    end interface
 
    !********************************************************************************************************************************

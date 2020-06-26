@@ -26,7 +26,6 @@ contains
       logical, save             :: lfirst = .true.
       integer(I4B)              :: i, j, ierr
       real(DP),dimension(:),allocatable :: a, e, inc, capom, omega, capm
-      real(DP), dimension(NDIM) :: xtmp, vtmp
 
       iu = BINUNIT
       if (lfirst) then

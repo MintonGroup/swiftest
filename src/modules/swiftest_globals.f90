@@ -119,11 +119,6 @@ module swiftest_globals
    integer(I4B), parameter :: NDIM2   = 2 * NDIM   !! 2x the number of dimensions
    real(DP),     parameter :: VSMALL    = 4.0E-15_DP
 
-   ! Added by D. Minton
-   real(DP), save :: MU2KG = -1.0_DP       !! Converts mass units to grams
-   real(DP), save :: TU2S  = -1.0_DP       !! Converts time units to seconds
-   real(DP), save :: DU2M = -1.0_DP        !! Converts distance unit to centimeters
-   real(DP), save :: GU = 1.0_DP           !! Universal gravitational constant in user units
    real(DP), parameter  :: GC = 6.6743E-11_DP !! Universal gravitational constant in SI units
 
 end module swiftest_globals
