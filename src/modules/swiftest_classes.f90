@@ -845,21 +845,6 @@ module swiftest_classes
          character(*), intent(in) :: out_type !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
       end subroutine io_write_hdr
 
-      module function io_write_line_swifter(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
-         implicit none
-         integer(I4B)                        :: io_write_line_swifter
-         integer(I4B), intent(in)            :: iu       !! Unit number associated with input binary file
-         integer(I4B), intent(in)            :: id       !! Planet or test particle identifier
-         real(DP),     intent(in)            :: d1       !! First quantity (semimajor axis (pericentric distance for a parabola) or heliocentric x )
-         real(DP),     intent(in)            :: d2       !! Second quantity (eccentricity or heliocentric y )
-         real(DP),     intent(in)            :: d3       !! Third quantity (inclination or heliocentric z )
-         real(DP),     intent(in)            :: d4       !! Fourth quantity (longitude of the ascending node or heliocentric vx)
-         real(DP),     intent(in)            :: d5       !! Fifth quantity (argument of pericenter or heliocentric vy)
-         real(DP),     intent(in)            :: d6       !! Sixth quantity (mean anomaly or heliocentric vz)
-         real(DP),     intent(in), optional  :: MASS     !! Optional mass (omitted for massless test particle)
-         real(DP),     intent(in), optional  :: RADIUS   !! Optional radius (omitted for massless test particle)
-         character(*), intent(in)            :: out_type !! Format of input binary file
-      end function io_write_line_swifter
    end interface
 
    !> Interfaces for the methods that convert between cartesian and orbital elements

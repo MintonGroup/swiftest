@@ -5,12 +5,12 @@ submodule (swiftest_classes) io_read
    !!    io_read_config_in
    !!    io_config_reader
    !!    io_get_token
+   !!    io_initialize_system
    !!    io_read_cb_in
    !!    io_read_body_in
    !!    io_read_hdr
    !!    io_read_frame_cb
    !!    io_read_frame_body
-   !!    io_read_line_swifter
    !!    io_read_encounter
 contains
    module procedure io_read_config_in
@@ -374,6 +374,19 @@ contains
    
    end procedure io_get_token
 
+   module procedure io_initialize_system
+      !! author: David A. Minton
+      !!
+      !! Wrapper method to initialize a basic Swiftest nbody system from files
+      !!
+      implicit none
+   
+      call self%cb%initialize(config)
+      call self%pl%initialize(config)
+      call self%tp%initialize(config)
+   
+   end procedure io_initialize_system
+
    module procedure io_read_cb_in
       !! author: David A. Minton
       !!
@@ -616,55 +629,6 @@ contains
 
       return
    end procedure io_read_frame_body
-
-   module procedure io_read_line_swifter
-      !! author: David A. Minton
-      !!
-      !! Read a line (record) from input binary files using the old Swifter style
-      !!     Function returns read error status (0 = OK, nonzero = ERROR)
-      !! Adapted from David E. Kaufmann's Swifter routine: io_read_line.f90
-      !! Adapted from Hal Levison's Swift routine io_read_line.f
-      use swiftest
-      implicit none
-      logical                    :: lmass, lradius
-      integer( I4B)              :: ierr
-      real(SP)                   :: smass, sradius
-      real(SP), dimension(NDIM2) :: svec
-      real(DP), dimension(NDIM2) :: dvec
-
-      lmass = present(MASS)
-      if (lmass) then
-         lradius = present(RADIUS)
-         if (.not. lradius) then
-            write(*, *) "Swiftest Error:"
-            write(*, *) "   Function io_read_line_swifter called with optional mass but without optional radius"
-            call util_exit(FAILURE)
-         end if
-      end if
-      select case (out_type)
-      case (SWIFTER_REAL4_TYPE)
-         if (lmass) then
-            read(iu, iostat = ierr) id, smass, sradius, svec
-         else
-            read(iu, iostat = ierr) id, svec
-         end if
-         io_read_line_swifter = ierr
-         if (ierr /= 0) return
-         if (lmass) mass = smass
-         d1 = svec(1); d2 = svec(2); d3 = svec(3); d4 = svec(4); d5 = svec(5); d6 = svec(6)
-      case (SWIFTER_REAL8_TYPE)
-         if (lmass) then
-            read(iu, iostat = ierr) id, mass, radius, dvec
-         else
-            read(iu, iostat = ierr) id, dvec
-         end if
-         io_read_line_swifter = ierr
-         if (ierr /= 0) return
-         d1 = dvec(1); d2 = dvec(2); d3 = dvec(3); d4 = dvec(4); d5 = dvec(5); d6 = dvec(6)
-      end select
-
-      return
-   end procedure io_read_line_swifter
 
    module procedure io_read_encounter
       !! author: David A. Minton
