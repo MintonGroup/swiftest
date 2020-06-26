@@ -5,9 +5,7 @@ submodule (swiftest_classes) io_dump
    !!    io_dump_system
    !!    io_dump_config
    !!    io_dump_config_writer
-   !!    io_dump_cb
-   !!    io_dump_pl
-   !!    io_dump_tp
+   !!    io_dump_swiftest
 contains
    module procedure io_dump_system
       !! author: David A. Minton
@@ -21,18 +19,20 @@ contains
                                                     !!    to dump file-specific values without changing the user-defined values
       integer(I4B), save           :: idx = 1       !! Index of current dump file. Output flips between 2 files for extra security
                                                     !!    in case the program halts during writing
-      config_file_name = trim(adjustl(DUMP_CONFIG_FILE(idx)))
+      character(len=:), allocatable :: config_file_name
 
+      dump_config = config
+      config_file_name = trim(adjustl(DUMP_CONFIG_FILE(idx)))
       dump_config%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
       dump_config%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
       dump_config%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
       dump_config%out_form = XV
       dump_config%out_stat = 'APPEND'
-      dump_config%dump(config_file_name,t,dt)
+      call dump_config%dump(config_file_name,t,dt)
 
-      self%cb%dump(dump_config,t,dt)
-      self%pl%dump(dump_config,t,dt)
-      self%tp%dump(dump_config,t,dt)
+      call self%cb%dump(dump_config, t, dt, tfrac)
+      call self%pl%dump(dump_config, t, dt, tfrac)
+      call self%tp%dump(dump_config, t, dt, tfrac)
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
@@ -132,19 +132,18 @@ contains
       write(unit, Rfmt) "CHK_QMIN",                 self%qmin
       if (self%qmin >= 0.0_DP) then
          write(unit, Sfmt) "CHK_QMIN_COORD",        trim(adjustl(self%qmin_coord))
-         write(unit, R2fmt) "CHK_QMIN_RANGE",       self%qmin_alo, config%qmin_ahi
+         write(unit, R2fmt) "CHK_QMIN_RANGE",       self%qmin_alo, self%qmin_ahi
       else
          write(unit, Pfmt) "!CHK_QMIN_COORD"
          write(unit, Pfmt) "!CHK_QMIN_RANGE"
       end if
-      if (self%lmtiny) write(unit, Rfmt) "MTINY", config%mtiny
+      if (self%lmtiny) write(unit, Rfmt) "MTINY", self%mtiny
       write(unit, Rfmt) "MU2KG",                    MU2KG
       write(unit, Rfmt) "TU2S",                     TU2S 
       write(unit, Rfmt) "DU2M",                     DU2M
       
       write(unit, Lfmt) "EXTRA_FORCE",              self%lextra_force
       write(unit, Lfmt) "BIG_DISCARD",              self%lbig_discard
-      write(unit, Lfmt) "RHILL_PRESENT",            self%lrhill_present
       write(unit, Lfmt) "CHK_CLOSE",                self%lclose
       write(unit, Lfmt) "FRAGMENTATION",            self%lfragmentation
       write(unit, Lfmt) "ROTATION",                 self%lrotation
@@ -157,76 +156,37 @@ contains
       return
    end procedure io_config_writer
 
-   module procedure io_dump_cb
+   module procedure io_dump_swiftest
       !! author: David A. Minton
       !!
       !! Dump massive body data to files
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_dump_pl.f90
-      !! Adapted from Hal Levison's Swift routine io_dump_pl.f
+      !! Adapted from David E. Kaufmann's Swifter routine: io_dump_pl.f90 and io_dump_tp.f90
+      !! Adapted from Hal Levison's Swift routine io_dump_pl.f and io_dump_tp.f
       use swiftest
       implicit none
       integer(I4B)                   :: ierr    !! Error code
       integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
+      integer(I4B)                   :: iu = LUN
+      character(len=:), allocatable  :: dump_file_name
 
-      open(unit = LUN, file = config%intpfile, form = "UNFORMATTED", status = 'replace', iostat = ierr)
+      select type(self)
+      class is(swiftest_central_body)
+         dump_file_name = trim(adjustl(config%incbfile)) 
+      class is (swiftest_pl)
+         dump_file_name = trim(adjustl(config%inplfile)) 
+      class is (swiftest_tp)
+         dump_file_name = trim(adjustl(config%intpfile)) 
+      end select
+      open(unit = iu, file = dump_file_name, form = "UNFORMATTED", status = 'replace', iostat = ierr)
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
-         write(*, *) "   Unable to open binary dump file ", trim(adjustl(config%intpfile))
+         write(*, *) "   Unable to open binary dump file " // dump_file_name
          call util_exit(FAILURE)
       end if
-      call self%write_frame(LUN, config, t, dt)
+      call self%write_frame(iu, config, t, dt)
       close(LUN)
 
       return
-   end procedure io_dump_cb
-
-   module procedure io_dump_pl
-      !! author: David A. Minton
-      !!
-      !! Dump planet data to files
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_dump_pl.f90
-      !! Adapted from Hal Levison's Swift routine io_dump_pl.f
-      use swiftest
-      implicit none
-      integer(I4B)                   :: ierr    !! Error code
-      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
-
-      open(unit = LUN, file = config%inplfile, form = "UNFORMATTED", status = 'replace', iostat = ierr)
-      if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   Unable to open binary dump file ", trim(djustl(config%inplfile))
-         call util_exit(FAILURE)
-      end if
-      call self%write_frame(LUN, config, t, dt)
-      close(LUN)
-
-      return
-   end procedure io_dump_pl
-
-   module procedure io_dump_tp
-      !! author: David A. Minton
-      !!
-      !! Dump test particle data to files
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_dump_tp.f90
-      !! Adapted from Hal Levison's Swift routine io_dump_tp.f
-      use swiftest
-      implicit none
-      integer(I4B)                   :: ierr    !! Error code
-      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
-   
-      open(unit = LUN, file = config%intpfile, form = "UNFORMATTED", status = 'replace', iostat = ierr)
-   
-      if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   Unable to open binary dump file ", trim(DUMP_TP_FILE(idx))
-         call util_exit(FAILURE)
-      end if
-      call self%write_frame(LUN, config, t, dt)
-      close(LUN)
-   
-      return
-    end procedure io_dump_tp
+   end procedure io_dump_swiftest
 end submodule io_dump

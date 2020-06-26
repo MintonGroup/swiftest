@@ -115,7 +115,7 @@ module swiftest_classes
       logical :: lintegrate = .false.  !! Flag indicating that this object should be integrated in the current step 
    contains
       !! The minimal methods that all systems must have
-      procedure(abstract_dump),        deferred  :: dump
+      procedure :: dump => io_dump_swiftest 
       procedure(abstract_initialize),  deferred  :: initialize
       procedure(abstract_write_frame), deferred  :: write_frame
       procedure(abstract_read_frame),  deferred  :: read_frame
@@ -123,14 +123,7 @@ module swiftest_classes
 
    !> Interfaces for abstract type-bound procedures for swiftest_base
    abstract interface
-      subroutine abstract_dump(self, config, t, dt, tfrac) 
-         import DP, swiftest_base, swiftest_configuration
-         class(swiftest_base),          intent(in)    :: self    !! Swiftest base object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-         real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
-      end subroutine abstract_dump
+
 
       subroutine abstract_initialize(self, config) 
          import swiftest_base, swiftest_configuration
@@ -157,6 +150,17 @@ module swiftest_classes
       end subroutine abstract_read_frame
    end interface
 
+   interface
+      module subroutine io_dump_swiftest(self, config, t, dt, tfrac) 
+         implicit none
+         class(swiftest_base),          intent(inout) :: self    !! Swiftest base object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)    :: t       !! Current simulation time
+         real(DP),                      intent(in)    :: dt      !! Stepsize
+         real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
+      end subroutine io_dump_swiftest
+   end interface
+
    !********************************************************************************************************************************
    !                            swiftest_central_body class definitions and method interfaces
    !********************************************************************************************************************************
@@ -176,22 +180,12 @@ module swiftest_classes
       real(DP)                  :: Q       = 0.0_DP !! Tidal quality factor
    contains
       private
-      procedure, public         :: dump        => io_dump_cb         !! I/O routine for dumping central body data to a file
       procedure, public         :: initialize  => io_read_cb_in      !! I/O routine for reading in central body data
       procedure, public         :: write_frame => io_write_frame_cb  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public         :: read_frame  => io_read_frame_cb   !! I/O routine for reading out a single frame of time-series data for the central body
    end type swiftest_central_body
 
    interface              
-      module subroutine io_dump_cb(self, config, t, dt, tfrac) 
-         implicit none
-         class(swiftest_central_body),  intent(in)    :: self    !! Swiftest base object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-         real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
-      end subroutine io_dump_cb
-
       module subroutine io_write_frame_cb(self, iu, config, t, dt)
          implicit none
          class(swiftest_central_body),  intent(inout) :: self   !! Swiftest central body object 
@@ -370,7 +364,6 @@ module swiftest_classes
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: setup       => setup_pl           !! A base constructor that sets the number of bodies and 
       procedure, public :: b2h         => coord_b2h_pl       !! Convert position vectors from barycentric to heliocentric coordinates
-      procedure, public :: dump        => io_dump_pl         !! Dump the current state of the test particles to file
       procedure, public :: h2b         => coord_h2b_pl       !! Convert position vectors from heliocentric to barycentric coordinates
       procedure, public :: h2j         => coord_h2j_pl       !! Convert posiition vectors from heliocentric to Jacobi coordinates 
       procedure, public :: j2h         => coord_j2h_pl       !! Convert position vectors from Jacobi to helliocentric coordinates 
@@ -431,15 +424,6 @@ module swiftest_classes
          class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
       end subroutine coord_vh2vj_pl
 
-      module subroutine io_dump_pl(self, config, t, dt, tfrac) 
-         implicit none
-         class(swiftest_pl),            intent(in)    :: self    !! Swiftest base object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-         real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
-      end subroutine io_dump_pl
-
       module subroutine util_set_vec_mu_pl(self, cb)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
@@ -473,7 +457,6 @@ module swiftest_classes
       procedure, public :: vb2vh       => coord_vb2vh_tp    !! Convert velocity vectors from barycentric to heliocentric coordinates 
       procedure, public :: vh2vb       => coord_vh2vb_tp    !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure, public :: discard     => discard_tp        !! Dump the current state of the test particles to file
-      procedure, public :: dump        => io_dump_tp        !! Dump the current state of the test particles to file
       procedure, public :: setup       => setup_tp          !! A base constructor that sets the number of bodies and 
       procedure, public :: set_vec_mu  => util_set_vec_mu_tp   !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
@@ -512,15 +495,6 @@ module swiftest_classes
          real(DP),                      intent(in)    :: t      !! Current simulation tim
          real(DP),                      intent(in)    :: dt     !! Stepsize`
       end subroutine discard_tp
-
-      module subroutine io_dump_tp(self, config, t, dt, tfrac) 
-         implicit none
-         class(swiftest_tp),            intent(in)    :: self    !! Swiftest base object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-         real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
-      end subroutine io_dump_tp
 
       module subroutine util_set_vec_mu_tp(self, cb)
          implicit none
@@ -591,7 +565,7 @@ module swiftest_classes
       !> Method to dump the state of the whole system to file
       module subroutine io_dump_system(self, config, t, dt, tfrac) 
          implicit none
-         class(swiftest_nbody_system),  intent(in)    :: self     !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
          class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters
          real(DP),                      intent(in)    :: t        !! Current simulation time
          real(DP),                      intent(in)    :: dt       !! Stepsize
