@@ -120,7 +120,6 @@ module swiftest_classes
       procedure(abstract_initialize),  deferred  :: initialize
       procedure(abstract_write_frame), deferred  :: write_frame
       procedure(abstract_read_frame),  deferred  :: read_frame
-      procedure(abstract_step),        deferred  :: step
    end type swiftest_base
 
    !> Interfaces for abstract type-bound procedures for swiftest_base
@@ -131,15 +130,6 @@ module swiftest_classes
          class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
          class(swiftest_configuration), intent(inout) :: config   !! Input collection of user-defined configuration parameters 
       end subroutine abstract_initialize
-
-      !> Steps the Swiftest nbody system forward in time one stepsize
-      subroutine abstract_step(self, config, t, dt) 
-         import DP, swiftest_base, swiftest_configuration
-         class(swiftest_base),          intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-      end subroutine abstract_step
 
       subroutine abstract_write_frame(self, iu, config, t, dt)
          import DP, I4B, swiftest_base, swiftest_configuration
@@ -194,7 +184,6 @@ module swiftest_classes
       procedure, public         :: initialize  => io_read_cb_in      !! I/O routine for reading in central body data
       procedure, public         :: write_frame => io_write_frame_cb  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public         :: read_frame  => io_read_frame_cb   !! I/O routine for reading out a single frame of time-series data for the central body
-      procedure, public         :: step        => swiftest_step_cb   !! Dummy method for stepping the central body
    end type swiftest_central_body
 
    interface              
@@ -223,13 +212,6 @@ module swiftest_classes
          class(swiftest_configuration), intent(inout) :: config
       end subroutine io_read_cb_in
 
-      module subroutine swiftest_step_cb(self, config, t, dt) 
-         implicit none
-         class(swiftest_central_body),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-      end subroutine swiftest_step_cb
    end interface
       
    !********************************************************************************************************************************
@@ -463,6 +445,8 @@ module swiftest_classes
       logical                                   :: lbody_discard = .false.     !! Flag indicating that bodies need to be discarded in the current step
    contains
       private
+      !> Each integrator will have its own version of the step
+      procedure(abstract_step_system), public, deferred :: step                   !! Method to advance the system one step in time given by the step size dt
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure, public :: construct              => setup_construct_system       !! Constructs the basic system  
@@ -475,6 +459,17 @@ module swiftest_classes
       procedure, public :: write_frame            => io_write_frame_system        !! Append a frame of output data to file
       procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
    end type swiftest_nbody_system
+
+   abstract interface
+      !> Steps the Swiftest nbody system forward in time one stepsize
+      subroutine abstract_step_system(self, config, t, dt) 
+         import DP, swiftest_nbody_system, swiftest_configuration
+         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
+         real(DP),                      intent(in)    :: t       !! Current simulation time
+         real(DP),                      intent(in)    :: dt      !! Stepsize
+      end subroutine abstract_step_system
+   end interface
 
    !> Interfaces for concrete type-bound procedures for the Swiftest nbody system class
    interface
