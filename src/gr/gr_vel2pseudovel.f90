@@ -86,7 +86,7 @@ SUBROUTINE gr_vel2pseudovel(xh, vh, mu, c2, pvh)
         Jinv = Jinv * det
 
         DO i = 1, NDIM
-           pvh(i) = pvh(i) - DOT_PRODUCT(Jinv(i,:) ,F(:))
+           pvh(i) = pvh(i) - DOT_PRODUCT(Jinv(:, i) ,F(:))
         END DO
         
      END DO 

@@ -12,9 +12,9 @@ contains
 
    associate(ntp => self%nbody)
       where(self%status(1:ntp) == ACTIVE)
-         self%vb(1,1:ntp) = self%vb(1,1:ntp) + self%ah(1,1:ntp) * dt
-         self%vb(2,1:ntp) = self%vb(2,1:ntp) + self%ah(2,1:ntp) * dt
-         self%vb(3,1:ntp) = self%vb(3,1:ntp) + self%ah(3,1:ntp) * dt
+         self%vb(1:ntp, 1) = self%vb(1:ntp, 1) + self%ah(1:ntp, 1) * dt
+         self%vb(1:ntp, 2) = self%vb(1:ntp, 2) + self%ah(1:ntp, 2) * dt
+         self%vb(1:ntp, 3) = self%vb(1:ntp, 3) + self%ah(1:ntp, 3) * dt
       end where
    end associate
 

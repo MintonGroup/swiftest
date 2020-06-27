@@ -56,13 +56,13 @@ SUBROUTINE gr_whm_getacch(npl, whm_pl1P, c2)
           mu = msun * etaj/etajm1
           rjmag4 = (DOT_PRODUCT(whm_plP%xj(:), whm_plP%xj(:)))**2
           beta = - mu**2*c2 
-          aj(i, :) = beta * whm_plP%xj(:) / rjmag4
+          aj(:, i) = beta * whm_plP%xj(:) / rjmag4
           IF (i == 2) THEN
                suma(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-               whm_plP%ah(:) = whm_plP%ah(:) + aj(2, :)
+               whm_plP%ah(:) = whm_plP%ah(:) + aj(:, 2)
           ELSE
-               suma(:) = suma(:) + whm_plP%swifter%mass*aj(i, :)/etaj
-               whm_plP%ah(:) = whm_plP%ah(:) + aj(i, :) + suma(:)
+               suma(:) = suma(:) + whm_plP%swifter%mass*aj(:, i)/etaj
+               whm_plP%ah(:) = whm_plP%ah(:) + aj(:, i) + suma(:)
           END IF
           etajm1 = etaj
      END DO

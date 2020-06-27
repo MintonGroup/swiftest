@@ -8,7 +8,7 @@ module swiftest_classes
    private
 
    !********************************************************************************************************************************
-   !                                    swiftest_configuration class definitions and method interfaces
+   ! swiftest_configuration class definitions and method interfaces
    !********************************************************************************************************************************
 
    !> User defined configuration parameters that are read in from the configuration input file. 
@@ -110,7 +110,7 @@ module swiftest_classes
    end interface
 
    !********************************************************************************************************************************
-   !                                    swiftest_base class definitions and method interfaces
+   ! swiftest_base class definitions and method interfaces
    !********************************************************************************************************************************
    type, abstract, private :: swiftest_base
       !! An superclass for a generic Swiftest object
@@ -165,7 +165,7 @@ module swiftest_classes
    end interface
 
    !********************************************************************************************************************************
-   !                            swiftest_central_body class definitions and method interfaces
+   ! swiftest_central_body class definitions and method interfaces
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, public, extends(swiftest_base) :: swiftest_central_body           
@@ -217,7 +217,7 @@ module swiftest_classes
    end interface
       
    !********************************************************************************************************************************
-   !                            swiftest_body definitions and method interfaces
+   ! swiftest_body definitions and method interfaces
    !********************************************************************************************************************************
    !> An abstract class for a generic collection of Swiftest bodies
    type, abstract, public, extends(swiftest_base) :: swiftest_body
@@ -346,7 +346,7 @@ module swiftest_classes
    end interface
       
    !********************************************************************************************************************************
-   !                            swiftest_pl definitions and method interfaces
+   ! swiftest_pl definitions and method interfaces
    !********************************************************************************************************************************
    !> An abstract class for a generic collection of Swiftest massive bodies
    type, abstract, public, extends(swiftest_body) :: swiftest_pl
@@ -387,7 +387,7 @@ module swiftest_classes
    end interface
 
    !********************************************************************************************************************************
-   !                            swiftest_tp definitions and method interfaces
+   ! swiftest_tp definitions and method interfaces
    !********************************************************************************************************************************
    !> An abstract class for a generic collection of Swiftest test particles
    type, abstract, public, extends(swiftest_body) :: swiftest_tp
@@ -431,7 +431,7 @@ module swiftest_classes
    end interface
 
    !********************************************************************************************************************************
-   !                            swiftest_nbody_system class definitions and method interfaces
+   ! swiftest_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract, public, extends(swiftest_base) :: swiftest_nbody_system
@@ -543,7 +543,7 @@ module swiftest_classes
    end interface
 
    !********************************************************************************************************************************
-   !                            Interfaces for methods that are not type-bound 
+   ! Interfaces for non type-bound setup subroutines
    !********************************************************************************************************************************
 
    interface
@@ -556,7 +556,10 @@ module swiftest_classes
       end subroutine setup_construct_system
    end interface
 
-   !> Interfaces for particle discard methods
+   !********************************************************************************************************************************
+   ! Interfaces for non type-bound discard subroutines
+   !********************************************************************************************************************************
+
    interface
       !> Move spilled (discarded) Swiftest basic body components from active list to discard list
       module subroutine discard_spill_body(keeps, discards, lspill_list)
@@ -634,7 +637,10 @@ module swiftest_classes
       end subroutine discard_and_merge_nbody
    end interface
 
-   !> Interfaces for the Keplerian drift methods
+   !********************************************************************************************************************************
+   ! Interfaces for non type-bound drift subroutines
+   !********************************************************************************************************************************
+
    interface
       module pure subroutine drift_dan(mu, x0, v0, dt0, iflag)
          implicit none
@@ -707,7 +713,10 @@ module swiftest_classes
       end subroutine drift_one
    end interface
 
-   !> Interfaces for non-type-bound input/output methods   
+   !********************************************************************************************************************************
+   ! Interfaces for non type-bound io subroutines
+   !********************************************************************************************************************************
+   
    interface
       module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
          character(len=*), intent(in)     :: buffer         !! Input string buffer
@@ -781,7 +790,10 @@ module swiftest_classes
 
    end interface
 
-   !> Interfaces for the methods that convert between cartesian and orbital elements
+   !********************************************************************************************************************************
+   ! Interfaces for non type-bound orbel subroutines
+   !********************************************************************************************************************************
+   
    interface
       module pure subroutine orbel_scget(angle, sx, cx)
          implicit none

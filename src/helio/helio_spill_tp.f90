@@ -18,12 +18,12 @@ contains
 
    do concurrent (i = 1:NDIM)
       ! Pack the discarded bodies into the discard object
-      discard%ah(i,:)  = pack(self%ah(i,1:ntp),  self%lspill_list(1:ntp))
-      discard%ahi(i,:) = pack(self%ahi(i,1:ntp), self%lspill_list(1:ntp))
+      discard%ah(:, i)  = pack(self%ah(1:ntp, i),  self%lspill_list(1:ntp))
+      discard%ahi(:, i) = pack(self%ahi(1:ntp, i), self%lspill_list(1:ntp))
 
       ! Pack the kept bodies back into the original object
-      self%ah(i,:)  = pack(self%ah(i,1:ntp),  .not. self%lspill_list(1:ntp))
-      self%ahi(i,:) = pack(self%ahi(i,1:ntp), .not. self%lspill_list(1:ntp))
+      self%ah(:, i)  = pack(self%ah(1:ntp, i),  .not. self%lspill_list(1:ntp))
+      self%ahi(:, i) = pack(self%ahi(1:ntp, i), .not. self%lspill_list(1:ntp))
    end do
 
    ! Call the spill method for the parent class (the base class in this case)

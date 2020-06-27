@@ -39,7 +39,8 @@ contains
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
-      !! initializes all components with a value. 
+      !! initializes all components with a value.
+      !! Note: Timing tests indicate that (n, NDIM) is more efficient than (NDIM, n) 
       use swiftest
       implicit none
 
@@ -49,10 +50,10 @@ contains
       !write(*,*) 'Allocating the basic Swiftest particle'
       allocate(self%name(n))
       allocate(self%status(n))
-      allocate(self%xh(NDIM,n))
-      allocate(self%vh(NDIM,n))
-      allocate(self%xb(NDIM,n))
-      allocate(self%vb(NDIM,n))
+      allocate(self%xh(n,NDIM))
+      allocate(self%vh(n,NDIM))
+      allocate(self%xb(n,NDIM))
+      allocate(self%vb(n,NDIM))
       allocate(self%mu_vec(n))
       allocate(self%dt_vec(n))
       allocate(self%a(n))
@@ -99,8 +100,8 @@ contains
       allocate(self%rhill(n))
       allocate(self%radius(n))
       allocate(self%density(n))
-      allocate(self%Ip(NDIM,n))
-      allocate(self%rot(NDIM,n))
+      allocate(self%Ip(n,NDIM))
+      allocate(self%rot(n,NDIM))
       allocate(self%k2(n))
       allocate(self%Q(n))
 

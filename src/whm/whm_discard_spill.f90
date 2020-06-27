@@ -12,8 +12,8 @@ contains
 
    associate(ntp => keeps%nbody)
       do i = 1, NDIM
-         discards%ah(i,:) = pack(keeps%ah(i,1:ntp),       lspill_list(1:ntp))
-         keeps%ah(i,:)    = pack(keeps%ah(i,1:ntp), .not. lspill_list(1:ntp))
+         discards%ah(:, i) = pack(keeps%ah(1:ntp, i),       lspill_list(1:ntp))
+         keeps%ah(:, i)    = pack(keeps%ah(1:ntp, i), .not. lspill_list(1:ntp))
       end do
    end associate
 

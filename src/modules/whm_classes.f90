@@ -8,7 +8,7 @@ module whm_classes
    implicit none
 
    !********************************************************************************************************************************
-   !                                    whm_central_body class definitions and method interfaces
+   ! whm_central_body class definitions and method interfaces
    !*******************************************************************************************************************************
    !> WHM central body particle class
    type, public, extends(swiftest_central_body) :: whm_central_body
@@ -19,7 +19,7 @@ module whm_classes
    end type whm_central_body
 
    !********************************************************************************************************************************
-   !                                    whm_pl class definitions and method interfaces
+   ! whm_pl class definitions and method interfaces
    !*******************************************************************************************************************************
 
    !> WHM massive body particle class
@@ -117,7 +117,7 @@ module whm_classes
    end interface
 
    !********************************************************************************************************************************
-   !                                    whm_tp class definitions and method interfaces
+   ! whm_tp class definitions and method interfaces
    !*******************************************************************************************************************************
 
    !! WHM test particle class
@@ -190,8 +190,9 @@ module whm_classes
    end interface
 
    !********************************************************************************************************************************
-   !                            whm_nbody_system class definitions and method interfaces
+   !  whm_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
+
    !> An abstract class for the WHM integrator nbody system 
    type, public, extends(swiftest_nbody_system) :: whm_nbody_system
       !> In the WHM integrator, only test particles are discarded
@@ -203,7 +204,11 @@ module whm_classes
       procedure, public :: step          => whm_step_system        !! Method to advance the system one step in time given by the step size dt
    end type whm_nbody_system
 
-!> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
+
+!********************************************************************************************************************************
+!  whm_nbody_system class definitions and method interfaces
+!********************************************************************************************************************************
+
 interface
    !> Constructs a WHM nbody system
    module subroutine whm_construct_system(self, config)

@@ -41,7 +41,7 @@ contains
          end do
          call obl_acc_tp(ntp, xht, config%j2rp2, config%j4rp4, irht, aoblt, mu)
          do i = 1, NDIM
-            self%ah(i,:) = self%ahi(i,:) + aoblt(i, :) - aobl(i, 1)
+            self%ah(:, i) = self%ahi(:, i) + aoblt(:, i) - aobl(i, 1)
          end do
       else
          self%ah(:,:) = self%ahi(:,:)

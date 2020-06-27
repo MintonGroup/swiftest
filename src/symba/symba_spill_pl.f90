@@ -27,8 +27,8 @@ contains
    self%index_parent(:)= pack(self%index_parent(1:npl), .not. self%lspill_list(1:npl))
 
    do concurrent (i = 1:NDIM)
-      discard%index_child(i,:) = pack(self%index_child(i,1:npl), self%lspill_list(1:npl))
-      self%index_child(i,:)= pack(self%index_child(i,1:npl), .not. self%lspill_list(1:npl))
+      discard%index_child(:, i) = pack(self%index_child(1:npl, i), self%lspill_list(1:npl))
+      self%index_child(:, i)= pack(self%index_child(1:npl, i), .not. self%lspill_list(1:npl))
    end do
 
    ! Call the spill method for the parent class 

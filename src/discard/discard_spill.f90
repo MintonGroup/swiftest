@@ -18,17 +18,17 @@ contains
          keeps%status(:)     = pack(keeps%status(1:n),  .not. lspill_list(1:n))
 
          do concurrent (i = 1:NDIM)
-            discards%xh(i,:) = pack(keeps%xh(i,1:n),          lspill_list(1:n))
-            keeps%xh(i,:)    = pack(keeps%xh(i,1:n),    .not. lspill_list(1:n))
+            discards%xh(:, i) = pack(keeps%xh(1:n, i),          lspill_list(1:n))
+            keeps%xh(:, i)    = pack(keeps%xh(1:n, i),    .not. lspill_list(1:n))
 
-            discards%vh(i,:) = pack(keeps%vh(i,1:n),          lspill_list(1:n))
-            keeps%vh(i,:)    = pack(keeps%vh(i,1:n),    .not. lspill_list(1:n))
+            discards%vh(:, i) = pack(keeps%vh(1:n, i),          lspill_list(1:n))
+            keeps%vh(:, i)    = pack(keeps%vh(1:n, i),    .not. lspill_list(1:n))
 
-            discards%xb(i,:) = pack(keeps%xb(i,1:n),          lspill_list(1:n))
-            keeps%xb(i,:)    = pack(keeps%xb(i,1:n),    .not. lspill_list(1:n))
+            discards%xb(:, i) = pack(keeps%xb(1:n, i),          lspill_list(1:n))
+            keeps%xb(:, i)    = pack(keeps%xb(1:n, i),    .not. lspill_list(1:n))
 
-            discards%vb(i,:) = pack(keeps%vb(i,1:n),          lspill_list(1:n))
-            keeps%vb(i,:)    = pack(keeps%vb(i,1:n),    .not. lspill_list(1:n))
+            discards%vb(:, i) = pack(keeps%vb(1:n, i),          lspill_list(1:n))
+            keeps%vb(:, i)    = pack(keeps%vb(1:n, i),    .not. lspill_list(1:n))
          end do
          
          discards%a(:)       = pack(keeps%a(1:n),             lspill_list(1:n))
@@ -89,11 +89,11 @@ contains
          keeps%density(:)     = pack(keeps%density(1:npl), .not. lspill_list(1:npl))
 
          do i = 1, NDIM
-            discards%Ip(i,:)  = pack(keeps%Ip(i,1:npl),          lspill_list(1:npl))
-            keeps%Ip(i,:)     = pack(keeps%Ip(i,1:npl),    .not. lspill_list(1:npl))
+            discards%Ip(:, i)  = pack(keeps%Ip(1:npl, i),          lspill_list(1:npl))
+            keeps%Ip(:, i)     = pack(keeps%Ip(1:npl, i),    .not. lspill_list(1:npl))
 
-            discards%rot(i,:) = pack(keeps%rot(i,1:npl),         lspill_list(1:npl))
-            keeps%rot(i,:)    = pack(keeps%rot(i,1:npl),   .not. lspill_list(1:npl))
+            discards%rot(:, i) = pack(keeps%rot(1:npl, i),         lspill_list(1:npl))
+            keeps%rot(:, i)    = pack(keeps%rot(1:npl, i),   .not. lspill_list(1:npl))
          end do
          
          discards%k2(:)       = pack(keeps%k2(1:npl),            lspill_list(1:npl))
