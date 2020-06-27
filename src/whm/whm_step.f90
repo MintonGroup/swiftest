@@ -34,6 +34,62 @@ contains
       return
    end procedure whm_step_system
 
+   module procedure whm_step_pl
+      !! author: David A. Minton
+      !!
+      !! Step planets ahead using kick-drift-kick algorithm
+      !!
+      !! Adapted from Hal Levison's Swift routine step_kdk_pl.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_step_pl.f90
+      use swiftest
+      implicit none
+      real(dp) :: dth
+   
+      dth = 0.5_DP * dt
+      if (lfirst) then
+         call self%h2j(npl, whm_pl1p)
+         call whm_getacch(lextra_force, t, npl, nplmax, whm_pl1p, j2rp2, j4rp4, c2)
+         lfirst = .false.
+      end if
+      call whm_kickvh(npl, whm_pl1p, dth)
+      call coord_vh2vj(npl, whm_pl1p)
+      call gr_whm_p4(npl, whm_pl1p, dth, c2)
+      call whm_drift(npl, whm_pl1p, dt, c2)
+      call gr_whm_p4(npl, whm_pl1p, dth, c2)
+      call coord_j2h(npl, whm_pl1p)
+      call whm_getacch(lextra_force, t+dt, npl, nplmax, whm_pl1p, j2rp2, j4rp4, c2)
+      call whm_kickvh(npl, whm_pl1p, dth)
+   
+      return
+   
+   end procedure whm_step_pl
+
+   module procedure whm_step_tp
+      !! author: David A. Minton
+      !!
+      !! Step active test particles ahead using kick-drift-kick algorithm
+      !!
+      !! Adapted from Hal Levison's Swift routine step_kdk_tp.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
+      use swiftest
+      implicit none
+      real(DP) :: dth
+      logical :: lfirsttp = .true.
+   
+      dth = 0.5_dp*dt
+      if (lfirsttp) then
+         call whm_getacch_tp(lextra_force, t, npl, nplmax, ntp, ntpmax, whm_pl1p, whm_tp1p, xbeg, j2rp2, j4rp4)
+         firsttp = .false.
+      end if
+      call whm_kickvh_tp(ntp, whm_tp1p, dth)
+      call whm_drift_tp(ntp, whm_tp1p, whm_pl1p%swifter%mass, dt, c2)
+      call whm_getacch_tp(lextra_force, t+dt, npl, nplmax, ntp, ntpmax, whm_pl1p, whm_tp1p, xend, j2rp2, j4rp4)
+      call whm_kickvh_tp(ntp, whm_tp1p, dth)
+   
+      return
+   
+   end procedure whm_step_tp
+
 
 
 end submodule whm_step

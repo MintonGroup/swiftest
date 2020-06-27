@@ -12,7 +12,7 @@ module whm_classes
    !*******************************************************************************************************************************
    !> WHM central body particle class
    type, public, extends(swiftest_central_body) :: whm_central_body
-      real(DP) :: eta     ! Jacobi mass
+      real(DP)                  :: eta     ! Jacobi mass
       real(DP), dimension(NDIM) :: xj      ! Jacobi position
       real(DP), dimension(NDIM) :: vj      ! Jacobi velocity
    contains
@@ -53,65 +53,66 @@ module whm_classes
       end subroutine whm_setup_pl
 
       !> Get heliocentric accelration of massive bodies
-      module subroutine whm_getacch_pl(self, config, t, lflag, whm_plA, xh)
+      module subroutine whm_getacch_pl(self, cb, config, t)
          implicit none
-         class(whm_pl), intent(inout)                  :: self      !! WHM massive body particle data structure. 
-         type(swiftest_configuration),intent(in)       :: config    !! Input collection of user-defined parameter
-         real(DP), intent(in)                          :: t         !! Current time. This is passed to the user-defined acceleration function.
-         logical, intent(in)                           :: lflag     !! Logical flag indicating whether to recompute direct cross term accelrations
-         class(whm_pl), optional, intent(in)           :: whm_plA !! Dummy argument used to make this a polymorphic method for both pl and tp classes
-         real(DP), dimension(:,:), optional,intent(in) :: xh        !! Dummy argument to make this method polymorphic with the tp class
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structure
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         real(DP),                      intent(in)    :: t      !! Current time. This is passed to the user-defined acceleration function.
       end subroutine whm_getacch_pl
 
-      module subroutine whm_drift_pl(self, dt, mu)
+      module subroutine whm_drift_pl(self, cb, config, dt)
          implicit none
-         class(whm_pl), intent(inout)                  :: self   !! WHM massive body particle data structure
-         real(DP), intent(in)                          :: dt     !! Stepsize
-         real(DP), optional, intent(in)                :: mu     !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structur
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_pl
 
-      module subroutine whm_getacch_int_pl(self)
+      module subroutine whm_getacch_int_pl(self, cb)
          implicit none
-         class(whm_pl), intent(inout)                  :: self   !! WHM massive body particle data structure.
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structure
       end subroutine whm_getacch_int_pl
 
-      module subroutine whm_kickvh_pl(self, dt)
+      module subroutine whm_kickvh_pl(self, cb, dt)
          implicit none
-         class(whm_pl), intent(inout)                   :: self  !! WHM massive body particle data structure.
-         real(DP), intent(in)                           :: dt    !! Stepsize
+         class(whm_pl),                 intent(inout)   :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout)   :: cb     !! WHM central body particle data structur
+         real(DP),                      intent(in)      :: dt     !! Stepsize
       end subroutine whm_kickvh_pl
 
       module subroutine whm_step_pl(self, cb, config, t, dt)
          implicit none
-         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure.
-         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structure.
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structure
          class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_pl
 
-      module subroutine whm_user_getacch_pl(self, t)
-         implicit none
-         class(whm_pl), intent(inout)                   :: self   !! WHM massive body particle data structure
-         real(DP), intent(in)                           :: t      !! Current time
+      module subroutine whm_user_getacch_pl(self, cb, t)
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
+         real(DP), intent(in)                         :: t      !! Current time
       end subroutine whm_user_getacch_pl
 
       module subroutine coord_h2j_pl(self, cb)
          implicit none
-         class(whm_pl),           intent(inout) :: self !! Swiftest particle object
-         class(whm_central_body), intent(inout) :: cb   !! Swiftest central body object
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
       end subroutine coord_h2j_pl
 
       module subroutine coord_j2h_pl(self, cb)
          implicit none
-         class(whm_pl),           intent(inout) :: self !! Swiftest particle object
-         class(whm_central_body), intent(inout) :: cb   !! Swiftest central body object
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
       end subroutine coord_j2h_pl
 
       module subroutine coord_vh2vj_pl(self, cb)
          implicit none
-         class(whm_pl),           intent(inout) :: self !! Swiftest particle object
-         class(whm_central_body), intent(inout) :: cb   !! Swiftest central body object
+         class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
       end subroutine coord_vh2vj_pl
    end interface
 
@@ -137,49 +138,53 @@ module whm_classes
       !> WHM test particle constructor 
       module subroutine whm_setup_tp(self,n)
          implicit none
-         class(whm_tp), intent(inout)           :: self !! Swiftest test particle object
-         integer, intent(in)                    :: n    !! Number of test particles to allocate
+         class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+         integer,                       intent(in)    :: n      !! Number of test particles to allocate
       end subroutine whm_setup_tp
 
-      module subroutine whm_drift_tp(self, dt, mu)
+      module subroutine whm_drift_tp(self, cb, config, dt)
          implicit none
-         class(whm_tp), intent(inout)           :: self !! WHM test particle data structure
-         real(DP), intent(in)                   :: dt   !! Stepsize
-         real(DP), optional, intent(in)         :: mu   !! G * m1, G = gravitational constant, m1 = mass of central body
+         class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_tp
 
       !> Get heliocentric accelration of the test particle
-      module subroutine whm_getacch_tp(self, pl, config, t, xh)
+      module subroutine whm_getacch_tp(self, cb, pl, config, t, xh)
          implicit none
-         class(whm_tp), intent(inout)            :: self   !! WHM test particle data structure
-         type(whm_pl),  intent(in)               :: pl     !! WHM massive body particle data structure. 
-         type(swiftest_configuration),intent(in) :: config !! Input collection of user-defined parameter
-         real(DP), intent(in)                    :: t      !! Current time. This is passed to the user-defined acceleration function.
-         real(DP), dimension(:,:), intent(in)    :: xh     !! Heliocentric positions of massive bodies at time t
+         class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree 
+         class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         real(DP),                      intent(in)    :: t      !! Current time. This is passed to the user-defined acceleration function.
+         real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of massive bodies at time t
       end subroutine whm_getacch_tp
 
-      module subroutine whm_kickvh_tp(self, dt)
+      module subroutine whm_kickvh_tp(self, cb, dt)
          implicit none
-         class(whm_tp), intent(inout)            :: self !! WHM test particle data structure
-         real(DP), intent(in)                    :: dt   !! Stepsize
+         class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
+         real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_kickvh_tp
 
       module subroutine whm_step_tp(self, cb, pl, config, t, dt,  xbeg, xend)
          implicit none
-         class(whm_tp), intent(inout)              :: self      !! WHM test particle data structure.
-         class(whm_central_body), intent(in)       :: cb        !! WHM central body particle data structure.
-         class(whm_pl), intent(in)                 :: pl        !! WHM massive body particle data structure.
-         type(swiftest_configuration),intent(in)   :: config    !! Input collection of user-defined parameter
-         real(DP), intent(in)                      :: t         !! Current time
-         real(DP), intent(in)                      :: dt        !! Stepsize
-         real(DP), dimension(:, :), intent(inout)  :: xbeg      !! Heliocentric massive body positions at beginning of time step
-         real(DP), dimension(:, :), intent(inout)  :: xend      !! Heliocentric massive body positions at end of time step
+         class(whm_tp),                 intent(inout) :: self      !! WHM test particle data structure
+         class(whm_central_body),       intent(inout) :: cb        !! WHM central body particle data structuree
+         class(whm_pl),                 intent(inout) :: pl        !! WHM massive body particle data structure.
+         class(swiftest_configuration), intent(in)    :: config    !! Input collection of user-defined parameter
+         real(DP),                      intent(in)    :: t         !! Current time
+         real(DP),                      intent(in)    :: dt        !! Stepsize
+         real(DP), dimension(:, :),     intent(inout) :: xbeg      !! Heliocentric massive body positions at beginning of time step
+         real(DP), dimension(:, :),     intent(inout) :: xend      !! Heliocentric massive body positions at end of time step
       end subroutine whm_step_tp
 
-      module subroutine whm_user_getacch_tp(self,t)
+      module subroutine whm_user_getacch_tp(self, cb, t)
          implicit none
-         class(whm_tp), intent(inout)              :: self      !! WHM massive body particle data structure
-         real(DP), intent(in)                      :: t          !! Current time
+         class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
+         real(DP),                      intent(in)    :: t      !! Current time
       end subroutine whm_user_getacch_tp
 
    end interface

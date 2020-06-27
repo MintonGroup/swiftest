@@ -1,6 +1,6 @@
 submodule(whm_classes) s_whm_step_tp
 contains
-   module procedure whm_step_tp(lfirsttp, lextra_force, t, npl, nplmax, ntp, ntpmax, whm_pl1p, whm_tp1p, xbeg, xend, j2rp2, j4rp4, dt, c2)
+   module procedure whm_step_tp
    !! author: David A. Minton
    !!
    !! Step active test particles ahead using kick-drift-kick algorithm

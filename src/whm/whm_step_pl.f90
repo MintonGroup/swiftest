@@ -1,6 +1,6 @@
 submodule(whm_classes) s_whm_step_pl
 contains
-   module procedure whm_step_pl(lfirst, lextra_force, t, npl, nplmax, whm_pl1p, j2rp2, j4rp4, dt, c2)
+   module procedure whm_step_pl
    !! author: David A. Minton
    !!
    !! Step planets ahead using kick-drift-kick algorithm

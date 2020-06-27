@@ -42,6 +42,7 @@ module swiftest_classes
       real(DP)             :: TU2S           = -1.0_DP            !! Converts time units to seconds
       real(DP)             :: DU2M           = -1.0_DP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
+      real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
 
       !Logical flags to turn on or off various features of the code

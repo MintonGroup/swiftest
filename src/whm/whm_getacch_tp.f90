@@ -1,6 +1,6 @@
 submodule(whm_classes) s_whm_getacch_tp
 contains
-   module procedure whm_getacch_tp(lextra_force, t, npl, nplmax, ntp, ntpmax, whm_pl1p, whm_tp1p, xh, j2rp2, j4rp4)
+   module procedure whm_getacch_tp(cb, pl, config, t, dt, xh)
    !! author: David A. Minton
    !!
    !! Compute heliocentric accelerations of test particles
