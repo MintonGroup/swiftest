@@ -9,18 +9,15 @@ program swiftest_driver
    use swiftest
    implicit none
 
-   type(swiftest_configuration)              :: config           !! Object containing user-defined configuration parameters
    class(swiftest_nbody_system), allocatable :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
    integer(I4B)                              :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable              :: config_file_name !! Name of the file containing user-defined configuration parameters
    integer(I4B)                              :: ierr             !! I/O error code 
    logical                                   :: lfirst           !! Flag indicating that this is the first time through the main loop
-   integer(I8B)                              :: iout             !! I/O output cadence counter 
+   integer(I8B)                              :: iloop            !! Loop counter
    integer(I8B)                              :: idump            !! Dump cadence counter
-   integer(I8B)                              :: iloop            !! Main loop counter
+   integer(I8B)                              :: iout             !! Output cadence counter
    integer(I8B), parameter                   :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
-   real(DP)                                  :: t                !! Simulation time
-   real(DP)                                  :: dt               !! Simulation step size
    real(DP)                                  :: tfrac            !! Fraction of time remaining in the integration
    real(DP)                                  :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                  :: finish_wall_time !! Wall clock time when execution has finished
@@ -35,33 +32,37 @@ program swiftest_driver
    !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads  
 
    ierr = io_get_command_line_arguments(integrator, config_file_name)
-   if (ierr == 0) then
-      !$ start_wall_time = omp_get_wtime()
-      !> Read in the user-defined parameter file and the initial conditions of the system
-      call config%read_from_file(config_file_name, integrator)
-      call setup_construct_system(nbody_system, config, integrator)
+   if (ierr /= 0) then
+      write(*,*) 'Error reading in arguments from the command line'
+      call util_exit(FAILURE)
+   end if
+   !$ start_wall_time = omp_get_wtime()
+   !> Read in the user-defined parameter file and the initial conditions of the system
+   call setup_construct_system(nbody_system, integrator)
+   call nbody_system%config%read_from_file(config_file_name, integrator)
+   associate(t          => nbody_system%config%t, &
+            t0         => nbody_system%config%t0, &
+            dt         => nbody_system%config%dt, &
+            tstop      => nbody_system%config%tstop, &
+            istep_out  => nbody_system%config%istep_out, &
+            istep_dump => nbody_system%config%istep_dump, &
+            config     => nbody_system%config)
       call nbody_system%initialize(config)
-
       lfirst = .true.
-      t = config%t0
+      t = t0
       iloop = 0
-      iout = config%istep_out
-      idump = config%istep_dump
+      iout = istep_out
+      idump = istep_dump
       if (istep_out > 0) call nbody_system%write_frame(iu, config, t, dt)
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, LOOPMAX 
-         t = config%t0 + iloop * dt
-         if (t > config%tstop) exit 
+         t = t0 + iloop * dt
+         if (t > tstop) exit 
          !> Step the system forward in time
-         call nbody_system%step(config, t, dt)
-
-         !> Advance the loop counter and time value
-         iloop = iloop + 1
-         t = config%t0 + iloop * dt
+         call nbody_system%step()
 
          !> Evaluate any discards or mergers
-         call nbody_system%discard(config, t, dt)
-         if (nbody_system%ldiscard) call nbody_system%write_discard(config, t, ct)
+         call nbody_system%discard()
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
@@ -88,7 +89,7 @@ program swiftest_driver
       call nbody_system%dump(config, t, dt, tfrac)
       !$ finsih_wall_time = omp_get_wtime()
       !$ write(*,*) 'Time: ', finish_wall_time - start_wall_time
-   end if
+   end associate
    call util_exit(SUCCESS)
 
    stop

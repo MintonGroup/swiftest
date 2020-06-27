@@ -8,18 +8,26 @@ module whm_classes
    implicit none
 
    !********************************************************************************************************************************
+   ! whm_configuration class definitions and method interfaces
+   !*******************************************************************************************************************************
+   type, public, extends(swiftest_configuration) :: whm_configuration
+      integer(I4B)         :: integrator     = WHM   !! Symbolic name of the nbody integrator  used
+   contains
+   end type
+
+   !********************************************************************************************************************************
    ! whm_central_body class definitions and method interfaces
    !*******************************************************************************************************************************
    !> WHM central body particle class
    type, public, extends(swiftest_central_body) :: whm_central_body
-      real(DP)                  :: eta     ! Jacobi mass
+      real(DP) :: eta     ! Jacobi mass
       real(DP), dimension(NDIM) :: xj      ! Jacobi position
       real(DP), dimension(NDIM) :: vj      ! Jacobi velocity
    contains
    end type whm_central_body
 
    !********************************************************************************************************************************
-   ! whm_pl class definitions and method interfaces
+   !                                    whm_pl class definitions and method interfaces
    !*******************************************************************************************************************************
 
    !> WHM massive body particle class
@@ -61,11 +69,10 @@ module whm_classes
          real(DP),                      intent(in)    :: t      !! Current time. This is passed to the user-defined acceleration function.
       end subroutine whm_getacch_pl
 
-      module subroutine whm_drift_pl(self, cb, config, dt)
+      module subroutine whm_drift_pl(self, cb, dt)
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structur
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_pl
 
@@ -117,7 +124,7 @@ module whm_classes
    end interface
 
    !********************************************************************************************************************************
-   ! whm_tp class definitions and method interfaces
+   !  whm_tp class definitions and method interfaces
    !*******************************************************************************************************************************
 
    !! WHM test particle class
@@ -142,11 +149,10 @@ module whm_classes
          integer,                       intent(in)    :: n      !! Number of test particles to allocate
       end subroutine whm_setup_tp
 
-      module subroutine whm_drift_tp(self, cb, config, dt)
+      module subroutine whm_drift_tp(self, cb, dt)
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_tp
 
@@ -163,9 +169,9 @@ module whm_classes
 
       module subroutine whm_kickvh_tp(self, cb, dt)
          implicit none
-         class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-         class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
-         real(DP),                      intent(in)    :: dt     !! Stepsize
+         class(whm_tp),                 intent(inout) :: self  !! WHM test particle data structure
+         class(whm_central_body),       intent(inout) :: cb    !! WHM central body particle data structuree
+         real(DP),                      intent(in)    :: dt    !! Stepsize
       end subroutine whm_kickvh_tp
 
       module subroutine whm_step_tp(self, cb, pl, config, t, dt,  xbeg, xend)
@@ -192,7 +198,6 @@ module whm_classes
    !********************************************************************************************************************************
    !  whm_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
-
    !> An abstract class for the WHM integrator nbody system 
    type, public, extends(swiftest_nbody_system) :: whm_nbody_system
       !> In the WHM integrator, only test particles are discarded
@@ -204,17 +209,12 @@ module whm_classes
       procedure, public :: step          => whm_step_system        !! Method to advance the system one step in time given by the step size dt
    end type whm_nbody_system
 
-
-!********************************************************************************************************************************
-!  whm_nbody_system class definitions and method interfaces
-!********************************************************************************************************************************
-
+!> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
 interface
    !> Constructs a WHM nbody system
-   module subroutine whm_construct_system(self, config)
+   module subroutine whm_construct_system(self)
       implicit none
       class(whm_nbody_system),       intent(inout) :: self       !! Swiftest system object
-      class(swiftest_configuration), intent(out)   :: config     !! Input collection of user-defined configuration parameters
    end subroutine whm_construct_system
 
    !> Move spilled (discarded) Swiftest basic body components from active list to discard list
@@ -226,12 +226,9 @@ interface
    end subroutine whm_discard_spill
 
    !> Steps the Swiftest nbody system forward in time one stepsize
-   module subroutine whm_step_system(self, config, t, dt) 
+   module subroutine whm_step_system(self)
       implicit none
       class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
-      class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
-      real(DP),                      intent(in)    :: t       !! Current simulation time
-      real(DP),                      intent(in)    :: dt      !! Stepsize
    end subroutine whm_step_system
 end interface
 

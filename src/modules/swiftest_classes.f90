@@ -13,10 +13,11 @@ module swiftest_classes
 
    !> User defined configuration parameters that are read in from the configuration input file. 
    !>    Each paramter is initialized to a default values. 
-   type, public :: swiftest_configuration
+   type, abstract, public :: swiftest_configuration
       integer(I4B)         :: nplmax         = -1                 !! Maximum allowed number of massive bodies
       integer(I4B)         :: ntpmax         = -1                 !! Maximum allowed number of test particles
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
+      real(DP)             :: t              = -1.0_DP            !! Integration current time
       real(DP)             :: tstop          = -1.0_DP            !! Integration stop time
       real(DP)             :: dt             = -1.0_DP            !! Time step
       character(STRMAX)    :: incbfile       = CB_INFILE          !! Name of input file for the central body
@@ -43,14 +44,14 @@ module swiftest_classes
       real(DP)             :: DU2M           = -1.0_DP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
-      integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
+
 
       !Logical flags to turn on or off various features of the code
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
-      logical :: lclose         = .false. !! Turn on close encounters
-      logical :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
-      logical :: lmtiny         = .false. !! Use the MTINY variable (Automatically set if running SyMBA)
+   !   logical :: lclose         = .false. !! Turn on close encounters
+   !   logical :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
+   !   logical :: lmtiny         = .false. !! Use the MTINY variable (Automatically set if running SyMBA)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
       logical :: lenergy        = .false. !! Track the total energy of the system
@@ -112,7 +113,7 @@ module swiftest_classes
    !********************************************************************************************************************************
    ! swiftest_base class definitions and method interfaces
    !********************************************************************************************************************************
-   type, abstract, private :: swiftest_base
+   type, abstract, public :: swiftest_base
       !! An superclass for a generic Swiftest object
       logical :: lintegrate = .false.  !! Flag indicating that this object should be integrated in the current step 
    contains
@@ -168,7 +169,7 @@ module swiftest_classes
    ! swiftest_central_body class definitions and method interfaces
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
-   type, public, extends(swiftest_base) :: swiftest_central_body           
+   type, abstract, public, extends(swiftest_base) :: swiftest_central_body           
       real(DP)                  :: mass    = 0.0_DP !! Central body mass (units MU)
       real(DP)                  :: Gmass   = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
       real(DP)                  :: radius  = 0.0_DP !! Central body radius (units DU)
@@ -436,15 +437,16 @@ module swiftest_classes
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract, public, extends(swiftest_base) :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
-      class(swiftest_central_body), allocatable :: cb                          !! Central body data structure
-      class(swiftest_pl),           allocatable :: pl                          !! Massive body data structure
-      class(swiftest_tp),           allocatable :: tp                          !! Test particle data structure
-      real(DP)                                  :: msys = 0.0_DP               !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                                  :: ke = 0.0_DP                 !! System kinetic energy
-      real(DP)                                  :: pe = 0.0_DP                 !! System potential energy
-      real(DP)                                  :: te = 0.0_DP                 !! System total energy
-      real(DP),dimension(NDIM)                  :: htot = 0.0_DP               !! System angular momentum vector
-      logical                                   :: lbody_discard = .false.     !! Flag indicating that bodies need to be discarded in the current step
+      class(swiftest_configuration), allocatable :: config                  !! Integrator-specific configuration
+      class(swiftest_central_body),  allocatable :: cb                      !! Central body data structure
+      class(swiftest_pl),            allocatable :: pl                      !! Massive body data structure
+      class(swiftest_tp),            allocatable :: tp                      !! Test particle data structure
+      real(DP)                                   :: msys = 0.0_DP           !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                                   :: ke = 0.0_DP             !! System kinetic energy
+      real(DP)                                   :: pe = 0.0_DP             !! System potential energy
+      real(DP)                                   :: te = 0.0_DP             !! System total energy
+      real(DP), dimension(NDIM)                  :: htot = 0.0_DP           !! System angular momentum vector
+      logical                                    :: lbody_discard = .false. !! Flag indicating that bodies need to be discarded in the current step
    contains
       private
       !> Each integrator will have its own version of the step
@@ -463,47 +465,40 @@ module swiftest_classes
 
    abstract interface
       !> Allocates the correct class types to each of the system 
-      subroutine abstract_construct_system(self, config)
-         import swiftest_nbody_system, swiftest_configuration
+      subroutine abstract_construct_system(self)
+         import swiftest_nbody_system
          class(swiftest_nbody_system),  intent(inout) :: self       !! Swiftest system object
-         class(swiftest_configuration), intent(out)   :: config     !! Input collection of user-defined configuration parameters
       end subroutine abstract_construct_system
 
       !> Steps the Swiftest nbody system forward in time one stepsize
-      subroutine abstract_step_system(self, config, t, dt) 
-         import DP, swiftest_nbody_system, swiftest_configuration
+      subroutine abstract_step_system(self)
+         import swiftest_nbody_system
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
       end subroutine abstract_step_system
    end interface
 
    !> Interfaces for concrete type-bound procedures for the Swiftest nbody system class
    interface
       !> Perform a discard step on a system in which only test particles are considered for discard
-      module subroutine discard_system(self, config, t, dt)
+      module subroutine discard_system(self)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)   :: config  !! User-defined configuration parameters
-         real(DP), intent(in)                        :: t       !! Current simulation time
-         real(DP), intent(out)                       :: dt      !! Stepsize 
       end subroutine discard_system
 
       !> Method to dump the state of the whole system to file
-      module subroutine io_dump_system(self, config, t, dt, tfrac) 
-         implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t        !! Current simulation time
-         real(DP),                      intent(in)    :: dt       !! Stepsize
-         real(DP),                      intent(in)    :: tfrac    !! Fraction of total time completed (displayed on the screen)
-      end subroutine io_dump_system
-
-      module subroutine io_initialize_system(self, config) 
+      module subroutine io_dump_system(self, config, t, dt, tfrac)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)    :: t       !! Current simulation time
+         real(DP),                      intent(in)    :: dt      !! Stepsize
+         real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
+      end subroutine io_dump_system
+
+      module subroutine io_initialize_system(self, config)
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
       end subroutine io_initialize_system
 
       !> Method to write out a single frame of the simulation to file
@@ -511,28 +506,25 @@ module swiftest_classes
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)    :: t      !! Current simulation time
-         real(DP),                      intent(in)    :: dt     !! Stepsize
+         real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine io_write_frame_system
 
       module subroutine io_read_frame_system(self, iu, config, form, t, ierr)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
          character(*),                  intent(in)    :: form   !! Input format code ("XV" or "EL")
-         real(DP),                      intent(out)   :: t      !! Simulation time
+         real(DP),                      intent(out)   :: t      !! Current simulation time
          integer(I4B),                  intent(out)   :: ierr   !! Error code
       end subroutine io_read_frame_system
 
       !> Method to write out the discard bodies to a file
-      module subroutine io_write_discard(self, config, t, dt)
+      module subroutine io_write_discard(self)
          implicit none
          class(swiftest_nbody_system),  intent(in)    :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
       end subroutine io_write_discard
 
       !> Method for calculating the energy and angular momentum of the system
@@ -548,10 +540,9 @@ module swiftest_classes
 
    interface
       !> Constructs an nbody system
-      module subroutine setup_construct_system(system, config, integrator)
+      module subroutine setup_construct_system(system, integrator)
          implicit none
          class(swiftest_nbody_system), allocatable,  intent(inout) :: system     !! Swiftest system object
-         class(swiftest_configuration), intent(inout)              :: config     !! Input collection of user-defined configuration parameters
          integer, intent(in)                                       :: integrator !! Integrator type code
       end subroutine setup_construct_system
    end interface
@@ -626,14 +617,10 @@ module swiftest_classes
          real(DP), intent(in)                      :: t            !! Current simulation time
       end subroutine discard_sun
 
-
       !> Perform a discard step on a system in which test particles are discarded and massive bodies are merged
-      module subroutine discard_and_merge_nbody(self, config, t, dt)
+      module subroutine discard_and_merge_nbody(self)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)   :: config  !! User-defined configuration parameters
-         real(DP), intent(in)                        :: t       !! Current simulation time
-         real(DP), intent(out)                       :: dt      !! Stepsize 
       end subroutine discard_and_merge_nbody
    end interface
 

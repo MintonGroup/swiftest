@@ -9,7 +9,7 @@ contains
       !! 
       use swiftest
       implicit none
-
+      allocate(whm_configuration :: self%config)
       allocate(whm_central_body :: self%cb)
       allocate(whm_pl :: self%pl)
       allocate(whm_tp :: self%tp)
