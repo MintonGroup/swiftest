@@ -1,4 +1,4 @@
-submodule (swiftest_classes) setup
+submodule (swiftest_classes) setup_implementations
 
 contains
    module procedure setup_construct_system
@@ -50,10 +50,10 @@ contains
       !write(*,*) 'Allocating the basic Swiftest particle'
       allocate(self%name(n))
       allocate(self%status(n))
-      allocate(self%xh(n,NDIM))
-      allocate(self%vh(n,NDIM))
-      allocate(self%xb(n,NDIM))
-      allocate(self%vb(n,NDIM))
+      allocate(self%xh(n, NDIM))
+      allocate(self%vh(n, NDIM))
+      allocate(self%xb(n, NDIM))
+      allocate(self%vb(n, NDIM))
       allocate(self%ah(n, NDIM))
       allocate(self%a(n))
       allocate(self%e(n))
@@ -149,5 +149,40 @@ contains
       return
    end procedure setup_set_msys
 
+   module procedure setup_set_vec_dt
+      !! author: David A. Minton
+      !!
+      !! Converts scalar dt value into vector for use in elemental functions
+      use swiftest
+      implicit none
 
-end submodule setup
+      self%dt_vec(:) = dt
+
+      return
+   end procedure setup_set_vec_dt
+
+   module procedure setup_set_vec_mu_pl
+      !! author: David A. Minton
+      !!
+      !! Computes G * (M + m) for each massive body
+      use swiftest
+      implicit none
+
+      self%mu_vec(:) = cb%Gmass + self%Gmass(:)
+
+      return
+   end procedure setup_set_vec_mu_pl
+
+   module procedure setup_set_vec_mu_tp
+      !! author: David A. Minton
+      !!
+      !! Converts certain scalar values to arrays so that they can be used in elemental functions
+      use swiftest
+      implicit none
+
+      self%mu_vec(:) = cb%Gmass
+
+      return
+   end procedure setup_set_vec_mu_tp
+
+end submodule setup_implementations

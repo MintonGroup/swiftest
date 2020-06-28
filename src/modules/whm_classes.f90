@@ -46,6 +46,7 @@ module whm_classes
       procedure, public :: vh2vj   => coord_vh2vj_pl  !! Convert velocity vectors from heliocentric to Jacobi coordinates 
       procedure, public :: setup   => whm_setup_pl    !! Constructor method - Allocates space for number of particles
       procedure, public :: getacch => whm_getacch_pl  !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: set_vec_mu    => whm_setup_set_eta      !! Sets the Jacobi mass value for all massive bodies.
       procedure, public :: step    => whm_step_pl     !! Step massive bodies ahead Democratic Heliocentric method
       !procedure, public :: drift   => whm_drift_pl    !! Loop through massive bodies and call Danby drift routine
    end type whm_pl
@@ -57,6 +58,12 @@ module whm_classes
          class(whm_pl), intent(inout)    :: self !! Swiftest test particle object
          integer, intent(in)             :: n    !! Number of test particles to allocate
       end subroutine whm_setup_pl
+
+      module subroutine whm_setup_set_eta(self, cb)
+         implicit none
+         class(whm_pl),              intent(inout) :: self    !! Swiftest system object
+         class(whm_central_body),    intent(in)    :: cb     !! WHM central body particle data structure
+      end subroutine whm_setup_set_eta
 
       !> Get heliocentric accelration of massive bodies
       module subroutine whm_getacch_pl(self, cb, config, t)
@@ -191,7 +198,6 @@ module whm_classes
       !> Replace the abstract procedures with concrete ones
       procedure, public :: construct     => whm_construct_system   !! Perform a discard operation and spill any discarded bodies to list for output.  
       procedure, public :: initialize    => whm_setup_system  !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
-      procedure, public :: set_msys      => whm_setup_set_eta      !! Sets the Jacobi mass value for all massive bodies.
       procedure, public :: step          => whm_step_system        !! Method to advance the system one step in time given by the step size dt
    end type whm_nbody_system
 
@@ -207,11 +213,6 @@ module whm_classes
          class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
       end subroutine whm_setup_system
-
-      module subroutine whm_setup_set_eta(self)
-         implicit none
-         class(whm_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      end subroutine whm_setup_set_eta
 
       !> Steps the Swiftest nbody system forward in time one stepsize
       module subroutine whm_step_system(self)

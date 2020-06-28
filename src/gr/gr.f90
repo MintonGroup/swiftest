@@ -16,7 +16,7 @@ contains
             associate(xj => self%xj, vj => self%vj)
                call p4_func(xj(1:n, :), vj(1:n, :))
             end associate
-         class is (whm_tp)
+         class is (swiftest_tp)
             associate(xh => self%xh, vh => self%vh)
                call p4_func(xh(1:n, :), vh(1:n, :))
             end associate

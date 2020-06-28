@@ -5,7 +5,7 @@ submodule (swiftest_classes) io_read
    !!    io_read_config_in
    !!    io_config_reader
    !!    io_get_token
-   !!    io_initialize_system
+   !!    io_read_initialize_system
    !!    io_read_cb_in
    !!    io_read_body_in
    !!    io_read_hdr
@@ -327,13 +327,22 @@ contains
 
       if (mtiny_set) then
          if (self%mtiny < 0.0_DP) then
-            write(iomsg,*) "Invalid MTINY: ",self%mtiny
+            write(iomsg,*) "Invalid MTINY: ", self%mtiny
             iostat = -1
             return
          else
-            write(*,*) "MTINY          = ",self%mtiny   
+            write(*,*) "MTINY          = ", self%mtiny   
          end if
       end if
+
+      ! Determine if the GR flag is set correctly for this integrator
+      select case(integrator)
+      case(WHM)
+         write(*,*) "GR             = ", self%lgr
+      case default   
+         write(iomg, *) 'GR is implemented compatible with this integrator'
+         iostat = -1
+      end select
 
       iostat = 0
 
@@ -382,7 +391,7 @@ contains
    
    end procedure io_get_token
 
-   module procedure io_initialize_system
+   module procedure io_read_initialize_system
       !! author: David A. Minton
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
@@ -394,7 +403,7 @@ contains
       call self%tp%initialize(config)
       call self%set_msys()
    
-   end procedure io_initialize_system
+   end procedure io_read_initialize_system
 
    module procedure io_read_cb_in
       !! author: David A. Minton

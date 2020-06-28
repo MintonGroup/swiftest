@@ -256,7 +256,7 @@ module swiftest_classes
       procedure, public :: kickvb      => kick_vb_body        !! Kicks the barycentric velocities
       procedure, public :: kickvh      => kick_vh_body        !! Kicks the heliocentric velocities
       procedure, public :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure         :: set_vec_dt  => util_set_vec_dt     !! Vectorizes scalar dt quantity for use in elemental procedures
+      procedure         :: set_vec_dt  => setup_set_vec_dt     !! Vectorizes scalar dt quantity for use in elemental procedures
       procedure, public :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure, public :: vb2vh       => coord_vb2vh_body    !! Convert velocity vectors from barycentric to heliocentric coordinates 
       procedure, public :: vh2vb       => coord_vh2vb_body    !! Convert velocity vectors from heliocentric to barycentric coordinates 
@@ -328,7 +328,7 @@ module swiftest_classes
 
       module pure subroutine gr_pv2vh_body(self, config, dt)
          implicit none
-         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_body),          intent(inout):: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)   :: dt     !! Step size
       end subroutine gr_pv2vh_body
@@ -376,11 +376,11 @@ module swiftest_classes
          integer,                      intent(in)    :: n    !! Number of particles to allocate space for
       end subroutine setup_body
 
-      module subroutine util_set_vec_dt(self, dt)
+      module subroutine setup_set_vec_dt(self, dt)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
          real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
-      end subroutine util_set_vec_dt
+      end subroutine setup_set_vec_dt
 
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
@@ -418,16 +418,16 @@ module swiftest_classes
       ! These are concrete because they are the same implemenation for all integrators
 
       procedure, public :: setup       => setup_pl           !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_vec_mu  => util_set_vec_mu_pl !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: set_vec_mu  => setup_set_vec_mu_pl !! Method used to construct the vectorized form of the central body mass
    end type swiftest_pl
 
    !> Interfaces for concrete type-bound procedures for swiftest_pl
    interface
-      module subroutine util_set_vec_mu_pl(self, cb)
+      module subroutine setup_set_vec_mu_pl(self, cb)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
          class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body objectt
-      end subroutine util_set_vec_mu_pl
+      end subroutine setup_set_vec_mu_pl
 
       module subroutine setup_pl(self,n)
          implicit none
@@ -453,7 +453,7 @@ module swiftest_classes
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: discard     => discard_tp        !! Dump the current state of the test particles to file
       procedure, public :: setup       => setup_tp          !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_vec_mu  => util_set_vec_mu_tp   !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: set_vec_mu  => setup_set_vec_mu_tp   !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp
@@ -467,11 +467,11 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Stepsize`
       end subroutine discard_tp
 
-      module subroutine util_set_vec_mu_tp(self, cb)
+      module subroutine setup_set_vec_mu_tp(self, cb)
          implicit none
          class(swiftest_tp),           intent(inout) :: self !! Swiftest particle object
          class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body objectt
-      end subroutine util_set_vec_mu_tp
+      end subroutine setup_set_vec_mu_tp
 
       module subroutine setup_tp(self,n)
          implicit none
@@ -506,7 +506,7 @@ module swiftest_classes
       procedure, public :: discard                => discard_system               !! Perform a discard step on the system
       procedure, public :: dump                   => io_dump_system               !! Dump the state of the system to a file
       procedure, public :: get_energy_and_momenum => util_get_energy_and_momentum !! Calculate total energy and angular momentum of system
-      procedure, public :: initialize             => io_initialize_system         !! Initialize the system from an input file
+      procedure, public :: initialize             => io_read_initialize_system         !! Initialize the system from an input file
       procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
       procedure, public :: set_msys               => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard          => io_write_discard             !! Append a frame of output data to file
@@ -546,11 +546,11 @@ module swiftest_classes
          real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
       end subroutine io_dump_system
 
-      module subroutine io_initialize_system(self, config)
+      module subroutine io_read_initialize_system(self, config)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
-      end subroutine io_initialize_system
+      end subroutine io_read_initialize_system
 
       module subroutine setup_set_msys(self)
          implicit none

@@ -20,14 +20,12 @@ contains
       allocate(self%ah2(n, NDIM))
       allocate(self%ah3(n, NDIM))
 
-
       self%eta(:)   = 0.0_DP
       self%xj(:,:)  = 0.0_DP
       self%vj(:,:)  = 0.0_DP
       self%ah1(:,:) = 0.0_DP
       self%ah2(:,:) = 0.0_DP
       self%ah3(:,:) = 0.0_DP
-      self%ah(:,:)  = 0.0_DP
 
       return
    end procedure whm_setup_pl 
@@ -58,20 +56,16 @@ contains
       implicit none
       integer(I4B) :: i
 
-      call setup_set_msys(self)
-      select type(pl => self%pl)
-      class is (whm_pl) 
-         associate(npl => pl%nbody, Gmsun => self%cb%Gmass, Gmpl => pl%Gmass(i), mu => pl%mu_vec(i), eta => pl%eta(i), etam1 => pl%eta(i - 1))
-            if (npl > 0) then
-               pl%eta(1) = Gmsun + pl%Gmass(1)
-               pl%mu_vec(1) = pl%eta(1) 
-            end if
-            do i = 2, npl
-               eta = etam1 + Gmpl
-               mu = Gmsun * eta / etam1
-            end do
-         end associate
-      end select
+      associate(npl => self%nbody, Gmsun => cb%Gmass, Gmpl => self%Gmass, mu => self%mu_vec, eta => self%eta)
+         if (npl > 0) then
+            eta(1) = Gmsun + Gmpl(1)
+            mu(1) = eta(1) 
+         end if
+         do i = 2, npl
+            eta(i) = eta(i - 1) + Gmpl(i)
+            mu(i) = Gmsun * eta(i) / eta(i - 1)
+         end do
+      end associate
 
    end procedure whm_setup_set_eta
 
@@ -82,7 +76,8 @@ contains
       !!
       implicit none
 
-      call io_initialize_system(self, config)
+      call io_read_initialize_system(self, config)
+
    end procedure whm_setup_system
 
 
