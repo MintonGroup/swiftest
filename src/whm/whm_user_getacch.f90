@@ -1,6 +1,6 @@
 submodule(whm_classes) s_whm_user_getacch
 contains
-   module procedure whm_user_getacch(t, npl, whm_pl1p)
+   module procedure whm_user_getacch_pl
    !! author: David A. Minton
    !!
    !! Add user-supplied heliocentric accelerations to planets
@@ -9,10 +9,25 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_user_getacch.f90
    use swiftest
    implicit none
-! executable code
 
 
    return
 
-   end procedure whm_user_getacch
+   end procedure whm_user_getacch_pl
+
+   module procedure whm_user_getacch_tp
+      !! author: David A. Minton
+      !!
+      !! Add user-supplied heliocentric accelerations to test particles
+      !!
+      !! 
+      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
+      use swiftest
+      implicit none
+   
+   ! executable code
+   
+      return
+   
+      end procedure whm_user_getacch_tp
 end submodule s_whm_user_getacch

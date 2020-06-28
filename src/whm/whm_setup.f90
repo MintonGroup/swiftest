@@ -20,13 +20,14 @@ contains
       real(DP), dimension(:,:), allocatable :: ah2     ! Second term of heliocentric acceleration
       real(DP), dimension(:,:), allocatable :: ah3     ! Third term of heliocentric acceleration
       real(DP), dimension(:,:), allocatable :: ah      ! Total heliocentric acceleration
+      
       allocate(self%eta(n))
-      allocate(self%xj(NDIM,n))
-      allocate(self%vj(NDIM,n))
-      allocate(self%ah1(NDIM,n))
-      allocate(self%ah2(NDIM,n))
-      allocate(self%ah3(NDIM,n))
-      allocate(self%ah(NDIM,n))
+      allocate(self%xj(n, NDIM))
+      allocate(self%vj(n, NDIM))
+      allocate(self%ah1(n, NDIM))
+      allocate(self%ah2(n, NDIM))
+      allocate(self%ah3(n, NDIM))
+      allocate(self%ah(n, NDIM))
 
       self%eta(:)   = 0.0_DP
       self%xj(:,:)  = 0.0_DP
@@ -51,7 +52,7 @@ contains
       !> Call allocation method for parent class
       call self%swiftest_tp%alloc(n)
       if (n <= 0) return
-      allocate(self%ah(NDIM,n))
+      allocate(self%ah(n, NDIM))
 
       selt%ah(:,:) = 0.0_DP
 

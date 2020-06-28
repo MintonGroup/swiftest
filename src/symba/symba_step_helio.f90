@@ -10,7 +10,7 @@ contains
    implicit none
    logical                      :: lfirsttp
    real(DP), dimension(NDIM)              :: ptb, pte
-   real(DP), dimension(NDIM, nplm)          :: xbeg, xend
+   real(DP), dimension(npl, NDIMm)          :: xbeg, xend
 
 ! executable code
    lfirsttp = lfirst

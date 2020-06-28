@@ -69,10 +69,11 @@ module whm_classes
          real(DP),                      intent(in)    :: t      !! Current time. This is passed to the user-defined acceleration function.
       end subroutine whm_getacch_pl
 
-      module subroutine whm_drift_pl(self, cb, dt)
+      module subroutine whm_drift_pl(self, cb, config, dt)
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structur
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_pl
 
@@ -149,10 +150,11 @@ module whm_classes
          integer,                       intent(in)    :: n      !! Number of test particles to allocate
       end subroutine whm_setup_tp
 
-      module subroutine whm_drift_tp(self, cb, dt)
+      module subroutine whm_drift_tp(self, cb, config, dt)
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_tp
 

@@ -41,7 +41,7 @@ SUBROUTINE gr_getaccb_ns_tp(ntp, swifter_pl1P, swifter_tp1P, agr, c2)
      TYPE(swifter_pl), POINTER   :: swifter_pl1P
      TYPE(swifter_tp), POINTER   :: swifter_tp1P
      REAL(DP), INTENT(IN)     :: c2
-     REAL(DP), DIMENSION(NDIM, ntp), INTENT(OUT) :: agr
+     REAL(DP), DIMENSION(ntp, NDIM), INTENT(OUT) :: agr
 
 ! Internals
      REAL(DP), DIMENSION(NDIM) :: xh, vh

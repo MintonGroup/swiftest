@@ -6,6 +6,7 @@ module swiftest_classes
    use swiftest_globals
    implicit none
    private
+   public :: io_get_command_line_arguments, drift_one
 
    !********************************************************************************************************************************
    ! swiftest_configuration class definitions and method interfaces
@@ -690,11 +691,15 @@ module swiftest_classes
          real(DP), intent(out)   :: c0, c1, c2, c3
       end subroutine drift_kepu_stumpff
 
-      module elemental subroutine drift_one(mu, posx, posy, posz, vx, vy, vz, dt, iflag)
+      !module elemental subroutine drift_one(mu, posx, posy, posz, vx, vy, vz, dt, iflag)
+      module pure subroutine drift_one(mu, x, v, dt, iflag)
+         !$omp declare simd(drift_one) 
          implicit none
          real(DP), intent(in)      :: mu                !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-         real(DP), intent(inout)   :: posx, posy, posz  !! Position of body to drift
-         real(DP), intent(inout)   :: vx, vy, vz        !! Velocity of body to drift
+         !real(DP), intent(inout)   :: posx, posy, posz  !! Position of body to drift
+         !real(DP), intent(inout)   :: vx, vy, vz        !! Velocity of body to drift
+         real(DP), dimension(:), intent(inout)   :: x  !! Position of body to drift
+         real(DP), dimension(:), intent(inout)   :: v  !! Velocity of body to drift
          real(DP), intent(in)      :: dt                !! Step size
          integer(I4B), intent(out) :: iflag             !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one

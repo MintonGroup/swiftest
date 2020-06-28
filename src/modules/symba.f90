@@ -323,7 +323,7 @@ interface
       logical , intent(in)        :: lextra_force
       integer(I4B), intent(in)        :: npl, nplm, config%nplmax, ntp, config%ntpmax, npltpenc
       real(DP), intent(in)        :: t, config%j2rp2, config%j4rp4
-      real(DP), dimension(NDIM, npl), intent(in)   :: xh
+      real(DP), dimension(npl, NDIM), intent(in)   :: xh
       type(symba_pl), intent(inout)      :: symba_plA
       type(symba_tp), intent(inout)      :: symba_tpA
       type(symba_pltpenc), intent(in)      :: pltpenc_list
@@ -346,7 +346,7 @@ interface
       logical , intent(in)        :: lextra_force
       integer(I4B), intent(in)        :: npl, nplm, config%nplmax, ntp, config%ntpmax, npltpenc, num_pltp_comparisons
       real(DP), intent(in)        :: t, config%j2rp2, config%j4rp4
-      real(DP), dimension(NDIM, npl), intent(in)   :: xh
+      real(DP), dimension(npl, NDIM), intent(in)   :: xh
       type(symba_pl), intent(inout)      :: symba_plA
       type(symba_tp), intent(inout)      :: symba_tpA
       type(symba_pltpenc), intent(in)      :: pltpenc_list
@@ -533,7 +533,7 @@ interface
       logical , intent(inout)      :: lfirst
       integer(I4B), intent(in)       :: npl, nplm, config%nplmax
       real(DP), intent(in)       :: t, config%j2rp2, config%j4rp4, dt
-      real(DP), dimension(NDIM, nplm), intent(out) :: xbeg, xend
+      real(DP), dimension(npl, NDIMm), intent(out) :: xbeg, xend
       real(DP), dimension(NDIM), intent(out)   :: ptb, pte
       type(helio_pl), intent(inout)     :: helio_plA
    end subroutine symba_step_helio_pl

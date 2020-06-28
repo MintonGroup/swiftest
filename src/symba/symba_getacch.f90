@@ -14,7 +14,7 @@ implicit none
    real(DP)                       :: rji2, irij3, faci, facj, r2
    real(DP), dimension(NDIM)            :: dx
    real(DP), dimension(npl)             :: irh
-   real(DP), dimension(NDIM, npl)         :: aobl
+   real(DP), dimension(npl, NDIM)         :: aobl
 
 ! executable code
 
@@ -71,7 +71,7 @@ implicit none
    end do
    if (config%j2rp2 /= 0.0_DP) then
       !if (lmalloc) then
-          !allocate(xh(NDIM, npl),aobl(NDIM, npl), irh(npl))
+          !allocate(xh(npl, NDIM),aobl(npl, NDIM), irh(npl))
          !lmalloc = .false.
       !end if
       do i = 2, npl

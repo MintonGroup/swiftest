@@ -17,8 +17,8 @@ contains
    !> Call allocation method for parent class
    call self%swiftest_pl%alloc(n)
    if (n <= 0) return
-   allocate(self%ah(NDIM,n))
-   allocate(self%ahi(NDIM,n))
+   allocate(self%ah(n, NDIM))
+   allocate(self%ahi(n, NDIM))
 
    self%ah(:,:) = 0.0_DP
    self%ahi(:,:) = 0.0_DP

@@ -12,7 +12,7 @@ contains
       real(DP), dimension(:, :), allocatable, save :: xbeg, xend
   
       associate(ntp => self%tp%nbody, npl => self%pl%nbody)
-         !> Note: The nesterd select statements serve to make this method a "bridge" between the polymorphic swiftest_nbody_system class
+         !> Note: The nested select statements serve to make this method a "bridge" between the polymorphic swiftest_nbody_system class
          !> in which the cb, pl, and tp components are allocatable abstract classes and the actual integrator-specific methods that are
          !> called internally. Before this point, the actual types of cb, pl, and tp are ambiguous. The select type constructs remove the 
          !> ambiguity. - D. Minton

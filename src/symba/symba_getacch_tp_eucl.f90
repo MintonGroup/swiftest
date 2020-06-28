@@ -17,7 +17,7 @@ implicit none
    real(DP), dimension(NDIM)            :: dx
    real(DP), dimension(:), allocatable, save    :: irh, irht
    real(DP), dimension(:, :), allocatable, save :: aobl, xht, aoblt
-   real(DP), dimension(NDIM, ntp)         :: ah
+   real(DP), dimension(ntp, NDIM)         :: ah
 
 ! executable code
 

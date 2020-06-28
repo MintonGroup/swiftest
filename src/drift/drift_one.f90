@@ -12,10 +12,10 @@ contains
      use swiftest_globals
     integer(I4B) :: i
     real(DP)     :: dttmp
-    real(DP),dimension(NDIM) :: x,v
+    !real(DP),dimension(NDIM) :: x,v
     
-    x = (/posx, posy, posz/)
-    v = (/vx, vy, vz/)
+    !x = (/posx, posy, posz/)
+    !v = (/vx, vy, vz/)
 
     call drift_dan(mu, x(:), v(:), dt, iflag)
     if (iflag /= 0) then
