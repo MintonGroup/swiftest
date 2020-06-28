@@ -1,4 +1,4 @@
-submodule (swiftest_classes) s_discard_spill
+submodule (swiftest_classes) discard_spill_implementations
 !! This submodule contains the methods spill, spill_body, spill_pl, and spill_tp for basic swiftest particles
 contains
    module procedure discard_spill_body
@@ -10,6 +10,60 @@ contains
       integer(I4B) :: i
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
+      select type(keeps)
+      class is (swiftest_pl)
+         select type (discards) ! The standard requires us to select the type of both arguments in order to access all the components
+            class is (swiftest_pl)
+            !> Spill components specific to the massive body class
+            associate(npl => keeps%nbody)
+               discards%mass(:)     = pack(keeps%mass(1:npl),          lspill_list(1:npl))
+               keeps%mass(:)        = pack(keeps%mass(1:npl),    .not. lspill_list(1:npl))
+
+               discards%Gmass(:)    = pack(keeps%Gmass(1:npl),         lspill_list(1:npl))
+               keeps%Gmass(:)       = pack(keeps%Gmass(1:npl),   .not. lspill_list(1:npl))
+
+               discards%rhill(:)    = pack(keeps%rhill(1:npl),         lspill_list(1:npl))
+               keeps%rhill(:)       = pack(keeps%rhill(1:npl),   .not. lspill_list(1:npl))
+
+               discards%radius(:)   = pack(keeps%radius(1:npl),        lspill_list(1:npl))
+               keeps%radius(:)      = pack(keeps%radius(1:npl),  .not. lspill_list(1:npl))
+
+               discards%density(:)  = pack(keeps%density(1:npl),       lspill_list(1:npl))
+               keeps%density(:)     = pack(keeps%density(1:npl), .not. lspill_list(1:npl))
+
+               do concurrent (i = 1:NDIM)
+                  discards%Ip(:, i)  = pack(keeps%Ip(1:npl, i),          lspill_list(1:npl))
+                  keeps%Ip(:, i)     = pack(keeps%Ip(1:npl, i),    .not. lspill_list(1:npl))
+
+                  discards%rot(:, i) = pack(keeps%rot(1:npl, i),         lspill_list(1:npl))
+                  keeps%rot(:, i)    = pack(keeps%rot(1:npl, i),   .not. lspill_list(1:npl))
+               end do
+               
+               discards%k2(:)       = pack(keeps%k2(1:npl),            lspill_list(1:npl))
+               keeps%k2(:)          = pack(keeps%k2(1:npl),      .not. lspill_list(1:npl))
+               
+               discards%Q(:)        = pack(keeps%Q(1:npl),              lspill_list(1:npl))
+               keeps%Q(:)           = pack(keeps%Q(1:npl),        .not. lspill_list(1:npl))
+            end associate
+         end select
+      class is (swiftest_tp)
+         select type(discards)
+         class is (swiftest_tp)
+            !> Spill components specific to the test particle class
+            associate(ntp => keeps%nbody)
+               discards%isperi(:) = pack(keeps%isperi(1:ntp),       lspill_list(1:ntp))
+               keeps%isperi(:)    = pack(keeps%isperi(1:ntp), .not. lspill_list(1:ntp))
+
+               discards%peri(:)   = pack(keeps%peri(1:ntp),         lspill_list(1:ntp))
+               keeps%peri(:)      = pack(keeps%peri(1:ntp),   .not. lspill_list(1:ntp))
+
+               discards%atp(:)    = pack(keeps%atp(1:ntp),          lspill_list(1:ntp))
+               keeps%atp(:)       = pack(keeps%atp(1:ntp),    .not. lspill_list(1:ntp))
+            end associate
+         end select
+      end select
+      
+      !> Spill all the common components
       associate(n => keeps%nbody)
          discards%name(:)    = pack(keeps%name(1:n),          lspill_list(1:n))
          keeps%name(:)       = pack(keeps%name(1:n),    .not. lspill_list(1:n))
@@ -29,6 +83,9 @@ contains
 
             discards%vb(:, i) = pack(keeps%vb(1:n, i),          lspill_list(1:n))
             keeps%vb(:, i)    = pack(keeps%vb(1:n, i),    .not. lspill_list(1:n))
+
+            discards%ah(:, i) = pack(keeps%ah(1:n, i),          lspill_list(1:n))
+            keeps%ah(:, i)    = pack(keeps%ah(1:n, i),    .not. lspill_list(1:n))
          end do
          
          discards%a(:)       = pack(keeps%a(1:n),             lspill_list(1:n))
@@ -63,74 +120,7 @@ contains
       
    end procedure discard_spill_body
 
-   module procedure discard_spill_pl
-      !! author: David A. Minton
-      !!
-      !! Move spilled (discarded) Swiftest massive body particle structure from active list to discard list
-      use swiftest
-      implicit none
-      integer(I4B) :: i
-
-      ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
-      associate(npl => keeps%nbody)
-         discards%mass(:)     = pack(keeps%mass(1:npl),          lspill_list(1:npl))
-         keeps%mass(:)        = pack(keeps%mass(1:npl),    .not. lspill_list(1:npl))
-
-         discards%Gmass(:)    = pack(keeps%Gmass(1:npl),         lspill_list(1:npl))
-         keeps%Gmass(:)       = pack(keeps%Gmass(1:npl),   .not. lspill_list(1:npl))
-
-         discards%rhill(:)    = pack(keeps%rhill(1:npl),         lspill_list(1:npl))
-         keeps%rhill(:)       = pack(keeps%rhill(1:npl),   .not. lspill_list(1:npl))
-
-         discards%radius(:)   = pack(keeps%radius(1:npl),        lspill_list(1:npl))
-         keeps%radius(:)      = pack(keeps%radius(1:npl),  .not. lspill_list(1:npl))
-
-         discards%density(:)  = pack(keeps%density(1:npl),       lspill_list(1:npl))
-         keeps%density(:)     = pack(keeps%density(1:npl), .not. lspill_list(1:npl))
-
-         do i = 1, NDIM
-            discards%Ip(:, i)  = pack(keeps%Ip(1:npl, i),          lspill_list(1:npl))
-            keeps%Ip(:, i)     = pack(keeps%Ip(1:npl, i),    .not. lspill_list(1:npl))
-
-            discards%rot(:, i) = pack(keeps%rot(1:npl, i),         lspill_list(1:npl))
-            keeps%rot(:, i)    = pack(keeps%rot(1:npl, i),   .not. lspill_list(1:npl))
-         end do
-         
-         discards%k2(:)       = pack(keeps%k2(1:npl),            lspill_list(1:npl))
-         keeps%k2(:)          = pack(keeps%k2(1:npl),      .not. lspill_list(1:npl))
-         
-         discards%Q(:)        = pack(keeps%Q(1:npl),              lspill_list(1:npl))
-         keeps%Q(:)           = pack(keeps%Q(1:npl),        .not. lspill_list(1:npl))
-         
-      end associate
-
-      return
-   end procedure discard_spill_pl
-
-   module procedure discard_spill_tp
-      !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
-      !!
-      !! Move spilled (discarded) Swiftest test particle structure from active list to discard list
-      use swiftest
-      implicit none
-
-      integer(I4B) :: i
-
-      associate(ntp => keeps%nbody)
-
-         discards%isperi(:) = pack(keeps%isperi(1:ntp),       lspill_list(1:ntp))
-         keeps%isperi(:)    = pack(keeps%isperi(1:ntp), .not. lspill_list(1:ntp))
-
-         discards%peri(:)   = pack(keeps%peri(1:ntp),         lspill_list(1:ntp))
-         keeps%peri(:)      = pack(keeps%peri(1:ntp),   .not. lspill_list(1:ntp))
-
-         discards%atp(:)    = pack(keeps%atp(1:ntp),          lspill_list(1:ntp))
-         keeps%atp(:)       = pack(keeps%atp(1:ntp),    .not. lspill_list(1:ntp))
-
-      end associate
-      return
-   end procedure discard_spill_tp
-end submodule s_discard_spill
+end submodule discard_spill_implementations
 
 
 

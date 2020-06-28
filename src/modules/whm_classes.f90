@@ -32,13 +32,12 @@ module whm_classes
 
    !> WHM massive body particle class
    type, public, extends(swiftest_pl) :: whm_pl
-      real(DP), dimension(:),   allocatable :: eta     ! Jacobi mass
-      real(DP), dimension(:,:), allocatable :: xj      ! Jacobi position
-      real(DP), dimension(:,:), allocatable :: vj      ! Jacobi velocity
-      real(DP), dimension(:,:), allocatable :: ah1     ! First term of heliocentric acceleration
-      real(DP), dimension(:,:), allocatable :: ah2     ! Second term of heliocentric acceleration
-      real(DP), dimension(:,:), allocatable :: ah3     ! Third term of heliocentric acceleration
-      real(DP), dimension(:,:), allocatable :: ah      ! Total heliocentric acceleration
+      real(DP), dimension(:),   allocatable :: eta    !! Jacobi mass
+      real(DP), dimension(:,:), allocatable :: xj     !! Jacobi position
+      real(DP), dimension(:,:), allocatable :: vj     !! Jacobi velocity
+      real(DP), dimension(:,:), allocatable :: ah1    !! First term of heliocentric acceleration
+      real(DP), dimension(:,:), allocatable :: ah2    !! Second term of heliocentric acceleration
+      real(DP), dimension(:,:), allocatable :: ah3    !! Third term of heliocentric acceleration
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_pl and whm_discard_spill_pl
    contains
@@ -48,8 +47,7 @@ module whm_classes
       procedure, public :: setup   => whm_setup_pl    !! Constructor method - Allocates space for number of particles
       procedure, public :: getacch => whm_getacch_pl  !! Compute heliocentric accelerations of massive bodies
       procedure, public :: step    => whm_step_pl     !! Step massive bodies ahead Democratic Heliocentric method
-      procedure, public :: drift   => whm_drift_pl    !! Loop through massive bodies and call Danby drift routine
-      procedure, public :: kick    => whm_kickvh_pl   !! Kick barycentric velocities of active massive bodies
+      !procedure, public :: drift   => whm_drift_pl    !! Loop through massive bodies and call Danby drift routine
    end type whm_pl
 
    interface
@@ -82,13 +80,6 @@ module whm_classes
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structure
       end subroutine whm_getacch_int_pl
-
-      module subroutine whm_kickvh_pl(self, cb, dt)
-         implicit none
-         class(whm_pl),                 intent(inout)   :: self   !! WHM massive body particle data structure
-         class(whm_central_body),       intent(inout)   :: cb     !! WHM central body particle data structur
-         real(DP),                      intent(in)      :: dt     !! Stepsize
-      end subroutine whm_kickvh_pl
 
       module subroutine whm_step_pl(self, cb, config, t, dt)
          implicit none
@@ -130,7 +121,6 @@ module whm_classes
 
    !! WHM test particle class
    type, public, extends(swiftest_tp) :: whm_tp
-      real(DP), dimension(:,:), allocatable :: ah  !! Total heliocentric acceleration
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_tp and whm_discard_spill_tp
    contains
@@ -138,8 +128,7 @@ module whm_classes
       procedure, public :: setup    => whm_setup_tp   !! Allocates new components of the whm class and recursively calls parent allocations
       procedure, public :: getacch  => whm_getacch_tp !! Compute heliocentric accelerations of test particles
       procedure, public :: step     => whm_step_tp    !! Step active test particles ahead using Democratic Heliocentric method
-      procedure, public :: drift    => whm_drift_tp   !! Loop through test particles and call Danby drift routine
-      procedure, public :: kick     => whm_kickvh_tp  !! Kick barycentric velocities of active test particles
+      !procedure, public :: drift    => whm_drift_tp   !! Loop through test particles and call Danby drift routine
    end type whm_tp
 
    interface
@@ -154,7 +143,7 @@ module whm_classes
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(whm_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_tp
 
@@ -164,24 +153,17 @@ module whm_classes
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree 
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(whm_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t      !! Current time. This is passed to the user-defined acceleration function.
          real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of massive bodies at time t
       end subroutine whm_getacch_tp
-
-      module subroutine whm_kickvh_tp(self, cb, dt)
-         implicit none
-         class(whm_tp),                 intent(inout) :: self  !! WHM test particle data structure
-         class(whm_central_body),       intent(inout) :: cb    !! WHM central body particle data structuree
-         real(DP),                      intent(in)    :: dt    !! Stepsize
-      end subroutine whm_kickvh_tp
 
       module subroutine whm_step_tp(self, cb, pl, config, t, dt,  xbeg, xend)
          implicit none
          class(whm_tp),                 intent(inout) :: self      !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb        !! WHM central body particle data structuree
          class(whm_pl),                 intent(inout) :: pl        !! WHM massive body particle data structure.
-         class(swiftest_configuration), intent(in)    :: config    !! Input collection of user-defined parameter
+         class(whm_configuration), intent(in)    :: config    !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t         !! Current time
          real(DP),                      intent(in)    :: dt        !! Stepsize
          real(DP), dimension(:, :),     intent(inout) :: xbeg      !! Heliocentric massive body positions at beginning of time step
@@ -208,31 +190,48 @@ module whm_classes
       private
       !> Replace the abstract procedures with concrete ones
       procedure, public :: construct     => whm_construct_system   !! Perform a discard operation and spill any discarded bodies to list for output.  
+      procedure, public :: initialize    => whm_setup_system  !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure, public :: set_msys      => whm_setup_set_eta      !! Sets the Jacobi mass value for all massive bodies.
       procedure, public :: step          => whm_step_system        !! Method to advance the system one step in time given by the step size dt
    end type whm_nbody_system
 
-!> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
-interface
-   !> Constructs a WHM nbody system
-   module subroutine whm_construct_system(self)
-      implicit none
-      class(whm_nbody_system),       intent(inout) :: self       !! Swiftest system object
-   end subroutine whm_construct_system
+   interface
+      !> Constructs a WHM nbody system
+      module subroutine whm_construct_system(self)
+         implicit none
+         class(whm_nbody_system),       intent(inout) :: self       !! Swiftest system object
+      end subroutine whm_construct_system 
 
-   !> Move spilled (discarded) Swiftest basic body components from active list to discard list
-   module subroutine whm_discard_spill(keeps, discards, lspill_list)
-      implicit none
-      class(whm_tp),         intent(inout) :: keeps       !! WHM test particle object
-      class(whm_tp),         intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-   end subroutine whm_discard_spill
+      module subroutine whm_setup_system(self, config)
+         implicit none
+         class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
+      end subroutine whm_setup_system
 
-   !> Steps the Swiftest nbody system forward in time one stepsize
-   module subroutine whm_step_system(self)
-      implicit none
-      class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
-   end subroutine whm_step_system
-end interface
+      module subroutine whm_setup_set_eta(self)
+         implicit none
+         class(whm_nbody_system),  intent(inout) :: self    !! Swiftest system object
+      end subroutine whm_setup_set_eta
+
+      !> Steps the Swiftest nbody system forward in time one stepsize
+      module subroutine whm_step_system(self)
+         implicit none
+         class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
+      end subroutine whm_step_system
+   end interface
+
+   !> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
+   interface
+      !> Move spilled (discarded) Swiftest basic body components from active list to discard list
+      module subroutine whm_discard_spill(keeps, discards, lspill_list)
+         implicit none
+         class(swiftest_body),  intent(inout) :: keeps       !! WHM test particle object
+         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine whm_discard_spill
+   end interface
+
+
 
 
 end module whm_classes

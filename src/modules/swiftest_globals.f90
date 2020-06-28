@@ -15,7 +15,6 @@ module swiftest_globals
 
    integer, parameter :: SP = real32  !! Symbolic name for kind types of single-precision reals
    integer, parameter :: DP = real64  !! Symbolic name for kind types of double-precision reals
-   integer, parameter :: QP = real128 !! Symbolic name for kind types of quad-precision reals 
 
    real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP !! Definition of /(\pi / 2\)
    real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP !! Definition of /(\pi\)
@@ -105,14 +104,6 @@ module swiftest_globals
    character(*), parameter :: TP_INFILE    = 'tp_out.dat'
    character(*), parameter :: BIN_OUTFILE  = 'bin.dat'
    integer(I4B), parameter :: BINUNIT      = 20 !! File unit number for the binary output file
-
-   !> Integration control parameters:
-   real(DP), parameter :: E2MAX    = 0.36_DP      
-   real(DP), parameter :: DM2MAX   = 0.16_DP
-   real(DP), parameter :: E2DM2MAX = 0.0016_DP
-   real(DP),     parameter :: DANBYB   = 1.0E-13_DP
-   integer(I2B), parameter :: NLAG1    = 50
-   integer(I2B), parameter :: NLAG2    = 400
 
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM    = 3          !! Number of dimensions in our reality

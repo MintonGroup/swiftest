@@ -29,12 +29,6 @@ module swiftest_operators
          real(DP), dimension(3) :: C
       end function operator_cross_dp
 
-      module pure function operator_cross_qp(A, B) result(C)
-         implicit none
-         real(QP), dimension(3), intent(in) :: A, B
-         real(QP), dimension(3) :: C
-      end function operator_cross_qp
-
       module pure function operator_cross_i1b(A, B) result(C)
          !$omp declare simd(operator_cross_i1b)
          implicit none
@@ -75,12 +69,6 @@ module swiftest_operators
          real(DP), dimension(:,:), allocatable :: C
       end function operator_cross_el_dp
 
-      module pure function operator_cross_el_qp(A, B) result(C)
-         implicit none
-         real(QP), dimension(:,:), intent(in) :: A, B
-         real(QP), dimension(:,:), allocatable :: C
-      end function operator_cross_el_qp
-
       module pure function operator_cross_el_i1b(A, B) result(C)
          implicit none
          integer(I1B), dimension(:,:), intent(in) :: A, B
@@ -104,9 +92,11 @@ module swiftest_operators
          integer(I8B), dimension(:,:), intent(in) :: A, B
          integer(I8B), dimension(:,:), allocatable :: C
       end function operator_cross_el_i8b
-
-
    end interface
+
+   !********************************************************************************************************************************
+   ! Interfaces for .mag. operator
+   !********************************************************************************************************************************
 
    interface operator(.mag.)
       module pure function operator_mag_sp(A) result(B)
@@ -123,12 +113,6 @@ module swiftest_operators
          real(DP)                           :: B
       end function operator_mag_dp
 
-      module pure function operator_mag_qp(A) result(B)
-         implicit none
-         real(QP), dimension(:), intent(in) :: A
-         real(QP)                           :: B
-      end function operator_mag_qp
-
       module pure function operator_mag_el_sp(A) result(B)
          implicit none
          real(SP), dimension(:,:), intent(in)   :: A
@@ -140,13 +124,11 @@ module swiftest_operators
          real(DP), dimension(:,:), intent(in)   :: A
          real(DP), dimension(:),   allocatable  :: B
       end function operator_mag_el_dp
-
-      module pure function operator_mag_el_qp(A) result(B)
-         implicit none
-         real(QP), dimension(:,:), intent(in)   :: A
-         real(QP), dimension(:),   allocatable  :: B
-      end function operator_mag_el_qp
    end interface
+
+   !********************************************************************************************************************************
+   ! Interfaces for .dot. operator
+   !********************************************************************************************************************************
 
    interface operator(.dot.)
       module pure function operator_dot_sp(A, B) result(C)
@@ -162,12 +144,6 @@ module swiftest_operators
          real(DP), dimension(:), intent(in)  :: A, B
          real(DP)                            :: C
       end function operator_dot_dp
-
-      module pure function operator_dot_qp(A, B) result(C)
-         implicit none
-         real(QP), dimension(:), intent(in)  :: A, B
-         real(QP)                            :: C
-      end function operator_dot_qp
 
       module pure function operator_dot_i1b(A, B) result(C)
          !$omp declare simd(operator_dot_i1b)
@@ -208,12 +184,6 @@ module swiftest_operators
          real(DP), dimension(:,:), intent(in)  :: A, B
          real(DP), dimension(:),   allocatable :: C
       end function operator_dot_el_dp
-
-      module pure function operator_dot_el_qp(A, B) result(C)
-         implicit none
-         real(QP), dimension(:,:), intent(in)  :: A, B
-         real(QP), dimension(:),   allocatable :: C
-      end function operator_dot_el_qp
 
       module pure function operator_dot_el_i1b(A, B) result(C)
          implicit none

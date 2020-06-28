@@ -1,6 +1,8 @@
 submodule(whm_classes) whm_drift
 contains
 
+
+
 module procedure whm_drift_pl
    !! author: David A. Minton
    !!
@@ -13,27 +15,12 @@ module procedure whm_drift_pl
    integer(I4B)          :: i
    real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
    integer(I4B), dimension(:), allocatable  :: iflag
-   real(DP), dimension(:), allocatable, save :: etaj, etajm1 !! TODO: Calculate this once at the start of the sim
-   logical :: lfirst = .true.
 
    associate(npl    => self%nbody, &
       xj     => self%xj(i, :), &
       vj     => self%vj(i, :), &
       status => self%status(i),&
-      mu     => self%mu_vec(i), &
-      msun   => cb%Gmass, &
-      mpl    => self%Gmass(i))
-
-      if (lfirst) then
-         allocate(etaj(0:npl))
-         etaj(0) = msun 
-         do i = 1, npl
-            etajm1(i) = etaj(i - 1)
-            etaj(i) = etaj(i - 1) + mpl
-            mu = msun * etaj(i) / etajm1(i)
-         end do
-         lfirst = .false.
-      end if
+      mu     => self%mu_vec(i))
 
       allocate(iflag(npl))
       iflag(:) = 0

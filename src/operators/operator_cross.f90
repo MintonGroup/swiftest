@@ -22,14 +22,6 @@ submodule(swiftest_operators) operator_cross_implementation
       return
    end procedure operator_cross_dp
 
-   module procedure operator_cross_qp      
-      implicit none
-      C(1) = A(2) * B(3) - A(3) * B(2)
-      C(2) = A(3) * B(1) - A(1) * B(3)
-      C(3) = A(1) * B(2) - A(2) * B(1)
-      return
-   end procedure operator_cross_qp
-
    module procedure operator_cross_i1b      
       implicit none
       C(1) = A(2) * B(3) - A(3) * B(2)
@@ -79,15 +71,6 @@ submodule(swiftest_operators) operator_cross_implementation
       C(:, 3) = A(:, 1) * B(:, 2) - A(:, 2) * B(:, 1)
       return
    end procedure operator_cross_el_dp
-
-   module procedure operator_cross_el_qp      
-      implicit none
-      allocate(C, mold = A)
-      C(:, 1) = A(:, 2) * B(:, 3) - A(:, 3) * B(:, 2)
-      C(:, 2) = A(:, 3) * B(:, 1) - A(:, 1) * B(:, 3)
-      C(:, 3) = A(:, 1) * B(:, 2) - A(:, 2) * B(:, 1)
-      return
-   end procedure operator_cross_el_qp
 
    module procedure operator_cross_el_i1b      
       implicit none

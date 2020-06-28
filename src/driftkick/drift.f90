@@ -1,0 +1,439 @@
+submodule (swiftest_classes) drift_implementation
+
+   !> Integration control parameters:
+   real(DP), parameter :: E2MAX    = 0.36_DP      
+   real(DP), parameter :: DM2MAX   = 0.16_DP
+   real(DP), parameter :: E2DM2MAX = 0.0016_DP
+   real(DP),     parameter :: DANBYB   = 1.0E-13_DP
+   integer(I2B), parameter :: NLAG1    = 50
+   integer(I2B), parameter :: NLAG2    = 40
+
+contains
+
+module procedure drift_body
+   !! author: David A. Minton
+   !!
+   !! Loop through bodies and call Danby drift routine
+   !!
+   !! Adapted from Hal Levison's Swift routine drift.f
+   !! Adapted from David E. Kaufmann's Swifter routine whm_drift.f90
+   use swiftest
+   implicit none
+   integer(I4B)          :: i
+
+   integer(I4B), dimension(:), allocatable  :: iflag
+
+   associate(n => self%nbody, status => self%status(i), mu => self%mu_vec(i))
+      allocate(iflag(n))
+      iflag(:) = 0
+      select type(self)
+      class is (whm_pl)
+         associate(xj => self%xj(i, :), vj => self%vj(i, :))
+            do concurrent (i = 1:n, status == ACTIVE)
+               call whm_drift_func(mu, xj, vj, dt, iflag(i))
+            end do
+         end associate
+      class is (whm_tp)
+         associate(xh => self%xh(i, :), vh => self%vh(i, :))
+            do concurrent (i = 1:n, status == ACTIVE)
+               call whm_drift_func(mu, xh, vh, dt, iflag(i))
+            end do
+         end associate
+      end select 
+      if (any(iflag(1:n) /= 0)) then
+         do i = 1, n
+            write(*, *) " Body ", self%name(i), " is lost!!!!!!!!!!"
+            write(*, *) " stopping "
+            call util_exit(FAILURE)
+         end do
+      end if
+   end associate
+
+   return
+
+   contains 
+      pure subroutine whm_drift_func(mu, x, v, dt, iflag)
+         implicit none
+         real(DP), dimension(:), intent(inout) :: x, v
+         real(DP), intent(in) :: mu, dt 
+         integer(I4B), intent(out)  :: iflag
+         real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
+         if (config%lgr) then
+            rmag = .mag. x
+            vmag2 = v .dot. v 
+            energy = 0.5_DP * vmag2 - cb%Gmass / rmag
+            dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+         else
+            dtp = dt
+         end if
+         call drift_one(mu, x, v, dt, iflag)
+         return
+      end subroutine whm_drift_func 
+
+   end procedure drift_body
+
+   module procedure drift_one
+      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+      !!
+      !! Perform Danby drift for one body, redoing drift with smaller substeps if original accuracy is insufficient
+      !! The code has been vectorized as an elemental procedure
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine routine drift_one.f90
+      !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_one.f
+      use swiftest_globals
+      integer(I4B) :: i
+      real(DP)   :: dttmp
+
+      call drift_dan(mu, x(:), v(:), dt, iflag)
+      if (iflag /= 0) then
+         dttmp = 0.1_DP * dt
+         do i = 1, 10
+            call drift_dan(mu, x(:), v(:), dttmp, iflag)
+            if (iflag /= 0) return
+         end do
+      end if
+   
+      return
+   end procedure drift_one
+
+   module procedure drift_dan
+      !! author: David A. Minton
+      !!
+      !! Perform Kepler drift, solving Kepler's equation in appropriate variables
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_dan.f90
+      !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_dan.f
+      use swiftest
+      implicit none
+      real(DP)        :: dt, f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
+      real(DP)        :: v0s, a, asq, en, dm, ec, es, esq, xkep, fchk, s, c
+   
+      iflag = 0
+      dt = dt0
+      r0 = .mag. x0(:) 
+      v0s = v0(:) .dot. v0(:) 
+      u = x0(:) .dot. v0(:) 
+      alpha = 2 * mu / r0 - v0s
+      if (alpha > 0.0_DP) then
+         a = mu / alpha
+         asq = a * a
+         en = sqrt(mu / (a * asq))
+         ec = 1.0_DP - r0 / a
+         es = u / (en * asq)
+         esq = ec * ec + es * es
+         dm = dt * en - int(dt * en / twopi, kind=I4B) * TWOPI
+         dt = dm / en
+         if ((esq < E2MAX) .and. (dm * dm < DM2MAX) .and. (esq * dm * dm < e2DM2MAX)) then
+            call drift_kepmd(dm, es, ec, xkep, s, c)
+            fchk = (xkep - ec * s + es*(1.0_DP - c) - dm)
+            ! DEK - original code compared fchk*fchk with DANBYB, but i think it should
+            ! DEK - be compared with DANBYB*DANBYB, and i changed it accordingly - please
+            ! DEK - check with hal and/or martin about this
+            if (fchk * fchk > DANBYB * DANBYB) then
+               iflag = 1
+               return
+            end if
+            fp = 1.0_DP - ec * c + es * s
+            f = a / r0 * (c - 1.0_DP) + 1.0_DP
+            g = dt + (s - xkep) / en
+            fdot = -(a / (r0 * fp)) * en * s
+            gdot = (c - 1.0_DP) / fp + 1.0_DP
+            x0(:) = x0(:) * f + v0(:) * g
+            v0(:) = x0(:) * fdot + v0(:) * gdot
+            iflag = 0
+            return
+         end if
+      end if
+
+      call drift_kepu(dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+      if (iflag == 0) then
+         f = 1.0_DP - mu / r0 * c2
+         g = dt - mu * c3
+         fdot = -mu / (fp * r0) * c1
+         gdot = 1.0_DP - mu / fp * c2
+         x0(:) = x0(:) * f + v0(:) * g
+         v0(:) = x0(:) * fdot + v0(:) * gdot
+      end if
+      return
+   end procedure drift_dan
+
+   module procedure drift_kepmd
+      !! author: David A. Minton
+      !!
+      !! Solve Kepler's equation in difference form for an ellipse for small input dm and eccentricity
+      !!    Original disclaimer: built for speed, does not check how well the original equation is solved
+      !!    Can do that in calling routine by checking how close (x - ec*s + es*(1.0 - c) - dm) is to zero
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_kepmd.f90
+      !! Adapted from Martin Duncan's Swift routine drift_kepmd.f
+      use swiftest
+      implicit none
+      real(DP), parameter :: a0 = 39916800.0_DP, a1 = 6652800.0_DP, a2 = 332640.0_DP, a3 = 7920.0_DP, a4 = 110.0_DP
+      real(DP)      :: dx, fac1, fac2, q, y, f, fp, fpp, fppp
+      
+      ! executable code
+      fac1 = 1.0_DP / (1.0_DP - ec)
+      q = fac1 * dm
+      fac2 = es * es * fac1 - ec / 3.0_DP
+      x = q * (1.0_DP - 0.5_DP * fac1 * q * (es - q * fac2))
+      y = x * x
+      s = x * (a0 - y * (a1 - y * (a2 - y * (a3 - y * (a4 - y))))) / a0
+      c = sqrt(1.0_DP - s * s)
+      f = x - ec * s + es * (1.0_DP - c) - dm
+      fp = 1.0_DP - ec * c + es * s
+      fpp = ec * s + es * c
+      fppp = ec * c - es * s
+      dx = -f / fp
+      dx = -f / (fp + dx * fpp / 2.0_DP)
+      dx = -f / (fp + dx * fpp / 2.0_DP + dx * dx * fppp / 6.0_DP)
+      x = x + dx
+      y = x * x
+      s = x * (a0 - y * (a1 - y * (a2 - y * (a3 - y * (a4 - y))))) / a0
+      c = sqrt(1.0_DP - s * s)
+      
+      return
+   end procedure drift_kepmd
+
+   module procedure drift_kepu
+      !! author: David A. Minton
+      !!
+      !! Solve Kepler's equation in universal variables
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu.f90
+      !! Adapted from Hal Levison's Swift routine drift_kepu.f
+      use swiftest
+      implicit none
+      real(DP) :: s, st, fo, fn
+      
+      ! executable code
+      call drift_kepu_guess(dt, r0, mu, alpha, u, s)
+      st = s
+      call drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+      if (iflag /= 0) then
+         call drift_kepu_fchk(dt, r0, mu, alpha, u, st, fo)
+         call drift_kepu_fchk(dt, r0, mu, alpha, u, s, fn)
+         if (abs(fo) < abs(fn)) s = st
+         call drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+      end if
+      
+      return
+   end procedure drift_kepu
+
+   module procedure drift_kepu_fchk
+      !! author: David A. Minton
+      !!
+      !! Computes the value of f, the function whose root we are trying to find in universal variables
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_fchk.f90
+      !! Adapted from Martin Duncan's Swift routine drift_kepu_fchk.f
+      use swiftest
+      implicit none
+      real(DP) :: x, c0, c1, c2, c3
+
+      x = s * s * alpha
+      call drift_kepu_stumpff(x, c0, c1, c2, c3)
+      c1 = c1 * s
+      c2 = c2 * s * s
+      c3 = c3 * s * s * s
+      f = r0 * c1 + u * c2 + mu * c3 - dt
+
+      return
+   end procedure drift_kepu_fchk
+
+   module procedure drift_kepu_guess
+      !! author: David A. Minton
+      !!
+      !! Compute initial guess for solving Kepler's equation using universal variables
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_guess.f90
+      !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_kepu_guess.f
+      use swiftest
+      implicit none
+      integer(I4B)      :: iflag
+      real(DP), parameter :: thresh = 0.4_DP, danbyk = 0.85_DP
+      real(DP)        :: y, sy, cy, sigma, es, x, a, en, ec, e
+
+      if (alpha > 0.0_DP) then
+         if (dt / r0 <= thresh) then
+            s = dt / r0 - (dt * dt * u)/(2 * r0 * r0 * r0)
+         else
+            a = mu / alpha
+            en = sqrt(mu / (a * a*a))
+            ec = 1.0_DP - r0 / a
+            es = u / (en * a * a)
+            e = sqrt(ec * ec + es * es)
+            y = en * dt - es
+            call orbel_scget(y, sy, cy)
+            sigma = sign(1.0_DP, es*cy + ec * sy)
+            x = y + sigma * danbyk * e
+            s = x / sqrt(alpha)
+         end if
+      else
+         call drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
+         if (iflag /= 0) s = dt / r0
+      end if
+
+      return
+   end procedure drift_kepu_guess
+
+   module procedure drift_kepu_lag
+      !! author: David A. Minton
+      !!
+      !! Solve Kepler's equation in universal variables using Laguerre's method
+      !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 178 - 180.
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_lag.f90
+      !! Adapted from Hal Levison's Swift routine drift_kepu_lag.f
+      use swiftest
+      implicit none
+      integer( I4B) :: nc, ncmax
+      real(DP)   :: ln, x, fpp, ds, c0, f, fdt
+   
+      if (alpha < 0.0_DP) then
+         ncmax = NLAG2
+      else
+         ncmax = NLAG1
+      end if
+      ln = 5.0_DP
+      do nc = 0, ncmax
+         x = s * s * alpha
+         call drift_kepu_stumpff(x, c0, c1, c2, c3)
+         c1 = c1 * s
+         c2 = c2 * s * s
+         c3 = c3 * s * s * s
+         f = r0 * c1 + u * c2 + mu * c3 - dt
+         fp = r0 * c0 + u * c1 + mu * c2
+         fpp = (-r0 * alpha + mu) * c1 + u * c0
+         ds = -ln * f/(fp + sign(1.0_DP, fp) * sqrt(abs((ln - 1.0_DP) * (ln - 1.0_DP) * fp * fp - (ln - 1.0_DP) * ln * f * fpp)))
+         s = s + ds
+         fdt = f / dt
+         if (fdt * fdt < DANBYB * DANBYB) then
+            iflag = 0
+            return
+         end if
+      end do
+      iflag = 2
+   
+      return
+   end procedure drift_kepu_lag
+
+   module procedure drift_kepu_new
+      !! author: David A. Minton
+      !!
+      !! Solve Kepler's equation in universal variables using Newton's method
+      !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 174 - 175.
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_new.f90
+      !! Adapted from Hal Levison's Swift routine drift_kepu_new.f
+      use swiftest
+      implicit none
+      integer( I4B) :: nc
+      real(DP)   :: x, c0, ds, f, fpp, fppp, fdt
+   
+      do nc = 0, 6
+         x = s * s * alpha
+         call drift_kepu_stumpff(x, c0, c1, c2, c3)
+         c1 = c1 * s
+         c2 = c2 * s * s
+         c3 = c3 * s * s * s
+         f = r0 * c1 + u * c2 + mu * c3 - dt
+         fp = r0 * c0 + u * c1 + mu * c2
+         fpp = (-r0 * alpha + mu) * c1 + u * c0
+         fppp = (-r0 * alpha + mu) * c0 - u * alpha * c1
+         ds = -f / fp
+         ds = -f / (fp + ds * fpp / 2.0_DP)
+         ds = -f / (fp + ds * fpp / 2.0_DP + ds * ds * fppp / 6.0_DP)
+         s = s + ds
+         fdt = f / dt
+         if (fdt * fdt < DANBYB * DANBYB) then
+            iflag = 0
+            return
+         end if
+      end do
+      iflag = 1
+   
+      return
+   end procedure drift_kepu_new
+
+   module procedure drift_kepu_p3solve
+      !! author: David A. Minton
+      !!
+      !! Computes real root of cubic involved in setting initial guess for solving Kepler's equation in universal variables
+      !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 177 - 178.
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_p3solve.f90
+      !! Adapted from Martin Duncan's Swift routine drift_kepu_p3solve.f
+      use swiftest
+      implicit none
+      real(DP) :: denom, a0, a1, a2, q, r, sq2, sq, p1, p2
+
+      denom = (mu - alpha * r0) / 6.0_DP
+      a2 = 0.5_DP * u / denom
+      a1 = r0 / denom
+      a0 = -dt / denom
+      q = (a1 - a2 * a2 / 3.0_DP) / 3.0_DP
+      r = (a1 * a2 - 3.0_DP * a0) / 6.0_DP - (a2 * a2 * a2) / 27.0_DP
+      sq2 = q * q * q + r * r
+      if (sq2 >= 0.0_DP) then
+         sq = sqrt(sq2)
+         if ((r + sq) <= 0.0_DP) then
+            p1 = -(-(r + sq))**(1.0_DP / 3.0_DP)
+         else
+            p1 = (r + sq)**(1.0_DP / 3.0_DP)
+         end if
+         if ((r - sq) <= 0.0_DP) then
+            p2 = -(-(r - sq))**(1.0_DP / 3.0_DP)
+         else
+            p2 = (r - sq)**(1.0_DP / 3.0_DP)
+         end if
+         iflag = 0
+         s = p1 + p2 - a2 / 3.0_DP
+      else
+         iflag = 1
+         s = 0.0_DP
+      end if
+
+      return
+   end procedure drift_kepu_p3solve
+
+   module procedure drift_kepu_stumpff
+      !! author: David A. Minton
+      !!
+      !! Compute Stumpff functions needed for Kepler drift in universal variables
+      !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 171 - 172.
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_stumpff.f90
+      !! Adapted from Hal Levison's Swift routine drift_kepu_stumpff.f
+      use swiftest
+      implicit none
+      integer(I4B) :: i, n
+      real(DP)   :: xm
+
+      n = 0
+      xm = 0.1_DP
+      do while (abs(x) >= xm)
+         n = n + 1
+         x = x / 4.0_DP
+      end do
+      c2 = (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * &
+            (1.0_DP - x / 182.0_DP) / 132.0_DP) / 90.0_DP) / 56.0_DP) /        &
+               30.0_DP) / 12.0_DP) / 2.0_DP
+      c3 = (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * &
+            (1.0_DP - x / 210.0_DP) / 156.0_DP) / 110.0_DP) / 72.0_DP) /       &
+               42.0_DP) / 20.0_DP ) / 6.0_DP
+      c1 = 1.0_DP - x * c3
+      c0 = 1.0_DP - x * c2
+      if (n /= 0) then
+         do i = n, 1, -1
+            c3 = (c2 + c0 * c3) / 4.0_DP
+            c2 = c1 * c1 / 2.0_DP
+            c1 = c0 * c1
+            c0 = 2 * c0 * c0 - 1.0_DP
+            x = x * 4
+         end do
+      end if
+
+      return
+   end procedure drift_kepu_stumpff
+
+end submodule drift_implementation

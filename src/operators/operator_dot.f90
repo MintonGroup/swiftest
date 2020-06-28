@@ -18,12 +18,6 @@ submodule(swiftest_operators) operator_dot_implementation
       return
    end procedure operator_dot_dp
 
-   module procedure operator_dot_qp
-      implicit none
-      C = dot_product(A(:), B(:))
-      return
-   end procedure operator_dot_qp
-
    !> Internal elemental function that receives the component-wise input vector (SP)
    pure elemental function operator_dotvecelem_sp(Ax, Ay, Az, Bx, By, Bz) result(C)
       !$omp declare simd(operator_dotvecelem_sp)
@@ -45,16 +39,6 @@ submodule(swiftest_operators) operator_dot_implementation
       C = Ax * Bx + Ay * By + Az * Bz 
       return
    end function operator_dotvecelem_dp
-
-   !> Internal elemental function that receives the component-wise input vector (QP)
-   pure elemental function operator_dotvecelem_qp(Ax, Ay, Az, Bx, By, Bz) result(C)
-      implicit none
-      real(QP), intent(in)  :: Ax, Ay, Az
-      real(QP), intent(in)  :: Bx, By, Bz
-      real(QP)           :: C
-      C = Ax * Bx + Ay * By + Az * Bz 
-      return
-   end function operator_dotvecelem_qp
 
    !> Internal elemental function that receives the component-wise input vector (I1B)
    pure elemental function operator_dotvecelem_i1b(Ax, Ay, Az, Bx, By, Bz) result(C)
@@ -113,13 +97,6 @@ submodule(swiftest_operators) operator_dot_implementation
       C(:) = operator_dotvecelem_dp(A(:, 1), A(:, 2), A(:, 3), B(:, 1), B(:, 2), B(:, 3))
       return
    end procedure operator_dot_el_dp
-
-   module procedure operator_dot_el_qp
-      implicit none
-      allocate(C(size(A,1)))
-      C(:) = operator_dotvecelem_qp(A(:, 1), A(:, 2), A(:, 3), B(:, 1), B(:, 2), B(:, 3))
-      return
-   end procedure operator_dot_el_qp
 
    module procedure operator_dot_el_i1b
       implicit none

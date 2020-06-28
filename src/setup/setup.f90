@@ -20,7 +20,7 @@ contains
          write(*,*) 'TU4 integrator not yet enabled'
       case (WHM)
          allocate(whm_nbody_system :: system)
-         call system%construct(config)
+         call system%construct()
       case (RMVS)
          write(*,*) 'RMVS integrator not yet enabled'
       case (SYMBA)
@@ -54,14 +54,15 @@ contains
       allocate(self%vh(n,NDIM))
       allocate(self%xb(n,NDIM))
       allocate(self%vb(n,NDIM))
-      allocate(self%mu_vec(n))
-      allocate(self%dt_vec(n))
+      allocate(self%ah(n, NDIM))
       allocate(self%a(n))
       allocate(self%e(n))
       allocate(self%inc(n))
       allocate(self%capom(n))
       allocate(self%omega(n))
       allocate(self%capm(n))
+      allocate(self%mu_vec(n))
+      allocate(self%dt_vec(n))
 
       self%name(:)   = 0
       self%status(:) = INACTIVE
@@ -69,6 +70,7 @@ contains
       self%vh(:,:)   = 0.0_DP
       self%xb(:,:)   = 0.0_DP
       self%vb(:,:)   = 0.0_DP
+      self%ah(:,:)   = 0.0_DP
       self%a(:)      = 0.0_DP
       self%e(:)      = 0.0_DP
       self%inc(:)    = 0.0_DP
@@ -137,5 +139,15 @@ contains
 
       return
    end procedure setup_tp
+
+   module procedure setup_set_msys
+      !! author: David A. Minton
+      !!
+      !! Sets the value of msys and the vector mass quantities based on the total mass of the system
+      self%msys = self%cb%mass + sum(self%pl%mass(1:self%pl%nbody))
+
+      return
+   end procedure setup_set_msys
+
 
 end submodule setup

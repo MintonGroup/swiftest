@@ -6,7 +6,7 @@ module swiftest_classes
    use swiftest_globals
    implicit none
    private
-   public :: io_get_command_line_arguments, drift_one
+   public :: io_get_command_line_arguments, drift_one, discard_spill_body
 
    !********************************************************************************************************************************
    ! swiftest_configuration class definitions and method interfaces
@@ -231,6 +231,7 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: vh         !! Heliocentric velocity
       real(DP),     dimension(:,:), allocatable :: xb         !! Barycentric position
       real(DP),     dimension(:,:), allocatable :: vb         !! Barycentric velocity
+      real(DP),     dimension(:,:), allocatable :: ah         !! Total heliocentric acceleration
       real(DP),     dimension(:),   allocatable :: a          !! Semimajor axis (pericentric distance for a parabolic orbit)
       real(DP),     dimension(:),   allocatable :: e          !! Eccentricity
       real(DP),     dimension(:),   allocatable :: inc        !! Inclination
@@ -240,19 +241,23 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: mu_vec     !! Vectorized central mass term used for elemental functions
       real(DP),     dimension(:),   allocatable :: dt_vec     !! Vectorized stepsize used for elemental functions
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as setup_body and discard_spill_body
+      !!    component list, such as setup_body and discard_spill
    contains
       private
       ! These are concrete because the implementation is the same for all types of particles
-      procedure, public :: h2b         => coord_h2b_body     !! Convert position vectors from barycentric to heliocentric coordinates
-      procedure, public :: b2h         => coord_b2h_body     !! Convert position vectors from barycentric to heliocentric coordinates
-      procedure, public :: vb2vh       => coord_vb2vh_body   !! Convert velocity vectors from barycentric to heliocentric coordinates 
-      procedure, public :: vh2vb       => coord_vh2vb_body   !! Convert velocity vectors from heliocentric to barycentric coordinates 
-      procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity  vectors
+      procedure, public :: b2h         => coord_b2h_body      !! Convert position vectors from barycentric to heliocentric coordinates
+      procedure, public :: drift       => drift_body          !! Drifts particles on Keplerian orbits with Danby's method
+      procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
+      procedure, public :: gr_p4       => gr_p4_body          !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure, public :: h2b         => coord_h2b_body      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: initialize  => io_read_body_in     !! Read in body initial conditions from a file
+      procedure, public :: kickvb      => kick_vb_body        !! Kicks the barycentric velocities
+      procedure, public :: kickvh      => kick_vh_body        !! Kicks the heliocentric velocities
       procedure, public :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure         :: set_vec_dt  => util_set_vec_dt     !! Vectorizes scalar dt quantity for use in elemental procedures
       procedure, public :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure, public :: vb2vh       => coord_vb2vh_body    !! Convert velocity vectors from barycentric to heliocentric coordinates 
+      procedure, public :: vh2vb       => coord_vh2vb_body    !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure, public :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
 
@@ -297,6 +302,21 @@ module swiftest_classes
          class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
       end subroutine coord_vh2vb_body
 
+      module subroutine drift_body(self, cb, config, dt)
+         implicit none
+         class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
+         class(swiftest_central_body),  intent(inout) :: cb     !! WHM central body particle data structur
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         real(DP),                      intent(in)    :: dt     !! Stepsize
+      end subroutine drift_body
+
+      module pure subroutine gr_p4_body(self, config, dt)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)   :: dt     !! Step size
+      end subroutine gr_p4_body
+
       module subroutine io_read_body_in(self, config) 
          implicit none
          class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
@@ -321,6 +341,18 @@ module swiftest_classes
          real(DP),                      intent(out)   :: t       !! Simulation time
          integer(I4B),                  intent(out)   :: ierr    !! Error code
       end subroutine io_read_frame_body
+
+      module subroutine kick_vb_body(self, dt)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
+         real(DP),                     intent(in)    :: dt   !! Stepsize
+      end subroutine kick_vb_body
+
+      module subroutine kick_vh_body(self, dt)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
+         real(DP),                     intent(in)    :: dt   !! Stepsize
+      end subroutine kick_vh_body
 
       module subroutine setup_body(self,n)
          implicit none
@@ -363,7 +395,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: k2                     !! Tidal Love number
       real(DP),     dimension(:),   allocatable :: Q                      !! Tidal quality factor
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as setup_pl and discard_spill_pl
+      !!    component list, such as setup_pl and discard_spill
    contains
       private
       ! Massive body-specific concrete methods 
@@ -398,7 +430,7 @@ module swiftest_classes
       real(DP),     dimension(:), allocatable :: peri   ! Perihelion distance
       real(DP),     dimension(:), allocatable :: atp    ! Semimajor axis following perihelion passage
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as setup_tp and discard_spill_tp
+      !!    component list, such as setup_tp and discard_spill
    contains
       private
       ! Test particle-specific concrete methods 
@@ -459,9 +491,11 @@ module swiftest_classes
       procedure, public :: dump                   => io_dump_system               !! Dump the state of the system to a file
       procedure, public :: get_energy_and_momenum => util_get_energy_and_momentum !! Calculate total energy and angular momentum of system
       procedure, public :: initialize             => io_initialize_system         !! Initialize the system from an input file
+      procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
+      procedure, public :: set_msys               => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard          => io_write_discard             !! Append a frame of output data to file
       procedure, public :: write_frame            => io_write_frame_system        !! Append a frame of output data to file
-      procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
+
    end type swiftest_nbody_system
 
    abstract interface
@@ -501,6 +535,11 @@ module swiftest_classes
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
       end subroutine io_initialize_system
+
+      module subroutine setup_set_msys(self)
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+      end subroutine setup_set_msys
 
       !> Method to write out a single frame of the simulation to file
       module subroutine io_write_frame_system(self, iu, config, t, dt)
@@ -561,22 +600,6 @@ module swiftest_classes
          logical, dimension(:), intent(in)   :: lspill_list !! Logical array of bodies to spill into the discards
       end subroutine discard_spill_body
 
-      !> Move spilled (discarded) Swiftest test particle components from active list to discard list
-      module subroutine discard_spill_tp(keeps, discards, lspill_list)
-         implicit none
-         class(swiftest_tp), intent(inout) :: keeps       !! Swiftest test particle object
-         class(swiftest_tp), intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in) :: lspill_list !! Logical array of bodies to spill into the discards
-      end subroutine discard_spill_tp
-
-      !> Move spilled (discarded) Swifteast massive body components from active list to discard list
-      module subroutine discard_spill_pl(keeps, discards, lspill_list)
-         implicit none
-         class(swiftest_pl), intent(inout) :: keeps       !! Swiftest massive body object
-         class(swiftest_pl), intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in) :: lspill_list !! Logical array of bodies to spill into the discards
-      end subroutine discard_spill_pl
-
       !> Check to see if test particles should be discarded based on their positions relative to the planets
       module subroutine discard_tp_pl(swiftest_plA, swiftest_tpA, config, t, dt) 
          implicit none
@@ -626,7 +649,7 @@ module swiftest_classes
    end interface
 
    !********************************************************************************************************************************
-   ! Interfaces for non type-bound drift subroutines
+   ! Interfaces for drift and kick subroutines
    !********************************************************************************************************************************
 
    interface
@@ -691,19 +714,20 @@ module swiftest_classes
          real(DP), intent(out)   :: c0, c1, c2, c3
       end subroutine drift_kepu_stumpff
 
-      !module elemental subroutine drift_one(mu, posx, posy, posz, vx, vy, vz, dt, iflag)
       module pure subroutine drift_one(mu, x, v, dt, iflag)
          !$omp declare simd(drift_one) 
          implicit none
-         real(DP), intent(in)      :: mu                !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-         !real(DP), intent(inout)   :: posx, posy, posz  !! Position of body to drift
-         !real(DP), intent(inout)   :: vx, vy, vz        !! Velocity of body to drift
-         real(DP), dimension(:), intent(inout)   :: x  !! Position of body to drift
-         real(DP), dimension(:), intent(inout)   :: v  !! Velocity of body to drift
-         real(DP), intent(in)      :: dt                !! Step size
-         integer(I4B), intent(out) :: iflag             !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
+         real(DP), intent(in)      :: mu              !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
+         real(DP), dimension(:), intent(inout)  :: x  !! Position of body to drift
+         real(DP), dimension(:), intent(inout)  :: v  !! Velocity of body to drift
+         real(DP), intent(in)      :: dt              !! Step size
+         integer(I4B), intent(out) :: iflag           !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
+
+
+
    end interface
+
 
    !********************************************************************************************************************************
    ! Interfaces for non type-bound io subroutines
