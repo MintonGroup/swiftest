@@ -143,7 +143,7 @@ module whm_classes
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
-         class(whm_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_tp
 
@@ -153,7 +153,7 @@ module whm_classes
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree 
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
-         class(whm_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t      !! Current time. This is passed to the user-defined acceleration function.
          real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of massive bodies at time t
       end subroutine whm_getacch_tp
@@ -163,7 +163,7 @@ module whm_classes
          class(whm_tp),                 intent(inout) :: self      !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb        !! WHM central body particle data structuree
          class(whm_pl),                 intent(inout) :: pl        !! WHM massive body particle data structure.
-         class(whm_configuration), intent(in)    :: config    !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config    !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t         !! Current time
          real(DP),                      intent(in)    :: dt        !! Stepsize
          real(DP), dimension(:, :),     intent(inout) :: xbeg      !! Heliocentric massive body positions at beginning of time step

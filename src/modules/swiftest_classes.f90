@@ -249,6 +249,8 @@ module swiftest_classes
       procedure, public :: drift       => drift_body          !! Drifts particles on Keplerian orbits with Danby's method
       procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
       procedure, public :: gr_p4       => gr_p4_body          !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure, public :: gr_vh2pv    => gr_vh2pv_body       !! Converts from heliocentric velocity to psudeovelocity for GR calculations
+      procedure, public :: gr_pv2vh    => gr_pv2vh_body       !! Converts from psudeovelocity to heliocentric velocity for GR calculations
       procedure, public :: h2b         => coord_h2b_body      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: initialize  => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: kickvb      => kick_vb_body        !! Kicks the barycentric velocities
@@ -316,6 +318,20 @@ module swiftest_classes
          class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)   :: dt     !! Step size
       end subroutine gr_p4_body
+
+      module pure subroutine gr_vh2pv_body(self, config, dt)
+         implicit none
+         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)   :: dt     !! Step size
+      end subroutine gr_vh2pv_body
+
+      module pure subroutine gr_pv2vh_body(self, config, dt)
+         implicit none
+         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)   :: dt     !! Step size
+      end subroutine gr_pv2vh_body
 
       module subroutine io_read_body_in(self, config) 
          implicit none
