@@ -268,8 +268,8 @@ contains
       call dump_config%dump(config_file_name,t,dt)
 
       call self%cb%dump(dump_config, t, dt, tfrac)
-      call self%pl%dump(dump_config, t, dt, tfrac)
-      call self%tp%dump(dump_config, t, dt, tfrac)
+      if (self%pl%nbody > 0) call self%pl%dump(dump_config, t, dt, tfrac)
+      if (self%tp%nbody > 0) call self%tp%dump(dump_config, t, dt, tfrac)
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
