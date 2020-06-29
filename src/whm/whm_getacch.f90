@@ -18,14 +18,13 @@ contains
    associate(pl => self, npl => self%nbody, Gmpl => self%Gmass, xj => self%xj, xh => self%xh, &
              ah => self%ah, ah1 => self%ah1, ah2 => self%ah2, ah3 => self%ah3, &
              j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
-      if (.not. lmalloc) then
-         if (.not. allocated(r2)) allocate(r2(npl))
-         if (.not. allocated(irj)) allocate(irj(npl))
-         if (.not. allocated(ir3j)) allocate(ir3j(npl))
-         if (.not. allocated(irh)) allocate(irh(npl))
-         if (.not. allocated(ir3h)) allocate(ir3h(npl))
-         lmalloc = .true.
-      end if
+
+      if (.not. allocated(r2)) allocate(r2(npl))
+      if (.not. allocated(irj)) allocate(irj(npl))
+      if (.not. allocated(ir3j)) allocate(ir3j(npl))
+      if (.not. allocated(irh)) allocate(irh(npl))
+      if (.not. allocated(ir3h)) allocate(ir3h(npl))
+      if (.not. allocated(fac)) allocate(fac(npl))
       r2(1:npl) = xj(1:npl, 1:NDIM) .dot. xj(1:npl, 1:NDIM)
       irj(1:npl)= 1.0_DP / sqrt(r2(1:npl))
       ir3j(1:npl) = irj(1:npl) / r2(1:npl)
