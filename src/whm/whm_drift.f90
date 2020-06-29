@@ -17,8 +17,8 @@ module procedure whm_drift_pl
    integer(I4B), dimension(:), allocatable  :: iflag
 
    associate(npl    => self%nbody, &
-      xj     => self%xj &
-      vj     => self%vj &
+      xj     => self%xj, &
+      vj     => self%vj, &
       status => self%status,&
       mu     => self%mu_vec)
 
