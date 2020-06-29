@@ -24,18 +24,18 @@ contains
             cb%xj(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
             cb%vj(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
             if (npl > 1) then
-                self%xj(:,1) = self%xh(:,1)
-                self%vj(:,1) = self%vh(:,1)
+                self%xj(1, :) = self%xh(1, :)
+                self%vj(1, :) = self%vh(1, :)
                 sumx(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
                 sumv(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
             end if
             do i = 1, npl - 1
-                sumx(:) = sumx(:) + self%mass(i) * self%xh(:, i)
-                sumv(:) = sumv(:) + self%mass(i) * self%vh(:, i)
+                sumx(:) = sumx(:) + self%mass(i) * self%xh(i, :)
+                sumv(:) = sumv(:) + self%mass(i) * self%vh(i, :)
                 cap(:) = sumx(:) / self%eta(i)
                 capv(:) = sumv(:) / self%eta(i)
-                self%xj(:, i + 1)    = self%xh(:, i + 1) - cap(:)
-                self%vj(:, i + 1) = self%vh(:, i + 1) - capv(:)
+                self%xj(i + 1, :)    = self%xh(i + 1, :) - cap(:)
+                self%vj(i + 1, :) = self%vh(i + 1, :) - capv(:)
             end do
         end associate
     
@@ -63,16 +63,16 @@ contains
                 self%eta(i) = eta
             end DO
             if (npl > 1) then
-                self%xh(:,1) = self%xj(:,1)
-                self%vh(:,1) = self%vj(:,1)
+                self%xh(1, :) = self%xj(1, :)
+                self%vh(1, :) = self%vj(1,:)
                 sumx(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
                 sumv(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
             end if
             do i = 1, npl - 1
-                sumx(:) = sumx(:) + self%mass(i) * self%xj(:, i) / self%eta(i)
-                sumv(:) = sumv(:) + self%mass(i) * self%vj(:, i) / self%eta(i)
-                self%xh(:, i + 1) = self%xj(:, i + 1) + sumx(:)
-                self%vh(:, i + 1) = self%vj(:, i + 1) + sumv(:)
+                sumx(:) = sumx(:) + self%mass(i) * self%xj(i, :) / self%eta(i)
+                sumv(:) = sumv(:) + self%mass(i) * self%vj(i, :) / self%eta(i)
+                self%xh(i + 1, :) = self%xj(i + 1, :) + sumx(:)
+                self%vh(i + 1, :) = self%vj(i + 1, :) + sumv(:)
             end do
         end associate
     
@@ -101,13 +101,13 @@ contains
             end do
             cb%vj(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
             if (npl > 1) then
-                self%vj(:,1) = self%vh(:,1)
+                self%vj(1, :) = self%vh(1, :)
                 sumv(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
             end if
             do i = 1, npl - 1
-                sumv(:) = sumv(:) + self%mass(i) * self%vh(:, i)
+                sumv(:) = sumv(:) + self%mass(i) * self%vh(i, :)
                 capv(:) = sumv(:) / self%eta(i)
-                self%vj(:, i + 1) = self%vh(:, i + 1) - capv(:)
+                self%vj(i + 1, :) = self%vh(i + 1, i) - capv(:)
             end do
         end associate
     
