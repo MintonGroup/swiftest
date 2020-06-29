@@ -30,8 +30,10 @@ contains
                class is (whm_pl)
                   select type(tp => self%tp)
                   class is (whm_tp)
-                  
-                     if (is_tp) xbeg(1:npl, 1:NDIM) = pl%xh(1:npl, 1:NDIM)
+                     if (is_tp) then
+                        if (.not.allocated(xbeg)) allocate(xbeg(npl,NDIM))
+                        xbeg(:, :) = pl%xh(1:npl, :)
+                     end if
                      if (lfirst) then
                         call pl%h2j(cb)
                         call pl%getacch(cb, config, t)
@@ -46,8 +48,9 @@ contains
       
                      call pl%drift(cb, config, dt)
                      if (is_tp) then
+                        if (.not.allocated(xend)) allocate(xend(npl,NDIM))
                         call tp%drift(cb, config, dt)
-                        xend(1:npl, 1:NDIM) = pl%xh(1:npl, 1:NDIM)
+                        xend(:, :) = pl%xh(1:npl, :)
                      end if
       
                      if (config%lgr) call pl%gr_p4(config, dth)
