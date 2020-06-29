@@ -69,12 +69,12 @@ contains
       end if
 
       if (config%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-         call self%pl%xv2el(self%cb)
-         call self%tp%xv2el(self%cb)
+         if (self%pl%nbody >0) call self%pl%xv2el(self%cb)
+         if (self%tp%nbody > 0) call self%tp%xv2el(self%cb)
       end if
       call self%cb%write_frame(iu, config, t, dt)
-      call self%pl%write_frame(iu, config, t, dt)
-      call self%tp%write_frame(iu, config, t, dt)
+      if (self%tp%nbody > 0) call self%pl%write_frame(iu, config, t, dt)
+      if (self%pl%nbody >0) call self%tp%write_frame(iu, config, t, dt)
 
       if (config%lgr) then
          select type(pl => self%pl)

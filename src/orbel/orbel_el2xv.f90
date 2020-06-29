@@ -10,10 +10,6 @@ contains
    
       call self%set_vec(cb)
       associate(n => self%nbody)
-         write(*,*) 'we are here'
-         write(*,*) allocated(self%mu_vec)
-         write(*,*) size(self%mu_vec)
-         write(*,*) n
          call orbel_el2xv(self%mu_vec(1:n), self%xh(1:n, 1),  self%xh(1:n, 2),  self%xh(1:n, 3), &
                                           self%vh(1:n, 1),  self%vh(1:n, 2),  self%vh(1:n, 3), &
                                           self%a(1:n),     self%e(1:n),     self%inc(1:n),  &
