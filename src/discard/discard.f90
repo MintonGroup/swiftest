@@ -12,18 +12,28 @@ contains
 
       real(DP) :: msys
 
-      associate(config => self%config, cb => self%cb, pl => self%pl, tp => self%tp, t => self%config%t, msys => self%msys)
-         if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
-            (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
-               call pl%h2b(cb) 
-               call tp%h2b(cb) 
-         end if
-         if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or.  (config%rmaxu >= 0.0_DP)) then
-            call tp%discard_sun(cb, config, t, msys)
-         end if
-         if (config%qmin >= 0.0_DP) call tp%discard_peri(cb, pl, config, t, msys)
-         if (config%lclose) call tp%discard_pl(cb, pl, config, t, msys)
-      end associate   
+      select type(self)
+      class is (whm_nbody_system)
+         associate(config => self%config, cb => self%cb, pl => self%pl, tp => self%tp, &
+                   t => self%config%t, msys => self%msys, discards => self%tp_discards)
+            if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
+               (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
+                  call pl%h2b(cb) 
+                  call tp%h2b(cb) 
+            end if
+            if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or.  (config%rmaxu >= 0.0_DP)) then
+               call tp%discard_sun(cb, config, t, msys)
+            end if
+            if (config%qmin >= 0.0_DP) call tp%discard_peri(cb, pl, config, t, msys)
+            if (config%lclose) call tp%discard_pl(cb, pl, config, t, msys)
+
+            if (any(tp%ldiscard)) then
+               ! Spill the discards to the spill list
+               call discard_spill_body(tp, discards, tp%ldiscard)
+               call self%write_discard(discards)
+            end if
+         end associate  
+         end select
       return
    end procedure discard_system
 

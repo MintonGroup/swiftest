@@ -22,12 +22,12 @@ contains
             end do
          end select
          where (self%status(1:n) == ACTIVE)
-            self%xb(1:n, 1) = self%xh(1:ntp, 1) + cb%xb(1)
-            self%xb(1:n, 2) = self%xh(1:ntp, 2) + cb%xb(2)
-            self%xb(1:n, 3) = self%xh(1:ntp, 3) + cb%xb(3)
-            self%vb(1:n, 1) = self%vh(1:ntp, 1) + cb%vb(1)
-            self%vb(1:n, 2) = self%vh(1:ntp, 2) + cb%vb(2)
-            self%vb(1:n, 3) = self%vh(1:ntp, 3) + cb%vb(3)
+            self%xb(1:n, 1) = self%xh(1:n, 1) + cb%xb(1)
+            self%xb(1:n, 2) = self%xh(1:n, 2) + cb%xb(2)
+            self%xb(1:n, 3) = self%xh(1:n, 3) + cb%xb(3)
+            self%vb(1:n, 1) = self%vh(1:n, 1) + cb%vb(1)
+            self%vb(1:n, 2) = self%vh(1:n, 2) + cb%vb(2)
+            self%vb(1:n, 3) = self%vh(1:n, 3) + cb%vb(3)
          end where
       end associate
 

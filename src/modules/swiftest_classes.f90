@@ -51,8 +51,8 @@ module swiftest_classes
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
       logical :: lclose         = .false. !! Turn on close encounters
-   !   logical :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
-   !   logical :: lmtiny         = .false. !! Use the MTINY variable (Automatically set if running SyMBA)
+      logical :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
+      logical :: lmtiny         = .false. !! Use the MTINY variable (Automatically set if running SyMBA)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
       logical :: lenergy        = .false. !! Track the total energy of the system
@@ -639,9 +639,10 @@ module swiftest_classes
       end subroutine io_read_frame_system
 
       !> Method to write out the discard bodies to a file
-      module subroutine io_write_discard(self)
+      module subroutine io_write_discard(self, discards)
          implicit none
-         class(swiftest_nbody_system),  intent(in)    :: self    !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout)  :: self    !! Swiftest system object
+         class(swiftest_body), intent(inout)          :: discards !! Swiftest discard object 
       end subroutine io_write_discard
 
       !> Method for calculating the energy and angular momentum of the system

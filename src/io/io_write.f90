@@ -1,4 +1,4 @@
-submodule (swiftest_classes) io_write
+submodule (swiftest_classes) io_write_implementations
    !! author: David A. Minton
    !! 
    !! This submodule contains implementations of the following procedures:
@@ -11,6 +11,7 @@ submodule (swiftest_classes) io_write
    !!    io_dump_config
    !!    io_config_writer
    !!    io_dump_swiftest
+   !!    io_write_discards
 contains
    module procedure io_write_frame_system
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -74,6 +75,17 @@ contains
       call self%cb%write_frame(iu, config, t, dt)
       call self%pl%write_frame(iu, config, t, dt)
       call self%tp%write_frame(iu, config, t, dt)
+
+      if (config%lgr) then
+         select type(pl => self%pl)
+         class is (whm_pl)
+            call pl%gr_vh2pv(config)
+         end select
+         select type(tp => self%tp)
+         class is (whm_tp)
+            call tp%gr_vh2pv(config)
+         end select
+      end if
 
       return
    end procedure io_write_frame_system
@@ -239,13 +251,13 @@ contains
       !! so that if a dump file gets corrupted during writing, the user can restart from the older one.
       use swiftest
       implicit none
-      type(swiftest_configuration) :: dump_config   !! Local configuration variable used to configuration change input file names 
+      class(swiftest_configuration), allocatable :: dump_config   !! Local configuration variable used to configuration change input file names 
                                                     !!    to dump file-specific values without changing the user-defined values
       integer(I4B), save           :: idx = 1       !! Index of current dump file. Output flips between 2 files for extra security
                                                     !!    in case the program halts during writing
       character(len=:), allocatable :: config_file_name
 
-      dump_config = config
+      allocate(dump_config, source=config)
       config_file_name = trim(adjustl(DUMP_CONFIG_FILE(idx)))
       dump_config%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
       dump_config%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
@@ -414,5 +426,64 @@ contains
       return
    end procedure io_dump_swiftest
 
+   module procedure io_write_discard 
+      !!
+      !! Write out information about discarded test particle
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine  io_discard_write.f90
+      !! Adapted from Hal Levison's Swift routine io_discard_write.f
+      use swiftest
+      implicit none
+      integer(I4B), parameter   :: lun = 40
+      integer(I4B)          :: i, ierr
+      real(DP), dimension(ndim) :: vh
+    
+      real(DP)            :: mu, msun, etajm1, etaj
+      associate(t => self%config%t, config => self%config, nsp => discards%nbody, &
+                npl => self%pl%nbody, pl => self%pl, msun => self%cb%Gmass)
+         select case(config%out_stat)
+         case('APPEND')
+            open(unit = lun, file = DISCARD_FILE, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+         case('NEW')
+            open(unit = lun, file = DISCARD_FILE, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
+         case ('REPLACE')
+            open(unit = lun, file = DISCARD_FILE, status = 'REPLACE', form = 'UNFORMATTED', iostat = ierr)
+         case default
+            write(*,*) 'Invalid status code',trim(adjustl(config%out_stat))
+            call util_exit(FAILURE)
+         end select
+         write(lun, 100) t, nsp, config%lbig_discard
+         100 format(e23.16, 1x, i8, 1x, l1)
+         do i = 1, nsp
+            write(lun, 200) sub, discards%name(i), discards%status(i)
+            200   format(a, 2(1x, i8))
+            write(lun, 300) discards%xh(i,:)
+            300    format(3(e23.16, 1x))
+            if (config%lgr) call discards%gr_pv2vh(config)
+            write(lun, 300) vh(:)
+            if (config%lgr) call discards%gr_vh2pv(config)
+         end do
+         if (config%lbig_discard) then
+            write(lun, 400) npl
+            400    format(i8)
+            etajm1 = msun
+            do i = 1, npl
+               etaj = etajm1 + pl%Gmass(i)
+               mu = msun * etaj / etajm1
+               etajm1 = etaj
+               write(lun, 500) pl%name(i), pl%mass(i), pl%radius(i)
+               500       format(i8, 2(1x, e23.16))
+               write(lun, 300) pl%xh(i, :)
+               if (config%lgr) call pl%gr_pv2vh(config)
+               write(lun, 300) vh(:)
+               if (config%lgr) call pl%gr_vh2pv(config)
+            end do
+         end if
+         close(lun)
+      end associate
+      return
+   
+   end procedure io_write_discard
 
-end submodule io_write
+
+end submodule io_write_implementations

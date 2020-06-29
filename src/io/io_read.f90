@@ -21,7 +21,7 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine io_init_config.f90
       !! Adapted from Martin Duncan's Swift routine io_init_config.f
-      
+      use swiftest
       implicit none
 
       integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
@@ -150,9 +150,6 @@ contains
                read(config_value, *) self%qmin_ahi
             case ("ENC_OUT")
                self%encounter_file = config_value
-            case ("CHK_CLOSE")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%lclose = .true.
             case ("EXTRA_FORCE")
                call util_toupper(config_value)
                if (config_value == "YES" .or. config_value == 'T') self%lextra_force = .true.
@@ -343,7 +340,7 @@ contains
       case(WHM)
          write(*,*) "GR             = ", self%lgr
       case default   
-         write(iomg, *) 'GR is implemented compatible with this integrator'
+         write(iomsg, *) 'GR is implemented compatible with this integrator'
          iostat = -1
       end select
 
@@ -359,6 +356,7 @@ contains
       !! beginning with or containing "!". If "!" is present, any remaining part of the buffer including the "!" is ignored
       !!
       !! Adapted from David E. Kaufmann's Swifter routine io_get_token.f90
+      use swiftest
       implicit none
    
       integer(I4B) :: i,ilength
@@ -399,14 +397,17 @@ contains
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
+      use swiftest
       implicit none
    
       call self%cb%initialize(config)
       call self%pl%initialize(config)
       call self%tp%initialize(config)
       call self%set_msys()
-      call self%set_vec(config%dt)
-      call self%set_vec(self%cb) 
+      call self%pl%set_vec(config%dt)
+      call self%pl%set_vec(self%cb) 
+      call self%tp%set_vec(config%dt)
+      call self%tp%set_vec(self%cb) 
    
    end procedure io_read_initialize_system
 
@@ -417,6 +418,7 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine swiftest_init_pl.f90
       !! Adapted from Martin Duncan's Swift routine swiftest_init_pl.f
+      use swiftest
       implicit none
 
       integer(I4B), parameter :: LUN = 7              !! Unit number of input file
@@ -463,7 +465,9 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine swiftest_init_pl.f90 and swiftest_init_tp.f90
       !! Adapted from Martin Duncan's Swift routine swiftest_init_pl.f and swiftest_init_tp.f
+      use swiftest
       implicit none
+
 
       integer(I4B), parameter :: LUN = 7              !! Unit number of input file
       integer(I4B)            :: iu = LUN
@@ -545,9 +549,9 @@ contains
       if (config%lgr) then
          select type(self)
          class is (whm_pl)
-            self%gr_vh2pv(config)
+            call self%gr_vh2pv(config)
          class is (whm_tp)
-            self%gr_vh2pv(config)
+            call self%gr_vh2pv(config)
          end select
       end if
 
