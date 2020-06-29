@@ -17,24 +17,24 @@ module procedure whm_drift_pl
    integer(I4B), dimension(:), allocatable  :: iflag
 
    associate(npl    => self%nbody, &
-      xj     => self%xj(i, :), &
-      vj     => self%vj(i, :), &
-      status => self%status(i),&
-      mu     => self%mu_vec(i))
+      xj     => self%xj &
+      vj     => self%vj &
+      status => self%status,&
+      mu     => self%mu_vec)
 
       allocate(iflag(npl))
       iflag(:) = 0
       
       do concurrent (i = 1:npl, status == ACTIVE)
          if (config%lgr) then
-            rmag = .mag. xj
-            vmag2 = vj .dot. vj 
+            rmag = .mag. xj(i, :)
+            vmag2 = vj(i, :) .dot. vj(i,:) 
             energy = 0.5_DP * vmag2 - cb%Gmass / rmag
             dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
          else
             dtp = dt
          end if
-         call drift_one(mu, xj, vj, dtp, iflag(i))
+         call drift_one(mu, xj(i,:), vj(i,:), dtp, iflag(i))
       end do 
       if (any(iflag(1:npl) /= 0)) then
          do i = 1, npl
