@@ -165,7 +165,7 @@ contains
       use swiftest
       implicit none
       integer(I4B)                                 :: i
-      real(DP), dimension(:), allocatable, save    :: r2, fac, mu
+      real(DP), dimension(:), allocatable, save    :: r2, r2t, fac, mu
       real(DP), dimension(:), allocatable, save    :: irh, ir3h
       real(DP), dimension(:), allocatable, save    :: irht
       real(DP), dimension(:, :), allocatable, save :: aobl
@@ -175,18 +175,23 @@ contains
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
                 status => self%status, xht => self%xh, Gmpl => pl%Gmass, &
                 j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
-         r2(1:npl) = xh(1:npl, 1:NDIM) .dot. xh(1:npl, 1:NDIM)
-         irh(1:npl)= 1.0_DP / sqrt(r2(1:npl))
-         ir3h(1:npl) = irh(1:npl) / r2(1:npl)
+         if(.not.allocated(r2)) allocate(r2(npl))
+         r2(:) = xh(1:npl, 1:NDIM) .dot. xh(1:npl, 1:NDIM)
+         if(.not.allocated(irh)) allocate(irh(npl))
+         irh(:)= 1.0_DP / sqrt(r2(1:npl))
+         if (.not.allocated(ir3h)) allocate(ir3h(npl))
+         ir3h(:) = irh(1:npl) / r2(1:npl)
          if (.not. allocated(irht)) allocate(irht(ntp))
+         if (.not. allocated(r2t)) allocate(r2t(ntp))
 
          do concurrent (i = 1:ntp, status(i) == ACTIVE)
-            r2(i) = xht(i, :) .dot. xht(i, :) 
-            irht(i) = 1.0_DP / sqrt(r2(i))
+            r2t(i) = xht(i, :) .dot. xht(i, :) 
+            irht(i) = 1.0_DP / sqrt(r2t(i))
          end do
 
          ah0(:) = 0.0_DP
-         fac(1:npl) = Gmpl(1:npl) * ir3h(1:npl)
+         if(.not.allocated(fac)) allocate(fac(npl))
+         fac(:) = Gmpl(1:npl) * ir3h(1:npl)
          do concurrent (i = 1:NDIM)
             ah0(i) = - sum(fac(1:npl) * xh(1:npl, i))
          end do
