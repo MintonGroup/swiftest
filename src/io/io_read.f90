@@ -264,6 +264,7 @@ contains
       write(*,*) "T0             = ",self%t0
       write(*,*) "TSTOP          = ",self%tstop
       write(*,*) "DT             = ",self%dt
+      write(*,*) "CB_IN          = ",trim(adjustl(self%incbfile))
       write(*,*) "PL_IN          = ",trim(adjustl(self%inplfile))
       write(*,*) "TP_IN          = ",trim(adjustl(self%intpfile))
       write(*,*) "IN_TYPE        = ",trim(adjustl(self%in_type))
@@ -400,7 +401,7 @@ contains
       !!
       use swiftest
       implicit none
-   
+  
       call self%cb%initialize(config)
       call self%pl%initialize(config)
       call self%tp%initialize(config)
@@ -507,8 +508,8 @@ contains
                      self%radius(i) = 0.0_DP
                   end if
                   if (config%lrotation) then
-                     read(iu, iostat = ierr) self%Ip(:,i)
-                     read(iu, iostat = ierr) self%rot(:,i)
+                     read(iu, iostat = ierr) self%Ip(i,:)
+                     read(iu, iostat = ierr) self%rot(i,:)
                   end if
                   if (config%ltides) then
                      read(iu, iostat = ierr) self%k2(i)
@@ -518,8 +519,8 @@ contains
                   read(iu, *, iostat = ierr) self%name(i)
                end select
                if (ierr /= 0 ) exit
-               read(iu, *, iostat = ierr) self%xh(:,i)
-               read(iu, *, iostat = ierr) self%vh(:,i)
+               read(iu, *, iostat = ierr) self%xh(i,:)
+               read(iu, *, iostat = ierr) self%vh(i,:)
                if (ierr /= 0 ) exit
                self%status(i) = ACTIVE
             end do
