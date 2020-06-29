@@ -105,6 +105,7 @@ contains
                tstop_set = .true.
             case ("DT")
                read(config_value, *) self%dt
+               dt_set = .true.
             case ("CB_IN")
                self%incbfile = config_value
             case ("PL_IN")
