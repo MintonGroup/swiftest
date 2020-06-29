@@ -58,7 +58,7 @@ include Makefile.Defines
 MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES)
 
 
-.PHONY : all mod lib libdir drivers tools bin clean force 
+.PHONY : all mod lib libdir drivers bin clean force 
 
 % : %.f90 force
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include $< -o $@ \
@@ -71,7 +71,6 @@ all:
 	  make mod; \
 	  make lib; \
 	  make drivers; \
-	  make tools
 
 mod:
 	cd $(SWIFTEST_HOME)/src/modules/; \
@@ -151,12 +150,12 @@ drivers:
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make bin
 
-tools:
-	cd $(SWIFTEST_HOME)/src/tool; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make bin
+#tools:
+#	cd $(SWIFTEST_HOME)/src/tool; \
+#	  rm -f Makefile.Defines Makefile; \
+#	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+#	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+#	  make bin
 
 bin: *.f90
 	make $(basename $^)
