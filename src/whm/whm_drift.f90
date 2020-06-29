@@ -25,7 +25,7 @@ module procedure whm_drift_pl
       allocate(iflag(npl))
       iflag(:) = 0
       
-      do concurrent (i = 1:npl, status == ACTIVE)
+      do concurrent (i = 1:npl, status(i) == ACTIVE)
          if (config%lgr) then
             rmag = .mag. xj(i, :)
             vmag2 = vj(i, :) .dot. vj(i,:) 
