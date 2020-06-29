@@ -73,8 +73,8 @@ contains
          if (self%tp%nbody > 0) call self%tp%xv2el(self%cb)
       end if
       call self%cb%write_frame(iu, config, t, dt)
-      if (self%tp%nbody > 0) call self%pl%write_frame(iu, config, t, dt)
-      if (self%pl%nbody >0) call self%tp%write_frame(iu, config, t, dt)
+      if (self%pl%nbody > 0) call self%pl%write_frame(iu, config, t, dt)
+      if (self%tp%nbody >0) call self%tp%write_frame(iu, config, t, dt)
 
       if (config%lgr) then
          select type(pl => self%pl)
