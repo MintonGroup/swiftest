@@ -402,6 +402,8 @@ contains
       call self%pl%initialize(config)
       call self%tp%initialize(config)
       call self%set_msys()
+      call self%set_vec(config%dt)
+      call self%set_vec(self%cb) 
    
    end procedure io_read_initialize_system
 
@@ -536,6 +538,15 @@ contains
       class is (swiftest_pl)
          self%Gmass(:) = config%GU * self%mass(:)
       end select
+
+      if (config%lgr) then
+         select type(self)
+         class is (whm_pl)
+            self%gr_vh2pv(config)
+         class is (whm_tp)
+            self%gr_vh2pv(config)
+         end select
+      end if
 
       return
    end procedure io_read_body_in

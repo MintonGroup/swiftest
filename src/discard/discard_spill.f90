@@ -86,6 +86,9 @@ contains
 
             discards%ah(:, i) = pack(keeps%ah(1:n, i),          lspill_list(1:n))
             keeps%ah(:, i)    = pack(keeps%ah(1:n, i),    .not. lspill_list(1:n))
+
+            discards%aobl(:, i) = pack(keeps%aobl(1:n, i),          lspill_list(1:n))
+            keeps%aobl(:, i)    = pack(keeps%aobl(1:n, i),    .not. lspill_list(1:n))
          end do
          
          discards%a(:)       = pack(keeps%a(1:n),             lspill_list(1:n))

@@ -55,6 +55,7 @@ contains
       allocate(self%xb(n, NDIM))
       allocate(self%vb(n, NDIM))
       allocate(self%ah(n, NDIM))
+      allocate(self%aobl(n, NDIM))
       allocate(self%a(n))
       allocate(self%e(n))
       allocate(self%inc(n))
@@ -71,6 +72,7 @@ contains
       self%xb(:,:)   = 0.0_DP
       self%vb(:,:)   = 0.0_DP
       self%ah(:,:)   = 0.0_DP
+      self%aobl(:,:)  = 0.0_DP
       self%a(:)      = 0.0_DP
       self%e(:)      = 0.0_DP
       self%inc(:)    = 0.0_DP

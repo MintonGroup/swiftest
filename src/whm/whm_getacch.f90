@@ -9,68 +9,147 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
    use swiftest
    implicit none
-   logical(lgt), save                 :: lmalloc = .true.
    integer(I4B)                     :: i
-   real(DP)                       ::  fac
-   real(DP), dimension(:), allocatable :: r2, fac
+   real(DP), dimension(:), allocatable, save :: r2, fac
    real(DP), dimension(:), allocatable, save    :: irh, irj, ir3h, ir3j
-   real(DP), dimension(:, :), allocatable, save :: xh, aobl
+   real(DP), dimension(:, :), allocatable, save :: xh
    real(DP), dimension(NDIM) :: ah0
 
-   associate(n => self%nbody, xj => self%xj, xh => self%xh)
-      !if (lmalloc) then
-      !   allocate(xh(NDIM, nplmax), aobl(NDIM, nplmax), irh(nplmax), irj(nplmax), ir3h(nplmax), ir3j(nplmax))
-      !   lmalloc = .false.
-      !end if
-      !swifter_pl1p => whm_pl1p%swifter
-      !whm_plp => whm_pl1p
-      allocate(r2(n))
-      r2(1:n) = xj(1:n, 1:NDIM) .dot. xj(1:n, 1:NDIM)
-      irj(1:n)= 1.0_DP / sqrt(r2(1:n))
-      ir3j(1:n) = irj(1:n) / r2(1:n)
+   associate(pl => self, npl => self%nbody, Gmpl => self%Gmass, xj => self%xj, xh => self%xh, &
+             ah => self%ah, ah1 => self%ah1, ah2 => self%ah2, ah3 => self%ah3, &
+             j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
+      if (.not. allocated(r2)) allocate(r2(npl))
+      r2(1:npl) = xj(1:npl, 1:NDIM) .dot. xj(1:npl, 1:NDIM)
+      irj(1:npl)= 1.0_DP / sqrt(r2(1:npl))
+      ir3j(1:npl) = irj(1:npl) / r2(1:npl)
 
-      r2(1:n) = xh(1:n, 1:NDIM) .dot. xh(1:n, 1:NDIM)
-      irh(1:n)= 1.0_DP / sqrt(r2(1:n))
-      ir3h(1:n) = irh(1:n) / r2(1:n)
+      r2(1:npl) = xh(1:npl, 1:NDIM) .dot. xh(1:npl, 1:NDIM)
+      irh(1:npl)= 1.0_DP / sqrt(r2(1:npl))
+      ir3h(1:npl) = irh(1:npl) / r2(1:npl)
 
-      ah0(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+      ah0(:) = 0.0_DP
 
-      fac(1:n) = self%Gmass(1:n) * ir3h(1:n)
+      fac(1:npl) = Gmpl(1:npl) * ir3h(1:npl)
       do concurrent (i = 1:NDIM)
-         ah0(i) - sum(fac(1:n) * xh(1:n, i))
+         ah0(i) = - sum(fac(1:npl) * xh(1:npl, i))
       end do
-      call whm_getacch_ah1(npl, whm_pl1p, ir3h, ir3j)
-      call whm_getacch_ah2(npl, whm_pl1p, ir3j)
-      call whm_getacch_ah3(npl, whm_pl1p)
-      whm_plp => whm_pl1p
-      whm_plp%ah(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      do i = 2, npl
-         whm_plp => whm_plp%nextp
-         whm_plp%ah(:) = ah0(:) + whm_plp%ah1(:) + whm_plp%ah2(:) + whm_plp%ah3(:)
+      call whm_getacch_ah1(cb, pl, ir3h, ir3j)
+      call whm_getacch_ah2(cb, pl, ir3j)
+      call whm_getacch_ah3(pl)
+      
+      do concurrent (i = 1:NDIM)
+         ah(1:npl, i) = ah0(i) + ah1(1:npl, i) + ah2(1:npl, i) + ah3(1:npl, i)
       end do
+
       if (j2rp2 /= 0.0_DP) then
-         swifter_plp => swifter_pl1p
-         do i = 2, npl
-            swifter_plp => swifter_plp%nextp
-            xh(:, i) = swifter_plp%xh(:)
-         end do
-         call obl_acc(npl, swifter_pl1p, j2rp2, j4rp4, xh, irh, aobl)
-         whm_plp => whm_pl1p
-         do i = 2, npl
-            whm_plp => whm_plp%nextp
-            whm_plp%ah(:) = whm_plp%ah(:) + aobl(:, i) - aobl(:, 1)
+         call  self%obl_acc(cb, irh, xh)
+
+         do concurrent (i = 1:NDIM)
+            ah(1:npl, i) = ah(1:npl, i) + aobl(1:npl, i) - aobl0(i)
          end do
       end if
-      if (lextra_force) call whm_user_getacch(t, npl, whm_pl1p)
-      call gr_whm_getacch(npl, whm_pl1p, c2)
+      if (config%lextra_force) call pl%user_getacch(cb, config, t)
+      if (config%lgr) call pl%gr_getacch(cb, config) 
 
-      deallocate(r2)
    end associate
    return
 
+   contains
+      pure subroutine whm_getacch_ah1(cb, pl, ir3h, ir3j)
+         !! author: David A. Minton
+         !!
+         !! Compute first term heliocentric accelerations of planets
+         !!
+         !! Adapted from Hal Levison's Swift routine getacch_ah1.f
+         !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
+         use swiftest
+         implicit none
+         class(whm_central_body), intent(in) :: cb
+         class(whm_pl), intent(inout)        :: pl
+         real(DP), dimension(:), intent(in) :: ir3h, ir3j
+
+         integer(I4B)              :: i
+         real(DP), dimension(NDIM) :: ah1h, ah1j
+
+         associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
+            ah1(1:npl, :) = 0.0_DP
+            do concurrent (i = 2:npl)
+               ah1j(:) = xj(i, :) * ir3j(i)
+               ah1h(:) = xh(i, :) * ir3h(i)
+               ah1(i,:) = msun * (ah1j(:) - ah1h(:))
+            end do
+         end associate
+      
+         return
+      
+      end subroutine whm_getacch_ah1
+
+      pure subroutine whm_getacch_ah2(cb, pl, ir3j) 
+         !! author: David A. Minton
+         !!
+         !! Compute second term heliocentric accelerations of planets
+         !!
+         !! Adapted from Hal Levison's Swift routine getacch_ah2.f
+         !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
+         use swiftest
+         implicit none
+
+         class(whm_central_body), intent(in)    :: cb
+         class(whm_pl),           intent(inout) :: pl
+         real(DP), dimension(:),  intent(in)    :: ir3j
+         integer(I4B)                           :: i
+         real(DP)                               :: etaj, fac
+     
+         associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah2 => pl%ah2, Gmpl => pl%Gmass)
+            ah2(1:npl, :) = 0.0_DP
+            etaj = Gmsun
+            do i = 2, npl
+               etaj = etaj + Gmpl(i - 1)
+               fac = Gmpl(i) * Gmsun * ir3j(i) / etaj
+               ah2(i, :) = ah2(i - 1, :) + fac * xj(i, :)
+            end do
+         end associate
+      
+         return
+      end subroutine whm_getacch_ah2
+
+      pure subroutine whm_getacch_ah3(pl)
+         !! author: David A. Minton
+         !!
+         !! Compute direct cross (third) term heliocentric accelerations of planets
+         !!
+         !! Adapted from Hal Levison's Swift routine getacch_ah3.f
+         !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
+         use swiftest
+         implicit none
+
+         class(whm_pl),           intent(inout) :: pl
+         integer(I4B)                           :: i, j
+         real(DP)                               :: rji2, irij3, faci, facj
+         real(DP), dimension(NDIM)              :: dx
+     
+         associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass) 
+            ah3(1:npl,:) = 0.0_DP
+
+            do i = 1, npl - 1
+               do j = i + 1, npl
+                  dx(:) = xh(j, :) - xh(i, :)
+                  rji2  = dx(:) .dot. dx(:) 
+                  irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+                  faci = Gmpl(i) * irij3
+                  facj = Gmpl(j) * irij3
+                  ah3(i, :) = ah3(i, :) + facj * dx(:)
+                  ah3(j, :) = ah3(j, :) - faci * dx(:)
+               end do
+            end do
+         end associate
+      
+         return
+      end subroutine whm_getacch_ah3
+
    end procedure whm_getacch_pl
 
-   module procedure whm_getacch_tp !(cb, pl, config, t, dt, xh)
+   module procedure whm_getacch_tp !((self, cb, pl, config, t, xh)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -79,206 +158,82 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
       use swiftest
       implicit none
-      logical(lgt), save                 :: lmalloc = .true.
-      integer(I4B)                     :: i
-      real(DP)                       :: r2, fac, mu
+      integer(I4B)                                 :: i
+      real(DP), dimension(:), allocatable, save    :: r2, fac, mu
       real(DP), dimension(:), allocatable, save    :: irh, ir3h
       real(DP), dimension(:), allocatable, save    :: irht
       real(DP), dimension(:, :), allocatable, save :: aobl
       real(DP), dimension(:, :), allocatable, save :: xht, aoblt
-      type(swifter_pl), pointer            :: swifter_pl1p, swifter_plp
-      type(swifter_tp), pointer            :: swifter_tp1p, swifter_tpp
-      type(whm_pl), pointer                :: whm_plp
-      type(whm_tp), pointer                :: whm_tpp
+      real(DP), dimension(NDIM)                    :: ah0
    
-   ! executable code
-      if (lmalloc) then
-         allocate(aobl(ndim, nplmax), irh(nplmax), ir3h(nplmax), xht(ndim, ntpmax), aoblt(ndim, ntpmax), irht(ntpmax))
-         lmalloc = .false.
-      end if
-      swifter_pl1p => whm_pl1p%swifter
-      swifter_tp1p => whm_tp1p%swifter
-      do i = 2, npl
-         r2 = dot_product(xh(:, i), xh(:, i))
-         irh(i) = 1.0_DP/sqrt(r2)
-         ir3h(i) = irh(i)/r2
-      end do
-      swifter_tpp => swifter_tp1p
-      do i = 1, ntp
-         xht(:, i) = swifter_tpp%xh(:)
-         r2 = dot_product(xht(:, i), xht(:, i))
-         irht(i) = 1.0_DP/sqrt(r2)
-         swifter_tpp => swifter_tpp%nextp
-      end do
-      ah0(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      swifter_plp => swifter_pl1p
-      do i = 2, npl
-         swifter_plp => swifter_plp%nextp
-         fac = swifter_plp%mass*ir3h(i)
-         ah0(:) = ah0(:) - fac*xh(:, i)
-      end do
-      call whm_getacch_ah3_tp(npl, ntp, whm_pl1p, whm_tp1p, xh)
-      whm_tpp => whm_tp1p
-      do i = 1, ntp
-         whm_tpp%ah(:) = whm_tpp%ah(:) + ah0(:)
-         whm_tpp => whm_tpp%nextp
-      end do
-      if (j2rp2 /= 0.0_DP) then
-         call obl_acc(npl, swifter_pl1p, j2rp2, j4rp4, xh, irh, aobl)
-         mu = whm_pl1p%swifter%mass
-         call obl_acc_tp(ntp, xht, j2rp2, j4rp4, irht, aoblt, mu)
-         whm_tpp => whm_tp1p
-         do i = 1, ntp
-            whm_tpp%ah(:) = whm_tpp%ah(:) + aoblt(:, i) - aobl(:, 1)
-            whm_tpp => whm_tpp%nextp
+      associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
+                status => self%status, xht => self%xh, Gmpl => pl%Gmass, &
+                j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
+         r2(1:npl) = xh(1:npl, 1:NDIM) .dot. xh(1:npl, 1:NDIM)
+         irh(1:npl)= 1.0_DP / sqrt(r2(1:npl))
+         ir3h(1:npl) = irh(1:npl) / r2(1:npl)
+         if (.not. allocated(irht)) allocate(irht(ntp))
+
+         do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            r2(i) = xht(i, :) .dot. xht(i, :) 
+            irht(i) = 1.0_DP / sqrt(r2(i))
          end do
-      end if
-      if (lextra_force) call whm_user_getacch_tp(t, ntp, whm_tp1p)
-   
+
+         ah0(:) = 0.0_DP
+         fac(1:npl) = Gmpl(1:npl) * ir3h(1:npl)
+         do concurrent (i = 1:NDIM)
+            ah0(i) = - sum(fac(1:npl) * xh(1:npl, i))
+         end do
+         call whm_getacch_ah3_tp(cb, pl, tp, xh)
+         do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            aht(i, :) = aht(i, :) + ah0(:)
+         end do
+         if (j2rp2 /= 0.0_DP) then
+            call pl%obl_acc(cb, irh, xh) 
+            call tp%obl_acc(cb, irht, xht)
+            do concurrent (i = 1:ntp, status(i) == ACTIVE)
+               aht(i, :) = aht(i, :) + tp%aobl(i, :) - aobl0(:)
+            end do
+         end if
+         if (config%lextra_force) call tp%user_getacch(cb, config, t)
+         if (config%lgr) call tp%gr_getacch(cb, config) 
+      end associate
       return
    
+      contains
+
+         pure subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
+            !! author: David A. Minton
+            !!
+            !! Compute direct cross (third) term heliocentric accelerations of test particles
+            !!
+            !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
+            !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
+            use swiftest
+            implicit none
+            class(whm_central_body), intent(in) :: cb 
+            class(whm_pl), intent(in) :: pl 
+            class(whm_tp), intent(inout) :: tp
+            real(DP), dimension(:,:), intent(in) :: xh
+            integer(I4B)          :: i, j
+            real(DP)            :: rji2, irij3, fac
+            real(DP), dimension(ndim) :: dx, acc
+
+            associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
+                      xht => tp%xh, aht => tp%ah)
+        
+               aht(:,:) = 0.0_DP
+               do i = 1, ntp
+                  do j = 1, npl
+                     dx(:) = xht(i, :) - xh(j, :)
+                     rji2 = dx(:) .dot. dx(:) 
+                     irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+                     fac = Gmpl(j) * irij3
+                     aht(i, :) = aht(i, :) - fac * dx(:)
+                  end do
+               end do
+            end associate
+            return
+         end subroutine whm_getacch_ah3_tp
    end procedure whm_getacch_tp
-
-   module procedure whm_getacch_ah1 !(npl, whm_pl1p, ir3h, ir3j)
-      !! author: David A. Minton
-      !!
-      !! Compute first term heliocentric accelerations of planets
-      !!
-      !! Adapted from Hal Levison's Swift routine getacch_ah1.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
-      use swiftest
-      implicit none
-      integer(I4B)          :: i
-      real(DP)            :: msun
-      real(DP), dimension(ndim) :: ah1h, ah1j
-      type(whm_pl), pointer   :: whm_plp
-   
-   ! executable code
-      msun = whm_pl1p%swifter%mass
-      whm_pl1p%ah1(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      if (npl > 1) then
-         whm_plp => whm_pl1p%nextp
-         whm_plp%ah1(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      end if
-      do i = 3, npl
-         whm_plp => whm_plp%nextp
-         ah1j(:) = whm_plp%xj(:)*ir3j(i)
-         ah1h(:) = whm_plp%swifter%xh(:)*ir3h(i)
-         whm_plp%ah1(:) = msun*(ah1j(:) - ah1h(:))
-      end do
-   
-      return
-   
-   end procedure whm_getacch_ah1
-
-   module procedure whm_getacch_ah2 !(npl, whm_pl1p, ir3j)
-      !! author: David A. Minton
-      !!
-      !! Compute second term heliocentric accelerations of planets
-      !!
-      !! Adapted from Hal Levison's Swift routine getacch_ah2.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
-      use swiftest
-      implicit none
-      integer(I4B)      :: i
-      real(DP)          :: etaj, fac, msun
-      type(whm_pl), pointer :: whm_plp, whm_plop
-   
-   ! executable code
-      msun = whm_pl1p%swifter%mass
-      whm_pl1p%ah2(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-      if (npl > 1) then
-         whm_plp => whm_pl1p%nextp
-         whm_plp%ah2(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-         etaj = msun
-      endif
-      do i = 3, npl
-         whm_plop => whm_plp
-         whm_plp => whm_plp%nextp
-         etaj = etaj + whm_plop%swifter%mass
-         fac = whm_plp%swifter%mass*msun*ir3j(i)/etaj
-         whm_plp%ah2(:) = whm_plop%ah2(:) + fac*whm_plp%xj(:)
-      end do
-   
-      return
-   
-   end procedure whm_getacch_ah2
-
-   module procedure whm_getacch_ah3 !(npl, whm_pl1p)
-      !! author: David A. Minton
-      !!
-      !! Compute direct cross (third) term heliocentric accelerations of planets
-      !!
-      !! Adapted from Hal Levison's Swift routine getacch_ah3.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
-      use swiftest
-      implicit none
-      integer(I4B)          :: i, j
-      real(DP)            :: rji2, irij3, faci, facj
-      real(DP), dimension(ndim) :: dx
-      type(whm_pl), pointer   :: whm_plip, whm_pljp
-   
-   ! executable code
-      whm_plip => whm_pl1p
-      do i = 1, npl
-         whm_plip%ah3(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-         whm_plip => whm_plip%nextp
-      end do
-      whm_plip => whm_pl1p
-      do i = 2, npl - 1
-         whm_plip => whm_plip%nextp
-         whm_pljp => whm_plip
-         do j = i + 1, npl
-            whm_pljp => whm_pljp%nextp
-            dx(:) = whm_pljp%swifter%xh(:) - whm_plip%swifter%xh(:)
-            rji2 = dot_product(dx(:), dx(:))
-            irij3 = 1.0_DP/(rji2*sqrt(rji2))
-            faci = whm_plip%swifter%mass*irij3
-            facj = whm_pljp%swifter%mass*irij3
-            whm_plip%ah3(:) = whm_plip%ah3(:) + facj*dx(:)
-            whm_pljp%ah3(:) = whm_pljp%ah3(:) - faci*dx(:)
-         end do
-      end do
-   
-      return
-   
-   end procedure whm_getacch_ah3
-
-
-   module procedure whm_getacch_ah3_tp !(npl, ntp, whm_pl1p, whm_tp1p, xh)
-      !! author: David A. Minton
-      !!
-      !! Compute direct cross (third) term heliocentric accelerations of test particles
-      !!
-      !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
-      use swiftest
-      implicit none
-      integer(I4B)          :: i, j
-      real(DP)            :: rji2, irij3, fac
-      real(DP), dimension(ndim) :: dx, acc, xht
-      type(whm_pl), pointer   :: whm_plp
-      type(whm_tp), pointer   :: whm_tpp
-   
-   ! executable code
-      whm_tpp => whm_tp1p
-      do i = 1, ntp
-         acc(:) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
-         xht(:) = whm_tpp%swifter%xh(:)
-         whm_plp => whm_pl1p
-         do j = 2, npl
-            whm_plp => whm_plp%nextp
-            dx(:) = xht(:) - xh(:, j)
-            rji2 = dot_product(dx(:), dx(:))
-            irij3 = 1.0_DP/(rji2*sqrt(rji2))
-            fac = whm_plp%swifter%mass*irij3
-            acc(:) = acc(:) - fac*dx(:)
-         end do
-         whm_tpp%ah(:) = acc(:)
-         whm_tpp => whm_tpp%nextp
-      end do
-   
-      return
-   
-   end procedure whm_getacch_ah3_tp
 end submodule s_whm_getacch

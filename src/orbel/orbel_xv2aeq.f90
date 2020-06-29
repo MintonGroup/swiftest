@@ -1,26 +1,6 @@
 submodule (swiftest_classes) s_orbel_xv2aeq
-
-
 contains
-
-   module procedure orbel_xv2aeq_vec
-      !! author: David A. Minton
-      !!
-      !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
-      use swiftest
-      implicit none
-   
-      call self%set_vec(cb)
-      associate(n => self%nbody)
-         call orbel_xv2aeq(self%mu_vec(1:n), self%xh(1:n, 1),  self%xh(1:n, 2),  self%xh(1:n, 3), &
-                                          self%vh(1:n, 1),  self%vh(1:n, 2),  self%vh(1:n, 3), &
-                                          self%a(1:n),     self%e(1:n),     self%inc(1:n),  &
-                                          self%capom(1:n), self%omega(1:n), self%capm(1:n))
-      end associate
-      return
-   end procedure orbel_xv2aeq_vec 
-
-   module procedure orbel_xv2aeq
+   module procedure orbel_xv2aeq !(mu, px, py, pz, vx, vy, vz, a, e, q)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
@@ -38,10 +18,10 @@ contains
       q = 0.0_DP
       x = (/px, py, pz/)
       v = (/vx, vy, vz/)
-      r = sqrt(dot_product(x(:), x(:)))
-      v2 = dot_product(v(:), v(:))
+      r = .mag. x(:) 
+      v2 = v(:) .dot. v(:) 
       hvec(:) = x(:) .cross. v(:)
-      h2 = dot_product(hvec(:), hvec(:))
+      h2 = hvec(:) .dot. hvec(:) 
       if (h2 == 0.0_DP) return
       energy = 0.5_DP * v2 - mu / r
       if (abs(energy * r / mu) < sqrt(VSMALL)) then

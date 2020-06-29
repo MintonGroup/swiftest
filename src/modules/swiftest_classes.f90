@@ -177,6 +177,7 @@ module swiftest_classes
       real(DP)                  :: density = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
       real(DP)                  :: j2rp2   = 0.0_DP !! J2*R^2 term for central body
       real(DP)                  :: j4rp4   = 0.0_DP !! J4*R^2 term for central body
+      real(DP), dimension(NDIM) :: aobl    = 0.0_DP !! Barycentric acceleration due to central body oblatenes
       real(DP), dimension(NDIM) :: xb      = 0.0_DP !! Barycentric position (units DU)
       real(DP), dimension(NDIM) :: vb      = 0.0_DP !! Barycentric velocity (units DU / TU)
       real(DP), dimension(NDIM) :: Ip      = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
@@ -232,6 +233,7 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: xb         !! Barycentric position
       real(DP),     dimension(:,:), allocatable :: vb         !! Barycentric velocity
       real(DP),     dimension(:,:), allocatable :: ah         !! Total heliocentric acceleration
+      real(DP),     dimension(:,:), allocatable :: aobl       !! Barycentric accelerations of bodies due to central body oblatenes
       real(DP),     dimension(:),   allocatable :: a          !! Semimajor axis (pericentric distance for a parabolic orbit)
       real(DP),     dimension(:),   allocatable :: e          !! Eccentricity
       real(DP),     dimension(:),   allocatable :: inc        !! Inclination
@@ -248,6 +250,8 @@ module swiftest_classes
       procedure, public :: b2h         => coord_b2h_body      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: drift       => drift_body          !! Drifts particles on Keplerian orbits with Danby's method
       procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
+      procedure, public :: gr_getacch  => gr_getacch_body     !! Accelration term arising from the post-Newtonian correction
+      procedure, public :: gr_getaccb  => gr_getaccb_ns_body  !! Add relativistic correction acceleration for non-symplectic integrators
       procedure, public :: gr_p4       => gr_p4_body          !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: gr_vh2pv    => gr_vh2pv_body       !! Converts from heliocentric velocity to psudeovelocity for GR calculations
       procedure, public :: gr_pv2vh    => gr_pv2vh_body       !! Converts from psudeovelocity to heliocentric velocity for GR calculations
@@ -255,8 +259,9 @@ module swiftest_classes
       procedure, public :: initialize  => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: kickvb      => kick_vb_body        !! Kicks the barycentric velocities
       procedure, public :: kickvh      => kick_vh_body        !! Kicks the heliocentric velocities
+      procedure, public :: obl_acc     => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure         :: set_vec_dt  => setup_set_vec_dt     !! Vectorizes scalar dt quantity for use in elemental procedures
+      procedure         :: set_vec_dt  => setup_set_vec_dt    !! Vectorizes scalar dt quantity for use in elemental procedures
       procedure, public :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure, public :: vb2vh       => coord_vb2vh_body    !! Convert velocity vectors from barycentric to heliocentric coordinates 
       procedure, public :: vh2vb       => coord_vh2vb_body    !! Convert velocity vectors from heliocentric to barycentric coordinates 
@@ -312,6 +317,22 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine drift_body
 
+      module subroutine gr_getacch_body(self, cb, config)
+         implicit none
+         class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
+         class(swiftest_central_body),  intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined parameter
+      end subroutine gr_getacch_body
+
+      module subroutine gr_getaccb_ns_body(self, cb, config, agr, agr0) 
+         implicit none
+         class(swiftest_body), intent(inout)   :: self
+         class(swiftest_central_body), intent(inout) :: cb
+         class(swiftest_configuration), intent(inout) :: config
+         real(DP), dimension(:, :), intent(inout) :: agr
+         real(DP), dimension(NDIM), intent(out)   :: agr0
+      end subroutine gr_getaccb_ns_body
+
       module pure subroutine gr_p4_body(self, config, dt)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest particle object
@@ -319,18 +340,16 @@ module swiftest_classes
          real(DP),                      intent(in)   :: dt     !! Step size
       end subroutine gr_p4_body
 
-      module pure subroutine gr_vh2pv_body(self, config, dt)
+      module pure subroutine gr_vh2pv_body(self, config)
          implicit none
          class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)   :: dt     !! Step size
       end subroutine gr_vh2pv_body
 
-      module pure subroutine gr_pv2vh_body(self, config, dt)
+      module pure subroutine gr_pv2vh_body(self, config)
          implicit none
          class(swiftest_body),          intent(inout):: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)   :: dt     !! Step size
       end subroutine gr_pv2vh_body
 
       module subroutine io_read_body_in(self, config) 
@@ -369,6 +388,15 @@ module swiftest_classes
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
          real(DP),                     intent(in)    :: dt   !! Stepsize
       end subroutine kick_vh_body
+
+      module subroutine obl_acc_body(self, cb, irh, xh)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
+         real(DP), dimension(:),       intent(in)    :: irh  !! Inverse heliocentric radii of bodies
+         real(DP), dimension(:, :),    intent(in)    :: xh   !! Heliocentric position vectors of bodies 
+                                                             !! (not necessarily the same as what is passed to self)
+      end subroutine obl_acc_body
 
       module subroutine setup_body(self,n)
          implicit none
@@ -417,8 +445,9 @@ module swiftest_classes
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
 
-      procedure, public :: setup       => setup_pl           !! A base constructor that sets the number of bodies and 
+      procedure, public :: setup       => setup_pl            !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_vec_mu  => setup_set_vec_mu_pl !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: obl_pot     => obl_pot_pl          !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
    end type swiftest_pl
 
    !> Interfaces for concrete type-bound procedures for swiftest_pl
@@ -434,6 +463,15 @@ module swiftest_classes
          class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
          integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
       end subroutine setup_pl
+
+      module function obl_pot_pl(self, cb, irh) result(oblpot)
+         implicit none
+         class(swiftest_pl),           intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_central_body), intent(inout) :: cb    !! Swiftest central body object
+         real(DP), dimension(:),       intent(in)    :: irh   !! Inverse heliocentric radii of bodies
+         real(DP)                                    :: oblpot
+      end function obl_pot_pl
+
    end interface
 
    !********************************************************************************************************************************
@@ -822,6 +860,7 @@ module swiftest_classes
 
    end interface
 
+
    !********************************************************************************************************************************
    ! Interfaces for non type-bound orbel subroutines
    !********************************************************************************************************************************
@@ -857,10 +896,10 @@ module swiftest_classes
          real(DP), intent(out) :: a, e, inc, capom, omega, capm
       end subroutine orbel_xv2el
 
-      module elemental subroutine orbel_el2xv(mu, a, e, inc, capom, omega, capm, px, py, pz, vx, vy, vz)
+      module elemental subroutine orbel_el2xv(mu, a, ie, inc, capom, omega, capm, px, py, pz, vx, vy, vz)
          implicit none
          real(DP), intent(in)  :: mu
-         real(DP), intent(in)  :: a, e, inc, capom, omega, capm
+         real(DP), intent(in)  :: a, ie, inc, capom, omega, capm
          real(DP), intent(out) :: px, py, pz
          real(DP), intent(out) :: vx, vy, vz
       end subroutine orbel_el2xv

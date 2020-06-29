@@ -28,6 +28,7 @@ contains
       real(DP),dimension(:),allocatable :: a, e, inc, capom, omega, capm
 
       iu = BINUNIT
+
       if (lfirst) then
          select case(config%out_stat)
          case('APPEND')
@@ -54,6 +55,18 @@ contains
          end if
       end if
       call io_write_hdr(iu, t, self%pl%nbody, self%tp%nbody, config%out_form, config%out_type)
+
+      if (config%lgr) then
+         select type(pl => self%pl)
+         class is (whm_pl)
+            call pl%gr_pv2vh(config)
+         end select
+         select type(tp => self%tp)
+         class is (whm_tp)
+            call tp%gr_pv2vh(config)
+         end select
+      end if
+
       if (config%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
          call self%pl%xv2el(self%cb)
          call self%tp%xv2el(self%cb)

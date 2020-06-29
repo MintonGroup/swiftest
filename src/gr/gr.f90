@@ -1,5 +1,48 @@
 submodule(swiftest_classes) gr_implementations
 contains
+   module procedure gr_getacch_body ! (self, cb, config
+      !! author: David A. Minton
+      !!
+      !! Compute relativisitic accelerations of planet
+      !!    Based on Saha & Tremaine (1994) Eq. 28
+      !!
+      !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
+      use swiftest
+      implicit none
+
+      integer(I4B)                   :: i
+      real(DP), dimension(NDIM)      :: suma
+      real(DP), dimension(:, :), allocatable :: aj
+      real(DP), dimension(:), allocatable :: rjmag4, beta
+      
+
+      associate(n => self%nbody, msun => cb%Gmass, mu => self%mu_vec, c2 => config%inv_c2, ah => self%ah)
+         allocate(rjmag4(n))
+         select type(self)
+         class is (whm_pl)
+            rjmag4(1:n) = (self%xj(1:n, :) .dot. self%xj(1:n, :))**2
+            beta(1:n) = - mu(1:n)**2 * c2 
+            do concurrent (i = 1:NDIM)
+               aj(1:n, i) = beta(1:n) / rjmag4(1:n) * self%xj(1:n, i)
+            end do
+            suma(:) = 0.0_DP
+            ah(1, :) = ah(1, :) + aj(2, :)
+            do i = 2, n
+               suma(:) = suma(:) + self%Gmass(i) * aj(i, :)
+               ah(i, :) = ah(i, :) + aj(i, :) + suma(:)
+            end do
+         class is (swiftest_tp)
+            rjmag4(1:n) = (self%xh(1:n, :) .dot. self%xh(1:n, :))**2
+            beta(1:n) = - mu(1:n)**2 * c2 
+            ah(1, :) = ah(1, :) + aj(2, :)
+            do i = 2, n
+               ah(i, :) = ah(i, :) + aj(i, :) 
+            end do
+         end select
+      end associate
+      return
+   end procedure gr_getacch_body
+
    module procedure gr_p4_body
       !! author: David A. Minton
       !!
@@ -44,7 +87,7 @@ contains
 
    end procedure gr_p4_body
 
-   module procedure gr_vh2pv_body !(self, config, dt)
+   module procedure gr_vh2pv_body 
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for all bodies
@@ -134,7 +177,7 @@ contains
          end subroutine gr_vel2pseudovel
    end procedure gr_vh2pv_body
 
-   module procedure gr_pv2vh_body !(self, config, dt)
+   module procedure gr_pv2vh_body 
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from pseudovelocity to heliocentric velocity for all bodies
@@ -176,5 +219,44 @@ contains
          end subroutine gr_pseudovel2vel
 
    end procedure gr_pv2vh_body
+
+   module procedure gr_getaccb_ns_body
+      !! author: David A. Minton
+      !!
+      !! Add relativistic correction acceleration for non-symplectic integrators
+      !!    Based on Quinn, Tremaine, & Duncan 1998
+      !!
+      !! Adapted from David A. Minton's Swifter routine routine gr_getaccb_ns.f90
+      use swiftest
+      implicit none
+
+      real(DP), dimension(NDIM) :: xh, vh
+      real(DP)                  :: rmag, rdotv, vmag2
+      integer(I4B)              :: i
+
+      associate(n => self%nbody, msun => cb%Gmass, vbsun => cb%vb, xbsun => cb%xb, mu => self%mu_vec, c2 => config%inv_c2, &
+                xb => self%xb, vb => self%vb)
+         do i = 1, n
+            xh(:) = xb(i, :) - xbsun(:)
+            vh(:) = vb(i, :) - vbsun(:)
+            rmag = .mag. xh 
+            vmag2 = vh .dot. vh
+            rdotv = xh .dot. vh
+            agr(i, :) =  mu * c2 / rmag**3 * ((4 * mu(i) / rmag - vmag2) * xh(:) + 4 * rdotv * vh(:))
+         end do
+
+         agr0 =  0.0_DP
+         select type(self)
+         class is (swiftest_pl)
+            do concurrent(i = 1:NDIM)
+               agr0(i) = -sum(self%Gmass(1:n) * agr(1:n, i) / msun)
+            end do
+         end select
+
+      end associate 
+
+      return
+
+   end procedure gr_getaccb_ns_body
 
 end submodule gr_implementations

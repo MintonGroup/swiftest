@@ -30,12 +30,12 @@ submodule(swiftest_operators) operator_dot_implementation
    end function operator_dotvecelem_sp
 
    !> Internal elemental function that receives the component-wise input vector (DP)
-   pure elemental function operator_dotvecelem_dp(Ax, Ay, Az, Bx, By, Bz) result(C)
+   elemental function operator_dotvecelem_dp(Ax, Ay, Az, Bx, By, Bz) result(C)
       !$omp declare simd(operator_dotvecelem_dp)
       implicit none
       real(DP), intent(in)  :: Ax, Ay, Az
       real(DP), intent(in)  :: Bx, By, Bz
-      real(DP)           :: C
+      real(DP)              :: C
       C = Ax * Bx + Ay * By + Az * Bz 
       return
    end function operator_dotvecelem_dp
@@ -93,7 +93,10 @@ submodule(swiftest_operators) operator_dot_implementation
 
    module procedure operator_dot_el_dp
       implicit none
-      allocate(C(size(A,1)))
+      integer(I4B) :: i,n
+      n = size(A,1)
+
+      allocate(C(n))
       C(:) = operator_dotvecelem_dp(A(:, 1), A(:, 2), A(:, 3), B(:, 1), B(:, 2), B(:, 3))
       return
    end procedure operator_dot_el_dp
