@@ -228,7 +228,7 @@ contains
             real(DP), dimension(:,:), intent(in) :: xh
             integer(I4B)          :: i, j
             real(DP)            :: rji2, irij3, fac
-            real(DP), dimension(ndim) :: dx, acc
+            real(DP), dimension(NDIM) :: dx, acc
 
             associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
                       xht => tp%xh, aht => tp%ah)

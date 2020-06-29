@@ -27,7 +27,7 @@ contains
             lmalloc = .false.
          end if
          do i = 2, npl
-            xh_loc(:, i) = self%xh(:,i)
+            xh_loc(i, :) = self%xh(i, :)
             r2 = dot_product(xh_loc(:, i), xh_loc(:, i))
             irh(i) = 1.0_DP / sqrt(r2)
          end do

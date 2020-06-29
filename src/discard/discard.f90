@@ -15,17 +15,18 @@ contains
       select type(self)
       class is (whm_nbody_system)
          associate(config => self%config, cb => self%cb, pl => self%pl, tp => self%tp, &
-                   t => self%config%t, msys => self%msys, discards => self%tp_discards)
+                   t => self%config%t, msys => self%msys, discards => self%tp_discards, &
+                   ntp => self%tp%nbody)
             if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
                (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
                   call pl%h2b(cb) 
-                  if (tp%nbody >0) call tp%h2b(cb) 
+                  if (ntp > 0) call tp%h2b(cb) 
             end if
             if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or.  (config%rmaxu >= 0.0_DP)) then
-               call tp%discard_sun(cb, config, t, msys)
+               if (ntp > 0) call tp%discard_sun(cb, config, t, msys)
             end if
-            if (config%qmin >= 0.0_DP) call tp%discard_peri(cb, pl, config, t, msys)
-            if (config%lclose) call tp%discard_pl(cb, pl, config, t, msys)
+            if (config%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(cb, pl, config, t, msys)
+            if (config%lclose .and. ntp > 0) call tp%discard_pl(cb, pl, config, t, msys)
 
             if (any(tp%ldiscard)) then
                ! Spill the discards to the spill list
@@ -148,15 +149,15 @@ contains
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                do j = 2, npl
-                  dx(:) = tp%xh(:,i) - pl%xh(:,i)
-                  dv(:) = tp%vh(:,i) - pl%vh(:,i)
+                  dx(:) = tp%xh(i, :) - pl%xh(i, :)
+                  dv(:) = tp%vh(i, :) - pl%vh(i, :)
                   radius = pl%radius(i)
                   call discard_pl_close(dx(:), dv(:), dt, radius * radius, isp, r2min)
                   if (isp /= 0) then
                      tp%status(i) = DISCARDED_PLR
-                     pl%ldiscard = .true.
+                     pl%ldiscard(i) = .true.
                      write(*, *) "Particle ", tp%name(i), " too close to massive body ", pl%name(i), " at t = ", t
-                     tp%ldiscard = .true.
+                     tp%ldiscard(i) = .true.
                      exit
                   end if
                end do
