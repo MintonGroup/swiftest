@@ -42,9 +42,6 @@ contains
       !> Call allocation method for parent class
       call setup_tp(self, n) 
       if (n <= 0) return
-      allocate(self%ah(n, NDIM))
-
-      self%ah(:,:) = 0.0_DP
 
       return
    end procedure whm_setup_tp
