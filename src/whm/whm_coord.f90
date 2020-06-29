@@ -107,7 +107,7 @@ contains
             do i = 1, npl - 1
                 sumv(:) = sumv(:) + self%mass(i) * self%vh(i, :)
                 capv(:) = sumv(:) / self%eta(i)
-                self%vj(i + 1, :) = self%vh(i + 1, i) - capv(:)
+                self%vj(i + 1, :) = self%vh(i + 1, 1) - capv(:)
             end do
         end associate
     
