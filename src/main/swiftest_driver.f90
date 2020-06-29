@@ -82,7 +82,6 @@ program swiftest_driver
                idump = istep_dump
             end if
          end if
-         if (.not. nbody_system%lintegrate) exit
       end do
 
       !> Dump the final state of the system to file
