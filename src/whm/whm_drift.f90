@@ -66,22 +66,22 @@ module procedure whm_drift_pl
       integer(I4B), dimension(:), allocatable  :: iflag
 
       associate(ntp    => self%nbody, &
-                xh     => self%xh(i, :), &
-                vh     => self%vh(i, :), &
-                status => self%status(i),&
-                mu     => self%mu_vec(i))
+                xh     => self%xh, &
+                vh     => self%vh, &
+                status => self%status,&
+                mu     => self%mu_vec)
          allocate(iflag(ntp))
          iflag(:) = 0
-         do concurrent (i = 1:ntp, status == ACTIVE) 
+         do concurrent (i = 1:ntp, status(i) == ACTIVE) 
             if (config%lgr) then
-               rmag = .mag. xh
-               vmag2 = vh .dot. vh
+               rmag = .mag. xh(i, :)
+               vmag2 = vh(i, :) .dot. vh(i, :)
                energy = 0.5_DP * vmag2 - cb%Gmass / rmag
                dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
             else
                dtp = dt
             end if
-            call drift_one(mu, xh, vh, dtp, iflag(i))
+            call drift_one(mu, xh(i, :), vh(i, :), dtp, iflag(i))
             if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
          end do
          if (any(iflag(1:ntp) /= 0)) then
