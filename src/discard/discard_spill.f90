@@ -71,6 +71,9 @@ contains
          discards%status(:)  = pack(keeps%status(1:n),        lspill_list(1:n))
          keeps%status(:)     = pack(keeps%status(1:n),  .not. lspill_list(1:n))
 
+         discards%ldiscard(:)  = pack(keeps%ldiscard(1:n),        lspill_list(1:n))
+         keeps%ldiscard(:)     = pack(keeps%ldiscard(1:n),  .not. lspill_list(1:n))
+
          do concurrent (i = 1:NDIM)
             discards%xh(:, i) = pack(keeps%xh(1:n, i),          lspill_list(1:n))
             keeps%xh(:, i)    = pack(keeps%xh(1:n, i),    .not. lspill_list(1:n))

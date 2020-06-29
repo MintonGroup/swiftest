@@ -9,10 +9,10 @@ contains
 
    integer(I4B)          :: k
    !$omp parallel do default(none) schedule(static) &
-   !$omp shared (num_pltp_comparisons, test_particles, massive bodies, outvar, k_pltp) &
+   !$omp shared (num_pltp_comparisons, test_particles, planets, outvar, k_pltp) &
    !$omp private (k)
    do k = 1,num_pltp_comparisons
-      outvar(:,k) = test_particles(:,k_pltp(2,k)) - massive bodies(:,k_pltp(1,k))
+      outvar(:,k) = test_particles(:,k_pltp(2,k)) - planets(:,k_pltp(1,k))
    end do
    !$omp end parallel do
    return

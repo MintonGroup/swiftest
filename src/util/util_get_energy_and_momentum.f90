@@ -15,51 +15,57 @@ contains
       real(DP), dimension(NDIM)  :: h, x, v, dx, htot
       real(DP), dimension(:), allocatable   :: irh
 
-      call self%h2b()
-      htot(:) = 0.0_DP
-      ke = 0.0_DP
-      pe = 0.0_DP
+      select type(pl => self%pl)
+      class is (swiftest_pl)
+         call pl%h2b(self%cb)
+         htot(:) = 0.0_DP
+         ke = 0.0_DP
+         pe = 0.0_DP
 
-      !$omp parallel do default(private) &
-      !$omp shared (self) &
-      !$omp reduction (+:ke, pe, htot)
-      do i = 1, self%pl%nbody 
-         x(:) = self%pl%xb(:,i)
-         v(:) = self%pl%vb(:,i)
-         mass = self%pl%mass(i)
+         !$omp parallel do default(private) &
+         !$omp shared (pl) &
+         !$omp reduction (+:ke, pe, htot)
+         do i = 1, pl%nbody 
+            x(:) = pl%xb(:,i)
+            v(:) = pl%vb(:,i)
+            mass = pl%Gmass(i)
+            h(:) = x(:) .cross. v(:)
+            htot(:) = htot(:) + mass * h(:)
+            v2 = v(:) .dot. v(:) 
+            ke = ke + 0.5_DP * mass * v2
+            do j = i + 1, pl%nbody
+               dx(:) = pl%xb(:,j) - x(:)       
+               r2 = dx(:) .dot. dx(:) 
+               if (r2 /= 0) then
+                  pe = pe - mass * pl%Gmass(j) / sqrt(r2) 
+               end if
+            end do
+         end do
+         !$omp end parallel do
+      end select
+
+      select type(cb => self%cb)
+      class is (swiftest_central_body)
+         ! Add in the central body 
+         x(:) = cb%xb(:)
+         v(:) = cb%vb(:)
+         mass = cb%Gmass
          h(:) = x(:) .cross. v(:)
          htot(:) = htot(:) + mass * h(:)
-         v2 = dot_product(v(:), v(:))
+         v2 = v(:) .dot. v(:) 
          ke = ke + 0.5_DP * mass * v2
-         do j = i + 1, self%pl%nbody
-            dx(:) = self%xb(:,j) - x(:)       
-            r2 = dot_product(dx(:), dx(:))    
-            if (r2 /= 0) then
-               pe = pe - mass * self%pl%mass(j) / sqrt(r2) 
-            end if
-         end do
-      end do
-      !$omp end parallel do
-
-      ! Add in the central body 
-      x(:) = self%cb%xb(:,i)
-      v(:) = self%cb%vb(:,i)
-      mass = self%cb%mass(i)
-      h(:) = x(:) .cross. v(:)
-      htot(:) = htot(:) + mass * h(:)
-      v2 = dot_product(v(:), v(:))
-      ke = ke + 0.5_DP * mass * v2
-      if (self%cb%j2rp2 /= 0.0_DP) then
-         allocate(irh(self%pl%nbody))
-         do i = 1, self%pl%nbody
-            r2 = dot_product(self%pl%xh(:,i),self%pl%xh(:,i))
-            irh(i) = 1.0_DP / sqrt(r2)
-         end do
-         call obl_pot(self%pl, self%cb%j2rp2, self%cb%j4rp4, self%pl%xh(:,:), irh, oblpot)
-         deallocate(irh)
-         pe = pe + oblpot
-      end if
-
+         if (cb%j2rp2 /= 0.0_DP) then
+            allocate(irh(self%pl%nbody))
+            do i = 1, self%pl%nbody
+               r2 = self%pl%xh(i,:) .dot. self%pl%xh(i,:) 
+               irh(i) = 1.0_DP / sqrt(r2)
+            end do
+            call obl_pot(self%pl, cb%j2rp2, cb%j4rp4, self%pl%xh(:,:), irh, oblpot)
+            deallocate(irh)
+            pe = pe + oblpot
+         end if
+      end select
+   
       self%pe = pe
       self%ke = ke
       self%te = ke + pe

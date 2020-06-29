@@ -50,6 +50,7 @@ contains
       !write(*,*) 'Allocating the basic Swiftest particle'
       allocate(self%name(n))
       allocate(self%status(n))
+      allocate(self%ldiscard(n))
       allocate(self%xh(n, NDIM))
       allocate(self%vh(n, NDIM))
       allocate(self%xb(n, NDIM))
@@ -67,6 +68,7 @@ contains
 
       self%name(:)   = 0
       self%status(:) = INACTIVE
+      self%ldiscard(:) = .false.
       self%xh(:,:)   = 0.0_DP
       self%vh(:,:)   = 0.0_DP
       self%xb(:,:)   = 0.0_DP

@@ -150,6 +150,9 @@ contains
                read(config_value, *) self%qmin_ahi
             case ("ENC_OUT")
                self%encounter_file = config_value
+            case ("CHK_CLOSE")
+               call util_toupper(config_value)
+               if (config_value == "YES" .or. config_value == 'T') self%lclose = .true.
             case ("EXTRA_FORCE")
                call util_toupper(config_value)
                if (config_value == "YES" .or. config_value == 'T') self%lextra_force = .true.

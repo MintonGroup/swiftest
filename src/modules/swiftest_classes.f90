@@ -50,7 +50,7 @@ module swiftest_classes
       !Logical flags to turn on or off various features of the code
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
-   !   logical :: lclose         = .false. !! Turn on close encounters
+      logical :: lclose         = .false. !! Turn on close encounters
    !   logical :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
    !   logical :: lmtiny         = .false. !! Use the MTINY variable (Automatically set if running SyMBA)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
@@ -228,6 +228,7 @@ module swiftest_classes
       integer(I4B)                              :: nbody = 0  !! Number of bodies
       integer(I4B), dimension(:),   allocatable :: name       !! External identifier
       integer(I4B), dimension(:),   allocatable :: status     !! An integrator-specific status indicator 
+      logical,      dimension(:),   allocatable :: ldiscard   !! Body should be discarded
       real(DP),     dimension(:,:), allocatable :: xh         !! Heliocentric position
       real(DP),     dimension(:,:), allocatable :: vh         !! Heliocentric velocity
       real(DP),     dimension(:,:), allocatable :: xb         !! Barycentric position
@@ -489,21 +490,43 @@ module swiftest_classes
       private
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: discard     => discard_tp        !! Dump the current state of the test particles to file
-      procedure, public :: setup       => setup_tp          !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_vec_mu  => setup_set_vec_mu_tp   !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: setup       => setup_tp            !! A base constructor that sets the number of bodies and 
+      procedure, public :: set_vec_mu  => setup_set_vec_mu_tp !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: discard_sun => discard_sun_tp      !! Check to see if test particles should be discarded based on their positions relative to the Sun
+      procedure, public :: discard_peri => discard_peri_tp    !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
+      procedure, public :: discard_pl => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
    end type swiftest_tp
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp
    interface
-      module subroutine discard_tp(self, cb, config, t, dt)
+      module subroutine discard_sun_tp(self, cb, config, t, msys)
          implicit none
          class(swiftest_tp),            intent(inout) :: self   !! Swiftest massive body object
-         class(swiftest_central_body),  intent(in)    :: cb     !! Swiftest central body object
+         class(swiftest_central_body),  intent(inout) :: cb     !! Swiftest central body object
+         class(swiftest_configuration), intent(inout) :: config !! User-defined configuration parameters
+         real(DP),                      intent(in)    :: t      !! Current simulation tim
+         real(DP),                      intent(in)    :: msys   !! Total system mass
+      end subroutine discard_sun_tp
+
+      module subroutine discard_peri_tp(self, cb, pl, config, t, msys)
+         implicit none
+         class(swiftest_tp),            intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_central_body),  intent(inout) :: cb     !! Swiftest central body object
+         class(swiftest_pl),            intent(inout) :: pl     !! Swiftest central body object
          class(swiftest_configuration), intent(in)    :: config !! User-defined configuration parameters
          real(DP),                      intent(in)    :: t      !! Current simulation tim
-         real(DP),                      intent(in)    :: dt     !! Stepsize`
-      end subroutine discard_tp
+         real(DP),                      intent(in)    :: msys   !! Total system mass
+      end subroutine discard_peri_tp
+
+      module subroutine discard_pl_tp(self, cb, pl, config, t, dt)
+         implicit none
+         class(swiftest_tp),            intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_central_body),  intent(inout) :: cb     !! Swiftest central body object
+         class(swiftest_pl),            intent(inout) :: pl     !! Swiftest central body object
+         class(swiftest_configuration), intent(in)    :: config !! User-defined configuration parameters
+         real(DP),                      intent(in)    :: t      !! Current simulation tim
+         real(DP),                      intent(in)    :: dt     !! Stepsize
+      end subroutine discard_pl_tp
 
       module subroutine setup_set_vec_mu_tp(self, cb)
          implicit none
@@ -654,52 +677,20 @@ module swiftest_classes
          logical, dimension(:), intent(in)   :: lspill_list !! Logical array of bodies to spill into the discards
       end subroutine discard_spill_body
 
-      !> Check to see if test particles should be discarded based on their positions relative to the planets
-      module subroutine discard_tp_pl(swiftest_plA, swiftest_tpA, config, t, dt) 
-         implicit none
-         class(swiftest_pl), intent(inout)         :: swiftest_plA !! Swiftest massive body object
-         class(swiftest_tp), intent(inout)         :: swiftest_tpA !! Swiftest test particle object
-         class(swiftest_configuration), intent(in) :: config       !! User-defined configuration parameters
-         real(DP), intent(in)                      :: t            !! Current simulation time
-         real(DP), intent(out)                     :: dt           !! Stepsize 
-      end subroutine discard_tp_pl
-
-      !> Check to see if a test particle should be discarded because its perihelion distance becomes too small
-      module subroutine discard_peri(swiftest_plA, swiftest_tpA, config, t, dt) 
-         implicit none
-         class(swiftest_pl), intent(inout)         :: swiftest_plA !! Swiftest massive body object
-         class(swiftest_tp), intent(inout)         :: swiftest_tpA !! Swiftest test particle object
-         class(swiftest_configuration), intent(in) :: config       !! User-defined configuration parameters
-         real(DP), intent(in)                      :: t            !! Current simulation time
-         real(DP), intent(out)                     :: dt           !! Stepsize 
-      end subroutine discard_peri
-
-      !> Check to see if a test particle and massive body are having, or will have within the next time step, an encounter such
-      !>         that the separation distance r is less than some critical radius rcrit (or r**2 < rcrit**2 = r2crit)
       module subroutine discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
          implicit none
-         integer(I4B), intent(out)          :: iflag               !! Flag indicating encounter (0 = NO, 1 = YES)
-         real(DP), intent(in)               :: dt                  !! Stepsize 
-         real(DP), intent(in)               :: r2crit              !! Square of the boundary of the encounter region
-         real(DP), dimension(:), intent(in) :: dx                  !! Relative position of test particle with respect to massive body
-         real(DP), dimension(:), intent(in) :: dv                  !! relative velocity of test particle with respect to massive body
-         real(DP), intent(out)              :: r2min               !! Square of the smallest predicted separation distance
+         integer(I4B), intent(out)             :: iflag
+         real(DP), intent(in)                  :: dt, r2crit
+         real(DP), dimension(:), intent(in)    :: dx, dv
+         real(DP), intent(out)                 :: r2min
       end subroutine discard_pl_close
 
-      !> Check to see if test particles should be discarded based on their positions relative to the Sun
-      !>         or because they are unbound from the syste
-      module subroutine discard_sun(swiftest_tpA, config, t)
-         implicit none
-         class(swiftest_tp), intent(inout)         :: swiftest_tpA !! Swiftest test particle object
-         class(swiftest_configuration), intent(in) :: config       !! User-defined configuration parameters
-         real(DP), intent(in)                      :: t            !! Current simulation time
-      end subroutine discard_sun
 
-      !> Perform a discard step on a system in which test particles are discarded and massive bodies are merged
-      module subroutine discard_and_merge_nbody(self)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
-      end subroutine discard_and_merge_nbody
+      !!> Perform a discard step on a system in which test particles are discarded and massive bodies are merged
+      !module subroutine discard_and_merge_nbody(self)
+         !implicit none
+         !class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+     ! end subroutine discard_and_merge_nbody
    end interface
 
    !********************************************************************************************************************************
