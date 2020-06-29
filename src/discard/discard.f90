@@ -149,14 +149,14 @@ contains
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                do j = 2, npl
-                  dx(:) = tp%xh(i, :) - pl%xh(i, :)
-                  dv(:) = tp%vh(i, :) - pl%vh(i, :)
-                  radius = pl%radius(i)
+                  dx(:) = tp%xh(i, :) - pl%xh(j, :)
+                  dv(:) = tp%vh(i, :) - pl%vh(j, :)
+                  radius = pl%radius(j)
                   call discard_pl_close(dx(:), dv(:), dt, radius * radius, isp, r2min)
                   if (isp /= 0) then
                      tp%status(i) = DISCARDED_PLR
-                     pl%ldiscard(i) = .true.
-                     write(*, *) "Particle ", tp%name(i), " too close to massive body ", pl%name(i), " at t = ", t
+                     pl%ldiscard(j) = .true.
+                     write(*, *) "Particle ", tp%name(i), " too close to massive body ", pl%name(j), " at t = ", t
                      tp%ldiscard(i) = .true.
                      exit
                   end if
