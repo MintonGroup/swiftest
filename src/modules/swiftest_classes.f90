@@ -6,7 +6,8 @@ module swiftest_classes
    use swiftest_globals
    implicit none
    private
-   public :: io_get_command_line_arguments, drift_one, discard_spill_body
+   public :: io_get_command_line_arguments, io_read_initialize_system, drift_one, discard_spill_body, &
+              gr_pseudovel2vel, gr_vel2pseudovel, orbel_xv2aeq, setup_pl, setup_tp, setup_construct_system
 
    !********************************************************************************************************************************
    ! swiftest_configuration class definitions and method interfaces
@@ -340,6 +341,22 @@ module swiftest_classes
          class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)   :: dt     !! Step size
       end subroutine gr_p4_body
+
+      module pure subroutine gr_pseudovel2vel(config, mu, xh, vh) 
+         implicit none
+         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
+         real(DP),               intent(in) :: mu
+         real(DP), dimension(:), intent(in) :: xh 
+         real(DP), dimension(:), intent(inout) :: vh
+      end subroutine gr_pseudovel2vel
+
+      module pure subroutine gr_vel2pseudovel(config, mu, xh, vh) 
+         implicit none
+         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
+         real(DP),               intent(in)    :: mu
+         real(DP), dimension(:), intent(in)    :: xh
+         real(DP), dimension(:), intent(inout) :: vh
+      end subroutine gr_vel2pseudovel
 
       module pure subroutine gr_vh2pv_body(self, config)
          implicit none

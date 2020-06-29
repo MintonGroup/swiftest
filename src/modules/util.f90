@@ -59,10 +59,10 @@ module util
          real(DP), dimension(:), intent(in)   :: arr
       end subroutine util_index
 
-      module subroutine util_peri(lfirst, ntp, swiftest_tpA, mu, msys, qmin_coord)
+      module subroutine util_peri(lfirst, ntp, tp, mu, msys, qmin_coord)
          logical, intent(in)               :: lfirst       !! Logical flag indicating whether current invocation is the first
          integer(I4B), intent(in)          :: ntp          !! Number of active test particles
-         class(swiftest_tp), intent(inout) :: swiftest_tpA !! Swiftest test particle class
+         class(swiftest_tp), intent(inout) :: tp !! Swiftest test particle class
          real(DP), intent(in)              :: mu           !! G * (m1 + m2) = mass of the Sun in this routine
          real(DP), intent(in)              :: msys         !! Total system masse
          character(len=*), intent(in)      :: qmin_coord   !! Coordinate frame for qmin (see swiftest_globals for symbolic definitions)
@@ -88,10 +88,10 @@ module util
          character(*), intent(inout) :: string
       end subroutine util_toupper
 
-     module subroutine util_valid(swiftest_plA, swiftest_tpA)
+     module subroutine util_valid(pl, tp)
          implicit none
-         class(swiftest_pl), intent(in) :: swiftest_plA
-         class(swiftest_tp), intent(in) :: swiftest_tpA
+         class(swiftest_pl), intent(in) :: pl
+         class(swiftest_tp), intent(in) :: tp
       end subroutine util_valid
 
       module subroutine util_version

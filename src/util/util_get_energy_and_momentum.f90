@@ -60,7 +60,7 @@ contains
                r2 = self%pl%xh(i,:) .dot. self%pl%xh(i,:) 
                irh(i) = 1.0_DP / sqrt(r2)
             end do
-            call obl_pot(self%pl, cb%j2rp2, cb%j4rp4, self%pl%xh(:,:), irh, oblpot)
+            oblpot = self%pl%obl_pot(cb, irh)
             deallocate(irh)
             pe = pe + oblpot
          end if

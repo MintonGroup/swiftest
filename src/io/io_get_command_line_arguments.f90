@@ -3,24 +3,13 @@ submodule (swiftest_classes) s_io_get_command_line_arguments
 
 contains
 
-   subroutine io_usage_message()
-      !use swiftest
-      implicit none
-      write(*,*) 'Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] configfile'
-   end subroutine io_usage_message
 
-   subroutine io_help_message()
-      !use swiftest
-      implicit none
-      ! TODO: Put in a more detailed help message
-      call io_useage_message()
-   end subroutine io_help_message
 
    module procedure io_get_command_line_arguments
       !! author: David A. Minton
       !!
       !! Reads in the name of the configuration file. 
-      use swiftest_globals
+      use swiftest
       implicit none
 
       character(len=STRMAX) :: arg1, arg2
@@ -70,6 +59,18 @@ contains
          end if
       end if
       if (ierr /= 0) call io_usage_message()
+
+      contains 
+         subroutine io_usage_message()
+            implicit none
+            write(*,*) 'Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] configfile'
+         end subroutine io_usage_message
+      
+         subroutine io_help_message()
+            implicit none
+            ! TODO: Put in a more detailed help message
+            write(*,*) 'Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] configfile'
+         end subroutine io_help_message
    end procedure io_get_command_line_arguments
 
 

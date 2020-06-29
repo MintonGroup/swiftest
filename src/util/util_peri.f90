@@ -18,23 +18,23 @@ contains
    if (lfirst) then
       if (qmin_coord == "HELIO") then
          do i = 1, ntp
-            if (swiftest_tpA%status(i) == ACTIVE) then
-               vdotr = dot_product(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i))
+            if (tp%status(i) == ACTIVE) then
+               vdotr = dot_product(tp%xh(:,i), tp%vh(:,i))
                if (vdotr > 0.0_DP) then
-                  swiftest_tpA%isperi(i) = 1
+                  tp%isperi(i) = 1
                else
-                  swiftest_tpA%isperi(i) = -1
+                  tp%isperi(i) = -1
                end if
             end if
          end do
       else
          do i = 1, ntp
-            if (swiftest_tpA%status(i) == ACTIVE) then
-               vdotr = dot_product(swiftest_tpA%xb(:,i), swiftest_tpA%vb(:,i))
+            if (tp%status(i) == ACTIVE) then
+               vdotr = dot_product(tp%xb(:,i), tp%vb(:,i))
                if (vdotr > 0.0_DP) then
-                  swiftest_tpA%isperi(i) = 1
+                  tp%isperi(i) = 1
                else
-                  swiftest_tpA%isperi(i) = -1
+                  tp%isperi(i) = -1
                end if
             end if
          end do
@@ -42,38 +42,40 @@ contains
    else
       if (qmin_coord == "HELIO") then
          do i = 1, ntp
-            if (swiftest_tpA%status(i) == ACTIVE) then
-               vdotr = dot_product(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i))
-               if (swiftest_tpA%isperi(i) == -1) then
+            if (tp%status(i) == ACTIVE) then
+               vdotr = dot_product(tp%xh(:,i), tp%vh(:,i))
+               if (tp%isperi(i) == -1) then
                   if (vdotr >= 0.0_DP) then
-                     swiftest_tpA%isperi(i) = 0
-                     call orbel_xv2aeq(swiftest_tpA%xh(:,i), swiftest_tpA%vh(:,i), mu, & 
-                        swiftest_tpA%atp(i), e, swiftest_tpA%peri(i))
+                     tp%isperi(i) = 0
+                     call orbel_xv2aeq(mu, tp%xh(i,1), tp%xh(i,2), tp%xh(i,3), &
+                                           tp%vh(i,1), tp%vh(i,2), tp%vh(i,3), & 
+                                           tp%atp(i), e, tp%peri(i))
                   end if
                else
                   if (vdotr > 0.0_DP) then
-                     swiftest_tpA%isperi(i) = 1
+                     tp%isperi(i) = 1
                   else
-                     swiftest_tpA%isperi(i) = -1
+                     tp%isperi(i) = -1
                   end if
                end if
             end if
          end do
       else
          do i = 1, ntp
-            if (swiftest_tpA%status(i) == ACTIVE) then
-               vdotr = dot_product(swiftest_tpA%xb(:,i), swiftest_tpA%vb(:,i))
-               if (swiftest_tpA%isperi(i) == -1) then
+            if (tp%status(i) == ACTIVE) then
+               vdotr = dot_product(tp%xb(:,i), tp%vb(:,i))
+               if (tp%isperi(i) == -1) then
                   if (vdotr >= 0.0_DP) then
-                     swiftest_tpA%isperi(i) = 0
-                     call orbel_xv2aeq(swiftest_tpA%xb(:,i), swiftest_tpA%vb(:,i), msys, & 
-                      swiftest_tpA%atp(i), e, swiftest_tpA%peri(i))
+                     tp%isperi(i) = 0
+                     call orbel_xv2aeq(msys, tp%xb(i,1), tp%xh(i,2), tp%xb(i,3), &
+                                           tp%vb(i,1), tp%vb(i,2), tp%vb(i,3), & 
+                                           tp%atp(i), e, tp%peri(i))
                   end if
                else
                   if (vdotr > 0.0_DP) then
-                     swiftest_tpA%isperi(i) = 1
+                     tp%isperi(i) = 1
                   else
-                     swiftest_tpA%isperi(i) = -1
+                     tp%isperi(i) = -1
                   end if
                end if
             end if

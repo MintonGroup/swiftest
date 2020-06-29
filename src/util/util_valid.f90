@@ -12,22 +12,24 @@ contains
    integer(I4B), dimension(:), allocatable :: idarr
 
 ! executable code
-   allocate(idarr(npl+ntp))
-   do i = 1, npl
-      idarr(i) = swiftest_plA%name(i)
-   end do
-   do i = 1, ntp
-      idarr(npl+i) = swiftest_tpA%name(i)
-   end do
-   call util_sort(idarr)
-   do i = 1, npl + ntp - 1
-      if (idarr(i) == idarr(i+1)) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   more than one body/particle has id = ", idarr(i)
-         call util_exit(FAILURE)
-      end if
-   end do
-   deallocate(idarr)
+   associate(npl => pl%nbody, ntp => tp%nbody)
+      allocate(idarr(npl+ntp))
+      do i = 1, npl
+         idarr(i) = pl%name(i)
+      end do
+      do i = 1, ntp
+         idarr(npl+i) = tp%name(i)
+      end do
+      call util_sort(idarr)
+      do i = 1, npl + ntp - 1
+         if (idarr(i) == idarr(i+1)) then
+            write(*, *) "Swiftest error:"
+            write(*, *) "   more than one body/particle has id = ", idarr(i)
+            call util_exit(FAILURE)
+         end if
+      end do
+      deallocate(idarr)
+   end associate
 
    return
 

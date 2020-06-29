@@ -1,7 +1,7 @@
 submodule (swiftest_classes) s_orbel_el2xv
 contains
 
-   module procedure orbel_xv2el_vec
+   module procedure orbel_el2xv_vec
       !! author: David A. Minton
       !!
       !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
@@ -10,12 +10,12 @@ contains
    
       call self%set_vec(cb)
       associate(n => self%nbody)
-         call orbel_xv2el(self%mu_vec(1:n), self%xh(1:n, 1),  self%xh(1:n, 2),  self%xh(1:n, 3), &
+         call orbel_el2xv(self%mu_vec(1:n), self%xh(1:n, 1),  self%xh(1:n, 2),  self%xh(1:n, 3), &
                                           self%vh(1:n, 1),  self%vh(1:n, 2),  self%vh(1:n, 3), &
                                           self%a(1:n),     self%e(1:n),     self%inc(1:n),  &
                                           self%capom(1:n), self%omega(1:n), self%capm(1:n))
       end associate
-   end procedure orbel_xv2el_vec
+   end procedure orbel_el2xv_vec
 
    module procedure orbel_el2xv !(mu, a, e, inc, capom, omega, capm, px, py, pz, vx, vy, vz) 
       !! author: David A. Minton

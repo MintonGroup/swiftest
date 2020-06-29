@@ -97,6 +97,7 @@ contains
       !!
       !! Adapted from David Adapted from David E. Kaufmann's Swifter routine io_write_hdr.f90
       !! Adapted from Hal Levison's Swift routine io_write_hdr.F
+      use swiftest
       implicit none
    
       integer(I4B)               :: ierr !! Error code
