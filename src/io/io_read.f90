@@ -519,8 +519,8 @@ contains
                   read(iu, *, iostat = ierr) self%name(i)
                end select
                if (ierr /= 0 ) exit
-               read(iu, *, iostat = ierr) self%xh(i,:)
-               read(iu, *, iostat = ierr) self%vh(i,:)
+               read(iu, *, iostat = ierr) self%xh(i,1),self%xh(i,2),self%xh(i,3)
+               read(iu, *, iostat = ierr) self%vh(i,1),self%vh(i,2),self%vh(i,3)
                if (ierr /= 0 ) exit
                self%status(i) = ACTIVE
             end do
