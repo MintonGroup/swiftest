@@ -11,7 +11,7 @@ contains
       implicit none
 
       real(DP) :: msys
-
+      if (self%tp%nbody == 0) return 
       select type(self)
       class is (whm_nbody_system)
          associate(config => self%config, cb => self%cb, pl => self%pl, tp => self%tp, &
@@ -19,7 +19,7 @@ contains
             if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
                (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
                   call pl%h2b(cb) 
-                  call tp%h2b(cb) 
+                  if (tp%nbody >0) call tp%h2b(cb) 
             end if
             if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or.  (config%rmaxu >= 0.0_DP)) then
                call tp%discard_sun(cb, config, t, msys)
