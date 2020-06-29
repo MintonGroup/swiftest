@@ -34,7 +34,7 @@ module procedure whm_drift_pl
          else
             dtp = dt
          end if
-         call drift_one(mu, xj(i,:), vj(i,:), dtp, iflag(i))
+         call drift_one(mu(i), xj(i,:), vj(i,:), dtp, iflag(i))
       end do 
       if (any(iflag(1:npl) /= 0)) then
          do i = 1, npl
@@ -81,7 +81,7 @@ module procedure whm_drift_pl
             else
                dtp = dt
             end if
-            call drift_one(mu, xh(i, :), vh(i, :), dtp, iflag(i))
+            call drift_one(mu(i), xh(i, :), vh(i, :), dtp, iflag(i))
             if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
          end do
          if (any(iflag(1:ntp) /= 0)) then
