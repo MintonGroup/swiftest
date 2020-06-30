@@ -25,13 +25,13 @@ contains
       if (.not. allocated(irh)) allocate(irh(npl))
       if (.not. allocated(ir3h)) allocate(ir3h(npl))
       if (.not. allocated(fac)) allocate(fac(npl))
-      r2(1:npl) = xj(1:npl, 1:NDIM) .dot. xj(1:npl, 1:NDIM)
-      irj(1:npl)= 1.0_DP / sqrt(r2(1:npl))
-      ir3j(1:npl) = irj(1:npl) / r2(1:npl)
+      r2(:) = xj(1:npl, :) .dot. xj(1:npl, :)
+      irj(:)= 1.0_DP / sqrt(r2(1:npl))
+      ir3j(:) = irj(1:npl) / r2(1:npl)
 
-      r2(1:npl) = xh(1:npl, 1:NDIM) .dot. xh(1:npl, 1:NDIM)
-      irh(1:npl)= 1.0_DP / sqrt(r2(1:npl))
-      ir3h(1:npl) = irh(1:npl) / r2(1:npl)
+      r2(:) = xh(1:npl, :) .dot. xh(1:npl, :)
+      irh(:)= 1.0_DP / sqrt(r2(1:npl))
+      ir3h(:) = irh(1:npl) / r2(1:npl)
 
       ah0(:) = 0.0_DP
 
@@ -176,13 +176,13 @@ contains
                 status => self%status, xht => self%xh, Gmpl => pl%Gmass, &
                 j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
          if(.not.allocated(r2)) allocate(r2(npl))
-         r2(:) = xh(1:npl, 1:NDIM) .dot. xh(1:npl, 1:NDIM)
          if(.not.allocated(irh)) allocate(irh(npl))
-         irh(:)= 1.0_DP / sqrt(r2(1:npl))
          if (.not.allocated(ir3h)) allocate(ir3h(npl))
-         ir3h(:) = irh(1:npl) / r2(1:npl)
          if (.not. allocated(irht)) allocate(irht(ntp))
          if (.not. allocated(r2t)) allocate(r2t(ntp))
+         r2(:) = xh(1:npl, :) .dot. xh(1:npl, :)
+         irh(:)= 1.0_DP / sqrt(r2(1:npl))
+         ir3h(:) = irh(1:npl) / r2(1:npl)
 
          do concurrent (i = 1:ntp, status(i) == ACTIVE)
             r2t(i) = xht(i, :) .dot. xht(i, :) 
