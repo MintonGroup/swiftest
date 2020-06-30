@@ -21,6 +21,7 @@ program swiftest_driver
    real(DP)                                  :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                  :: finish_wall_time !! Wall clock time when execution has finished
    integer(I4B)                              :: iu               !! Unit number of binary file
+   integer(I4B)                              :: ntp, npl
    character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
                                              'Number of active pl, tp = ", I5, ", ", I5)'
 
@@ -46,9 +47,7 @@ program swiftest_driver
             tstop      => nbody_system%config%tstop, &
             istep_out  => nbody_system%config%istep_out, &
             istep_dump => nbody_system%config%istep_dump, &
-            config     => nbody_system%config, &
-            npl        => nbody_system%pl%nbody, &
-            ntp        => nbody_system%tp%nbody)
+            config     => nbody_system%config)
       call nbody_system%initialize(config)
       lfirst = .true.
       t = t0
@@ -58,6 +57,8 @@ program swiftest_driver
       if (istep_out > 0) call nbody_system%write_frame(iu, config, t, dt)
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, LOOPMAX 
+         ntp = nbody_system%tp%nbody
+         npl = nbody_system%pl%nbody
          t = t0 + iloop * dt
          if (t > tstop) exit 
          !> Step the system forward in time
