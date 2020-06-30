@@ -46,7 +46,9 @@ program swiftest_driver
             tstop      => nbody_system%config%tstop, &
             istep_out  => nbody_system%config%istep_out, &
             istep_dump => nbody_system%config%istep_dump, &
-            config     => nbody_system%config)
+            config     => nbody_system%config, &
+            npl        => nbody_system%pl%nbody, &
+            ntp        => nbody_system%tp%nbody)
       call nbody_system%initialize(config)
       lfirst = .true.
       t = t0
