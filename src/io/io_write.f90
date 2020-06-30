@@ -74,6 +74,8 @@ contains
          if (self%pl%nbody >0) call self%pl%xv2el(self%cb)
          if (self%tp%nbody > 0) call self%tp%xv2el(self%cb)
       end if
+      
+      ! Write out each data type frame
       call self%cb%write_frame(iu, config, t, dt)
       if (self%pl%nbody > 0) call self%pl%write_frame(iu, config, t, dt)
       if (self%tp%nbody >0) call self%tp%write_frame(iu, config, t, dt)
@@ -105,21 +107,24 @@ contains
       integer(I4B)               :: ierr !! Error code
    
       select case (out_type)
-         case (REAL4_TYPE,SWIFTER_REAL4_TYPE)
-            write(iu, iostat = ierr) real(t, kind=SP), npl, ntp, out_form
-            if (ierr /= 0) then
-               write(*, *) "Swiftest error:"
-               write(*, *) "   Unable to write binary file header"
-               call util_exit(FAILURE)
-            end if
-         case (REAL8_TYPE,SWIFTER_REAL8_TYPE)
-            write(iu, iostat = ierr) t, npl, ntp, out_form
-            if (ierr /= 0) then
-               write(*, *) "Swiftest error:"
-               write(*, *) "   Unable to write binary file header"
-               call util_exit(FAILURE)
-            end if
+      case (REAL4_TYPE,SWIFTER_REAL4_TYPE)
+         write(iu, iostat = ierr) real(t, kind=SP)
+         if (ierr /= 0) then
+            write(*, *) "Swiftest error:"
+            write(*, *) "   Unable to write binary file header"
+            call util_exit(FAILURE)
+         end if
+      case (REAL8_TYPE,SWIFTER_REAL8_TYPE)
+         write(iu, iostat = ierr) t
+         if (ierr /= 0) then
+            write(*, *) "Swiftest error:"
+            write(*, *) "   Unable to write binary file header"
+            call util_exit(FAILURE)
+         end if
       end select
+      write(iu, iostat = ierr) npl
+      write(iu, iostat = ierr) ntp
+      write(iu, iostat = ierr) out_form
    
       return
    
@@ -163,6 +168,7 @@ contains
       implicit none
 
       associate(n => self%nbody)
+         write(iu) self%name(1:n)
          select case (config%out_form)
          case (EL) 
             write(iu) self%a(1:n)
@@ -259,6 +265,8 @@ contains
       integer(I4B), save           :: idx = 1       !! Index of current dump file. Output flips between 2 files for extra security
                                                     !!    in case the program halts during writing
       character(len=:), allocatable :: config_file_name
+      real(DP) :: tfrac
+     
 
       allocate(dump_config, source=config)
       config_file_name = trim(adjustl(DUMP_CONFIG_FILE(idx)))
@@ -269,12 +277,16 @@ contains
       dump_config%out_stat = 'APPEND'
       call dump_config%dump(config_file_name,t,dt)
 
-      call self%cb%dump(dump_config, t, dt, tfrac)
-      if (self%pl%nbody > 0) call self%pl%dump(dump_config, t, dt, tfrac)
-      if (self%tp%nbody > 0) call self%tp%dump(dump_config, t, dt, tfrac)
+      call self%cb%dump(dump_config, t, dt)
+      if (self%pl%nbody > 0) call self%pl%dump(dump_config, t, dt)
+      if (self%tp%nbody > 0) call self%tp%dump(dump_config, t, dt)
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
+
+      ! Print the status message (format code passed in from main driver)
+      tfrac = (t - config%t0) / (config%tstop - config%t0)
+      write(*,msg) t, tfrac, self%pl%nbody, self%tp%nbody
 
       return
    end procedure io_dump_system

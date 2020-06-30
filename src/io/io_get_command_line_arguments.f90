@@ -1,11 +1,6 @@
-submodule (swiftest_classes) s_io_get_command_line_arguments
-
-
+submodule (swiftest_classes) s_io_get_args
 contains
-
-
-
-   module procedure io_get_command_line_arguments
+   module procedure io_get_args
       !! author: David A. Minton
       !!
       !! Reads in the name of the configuration file. 
@@ -52,27 +47,15 @@ contains
          call get_command_argument(1, arg1, status = ierr_arg1)
          if (ierr_arg1 == 0) then
             if (arg1 == '-v' .or. arg1 == '--version') then
-               call util_version 
+               call util_version() 
             else if (arg1 == '-h' .or. arg1 == '--help') then
-               call io_help_message()
+               call util_exit(HELP)
             end if
          end if
       end if
-      if (ierr /= 0) call io_usage_message()
-
-      contains 
-         subroutine io_usage_message()
-            implicit none
-            write(*,*) 'Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] configfile'
-         end subroutine io_usage_message
-      
-         subroutine io_help_message()
-            implicit none
-            ! TODO: Put in a more detailed help message
-            write(*,*) 'Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] configfile'
-         end subroutine io_help_message
-   end procedure io_get_command_line_arguments
+      if (ierr /= 0) call util_exit(USAGE) 
+   end procedure io_get_args
 
 
 
-end submodule s_io_get_command_line_arguments
+end submodule s_io_get_args

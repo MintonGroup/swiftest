@@ -18,11 +18,11 @@ program swiftest_driver
    integer(I8B)                              :: idump            !! Dump cadence counter
    integer(I8B)                              :: iout             !! Output cadence counter
    integer(I8B), parameter                   :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
-   real(DP)                                  :: tfrac            !! Fraction of time remaining in the integration
    real(DP)                                  :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                  :: finish_wall_time !! Wall clock time when execution has finished
    integer(I4B)                              :: iu               !! Unit number of binary file
-   !character(len=*), parameter               :: fmt_dump = '(" Time = ", es12.5, "; Fraction done = ", f5.3, "; Number of active pl, tp = ", i5, ", ", i5)'
+   character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
+                                             'Number of active pl, tp = ", I5, ", ", I5)'
 
    !> Define the maximum number of threads
    nthreads = 1            ! In the *serial* case
@@ -31,7 +31,7 @@ program swiftest_driver
    !$ write(*,'(a)')   ' ------------------'
    !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads  
 
-   ierr = io_get_command_line_arguments(integrator, config_file_name)
+   ierr = io_get_args(integrator, config_file_name)
    if (ierr /= 0) then
       write(*,*) 'Error reading in arguments from the command line'
       call util_exit(FAILURE)
@@ -77,15 +77,14 @@ program swiftest_driver
          if (istep_dump > 0) then
             idump = idump - 1
             if (idump == 0) then
-               tfrac = (t - t0) / (tstop - t0)
-               call nbody_system%dump(config, t, dt, tfrac)
+               call nbody_system%dump(config, t, dt, statusfmt)
                idump = istep_dump
             end if
          end if
       end do
 
       !> Dump the final state of the system to file
-      call nbody_system%dump(config, t, dt, tfrac)
+      call nbody_system%dump(config, t, dt, statusfmt)
       !$ finsih_wall_time = omp_get_wtime()
       !$ write(*,*) 'Time: ', finish_wall_time - start_wall_time
    end associate

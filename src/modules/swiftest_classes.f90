@@ -6,7 +6,7 @@ module swiftest_classes
    use swiftest_globals
    implicit none
    private
-   public :: io_get_command_line_arguments, io_read_initialize_system, drift_one, discard_spill_body, &
+   public :: io_get_args, io_read_initialize_system, drift_one, discard_spill_body, &
               gr_pseudovel2vel, gr_vel2pseudovel, orbel_xv2aeq, setup_pl, setup_tp, setup_construct_system
 
    !********************************************************************************************************************************
@@ -157,13 +157,13 @@ module swiftest_classes
    end interface
 
    interface
-      module subroutine io_dump_swiftest(self, config, t, dt, tfrac) 
+      module subroutine io_dump_swiftest(self, config, t, dt, msg) 
          implicit none
-         class(swiftest_base),          intent(inout) :: self    !! Swiftest base object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
-         real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
+         class(swiftest_base),          intent(inout) :: self   !! Swiftest base object
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)    :: t      !! Current simulation time
+         real(DP),                      intent(in)    :: dt     !! Stepsize
+         character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       end subroutine io_dump_swiftest
    end interface
 
@@ -615,13 +615,13 @@ module swiftest_classes
       end subroutine discard_system
 
       !> Method to dump the state of the whole system to file
-      module subroutine io_dump_system(self, config, t, dt, tfrac)
+      module subroutine io_dump_system(self, config, t, dt, msg)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)    :: t       !! Current simulation time
          real(DP),                      intent(in)    :: dt      !! Stepsize
-         real(DP),                      intent(in)    :: tfrac   !! Fraction of total time completed (displayed on the screen)
+         character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       end subroutine io_dump_system
 
       module subroutine io_read_initialize_system(self, config)
@@ -806,12 +806,12 @@ module swiftest_classes
       end function io_get_token
 
       !> Subroutine for reading in the name of the configuration file from the command line 
-      module function io_get_command_line_arguments(integrator, config_file_name) result(ierr)
+      module function io_get_args(integrator, config_file_name) result(ierr)
          implicit none
          integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable :: config_file_name !! Name of the input configuration file
          integer(I4B)                  :: ierr             !! I/O error code
-      end function io_get_command_line_arguments
+      end function io_get_args
 
       module function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
                                            xh1, xh2, vh1, vh2, encounter_file, out_type)

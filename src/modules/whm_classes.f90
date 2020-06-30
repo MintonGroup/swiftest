@@ -41,14 +41,14 @@ module whm_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_pl and whm_discard_spill_pl
    contains
-      procedure, public :: h2j     => whm_coord_h2j_pl         !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: j2h     => whm_coord_j2h_pl         !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
-      procedure, public :: vh2vj   => whm_coord_vh2vj_pl       !! Convert velocity vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: setup   => whm_setup_pl             !! Constructor method - Allocates space for number of particles
-      procedure, public :: getacch => whm_getacch_pl           !! Compute heliocentric accelerations of massive bodies
-      procedure         :: set_vec_mu    => whm_setup_set_eta  !! Sets the Jacobi mass value for all massive bodies.
+      procedure, public :: h2j          => whm_coord_h2j_pl    !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
+      procedure, public :: j2h          => whm_coord_j2h_pl    !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
+      procedure, public :: vh2vj        => whm_coord_vh2vj_pl  !! Convert velocity vectors from heliocentric to Jacobi coordinates 
+      procedure, public :: setup        => whm_setup_pl        !! Constructor method - Allocates space for number of particles
+      procedure, public :: getacch      => whm_getacch_pl      !! Compute heliocentric accelerations of massive bodies
+      procedure         :: set_vec_mu   => whm_setup_set_eta   !! Sets the Jacobi mass value for all massive bodies.
       procedure, public :: user_getacch => whm_user_getacch_pl !! User-defined acceleration
-      procedure, public :: drift   => whm_drift_pl             !! Loop through massive bodies and call Danby drift routine
+      procedure, public :: drift        => whm_drift_pl        !! Loop through massive bodies and call Danby drift routine
    end type whm_pl
 
    interface

@@ -8,16 +8,20 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90
    !! Adapted from Hal Levison's Swift routine util_exit.f
    use swiftest
+   character(*), parameter :: BAR = '("------------------------------------------------")'
 
-   if (code == SUCCESS) then
-      write(*, 100) VERSION_NUMBER
-   else
-      write(*, 200) VERSION_NUMBER
-   end if
- 100 format(/, "Normal termination of swiftest (version ", f3.1, ")")
- 200 format(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")
-   write(*, 300) "------------------------------------------------"
- 300 format(a)
+   select case(code)
+   case(SUCCESS)
+      write(*, SUCCESS_MSG) VERSION_NUMBER
+      write(*, BAR)
+   case(USAGE) 
+      write(*, USAGE_MSG)
+   case(HELP)
+      write(*, HELP_MSG)
+   case default
+      write(*, FAIL_MSG) VERSION_NUMBER
+      write(*, BAR)
+   end select
 
    stop
 

@@ -54,8 +54,16 @@ module swiftest_globals
    integer(I4B)            :: nthreads = 1 !! Number of OpenMP threads
    integer(I4B), parameter :: NTHERSHOLD = 1000 !! Threshold value for OpenMP loop parallelization
 
-   integer(I4B), parameter :: SUCCESS =  0 !! Symbolic name for function return/flag code for SUCCESS
+   integer(I4B), parameter :: SUCCESS =  0 !! Symbolic name for function return/flag code for success
    integer(I4B), parameter :: FAILURE = -1 !! Symbolic name for function return/flag code for failure
+   integer(I4B), parameter :: USAGE = -2 !! Symbolic name for function return/flag code for printing the usage message
+   integer(I4B), parameter :: HELP  = -3 !! Symbolic name for function return/flag code for printing the usage message
+
+
+   character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
+   character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
+   character(*), parameter :: USAGE_MSG = '("Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] <configfile>")'
+   character(*), parameter :: HELP_MSG  = USAGE_MSG
 
    integer(I4B), parameter :: ELLIPSE   = -1 !! Symbolic names for orbit types - ellipse
    integer(I4B), parameter :: PARABOLA  =  0 !! Symbolic names for orbit types - parabola
