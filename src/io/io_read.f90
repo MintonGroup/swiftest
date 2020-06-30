@@ -545,7 +545,9 @@ contains
 
       select type(self)
       class is (swiftest_pl)
-         self%Gmass(:) = config%GU * self%mass(:)
+         associate(GMpl => self%Gmass, GU => config%GU, Mpl => self%mass)
+            GMpl(:) = GU * Mpl(:)
+         end associate
       end select
 
       if (config%lgr) then
