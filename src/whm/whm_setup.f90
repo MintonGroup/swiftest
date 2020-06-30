@@ -74,6 +74,8 @@ contains
       implicit none
 
       call io_read_initialize_system(self, config)
+      ! Make sure that the discard list gets allocated initially
+      call self%tp_discards%setup(self%tp%nbody)
 
    end procedure whm_setup_system
 
