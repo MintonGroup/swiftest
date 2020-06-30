@@ -35,9 +35,9 @@ contains
 
       ah0(:) = 0.0_DP
 
-      fac(1:npl) = Gmpl(1:npl) * ir3h(1:npl)
+      fac(2:npl) = Gmpl(2:npl) * ir3h(2:npl)
       do concurrent (i = 1:NDIM)
-         ah0(i) = - sum(fac(1:npl) * xh(1:npl, i))
+         ah0(i) = - sum(fac(2:npl) * xh(2:npl, i))
       end do
       call whm_getacch_ah1(cb, pl, ir3h, ir3j)
       call whm_getacch_ah2(cb, pl, ir3j)
