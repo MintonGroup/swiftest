@@ -53,11 +53,9 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
 
 FORTRAN         = gfortran
-FFLAGS          = -O3 -fbacktrace -fbounds-check -fcheck=all
+#FFLAGS          = -O3 -fbacktrace -fbounds-check -fcheck=all
 #debug flags
-#FFLAGS		= -Og -fimplicit-none -ffpe-trap=zero,invalid,overflow,underflow,denormal 
-
-#-fcheck=all -fbounds-check -fbacktrace -fsanitize=undefined -fsanitize=address -fsanitize=leak -Wall -Warray-bounds  -Wimplicit-interface -Wextra 
+FFLAGS		= -Og -g -fimplicit-none -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace #-fsanitize=undefined -fsanitize=address -fsanitize=leak -Wall -Warray-bounds  -Wimplicit-interface -Wextra 
 
 #-Warray-temporaries
 
