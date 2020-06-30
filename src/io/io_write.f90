@@ -43,10 +43,12 @@ contains
             call util_exit(FAILURE)
          end select
          if (ierr /= 0) then
-            write(*, *) "Swiftest error: io_write_frame_system - first"
-            write(*, *) "   Binary output file already exists or cannot be accessed"
+            write(*, *) "Swiftest error: io_write_frame_system - first", ierr
+            write(*, *) "   Binary output file " // trim(adjustl(config%outfile)) // " already exists or cannot be accessed"
+            write(*, *) "   out_stat: " // trim(adjustl(config%out_stat))
             call util_exit(FAILURE)
          end if
+         lfirst = .false.
       else
          open(unit = iu, file = config%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
          if (ierr /= 0) then
