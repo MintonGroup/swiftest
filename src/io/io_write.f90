@@ -452,12 +452,13 @@ contains
       integer(I4B), parameter   :: lun = 40
       integer(I4B)          :: i, ierr
       real(DP), dimension(ndim) :: vh
+      logical, save :: lfirst = .true. 
     
       real(DP)            :: mu, msun, etajm1, etaj
       associate(t => self%config%t, config => self%config, nsp => discards%nbody, &
                 npl => self%pl%nbody, pl => self%pl, msun => self%cb%Gmass)
          select case(config%out_stat)
-         case('APPEND')
+         case('APPEND' .or. .not.lfirst)
             open(unit = lun, file = DISCARD_FILE, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
          case('NEW')
             open(unit = lun, file = DISCARD_FILE, status = 'NEW', form = 'FORMATTED', iostat = ierr)
@@ -467,6 +468,7 @@ contains
             write(*,*) 'Invalid status code',trim(adjustl(config%out_stat))
             call util_exit(FAILURE)
          end select
+         lfirst = .false.
          write(lun, 100) t, nsp, config%lbig_discard
          100 format(e23.16, 1x, i8, 1x, l1)
          do i = 1, nsp

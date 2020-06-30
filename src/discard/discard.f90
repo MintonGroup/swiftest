@@ -32,6 +32,7 @@ contains
                ! Spill the discards to the spill list
                call discard_spill_body(tp, discards, tp%ldiscard)
                call self%write_discard(discards)
+               tp%ldiscard = .false.
             end if
          end associate  
          end select
