@@ -47,6 +47,8 @@ collresolve/config.h
 example/
 
 #Documentation
-!docs/*
-!docs/*/*
-!docs/*/*/*
+#Disable for now
+docs/
+#!docs/*
+#!docs/*/*
+#!docs/*/*/*
