@@ -21,7 +21,13 @@ contains
       case (WHM)
          allocate(whm_nbody_system :: system)
          allocate(whm_configuration :: config)
-         call system%construct()
+         select type(system)
+         class is (whm_nbody_system)
+            allocate(whm_central_body :: self%cb)
+            allocate(whm_pl :: self%pl)
+            allocate(whm_tp :: self%tp)
+            allocate(whm_tp :: self%tp_discards)
+         end select
       case (RMVS)
          write(*,*) 'RMVS integrator not yet enabled'
       case (SYMBA)
