@@ -456,7 +456,8 @@ contains
     
       real(DP)            :: mu, msun, etajm1, etaj
       associate(t => self%config%t, config => self%config, nsp => discards%nbody, &
-                npl => self%pl%nbody, pl => self%pl, msun => self%cb%Gmass)
+                npl => self%pl%nbody, pl => self%pl, msun => self%cb%Gmass, &
+                xh => discards%xh, vh => discards%vh)
          
          if (config%out_stat == 'APPEND' .or. (.not.lfirst)) then
             open(unit = lun, file = DISCARD_FILE, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
@@ -474,10 +475,10 @@ contains
          do i = 1, nsp
             write(lun, 200) sub, discards%name(i), discards%status(i)
             200   format(a, 2(1x, i8))
-            write(lun, 300) discards%xh(i,:)
+            write(lun, 300) xh(i, 1), xh(i, 2), xh(i, 3)
             300    format(3(e23.16, 1x))
             if (config%lgr) call discards%gr_pv2vh(config)
-            write(lun, 300) discards%vh(:)
+            write(lun, 300) vh(i, 1), vh(i, 2), vh(i, 3)
             if (config%lgr) call discards%gr_vh2pv(config)
          end do
          if (config%lbig_discard) then
