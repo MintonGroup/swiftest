@@ -491,9 +491,9 @@ contains
                etajm1 = etaj
                write(lun, 500) pl%name(i), pl%mass(i), pl%radius(i)
                500       format(i8, 2(1x, e23.16))
-               write(lun, 300) pl%xh(i, :)
+               write(lun, 300) pl%xh(i, 1), pl%vh(i, 2), pl%vh(i, 3)
                if (config%lgr) call pl%gr_pv2vh(config)
-               write(lun, 300) vh(:)
+               write(lun, 300) pl%vh(i, 1), pl%vh(i, 2), pl%vh(i, 3)
             end do
          end if
          close(lun)
