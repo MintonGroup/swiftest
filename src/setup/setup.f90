@@ -23,10 +23,10 @@ contains
          allocate(whm_configuration :: config)
          select type(system)
          class is (whm_nbody_system)
-            allocate(whm_central_body :: self%cb)
-            allocate(whm_pl :: self%pl)
-            allocate(whm_tp :: self%tp)
-            allocate(whm_tp :: self%tp_discards)
+            allocate(whm_central_body :: system%cb)
+            allocate(whm_pl :: system%pl)
+            allocate(whm_tp :: system%tp)
+            allocate(whm_tp :: system%tp_discards)
          end select
       case (RMVS)
          write(*,*) 'RMVS integrator not yet enabled'
