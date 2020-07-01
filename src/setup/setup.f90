@@ -148,7 +148,7 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the value of msys and the vector mass quantities based on the total mass of the system
-      if (self%nbody > 0) self%msys = self%cb%mass + sum(self%pl%mass(1:self%pl%nbody))
+      self%msys = self%cb%mass + sum(self%pl%mass(1:self%pl%nbody))
 
       return
    end procedure setup_set_msys
