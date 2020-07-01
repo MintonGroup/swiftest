@@ -93,10 +93,7 @@ submodule(swiftest_operators) operator_dot_implementation
 
    module procedure operator_dot_el_dp
       implicit none
-      integer(I4B) :: i,n
-      n = size(A,1)
-
-      allocate(C(n))
+      allocate(C(size(A,1)))
       C(:) = operator_dotvecelem_dp(A(:, 1), A(:, 2), A(:, 3), B(:, 1), B(:, 2), B(:, 3))
       return
    end procedure operator_dot_el_dp

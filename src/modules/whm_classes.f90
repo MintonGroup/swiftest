@@ -177,18 +177,11 @@ module whm_classes
    contains
       private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: construct     => whm_construct_system   !! Perform a discard operation and spill any discarded bodies to list for output.  
       procedure, public :: initialize    => whm_setup_system  !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
       procedure, public :: step          => whm_step_system        !! Method to advance the system one step in time given by the step size dt
    end type whm_nbody_system
 
    interface
-      !> Constructs a WHM nbody system
-      module subroutine whm_construct_system(self)
-         implicit none
-         class(whm_nbody_system),                    intent(inout) :: self   !! Swiftest system object
-      end subroutine whm_construct_system 
-
       module subroutine whm_setup_system(self, config)
          implicit none
          class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
