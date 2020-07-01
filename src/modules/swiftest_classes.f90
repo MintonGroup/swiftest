@@ -579,7 +579,6 @@ module swiftest_classes
    contains
       private
       !> Each integrator will have its own version of the step
-      procedure(abstract_construct_system), public, deferred :: construct  !! Method used to allocate the correct class types to each of the system 
       procedure(abstract_step_system),      public, deferred :: step       !! Method to advance the system one step in time given by the step size dt
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
@@ -595,12 +594,6 @@ module swiftest_classes
    end type swiftest_nbody_system
 
    abstract interface
-      !> Allocates the correct class types to each of the system 
-      subroutine abstract_construct_system(self)
-         import swiftest_nbody_system
-         class(swiftest_nbody_system),               intent(inout) :: self   !! Swiftest system object
-      end subroutine abstract_construct_system
-
       !> Steps the Swiftest nbody system forward in time one stepsize
       subroutine abstract_step_system(self, config)
          import swiftest_nbody_system, swiftest_configuration
