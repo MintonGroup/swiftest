@@ -59,101 +59,100 @@ contains
 
    end associate
    return
-
-   contains
-      pure subroutine whm_getacch_ah1(cb, pl, ir3h, ir3j)
-         !! author: David A. Minton
-         !!
-         !! Compute first term heliocentric accelerations of planets
-         !!
-         !! Adapted from Hal Levison's Swift routine getacch_ah1.f
-         !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
-         use swiftest
-         implicit none
-         class(whm_central_body), intent(in) :: cb
-         class(whm_pl), intent(inout)        :: pl
-         real(DP), dimension(:), intent(in) :: ir3h, ir3j
-
-         integer(I4B)              :: i
-         real(DP), dimension(NDIM) :: ah1h, ah1j
-
-         associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
-            ah1(1:npl, :) = 0.0_DP
-            do concurrent (i = 2:npl)
-               ah1j(:) = xj(i, :) * ir3j(i)
-               ah1h(:) = xh(i, :) * ir3h(i)
-               ah1(i,:) = msun * (ah1j(:) - ah1h(:))
-            end do
-         end associate
-      
-         return
-      
-      end subroutine whm_getacch_ah1
-
-      pure subroutine whm_getacch_ah2(cb, pl, ir3j) 
-         !! author: David A. Minton
-         !!
-         !! Compute second term heliocentric accelerations of planets
-         !!
-         !! Adapted from Hal Levison's Swift routine getacch_ah2.f
-         !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
-         use swiftest
-         implicit none
-
-         class(whm_central_body), intent(in)    :: cb
-         class(whm_pl),           intent(inout) :: pl
-         real(DP), dimension(:),  intent(in)    :: ir3j
-         integer(I4B)                           :: i
-         real(DP)                               :: etaj, fac
-     
-         associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah2 => pl%ah2, Gmpl => pl%Gmass)
-            ah2(1:npl, :) = 0.0_DP
-            etaj = Gmsun
-            do i = 2, npl
-               etaj = etaj + Gmpl(i - 1)
-               fac = Gmpl(i) * Gmsun * ir3j(i) / etaj
-               ah2(i, :) = ah2(i - 1, :) + fac * xj(i, :)
-            end do
-         end associate
-      
-         return
-      end subroutine whm_getacch_ah2
-
-      pure subroutine whm_getacch_ah3(pl)
-         !! author: David A. Minton
-         !!
-         !! Compute direct cross (third) term heliocentric accelerations of planets
-         !!
-         !! Adapted from Hal Levison's Swift routine getacch_ah3.f
-         !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
-         use swiftest
-         implicit none
-
-         class(whm_pl),           intent(inout) :: pl
-         integer(I4B)                           :: i, j
-         real(DP)                               :: rji2, irij3, faci, facj
-         real(DP), dimension(NDIM)              :: dx
-     
-         associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass) 
-            ah3(1:npl,:) = 0.0_DP
-
-            do i = 1, npl - 1
-               do j = i + 1, npl
-                  dx(:) = xh(j, :) - xh(i, :)
-                  rji2  = dx(:) .dot. dx(:) 
-                  irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                  faci = Gmpl(i) * irij3
-                  facj = Gmpl(j) * irij3
-                  ah3(i, :) = ah3(i, :) + facj * dx(:)
-                  ah3(j, :) = ah3(j, :) - faci * dx(:)
-               end do
-            end do
-         end associate
-      
-         return
-      end subroutine whm_getacch_ah3
-
    end procedure whm_getacch_pl
+
+   pure subroutine whm_getacch_ah1(cb, pl, ir3h, ir3j)
+      !! author: David A. Minton
+      !!
+      !! Compute first term heliocentric accelerations of planets
+      !!
+      !! Adapted from Hal Levison's Swift routine getacch_ah1.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
+      use swiftest
+      implicit none
+      class(whm_central_body), intent(in) :: cb
+      class(whm_pl), intent(inout)        :: pl
+      real(DP), dimension(:), intent(in) :: ir3h, ir3j
+
+      integer(I4B)              :: i
+      real(DP), dimension(NDIM) :: ah1h, ah1j
+
+      associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
+         ah1(1:npl, :) = 0.0_DP
+         do concurrent (i = 2:npl)
+            ah1j(:) = xj(i, :) * ir3j(i)
+            ah1h(:) = xh(i, :) * ir3h(i)
+            ah1(i,:) = msun * (ah1j(:) - ah1h(:))
+         end do
+      end associate
+   
+      return
+   
+   end subroutine whm_getacch_ah1
+
+   pure subroutine whm_getacch_ah2(cb, pl, ir3j) 
+      !! author: David A. Minton
+      !!
+      !! Compute second term heliocentric accelerations of planets
+      !!
+      !! Adapted from Hal Levison's Swift routine getacch_ah2.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
+      use swiftest
+      implicit none
+
+      class(whm_central_body), intent(in)    :: cb
+      class(whm_pl),           intent(inout) :: pl
+      real(DP), dimension(:),  intent(in)    :: ir3j
+      integer(I4B)                           :: i
+      real(DP)                               :: etaj, fac
+   
+      associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah2 => pl%ah2, Gmpl => pl%Gmass)
+         ah2(1:npl, :) = 0.0_DP
+         etaj = Gmsun
+         do i = 2, npl
+            etaj = etaj + Gmpl(i - 1)
+            fac = Gmpl(i) * Gmsun * ir3j(i) / etaj
+            ah2(i, :) = ah2(i - 1, :) + fac * xj(i, :)
+         end do
+      end associate
+   
+      return
+   end subroutine whm_getacch_ah2
+
+   pure subroutine whm_getacch_ah3(pl)
+      !! author: David A. Minton
+      !!
+      !! Compute direct cross (third) term heliocentric accelerations of planets
+      !!
+      !! Adapted from Hal Levison's Swift routine getacch_ah3.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
+      use swiftest
+      implicit none
+
+      class(whm_pl),           intent(inout) :: pl
+      integer(I4B)                           :: i, j
+      real(DP)                               :: rji2, irij3, faci, facj
+      real(DP), dimension(NDIM)              :: dx
+   
+      associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass) 
+         ah3(1:npl,:) = 0.0_DP
+
+         do i = 1, npl - 1
+            do j = i + 1, npl
+               dx(:) = xh(j, :) - xh(i, :)
+               rji2  = dx(:) .dot. dx(:) 
+               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+               faci = Gmpl(i) * irij3
+               facj = Gmpl(j) * irij3
+               ah3(i, :) = ah3(i, :) + facj * dx(:)
+               ah3(j, :) = ah3(j, :) - faci * dx(:)
+            end do
+         end do
+      end associate
+   
+      return
+   end subroutine whm_getacch_ah3
+
 
    module procedure whm_getacch_tp !((self, cb, pl, config, t, xh)
       !! author: David A. Minton
@@ -210,41 +209,40 @@ contains
          if (config%lgr) call tp%gr_getacch(cb, config) 
       end associate
       return
-   
-      contains
-
-         pure subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
-            !! author: David A. Minton
-            !!
-            !! Compute direct cross (third) term heliocentric accelerations of test particles
-            !!
-            !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
-            !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
-            use swiftest
-            implicit none
-            class(whm_central_body), intent(in) :: cb 
-            class(whm_pl), intent(in) :: pl 
-            class(whm_tp), intent(inout) :: tp
-            real(DP), dimension(:,:), intent(in) :: xh
-            integer(I4B)          :: i, j
-            real(DP)            :: rji2, irij3, fac
-            real(DP), dimension(NDIM) :: dx, acc
-
-            associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
-                      xht => tp%xh, aht => tp%ah)
-        
-               aht(:,:) = 0.0_DP
-               do i = 1, ntp
-                  do j = 1, npl
-                     dx(:) = xht(i, :) - xh(j, :)
-                     rji2 = dx(:) .dot. dx(:) 
-                     irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                     fac = Gmpl(j) * irij3
-                     aht(i, :) = aht(i, :) - fac * dx(:)
-                  end do
-               end do
-            end associate
-            return
-         end subroutine whm_getacch_ah3_tp
    end procedure whm_getacch_tp
+
+
+   pure subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
+      !! author: David A. Minton
+      !!
+      !! Compute direct cross (third) term heliocentric accelerations of test particles
+      !!
+      !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
+      use swiftest
+      implicit none
+      class(whm_central_body), intent(in) :: cb 
+      class(whm_pl), intent(in) :: pl 
+      class(whm_tp), intent(inout) :: tp
+      real(DP), dimension(:,:), intent(in) :: xh
+      integer(I4B)          :: i, j
+      real(DP)            :: rji2, irij3, fac
+      real(DP), dimension(NDIM) :: dx, acc
+
+      associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
+                  xht => tp%xh, aht => tp%ah)
+   
+         aht(:,:) = 0.0_DP
+         do i = 1, ntp
+            do j = 1, npl
+               dx(:) = xht(i, :) - xh(j, :)
+               rji2 = dx(:) .dot. dx(:) 
+               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+               fac = Gmpl(j) * irij3
+               aht(i, :) = aht(i, :) - fac * dx(:)
+            end do
+         end do
+      end associate
+      return
+   end subroutine whm_getacch_ah3_tp
 end submodule s_whm_getacch

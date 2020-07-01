@@ -23,20 +23,20 @@ module procedure drift_body
 
    integer(I4B), dimension(:), allocatable  :: iflag
 
-   associate(n => self%nbody, status => self%status(i), mu => self%mu_vec(i))
+   associate(n => self%nbody, status => self%status, mu => self%mu_vec)
       allocate(iflag(n))
       iflag(:) = 0
       select type(self)
       class is (whm_pl)
-         associate(xj => self%xj(i, :), vj => self%vj(i, :))
-            do concurrent (i = 1:n, status == ACTIVE)
-               call whm_drift_func(mu, xj, vj, dt, iflag(i))
+         associate(xj => self%xj, vj => self%vj)
+            do concurrent (i = 1:n, status(i) == ACTIVE)
+               call whm_drift_func(config, cb, mu(i), xj(i, :), vj(i, :), dt, iflag(i))
             end do
          end associate
       class is (whm_tp)
-         associate(xh => self%xh(i, :), vh => self%vh(i, :))
-            do concurrent (i = 1:n, status == ACTIVE)
-               call whm_drift_func(mu, xh, vh, dt, iflag(i))
+         associate(xh => self%xh, vh => self%vh)
+            do concurrent (i = 1:n, status(i) == ACTIVE)
+               call whm_drift_func(config, cb, mu(i), xh(i, :), vh(i, :), dt, iflag(i))
             end do
          end associate
       end select 
@@ -50,27 +50,29 @@ module procedure drift_body
    end associate
 
    return
-
-   contains 
-      pure subroutine whm_drift_func(mu, x, v, dt, iflag)
-         implicit none
-         real(DP), dimension(:), intent(inout) :: x, v
-         real(DP), intent(in) :: mu, dt 
-         integer(I4B), intent(out)  :: iflag
-         real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
-         if (config%lgr) then
-            rmag = .mag. x
-            vmag2 = v .dot. v 
-            energy = 0.5_DP * vmag2 - cb%Gmass / rmag
-            dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
-         else
-            dtp = dt
-         end if
-         call drift_one(mu, x, v, dt, iflag)
-         return
-      end subroutine whm_drift_func 
-
    end procedure drift_body
+
+   pure subroutine whm_drift_func(config, cb, mu, x, v, dt, iflag)
+      use swiftest
+      implicit none
+      class(swiftest_configuration), intent(in) :: config
+      class(swiftest_central_body),  intent(in) :: cb
+      real(DP), dimension(:), intent(inout) :: x, v
+      real(DP), intent(in) :: mu, dt 
+      integer(I4B), intent(out)  :: iflag
+      real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
+      if (config%lgr) then
+         rmag = .mag. x
+         vmag2 = v .dot. v 
+         energy = 0.5_DP * vmag2 - cb%Gmass / rmag
+         dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+      else
+         dtp = dt
+      end if
+      call drift_one(mu, x, v, dt, iflag)
+      return
+   end subroutine whm_drift_func 
+
 
    module procedure drift_one
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott

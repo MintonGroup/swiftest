@@ -568,7 +568,6 @@ module swiftest_classes
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract, public, extends(swiftest_base) :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
-      !class(swiftest_configuration), allocatable :: config                  !! Integrator-specific configuration
       class(swiftest_central_body),  allocatable :: cb                      !! Central body data structure
       class(swiftest_pl),            allocatable :: pl                      !! Massive body data structure
       class(swiftest_tp),            allocatable :: tp                      !! Test particle data structure
