@@ -14,8 +14,8 @@ contains
       real(DP) :: dth
       logical :: is_tp, is_pl
   
-      associate(config => self%config, ntp => self%tp%nbody, npl => self%pl%nbody, &
-                t => self%config%t, dt => self%config%dt)
+      associate(ntp => self%tp%nbody, npl => self%pl%nbody, &
+                t => config%t, dt => config%dt)
          is_tp = (ntp > 0)
          is_pl = (npl > 0)
          dth = 0.5_DP * dt 
@@ -23,7 +23,7 @@ contains
          !> in which the cb, pl, and tp components are allocatable abstract classes and the actual integrator-specific methods that are
          !> called internally. Before this point, the actual types of cb, pl, and tp are ambiguous. The select type constructs remove the 
          !> ambiguity. - D. Minton
-         select type(config => self%config)
+         select type(config => config)
             class is (whm_configuration)
             select type(cb => self%cb)
                class is (whm_central_body)

@@ -63,8 +63,8 @@ module swiftest_classes
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
    contains
-      procedure :: config_reader  => io_config_reader
-      procedure :: config_writer  => io_config_writer
+      procedure :: reader         => io_config_reader
+      procedure :: writer         => io_config_writer
       procedure :: dump           => io_dump_config
       procedure :: read_from_file => io_read_config_in
       !TODO: Figure out if user-defined derived-type io can be made to work properly
@@ -75,7 +75,7 @@ module swiftest_classes
    !> Interfaces for concrete type-bound procedures for swiftest_configuration
    interface
       !> Type-bound procedure for user-defined derived-type IO for reading
-      module subroutine io_config_reader(self , unit, iotype, v_list, iostat, iomsg) 
+      module subroutine io_config_reader(self, unit, iotype, v_list, iostat, iomsg) 
          class(swiftest_configuration), intent(inout) :: self       !! Collection of user-defined configuration parameters
          integer, intent(in)                          :: unit       !! File unit number
          character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the user-defined input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
@@ -323,51 +323,55 @@ module swiftest_classes
          implicit none
          class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_central_body),  intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
       end subroutine gr_getacch_body
 
       module subroutine gr_getaccb_ns_body(self, cb, config, agr, agr0) 
          implicit none
-         class(swiftest_body), intent(inout)   :: self
-         class(swiftest_central_body), intent(inout) :: cb
-         class(swiftest_configuration), intent(inout) :: config
-         real(DP), dimension(:, :), intent(inout) :: agr
-         real(DP), dimension(NDIM), intent(out)   :: agr0
+         class(swiftest_body),          intent(inout) :: self
+         class(swiftest_central_body),  intent(inout) :: cb
+         class(swiftest_configuration), intent(in)    :: config
+         real(DP), dimension(:, :),     intent(inout) :: agr
+         real(DP), dimension(NDIM),     intent(out)   :: agr0
       end subroutine gr_getaccb_ns_body
 
       module pure subroutine gr_p4_body(self, config, dt)
          implicit none
-         class(swiftest_body),         intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)   :: dt     !! Step size
+         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine gr_p4_body
 
-      module pure subroutine gr_pseudovel2vel(config, mu, xh, vh) 
+      module pure subroutine gr_pseudovel2vel(config, mu, xh, pv, vh) 
          implicit none
-         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
-         real(DP),               intent(in) :: mu
-         real(DP), dimension(:), intent(in) :: xh 
-         real(DP), dimension(:), intent(inout) :: vh
+         class(swiftest_configuration), intent(in)  :: config !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
+         real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
+         real(DP), dimension(:),        intent(in)  :: pv     !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
+         real(DP), dimension(:),        intent(out) :: vh     !! Heliocentric velocity vector 
       end subroutine gr_pseudovel2vel
 
-      module pure subroutine gr_vel2pseudovel(config, mu, xh, vh) 
+      module pure subroutine gr_vel2pseudovel(config, mu, xh, vh, pv) 
          implicit none
-         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
-         real(DP),               intent(in)    :: mu
-         real(DP), dimension(:), intent(in)    :: xh
-         real(DP), dimension(:), intent(inout) :: vh
+         class(swiftest_configuration), intent(in)  :: config !! Input collection of user-defined configuration parameters 
+         real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
+         real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
+         real(DP), dimension(:),        intent(in)  :: vh     !! Heliocentric velocity vector 
+         real(DP), dimension(:),        intent(out) :: pv     !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
       end subroutine gr_vel2pseudovel
 
-      module pure subroutine gr_vh2pv_body(self, config)
+      module pure subroutine gr_vh2pv_body(self, config, pv)
          implicit none
-         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_body),          intent(in)    :: self   !! Swiftest particle object
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         real(DP), dimension(:,:),      intent(out)   :: pv     !! Particle pseudovelocities - see Saha & Tremain (1994), eq. (32)
       end subroutine gr_vh2pv_body
 
-      module pure subroutine gr_pv2vh_body(self, config)
+      module pure subroutine gr_pv2vh_body(self, config, vh)
          implicit none
-         class(swiftest_body),          intent(inout):: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)   :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_body),          intent(in)    :: self   !! Swiftest particle object
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         real(DP), dimension(:,:),      intent(out)   :: vh     !! Particle heliocentric velocities
       end subroutine gr_pv2vh_body
 
       module subroutine io_read_body_in(self, config) 
@@ -520,7 +524,7 @@ module swiftest_classes
          implicit none
          class(swiftest_tp),            intent(inout) :: self   !! Swiftest massive body object
          class(swiftest_central_body),  intent(inout) :: cb     !! Swiftest central body object
-         class(swiftest_configuration), intent(inout) :: config !! User-defined configuration parameters
+         class(swiftest_configuration), intent(in)    :: config !! User-defined configuration parameters
          real(DP),                      intent(in)    :: t      !! Current simulation tim
          real(DP),                      intent(in)    :: msys   !! Total system mass
       end subroutine discard_sun_tp
@@ -564,7 +568,7 @@ module swiftest_classes
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract, public, extends(swiftest_base) :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
-      class(swiftest_configuration), allocatable :: config                  !! Integrator-specific configuration
+      !class(swiftest_configuration), allocatable :: config                  !! Integrator-specific configuration
       class(swiftest_central_body),  allocatable :: cb                      !! Central body data structure
       class(swiftest_pl),            allocatable :: pl                      !! Massive body data structure
       class(swiftest_tp),            allocatable :: tp                      !! Test particle data structure
@@ -573,7 +577,6 @@ module swiftest_classes
       real(DP)                                   :: pe = 0.0_DP             !! System potential energy
       real(DP)                                   :: te = 0.0_DP             !! System total energy
       real(DP), dimension(NDIM)                  :: htot = 0.0_DP           !! System angular momentum vector
-      logical                                    :: lbody_discard = .false. !! Flag indicating that bodies need to be discarded in the current step
    contains
       private
       !> Each integrator will have its own version of the step
@@ -596,22 +599,24 @@ module swiftest_classes
       !> Allocates the correct class types to each of the system 
       subroutine abstract_construct_system(self)
          import swiftest_nbody_system
-         class(swiftest_nbody_system),  intent(inout) :: self       !! Swiftest system object
+         class(swiftest_nbody_system),               intent(inout) :: self   !! Swiftest system object
       end subroutine abstract_construct_system
 
       !> Steps the Swiftest nbody system forward in time one stepsize
-      subroutine abstract_step_system(self)
-         import swiftest_nbody_system
+      subroutine abstract_step_system(self, config)
+         import swiftest_nbody_system, swiftest_configuration
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
       end subroutine abstract_step_system
    end interface
 
    !> Interfaces for concrete type-bound procedures for the Swiftest nbody system class
    interface
       !> Perform a discard step on a system in which only test particles are considered for discard
-      module subroutine discard_system(self)
+      module subroutine discard_system(self, config)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
       end subroutine discard_system
 
       !> Method to dump the state of the whole system to file
@@ -649,16 +654,17 @@ module swiftest_classes
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined configuration parameters 
          character(*),                  intent(in)    :: form   !! Input format code ("XV" or "EL")
          real(DP),                      intent(out)   :: t      !! Current simulation time
          integer(I4B),                  intent(out)   :: ierr   !! Error code
       end subroutine io_read_frame_system
 
       !> Method to write out the discard bodies to a file
-      module subroutine io_write_discard(self, discards)
+      module subroutine io_write_discard(self, config, discards)
          implicit none
-         class(swiftest_nbody_system),  intent(inout)  :: self    !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
          class(swiftest_body), intent(inout)          :: discards !! Swiftest discard object 
       end subroutine io_write_discard
 
@@ -675,10 +681,11 @@ module swiftest_classes
 
    interface
       !> Constructs an nbody system
-      module subroutine setup_construct_system(system, integrator)
+      module subroutine setup_construct_system(system, config, integrator)
          implicit none
-         class(swiftest_nbody_system), allocatable,  intent(inout) :: system     !! Swiftest system object
-         integer, intent(in)                                       :: integrator !! Integrator type code
+         class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
+         class(swiftest_configuration), allocatable,  intent(inout) :: config     !! Swiftest system object
+         integer, intent(in)                                        :: integrator !! Integrator type code
       end subroutine setup_construct_system
    end interface
 
@@ -780,11 +787,11 @@ module swiftest_classes
       module pure subroutine drift_one(mu, x, v, dt, iflag)
          !$omp declare simd(drift_one) 
          implicit none
-         real(DP), intent(in)      :: mu              !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-         real(DP), dimension(:), intent(inout)  :: x  !! Position of body to drift
-         real(DP), dimension(:), intent(inout)  :: v  !! Velocity of body to drift
-         real(DP), intent(in)      :: dt              !! Step size
-         integer(I4B), intent(out) :: iflag           !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
+         real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
+         real(DP), dimension(:), intent(inout)  :: x     !! Position of body to drift
+         real(DP), dimension(:), intent(inout)  :: v     !! Velocity of body to drift
+         real(DP), intent(in)                   :: dt    !! Step size
+         integer(I4B), intent(out)              :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
 

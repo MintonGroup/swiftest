@@ -9,19 +9,20 @@ program swiftest_driver
    use swiftest
    implicit none
 
-   class(swiftest_nbody_system), allocatable :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
-   integer(I4B)                              :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable              :: config_file_name !! Name of the file containing user-defined configuration parameters
-   integer(I4B)                              :: ierr             !! I/O error code 
-   logical                                   :: lfirst           !! Flag indicating that this is the first time through the main loop
-   integer(I8B)                              :: iloop            !! Loop counter
-   integer(I8B)                              :: idump            !! Dump cadence counter
-   integer(I8B)                              :: iout             !! Output cadence counter
-   integer(I8B), parameter                   :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
-   real(DP)                                  :: start_wall_time  !! Wall clock time at start of execution
-   real(DP)                                  :: finish_wall_time !! Wall clock time when execution has finished
-   integer(I4B)                              :: iu               !! Unit number of binary file
-   integer(I4B)                              :: ntp, npl
+   class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_configuration), allocatable :: config
+   integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
+   character(len=:),allocatable               :: config_file_name !! Name of the file containing user-defined configuration parameters
+   integer(I4B)                               :: ierr             !! I/O error code 
+   logical                                    :: lfirst           !! Flag indicating that this is the first time through the main loop
+   integer(I8B)                               :: iloop            !! Loop counter
+   integer(I8B)                               :: idump            !! Dump cadence counter
+   integer(I8B)                               :: iout             !! Output cadence counter
+   integer(I8B), parameter                    :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
+   real(DP)                                   :: start_wall_time  !! Wall clock time at start of execution
+   real(DP)                                   :: finish_wall_time !! Wall clock time when execution has finished
+   integer(I4B)                               :: iu               !! Unit number of binary file
+   integer(I4B)                               :: ntp, npl
    character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
                                              'Number of active pl, tp = ", I5, ", ", I5)'
 
@@ -39,15 +40,14 @@ program swiftest_driver
    end if
    !$ start_wall_time = omp_get_wtime()
    !> Read in the user-defined parameter file and the initial conditions of the system
-   call setup_construct_system(nbody_system, integrator)
-   call nbody_system%config%read_from_file(config_file_name, integrator)
-   associate(t          => nbody_system%config%t, &
-            t0         => nbody_system%config%t0, &
-            dt         => nbody_system%config%dt, &
-            tstop      => nbody_system%config%tstop, &
-            istep_out  => nbody_system%config%istep_out, &
-            istep_dump => nbody_system%config%istep_dump, &
-            config     => nbody_system%config)
+   call setup_construct_system(nbody_system, config, integrator)
+   call config%read_from_file(config_file_name, integrator)
+   associate(t          => config%t, &
+             t0         => config%t0, &
+             dt         => config%dt, &
+             tstop      => config%tstop, &
+             istep_out  => config%istep_out, &
+             istep_dump => config%istep_dump)  
       call nbody_system%initialize(config)
       lfirst = .true.
       t = t0
@@ -62,10 +62,10 @@ program swiftest_driver
          t = t0 + iloop * dt
          if (t > tstop) exit 
          !> Step the system forward in time
-         call nbody_system%step()
+         call nbody_system%step(config)
 
          !> Evaluate any discards or mergers
-         call nbody_system%discard()
+         call nbody_system%discard(config)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then

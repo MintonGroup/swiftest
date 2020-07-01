@@ -24,9 +24,8 @@ contains
       use swiftest
       implicit none
 
-      logical, save             :: lfirst = .true.
-      integer(I4B)              :: i, j, ierr
-      real(DP),dimension(:),allocatable :: a, e, inc, capom, omega, capm
+      logical, save                         :: lfirst = .true. !! Flag to determine if this is the first call of this method
+      integer(I4B)                          :: ierr            !! I/O error code
 
       iu = BINUNIT
 
@@ -62,11 +61,11 @@ contains
       if (config%lgr) then
          select type(pl => self%pl)
          class is (whm_pl)
-            call pl%gr_pv2vh(config)
+            call pl%gr_pv2vh(config, pl%vh) ! In place conversion
          end select
          select type(tp => self%tp)
          class is (whm_tp)
-            call tp%gr_pv2vh(config)
+            call tp%gr_pv2vh(config, tp%vh)
          end select
       end if
 
@@ -83,11 +82,11 @@ contains
       if (config%lgr) then
          select type(pl => self%pl)
          class is (whm_pl)
-            call pl%gr_vh2pv(config)
+            call pl%gr_vh2pv(config, pl%vh)
          end select
          select type(tp => self%tp)
          class is (whm_tp)
-            call tp%gr_vh2pv(config)
+            call tp%gr_vh2pv(config, tp%vh)
          end select
       end if
 
@@ -316,7 +315,7 @@ contains
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    due to compiler incompatabilities
       !write(LUN,'(DT)') config
-      call self%config_writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = error_message)
+      call self%writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = error_message)
       if (ierr /= 0) then
          write(*,*) trim(adjustl(error_message))
          call util_exit(FAILURE)
@@ -449,54 +448,61 @@ contains
       !! Adapted from Hal Levison's Swift routine io_discard_write.f
       use swiftest
       implicit none
-      integer(I4B), parameter   :: lun = 40
+      integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: i, ierr
-      real(DP), dimension(ndim) :: vh
       logical, save :: lfirst = .true. 
-    
-      real(DP)            :: mu, msun, etajm1, etaj
-      associate(t => self%config%t, config => self%config, nsp => discards%nbody, &
-                npl => self%pl%nbody, pl => self%pl, msun => self%cb%Gmass, &
-                xh => discards%xh, vh => discards%vh)
+      real(DP), dimension(:,:), allocatable :: vh
+      character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
+      character(*), parameter :: NAMEFMT   = '(A, 2(1X, I8))'
+      character(*), parameter :: VECFMT    = '(3(E23.16, 1X))'
+      character(*), parameter :: NPLFMT    = '(I8)'
+      character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
+
+      associate(t => config%t, config => config, nsp => discards%nbody) 
          
          if (config%out_stat == 'APPEND' .or. (.not.lfirst)) then
-            open(unit = lun, file = DISCARD_FILE, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
+            open(unit = LUN, file = DISCARD_FILE, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
          else if (config%out_stat == 'NEW') then
-            open(unit = lun, file = DISCARD_FILE, status = 'NEW', form = 'FORMATTED', iostat = ierr)
+            open(unit = LUN, file = DISCARD_FILE, status = 'NEW', form = 'FORMATTED', iostat = ierr)
          else if (config%out_stat == 'REPLACE') then
-            open(unit = lun, file = DISCARD_FILE, status = 'REPLACE', form = 'FORMATTED', iostat = ierr)
+            open(unit = LUN, file = DISCARD_FILE, status = 'REPLACE', form = 'FORMATTED', iostat = ierr)
          else
             write(*,*) 'Invalid status code',trim(adjustl(config%out_stat))
             call util_exit(FAILURE)
          end if
          lfirst = .false.
-         write(lun, 100) t, nsp, config%lbig_discard
-         100 format(e23.16, 1x, i8, 1x, l1)
+         write(LUN, HDRFMT) t, nsp, config%lbig_discard
          do i = 1, nsp
-            write(lun, 200) sub, discards%name(i), discards%status(i)
-            200   format(a, 2(1x, i8))
-            write(lun, 300) xh(i, 1), xh(i, 2), xh(i, 3)
-            300    format(3(e23.16, 1x))
-            if (config%lgr) call discards%gr_pv2vh(config)
-            write(lun, 300) vh(i, 1), vh(i, 2), vh(i, 3)
-            if (config%lgr) call discards%gr_vh2pv(config)
+            write(LUN, NAMEFMT) sub, discards%name(i), discards%status(i)
+            write(LUN, VECFMT) discards%xh(i, 1), discards%xh(i, 2), discards%xh(i, 3)
+            if (config%lgr) then
+               allocate(vh, mold = discards%vh)
+               call discards%gr_pv2vh(config, vh)
+            else
+               allocate(vh, source = discards%vh)
+            end if
+            write(LUN, VECFMT) vh(i, 1), vh(i, 2), vh(i, 3)
+            deallocate(vh)
          end do
          if (config%lbig_discard) then
-            write(lun, 400) npl
-            400    format(i8)
-            etajm1 = msun
-            do i = 1, npl
-               etaj = etajm1 + pl%Gmass(i)
-               mu = msun * etaj / etajm1
-               etajm1 = etaj
-               write(lun, 500) pl%name(i), pl%mass(i), pl%radius(i)
-               500       format(i8, 2(1x, e23.16))
-               write(lun, 300) pl%xh(i, 1), pl%vh(i, 2), pl%vh(i, 3)
-               if (config%lgr) call pl%gr_pv2vh(config)
-               write(lun, 300) pl%vh(i, 1), pl%vh(i, 2), pl%vh(i, 3)
-            end do
+            associate(npl => self%pl%nbody, pl => self%pl, GMpl => self%pl%Gmass, &
+                     Rpl => self%pl%radius, name => self%pl%name, xh => self%pl%xh)
+               write(LUN, NPLFMT) npl
+               do i = 1, npl
+                  write(LUN, PLNAMEFMT) name(i), GMpl(i), Rpl(i)
+                  write(LUN, VECFMT) xh(i, 1), xh(i, 2), xh(i, 3)
+                  if (config%lgr) then
+                     allocate(vh, mold = discards%vh)
+                     call pl%gr_pv2vh(config, vh)
+                  else
+                     allocate(vh, source = discards%vh)
+                  end if
+                  write(LUN, VECFMT) vh(i, 1), vh(i, 2), vh(i, 3)
+                  deallocate(vh)
+               end do
+            end associate
          end if
-         close(lun)
+         close(LUN)
       end associate
       return
    

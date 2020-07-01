@@ -20,6 +20,7 @@ contains
          write(*,*) 'TU4 integrator not yet enabled'
       case (WHM)
          allocate(whm_nbody_system :: system)
+         allocate(whm_configuration :: config)
          call system%construct()
       case (RMVS)
          write(*,*) 'RMVS integrator not yet enabled'

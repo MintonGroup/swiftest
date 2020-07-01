@@ -43,7 +43,7 @@ contains
       !!    as the newline characters are ignored in the input file when compiled in ifort.
 
       !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) config
-      call self%config_reader(LUN, iotype= "none", v_list = [integrator], iostat = ierr, iomsg = error_message)
+      call self%reader(LUN, iotype= "none", v_list = [integrator], iostat = ierr, iomsg = error_message)
       if (ierr /= 0) then
          write(*,*) 'Swiftest error reading ', trim(adjustl(config_file_name))
          write(*,*) ierr,trim(adjustl(error_message))
@@ -477,6 +477,7 @@ contains
       logical                 :: is_ascii, is_pl
       character(len=:), allocatable :: infile
       real(DP)               :: t
+      real(DP), dimension(:,:), allocatable :: pv
 
 
       ! Select the appropriate polymorphic class (test particle or massive body)
@@ -549,11 +550,14 @@ contains
       end select
 
       if (config%lgr) then
+         allocate(pv, mold = self%vh)
          select type(self)
          class is (whm_pl)
-            call self%gr_vh2pv(config)
+            call self%gr_vh2pv(config, pv)
+            self%vh(:, :)= pv(:, :)
          class is (whm_tp)
-            call self%gr_vh2pv(config)
+            call self%gr_vh2pv(config, pv)
+            self%vh(:, :)= pv(:, :)
          end select
       end if
 

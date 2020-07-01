@@ -15,8 +15,8 @@ contains
       if (self%tp%nbody == 0) return 
       select type(self)
       class is (whm_nbody_system)
-         associate(config => self%config, cb => self%cb, pl => self%pl, tp => self%tp, &
-                   t => self%config%t, msys => self%msys, discards => self%tp_discards, &
+         associate(cb => self%cb, pl => self%pl, tp => self%tp, &
+                   t => config%t, msys => self%msys, discards => self%tp_discards, &
                    ntp => self%tp%nbody)
             if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
                (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
@@ -33,7 +33,7 @@ contains
                ! Spill the discards to the spill list
                allocate(lspill_list, source = tp%ldiscard)
                call whm_discard_spill(tp, discards, lspill_list) 
-               call self%write_discard(discards)
+               call self%write_discard(config, discards)
                deallocate(lspill_list)
             end if
          end associate  

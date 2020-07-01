@@ -98,7 +98,7 @@ contains
       
       associate(n => self%nbody, xh => self%xh, vh => self%vh, mu => self%mu_vec, status => self%status)
          do concurrent(i = 1:n, status(i) == ACTIVE)
-            call gr_vel2pseudovel(config, mu(i), xh(i, :), vh(i, :))
+            call gr_vel2pseudovel(config, mu(i), xh(i, :), vh(i, :), pv(i, :))
          end do
       end associate
 
@@ -123,25 +123,24 @@ contains
       integer(I4B)                   :: n,i,k
       integer(I4B), parameter        :: MAXITER = 50
       real(DP),parameter             :: TOL = 1.0e-12_DP
-      real(DP), dimension(NDIM)      :: pvh
 
       associate (c2 => config%inv_c2)
-         pvh(1:NDIM) = vh(1:NDIM) ! Initial guess
+         pv(1:NDIM) = vh(1:NDIM) ! Initial guess
          rterm = 3 * mu / (.mag. xh(:)) 
          v2 = vh(:) .dot. vh(:)
          do n = 1, MAXITER
-            pv2 = pvh(:) .dot. pvh(:) 
+            pv2 = pv(:) .dot. pv(:) 
             G = 1.0_DP - c2 * (0.5_DP * pv2 + rterm)
-            F(:) = pvh(:) * G - vh(:)
+            F(:) = pv(:) * G - vh(:)
             if (abs(sum(F) / v2 ) < TOL) exit ! Root found
    
             ! Calculate the Jacobian
             do concurrent (k = 1:NDIM)
                do concurrent (i = 1:NDIM)
                   if (i == k) then
-                     J(i,k) = G - c2 * pvh(k)
+                     J(i,k) = G - c2 * pv(k)
                   else
-                     J(i,k) = - c2 * pvh(k)
+                     J(i,k) = - c2 * pv(k)
                   end if
                end do
             end do
@@ -166,11 +165,10 @@ contains
             Jinv = Jinv * det
    
             do concurrent (i = 1:NDIM)
-               pvh(i) = pvh(i) - Jinv(:, i) .dot. F(:) 
+               pv(i) = pv(i) - Jinv(:, i) .dot. F(:) 
             end do
          end do 
    
-         vh(:) = pvh(:)
       end associate
       return
    end procedure gr_vel2pseudovel
@@ -185,9 +183,9 @@ contains
 
       integer(I4B) :: i
       
-      associate(n => self%nbody, xh => self%xh, vh => self%vh, mu => self%mu_vec, status => self%status)
+      associate(n => self%nbody, xh => self%xh, pv => self%vh, mu => self%mu_vec, status => self%status)
          do concurrent(i = 1:n, status(i) == ACTIVE)
-            call gr_pseudovel2vel(config, mu(i), xh(i, :), vh(i, :))
+            call gr_pseudovel2vel(config, mu(i), xh(i, :), pv(i, :), vh(i, :))
          end do
       end associate
       return
@@ -206,10 +204,10 @@ contains
       real(DP) :: vmag2, rmag, grterm
    
       associate(c2 => config%inv_c2)
-         vmag2 = vh(:) .dot. vh(:) 
+         vmag2 = pv(:) .dot. pv(:) 
          rmag  = .mag. xh(:) 
          grterm = 1.0_DP - c2 * (0.5_DP * vmag2 + 3 * mu / rmag)
-         vh(:) = vh(:) * grterm
+         vh(:) = pv(:) * grterm
       end associate
       return
    end procedure gr_pseudovel2vel

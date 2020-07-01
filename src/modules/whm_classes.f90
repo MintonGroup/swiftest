@@ -70,7 +70,7 @@ module whm_classes
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structure
-         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t         !! Current time
       end subroutine whm_getacch_pl
 
@@ -91,7 +91,7 @@ module whm_classes
       module subroutine whm_user_getacch_pl(self, cb, config, t)
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t         !! Current time
       end subroutine whm_user_getacch_pl
 
@@ -152,7 +152,7 @@ module whm_classes
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree 
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
-         class(swiftest_configuration), intent(inout) :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t         !! Current time
          real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of massive bodies at time t
       end subroutine whm_getacch_tp
@@ -161,7 +161,7 @@ module whm_classes
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_central_body),       intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(inout) :: config    !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config    !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: t         !! Current time
       end subroutine whm_user_getacch_tp
 
@@ -186,7 +186,7 @@ module whm_classes
       !> Constructs a WHM nbody system
       module subroutine whm_construct_system(self)
          implicit none
-         class(whm_nbody_system),       intent(inout) :: self       !! Swiftest system object
+         class(whm_nbody_system),                    intent(inout) :: self   !! Swiftest system object
       end subroutine whm_construct_system 
 
       module subroutine whm_setup_system(self, config)
@@ -196,9 +196,10 @@ module whm_classes
       end subroutine whm_setup_system
 
       !> Steps the Swiftest nbody system forward in time one stepsize
-      module subroutine whm_step_system(self)
+      module subroutine whm_step_system(self, config)
          implicit none
          class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
       end subroutine whm_step_system
    end interface
 
