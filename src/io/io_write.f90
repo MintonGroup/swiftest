@@ -477,7 +477,7 @@ contains
             write(lun, 300) discards%xh(i,:)
             300    format(3(e23.16, 1x))
             if (config%lgr) call discards%gr_pv2vh(config)
-            write(lun, 300) vh(:)
+            write(lun, 300) discards%vh(:)
             if (config%lgr) call discards%gr_vh2pv(config)
          end do
          if (config%lbig_discard) then
@@ -493,7 +493,6 @@ contains
                write(lun, 300) pl%xh(i, :)
                if (config%lgr) call pl%gr_pv2vh(config)
                write(lun, 300) vh(:)
-               if (config%lgr) call pl%gr_vh2pv(config)
             end do
          end if
          close(lun)
