@@ -27,10 +27,10 @@ contains
             end if
             if (config%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(cb, pl, config, t, msys)
             if (config%lclose .and. ntp > 0) call tp%discard_pl(cb, pl, config, t, msys)
-
-            if (any(tp%ldiscard)) then
+          
+            if (any(tp%ldiscard(1:ntp))) then
                ! Spill the discards to the spill list
-               call discard_spill_body(tp, discards, tp%ldiscard)
+               call whm_discard_spill(tp, discards, tp%ldiscard)
                call self%write_discard(discards)
                tp%ldiscard = .false.
             end if
