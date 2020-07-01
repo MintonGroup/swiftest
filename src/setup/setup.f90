@@ -148,7 +148,7 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the value of msys and the vector mass quantities based on the total mass of the system
-      self%msys = self%cb%mass + sum(self%pl%mass(1:self%pl%nbody))
+      if (self%nbody > 0) self%msys = self%cb%mass + sum(self%pl%mass(1:self%pl%nbody))
 
       return
    end procedure setup_set_msys
@@ -160,7 +160,7 @@ contains
       use swiftest
       implicit none
 
-      self%dt_vec(:) = dt
+      if (self%nbody > 0) self%dt_vec(:) = dt
 
       return
    end procedure setup_set_vec_dt
@@ -172,7 +172,7 @@ contains
       use swiftest
       implicit none
 
-      self%mu_vec(:) = cb%Gmass + self%Gmass(:)
+      if (self%nbody > 0) self%mu_vec(:) = cb%Gmass + self%Gmass(:)
 
       return
    end procedure setup_set_vec_mu_pl
@@ -184,7 +184,7 @@ contains
       use swiftest
       implicit none
 
-      self%mu_vec(:) = cb%Gmass
+      if (self%nbody > 0) self%mu_vec(:) = cb%Gmass
 
       return
    end procedure setup_set_vec_mu_tp
