@@ -100,7 +100,7 @@ contains
                if (rdotv < 0.0_DP) cape = TWOPI - cape
                fac = 1.0_DP - e * cos(cape)
                cw = (cos(cape) - e) / fac
-               sw = sqrt(1.0_DP - e * e) * sin(cape) / fac
+               sw = sqrt(1.0_DP - e**2) * sin(cape) / fac
                w = atan2(sw, cw)
                if (w < 0.0_DP) w = w + TWOPI
             else
@@ -119,13 +119,12 @@ contains
                w = acos(fac)
             end if
             if (rdotv < 0.0_DP) w = TWOPI - w
-            tmpf = tan(0.5_DP*w)
+            tmpf = tan(0.5_DP * w)
             capm = tmpf * (1.0_DP + tmpf * tmpf / 3.0_DP)
          case (HYPERBOLA)
             e = sqrt(1.0_DP + fac)
-            tmpf = (a - r) / (a * e)
-            if (tmpf < 1.0_DP) tmpf = 1.0_DP
-            capf = log(tmpf + sqrt(tmpf * tmpf - 1.0_DP))
+            tmpf = max((a - r) / (a * e), 1.0_DP)
+            capf = log(tmpf + sqrt(tmpf**2 - 1.0_DP))
             if (rdotv < 0.0_DP) capf = -capf
             fac = e * cosh(capf) - 1.0_DP
             cw = (e - cosh(capf)) / fac

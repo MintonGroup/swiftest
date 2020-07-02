@@ -263,16 +263,16 @@ module procedure drift_body
 
       if (alpha > 0.0_DP) then
          if (dt / r0 <= thresh) then
-            s = dt / r0 - (dt * dt * u)/(2 * r0 * r0 * r0)
+            s = dt / r0 - (dt**2 * u) / (2 * r0**3)
          else
             a = mu / alpha
-            en = sqrt(mu / (a * a*a))
+            en = sqrt(mu / a**3)
             ec = 1.0_DP - r0 / a
-            es = u / (en * a * a)
-            e = sqrt(ec * ec + es * es)
+            es = u / (en * a**2)
+            e = sqrt(ec**2 + es**2)
             y = en * dt - es
             call orbel_scget(y, sy, cy)
-            sigma = sign(1.0_DP, es*cy + ec * sy)
+            sigma = sign(1.0_DP, es * cy + ec * sy)
             x = y + sigma * danbyk * e
             s = x / sqrt(alpha)
          end if
@@ -307,15 +307,15 @@ module procedure drift_body
          x = s * s * alpha
          call drift_kepu_stumpff(x, c0, c1, c2, c3)
          c1 = c1 * s
-         c2 = c2 * s * s
-         c3 = c3 * s * s * s
+         c2 = c2 * s**2
+         c3 = c3 * s**3
          f = r0 * c1 + u * c2 + mu * c3 - dt
          fp = r0 * c0 + u * c1 + mu * c2
          fpp = (-r0 * alpha + mu) * c1 + u * c0
-         ds = -ln * f/(fp + sign(1.0_DP, fp) * sqrt(abs((ln - 1.0_DP) * (ln - 1.0_DP) * fp * fp - (ln - 1.0_DP) * ln * f * fpp)))
+         ds = -ln * f / (fp + sign(1.0_DP, fp) * sqrt(abs((ln - 1.0_DP)**2 * fp**2 - (ln - 1.0_DP) * ln * f * fpp)))
          s = s + ds
          fdt = f / dt
-         if (fdt * fdt < DANBYB * DANBYB) then
+         if (fdt**2 < DANBYB**2) then
             iflag = 0
             return
          end if
@@ -339,18 +339,18 @@ module procedure drift_body
       real(DP)   :: x, c0, ds, f, fpp, fppp, fdt
    
       do nc = 0, 6
-         x = s * s * alpha
+         x = s**2 * alpha
          call drift_kepu_stumpff(x, c0, c1, c2, c3)
          c1 = c1 * s
-         c2 = c2 * s * s
-         c3 = c3 * s * s * s
+         c2 = c2 * s**2
+         c3 = c3 * s**3
          f = r0 * c1 + u * c2 + mu * c3 - dt
          fp = r0 * c0 + u * c1 + mu * c2
          fpp = (-r0 * alpha + mu) * c1 + u * c0
          fppp = (-r0 * alpha + mu) * c0 - u * alpha * c1
          ds = -f / fp
          ds = -f / (fp + ds * fpp / 2.0_DP)
-         ds = -f / (fp + ds * fpp / 2.0_DP + ds * ds * fppp / 6.0_DP)
+         ds = -f / (fp + ds * fpp / 2.0_DP + ds**2 * fppp / 6.0_DP)
          s = s + ds
          fdt = f / dt
          if (fdt * fdt < DANBYB * DANBYB) then
@@ -379,9 +379,9 @@ module procedure drift_body
       a2 = 0.5_DP * u / denom
       a1 = r0 / denom
       a0 = -dt / denom
-      q = (a1 - a2 * a2 / 3.0_DP) / 3.0_DP
-      r = (a1 * a2 - 3.0_DP * a0) / 6.0_DP - (a2 * a2 * a2) / 27.0_DP
-      sq2 = q * q * q + r * r
+      q = (a1 - a2**2 / 3.0_DP) / 3.0_DP
+      r = (a1**2 - 3.0_DP * a0) / 6.0_DP - a2**3 / 27.0_DP
+      sq2 = q**3+ r**2
       if (sq2 >= 0.0_DP) then
          sq = sqrt(sq2)
          if ((r + sq) <= 0.0_DP) then
@@ -425,18 +425,18 @@ module procedure drift_body
       end do
       c2 = (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * &
             (1.0_DP - x / 182.0_DP) / 132.0_DP) / 90.0_DP) / 56.0_DP) /        &
-               30.0_DP) / 12.0_DP) / 2.0_DP
+             30.0_DP) / 12.0_DP) / 2.0_DP
       c3 = (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * (1.0_DP - x * &
             (1.0_DP - x / 210.0_DP) / 156.0_DP) / 110.0_DP) / 72.0_DP) /       &
-               42.0_DP) / 20.0_DP ) / 6.0_DP
+             42.0_DP) / 20.0_DP ) / 6.0_DP
       c1 = 1.0_DP - x * c3
       c0 = 1.0_DP - x * c2
       if (n /= 0) then
          do i = n, 1, -1
             c3 = (c2 + c0 * c3) / 4.0_DP
-            c2 = c1 * c1 / 2.0_DP
+            c2 = c1**2 / 2.0_DP
             c1 = c0 * c1
-            c0 = 2 * c0 * c0 - 1.0_DP
+            c0 = 2 * c0**2 - 1.0_DP
             x = x * 4
          end do
       end if

@@ -76,11 +76,11 @@ contains
       if (iorbit_type == ELLIPSE) then
          cape = orbel_ehybrid(e,capm)
          call orbel_scget(cape,scap,ccap)
-         sqe = sqrt(1._DP - e* e)
+         sqe = sqrt(1._DP - e * e)
          sqgma = sqrt(mu* a)
          xfac1 = a * (ccap - e)
          xfac2 = a * sqe * scap
-         ri = 1._DP/(a* (1._DP - e* ccap))
+         ri = 1._DP / (a * (1._DP - e* ccap))
          vfac1 = -ri *  sqgma *  scap
          vfac2 = ri *  sqgma *  sqe *  ccap
       endif
@@ -208,11 +208,11 @@ contains
       !  Begin with a reasonable guess based on solving the cubic for small F
 
 
-      a = 6 * ( e - 1.d0)/e
+      a = 6 * ( e - 1.d0) / e
       b = -6 * capn / e
-      sq = SQRT(0.25_DP * b * b + a * a * a / 27._DP)
-      biga =  (-0.5_DP * b + sq)**THIRD
-      bigb = -(+0.5_DP * b + sq)**THIRD
+      sq = SQRT(0.25_DP * b**2+ a**3/ 27._DP)
+      biga =  (-0.5_DP * b + sq)**(1.0_DP / 3.0_DP)
+      bigb = -(+0.5_DP * b + sq)**(1.0_DP / 3.0_DP) 
       x = biga + bigb
       ! write(6,*) 'cubic = ',x**3 +a*x +b
       orbel_flon = x
@@ -222,9 +222,9 @@ contains
 
       do i = 1,IMAX
          x2 = x * x
-         f = a0 + x *(a1+x2*(a3+x2*(a5+x2*(a7+x2*(a9+x2*(a11+x2))))))
-         fp = b1 + x2*(b3+x2*(b5+x2*(b7+x2*(b9+x2*(b11 + 13 * x2)))))
-         dx = -f/fp
+         f = a0 + x * (a1 + x2 * (a3 + x2 * (a5 + x2 * (a7 + x2 * (a9 + x2 * (a11 + x2))))))
+         fp = b1 + x2 * (b3 + x2 * (b5 + x2 * (b7 + x2 * (b9 + x2 * (b11 + 13 * x2)))))
+         dx = -f / fp
          !   write(6,*) 'i,dx,x,f : '
          !   write(6,432) i,dx,x,f
          432   format(1x,i3,3(2x,1p1e22.15))
@@ -313,7 +313,7 @@ contains
          fppp = ech
          dx = -f / fp
          dx = -f / (fp + dx * fpp / 2._DP)
-         dx = -f / (fp + dx * fpp / 2._DP + dx * dx * fppp / 6._DP)
+         dx = -f / (fp + dx * fpp / 2._DP + dx**2 * fppp / 6._DP)
          orbel_fget = x + dx
       !   if we have converged here there's no point in going on
          if(abs(dx) <= VSMALL) return
@@ -361,9 +361,9 @@ contains
       end if
 
       if (q < 1.e-3_DP) then
-         orbel_zget = q * (1._DP - (q * q / 3._DP) * (1._DP - q * q))
+         orbel_zget = q * (1._DP - (q**2 / 3._DP) * (1._DP - q**2))
       else
-         x = 0.5_DP * (3 * q + sqrt(9 * (q**2) + 4._DP))
+         x = 0.5_DP * (3 * q + sqrt(9 * q**2 + 4._DP))
          tmp = x**(1._DP / 3._DP)
          orbel_zget = tmp - 1._DP / tmp
       end if
@@ -411,7 +411,7 @@ contains
       !...    x) for given e and m. returns value of x.
 
       call orbel_scget(m,sm,cm)
-      x = m + e * sm * (1._DP + e * ( cm + e * (1._DP - 1.5_DP * sm * sm)))
+      x = m + e * sm * (1._DP + e * ( cm + e * (1._DP - 1.5_DP * sm**2)))
 
       call orbel_scget(x,sx,cx)
       es = e * sx
@@ -422,7 +422,7 @@ contains
       fppp = ec
       dx = -f / fp
       dx = -f / (fp + dx * fpp / 2._DP)
-      dx = -f / (fp + dx * fpp / 2._DP + dx * dx * fppp / 6._DP)
+      dx = -f / (fp + dx * fpp / 2._DP + dx**2 * fppp / 6._DP)
 
       orbel_esolmd = x + dx
 
@@ -461,7 +461,6 @@ contains
       real(DP) :: dx,x,sa,ca,esa,eca,f,fp,m
 
       integer(I4B), parameter  :: NMAX = 3
-      real(DP), parameter :: THIRD = 1._DP / 3._DP
 
       ! in this section, bring m into the range (0,TWOPI) and if
       ! the result is greater than pi, solve for (TWOPI - m).
@@ -488,7 +487,7 @@ contains
          fp = 1._DP -eca
          dx = -f / fp
          dx = -f / (fp + 0.5_DP * dx * esa)
-         dx = -f / (fp + 0.5_DP * dx * (esa + THIRD * eca * dx))
+         dx = -f / (fp + 0.5_DP * dx * (esa + eca * dx / 3.0_DP))
          x = x + dx
       end do
 
@@ -543,7 +542,7 @@ contains
       call orbel_scget(m,sm,cm)
 
       !  begin with a guess accurate to order ecc**3
-      x = m + e*sm*( 1._DP + e * (cm + e * (1._DP - 1.5_DP * sm * sm)))
+      x = m + e * sm * ( 1._DP + e * (cm + e * (1._DP - 1.5_DP * sm * sm)))
 
       !  go through one iteration for improved estimate
       call orbel_scget(x,sx,cx)
@@ -579,7 +578,7 @@ contains
       return
    end function orbel_eget
 
-            !**********************************************************************
+   !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
    ! Date: 2020-06-29  
    !                    ORBEL_EHYBRID.F
