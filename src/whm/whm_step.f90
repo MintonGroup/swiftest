@@ -12,12 +12,9 @@ contains
       real(DP), dimension(:, :), allocatable, save :: xbeg, xend
       logical, save :: lfirst = .true.
       real(DP) :: dth
-      logical :: is_tp, is_pl
   
       associate(ntp => self%tp%nbody, npl => self%pl%nbody, &
-                t => config%t, dt => config%dt)
-         is_tp = (ntp > 0)
-         is_pl = (npl > 0)
+                t => config%t, dt => config%dt, is_tp => self%tp%nbody > 0, is_pl => self%pl%nbody > 0)
          dth = 0.5_DP * dt 
          !> Note: The nested select statements serve to make this method a "bridge" between the polymorphic swiftest_nbody_system class
          !> in which the cb, pl, and tp components are allocatable abstract classes and the actual integrator-specific methods that are
@@ -41,15 +38,15 @@ contains
                         end if
                      end if
                      if (lfirst) then
-                        if (is_pl) call pl%h2j(cb)
-                        if (is_pl) call pl%getacch(cb, config, t)
-                        if (is_tp) call tp%getacch(cb, pl, config, t, xbeg)
+                        call pl%h2j(cb)
+                        call pl%getacch(cb, config, t)
+                        call tp%getacch(cb, pl, config, t, xbeg)
                         lfirst = .false.
                      end if
-                     if (is_pl) call pl%kickvh(dth)
-                     if (is_tp) call tp%kickvh(dth)
+                     call pl%kickvh(dth)
+                     call tp%kickvh(dth)
       
-                     if (is_pl) call pl%vh2vj(cb) 
+                     call pl%vh2vj(cb) 
                      if (config%lgr .and. is_pl) call pl%gr_p4(config, dth)
       
                      if (is_pl) then
@@ -60,16 +57,16 @@ contains
                         if (.not.allocated(xend)) allocate(xend(1,NDIM))
                         xend(:, :) = 0.0_DP
                      end if
-                     if (is_tp) call tp%drift(cb, config, dt)
+                     call tp%drift(cb, config, dt)
                      if (config%lgr .and. is_pl) call pl%gr_p4(config, dth)
       
-                     if (is_pl) call pl%j2h(cb)
+                     call pl%j2h(cb)
       
-                     if (is_pl) call pl%getacch(cb, config, t + dt)
-                     if (is_tp) call tp%getacch(cb, pl, config, t + dt, xend)
+                     call pl%getacch(cb, config, t + dt)
+                     call tp%getacch(cb, pl, config, t + dt, xend)
       
-                     if (is_pl) call pl%kickvh(dth)
-                     if (is_tp) call tp%kickvh(dth)
+                     call pl%kickvh(dth)
+                     call tp%kickvh(dth)
                   end select
                end select
             end select

@@ -15,10 +15,11 @@ contains
    real(DP), dimension(:), allocatable, save    :: irh, irj, ir3h, ir3j
    real(DP), dimension(NDIM) :: ah0
 
+
    associate(pl => self, npl => self%nbody, Gmpl => self%Gmass, xj => self%xj, xh => self%xh, &
              ah => self%ah, ah1 => self%ah1, ah2 => self%ah2, ah3 => self%ah3, &
              j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
-
+      if (npl == 0) return
       if (.not. allocated(r2)) allocate(r2(npl))
       if (.not. allocated(irj)) allocate(irj(npl))
       if (.not. allocated(ir3j)) allocate(ir3j(npl))
@@ -232,6 +233,7 @@ contains
       associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
                   xht => tp%xh, aht => tp%ah)
    
+         if (ntp == 0) return
          aht(:,:) = 0.0_DP
          do i = 1, ntp
             do j = 1, npl

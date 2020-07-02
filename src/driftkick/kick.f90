@@ -11,6 +11,7 @@ contains
    implicit none
 
    associate(n => self%nbody, vh => self%vh, ah => self%ah, status => self%status)
+      if (n == 0) return
       where(status(1:n) == ACTIVE)
          vh(:, 1) = vh(:, 1) + ah(:, 1) * dt
          vh(:, 2) = vh(:, 2) + ah(:, 2) * dt
@@ -33,6 +34,7 @@ contains
       implicit none
    
       associate(n => self%nbody, vb => self%vb, ah => self%ah, status => self%status)
+         if (n ==0) return
          where(status(1:n) == ACTIVE)
             vb(:, 1) = vb(:, 1) + ah(:, 1) * dt
             vb(:, 2) = vb(:, 2) + ah(:, 2) * dt

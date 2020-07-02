@@ -24,6 +24,7 @@ module procedure drift_body
    integer(I4B), dimension(:), allocatable  :: iflag
 
    associate(n => self%nbody, status => self%status, mu => self%mu_vec)
+      if (n ==0) return
       allocate(iflag(n))
       iflag(:) = 0
       select type(self)
