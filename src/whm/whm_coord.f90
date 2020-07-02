@@ -58,12 +58,12 @@ contains
                 xj => self%xj, vj => self%vj)
          if (npl == 0) return
          xh(1, :) = xj(1, :)
-         vh(1, :) = vj(1,:)
+         vh(1, :) = vj(1, :)
          sumx(:) = 0.0_DP
          sumv(:) = 0.0_DP
          do i = 2, npl 
-            sumx(:) = sumx(:) + GMpl(i) * xj(i - 1, :) / eta(i - 1)
-            sumv(:) = sumv(:) + GMpl(i) * vj(i - 1, :) / eta(i - 1)
+            sumx(:) = sumx(:) + GMpl(i - 1) * xj(i - 1, :) / eta(i - 1)
+            sumv(:) = sumv(:) + GMpl(i - 1) * vj(i - 1, :) / eta(i - 1)
             xh(i, :) = xj(i, :) + sumx(:)
             vh(i, :) = vj(i, :) + sumv(:)
          end do
