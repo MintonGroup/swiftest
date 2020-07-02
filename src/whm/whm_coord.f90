@@ -89,7 +89,7 @@ contains
       integer(I4B)              :: i
       real(DP), dimension(NDIM) :: sumv, capv
 
-      associate(npl => self%nbody, GMpl => self%Gmass, vh => self%vh, vj => self%vj, eta = self%eta)
+      associate(npl => self%nbody, GMpl => self%Gmass, vh => self%vh, vj => self%vj, eta => self%eta)
          cb%vj(:) = 0.0_DP
          if (npl > 0) then
             vj(1, :) = vh(1, :)

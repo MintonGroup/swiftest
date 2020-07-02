@@ -281,7 +281,7 @@ module swiftest_classes
       subroutine abstract_set_vec_mu_body(self, cb)
          import DP, swiftest_body, swiftest_central_body
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
       end subroutine abstract_set_vec_mu_body
    end interface
 
@@ -435,13 +435,13 @@ module swiftest_classes
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
       end subroutine orbel_el2xv_vec
 
       module subroutine orbel_xv2el_vec(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body object
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
       end subroutine orbel_xv2el_vec
    end interface
       
@@ -477,7 +477,7 @@ module swiftest_classes
       module subroutine setup_set_vec_mu_pl(self, cb)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body objectt
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body objectt
       end subroutine setup_set_vec_mu_pl
 
       module subroutine setup_pl(self,n)
@@ -552,7 +552,7 @@ module swiftest_classes
       module subroutine setup_set_vec_mu_tp(self, cb)
          implicit none
          class(swiftest_tp),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(in)    :: cb   !! Swiftest central body objectt
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body objectt
       end subroutine setup_set_vec_mu_tp
 
       module subroutine setup_tp(self,n)

@@ -53,17 +53,20 @@ contains
       implicit none
       integer(I4B) :: i
 
-      associate(npl => self%nbody,  GMpl => self%Gmass, mu => self%mu_vec, eta => self%eta, &
-                GMcb => cb%Gmass, etacb => cb%eta,)
-         if (npl == 0) return
-         etacb = GMcb
-         eta(1) = GMcb + GMpl(1)
-         mu(1) = eta(1) 
-         do i = 2, npl
-            eta(i) = eta(i - 1) + GMpl(i)
-            mu(i) = Gmsun * eta(i) / eta(i - 1)
-         end do
-      end associate
+      select type(cb)
+      class is (whm_central_body)
+         associate(npl => self%nbody,  GMpl => self%Gmass, mu => self%mu_vec, eta => self%eta, &
+                   GMcb => cb%Gmass, etacb => cb%eta)
+            if (npl == 0) return
+            etacb = GMcb
+            eta(1) = GMcb + GMpl(1)
+            mu(1) = eta(1) 
+            do i = 2, npl
+               eta(i) = eta(i - 1) + GMpl(i)
+               mu(i) = GMcb * eta(i) / eta(i - 1)
+            end do
+         end associate
+      end select
 
    end procedure whm_setup_set_eta
 

@@ -20,7 +20,7 @@ module whm_classes
    !*******************************************************************************************************************************
    !> WHM central body particle class
    type, public, extends(swiftest_central_body) :: whm_central_body
-      real(DP) :: eta     ! Jacobi mass
+      real(DP)                  :: eta     ! Jacobi mass
       real(DP), dimension(NDIM) :: xj      ! Jacobi position
       real(DP), dimension(NDIM) :: vj      ! Jacobi velocity
    contains
@@ -61,8 +61,8 @@ module whm_classes
 
       module subroutine whm_setup_set_eta(self, cb)
          implicit none
-         class(whm_pl),              intent(inout) :: self    !! Swiftest system object
-         class(swiftest_central_body),    intent(in)    :: cb     !! WHM central body particle data structure
+         class(whm_pl),                intent(inout) :: self    !! Swiftest system object
+         class(swiftest_central_body), intent(inout) :: cb     !! WHM central body particle data structure
       end subroutine whm_setup_set_eta
 
       !> Get heliocentric accelration of massive bodies
