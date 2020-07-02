@@ -26,6 +26,7 @@ contains
                class is (whm_central_body)
                select type(pl => self%pl)
                class is (whm_pl)
+               associate(xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj) ! These associations aid in debugging with gdb
                   select type(tp => self%tp)
                   class is (whm_tp)
                      if (is_tp) then
@@ -68,6 +69,7 @@ contains
                      call pl%kickvh(dth)
                      call tp%kickvh(dth)
                   end select
+               end associate
                end select
             end select
          end select

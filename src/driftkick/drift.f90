@@ -125,7 +125,7 @@ module procedure drift_body
          ec = 1.0_DP - r0 / a
          es = u / (en * asq)
          esq = ec**2 + es**2
-         dm = dt * en - int(dt * en / twopi, kind = I4B) * TWOPI
+         dm = dt * en - int(dt * en / TWOPI, kind = I4B) * TWOPI
          dt = dm / en
          if ((esq < E2MAX) .and. (dm * dm < DM2MAX) .and. (esq * dm**2 < E2DM2MAX)) then
             call drift_kepmd(dm, es, ec, xkep, s, c)

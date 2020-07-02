@@ -53,13 +53,14 @@ contains
       implicit none
       integer(I4B) :: i
 
-      associate(npl => self%nbody, Gmsun => cb%Gmass, Gmpl => self%Gmass, mu => self%mu_vec, eta => self%eta)
-         if (npl > 0) then
-            eta(1) = Gmsun + Gmpl(1)
-            mu(1) = eta(1) 
-         end if
+      associate(npl => self%nbody,  GMpl => self%Gmass, mu => self%mu_vec, eta => self%eta, &
+                GMcb => cb%Gmass, etacb => cb%eta,)
+         if (npl == 0) return
+         etacb = GMcb
+         eta(1) = GMcb + GMpl(1)
+         mu(1) = eta(1) 
          do i = 2, npl
-            eta(i) = eta(i - 1) + Gmpl(i)
+            eta(i) = eta(i - 1) + GMpl(i)
             mu(i) = Gmsun * eta(i) / eta(i - 1)
          end do
       end associate

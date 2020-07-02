@@ -5,37 +5,34 @@ contains
       !!
       !! Convert from heliocentric to Jacobi coordinates, massive bodies only
       !!
+      !! Uses pre-computed eta rather than computing it each time
+      !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_h2j.f90 
+      !!
       !! Adapted from Hal Levison's Swift routine coord_h2j.f 
       use swiftest
       implicit none
 
       integer(I4B)              :: i
-      real(DP)                  :: eta
       real(DP), dimension(NDIM) :: sumx, sumv, cap, capv
 
-      associate(npl => self%nbody)
-         eta = cb%Gmass 
-         cb%eta = eta
-         do i = 1, npl
-            eta = eta + self%Gmass(i)
-            self%eta(i) = eta
-         end do
+      associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
+                xj => self%xj, vj => self%vj)
          cb%xj(:) = 0.0_DP
          cb%vj(:) = 0.0_DP
          if (npl > 0) then
-            self%xj(1, :) = self%xh(1, :)
-            self%vj(1, :) = self%vh(1, :)
+            xj(1, :) = xh(1, :)
+            vj(1, :) = vh(1, :)
             sumx(:) = 0.0_DP
             sumv(:) = 0.0_DP
          end if
          do i = 2, npl
-            sumx(:) = sumx(:) + self%Gmass(i - 1) * self%xh(i - 1, :)
-            sumv(:) = sumv(:) + self%Gmass(i - 1) * self%vh(i - 1, :)
-            cap(:) = sumx(:) / self%eta(i - 1)
-            capv(:) = sumv(:) / self%eta(i - 1)
-            self%xj(i, :) = self%xh(i, :) - cap(:)
-            self%vj(i, :) = self%vh(i, :) - capv(:)
+            sumx(:) = sumx(:) + GMpl(i - 1) * xh(i - 1, :)
+            sumv(:) = sumv(:) + GMpl(i - 1) * vh(i - 1, :)
+            cap(:) = sumx(:) / eta(i - 1)
+            capv(:) = sumv(:) / eta(i - 1)
+            xj(i, :) = xh(i, :) - cap(:)
+            vj(i, :) = vh(i, :) - capv(:)
          end do
       end associate
     
@@ -45,34 +42,32 @@ contains
    module procedure whm_coord_j2h_pl
       !! author: David A. Minton
       !!
-      !! Convert from Jacobi to heliocentric coordinates, massive bodies only
+      !! Convert from Jacobi to heliocentric coordinates, massive bodies only.
+      !! 
+      !! Uses pre-computed eta rather than computing it each time
+      !!
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_j2h.f90 
+      !!
       !! Adapted from Hal Levison's Swift routine coord_j2h.f 
       use swiftest
       implicit none
       integer(I4B)              :: i
-      real(DP)                  :: eta
       real(DP), dimension(NDIM) :: sumx, sumv
      
-      associate(npl => self%nbody)
-         eta = cb%Gmass
-         cb%eta = eta
-         do i = 1, npl
-            eta = eta + self%Gmass(i)
-            self%eta(i) = eta
-         end do
+      associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
+                xj => self%xj, vj => self%vj)
          if (npl > 0) then
-            self%xh(1, :) = self%xj(1, :)
-            self%vh(1, :) = self%vj(1,:)
+            xh(1, :) = xj(1, :)
+            vh(1, :) = vj(1,:)
             sumx(:) = 0.0_DP
             sumv(:) = 0.0_DP
          end if
          do i = 2, npl 
-            sumx(:) = sumx(:) + self%Gmass(i) * self%xj(i - 1, :) / self%eta(i - 1)
-            sumv(:) = sumv(:) + self%Gmass(i) * self%vj(i - 1, :) / self%eta(i -1)
-            self%xh(i, :) = self%xj(i, :) + sumx(:)
-            self%vh(i, :) = self%vj(i, :) + sumv(:)
+            sumx(:) = sumx(:) + GMpl(i) * xj(i - 1, :) / eta(i - 1)
+            sumv(:) = sumv(:) + GMpl(i) * vj(i - 1, :) / eta(i -1)
+            xh(i, :) = xj(i, :) + sumx(:)
+            vh(i, :) = vj(i, :) + sumv(:)
          end do
       end associate
     
@@ -83,31 +78,27 @@ contains
       !! author: David A. Minton
       !!
       !! Convert from heliocentric to Jadcobi coordinates, massive body velocities only
+      !! 
+      !! Uses pre-computed eta rather than computing it each time
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_vh2vj.f90 
+      !!
       !! Adapted from Hal Levison's Swift routine coord_vh2vj.f 
       use swiftest
       implicit none
       integer(I4B)              :: i
-      real(DP)                  :: eta
       real(DP), dimension(NDIM) :: sumv, capv
 
-      associate(npl => self%nbody)
-         eta = cb%Gmass 
-         cb%eta = eta
-         do i = 1, npl
-            eta = eta + self%Gmass(i)
-            self%eta(i) = eta
-         end do
+      associate(npl => self%nbody, GMpl => self%Gmass, vh => self%vh, vj => self%vj, eta = self%eta)
          cb%vj(:) = 0.0_DP
          if (npl > 0) then
-            self%vj(1, :) = self%vh(1, :)
+            vj(1, :) = vh(1, :)
             sumv(:) = 0.0_DP
          end if
          do i = 2, npl
-            sumv(:) = sumv(:) + self%Gmass(i - 1) * self%vh(i - 1, :)
-            capv(:) = sumv(:) / self%eta(i - 1)
-            self%vj(i, :) = self%vh(i, 1) - capv(:)
+            sumv(:) = sumv(:) + GMpl(i - 1) * vh(i - 1, :)
+            capv(:) = sumv(:) / eta(i - 1)
+            vj(i, :) = vh(i, :) - capv(:)
          end do
       end associate
     
