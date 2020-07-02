@@ -120,20 +120,20 @@ module procedure drift_body
       alpha = 2 * mu / r0 - v0s
       if (alpha > 0.0_DP) then
          a = mu / alpha
-         asq = a * a
+         asq = a**2
          en = sqrt(mu / (a * asq))
          ec = 1.0_DP - r0 / a
          es = u / (en * asq)
-         esq = ec * ec + es * es
+         esq = ec**2 + es**2
          dm = dt * en - int(dt * en / twopi, kind = I4B) * TWOPI
          dt = dm / en
-         if ((esq < E2MAX) .and. (dm * dm < DM2MAX) .and. (esq * dm * dm < e2DM2MAX)) then
+         if ((esq < E2MAX) .and. (dm * dm < DM2MAX) .and. (esq * dm**2 < E2DM2MAX)) then
             call drift_kepmd(dm, es, ec, xkep, s, c)
             fchk = (xkep - ec * s + es * (1.0_DP - c) - dm)
             ! DEK - original code compared fchk*fchk with DANBYB, but i think it should
             ! DEK - be compared with DANBYB*DANBYB, and i changed it accordingly - please
             ! DEK - check with hal and/or martin about this
-            if (fchk * fchk > DANBYB * DANBYB) then
+            if (fchk**2 > DANBYB**2) then
                iflag = 1
                return
             end if

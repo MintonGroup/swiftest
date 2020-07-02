@@ -24,7 +24,7 @@ submodule(swiftest_operators) operator_mag_implementation
       implicit none
       real(SP), intent(in) :: Ax, Ay, Az
       real(SP) :: B
-      B = sqrt(Ax * Ax + Ay * Ay + Az * Az) 
+      B = sqrt(Ax**2 + Ay**2 + Az**2) 
       return
    end function operator_vecelem_sp
 
@@ -34,7 +34,7 @@ submodule(swiftest_operators) operator_mag_implementation
       implicit none
       real(DP), intent(in) :: Ax, Ay, Az
       real(DP) :: B
-      B = sqrt(Ax * Ax + Ay * Ay + Az * Az) 
+      B = sqrt(Ax**2 + Ay**2 + Az**2) 
       return
    end function operator_vecelem_dp
 
