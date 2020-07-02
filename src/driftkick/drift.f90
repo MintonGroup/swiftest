@@ -110,6 +110,7 @@ module procedure drift_body
       implicit none
       real(DP)        :: dt, f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
       real(DP)        :: v0s, a, asq, en, dm, ec, es, esq, xkep, fchk, s, c
+      real(DP), dimension(NDIM) :: x, v
    
       iflag = 0
       dt = dt0
@@ -124,11 +125,11 @@ module procedure drift_body
          ec = 1.0_DP - r0 / a
          es = u / (en * asq)
          esq = ec * ec + es * es
-         dm = dt * en - int(dt * en / twopi, kind=I4B) * TWOPI
+         dm = dt * en - int(dt * en / twopi, kind = I4B) * TWOPI
          dt = dm / en
          if ((esq < E2MAX) .and. (dm * dm < DM2MAX) .and. (esq * dm * dm < e2DM2MAX)) then
             call drift_kepmd(dm, es, ec, xkep, s, c)
-            fchk = (xkep - ec * s + es*(1.0_DP - c) - dm)
+            fchk = (xkep - ec * s + es * (1.0_DP - c) - dm)
             ! DEK - original code compared fchk*fchk with DANBYB, but i think it should
             ! DEK - be compared with DANBYB*DANBYB, and i changed it accordingly - please
             ! DEK - check with hal and/or martin about this
@@ -141,8 +142,10 @@ module procedure drift_body
             g = dt + (s - xkep) / en
             fdot = -(a / (r0 * fp)) * en * s
             gdot = (c - 1.0_DP) / fp + 1.0_DP
-            x0(:) = x0(:) * f + v0(:) * g
-            v0(:) = x0(:) * fdot + v0(:) * gdot
+            x(:) = x0(:) * f + v0(:) * g
+            v(:) = x0(:) * fdot + v0(:) * gdot
+            x0(:) = x(:)
+            v0(:) = v(:)
             iflag = 0
             return
          end if
@@ -154,8 +157,10 @@ module procedure drift_body
          g = dt - mu * c3
          fdot = -mu / (fp * r0) * c1
          gdot = 1.0_DP - mu / fp * c2
-         x0(:) = x0(:) * f + v0(:) * g
-         v0(:) = x0(:) * fdot + v0(:) * gdot
+         x(:) = x0(:) * f + v0(:) * g
+         v(:) = x0(:) * fdot + v0(:) * gdot
+         x0(:) = x(:)
+         v0(:) = v(:)
       end if
       return
    end procedure drift_dan
