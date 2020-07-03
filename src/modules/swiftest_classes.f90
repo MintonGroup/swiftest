@@ -40,7 +40,7 @@ module swiftest_classes
       real(DP)             :: qmin_alo       = -1.0_DP            !! Minimum semimajor axis for qmin
       real(DP)             :: qmin_ahi       = -1.0_DP            !! Maximum semimajor axis for qmin
       character(STRMAX)    :: encounter_file = ENC_OUTFILE        !! Name of output file for encounters
-      real(DP)             :: mtiny          = -1.0_DP            !! Smallest mass that is fully gravitating
+      real(DP)             :: MTINY          = -1.0_DP            !! Smallest mass that is fully gravitating
       real(DP)             :: MU2KG          = -1.0_DP            !! Converts mass units to grams
       real(DP)             :: TU2S           = -1.0_DP            !! Converts time units to seconds
       real(DP)             :: DU2M           = -1.0_DP            !! Converts distance unit to centimeters
