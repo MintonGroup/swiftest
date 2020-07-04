@@ -144,8 +144,12 @@ contains
       write(iu) self%j2rp2 
       write(iu) self%j4rp4 
       if (config%lrotation) then
-         write(iu) self%Ip(:)
-         write(iu) self%rot(:)
+         write(iu) self%Ip(1)
+         write(iu) self%Ip(2)
+         write(iu) self%Ip(3)
+         write(iu) self%rot(1)
+         write(iu) self%rot(2)
+         write(iu) self%rot(3)
       end if
       if (config%ltides) then
          write(iu) self%k2

@@ -21,7 +21,7 @@ contains
       !! Add user-supplied heliocentric accelerations to test particles
       !!
       !! 
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_user_getacch_tp.f90
       use swiftest
       implicit none
    
