@@ -222,13 +222,21 @@ def swifter_stream(f, param):
     t    : float
         Time of this frame
     npl  : int
+        Number of massive bodies
     plid : int array
+        IDs of massive bodies
     pvec : float array
+        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Mass, Radius, etc)
     plab : string list
+        Labels for the pvec data
     ntp  : int
+        Number of test particles
     tpid : int array
+        Ids of test particles
     tvec : float array
+        (ntp,N) - vector of N quantities for each particle (6 of XV/EL, etc.)
     tlab : string list
+        Labels for the tvec data
     """
     while True:  # Loop until you read the end of file
         try:
@@ -284,6 +292,39 @@ def swifter_stream(f, param):
               ntp, tpid, tvec.T, tlab
 
 def swiftest_stream(f, config):
+    """
+    Reads in a Swifter bin.dat file and returns a single frame of data as a datastream
+
+    Parameters
+    ----------
+    f : file object
+    param : dict
+
+    Yields
+    -------
+    t    : float
+        Time of this frame
+    cbid : int array
+        ID of central body (always returns 0)
+    cvec : float array
+        (npl,1) - vector of quantities for the massive body (Mass, Radius, J2, J4, etc)
+    npl  : int
+        Number of massive bodies
+    plid : int array
+        IDs of massive bodies
+    pvec : float array
+        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Mass, Radius, etc)
+    plab : string list
+        Labels for the pvec data
+    ntp  : int
+        Number of test particles
+    tpid : int array
+        Ids of test particles
+    tvec : float array
+        (ntp,N) - vector of N quantities for each particle (6 of XV/EL, etc.)
+    tlab : string list
+        Labels for the tvec data
+    """
     while True:  # Loop until you read the end of file
         try:
             # Read multi-line header
@@ -417,8 +458,8 @@ def swifter2xr(param):
             pl.append(plxr)
             tp.append(tpxr)
 
-        plda = xr.concat(pl, dim='time')
-        tpda = xr.concat(tp, dim='time')
+        plda = xr.concat(pl, coords='minimal', dim='time')
+        tpda = xr.concat(tp, coords='minimal', dim='time')
 
         plds = plda.to_dataset(dim='vec')
         tpds = tpda.to_dataset(dim='vec')
