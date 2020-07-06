@@ -47,15 +47,15 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 # this is done explicitly as needed in the Makefile
 
 #FORTRAN         = ifort
-#FFLAGS          = -O3 -qopenmp -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
+#FFLAGS          = -O3 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
 #debug flags
-#FFLAGS          = -O -static-intel -fpe-all=0 -traceback -g -check all -CB -debug all -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
+#FFLAGS          = -O0 -static-intel -fpe-all=0 -traceback -g -check all -CB -debug all -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
 
 
 FORTRAN         = gfortran
 #FFLAGS          = -Ofast -ftree-parallelize-loops=2 #-fbacktrace -fbounds-check -fcheck=all
 #debug flags
-FFLAGS		= -O0 -static -g -fimplicit-none -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace #-fsanitize=undefined -fsanitize=address -fsanitize=leak -Wall -Warray-bounds  -Wimplicit-interface -Wextra 
+FFLAGS		= -O0 -g -fimplicit-none -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace #-fsanitize=undefined -fsanitize=address -fsanitize=leak -Wall -Warray-bounds  -Wimplicit-interface -Wextra 
 
 #-Warray-temporaries
 
