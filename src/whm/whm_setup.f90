@@ -81,6 +81,12 @@ contains
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(self%tp%nbody)
 
+      select type(pl => self%pl)
+      class is (whm_pl)
+         call whm_setup_set_eta(pl, self%cb)
+      end select
+
+
    end procedure whm_setup_system
 
 

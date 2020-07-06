@@ -33,7 +33,7 @@ contains
       irh(:)= 1.0_DP / sqrt(r2(1:npl))
       ir3h(:) = irh(1:npl) / r2(1:npl)
 
-      ah0(:) = 0.0_DP
+      ah0(1) = 0.0_DP
 
       fac(2:npl) = Gmpl(2:npl) * ir3h(2:npl)
       do concurrent (i = 1:NDIM)
@@ -71,12 +71,13 @@ contains
       use swiftest
       implicit none
       integer(I4B)                                 :: i
-      real(DP), dimension(:), allocatable, save    :: r2, r2t, fac, mu
+      real(DP), dimension(:), allocatable, save    :: r2, fac, mu
       real(DP), dimension(:), allocatable, save    :: irh, ir3h
       real(DP), dimension(:), allocatable, save    :: irht
       real(DP), dimension(:, :), allocatable, save :: aobl
       real(DP), dimension(:, :), allocatable, save :: xht, aoblt
       real(DP), dimension(NDIM)                    :: ah0
+      real(DP)                                     ::r2t
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
                 status => self%status, xht => self%xh, Gmpl => pl%Gmass, &
@@ -92,8 +93,8 @@ contains
          ir3h(:) = irh(1:npl) / r2(1:npl)
 
          do concurrent (i = 1:ntp, status(i) == ACTIVE)
-            r2t(i) = xht(i, :) .dot. xht(i, :) 
-            irht(i) = 1.0_DP / sqrt(r2t(i))
+            r2t = xht(i, :) .dot. xht(i, :) 
+            irht(i) = 1.0_DP / sqrt(r2t)
          end do
 
          ah0(:) = 0.0_DP

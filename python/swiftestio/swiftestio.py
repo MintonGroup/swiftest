@@ -159,7 +159,7 @@ def read_swiftest_config(config_file_name):
     }
 
     # Read config.in file
-    print(f'Reading Swifter file {config_file_name}' )
+    print(f'Reading Swiftest file {config_file_name}' )
     f = open(config_file_name, 'r')
     swiftestlines = f.readlines()
     f.close()
@@ -399,8 +399,9 @@ def swiftest_stream(f, config):
               ntp, tpid, tvec.T, tlab
 
 def swifter2xr(param):
-    dims  = ['Time','id', 'vec']
-    lfirst = True
+    dims  = ['time','id', 'vec']
+    pl = []
+    tp = []
     with FortranFile(param['BIN_OUT'], 'r') as f:
         for t, npl, plid, pvec, plab, \
               ntp, tpid, tvec, tlab in swifter_stream(f, param):
@@ -410,27 +411,27 @@ def swifter2xr(param):
             tpframe = np.expand_dims(tvec, axis=0)
 
             #Create xarray DataArrays out of each body type
-            pl = xr.DataArray(plframe, dims = dims, coords = {'Time' : t, 'id' : plid, 'vec' : plab})
-            tp = xr.DataArray(tpframe, dims = dims, coords = {'Time' : t, 'id' : tpid, 'vec' : tlab})
+            plxr = xr.DataArray(plframe, dims = dims, coords = {'time' : t, 'id' : plid, 'vec' : plab})
+            tpxr = xr.DataArray(tpframe, dims = dims, coords = {'time' : t, 'id' : tpid, 'vec' : tlab})
 
-            #Split the DataArrays into Datasets using the labeled dimensions returned by the data strem
-            pl = pl.to_dataset(dim = 'vec')
-            tp = tp.to_dataset(dim = 'vec')
+            pl.append(plxr)
+            tp.append(tpxr)
 
-            # Combine the Datasets into a single frame
-            frame = xr.combine_by_coords([pl,tp])
-            if lfirst: # This is the first frame of the file, so use it to build the complete Datasett
-                ds = frame.copy()
-                lfirst = False
-            else: # Merge the new frame with the complete Dataset
-                ds = xr.combine_by_coords([ds,frame])
+        plda = xr.concat(pl, dim='time')
+        tpda = xr.concat(tp, dim='time')
+
+        plds = plda.to_dataset(dim='vec')
+        tpds = tpda.to_dataset(dim='vec')
+        ds = xr.combine_by_coords([plds, tpds])
     return ds
 
 def swiftest2xr(config):
     """Reads in the """
 
-    dims  = ['Time','id', 'vec']
-    lfirst = True
+    dims  = ['time','id', 'vec']
+    cb = []
+    pl = []
+    tp = []
     with FortranFile(config['BIN_OUT'], 'r') as f:
         for t, cbid, cvec, clab, \
               npl, plid, pvec, plab, \
@@ -442,27 +443,27 @@ def swiftest2xr(config):
             tpframe = np.expand_dims(tvec, axis=0)
 
             #Create xarray DataArrays out of each body type
-            cb = xr.DataArray(cbframe, dims = dims, coords = {'Time' : t, 'id' : cbid, 'vec' : clab})
-            pl = xr.DataArray(plframe, dims = dims, coords = {'Time' : t, 'id' : plid, 'vec' : plab})
-            tp = xr.DataArray(tpframe, dims = dims, coords = {'Time' : t, 'id' : tpid, 'vec' : tlab})
+            cbxr = xr.DataArray(cbframe, dims = dims, coords = {'time' : t, 'id' : cbid, 'vec' : clab})
+            plxr = xr.DataArray(plframe, dims = dims, coords = {'time' : t, 'id' : plid, 'vec' : plab})
+            tpxr = xr.DataArray(tpframe, dims = dims, coords = {'time' : t, 'id' : tpid, 'vec' : tlab})
 
-            #Split the DataArrays into Datasets using the labeled dimensions returned by the data strem
-            cb = cb.to_dataset(dim = 'vec')
-            pl = pl.to_dataset(dim = 'vec')
-            tp = tp.to_dataset(dim = 'vec')
+            cb.append(cbxr)
+            pl.append(plxr)
+            tp.append(tpxr)
 
-            # Combine the Datasets into a single frame
-            frame = xr.combine_by_coords([cb,pl,tp])
-            if lfirst: # This is the first frame of the file, so use it to build the complete Datasett
-                ds = frame.copy()
-                lfirst = False
-            else: # Merge the new frame with the complete Dataset
-                ds = xr.combine_by_coords([ds,frame])
+    cbda = xr.concat(cb,coords='minimal', dim='time')
+    plda = xr.concat(pl,coords='minimal', dim='time')
+    tpda = xr.concat(tp,coords='minimal', dim='time')
+
+    cbds = cbda.to_dataset(dim = 'vec')
+    plds = plda.to_dataset(dim = 'vec')
+    tpds = tpda.to_dataset(dim = 'vec')
+    ds = xr.combine_by_coords([cbds, plds, tpds])
     return ds
 
 if __name__ == '__main__':
 
-    workingdir = 'keplerian/'
+    workingdir = '/Users/daminton/work/Projects/Swiftest/swiftest_whm_test/keplerian/'
     inparfile = workingdir + 'param.in'
     param = read_swifter_param(inparfile)
     param['BIN_OUT'] = workingdir + param['BIN_OUT']
@@ -472,7 +473,7 @@ if __name__ == '__main__':
     config['BIN_OUT'] = workingdir + config['BIN_OUT']
 
     swiftestdat = swiftest2xr(config)
-    swifterdat = swifter2xr(param)
+    #swifterdat = swifter2xr(param)
     #print(swiftestdat['a'])
     #print(swiftestdf.head())
 

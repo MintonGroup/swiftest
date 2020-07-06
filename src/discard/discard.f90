@@ -155,7 +155,7 @@ contains
                   dx(:) = tp%xh(i, :) - pl%xh(j, :)
                   dv(:) = tp%vh(i, :) - pl%vh(j, :)
                   radius = pl%radius(j)
-                  call discard_pl_close(dx(:), dv(:), dt, radius * radius, isp, r2min)
+                  call discard_pl_close(dx(:), dv(:), dt, radius**2, isp, r2min)
                   if (isp /= 0) then
                      tp%status(i) = DISCARDED_PLR
                      pl%ldiscard(j) = .true.
@@ -196,7 +196,7 @@ contains
             if (tmin < dt) then
                r2min = r2 - vdotr * vdotr / v2
             else
-               r2min = r2 + 2 * vdotr * dt + v2 * dt * dt
+               r2min = r2 + 2 * vdotr * dt + v2 * dt**2
             end if
             r2min = min(r2min, r2)
             if (r2min <= r2crit) then
