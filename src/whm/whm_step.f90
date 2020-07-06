@@ -52,15 +52,14 @@ contains
                      if (is_pl) then
                         call pl%drift(cb, config, dt)
                         if (.not.allocated(xend)) allocate(xend(npl,NDIM))
+                        if (config%lgr) call pl%gr_p4(config, dth)
+                        call pl%j2h(cb)
                         xend(:, :) = pl%xh(1:npl, :)
                      else
                         if (.not.allocated(xend)) allocate(xend(1,NDIM))
                         xend(:, :) = 0.0_DP
                      end if
                      call tp%drift(cb, config, dt)
-                     if (config%lgr .and. is_pl) call pl%gr_p4(config, dth)
-      
-                     call pl%j2h(cb)
       
                      call pl%getacch(cb, config, t + dt)
                      call tp%getacch(cb, pl, config, t + dt, xend)
