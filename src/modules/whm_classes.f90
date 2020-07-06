@@ -20,7 +20,6 @@ module whm_classes
    !*******************************************************************************************************************************
    !> WHM central body particle class
    type, public, extends(swiftest_central_body) :: whm_central_body
-      real(DP)                  :: eta     ! Jacobi mass
       real(DP), dimension(NDIM) :: xj      ! Jacobi position
       real(DP), dimension(NDIM) :: vj      ! Jacobi velocity
    contains
@@ -46,7 +45,7 @@ module whm_classes
       procedure, public :: vh2vj        => whm_coord_vh2vj_pl  !! Convert velocity vectors from heliocentric to Jacobi coordinates 
       procedure, public :: setup        => whm_setup_pl        !! Constructor method - Allocates space for number of particles
       procedure, public :: getacch      => whm_getacch_pl      !! Compute heliocentric accelerations of massive bodies
-      procedure         :: set_vec_mu   => whm_setup_set_eta   !! Sets the Jacobi mass value for all massive bodies.
+      procedure, public :: set_mu       => whm_setup_set_mu_eta_pl  !! Sets the Jacobi mass value for all massive bodies.
       procedure, public :: user_getacch => whm_user_getacch_pl !! User-defined acceleration
       procedure, public :: drift        => whm_drift_pl        !! Loop through massive bodies and call Danby drift routine
    end type whm_pl
@@ -59,11 +58,11 @@ module whm_classes
          integer, intent(in)             :: n    !! Number of test particles to allocate
       end subroutine whm_setup_pl
 
-      module subroutine whm_setup_set_eta(self, cb)
+      module subroutine whm_setup_set_mu_eta_pl(self, cb)
          implicit none
          class(whm_pl),                intent(inout) :: self    !! Swiftest system object
          class(swiftest_central_body), intent(inout) :: cb     !! WHM central body particle data structure
-      end subroutine whm_setup_set_eta
+      end subroutine whm_setup_set_mu_eta_pl
 
       !> Get heliocentric accelration of massive bodies
       module subroutine whm_getacch_pl(self, cb, config, t)

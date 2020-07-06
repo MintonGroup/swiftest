@@ -112,11 +112,8 @@ contains
          discards%capm(:)    = pack(keeps%capm(1:n),          lspill_list(1:n))
          keeps%capm(:)       = pack(keeps%capm(1:n),    .not. lspill_list(1:n))
 
-         discards%mu_vec(:) = pack(keeps%mu_vec(1:n),         lspill_list(1:n))
-         keeps%mu_vec(:)    = pack(keeps%mu_vec(1:n),   .not. lspill_list(1:n))
-
-         discards%dt_vec(:) = pack(keeps%dt_vec(1:n),         lspill_list(1:n))
-         keeps%dt_vec(:)    = pack(keeps%dt_vec(1:n),   .not. lspill_list(1:n))
+         discards%mu(:) = pack(keeps%mu(1:n),         lspill_list(1:n))
+         keeps%mu(:)    = pack(keeps%mu(1:n),   .not. lspill_list(1:n))
 
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nbody values for both the keeps and discareds

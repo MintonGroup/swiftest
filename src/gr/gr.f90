@@ -16,7 +16,7 @@ contains
       real(DP), dimension(:), allocatable :: rjmag4, beta
       
 
-      associate(n => self%nbody, msun => cb%Gmass, mu => self%mu_vec, c2 => config%inv_c2, ah => self%ah)
+      associate(n => self%nbody, msun => cb%Gmass, mu => self%mu, c2 => config%inv_c2, ah => self%ah)
          allocate(rjmag4(n))
          select type(self)
          class is (whm_pl)
@@ -98,7 +98,7 @@ contains
       implicit none
       integer(I4B) :: i
       
-      associate(n => self%nbody, xh => self%xh, vh => self%vh, mu => self%mu_vec, status => self%status)
+      associate(n => self%nbody, xh => self%xh, vh => self%vh, mu => self%mu, status => self%status)
          do concurrent(i = 1:n, status(i) == ACTIVE)
             call gr_vel2pseudovel(config, mu(i), xh(i, :), vh(i, :), pv(i, :))
          end do
@@ -185,7 +185,7 @@ contains
 
       integer(I4B) :: i
       
-      associate(n => self%nbody, xh => self%xh, pv => self%vh, mu => self%mu_vec, status => self%status)
+      associate(n => self%nbody, xh => self%xh, pv => self%vh, mu => self%mu, status => self%status)
          do concurrent(i = 1:n, status(i) == ACTIVE)
             call gr_pseudovel2vel(config, mu(i), xh(i, :), pv(i, :), vh(i, :))
          end do
@@ -228,7 +228,7 @@ contains
       real(DP)                  :: rmag, rdotv, vmag2
       integer(I4B)              :: i
 
-      associate(n => self%nbody, msun => cb%Gmass, vbsun => cb%vb, xbsun => cb%xb, mu => self%mu_vec, c2 => config%inv_c2, &
+      associate(n => self%nbody, msun => cb%Gmass, vbsun => cb%vb, xbsun => cb%xb, mu => self%mu, c2 => config%inv_c2, &
                 xb => self%xb, vb => self%vb)
          do i = 1, n
             xh(:) = xb(i, :) - xbsun(:)

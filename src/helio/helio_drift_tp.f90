@@ -16,9 +16,9 @@ contains
 
    associate(ntp => self%nbody)
       allocate(iflag(ntp))
-      call drift_one(self%mu_vec(:), self%xh(:, 1), self%xh(:, 2), self%xh(:, 3),& 
+      call drift_one(self%mu(:), self%xh(:, 1), self%xh(:, 2), self%xh(:, 3),& 
                                      self%vb(:, 1), self%vb(:, 2), self%vb(:, 3),&
-                                     self%dt_vec(:), iflag(:))
+                                     iflag(:))
       if (any(iflag(:) /= 0 )) then
          do i = 1,ntp
             if (iflag(i) /= 0) then

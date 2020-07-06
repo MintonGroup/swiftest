@@ -406,10 +406,8 @@ contains
       call self%pl%initialize(config)
       call self%tp%initialize(config)
       call self%set_msys()
-      call self%pl%set_vec(config%dt)
-      call self%pl%set_vec(self%cb) 
-      call self%tp%set_vec(config%dt)
-      call self%tp%set_vec(self%cb) 
+      call self%pl%set_mu(self%cb) 
+      call self%tp%set_mu(self%cb) 
    
    end procedure io_read_initialize_system
 

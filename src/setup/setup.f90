@@ -70,8 +70,7 @@ contains
       allocate(self%capom(n))
       allocate(self%omega(n))
       allocate(self%capm(n))
-      allocate(self%mu_vec(n))
-      allocate(self%dt_vec(n))
+      allocate(self%mu(n))
 
       self%name(:)   = 0
       self%status(:) = INACTIVE
@@ -89,8 +88,7 @@ contains
       self%omega(:)  = 0.0_DP
       self%capm(:)   = 0.0_DP
       self%a(:)      = 0.0_DP
-      self%mu_vec(:) = 0.0_DP
-      self%dt_vec(:) = 0.0_DP
+      self%mu(:)     = 0.0_DP
 
       return
    end procedure setup_body
@@ -160,40 +158,28 @@ contains
       return
    end procedure setup_set_msys
 
-   module procedure setup_set_vec_dt
-      !! author: David A. Minton
-      !!
-      !! Converts scalar dt value into vector for use in elemental functions
-      use swiftest
-      implicit none
-
-      if (self%nbody > 0) self%dt_vec(:) = dt
-
-      return
-   end procedure setup_set_vec_dt
-
-   module procedure setup_set_vec_mu_pl
+   module procedure setup_set_mu_pl
       !! author: David A. Minton
       !!
       !! Computes G * (M + m) for each massive body
       use swiftest
       implicit none
 
-      if (self%nbody > 0) self%mu_vec(:) = cb%Gmass + self%Gmass(:)
+      if (self%nbody > 0) self%mu(:) = cb%Gmass + self%Gmass(:)
 
       return
-   end procedure setup_set_vec_mu_pl
+   end procedure setup_set_mu_pl
 
-   module procedure setup_set_vec_mu_tp
+   module procedure setup_set_mu_tp
       !! author: David A. Minton
       !!
       !! Converts certain scalar values to arrays so that they can be used in elemental functions
       use swiftest
       implicit none
 
-      if (self%nbody > 0) self%mu_vec(:) = cb%Gmass
+      if (self%nbody > 0) self%mu(:) = cb%Gmass
 
       return
-   end procedure setup_set_vec_mu_tp
+   end procedure setup_set_mu_tp
 
 end submodule setup_implementations

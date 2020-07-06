@@ -8,12 +8,12 @@ contains
       use swiftest
       implicit none
    
-      call self%set_vec(cb)
+      call self%set_mu(cb)
       associate(n => self%nbody)
-         call orbel_el2xv(self%mu_vec(1:n), self%xh(1:n, 1),  self%xh(1:n, 2),  self%xh(1:n, 3), &
-                                          self%vh(1:n, 1),  self%vh(1:n, 2),  self%vh(1:n, 3), &
-                                          self%a(1:n),     self%e(1:n),     self%inc(1:n),  &
-                                          self%capom(1:n), self%omega(1:n), self%capm(1:n))
+         call orbel_el2xv(self%mu(1:n), self%xh(1:n, 1),  self%xh(1:n, 2),  self%xh(1:n, 3), &
+                                        self%vh(1:n, 1),  self%vh(1:n, 2),  self%vh(1:n, 3), &
+                                        self%a(1:n),     self%e(1:n),     self%inc(1:n),  &
+                                        self%capom(1:n), self%omega(1:n), self%capm(1:n))
       end associate
    end procedure orbel_el2xv_vec
 

@@ -46,29 +46,24 @@ contains
       return
    end procedure whm_setup_tp
 
-   module procedure whm_setup_set_eta
+   module procedure whm_setup_set_mu_eta_pl
       !! author: David A. Minton
       !!
       !! Sets the Jacobi mass value eta for all massive bodies
       implicit none
       integer(I4B) :: i
 
-      select type(cb)
-      class is (whm_central_body)
-         associate(npl => self%nbody,  GMpl => self%Gmass, mu => self%mu_vec, eta => self%eta, &
-                   GMcb => cb%Gmass, etacb => cb%eta)
-            if (npl == 0) return
-            etacb = GMcb
-            eta(1) = GMcb + GMpl(1)
-            mu(1) = eta(1) 
-            do i = 2, npl
-               eta(i) = eta(i - 1) + GMpl(i)
-               mu(i) = GMcb * eta(i) / eta(i - 1)
-            end do
-         end associate
-      end select
+      associate(npl => self%nbody,  GMpl => self%Gmass, mu => self%mu, eta => self%eta, GMcb => cb%Gmass)
+         if (npl == 0) return
+         eta(1) = GMcb + GMpl(1)
+         mu(1) = eta(1) 
+         do i = 2, npl
+            eta(i) = eta(i - 1) + GMpl(i)
+            mu(i) = GMcb * eta(i) / eta(i - 1)
+         end do
+      end associate
 
-   end procedure whm_setup_set_eta
+   end procedure whm_setup_set_mu_eta_pl
 
    module procedure whm_setup_system
       !! author: David A. Minton
@@ -83,9 +78,8 @@ contains
 
       select type(pl => self%pl)
       class is (whm_pl)
-         call whm_setup_set_eta(pl, self%cb)
+         call pl%set_mu(self%cb)
       end select
-
 
    end procedure whm_setup_system
 

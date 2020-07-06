@@ -87,7 +87,6 @@ contains
          if(.not.allocated(irh)) allocate(irh(npl))
          if (.not.allocated(ir3h)) allocate(ir3h(npl))
          if (.not. allocated(irht)) allocate(irht(ntp))
-         if (.not. allocated(r2t)) allocate(r2t(ntp))
          r2(:) = xh(1:npl, :) .dot. xh(1:npl, :)
          irh(:)= 1.0_DP / sqrt(r2(1:npl))
          ir3h(:) = irh(1:npl) / r2(1:npl)

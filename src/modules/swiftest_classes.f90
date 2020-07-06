@@ -47,7 +47,6 @@ module swiftest_classes
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
 
-
       !Logical flags to turn on or off various features of the code
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
@@ -242,12 +241,12 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: capom      !! Longitude of ascending node
       real(DP),     dimension(:),   allocatable :: omega      !! Argument of pericenter
       real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
-      real(DP),     dimension(:),   allocatable :: mu_vec     !! Vectorized central mass term used for elemental functions
-      real(DP),     dimension(:),   allocatable :: dt_vec     !! Vectorized stepsize used for elemental functions
+      real(DP),     dimension(:),   allocatable :: mu         !! G * (Mcb + [m])
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and discard_spill
    contains
       private
+      procedure(abstract_set_mu),  public, deferred :: set_mu
       ! These are concrete because the implementation is the same for all types of particles
       procedure, public :: b2h         => coord_b2h_body      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: drift       => drift_body          !! Drifts particles on Keplerian orbits with Danby's method
@@ -263,26 +262,19 @@ module swiftest_classes
       procedure, public :: kickvh      => kick_vh_body        !! Kicks the heliocentric velocities
       procedure, public :: obl_acc     => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure         :: set_vec_dt  => setup_set_vec_dt    !! Vectorizes scalar dt quantity for use in elemental procedures
       procedure, public :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure, public :: vb2vh       => coord_vb2vh_body    !! Convert velocity vectors from barycentric to heliocentric coordinates 
       procedure, public :: vh2vb       => coord_vh2vb_body    !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure, public :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
-
-      ! Abstract coordinate transform methods that are common for all types of nbody particles
-      ! These are abstract because the implementation depends on the type of particle (tp vs pl)
-      procedure(abstract_set_vec_mu_body), deferred :: set_vec_mu !! Vectorizes certain scalar quantities to use them in elemental procedures
-      generic, public :: set_vec => set_vec_mu, set_vec_dt
    end type swiftest_body
 
-   !> Interfaces for abstract type-bound procedures for swiftest_body
    abstract interface
-      subroutine abstract_set_vec_mu_body(self, cb)
-         import DP, swiftest_body, swiftest_central_body
+      subroutine abstract_set_mu(self, cb) 
+         import swiftest_body, swiftest_central_body
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine abstract_set_vec_mu_body
+         class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body objectt
+      end subroutine abstract_set_mu
    end interface
 
    !> Interfaces for concrete type-bound procedures for swiftest_body
@@ -426,12 +418,6 @@ module swiftest_classes
          integer,                      intent(in)    :: n    !! Number of particles to allocate space for
       end subroutine setup_body
 
-      module subroutine setup_set_vec_dt(self, dt)
-         implicit none
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         real(DP),                     intent(in)    :: dt   !! Stepsize to vectorize
-      end subroutine setup_set_vec_dt
-
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
@@ -467,18 +453,18 @@ module swiftest_classes
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
 
-      procedure, public :: setup       => setup_pl            !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
-      procedure, public :: set_vec_mu  => setup_set_vec_mu_pl !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: obl_pot     => obl_pot_pl          !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      procedure, public :: setup   => setup_pl        !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
+      procedure, public :: set_mu  => setup_set_mu_pl !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: obl_pot => obl_pot_pl      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
    end type swiftest_pl
 
    !> Interfaces for concrete type-bound procedures for swiftest_pl
    interface
-      module subroutine setup_set_vec_mu_pl(self, cb)
+      module subroutine setup_set_mu_pl(self, cb)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
          class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body objectt
-      end subroutine setup_set_vec_mu_pl
+      end subroutine setup_set_mu_pl
 
       module subroutine setup_pl(self,n)
          implicit none
@@ -511,11 +497,11 @@ module swiftest_classes
       private
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: setup       => setup_tp            !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_vec_mu  => setup_set_vec_mu_tp !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: discard_sun => discard_sun_tp      !! Check to see if test particles should be discarded based on their positions relative to the Sun
-      procedure, public :: discard_peri => discard_peri_tp    !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
-      procedure, public :: discard_pl => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      procedure, public :: setup        => setup_tp        !! A base constructor that sets the number of bodies and 
+      procedure, public :: set_mu       => setup_set_mu_tp !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: discard_sun  => discard_sun_tp  !! Check to see if test particles should be discarded based on their positions relative to the Sun
+      procedure, public :: discard_peri => discard_peri_tp !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
+      procedure, public :: discard_pl   => discard_pl_tp   !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
    end type swiftest_tp
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp
@@ -549,11 +535,11 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine discard_pl_tp
 
-      module subroutine setup_set_vec_mu_tp(self, cb)
+      module subroutine setup_set_mu_tp(self, cb)
          implicit none
          class(swiftest_tp),           intent(inout) :: self !! Swiftest particle object
          class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body objectt
-      end subroutine setup_set_vec_mu_tp
+      end subroutine setup_set_mu_tp
 
       module subroutine setup_tp(self,n)
          implicit none
