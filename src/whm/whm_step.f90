@@ -9,7 +9,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_step.f90
       use swiftest
       implicit none
-      real(DP), dimension(:, :), allocatable, save :: xbeg, xend
+      !real(DP), dimension(:, :), allocatable, save :: xbeg, xend
       logical, save :: lfirst = .true.
       real(DP) :: dth
   
@@ -30,39 +30,26 @@ contains
                   select type(tp => self%tp)
                   class is (whm_tp)
                   associate(xht => tp%xh, vht => tp%vh, aht => tp%ah) ! These associations aid in debugging with gdb
-                     if (is_pl) then
-                        if (.not.allocated(xbeg)) allocate(xbeg(npl,NDIM))
-                        xbeg(:, :) = pl%xh(1:npl, :)
-                     else
-                        if (.not.allocated(xbeg)) allocate(xbeg(1,NDIM))
-                        xbeg(:, :) = 0.0_DP
-                     end if
                      if (lfirst) then
                         call pl%h2j(cb)
                         call pl%getacch(cb, config, t)
-                        call tp%getacch(cb, pl, config, t, xbeg)
+                        call tp%getacch(cb, pl, config, t)
                         lfirst = .false.
                      end if
                      call pl%kickvh(dth)
                      call tp%kickvh(dth)
       
                      call pl%vh2vj(cb) 
-                     if (config%lgr .and. is_pl) call pl%gr_p4(config, dth)
+                     if (config%lgr) call pl%gr_p4(config, dth)
       
-                     if (is_pl) then
-                        call pl%drift(cb, config, dt)
-                        if (.not.allocated(xend)) allocate(xend(npl,NDIM))
-                        if (config%lgr) call pl%gr_p4(config, dth)
-                        call pl%j2h(cb)
-                        xend(:, :) = pl%xh(1:npl, :)
-                     else
-                        if (.not.allocated(xend)) allocate(xend(1,NDIM))
-                        xend(:, :) = 0.0_DP
-                     end if
+                     call pl%drift(cb, config, dt)
+                     if (config%lgr) call pl%gr_p4(config, dth)
+                     call pl%j2h(cb)
+
                      call tp%drift(cb, config, dt)
-      
+
                      call pl%getacch(cb, config, t + dt)
-                     call tp%getacch(cb, pl, config, t + dt, xend)
+                     call tp%getacch(cb, pl, config, t + dt)
       
                      call pl%kickvh(dth)
                      call tp%kickvh(dth)

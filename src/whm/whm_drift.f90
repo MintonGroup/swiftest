@@ -22,6 +22,8 @@ module procedure whm_drift_pl
       status => self%status,&
       mu     => self%mu)
 
+      if (npl == 0) return
+
       allocate(iflag(npl))
       iflag(:) = 0
       
@@ -70,6 +72,7 @@ module procedure whm_drift_pl
                 vh     => self%vh, &
                 status => self%status,&
                 mu     => self%mu)
+         if (ntp == 0) return
          allocate(iflag(ntp))
          iflag(:) = 0
          do concurrent (i = 1:ntp, status(i) == ACTIVE) 
