@@ -458,8 +458,8 @@ def swifter2xr(param):
             pl.append(plxr)
             tp.append(tpxr)
 
-        plda = xr.concat(pl, coords='minimal', dim='time')
-        tpda = xr.concat(tp, coords='minimal', dim='time')
+        plda = xr.concat(pl, dim='time')
+        tpda = xr.concat(tp, dim='time')
 
         plds = plda.to_dataset(dim='vec')
         tpds = tpda.to_dataset(dim='vec')
@@ -492,9 +492,9 @@ def swiftest2xr(config):
             pl.append(plxr)
             tp.append(tpxr)
 
-    cbda = xr.concat(cb,coords='minimal', dim='time')
-    plda = xr.concat(pl,coords='minimal', dim='time')
-    tpda = xr.concat(tp,coords='minimal', dim='time')
+    cbda = xr.concat(cb,dim='time')
+    plda = xr.concat(pl,dim='time')
+    tpda = xr.concat(tp,dim='time')
 
     cbds = cbda.to_dataset(dim = 'vec')
     plds = plda.to_dataset(dim = 'vec')
