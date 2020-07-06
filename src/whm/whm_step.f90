@@ -29,7 +29,7 @@ contains
                associate(xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj) ! These associations aid in debugging with gdb
                   select type(tp => self%tp)
                   class is (whm_tp)
-                  associate(xht => tp%xh, vht => tp%vh) ! These associations aid in debugging with gdb
+                  associate(xht => tp%xh, vht => tp%vh, aht => tp%ah) ! These associations aid in debugging with gdb
                      if (is_pl) then
                         if (.not.allocated(xbeg)) allocate(xbeg(npl,NDIM))
                         xbeg(:, :) = pl%xh(1:npl, :)
