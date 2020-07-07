@@ -195,7 +195,7 @@ contains
             Jinv = Jinv * det
    
             do i = 1, NDIM
-               pvh(i) = pvh(i) - dot_product(Jinv(i,:) ,F(:))
+               pv(i) = pv(i) - dot_product(Jinv(i,:) ,F(:))
             end DO
          end do 
    
