@@ -18,10 +18,11 @@ contains
 
       associate(n => self%nbody, msun => cb%Gmass, mu => self%mu, c2 => config%inv_c2, ah => self%ah)
          if (n == 0) return
-         !allocate(rjmag4(n))
-         !allocate(beta(n))
+         allocate(rjmag4(n))
+         allocate(beta(n))
          select type(self)
          class is (whm_pl)
+            allocate(aj, mold = ah)
             rjmag4(:) = (self%xj(1:n, :) .dot. self%xj(1:n, :))**2
             beta(:)   = - mu(1:n)**2 * c2 
             do concurrent (i = 1:NDIM)
