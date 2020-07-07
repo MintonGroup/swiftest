@@ -77,25 +77,29 @@ contains
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(self%tp%nbody)
 
-      select type(pl => self%pl)
-      class is (whm_pl)
-         call pl%set_mu(self%cb)
-         if (config%lgr) then
-            allocate(pv, mold = pl%vh)
-            call pl%gr_vh2pv(config, pv)
-            pl%vh(:, :)= pv(:, :)
-         end if
-      end select
+      if (self%pl%nbody > 0) then
+         select type(pl => self%pl)
+         class is (whm_pl)
+            call pl%set_mu(self%cb)
+            if (config%lgr) then
+               allocate(pv, mold = pl%vh)
+               call pl%gr_vh2pv(config, pv)
+               pl%vh(:, :)= pv(:, :)
+            end if
+         end select
+      end if
 
-      select type(tp => self%tp)
-      class is (whm_tp)
-         call tp%set_mu(self%cb)
-         if (config%lgr) then
-            allocate(pv, mold = tp%vh)
-            call tp%gr_vh2pv(config, pv)
-            tp%vh(:, :)= pv(:, :)
-         end if
-      end select
+      if (self%tp%nbody >0) then
+         select type(tp => self%tp)
+         class is (whm_tp)
+            call tp%set_mu(self%cb)
+            if (config%lgr) then
+               allocate(pv, mold = tp%vh)
+               call tp%gr_vh2pv(config, pv)
+               tp%vh(:, :)= pv(:, :)
+            end if
+         end select
+      end if
 
    end procedure whm_setup_system
 
