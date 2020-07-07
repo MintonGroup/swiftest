@@ -79,10 +79,12 @@ contains
       real(DP), dimension(:,:), intent(inout) :: x
       real(DP), dimension(:,:), intent(in)    :: v
       real(DP),                 intent(in)    :: dt, c2 
-      real(DP), dimension(:,:), allocatable :: dr, vjmag2
+      real(DP), dimension(:,:), allocatable :: dr
       real(DP), dimension(:),   allocatable :: vmag2
       integer(I4B) :: i
 
+      allocate(vmag2, mold = v(:,1))
+      allocate(dr, mold = x)
       vmag2(:) = v(:, :) .dot. v(:, :)
       do concurrent (i = 1:NDIM)
          dr(:, i) = - c2 * vmag2(:) * v(:,i)
