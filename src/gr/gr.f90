@@ -18,13 +18,14 @@ contains
 
       associate(n => self%nbody, msun => cb%Gmass, mu => self%mu, c2 => config%inv_c2, ah => self%ah)
          if (n == 0) return
-         allocate(rjmag4(n))
+         !allocate(rjmag4(n))
+         !allocate(beta(n))
          select type(self)
          class is (whm_pl)
-            rjmag4(1:n) = (self%xj(1:n, :) .dot. self%xj(1:n, :))**2
-            beta(1:n) = - mu(1:n)**2 * c2 
+            rjmag4(:) = (self%xj(1:n, :) .dot. self%xj(1:n, :))**2
+            beta(:)   = - mu(1:n)**2 * c2 
             do concurrent (i = 1:NDIM)
-               aj(1:n, i) = beta(1:n) / rjmag4(1:n) * self%xj(1:n, i)
+               aj(:, i) = beta(1:n) / rjmag4(1:n) * self%xj(1:n, i)
             end do
             suma(:) = 0.0_DP
             ah(1, :) = ah(1, :) + aj(2, :)
@@ -33,8 +34,8 @@ contains
                ah(i, :) = ah(i, :) + aj(i, :) + suma(:)
             end do
          class is (swiftest_tp)
-            rjmag4(1:n) = (self%xh(1:n, :) .dot. self%xh(1:n, :))**2
-            beta(1:n) = - mu(1:n)**2 * c2 
+            rjmag4(:) = (self%xh(1:n, :) .dot. self%xh(1:n, :))**2
+            beta(:) = - mu(1:n)**2 * c2 
             ah(1, :) = ah(1, :) + aj(2, :)
             do i = 2, n
                ah(i, :) = ah(i, :) + aj(i, :) 
