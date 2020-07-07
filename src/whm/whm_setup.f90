@@ -71,6 +71,7 @@ contains
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
       implicit none
+      real(DP), dimension(:,:), allocatable :: pv
 
       call io_read_initialize_system(self, config)
       ! Make sure that the discard list gets allocated initially
@@ -79,6 +80,21 @@ contains
       select type(pl => self%pl)
       class is (whm_pl)
          call pl%set_mu(self%cb)
+         if (config%lgr) then
+            allocate(pv, mold = pl%vh)
+            call pl%gr_vh2pv(config, pv)
+            pl%vh(:, :)= pv(:, :)
+         end if
+      end select
+
+      select type(tp => self%tp)
+      class is (whm_tp)
+         call tp%set_mu(self%cb)
+         if (config%lgr) then
+            allocate(pv, mold = tp%vh)
+            call tp%gr_vh2pv(config, pv)
+            tp%vh(:, :)= pv(:, :)
+         end if
       end select
 
    end procedure whm_setup_system

@@ -475,8 +475,6 @@ contains
       logical                 :: is_ascii, is_pl
       character(len=:), allocatable :: infile
       real(DP)               :: t
-      real(DP), dimension(:,:), allocatable :: pv
-
 
       ! Select the appropriate polymorphic class (test particle or massive body)
       select type(self)
@@ -546,18 +544,6 @@ contains
       class is (swiftest_pl)
          self%Gmass(:) = config%GU * self%mass(:)
       end select
-
-      if (config%lgr) then
-         allocate(pv, mold = self%vh)
-         select type(self)
-         class is (whm_pl)
-            call self%gr_vh2pv(config, pv)
-            self%vh(:, :)= pv(:, :)
-         class is (whm_tp)
-            call self%gr_vh2pv(config, pv)
-            self%vh(:, :)= pv(:, :)
-         end select
-      end if
 
       return
    end procedure io_read_body_in
