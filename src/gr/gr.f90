@@ -174,7 +174,7 @@ contains
             Jinv = Jinv * det
    
             do concurrent (i = 1:NDIM)
-               pv(i) = pv(i) - Jinv(:, i) .dot. F(:) 
+               pv(i) = pv(i) - Jinv(i, :) .dot. F(:) 
             end do
          end do 
    
