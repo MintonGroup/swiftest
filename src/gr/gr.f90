@@ -46,6 +46,43 @@ contains
       return
    end procedure gr_getacch_body
 
+   module procedure gr_pv2vh_body 
+      !! author: David A. Minton
+      !!
+      !! Wrapper function that converts from pseudovelocity to heliocentric velocity for all bodies
+      !! in a Swiftest body object
+      use swiftest
+      implicit none
+
+      integer(I4B) :: i
+      
+      associate(n => self%nbody, xh => self%xh, pv => self%vh, mu => self%mu, status => self%status)
+         if (n == 0) return
+         do concurrent(i = 1:n, status(i) == ACTIVE)
+            call gr_pseudovel2vel(config, mu(i), xh(i, :), pv(i, :), vh(i, :))
+         end do
+      end associate
+      return
+   end procedure gr_pv2vh_body
+
+   module procedure gr_vh2pv_body 
+      !! author: David A. Minton
+      !!
+      !! Wrapper function that converts from heliocentric velocity to pseudovelocity for all bodies
+      !! in a Swiftest body object
+      use swiftest
+      implicit none
+      integer(I4B) :: i
+      
+      associate(n => self%nbody, xh => self%xh, vh => self%vh, mu => self%mu, status => self%status)
+         if (n == 0) return
+         do concurrent(i = 1:n, status(i) == ACTIVE)
+            call gr_vel2pseudovel(config, mu(i), xh(i, :), vh(i, :), pv(i, :))
+         end do
+      end associate
+
+   end procedure gr_vh2pv_body
+
    module procedure gr_p4_body
       !! author: David A. Minton
       !!
@@ -94,26 +131,7 @@ contains
       return
    end subroutine p4_func  
 
-
-   module procedure gr_vh2pv_body 
-      !! author: David A. Minton
-      !!
-      !! Wrapper function that converts from heliocentric velocity to pseudovelocity for all bodies
-      !! in a Swiftest body object
-      use swiftest
-      implicit none
-      integer(I4B) :: i
-      
-      associate(n => self%nbody, xh => self%xh, vh => self%vh, mu => self%mu, status => self%status)
-         if (n == 0) return
-         do concurrent(i = 1:n, status(i) == ACTIVE)
-            call gr_vel2pseudovel(config, mu(i), xh(i, :), vh(i, :), pv(i, :))
-         end do
-      end associate
-
-   end procedure gr_vh2pv_body
-
-   module procedure gr_vel2pseudovel
+   pure subroutine gr_vel2pseudovel(config, mu, xh, vh, pv)
       !! author: David A. Minton
       !!
       !! Converts the heliocentric velocity into a pseudovelocity with relativistic corrections. 
@@ -123,9 +141,12 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_vel2pseudovel.f90
       use swiftest
       implicit none
+      class(swiftest_configuration), intent(in)  :: config !! Input collection of user-defined configuration parameters 
+      real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
+      real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
+      real(DP), dimension(:),        intent(in)  :: vh     !! Heliocentric velocity vector 
+      real(DP), dimension(:),        intent(out) :: pv     !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
 
-      real(DP) :: vmag2, rmag, grterm
-   
       real(DP)                       :: v2, G, pv2, rterm, det
       real(DP), dimension(NDIM,NDIM) :: J,Jinv
       real(DP), dimension(NDIM)      :: F
@@ -180,29 +201,9 @@ contains
    
       end associate
       return
-   end procedure gr_vel2pseudovel
+   end subroutine gr_vel2pseudovel
 
-   module procedure gr_pv2vh_body 
-      !! author: David A. Minton
-      !!
-      !! Wrapper function that converts from pseudovelocity to heliocentric velocity for all bodies
-      !! in a Swiftest body object
-      use swiftest
-      implicit none
-
-      integer(I4B) :: i
-      
-      associate(n => self%nbody, xh => self%xh, pv => self%vh, mu => self%mu, status => self%status)
-         if (n == 0) return
-         do concurrent(i = 1:n, status(i) == ACTIVE)
-            call gr_pseudovel2vel(config, mu(i), xh(i, :), pv(i, :), vh(i, :))
-         end do
-      end associate
-      return
-   end procedure gr_pv2vh_body
-
-
-   module procedure  gr_pseudovel2vel
+   pure subroutine gr_pseudovel2vel(config, mu, xh, pv, vh) 
       !! author: David A. Minton
       !!
       !! Converts the relativistic pseudovelocity back into a veliocentric velocity
@@ -211,6 +212,12 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_pseudovel2vel.f90 
       use swiftest
       implicit none
+      class(swiftest_configuration), intent(in)  :: config !! Input collection of user-defined configuration parameters 
+      real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
+      real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
+      real(DP), dimension(:),        intent(in)  :: pv     !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
+      real(DP), dimension(:),        intent(out) :: vh     !! Heliocentric velocity vector 
+
       real(DP) :: vmag2, rmag, grterm
    
       associate(c2 => config%inv_c2)
@@ -220,7 +227,7 @@ contains
          vh(:) = pv(:) * grterm
       end associate
       return
-   end procedure gr_pseudovel2vel
+   end subroutine gr_pseudovel2vel
 
    module procedure gr_getaccb_ns_body
       !! author: David A. Minton

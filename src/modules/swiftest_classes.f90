@@ -7,7 +7,7 @@ module swiftest_classes
    implicit none
    private
    public :: io_get_args, io_read_initialize_system, drift_one, discard_spill_body, &
-              gr_pseudovel2vel, gr_vel2pseudovel, orbel_xv2aeq, setup_pl, setup_tp, setup_construct_system
+              orbel_xv2aeq, setup_pl, setup_tp, setup_construct_system
 
    !********************************************************************************************************************************
    ! swiftest_configuration class definitions and method interfaces
@@ -333,24 +333,6 @@ module swiftest_classes
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine gr_p4_body
-
-      module pure subroutine gr_pseudovel2vel(config, mu, xh, pv, vh) 
-         implicit none
-         class(swiftest_configuration), intent(in)  :: config !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-         real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
-         real(DP), dimension(:),        intent(in)  :: pv     !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
-         real(DP), dimension(:),        intent(out) :: vh     !! Heliocentric velocity vector 
-      end subroutine gr_pseudovel2vel
-
-      module pure subroutine gr_vel2pseudovel(config, mu, xh, vh, pv) 
-         implicit none
-         class(swiftest_configuration), intent(in)  :: config !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-         real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
-         real(DP), dimension(:),        intent(in)  :: vh     !! Heliocentric velocity vector 
-         real(DP), dimension(:),        intent(out) :: pv     !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
-      end subroutine gr_vel2pseudovel
 
       module pure subroutine gr_vh2pv_body(self, config, pv)
          implicit none
