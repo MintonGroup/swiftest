@@ -18,42 +18,42 @@ module swiftest_operators
       module pure function operator_cross_sp(A, B) result(C)
          !$omp declare simd(operator_cross_sp)
          implicit none
-         real(SP), dimension(3), intent(in) :: A, B
+         real(SP), dimension(:), intent(in) :: A, B
          real(SP), dimension(3) :: C
       end function operator_cross_sp
 
       module pure function operator_cross_dp(A, B) result(C)
          !$omp declare simd(operator_cross_dp)
          implicit none
-         real(DP), dimension(3), intent(in) :: A, B
+         real(DP), dimension(:), intent(in) :: A, B
          real(DP), dimension(3) :: C
       end function operator_cross_dp
 
       module pure function operator_cross_i1b(A, B) result(C)
          !$omp declare simd(operator_cross_i1b)
          implicit none
-         integer(I1B), dimension(3), intent(in) :: A, B
+         integer(I1B), dimension(:), intent(in) :: A, B
          integer(I1B), dimension(3) :: C
       end function operator_cross_i1b
 
       module pure function operator_cross_i2b(A, B) result(C)
          !$omp declare simd(operator_cross_i2b)
          implicit none
-         integer(I2B), dimension(3), intent(in) :: A, B
+         integer(I2B), dimension(:), intent(in) :: A, B
          integer(I2B), dimension(3) :: C
       end function operator_cross_i2b
 
       module pure function operator_cross_i4b(A, B) result(C)
          !$omp declare simd(operator_cross_i4b)
          implicit none
-         integer(I4B), dimension(3), intent(in) :: A, B
+         integer(I4B), dimension(:), intent(in) :: A, B
          integer(I4B), dimension(3) :: C
       end function operator_cross_i4b
 
       module pure function operator_cross_i8b(A, B) result(C)
          !$omp declare simd(operator_cross_i8b)
          implicit none
-         integer(I8B), dimension(3), intent(in) :: A, B
+         integer(I8B), dimension(:), intent(in) :: A, B
          integer(I8B), dimension(3) :: C
       end function operator_cross_i8b
 
