@@ -56,55 +56,79 @@ submodule(swiftest_operators) operator_cross_implementation
 
    module procedure operator_cross_el_sp
       implicit none
+      integer(I4B) :: i, n
+      n = size(A,1)
       allocate(C, mold = A)
-      C(:, 1) = A(:, 2) * B(:, 3) - A(:, 3) * B(:, 2)
-      C(:, 2) = A(:, 3) * B(:, 1) - A(:, 1) * B(:, 3)
-      C(:, 3) = A(:, 1) * B(:, 2) - A(:, 2) * B(:, 1)
+      do concurrent (i = 1:n)
+         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
+         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
+         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+      end do
       return
    end procedure operator_cross_el_sp
 
    module procedure operator_cross_el_dp      
       implicit none
+      integer(I4B) :: i, n
+      n = size(A,1)
       allocate(C, mold = A)
-      C(:, 1) = A(:, 2) * B(:, 3) - A(:, 3) * B(:, 2)
-      C(:, 2) = A(:, 3) * B(:, 1) - A(:, 1) * B(:, 3)
-      C(:, 3) = A(:, 1) * B(:, 2) - A(:, 2) * B(:, 1)
+      do concurrent (i = 1:n)
+         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
+         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
+         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+      end do
       return
    end procedure operator_cross_el_dp
 
-   module procedure operator_cross_el_i1b      
-      implicit none
+   module procedure operator_cross_el_i1b  
+      implicit none    
+      integer(I4B) :: i, n
+      n = size(A,1)
       allocate(C, mold = A)
-      C(:, 1) = A(:, 2) * B(:, 3) - A(:, 3) * B(:, 2)
-      C(:, 2) = A(:, 3) * B(:, 1) - A(:, 1) * B(:, 3)
-      C(:, 3) = A(:, 1) * B(:, 2) - A(:, 2) * B(:, 1)
+      do concurrent (i = 1:n)
+         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
+         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
+         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+      end do
       return
    end procedure operator_cross_el_i1b
 
    module procedure operator_cross_el_i2b      
       implicit none
+      integer(I4B) :: i, n
+      n = size(A,1)
       allocate(C, mold = A)
-      C(:, 1) = A(:, 2) * B(:, 3) - A(:, 3) * B(:, 2)
-      C(:, 2) = A(:, 3) * B(:, 1) - A(:, 1) * B(:, 3)
-      C(:, 3) = A(:, 1) * B(:, 2) - A(:, 2) * B(:, 1)
+      do concurrent (i = 1:n)
+         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
+         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
+         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+      end do
       return
    end procedure operator_cross_el_i2b
 
    module procedure operator_cross_el_i4b      
       implicit none
+      integer(I4B) :: i, n
+      n = size(A,1)
       allocate(C, mold = A)
-      C(:, 1) = A(:, 2) * B(:, 3) - A(:, 3) * B(:, 2)
-      C(:, 2) = A(:, 3) * B(:, 1) - A(:, 1) * B(:, 3)
-      C(:, 3) = A(:, 1) * B(:, 2) - A(:, 2) * B(:, 1)
+      do concurrent (i = 1:n)
+         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
+         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
+         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+      end do
       return
    end procedure operator_cross_el_i4b
 
    module procedure operator_cross_el_i8b      
       implicit none
+      integer(I4B) :: i, n
+      n = size(A,1)
       allocate(C, mold = A)
-      C(:, 1) = A(:, 2) * B(:, 3) - A(:, 3) * B(:, 2)
-      C(:, 2) = A(:, 3) * B(:, 1) - A(:, 1) * B(:, 3)
-      C(:, 3) = A(:, 1) * B(:, 2) - A(:, 2) * B(:, 1)
+      do concurrent (i = 1:n)
+         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
+         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
+         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+      end do
       return
    end procedure operator_cross_el_i8b
 
