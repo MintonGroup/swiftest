@@ -20,7 +20,7 @@ module procedure whm_drift_pl
       xj     => self%xj, &
       vj     => self%vj, &
       status => self%status,&
-      mu     => self%mu)
+      mu     => self%muj)
 
       if (npl == 0) return
 

@@ -71,7 +71,7 @@ contains
       use swiftest
       implicit none
       integer(I4B)                                 :: i
-      real(DP), dimension(:), allocatable, save    :: r2, fac, mu
+      real(DP), dimension(:), allocatable, save    :: r2, fac
       real(DP), dimension(:), allocatable, save    :: irh, ir3h
       real(DP), dimension(:), allocatable, save    :: irht
       real(DP), dimension(:, :), allocatable, save :: aobl
