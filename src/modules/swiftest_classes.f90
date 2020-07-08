@@ -864,21 +864,6 @@ module swiftest_classes
          real(DP), intent(out) :: a, q, capm, tperi
       end subroutine orbel_xv2aqt
 
-      module elemental subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
-         implicit none
-         real(DP), intent(in)  :: mu
-         real(DP), intent(in)  :: px, py, pz
-         real(DP), intent(in)  :: vx, vy, vz
-         real(DP), intent(out) :: a, e, inc, capom, omega, capm
-      end subroutine orbel_xv2el
-
-      module elemental subroutine orbel_el2xv(mu, a, ie, inc, capom, omega, capm, px, py, pz, vx, vy, vz)
-         implicit none
-         real(DP), intent(in)  :: mu
-         real(DP), intent(in)  :: a, ie, inc, capom, omega, capm
-         real(DP), intent(out) :: px, py, pz
-         real(DP), intent(out) :: vx, vy, vz
-      end subroutine orbel_el2xv
    end interface
 
 end module swiftest_classes

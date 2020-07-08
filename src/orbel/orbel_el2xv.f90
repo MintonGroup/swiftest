@@ -7,20 +7,19 @@ contains
       !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
       use swiftest
       implicit none
+      integer(I4B) :: i
    
       call self%set_mu(cb)
-      associate(n => self%nbody)
-         call orbel_el2xv(self%mu(1:n), self%xh(1:n, 1),  self%xh(1:n, 2),  self%xh(1:n, 3), &
-                                        self%vh(1:n, 1),  self%vh(1:n, 2),  self%vh(1:n, 3), &
-                                        self%a(1:n),     self%e(1:n),     self%inc(1:n),  &
-                                        self%capom(1:n), self%omega(1:n), self%capm(1:n))
-      end associate
+      do concurrent (i = 1:self%nbody) 
+         call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
+                           self%omega(i), self%capm(i), self%xh(i,:), self%vh(i,:))
+      end do
    end procedure orbel_el2xv_vec
 
-   module procedure orbel_el2xv !(mu, a, e, inc, capom, omega, capm, px, py, pz, vx, vy, vz) 
+   pure subroutine orbel_el2xv(mu, a, ie, inc, capom, omega, capm, x, v)
       !! author: David A. Minton
       !!
-      !! Compute osculating orbital elements from relative Cartesian position and velocity
+      !! Compute osculating orbital elements from relative C)rtesian position and velocity
       !!  All angular measures are returned in radians
       !!      If inclination < TINY, longitude of the ascending node is arbitrarily set to 0
       !!
@@ -34,11 +33,13 @@ contains
       !!  and hyperbolae called EHYBRID.F and FHYBRID.F
       use swiftest
       implicit none
-      real(DP), dimension(NDIM) :: x, v
+      real(DP), intent(in)  :: mu
+      real(DP), intent(in)  :: a, ie, inc, capom, omega, capm
+      real(DP), dimension(:), intent(out) :: x, v
 
       integer(I4B) :: iorbit_type
-      real(DP) :: cape, capf, zpara, em1
-      real(DP) :: e,sip, cp, so, co, si, ci
+      real(DP) :: e, cape, capf, zpara, em1
+      real(DP) :: sip, cip, so, co, si, ci
       real(DP) :: d11, d12, d13, d21, d22, d23
       real(DP) :: scap, ccap, shcap, chcap
       real(DP) :: sqe, sqgma, xfac1, xfac2, ri, vfac1, vfac2
@@ -60,15 +61,15 @@ contains
          end if
       endif
 
-      call orbel_scget(omega,sip,cp)
+      call orbel_scget(omega,sip,cip)
       call orbel_scget(capom,so,co)
       call orbel_scget(inc,si,ci)
-      d11 = cp * co - sip * so * ci
-      d12 = cp * so + sip * co * ci
+      d11 = cip * co - sip * so * ci
+      d12 = cip * so + sip * co * ci
       d13 = sip * si
-      d21 = -sip * co - cp * so * ci
-      d22 = -sip * so + cp * co * ci
-      d23 = cp * si
+      d21 = -sip * co - cip * so * ci
+      d22 = -sip * so + cip * co * ci
+      d23 = cip * si
 
       !--
       ! Get the other quantities depending on orbit type 
@@ -107,15 +108,15 @@ contains
          vfac2 = ri  *  sqgma 
       endif
       !--
-      px =  d11 * xfac1 + d21 * xfac2
-      py =  d12 * xfac1 + d22 * xfac2
-      pz =  d13 * xfac1 + d23 * xfac2
-      vx = d11 * vfac1 + d21 * vfac2
-      vy = d12 * vfac1 + d22 * vfac2
-      vz = d13 * vfac1 + d23 * vfac2
+      x(1) = d11 * xfac1 + d21 * xfac2
+      x(2) = d12 * xfac1 + d22 * xfac2
+      x(3) = d13 * xfac1 + d23 * xfac2
+      v(1) = d11 * vfac1 + d21 * vfac2
+      v(2) = d12 * vfac1 + d22 * vfac2
+      v(3) = d13 * vfac1 + d23 * vfac2
 
       return
-   end procedure orbel_el2xv
+   end subroutine orbel_el2xv
 
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton

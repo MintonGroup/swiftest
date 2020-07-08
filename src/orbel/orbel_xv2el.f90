@@ -7,17 +7,16 @@ contains
       !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
       use swiftest
       implicit none
+      integer(I4B) :: i
      
       call self%set_mu(cb)
-      associate(n => self%nbody)
-         call orbel_xv2el(self%mu(1:n), self%xh(1:n, 1),  self%xh(1:n, 2),  self%xh(1:n, 3), &
-                                            self%vh(1:n, 1),  self%vh(1:n, 2),  self%vh(1:n, 3), &
-                                            self%a(1:n),     self%e(1:n),     self%inc(1:n),  &
-                                            self%capom(1:n), self%omega(1:n), self%capm(1:n))
-      end associate
+      do concurrent (i = 1:self%nbody)
+         call orbel_xv2el(self%mu(i), self%xh(i, :), self%vh(i, :), self%a(i), self%e(i), self%inc(i),  &
+                          self%capom(i), self%omega(i), self%capm(i))
+      end do
    end procedure orbel_xv2el_vec 
 
-   module procedure orbel_xv2el
+   pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
@@ -34,9 +33,12 @@ contains
       !! Adapted from Martin Duncan's Swift routine orbel_xv2el.f
       use swiftest
       implicit none
+      real(DP), intent(in)  :: mu
+      real(DP), dimension(:), intent(in)  :: x, v
+      real(DP), intent(out) :: a, e, inc, capom, omega, capm
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, cape, tmpf, capf
-      real(DP), dimension(NDIM) :: x, v, hvec
+      real(DP), dimension(NDIM) :: hvec
 
       a = 0.0_DP
       e = 0.0_DP
@@ -44,15 +46,13 @@ contains
       capom = 0.0_DP
       omega = 0.0_DP
       capm = 0.0_DP
-      x = (/px, py, pz/)
-      v = (/vx, vy, vz/)
-      r = sqrt(dot_product(x(:), x(:)))
-      v2 = dot_product(v(:), v(:))
-      hvec(:) = x(:) .cross. v(:)
-      h2 = dot_product(hvec(:), hvec(:))
+      r = .mag. x
+      v2 = v .dot. v
+      hvec = x .cross. v
+      h2 = hvec .dot. hvec 
       h = sqrt(h2)
       if (h2 == 0.0_DP) return
-      rdotv = dot_product(x(:), v(:))
+      rdotv = x .dot. v
       energy = 0.5_DP * v2 - mu / r
       fac = hvec(3) / h
       if (fac < -1.0_DP) then
@@ -60,7 +60,7 @@ contains
       else if (fac < 1.0_DP) then
          inc = acos(fac)
       end if
-      fac = sqrt(hvec(1) * hvec(1) + hvec(2) * hvec(2)) / h
+      fac = sqrt(hvec(1)**2 + hvec(2)**2) / h
       if (fac**2 < VSMALL) then
          u = atan2(x(2), x(1))
          if (hvec(3) < 0.0_DP) u = -u
@@ -137,5 +137,5 @@ contains
       if (omega < 0.0_DP) omega = omega + TWOPI
 
       return
-   end procedure orbel_xv2el
+   end subroutine orbel_xv2el
 end submodule s_orbel_xv2el
