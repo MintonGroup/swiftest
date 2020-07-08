@@ -1,50 +1,5 @@
 submodule(swiftest_classes) gr_implementations
 contains
-   module procedure gr_getacch_body ! (self, cb, config
-      !! author: David A. Minton
-      !!
-      !! Compute relativisitic accelerations of planet
-      !!    Based on Saha & Tremaine (1994) Eq. 28
-      !!
-      !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
-      use swiftest
-      implicit none
-
-      integer(I4B)                   :: i
-      real(DP), dimension(NDIM)      :: suma
-      real(DP), dimension(:, :), allocatable :: aj
-      real(DP), dimension(:), allocatable :: rjmag4, beta
-      
-
-      associate(n => self%nbody, msun => cb%Gmass, mu => self%mu, c2 => config%inv_c2, ah => self%ah)
-         if (n == 0) return
-         allocate(rjmag4(n))
-         allocate(beta(n))
-         select type(self)
-         class is (whm_pl)
-            allocate(aj, mold = ah)
-            rjmag4(:) = (self%xj(1:n, :) .dot. self%xj(1:n, :))**2
-            beta(:)   = - mu(1:n)**2 * c2 
-            do concurrent (i = 1:NDIM)
-               aj(:, i) = beta(1:n) / rjmag4(1:n) * self%xj(1:n, i)
-            end do
-            suma(:) = 0.0_DP
-            ah(1, :) = ah(1, :) + aj(2, :)
-            do i = 2, n
-               suma(:) = suma(:) + self%Gmass(i) * aj(i, :)
-               ah(i, :) = ah(i, :) + aj(i, :) + suma(:)
-            end do
-         class is (swiftest_tp)
-            rjmag4(:) = (self%xh(1:n, :) .dot. self%xh(1:n, :))**2
-            beta(:) = - mu(1:n)**2 * c2 
-            ah(1, :) = ah(1, :) + aj(2, :)
-            do i = 2, n
-               ah(i, :) = ah(i, :) + aj(i, :) 
-            end do
-         end select
-      end associate
-      return
-   end procedure gr_getacch_body
 
    module procedure gr_pv2vh_body 
       !! author: David A. Minton
@@ -55,9 +10,16 @@ contains
       implicit none
 
       integer(I4B) :: i
+      real(DP), dimension(:), allocatable :: mu
       
-      associate(n => self%nbody, xh => self%xh, pv => self%vh, mu => self%mu, status => self%status)
+      associate(n => self%nbody, xh => self%xh, pv => self%vh, status => self%status)
          if (n == 0) return
+         select type(self)
+         class is (whm_pl)
+            allocate(mu, source = self%muj)
+         class is (whm_tp)
+            allocate(mu, source = self%mu)
+         end select 
          do concurrent(i = 1:n, status(i) == ACTIVE)
             call gr_pseudovel2vel(config, mu(i), xh(i, :), pv(i, :), vh(i, :))
          end do
@@ -73,9 +35,16 @@ contains
       use swiftest
       implicit none
       integer(I4B) :: i
+      real(DP), dimension(:), allocatable :: mu
       
-      associate(n => self%nbody, xh => self%xh, vh => self%vh, mu => self%mu, status => self%status)
+      associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status)
          if (n == 0) return
+         select type(self)
+         class is (whm_pl)
+            allocate(mu, source = self%muj)
+         class is (whm_tp)
+            allocate(mu, source = self%mu)
+         end select 
          do concurrent(i = 1:n, status(i) == ACTIVE)
             call gr_vel2pseudovel(config, mu(i), xh(i, :), vh(i, :), pv(i, :))
          end do
@@ -83,53 +52,6 @@ contains
 
    end procedure gr_vh2pv_body
 
-   module procedure gr_p4_body
-      !! author: David A. Minton
-      !!
-      !! Position kick due to p**4 term in the post-Newtonian correction
-      !!    Based on Saha & Tremaine (1994) Eq. 28
-      !!
-      !! Adapted from David A. Minton's Swifter routine routine gr_whm_p4.f90
-      use swiftest
-      implicit none
-
-      associate(n => self%nbody)
-         if (n == 0) return
-         select type(self)
-         class is (whm_pl)
-            associate(xj => self%xj, vj => self%vj)
-               call p4_func(xj(1:n, :), vj(1:n, :), dt, config%inv_c2)
-            end associate
-         class is (swiftest_tp)
-            associate(xh => self%xh, vh => self%vh)
-               call p4_func(xh(1:n, :), vh(1:n, :), dt, config%inv_c2)
-            end associate
-         end select
-      end associate
- 
-     return
-   end procedure gr_p4_body
-
-   pure subroutine p4_func(x, v, dt, c2)
-      use swiftest
-      implicit none
-      real(DP), dimension(:,:), intent(inout) :: x
-      real(DP), dimension(:,:), intent(in)    :: v
-      real(DP),                 intent(in)    :: dt, c2 
-      real(DP), dimension(:,:), allocatable :: dr
-      real(DP), dimension(:),   allocatable :: vmag2
-      integer(I4B) :: i
-
-      allocate(vmag2, mold = v(:,1))
-      allocate(dr, mold = x)
-      vmag2(:) = v(:, :) .dot. v(:, :)
-      do concurrent (i = 1:NDIM)
-         dr(:, i) = - c2 * vmag2(:) * v(:,i)
-         x(:, i)  =   x(:, i) + dr(:, i) * dt
-      end do
-
-      return
-   end subroutine p4_func  
 
    pure subroutine gr_vel2pseudovel(config, mu, xh, vh, pv)
       !! author: David A. Minton

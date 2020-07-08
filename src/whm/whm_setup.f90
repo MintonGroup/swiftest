@@ -14,6 +14,7 @@ contains
       if (n <= 0) return
 
       allocate(self%eta(n))
+      allocate(self%muj(n))
       allocate(self%xj(n, NDIM))
       allocate(self%vj(n, NDIM))
       allocate(self%ah1(n, NDIM))
@@ -21,6 +22,7 @@ contains
       allocate(self%ah3(n, NDIM))
 
       self%eta(:)   = 0.0_DP
+      self%muj(:)   = 0.0_DP
       self%xj(:,:)  = 0.0_DP
       self%vj(:,:)  = 0.0_DP
       self%ah1(:,:) = 0.0_DP
@@ -53,13 +55,15 @@ contains
       implicit none
       integer(I4B) :: i
 
-      associate(npl => self%nbody,  GMpl => self%Gmass, mu => self%mu, eta => self%eta, GMcb => cb%Gmass)
+      associate(pl => self, npl => self%nbody,  GMpl => self%Gmass, muj => self%muj, &
+                eta => self%eta, GMcb => cb%Gmass)
          if (npl == 0) return
+         call setup_set_mu_pl(pl,cb)
          eta(1) = GMcb + GMpl(1)
-         mu(1) = eta(1) 
+         muj(1) = eta(1)
          do i = 2, npl
             eta(i) = eta(i - 1) + GMpl(i)
-            mu(i) = GMcb * eta(i) / eta(i - 1)
+            muj(i) = GMcb * eta(i) / eta(i - 1)
          end do
       end associate
 

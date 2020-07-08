@@ -247,13 +247,12 @@ module swiftest_classes
    contains
       private
       procedure(abstract_set_mu),  public, deferred :: set_mu
+      procedure(abstract_gr_getacch), public, deferred :: gr_getacch
       ! These are concrete because the implementation is the same for all types of particles
       procedure, public :: b2h         => coord_b2h_body      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: drift       => drift_body          !! Drifts particles on Keplerian orbits with Danby's method
       procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
-      procedure, public :: gr_getacch  => gr_getacch_body     !! Accelration term arising from the post-Newtonian correction
       procedure, public :: gr_getaccb  => gr_getaccb_ns_body  !! Add relativistic correction acceleration for non-symplectic integrators
-      procedure, public :: gr_p4       => gr_p4_body          !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: gr_vh2pv    => gr_vh2pv_body       !! Converts from heliocentric velocity to psudeovelocity for GR calculations
       procedure, public :: gr_pv2vh    => gr_pv2vh_body       !! Converts from psudeovelocity to heliocentric velocity for GR calculations
       procedure, public :: h2b         => coord_h2b_body      !! Convert position vectors from barycentric to heliocentric coordinates
@@ -275,6 +274,13 @@ module swiftest_classes
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
          class(swiftest_central_body), intent(inout) :: cb   !! Swiftest central body objectt
       end subroutine abstract_set_mu
+
+      subroutine abstract_gr_getacch(self, cb, config)
+         import swiftest_body, swiftest_central_body, swiftest_configuration
+         class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
+         class(swiftest_central_body),  intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+      end subroutine abstract_gr_getacch
    end interface
 
    !> Interfaces for concrete type-bound procedures for swiftest_body
@@ -311,13 +317,6 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine drift_body
 
-      module subroutine gr_getacch_body(self, cb, config)
-         implicit none
-         class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_central_body),  intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
-      end subroutine gr_getacch_body
-
       module subroutine gr_getaccb_ns_body(self, cb, config, agr, agr0) 
          implicit none
          class(swiftest_body),          intent(inout) :: self
@@ -326,13 +325,6 @@ module swiftest_classes
          real(DP), dimension(:, :),     intent(inout) :: agr
          real(DP), dimension(NDIM),     intent(out)   :: agr0
       end subroutine gr_getaccb_ns_body
-
-      module pure subroutine gr_p4_body(self, config, dt)
-         implicit none
-         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)    :: dt     !! Step size
-      end subroutine gr_p4_body
 
       module pure subroutine gr_vh2pv_body(self, config, pv)
          implicit none
