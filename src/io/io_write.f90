@@ -26,6 +26,7 @@ contains
 
       logical, save                         :: lfirst = .true. !! Flag to determine if this is the first call of this method
       integer(I4B)                          :: ierr            !! I/O error code
+      real(DP), dimension(:,:), allocatable :: pv              !! Temporary holder of pseudovelocity for in-place conversion
 
       iu = BINUNIT
 
@@ -59,14 +60,19 @@ contains
       call io_write_hdr(iu, t, self%pl%nbody, self%tp%nbody, config%out_form, config%out_type)
 
       if (config%lgr) then
-         select type(pl => self%pl)
-         class is (whm_pl)
-            if (pl%nbody > 0) call pl%gr_pv2vh(config, pl%vh) ! In place conversion
-         end select
-         select type(tp => self%tp)
-         class is (whm_tp)
-            if (tp%nbody > 0) call tp%gr_pv2vh(config, tp%vh)
-         end select
+         if (self%pl%nbody > 0) then
+            select type(pl => self%pl)
+            class is (whm_pl)
+               call pl%gr_pv2vh(config, pl%vh) ! No danger of in place conversion here
+            end select
+         end if
+
+         if (self%tp%nbody > 0) then
+            select type(tp => self%tp)
+            class is (whm_tp)
+               call tp%gr_pv2vh(config, tp%vh) ! No danger of in place conversion here
+            end select
+         end if
       end if
 
       if (config%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
@@ -80,14 +86,23 @@ contains
       if (self%tp%nbody > 0) call self%tp%write_frame(iu, config, t, dt)
 
       if (config%lgr) then
-         select type(pl => self%pl)
-         class is (whm_pl)
-            if (pl%nbody > 0) call pl%gr_vh2pv(config, pl%vh)
-         end select
-         select type(tp => self%tp)
-         class is (whm_tp)
-            if (tp%nbody > 0) call tp%gr_vh2pv(config, tp%vh)
-         end select
+         if (self%pl%nbody > 0) then
+            select type(pl => self%pl)
+            class is (whm_pl)
+               allocate(pv, mold = pl%vh)
+               call pl%gr_vh2pv(config, pv) ! Take care not to use in-place conversion for this, or it get calculated incorrectly
+               pl%vh(:,:) = pv(:,:)
+            end select
+         end if
+
+         if (self%tp%nbody > 0) then
+            select type(tp => self%tp)
+            class is (whm_tp)
+               allocate(pv, mold = tp%vh)
+               call tp%gr_vh2pv(config, pv)
+               tp%vh(:,:) = pv(:,:)
+            end select
+         end if
       end if
 
       return

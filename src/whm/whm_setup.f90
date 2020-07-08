@@ -93,7 +93,7 @@ contains
          end select
       end if
 
-      if (self%tp%nbody >0) then
+      if (self%tp%nbody > 0) then
          select type(tp => self%tp)
          class is (whm_tp)
             call tp%set_mu(self%cb)
