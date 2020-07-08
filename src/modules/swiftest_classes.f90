@@ -7,7 +7,7 @@ module swiftest_classes
    implicit none
    private
    public :: io_get_args, io_read_initialize_system, drift_one, discard_spill_body, &
-              orbel_xv2aeq, setup_pl, setup_tp, setup_construct_system
+              orbel_xv2aeq, setup_pl, setup_tp, setup_construct_system, setup_set_mu_pl, setup_set_mu_tp
 
    !********************************************************************************************************************************
    ! swiftest_configuration class definitions and method interfaces
