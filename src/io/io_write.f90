@@ -61,11 +61,11 @@ contains
       if (config%lgr) then
          select type(pl => self%pl)
          class is (whm_pl)
-            call pl%gr_pv2vh(config, pl%vh) ! In place conversion
+            if (pl%nbody > 0) call pl%gr_pv2vh(config, pl%vh) ! In place conversion
          end select
          select type(tp => self%tp)
          class is (whm_tp)
-            call tp%gr_pv2vh(config, tp%vh)
+            if (tp%nbody > 0) call tp%gr_pv2vh(config, tp%vh)
          end select
       end if
 
@@ -77,16 +77,16 @@ contains
       ! Write out each data type frame
       call self%cb%write_frame(iu, config, t, dt)
       if (self%pl%nbody > 0) call self%pl%write_frame(iu, config, t, dt)
-      if (self%tp%nbody >0) call self%tp%write_frame(iu, config, t, dt)
+      if (self%tp%nbody > 0) call self%tp%write_frame(iu, config, t, dt)
 
       if (config%lgr) then
          select type(pl => self%pl)
          class is (whm_pl)
-            call pl%gr_vh2pv(config, pl%vh)
+            if (pl%nbody > 0) call pl%gr_vh2pv(config, pl%vh)
          end select
          select type(tp => self%tp)
          class is (whm_tp)
-            call tp%gr_vh2pv(config, tp%vh)
+            if (tp%nbody > 0) call tp%gr_vh2pv(config, tp%vh)
          end select
       end if
 
