@@ -24,7 +24,7 @@ contains
          rjmag4(:) = (xj(1:n, :) .dot. xj(1:n, :))**2
          beta(:)   = - mu(1:n)**2 * c2 
          do concurrent (i = 1:n)
-            aj(i, :) = beta(i) / rjmag4(i) * xj(i, :)
+            aj(i, :) = beta(i) * xj(i,:) / rjmag4(i)
          end do
          suma(:) = 0.0_DP
          ah(1, :) = ah(1, :) + aj(2, :)
