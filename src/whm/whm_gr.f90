@@ -29,7 +29,7 @@ contains
          suma(:) = 0.0_DP
          ah(1, :) = ah(1, :) + aj(2, :)
          do i = 2, n
-            suma(:) = suma(:) + GMpl(i) * aj(i, :) / eta
+            suma(:) = suma(:) + GMpl(i) * aj(i, :) / etaj(i)
             ah(i, :) = ah(i, :) + aj(i, :) + suma(:)
          end do
       end associate
