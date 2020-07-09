@@ -16,7 +16,7 @@ contains
       real(DP), dimension(:), allocatable :: rjmag4, beta
       
       associate(n => self%nbody, msun => cb%Gmass, mu => self%muj, c2 => config%inv_c2, &
-         ah => self%ah, xj => self%xj, GMpl => self%Gmass)
+         ah => self%ah, xj => self%xj, GMpl => self%Gmass, etaj => self%eta)
          if (n == 0) return
          allocate(rjmag4(n))
          allocate(beta(n))
@@ -29,7 +29,7 @@ contains
          suma(:) = 0.0_DP
          ah(1, :) = ah(1, :) + aj(2, :)
          do i = 2, n
-            suma(:) = suma(:) + GMpl(i) * aj(i, :)
+            suma(:) = suma(:) + GMpl(i) * aj(i, :) / eta
             ah(i, :) = ah(i, :) + aj(i, :) + suma(:)
          end do
       end associate
