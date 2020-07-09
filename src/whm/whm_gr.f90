@@ -22,8 +22,8 @@ contains
          allocate(aj, mold = ah)
          rjmag4(:) = (xj(1:n, :) .dot. xj(1:n, :))**2
          beta(:)   = - mu(1:n)**2 * c2 
-         do concurrent (i = 1:NDIM)
-            aj(:, i) = beta(1:n) / rjmag4(1:n) * self%xj(1:n, i)
+         do concurrent (i = 1:n)
+            aj(i, :) = beta(:) / rjmag4(:) * self%xj(i,:)
          end do
          suma(:) = 0.0_DP
          ah(1, :) = ah(1, :) + aj(2, :)
@@ -50,14 +50,15 @@ contains
       real(DP), dimension(:, :), allocatable :: aj
       real(DP), dimension(:), allocatable :: rjmag4, beta
       
-      associate(n => self%nbody, msun => cb%Gmass, mu => self%mu, c2 => config%inv_c2, ah => self%ah, xh => self%xh)
+      associate(n => self%nbody, msun => cb%Gmass, mu => self%mu,& 
+         c2 => config%inv_c2, ah => self%ah, xh => self%xh, status => self%status)
          if (n == 0) return
          allocate(rjmag4(n))
          allocate(beta(n))
          rjmag4(:) = (xh(1:n, :) .dot. xh(1:n, :))**2
          beta(:) = - mu(1:n)**2 * c2 
          ah(1, :) = ah(1, :) + aj(2, :)
-         do i = 2, n
+         do concurrent(i = 2:n, status(i) == ACTIVE)
             ah(i, :) = ah(i, :) + aj(i, :) 
          end do
       end associate
