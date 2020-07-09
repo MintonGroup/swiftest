@@ -27,7 +27,7 @@ contains
             aj(i, :) = beta(i) * xj(i,:) / rjmag4(i)
          end do
          suma(:) = 0.0_DP
-         ah(1, :) = ah(1, :) + aj(2, :)
+         ah(1, :) = ah(1, :) + aj(1, :)
          do i = 2, n
             suma(:) = suma(:) + GMpl(i) * aj(i, :) / eta(i)
             ah(i, :) = ah(i, :) + aj(i, :) + suma(:)
