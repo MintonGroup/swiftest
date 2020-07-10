@@ -27,7 +27,7 @@ implicit none
    symba_plA%levelg(1:npl) = -1 ! 
    symba_plA%levelm(1:npl) = -1 ! 
    symba_plA%index_parent(1:npl) = (/ (i, i=1,npl)/)
-   symba_plA%index_child(1:npl, :) = 0
+   symba_plA%index_child(:, 1:npl) = 0
 
    ! initialize test particles
    symba_tpA%nplenc(1:ntp) = 0 

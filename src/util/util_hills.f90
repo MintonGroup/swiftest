@@ -16,8 +16,8 @@ contains
       mp = swiftest_plA%mass(i)
       if (mp > 0.0_DP) then
          mu = msun + mp
-         r = sqrt(dot_product(swiftest_plA%xh(:,i), swiftest_plA%xh(:,i)))
-         v2 = dot_product(swiftest_plA%vh(:,i), swiftest_plA%vh(:,i))
+         r = sqrt(dot_product(swiftest_plA%xh(:, i), swiftest_plA%xh(:, i)))
+         v2 = dot_product(swiftest_plA%vh(:, i), swiftest_plA%vh(:, i))
          energy = 0.5_DP*v2 - mu/r
          ap = -0.5_DP*mu/energy
          swiftest_plA%rhill(i) = ap*(((mp/mu)/3.0_DP)**(1.0_DP/3.0_DP))

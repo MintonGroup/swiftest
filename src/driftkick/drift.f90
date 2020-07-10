@@ -31,13 +31,13 @@ module procedure drift_body
       class is (whm_pl)
          associate(xj => self%xj, vj => self%vj)
             do concurrent (i = 1:n, status(i) == ACTIVE)
-               call whm_drift_func(config, cb, mu(i), xj(i, :), vj(i, :), dt, iflag(i))
+               call whm_drift_func(config, cb, mu(i), xj(:, i), vj(:, i), dt, iflag(i))
             end do
          end associate
       class is (whm_tp)
          associate(xh => self%xh, vh => self%vh)
             do concurrent (i = 1:n, status(i) == ACTIVE)
-               call whm_drift_func(config, cb, mu(i), xh(i, :), vh(i, :), dt, iflag(i))
+               call whm_drift_func(config, cb, mu(i), xh(:, i), vh(:, i), dt, iflag(i))
             end do
          end associate
       end select 
@@ -57,7 +57,7 @@ module procedure drift_body
       use swiftest
       implicit none
       class(swiftest_configuration), intent(in) :: config
-      class(swiftest_central_body),  intent(in) :: cb
+      class(swiftest_cb),  intent(in) :: cb
       real(DP), dimension(:), intent(inout) :: x, v
       real(DP), intent(in) :: mu, dt 
       integer(I4B), intent(out)  :: iflag

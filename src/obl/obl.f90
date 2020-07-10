@@ -17,20 +17,20 @@ contains
                 j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, msun => cb%Gmass)
          do concurrent (i = 1:n)
             rinv2 = irh(i)**2
-            t0 = -msun * rinv2 * rinv2 * irh(i)
+            t0 = -msun * rinv2**2 * irh(i)
             t1 = 1.5_DP * j2rp2
-            t2 = xh(i, 3) * xh(i, 3) * rinv2
+            t2 = xh(3, i)**2 * rinv2
             t3 = 1.875_DP * j4rp4 * rinv2
             fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21 * t2) * t3) * t2)
             fac2 = 2 * t0 * (t1 - (2.0_DP - (14 * t2 / 3.0_DP)) * t3)
-            aobl(i, :) = fac1 * xh(i, :)
-            aobl(i, 3) = fac2 * xh(i, 3) + aobl(i, 3)
+            aobl(:, i) = fac1 * xh(:, i)
+            aobl(3, i) = fac2 * xh(3, i) + aobl(3, i)
          end do
       end associate
       select type(bd => self)
       class is (swiftest_pl)
          do concurrent (i = 1:NDIM)
-            cb%aobl(i) = -sum(bd%aobl(1:bd%nbody, i) * bd%Gmass(i)) / cb%Gmass
+            cb%aobl(i) = -sum(bd%aobl(i, 1:bd%nbody) * bd%Gmass(i)) / cb%Gmass
          end do
       end select
       return
@@ -59,7 +59,7 @@ contains
             rinv2 = irh(i)**2
             t0 = mu * mupl(i) * rinv2 * irh(i)
             t1 = j2rp2
-            t2 = xh(3, i) * xh(3, i) * rinv2
+            t2 = xh(3, i)**2 * rinv2
             t3 = j4rp4 * rinv2
             p2 = 0.5_DP * (3 * t2 - 1.0_DP)
             p4 = 0.125_DP * ((35 * t2 - 30.0_DP) * t2 + 3.0_DP)

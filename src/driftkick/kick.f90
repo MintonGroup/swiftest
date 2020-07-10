@@ -13,9 +13,9 @@ contains
    associate(n => self%nbody, vh => self%vh, ah => self%ah, status => self%status)
       if (n == 0) return
       where(status(1:n) == ACTIVE)
-         vh(:, 1) = vh(:, 1) + ah(:, 1) * dt
-         vh(:, 2) = vh(:, 2) + ah(:, 2) * dt
-         vh(:, 3) = vh(:, 3) + ah(:, 3) * dt
+         vh(1, :) = vh(1, :) + ah(1, :) * dt
+         vh(2, :) = vh(2, :) + ah(2, :) * dt
+         vh(3, :) = vh(3, :) + ah(3, :) * dt
       end where
    end associate
 
@@ -36,9 +36,9 @@ contains
       associate(n => self%nbody, vb => self%vb, ah => self%ah, status => self%status)
          if (n ==0) return
          where(status(1:n) == ACTIVE)
-            vb(:, 1) = vb(:, 1) + ah(:, 1) * dt
-            vb(:, 2) = vb(:, 2) + ah(:, 2) * dt
-            vb(:, 3) = vb(:, 3) + ah(:, 3) * dt
+            vb(1, :) = vb(1, :) + ah(1, :) * dt
+            vb(2, :) = vb(2, :) + ah(2, :) * dt
+            vb(3, :) = vb(3, :) + ah(3, :) * dt
          end where
       end associate
    

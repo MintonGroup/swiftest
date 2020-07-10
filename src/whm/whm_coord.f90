@@ -21,17 +21,17 @@ contains
          cb%xj(:) = 0.0_DP
          cb%vj(:) = 0.0_DP
          if (npl == 0) return
-         xj(1, :) = xh(1, :)
-         vj(1, :) = vh(1, :)
+         xj(:, 1) = xh(:, 1)
+         vj(:, 1) = vh(:, 1)
          sumx(:) = 0.0_DP
          sumv(:) = 0.0_DP
          do i = 2, npl
-            sumx(:) = sumx(:) + GMpl(i - 1) * xh(i - 1, :)
-            sumv(:) = sumv(:) + GMpl(i - 1) * vh(i - 1, :)
+            sumx(:) = sumx(:) + GMpl(i - 1) * xh(:, i - 1)
+            sumv(:) = sumv(:) + GMpl(i - 1) * vh(:, i - 1)
             cap(:) = sumx(:) / eta(i - 1)
             capv(:) = sumv(:) / eta(i - 1)
-            xj(i, :) = xh(i, :) - cap(:)
-            vj(i, :) = vh(i, :) - capv(:)
+            xj(:, i) = xh(:, i) - cap(:)
+            vj(:, i) = vh(:, i) - capv(:)
          end do
       end associate
     
@@ -57,15 +57,15 @@ contains
       associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
          if (npl == 0) return
-         xh(1, :) = xj(1, :)
-         vh(1, :) = vj(1, :)
+         xh(:, 1) = xj(:, 1)
+         vh(:, 1) = vj(:, 1)
          sumx(:) = 0.0_DP
          sumv(:) = 0.0_DP
          do i = 2, npl 
-            sumx(:) = sumx(:) + GMpl(i - 1) * xj(i - 1, :) / eta(i - 1)
-            sumv(:) = sumv(:) + GMpl(i - 1) * vj(i - 1, :) / eta(i - 1)
-            xh(i, :) = xj(i, :) + sumx(:)
-            vh(i, :) = vj(i, :) + sumv(:)
+            sumx(:) = sumx(:) + GMpl(i - 1) * xj(:, i - 1) / eta(i - 1)
+            sumv(:) = sumv(:) + GMpl(i - 1) * vj(:, i - 1) / eta(i - 1)
+            xh(:, i) = xj(:, i) + sumx(:)
+            vh(:, i) = vj(:, i) + sumv(:)
          end do
       end associate
     
@@ -90,12 +90,12 @@ contains
       associate(npl => self%nbody, GMpl => self%Gmass, vh => self%vh, vj => self%vj, eta => self%eta)
          cb%vj(:) = 0.0_DP
          if (npl == 0) return
-         vj(1, :) = vh(1, :)
+         vj(:, 1) = vh(:, 1)
          sumv(:) = 0.0_DP
          do i = 2, npl
-            sumv(:) = sumv(:) + GMpl(i - 1) * vh(i - 1, :)
+            sumv(:) = sumv(:) + GMpl(i - 1) * vh(:, i - 1)
             capv(:) = sumv(:) / eta(i - 1)
-            vj(i, :) = vh(i, :) - capv(:)
+            vj(:, i) = vh(:, i) - capv(:)
          end do
       end associate
     

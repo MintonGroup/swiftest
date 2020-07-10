@@ -59,7 +59,7 @@ contains
          rmaxu2 = config%rmaxu * config%rmaxu
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
-               rh2 = tp%xh(i, :) .dot. tp%xh(i, :) 
+               rh2 = tp%xh(:, i) .dot. tp%xh(:, i) 
                if ((config%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   tp%status(i) = DISCARDED_RMAX
                   write(*, *) "Particle ", tp%name(i), " too far from sun at t = ", t
@@ -69,8 +69,8 @@ contains
                   write(*, *) "Particle ", tp%name(i), " too close to sun at t = ", t
                   tp%ldiscard(i) = .true.
                else if (config%rmaxu >= 0.0_DP) then
-                  rb2 = tp%xb(i, :) .dot. tp%xb(i,:) 
-                  vb2 = tp%vb(i, :) .dot. tp%vb(i, :) 
+                  rb2 = tp%xb(:, i) .dot. tp%xb(:, i) 
+                  vb2 = tp%vb(:, i) .dot. tp%vb(:, i) 
                   energy = 0.5_DP * vb2 - msys / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      tp%status(i) = DISCARDED_RMAXU
@@ -152,8 +152,8 @@ contains
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                do j = 2, npl
-                  dx(:) = tp%xh(i, :) - pl%xh(j, :)
-                  dv(:) = tp%vh(i, :) - pl%vh(j, :)
+                  dx(:) = tp%xh(:, i) - pl%xh(:, j)
+                  dv(:) = tp%vh(:, i) - pl%vh(:, j)
                   radius = pl%radius(j)
                   call discard_pl_close(dx(:), dv(:), dt, radius**2, isp, r2min)
                   if (isp /= 0) then

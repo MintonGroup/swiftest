@@ -26,15 +26,15 @@ contains
          !$omp shared (pl) &
          !$omp reduction (+:ke, pe, htot)
          do i = 1, pl%nbody 
-            x(:) = pl%xb(:,i)
-            v(:) = pl%vb(:,i)
+            x(:) = pl%xb(:, i)
+            v(:) = pl%vb(:, i)
             mass = pl%Gmass(i)
             h(:) = x(:) .cross. v(:)
             htot(:) = htot(:) + mass * h(:)
             v2 = v(:) .dot. v(:) 
             ke = ke + 0.5_DP * mass * v2
             do j = i + 1, pl%nbody
-               dx(:) = pl%xb(:,j) - x(:)       
+               dx(:) = pl%xb(:, j) - x(:)       
                r2 = dx(:) .dot. dx(:) 
                if (r2 /= 0) then
                   pe = pe - mass * pl%Gmass(j) / sqrt(r2) 
@@ -45,7 +45,7 @@ contains
       end select
 
       select type(cb => self%cb)
-      class is (swiftest_central_body)
+      class is (swiftest_cb)
          ! Add in the central body 
          x(:) = cb%xb(:)
          v(:) = cb%vb(:)

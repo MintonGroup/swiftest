@@ -5,7 +5,7 @@ module swiftest_operators
    !!   A .cross. B = Cross product of A(1:3) and B(1:3) 
    !!       .mag. A = Vector magnitude (performance tests indicate some compilers do a better job with norm2(A) vs sqrt(dot_product(A)))
    !!
-   !! Each operator can also do element-wise computation on arrays of the form .mag. A(1:1:n, 3)
+   !! Each operator can also do element-wise computation on arrays of the form .mag. A(1:3, 1:n)
    use swiftest_globals
    implicit none
    public

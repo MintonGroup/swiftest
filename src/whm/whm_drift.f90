@@ -29,14 +29,14 @@ module procedure whm_drift_pl
       
       do concurrent (i = 1:npl, status(i) == ACTIVE)
          if (config%lgr) then
-            rmag = .mag. xj(i, :)
-            vmag2 = vj(i, :) .dot. vj(i,:) 
+            rmag = .mag. xj(:, i)
+            vmag2 = vj(:, i) .dot. vj(:, i) 
             energy = 0.5_DP * vmag2 - cb%Gmass / rmag
             dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
          else
             dtp = dt
          end if
-         call drift_one(mu(i), xj(i,:), vj(i,:), dtp, iflag(i))
+         call drift_one(mu(i), xj(:, i), vj(:, i), dtp, iflag(i))
       end do 
       if (any(iflag(1:npl) /= 0)) then
          do i = 1, npl
@@ -77,14 +77,14 @@ module procedure whm_drift_pl
          iflag(:) = 0
          do concurrent (i = 1:ntp, status(i) == ACTIVE) 
             if (config%lgr) then
-               rmag = .mag. xh(i, :)
-               vmag2 = vh(i, :) .dot. vh(i, :)
+               rmag = .mag. xh(:, i)
+               vmag2 = vh(:, i) .dot. vh(:, i)
                energy = 0.5_DP * vmag2 - cb%Gmass / rmag
                dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
             else
                dtp = dt
             end if
-            call drift_one(mu(i), xh(i, :), vh(i, :), dtp, iflag(i))
+            call drift_one(mu(i), xh(:, i), vh(:, i), dtp, iflag(i))
             if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
          end do
          if (any(iflag(1:ntp) /= 0)) then

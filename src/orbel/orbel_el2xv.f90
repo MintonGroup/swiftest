@@ -9,10 +9,11 @@ contains
       implicit none
       integer(I4B) :: i
    
+      if (self%nbody == 0) return
       call self%set_mu(cb)
       do concurrent (i = 1:self%nbody) 
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
-                           self%omega(i), self%capm(i), self%xh(i,:), self%vh(i,:))
+                           self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
       end do
    end procedure orbel_el2xv_vec
 

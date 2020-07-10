@@ -13,76 +13,70 @@ contains
    implicit none
    
    integer(I4B) :: i
-   real(DP)     :: vdotr, e
+   real(DP)     :: e
+   real(DP), dimension(:), allocatable :: vdotr
 
-   if (lfirst) then
-      if (qmin_coord == "HELIO") then
-         do i = 1, ntp
-            if (tp%status(i) == ACTIVE) then
-               vdotr = dot_product(tp%xh(:,i), tp%vh(:,i))
-               if (vdotr > 0.0_DP) then
-                  tp%isperi(i) = 1
-               else
-                  tp%isperi(i) = -1
-               end if
-            end if
-         end do
+   associate(ntp => tp%nbody, xht => tp%xh, vht => tp%vh, status => tp%status, isperi => tp%isperi, &
+             xbt => tp%xb, vbt => tp%vb, atp => tp%atp, peri => tp%peri)
+      if (lfirst) then
+         if (qmin_coord == "HELIO") then
+            where(status(1:ntp) == ACTIVE)
+               vdotr(1:ntp) = xht(:, 1:ntp) .dot. vht(:, 1:ntp)
+            elsewhere
+               vdotr(1:ntp) = 0.0_DP
+            end where
+         else
+            where(status(1:ntp) == ACTIVE)
+               vdotr(1:ntp) = xbt(:, 1:ntp) .dot. vbt(:, 1:ntp)
+            elsewhere
+               vdotr(1:ntp) = 0.0_DP
+            end where 
+         end if
+         where(vdotr(1:ntp) > 0.0_DP)
+            isperi(1:ntp) = 1
+         elsewhere
+            isperi = -1
+         end where
       else
-         do i = 1, ntp
-            if (tp%status(i) == ACTIVE) then
-               vdotr = dot_product(tp%xb(:,i), tp%vb(:,i))
-               if (vdotr > 0.0_DP) then
-                  tp%isperi(i) = 1
-               else
-                  tp%isperi(i) = -1
-               end if
-            end if
-         end do
-      end if
-   else
-      if (qmin_coord == "HELIO") then
-         do i = 1, ntp
-            if (tp%status(i) == ACTIVE) then
-               vdotr = dot_product(tp%xh(:,i), tp%vh(:,i))
-               if (tp%isperi(i) == -1) then
-                  if (vdotr >= 0.0_DP) then
-                     tp%isperi(i) = 0
-                     call orbel_xv2aeq(mu, tp%xh(i,1), tp%xh(i,2), tp%xh(i,3), &
-                                           tp%vh(i,1), tp%vh(i,2), tp%vh(i,3), & 
-                                           tp%atp(i), e, tp%peri(i))
+         if (qmin_coord == "HELIO") then
+            do concurrent (i = 1:ntp, status(i) == ACTIVE)
+               vdotr(i) = xht(:, i) .dot. vht(:, i)
+               if (isperi(i) == -1) then
+                  if (vdotr(i) >= 0.0_DP) then
+                     isperi(i) = 0
+                     call orbel_xv2aeq(mu, xht(1, i), xht(2, i), xht(3, i), &
+                                           vht(1, i), vht(2, i), vht(3, i), & 
+                                           atp(i), e, peri(i))
                   end if
                else
-                  if (vdotr > 0.0_DP) then
-                     tp%isperi(i) = 1
+                  if (vdotr(i) > 0.0_DP) then
+                     isperi(i) = 1
                   else
-                     tp%isperi(i) = -1
+                     isperi(i) = -1
                   end if
                end if
-            end if
-         end do
-      else
-         do i = 1, ntp
-            if (tp%status(i) == ACTIVE) then
-               vdotr = dot_product(tp%xb(:,i), tp%vb(:,i))
-               if (tp%isperi(i) == -1) then
-                  if (vdotr >= 0.0_DP) then
-                     tp%isperi(i) = 0
-                     call orbel_xv2aeq(msys, tp%xb(i,1), tp%xh(i,2), tp%xb(i,3), &
-                                           tp%vb(i,1), tp%vb(i,2), tp%vb(i,3), & 
-                                           tp%atp(i), e, tp%peri(i))
+            end do
+         else
+            do concurrent (i = 1:ntp, status(i) == ACTIVE)
+               vdotr(i) = xbt(:, i) .dot. vbt(:, i)
+               if (isperi(i) == -1) then
+                  if (vdotr(i) >= 0.0_DP) then
+                     isperi(i) = 0
+                     call orbel_xv2aeq(msys, xbt(1, i), xbt(2, i), xbt(3, i), &
+                                           vbt(1, i), vbt(2, i), vbt(3, i), & 
+                                           atp(i), e, peri(i))
                   end if
                else
-                  if (vdotr > 0.0_DP) then
-                     tp%isperi(i) = 1
+                  if (vdotr(i) > 0.0_DP) then
+                     isperi(i) = 1
                   else
-                     tp%isperi(i) = -1
+                     isperi(i) = -1
                   end if
                end if
-            end if
-         end do
+            end do
+         end if
       end if
-   end if
-
+   end associate
    return
 
    end procedure util_peri

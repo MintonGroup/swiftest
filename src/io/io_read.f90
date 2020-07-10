@@ -505,8 +505,8 @@ contains
                      self%radius(i) = 0.0_DP
                   end if
                   if (config%lrotation) then
-                     read(iu, iostat = ierr) self%Ip(i,:)
-                     read(iu, iostat = ierr) self%rot(i,:)
+                     read(iu, iostat = ierr) self%Ip(:, i)
+                     read(iu, iostat = ierr) self%rot(:, i)
                   end if
                   if (config%ltides) then
                      read(iu, iostat = ierr) self%k2(i)
@@ -516,8 +516,8 @@ contains
                   read(iu, *, iostat = ierr) self%name(i)
                end select
                if (ierr /= 0 ) exit
-               read(iu, *, iostat = ierr) self%xh(i,1),self%xh(i,2),self%xh(i,3)
-               read(iu, *, iostat = ierr) self%vh(i,1),self%vh(i,2),self%vh(i,3)
+               read(iu, *, iostat = ierr) self%xh(1, i), self%xh(2, i), self%xh(3, i)
+               read(iu, *, iostat = ierr) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                if (ierr /= 0 ) exit
                self%status(i) = ACTIVE
             end do
@@ -667,24 +667,24 @@ contains
             read(iu, iostat = ierr) self%omega(:)
             read(iu, iostat = ierr) self%capm(:)
          case (XV)
-            read(iu, iostat = ierr) self%xh(1:n, 1)
-            read(iu, iostat = ierr) self%xh(1:n, 2)
-            read(iu, iostat = ierr) self%xh(1:n, 3)
-            read(iu, iostat = ierr) self%vh(1:n, 1)
-            read(iu, iostat = ierr) self%vh(1:n, 2)
-            read(iu, iostat = ierr) self%vh(1:n, 3)
+            read(iu, iostat = ierr) self%xh(1, 1:n)
+            read(iu, iostat = ierr) self%xh(2, 1:n)
+            read(iu, iostat = ierr) self%xh(3, 1:n)
+            read(iu, iostat = ierr) self%vh(1, 1:n)
+            read(iu, iostat = ierr) self%vh(2, 1:n)
+            read(iu, iostat = ierr) self%vh(3, 1:n)
          end select
          select type(self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             read(iu, iostat = ierr) self%mass(1:n)
             read(iu, iostat = ierr) self%radius(1:n)
             if (config%lrotation) then
-               read(iu, iostat = ierr) self%Ip(1:n, 1)
-               read(iu, iostat = ierr) self%Ip(1:n, 2)
-               read(iu, iostat = ierr) self%Ip(1:n, 3)
-               read(iu, iostat = ierr) self%rot(1:n, 1)
-               read(iu, iostat = ierr) self%rot(1:n, 2)
-               read(iu, iostat = ierr) self%rot(1:n, 3)
+               read(iu, iostat = ierr) self%Ip(1, 1:n)
+               read(iu, iostat = ierr) self%Ip(2, 1:n)
+               read(iu, iostat = ierr) self%Ip(3, 1:n)
+               read(iu, iostat = ierr) self%rot(1, 1:n)
+               read(iu, iostat = ierr) self%rot(2, 1:n)
+               read(iu, iostat = ierr) self%rot(3, 1:n)
             end if
             if (config%ltides) then
                read(iu, iostat = ierr) self%k2(1:n)

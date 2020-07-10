@@ -26,8 +26,14 @@ contains
 
       logical, save                         :: lfirst = .true. !! Flag to determine if this is the first call of this method
       integer(I4B)                          :: ierr            !! I/O error code
-      real(DP), dimension(:,:), allocatable :: pv              !! Temporary holder of pseudovelocity for in-place conversion
 
+      class(swiftest_cb), allocatable       :: cb         !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_pl), allocatable       :: pl              !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_tp), allocatable       :: tp              !! Temporary local version of pl structure used for non-destructive conversions
+
+      allocate(cb, source = self%cb)
+      allocate(pl, source = self%pl)
+      allocate(tp, source = self%tp)
       iu = BINUNIT
 
       if (lfirst) then
@@ -57,53 +63,32 @@ contains
             call util_exit(FAILURE)
          end if
       end if
-      call io_write_hdr(iu, t, self%pl%nbody, self%tp%nbody, config%out_form, config%out_type)
+      call io_write_hdr(iu, t, pl%nbody, tp%nbody, config%out_form, config%out_type)
 
       if (config%lgr) then
-         if (self%pl%nbody > 0) then
-            select type(pl => self%pl)
+         associate(vh => pl%vh, vht => tp%vh)
+            select type(pl)
             class is (whm_pl)
-               call pl%gr_pv2vh(config, pl%vh) ! No danger of in place conversion here
+               call pl%gr_pv2vh(config)
             end select
-         end if
-
-         if (self%tp%nbody > 0) then
-            select type(tp => self%tp)
+            select type(tp) 
             class is (whm_tp)
-               call tp%gr_pv2vh(config, tp%vh) ! No danger of in place conversion here
+               call tp%gr_pv2vh(config)
             end select
-         end if
+         end associate
       end if
 
       if (config%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-         if (self%pl%nbody >0) call self%pl%xv2el(self%cb)
-         if (self%tp%nbody > 0) call self%tp%xv2el(self%cb)
+         call pl%xv2el(cb)
+         call pl%xv2el(cb)
       end if
       
       ! Write out each data type frame
-      call self%cb%write_frame(iu, config, t, dt)
-      if (self%pl%nbody > 0) call self%pl%write_frame(iu, config, t, dt)
-      if (self%tp%nbody > 0) call self%tp%write_frame(iu, config, t, dt)
+      call cb%write_frame(iu, config, t, dt)
+      if (pl%nbody > 0) call pl%write_frame(iu, config, t, dt)
+      if (pl%nbody > 0) call pl%write_frame(iu, config, t, dt)
 
-      if (config%lgr) then
-         if (self%pl%nbody > 0) then
-            select type(pl => self%pl)
-            class is (whm_pl)
-               allocate(pv, mold = pl%vh)
-               call pl%gr_vh2pv(config, pv) ! Take care not to use in-place conversion for this, or it get calculated incorrectly
-               pl%vh(:,:) = pv(:,:)
-            end select
-         end if
-
-         if (self%tp%nbody > 0) then
-            select type(tp => self%tp)
-            class is (whm_tp)
-               allocate(pv, mold = tp%vh)
-               call tp%gr_vh2pv(config, pv)
-               tp%vh(:,:) = pv(:,:)
-            end select
-         end if
-      end if
+      deallocate(cb, pl, tp)
 
       return
    end procedure io_write_frame_system
@@ -196,24 +181,24 @@ contains
             write(iu) self%omega(1:n)
             write(iu) self%capm(1:n)
          case (XV)
-            write(iu) self%xh(1:n, 1)
-            write(iu) self%xh(1:n, 2)
-            write(iu) self%xh(1:n, 3)
-            write(iu) self%vh(1:n, 1)
-            write(iu) self%vh(1:n, 2)
-            write(iu) self%vh(1:n, 3)
+            write(iu) self%xh(1, 1:n)
+            write(iu) self%xh(2, 1:n)
+            write(iu) self%xh(3, 1:n)
+            write(iu) self%vh(1, 1:n)
+            write(iu) self%vh(2, 1:n)
+            write(iu) self%vh(3, 1:n)
          end select
          select type(self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu) self%mass(1:n)
             write(iu) self%radius(1:n)
             if (config%lrotation) then
-               write(iu) self%Ip(1:n, 1)
-               write(iu) self%Ip(1:n, 2)
-               write(iu) self%Ip(1:n, 3)
-               write(iu) self%rot(1:n, 1)
-               write(iu) self%rot(1:n, 2)
-               write(iu) self%rot(1:n, 3)
+               write(iu) self%Ip(1, 1:n)
+               write(iu) self%Ip(2, 1:n)
+               write(iu) self%Ip(3, 1:n)
+               write(iu) self%rot(1, 1:n)
+               write(iu) self%rot(2, 1:n)
+               write(iu) self%rot(3, 1:n)
             end if
             if (config%ltides) then
                write(iu) self%k2(1:n)
@@ -440,7 +425,7 @@ contains
       character(len=:), allocatable  :: dump_file_name
 
       select type(self)
-      class is(swiftest_central_body)
+      class is(swiftest_cb)
          dump_file_name = trim(adjustl(config%incbfile)) 
       class is (swiftest_pl)
          dump_file_name = trim(adjustl(config%inplfile)) 
@@ -476,6 +461,7 @@ contains
       character(*), parameter :: VECFMT    = '(3(E23.16, 1X))'
       character(*), parameter :: NPLFMT    = '(I8)'
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
+      class(swiftest_body), allocatable :: pltemp
 
       associate(t => config%t, config => config, nsp => discards%nbody) 
          
@@ -495,8 +481,10 @@ contains
             write(LUN, NAMEFMT) sub, discards%name(i), discards%status(i)
             write(LUN, VECFMT) discards%xh(i, 1), discards%xh(i, 2), discards%xh(i, 3)
             if (config%lgr) then
-               allocate(vh, mold = discards%vh)
-               call discards%gr_pv2vh(config, vh)
+               select type(discards)
+               class is (whm_tp)
+                  call discards%gr_pv2vh(config)
+               end select
             else
                allocate(vh, source = discards%vh)
             end if
@@ -511,10 +499,15 @@ contains
                   write(LUN, PLNAMEFMT) name(i), GMpl(i), Rpl(i)
                   write(LUN, VECFMT) xh(i, 1), xh(i, 2), xh(i, 3)
                   if (config%lgr) then
-                     allocate(vh, mold = discards%vh)
-                     call pl%gr_pv2vh(config, vh)
+                     allocate(pltemp, source = pl)
+                     select type(pltemp)
+                     class is (whm_pl)
+                        call pltemp%gr_pv2vh(config)
+                        allocate(vh, source = pltemp%vh)
+                     end select
+                     deallocate(pltemp)
                   else
-                     allocate(vh, source = discards%vh)
+                     allocate(vh, source = pl%vh)
                   end if
                   write(LUN, VECFMT) vh(i, 1), vh(i, 2), vh(i, 3)
                   deallocate(vh)

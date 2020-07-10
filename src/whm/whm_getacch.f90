@@ -25,11 +25,11 @@ contains
       if (.not. allocated(irh)) allocate(irh(npl))
       if (.not. allocated(ir3h)) allocate(ir3h(npl))
       if (.not. allocated(fac)) allocate(fac(npl))
-      r2(:) = xj(1:npl, :) .dot. xj(1:npl, :)
+      r2(:) = xj(:, 1:npl) .dot. xj(:, 1:npl)
       irj(:)= 1.0_DP / sqrt(r2(1:npl))
       ir3j(:) = irj(1:npl) / r2(1:npl)
 
-      r2(:) = xh(1:npl, :) .dot. xh(1:npl, :)
+      r2(:) = xh(:, 1:npl) .dot. xh(:, 1:npl)
       irh(:)= 1.0_DP / sqrt(r2(1:npl))
       ir3h(:) = irh(1:npl) / r2(1:npl)
 
@@ -37,21 +37,21 @@ contains
 
       fac(2:npl) = Gmpl(2:npl) * ir3h(2:npl)
       do concurrent (i = 1:NDIM)
-         ah0(i) = - sum(fac(2:npl) * xh(2:npl, i))
+         ah0(i) = -sum(fac(2:npl) * xh(i, 2:npl))
       end do
       call whm_getacch_ah1(cb, pl, ir3h, ir3j)
       call whm_getacch_ah2(cb, pl, ir3j)
       call whm_getacch_ah3(pl)
       
       do concurrent (i = 1:NDIM)
-         ah(1:npl, i) = ah0(i) + ah1(1:npl, i) + ah2(1:npl, i) + ah3(1:npl, i)
+         ah(i, 1:npl) = ah0(i) + ah1(i, 1:npl) + ah2(i, 1:npl) + ah3(i, 1:npl)
       end do
 
       if (j2rp2 /= 0.0_DP) then
          call  self%obl_acc(cb, irh, xh)
 
          do concurrent (i = 1:NDIM)
-            ah(1:npl, i) = ah(1:npl, i) + aobl(1:npl, i) - aobl0(i)
+            ah(i, 1:npl) = ah(i, 1:npl) + aobl(i, 1:npl) - aobl0(i)
          end do
       end if
       if (config%lextra_force) call pl%user_getacch(cb, config, t)
@@ -87,12 +87,12 @@ contains
          if(.not.allocated(irh)) allocate(irh(npl))
          if (.not.allocated(ir3h)) allocate(ir3h(npl))
          if (.not. allocated(irht)) allocate(irht(ntp))
-         r2(:) = xh(1:npl, :) .dot. xh(1:npl, :)
+         r2(:) = xh(:, 1:npl) .dot. xh(:, 1:npl)
          irh(:)= 1.0_DP / sqrt(r2(1:npl))
          ir3h(:) = irh(1:npl) / r2(1:npl)
 
          do concurrent (i = 1:ntp, status(i) == ACTIVE)
-            r2t = xht(i, :) .dot. xht(i, :) 
+            r2t = xht(:, i) .dot. xht(:, i) 
             irht(i) = 1.0_DP / sqrt(r2t)
          end do
 
@@ -100,17 +100,17 @@ contains
          if(.not.allocated(fac)) allocate(fac(npl))
          fac(:) = Gmpl(1:npl) * ir3h(1:npl)
          do concurrent (i = 1:NDIM)
-            ah0(i) = - sum(fac(1:npl) * xh(1:npl, i))
+            ah0(i) = -sum(fac(1:npl) * xh(i, 1:npl))
          end do
          call whm_getacch_ah3_tp(cb, pl, tp, xh)
          do concurrent (i = 1:ntp, status(i) == ACTIVE)
-            aht(i, :) = aht(i, :) + ah0(:)
+            aht(:, i) = aht(:, i) + ah0(:)
          end do
          if (j2rp2 /= 0.0_DP) then
             call pl%obl_acc(cb, irh, xh) 
             call tp%obl_acc(cb, irht, xht)
             do concurrent (i = 1:ntp, status(i) == ACTIVE)
-               aht(i, :) = aht(i, :) + tp%aobl(i, :) - aobl0(:)
+               aht(:, i) = aht(:, i) + tp%aobl(:, i) - aobl0(:)
             end do
          end if
          if (config%lextra_force) call tp%user_getacch(cb, config, t)
@@ -128,7 +128,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
       use swiftest
       implicit none
-      class(whm_central_body), intent(in) :: cb
+      class(whm_cb), intent(in) :: cb
       class(whm_pl), intent(inout)        :: pl
       real(DP), dimension(:), intent(in) :: ir3h, ir3j
 
@@ -136,11 +136,11 @@ contains
       real(DP), dimension(NDIM) :: ah1h, ah1j
 
       associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
-         ah1(1:npl, :) = 0.0_DP
+         ah1(:, 1:npl) = 0.0_DP
          do concurrent (i = 2:npl)
-            ah1j(:) = xj(i, :) * ir3j(i)
-            ah1h(:) = xh(i, :) * ir3h(i)
-            ah1(i,:) = msun * (ah1j(:) - ah1h(:))
+            ah1j(:) = xj(:, i) * ir3j(i)
+            ah1h(:) = xh(:, i) * ir3h(i)
+            ah1(:, i) = msun * (ah1j(:) - ah1h(:))
          end do
       end associate
    
@@ -158,19 +158,19 @@ contains
       use swiftest
       implicit none
 
-      class(whm_central_body), intent(in)    :: cb
+      class(whm_cb), intent(in)    :: cb
       class(whm_pl),           intent(inout) :: pl
       real(DP), dimension(:),  intent(in)    :: ir3j
       integer(I4B)                           :: i
       real(DP)                               :: etaj, fac
    
       associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah2 => pl%ah2, Gmpl => pl%Gmass)
-         ah2(1:npl, :) = 0.0_DP
+         ah2(:, 1:npl) = 0.0_DP
          etaj = Gmsun
          do i = 2, npl
             etaj = etaj + Gmpl(i - 1)
             fac = Gmpl(i) * Gmsun * ir3j(i) / etaj
-            ah2(i, :) = ah2(i - 1, :) + fac * xj(i, :)
+            ah2(:, i) = ah2(:, i - 1) + fac * xj(:, i)
          end do
       end associate
    
@@ -193,17 +193,17 @@ contains
       real(DP), dimension(NDIM)              :: dx
    
       associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass) 
-         ah3(1:npl,:) = 0.0_DP
+         ah3(:, 1:npl) = 0.0_DP
 
          do i = 1, npl - 1
             do j = i + 1, npl
-               dx(:) = xh(j, :) - xh(i, :)
+               dx(:) = xh(:, j) - xh(:, i)
                rji2  = dx(:) .dot. dx(:) 
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
                faci = Gmpl(i) * irij3
                facj = Gmpl(j) * irij3
-               ah3(i, :) = ah3(i, :) + facj * dx(:)
-               ah3(j, :) = ah3(j, :) - faci * dx(:)
+               ah3(:, i) = ah3(:, i) + facj * dx(:)
+               ah3(:, j) = ah3(:, j) - faci * dx(:)
             end do
          end do
       end associate
@@ -220,7 +220,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
       use swiftest
       implicit none
-      class(whm_central_body), intent(in) :: cb 
+      class(whm_cb), intent(in) :: cb 
       class(whm_pl), intent(in) :: pl 
       class(whm_tp), intent(inout) :: tp
       real(DP), dimension(:,:), intent(in) :: xh
@@ -235,11 +235,11 @@ contains
          aht(:,:) = 0.0_DP
          do i = 1, ntp
             do j = 1, npl
-               dx(:) = xht(i, :) - xh(j, :)
+               dx(:) = xht(:, i) - xh(:, j)
                rji2 = dx(:) .dot. dx(:) 
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
                fac = Gmpl(j) * irij3
-               aht(i, :) = aht(i, :) - fac * dx(:)
+               aht(:, i) = aht(:, i) - fac * dx(:)
             end do
          end do
       end associate

@@ -3,7 +3,7 @@ submodule(swiftest_operators) operator_dot_implementation
    !!
    !! Contains implementations for the .dot. operator for all defined real types
    !! Single vector implementations:  C   = A(1:3) .dot. B(1:3)
-   !! Vector list implementations:   C(:) = A(:, 1:3) .dot. B(::, 1:3)
+   !! Vector list implementations:   C(:) = A(1:3, :) .dot. B(1:3, :)
    contains
 
    module procedure operator_dot_sp
@@ -21,10 +21,10 @@ submodule(swiftest_operators) operator_dot_implementation
    module procedure operator_dot_el_sp
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C(n))
       do concurrent (i = 1:n)
-         C(i) = dot_product(A(i,:), B(i,:))
+         C(i) = dot_product(A(:, i), B(:, i))
       end do
       return
    end procedure operator_dot_el_sp
@@ -32,10 +32,10 @@ submodule(swiftest_operators) operator_dot_implementation
    module procedure operator_dot_el_dp
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C(n))
       do concurrent (i = 1:n)
-         C(i) = dot_product(A(i,:), B(i,:))
+         C(i) = dot_product(A(:, i), B(:, i))
       end do
       return
    end procedure operator_dot_el_dp
@@ -43,10 +43,10 @@ submodule(swiftest_operators) operator_dot_implementation
    module procedure operator_dot_el_i1b
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C(n))
       do concurrent (i = 1:n)
-         C(i) = dot_product(A(i,:), B(i,:))
+         C(i) = dot_product(A(:, i), B(:, i))
       end do
       return
    end procedure operator_dot_el_i1b
@@ -54,10 +54,10 @@ submodule(swiftest_operators) operator_dot_implementation
    module procedure operator_dot_el_i2b
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C(n))
       do concurrent (i = 1:n)
-         C(i) = dot_product(A(i,:), B(i,:))
+         C(i) = dot_product(A(:, i), B(:, i))
       end do
       return
    end procedure operator_dot_el_i2b
@@ -65,10 +65,10 @@ submodule(swiftest_operators) operator_dot_implementation
    module procedure operator_dot_el_i4b
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C(n))
       do concurrent (i = 1:n)
-         C(i) = dot_product(A(i,:), B(i,:))
+         C(i) = dot_product(A(:, i), B(:, i))
       end do
       return
    end procedure operator_dot_el_i4b
@@ -76,10 +76,10 @@ submodule(swiftest_operators) operator_dot_implementation
    module procedure operator_dot_el_i8b
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C(n))
       do concurrent (i = 1:n)
-         C(i) = dot_product(A(i,:), B(i,:))
+         C(i) = dot_product(A(:, i), B(:, i))
       end do
       return
    end procedure operator_dot_el_i8b

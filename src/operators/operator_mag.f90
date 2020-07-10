@@ -3,7 +3,7 @@ submodule(swiftest_operators) operator_mag_implementation
    !!
    !! Contains implementations for the .mag. operator for all defined real types
    !! Single vector implementations:  B   = .mag. A(1:3)
-   !! Vector list implementations:   B(:) = .mag. A(:, 1:3)
+   !! Vector list implementations:   B(:) = .mag. A(1:3, :)
    contains
 
    module procedure operator_mag_sp
@@ -21,10 +21,10 @@ submodule(swiftest_operators) operator_mag_implementation
    module procedure operator_mag_el_sp
       implicit none
       integer(I4B)  :: i,n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(B(n))
       do concurrent (i=1:n)
-         B(i) = sqrt(A(i,1)**2 + A(i,2)**2 + A(i,3)**2) 
+         B(i) = norm2(A(:, i)) 
       end do
       return
    end procedure operator_mag_el_sp
@@ -32,10 +32,10 @@ submodule(swiftest_operators) operator_mag_implementation
    module procedure operator_mag_el_dp
       implicit none
       integer(I4B)  :: i,n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(B(n))
       do concurrent (i=1:n)
-         B(i) = sqrt(A(i,1)**2 + A(i,2)**2 + A(i,3)**2) 
+         B(i) = norm2(A(:, i)) 
       end do
       return 
    end procedure operator_mag_el_dp

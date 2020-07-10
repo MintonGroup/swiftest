@@ -23,10 +23,10 @@ contains
          select type(config => config)
             class is (whm_configuration)
             select type(cb => self%cb)
-               class is (whm_central_body)
+               class is (whm_cb)
                select type(pl => self%pl)
                class is (whm_pl)
-               associate(xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj, ah => pl%ah) ! These associations aid in debugging with gdb
+               associate(xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj, ah => pl%ah,  eta => pl%eta) ! These associations aid in debugging with gdb
                   select type(tp => self%tp)
                   class is (whm_tp)
                   associate(xht => tp%xh, vht => tp%vh, aht => tp%ah) ! These associations aid in debugging with gdb

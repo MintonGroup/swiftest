@@ -21,7 +21,7 @@ implicit none
 
 ! executable code
 
-   ah(1:ntp, :) = 0.0_DP
+   ah(:, 1:ntp) = 0.0_DP
 
    ! call util_dist_eucl_pltp(npl, ntp, symba_plA%xh, symba_tpA%xh, &
    !    num_pltp_comparisons, k_pltp, dist_pltp_array)
@@ -42,7 +42,7 @@ implicit none
    enddo
 !$omp end parallel do
 
-   symba_tpA%ah(1:ntp, :) = ah(1:ntp, :)
+   symba_tpA%ah(:, 1:ntp) = ah(:, 1:ntp)
 
    do i = 1, npltpenc
       index_pl = pltpenc_list%indexpl(i)

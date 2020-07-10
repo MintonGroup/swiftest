@@ -3,7 +3,7 @@ submodule(swiftest_operators) operator_cross_implementation
    !!
    !! Contains implementations for the .cross. operator for all defined integer and real types
    !! Single vector implementations: C(1:3)   = A(1:3)   .cross. B(1:3) 
-   !! Vector list implementations:   C(:, 1:3) = A(:, 1:3) .cross. B(:, 1:3)
+   !! Vector list implementations:   C(1:3, :) = A(1:3, :) .cross. B(1:3, :)
    contains
 
    module procedure operator_cross_sp
@@ -57,12 +57,12 @@ submodule(swiftest_operators) operator_cross_implementation
    module procedure operator_cross_el_sp
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C, mold = A)
       do concurrent (i = 1:n)
-         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
-         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
-         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
+         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
+         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
       end do
       return
    end procedure operator_cross_el_sp
@@ -70,12 +70,12 @@ submodule(swiftest_operators) operator_cross_implementation
    module procedure operator_cross_el_dp      
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C, mold = A)
       do concurrent (i = 1:n)
-         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
-         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
-         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
+         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
+         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
       end do
       return
    end procedure operator_cross_el_dp
@@ -83,12 +83,12 @@ submodule(swiftest_operators) operator_cross_implementation
    module procedure operator_cross_el_i1b  
       implicit none    
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C, mold = A)
       do concurrent (i = 1:n)
-         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
-         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
-         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
+         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
+         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
       end do
       return
    end procedure operator_cross_el_i1b
@@ -96,12 +96,12 @@ submodule(swiftest_operators) operator_cross_implementation
    module procedure operator_cross_el_i2b      
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C, mold = A)
       do concurrent (i = 1:n)
-         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
-         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
-         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
+         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
+         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
       end do
       return
    end procedure operator_cross_el_i2b
@@ -109,12 +109,12 @@ submodule(swiftest_operators) operator_cross_implementation
    module procedure operator_cross_el_i4b      
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C, mold = A)
       do concurrent (i = 1:n)
-         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
-         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
-         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
+         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
+         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
       end do
       return
    end procedure operator_cross_el_i4b
@@ -122,12 +122,12 @@ submodule(swiftest_operators) operator_cross_implementation
    module procedure operator_cross_el_i8b      
       implicit none
       integer(I4B) :: i, n
-      n = size(A,1)
+      n = size(A, 2)
       allocate(C, mold = A)
       do concurrent (i = 1:n)
-         C(i, 1) = A(i, 2) * B(i, 3) - A(i, 3) * B(i, 2)
-         C(i, 2) = A(i, 3) * B(i, 1) - A(i, 1) * B(i, 3)
-         C(i, 3) = A(i, 1) * B(i, 2) - A(i, 2) * B(i, 1)
+         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
+         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
+         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
       end do
       return
    end procedure operator_cross_el_i8b

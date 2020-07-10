@@ -23,7 +23,7 @@ contains
          allocate(whm_configuration :: config)
          select type(system)
          class is (whm_nbody_system)
-            allocate(whm_central_body :: system%cb)
+            allocate(whm_cb :: system%cb)
             allocate(whm_pl :: system%pl)
             allocate(whm_tp :: system%tp)
             allocate(whm_tp :: system%tp_discards)
@@ -47,7 +47,7 @@ contains
       !!
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
       !! initializes all components with a value.
-      !! Note: Timing tests indicate that (n, NDIM) is more efficient than (NDIM, n) 
+      !! Note: Timing tests indicate that (NDIM, n) is more efficient than (NDIM, n) 
       use swiftest
       implicit none
 
@@ -58,12 +58,12 @@ contains
       allocate(self%name(n))
       allocate(self%status(n))
       allocate(self%ldiscard(n))
-      allocate(self%xh(n, NDIM))
-      allocate(self%vh(n, NDIM))
-      allocate(self%xb(n, NDIM))
-      allocate(self%vb(n, NDIM))
-      allocate(self%ah(n, NDIM))
-      allocate(self%aobl(n, NDIM))
+      allocate(self%xh(NDIM, n))
+      allocate(self%vh(NDIM, n))
+      allocate(self%xb(NDIM, n))
+      allocate(self%vb(NDIM, n))
+      allocate(self%ah(NDIM, n))
+      allocate(self%aobl(NDIM, n))
       allocate(self%a(n))
       allocate(self%e(n))
       allocate(self%inc(n))
@@ -111,8 +111,8 @@ contains
       allocate(self%rhill(n))
       allocate(self%radius(n))
       allocate(self%density(n))
-      allocate(self%Ip(n,NDIM))
-      allocate(self%rot(n,NDIM))
+      allocate(self%Ip(NDIM, n))
+      allocate(self%rot(NDIM, n))
       allocate(self%k2(n))
       allocate(self%Q(n))
 
