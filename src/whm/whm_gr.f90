@@ -72,7 +72,7 @@ contains
       implicit none
       integer(I4B) :: i
 
-      associate(n => self%nbody, xj => self%xh, vj => self%vj, status => self%status, c2 => config%inv_c2)
+      associate(n => self%nbody, xj => self%xj, vj => self%vj, status => self%status, c2 => config%inv_c2)
          if (n == 0) return
          do concurrent (i = 1:n, status(i) == ACTIVE)
             call p4_func(xj(:, i), vj(:, i), dt, c2)

@@ -31,7 +31,7 @@ module procedure whm_drift_pl
          if (config%lgr) then
             rmag = .mag. xj(:, i)
             vmag2 = vj(:, i) .dot. vj(:, i) 
-            energy = 0.5_DP * vmag2 - cb%Gmass / rmag
+            energy = 0.5_DP * vmag2 - mu(i) / rmag
             dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
          else
             dtp = dt
