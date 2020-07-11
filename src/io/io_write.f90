@@ -85,8 +85,8 @@ contains
       
       ! Write out each data type frame
       call cb%write_frame(iu, config, t, dt)
-      if (pl%nbody > 0) call pl%write_frame(iu, config, t, dt)
-      if (pl%nbody > 0) call pl%write_frame(iu, config, t, dt)
+      call pl%write_frame(iu, config, t, dt)
+      call tp%write_frame(iu, config, t, dt)
 
       deallocate(cb, pl, tp)
 
@@ -171,6 +171,7 @@ contains
       implicit none
 
       associate(n => self%nbody)
+         if (n == 0) return
          write(iu) self%name(1:n)
          select case (config%out_form)
          case (EL) 

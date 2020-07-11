@@ -348,7 +348,7 @@ def swiftest_stream(f, config):
         if config['TIDES'] == 'YES':
             k2cb = f.read_reals(np.float64)
             Qcb = f.read_reals(np.float64)
-        if npl > 0:
+        if npl[0] > 0:
             plid = f.read_ints()
             p1 = f.read_reals(np.float64)
             p2 = f.read_reals(np.float64)
@@ -368,7 +368,7 @@ def swiftest_stream(f, config):
             if config['TIDES'] == 'YES':
                 k2pl = f.read_reals(np.float64)
                 Qpl = f.read_reals(np.float64)
-        if ntp > 0:
+        if ntp[0] > 0:
             tpid = f.read_ints()
             t1 = f.read_reals(np.float64)
             t2 = f.read_reals(np.float64)
@@ -504,12 +504,12 @@ def swiftest2xr(config):
 
 if __name__ == '__main__':
 
-    workingdir = '/Users/daminton/work/Projects/Swiftest/swiftest_whm_test/keplerian/'
-    inparfile = workingdir + 'param.in'
+    workingdir = '/Users/daminton/work/Projects/Swiftest/swiftest_whm_test/gr_test_pl_only/'
+    inparfile = workingdir + 'param.gr.in'
     param = read_swifter_param(inparfile)
     param['BIN_OUT'] = workingdir + param['BIN_OUT']
 
-    config_file_name = workingdir + 'config.in'
+    config_file_name = workingdir + 'config.gr.in'
     config = read_swiftest_config(config_file_name)
     config['BIN_OUT'] = workingdir + config['BIN_OUT']
 
