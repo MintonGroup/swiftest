@@ -308,7 +308,7 @@ contains
       integer(I4B) :: i
 
       vmag2 = v .dot. v 
-      dr(:) = -c2 * vmag2 * v(:)
+      dr(:) = -2 * c2 * vmag2 * v(:)
       x(:) = x(:) + dr(:) * dt
 
       return

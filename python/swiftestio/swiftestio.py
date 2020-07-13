@@ -74,9 +74,9 @@ def read_swifter_param(inparfile):
                 param['QMIN_AHI'] = fields[2]
 
     param['NPLMAX']     = int(param['NPLMAX'])
-    param['NTPMAX']     = int(param['NPLMAX'])
-    param['ISTEP_OUT']  = int(param['NPLMAX'])
-    param['ISTEP_DUMP'] = int(param['NPLMAX'])
+    param['NTPMAX']     = int(param['NTPMAX'])
+    param['ISTEP_OUT']  = int(param['ISTEP_OUT'])
+    param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
     param['T0']         = float(param['T0'])
     param['TSTOP']      = float(param['TSTOP'])
     param['DT']         = float(param['DT'])
@@ -174,9 +174,9 @@ def read_swiftest_config(config_file_name):
                 config['QMIN_AHI'] = fields[2]
 
     config['NPLMAX']     = int(config['NPLMAX'])
-    config['NTPMAX']     = int(config['NPLMAX'])
-    config['ISTEP_OUT']  = int(config['NPLMAX'])
-    config['ISTEP_DUMP'] = int(config['NPLMAX'])
+    config['NTPMAX']     = int(config['NTPMAX'])
+    config['ISTEP_OUT']  = int(config['ISTEP_OUT'])
+    config['ISTEP_DUMP'] = int(config['ISTEP_DUMP'])
     config['T0']         = float(config['T0'])
     config['TSTOP']      = float(config['TSTOP'])
     config['DT']         = float(config['DT'])
