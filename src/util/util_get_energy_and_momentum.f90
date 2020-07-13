@@ -23,7 +23,7 @@ contains
          pe = 0.0_DP
 
          !$omp parallel do default(private) &
-         !$omp shared (pl) &
+         !$omp shared (self) &
          !$omp reduction (+:ke, pe, htot)
          do i = 1, pl%nbody 
             x(:) = pl%xb(:, i)

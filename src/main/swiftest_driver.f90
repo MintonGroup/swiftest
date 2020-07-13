@@ -88,7 +88,7 @@ program swiftest_driver
 
       !> Dump the final state of the system to file
       call nbody_system%dump(config, t, dt, statusfmt)
-      !$ finsih_wall_time = omp_get_wtime()
+      !$ finish_wall_time = omp_get_wtime()
       !$ write(*,*) 'Time: ', finish_wall_time - start_wall_time
    end associate
    call util_exit(SUCCESS)
