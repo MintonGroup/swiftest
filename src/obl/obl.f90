@@ -27,10 +27,10 @@ contains
             aobl(3, i) = fac2 * xh(3, i) + aobl(3, i)
          end do
       end associate
-      select type(bd => self)
+      select type(pl => self)
       class is (swiftest_pl)
          do concurrent (i = 1:NDIM)
-            cb%aobl(i) = -sum(bd%aobl(i, 1:bd%nbody) * bd%Gmass(i)) / cb%Gmass
+            cb%aobl(i) = -sum(pl%aobl(i, 1:pl%nbody) * pl%Gmass(1:pl%nbody)) / cb%Gmass
          end do
       end select
       return
