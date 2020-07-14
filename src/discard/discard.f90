@@ -15,8 +15,8 @@ contains
       if (self%tp%nbody == 0) return 
       select type(self)
       class is (whm_nbody_system)
-         associate(cb => self%cb, pl => self%pl, tp => self%tp, &
-                   t => config%t, msys => self%msys, discards => self%tp_discards, &
+         associate(cb => self%cb, pl => self%pl, tp => self%tp, t => config%t, dt => config%dt, &
+                   msys => self%msys, discards => self%tp_discards, &
                    ntp => self%tp%nbody)
             if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
                (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
@@ -27,7 +27,7 @@ contains
                if (ntp > 0) call tp%discard_sun(cb, config, t, msys)
             end if
             if (config%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(cb, pl, config, t, msys)
-            if (config%lclose .and. ntp > 0) call tp%discard_pl(cb, pl, config, t, msys)
+            if (config%lclose .and. ntp > 0) call tp%discard_pl(cb, pl, config, t, dt)
           
             if (any(tp%ldiscard(1:ntp))) then
                ! Spill the discards to the spill list
@@ -55,8 +55,8 @@ contains
 
       associate(tp => self, ntp => self%nbody)
          rmin2 = max(config%rmin * config%rmin, cb%radius * cb%radius)
-         rmax2 = config%rmax * config%rmax
-         rmaxu2 = config%rmaxu * config%rmaxu
+         rmax2 = config%rmax**2
+         rmaxu2 = config%rmaxu**2
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                rh2 = tp%xh(:, i) .dot. tp%xh(:, i) 
@@ -100,21 +100,21 @@ contains
       real(DP), dimension(NDIM) :: dx
    
    
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody)
+      associate(tp => self, ntp => self%nbody, npl => pl%nbody, qmin_coord => config%qmin_coord)
          call util_hills(npl, pl)
          if (lfirst) then
             call util_peri(lfirst, ntp, tp, cb%Gmass, msys, config%qmin_coord)
             lfirst = .false.
          else
-            call util_peri(lfirst, ntp, tp, pl%mass(1), msys, config%qmin_coord)
+            call util_peri(lfirst, ntp, tp, cb%Gmass, msys, config%qmin_coord)
             do i = 1, ntp
                if (tp%status(i) == ACTIVE) then
                   if (tp%isperi(i) == 0) then
                      ih = 1
-                     do j = 2, npl
-                        dx(:) = tp%xh(:,i) - pl%xh(:,j)
+                     do j = 1, npl
+                        dx(:) = tp%xh(:, i) - pl%xh(:, j)
                         r2 = dx(:) .dot. dx(:) 
-                        if (r2 <= pl%rhill(j) * pl%rhill(j)) ih = 0
+                        if (r2 <= (pl%rhill(j))**2) ih = 0
                      end do
                      if (ih == 1) then
                         if ((tp%atp(i) >= config%qmin_alo) .and.    &
@@ -151,7 +151,7 @@ contains
       associate(tp => self, ntp => self%nbody, npl => pl%nbody)
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
-               do j = 2, npl
+               do j = 1, npl
                   dx(:) = tp%xh(:, i) - pl%xh(:, j)
                   dv(:) = tp%vh(:, i) - pl%vh(:, j)
                   radius = pl%radius(j)

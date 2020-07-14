@@ -22,20 +22,20 @@ contains
                discards%muj(:) = pack(keeps%muj(1:npl),       lspill_list(1:npl))
                keeps%muj(:)    = pack(keeps%muj(1:npl), .not. lspill_list(1:npl))
 
-               discards%xj(:, i) = pack(keeps%xj(i, 1:npl),       lspill_list(1:npl))
-               keeps%xj(:, i)    = pack(keeps%xj(i, 1:npl), .not. lspill_list(1:npl))
+               discards%xj(i, :) = pack(keeps%xj(i, 1:npl),       lspill_list(1:npl))
+               keeps%xj(i, :)    = pack(keeps%xj(i, 1:npl), .not. lspill_list(1:npl))
    
-               discards%vj(:, i) = pack(keeps%vj(i, 1:npl),       lspill_list(1:npl))
-               keeps%vj(:, i)    = pack(keeps%vj(i, 1:npl), .not. lspill_list(1:npl))
+               discards%vj(i, :) = pack(keeps%vj(i, 1:npl),       lspill_list(1:npl))
+               keeps%vj(i, :)    = pack(keeps%vj(i, 1:npl), .not. lspill_list(1:npl))
                
-               discards%ah1(:, i) = pack(keeps%ah1(i, 1:npl),       lspill_list(1:npl))
-               keeps%ah1(:, i)    = pack(keeps%ah1(i, 1:npl), .not. lspill_list(1:npl))
+               discards%ah1(i, :) = pack(keeps%ah1(i, 1:npl),       lspill_list(1:npl))
+               keeps%ah1(i, :)    = pack(keeps%ah1(i, 1:npl), .not. lspill_list(1:npl))
    
-               discards%ah2(:, i) = pack(keeps%ah2(i, 1:npl),       lspill_list(1:npl))
-               keeps%ah2(:, i)    = pack(keeps%ah2(i, 1:npl), .not. lspill_list(1:npl))
+               discards%ah2(i, :) = pack(keeps%ah2(i, 1:npl),       lspill_list(1:npl))
+               keeps%ah2(i, :)    = pack(keeps%ah2(i, 1:npl), .not. lspill_list(1:npl))
    
-               discards%ah3(:, i) = pack(keeps%ah3(i, 1:npl),       lspill_list(1:npl))
-               keeps%ah3(:, i)    = pack(keeps%ah3(i, 1:npl), .not. lspill_list(1:npl))
+               discards%ah3(i, :) = pack(keeps%ah3(i, 1:npl),       lspill_list(1:npl))
+               keeps%ah3(i, :)    = pack(keeps%ah3(i, 1:npl), .not. lspill_list(1:npl))
             end do
          end associate
       end select

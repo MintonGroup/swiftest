@@ -75,23 +75,23 @@ contains
          keeps%ldiscard(:)     = pack(keeps%ldiscard(1:n),  .not. lspill_list(1:n))
 
          do concurrent (i = 1:NDIM)
-            discards%xh(:, i) = pack(keeps%xh(i, 1:n),          lspill_list(1:n))
-            keeps%xh(:, i)    = pack(keeps%xh(i, 1:n),    .not. lspill_list(1:n))
+            discards%xh(i, :) = pack(keeps%xh(i, 1:n),          lspill_list(1:n))
+            keeps%xh(i, :)    = pack(keeps%xh(i, 1:n),    .not. lspill_list(1:n))
 
-            discards%vh(:, i) = pack(keeps%vh(i, 1:n),          lspill_list(1:n))
-            keeps%vh(:, i)    = pack(keeps%vh(i, 1:n),    .not. lspill_list(1:n))
+            discards%vh(i, :) = pack(keeps%vh(i, 1:n),          lspill_list(1:n))
+            keeps%vh(i, :)    = pack(keeps%vh(i, 1:n),    .not. lspill_list(1:n))
 
-            discards%xb(:, i) = pack(keeps%xb(i, 1:n),          lspill_list(1:n))
-            keeps%xb(:, i)    = pack(keeps%xb(i, 1:n),    .not. lspill_list(1:n))
+            discards%xb(i, :) = pack(keeps%xb(i, 1:n),          lspill_list(1:n))
+            keeps%xb(i, :)    = pack(keeps%xb(i, 1:n),    .not. lspill_list(1:n))
 
-            discards%vb(:, i) = pack(keeps%vb(i, 1:n),          lspill_list(1:n))
-            keeps%vb(:, i)    = pack(keeps%vb(i, 1:n),    .not. lspill_list(1:n))
+            discards%vb(i, :) = pack(keeps%vb(i, 1:n),          lspill_list(1:n))
+            keeps%vb(i, :)    = pack(keeps%vb(i, 1:n),    .not. lspill_list(1:n))
 
-            discards%ah(:, i) = pack(keeps%ah(i, 1:n),          lspill_list(1:n))
-            keeps%ah(:, i)    = pack(keeps%ah(i, 1:n),    .not. lspill_list(1:n))
+            discards%ah(i, :) = pack(keeps%ah(i, 1:n),          lspill_list(1:n))
+            keeps%ah(i, :)    = pack(keeps%ah(i, 1:n),    .not. lspill_list(1:n))
 
-            discards%aobl(:, i) = pack(keeps%aobl(i, 1:n),          lspill_list(1:n))
-            keeps%aobl(:, i)    = pack(keeps%aobl(i, 1:n),    .not. lspill_list(1:n))
+            discards%aobl(i, :) = pack(keeps%aobl(i, 1:n),          lspill_list(1:n))
+            keeps%aobl(i, :)    = pack(keeps%aobl(i, 1:n),    .not. lspill_list(1:n))
          end do
          
          discards%a(:)       = pack(keeps%a(1:n),             lspill_list(1:n))

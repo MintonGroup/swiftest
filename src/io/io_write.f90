@@ -80,7 +80,7 @@ contains
 
       if (config%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
          call pl%xv2el(cb)
-         call pl%xv2el(cb)
+         call tp%xv2el(cb)
       end if
       
       ! Write out each data type frame
@@ -464,7 +464,8 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
-      associate(t => config%t, config => config, nsp => discards%nbody) 
+      associate(t => config%t, config => config, nsp => discards%nbody, dxh => discards%xh, dvh => discards%vh, &
+                dname => discards%name, dstatus => discards%status) 
          
          if (config%out_stat == 'APPEND' .or. (.not.lfirst)) then
             open(unit = LUN, file = DISCARD_FILE, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
@@ -477,42 +478,42 @@ contains
             call util_exit(FAILURE)
          end if
          lfirst = .false.
+         if (config%lgr) then
+            select type(discards)
+            class is (whm_tp)
+               call discards%gr_pv2vh(config)
+            end select
+         end if
          write(LUN, HDRFMT) t, nsp, config%lbig_discard
          do i = 1, nsp
-            write(LUN, NAMEFMT) sub, discards%name(i), discards%status(i)
-            write(LUN, VECFMT) discards%xh(i, 1), discards%xh(i, 2), discards%xh(i, 3)
-            if (config%lgr) then
-               select type(discards)
-               class is (whm_tp)
-                  call discards%gr_pv2vh(config)
-               end select
-            else
-               allocate(vh, source = discards%vh)
-            end if
-            write(LUN, VECFMT) vh(i, 1), vh(i, 2), vh(i, 3)
-            deallocate(vh)
+            write(LUN, NAMEFMT) sub, dname(i), dstatus(i)
+            write(LUN, VECFMT) dxh(1, i), dxh(2, i), dxh(3, i)
+            write(LUN, VECFMT) dvh(1, i), dvh(2, i), dvh(3, i)
          end do
          if (config%lbig_discard) then
             associate(npl => self%pl%nbody, pl => self%pl, GMpl => self%pl%Gmass, &
                      Rpl => self%pl%radius, name => self%pl%name, xh => self%pl%xh)
+
+               if (config%lgr) then
+                  allocate(pltemp, source = pl)
+                  select type(pltemp)
+                  class is (whm_pl)
+                     call pltemp%gr_pv2vh(config)
+                     allocate(vh, source = pltemp%vh)
+                  end select
+                  deallocate(pltemp)
+               else
+                  allocate(vh, source = pl%vh)
+               end if
+
                write(LUN, NPLFMT) npl
                do i = 1, npl
                   write(LUN, PLNAMEFMT) name(i), GMpl(i), Rpl(i)
-                  write(LUN, VECFMT) xh(i, 1), xh(i, 2), xh(i, 3)
-                  if (config%lgr) then
-                     allocate(pltemp, source = pl)
-                     select type(pltemp)
-                     class is (whm_pl)
-                        call pltemp%gr_pv2vh(config)
-                        allocate(vh, source = pltemp%vh)
-                     end select
-                     deallocate(pltemp)
-                  else
-                     allocate(vh, source = pl%vh)
-                  end if
-                  write(LUN, VECFMT) vh(i, 1), vh(i, 2), vh(i, 3)
-                  deallocate(vh)
+                  write(LUN, VECFMT) xh(1, i), xh(2, i), xh(3, i)
+  
+                  write(LUN, VECFMT) vh(1, i), vh(2, i), vh(3, i)
                end do
+               deallocate(vh)
             end associate
          end if
          close(LUN)

@@ -15,20 +15,16 @@ contains
       associate(n => self%nbody)
          select type(self)
          class is (swiftest_pl)
-            msys = cb%mass + sum(self%mass(1:n))
+            msys = cb%mass + sum(self%mass(1:n), self%status(i) == ACTIVE)
             do i = 1, NDIM
-               cb%xb(i) = -sum(self%mass(1:n) * self%xh(i, 1:n)) / msys
-               cb%vb(i) = -sum(self%mass(1:n) * self%vh(i, 1:n)) / msys
+               cb%xb(i) = -sum(self%mass(1:n) * self%xh(i, 1:n), self%status(i) == ACTIVE) / msys
+               cb%vb(i) = -sum(self%mass(1:n) * self%vh(i, 1:n), self%status(i) == ACTIVE) / msys
             end do
          end select
-         where (self%status(1:n) == ACTIVE)
-            self%xb(1, 1:n) = self%xh(1, 1:n) + cb%xb(1)
-            self%xb(2, 1:n) = self%xh(2, 1:n) + cb%xb(2)
-            self%xb(3, 1:n) = self%xh(3, 1:n) + cb%xb(3)
-            self%vb(1, 1:n) = self%vh(1, 1:n) + cb%vb(1)
-            self%vb(2, 1:n) = self%vh(2, 1:n) + cb%vb(2)
-            self%vb(3, 1:n) = self%vh(3, 1:n) + cb%vb(3)
-         end where
+         do concurrent(i = 1:n, self%status(i) == ACTIVE)
+            self%xb(:, i) = self%xh(:, i) + cb%xb(:)
+            self%vb(:, i) = self%vh(:, i) + cb%vb(:)
+         end do
       end associate
 
       return
@@ -46,14 +42,10 @@ contains
       integer(I4B)          :: i
 
       associate(n => self%nbody)
-         where (self%status(1:n) == ACTIVE)
-            self%xh(1, 1:n) = self%xb(1, 1:n) - cb%xb(1)
-            self%xh(2, 1:n) = self%xb(2, 1:n) - cb%xb(2)
-            self%xh(3, 1:n) = self%xb(3, 1:n) - cb%xb(3)
-            self%vh(1, 1:n) = self%vb(1, 1:n) - cb%vb(1)
-            self%vh(2, 1:n) = self%vb(2, 1:n) - cb%vb(2)
-            self%vh(3, 1:n) = self%vb(3, 1:n) - cb%vb(3)
-         end where
+         do concurrent(i = 1:n, self%status(i) == ACTIVE)
+            self%xh(:, i) = self%xb(:, i) - cb%xb(:)
+            self%vh(:, i) = self%vb(:, i) - cb%vb(:)
+         end do
       end associate
 
       return
@@ -77,14 +69,12 @@ contains
          select type(self)
          class is (swiftest_pl)
             do i = 1, NDIM
-               cb%vb(i) = -sum(self%mass(1:n) * self%vb(:, i)) / cb%mass
+               cb%vb(i) = -sum(self%mass(1:n) * self%vb(i, 1:n), self%status(1:n) == ACTIVE) / cb%mass
             end do
          end select
-         where (self%status(1:n) == ACTIVE)
-            self%vh(1, 1:n) = self%vb(1, 1:n) - cb%vb(1)
-            self%vh(2, 1:n) = self%vb(2, 1:n) - cb%vb(2)
-            self%vh(3, 1:n) = self%vb(3, 1:n) - cb%vb(3)
-         end where
+         do concurrent(i = 1:n, self%status(i) == ACTIVE)
+            self%vh(:, i) = self%vb(:, i) - cb%vb(:)
+         end do
       end associate
    
       return
@@ -107,14 +97,12 @@ contains
          class is (swiftest_pl)
             msys = cb%mass + sum(self%mass(1:n))
             do i = 1, NDIM
-               cb%vb(i) = -sum(self%mass(1:n) * self%vh(i, 1:n)) / msys
+               cb%vb(i) = -sum(self%mass(1:n) * self%vh(i, 1:n), self%status(1:n) == ACTIVE) / msys
             end do
          end select
-         where (self%status(1:n) == ACTIVE)
-            self%vb(1, 1:n) = self%vh(1, 1:n) + cb%vb(1)
-            self%vb(2, 1:n) = self%vh(2, 1:n) + cb%vb(2)
-            self%vb(3, 1:n) = self%vh(3, 1:n) + cb%vb(3)
-         end where
+         do concurrent(i = 1:n, self%status(i) == ACTIVE)
+            self%vb(:, i) = self%vh(:, i) + cb%vb(:)
+         end do
       end associate
 
       return
