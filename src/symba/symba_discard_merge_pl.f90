@@ -61,7 +61,7 @@ implicit none
             symba_plA%vb(:,indexk) = v(:)
             symba_plA%vh(:,indexk) = v(:) - vbs(:)
             mu = msun*mtot/(msun + mtot)
-            r = sqrt(dot_product(x(:), x(:)))
+            r = norm2(x(:))
             v(:) = symba_plA%vh(:,indexk)
             v2 = dot_product(v(:), v(:))
             energy = -1.0_DP*msun*mtot/r + 0.5_DP*mu*v2

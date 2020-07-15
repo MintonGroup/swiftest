@@ -16,7 +16,7 @@ contains
       a = 0.0_DP
       e = 0.0_DP
       q = 0.0_DP
-      r = .mag. x(:) 
+      r = norm2(x(:))
       v2 = dot_product(v(:), v(:))
       hvec(:) = x(:) .cross. v(:)
       h2 = dot_product(hvec(:), hvec(:))

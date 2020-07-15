@@ -29,7 +29,7 @@ module procedure whm_drift_pl
       
       do concurrent (i = 1:npl, status(i) == ACTIVE)
          if (config%lgr) then
-            rmag = .mag. xj(:, i)
+            rmag =norm2(xj(:, i))
             vmag2 = dot_product(vj(:, i),  vj(:, i))
             energy = 0.5_DP * vmag2 - mu(i) / rmag
             dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
@@ -77,7 +77,7 @@ module procedure whm_drift_pl
          iflag(:) = 0
          do concurrent (i = 1:ntp, status(i) == ACTIVE) 
             if (config%lgr) then
-               rmag = .mag. xh(:, i)
+               rmag = norm2(xh(:, i))
                vmag2 = dot_product(vh(:, i), vh(:, i))
                energy = 0.5_DP * vmag2 - cb%Gmass / rmag
                dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)

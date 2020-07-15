@@ -47,9 +47,9 @@ contains
       capom = 0.0_DP
       omega = 0.0_DP
       capm = 0.0_DP
-      r = .mag. x
+      r = norm2(x(:))
       v2 = dot_product(v(:), v(:))
-      hvec = x .cross. v
+      hvec = x(:) .cross. v(:)
       h2 = dot_product(hvec(:), hvec(:)) 
       h = sqrt(h2)
       if (h2 == 0.0_DP) return

@@ -3,7 +3,6 @@ module swiftest_operators
    !!
    !! Custom operators, including
    !!   A .cross. B = Cross product of A(1:3) and B(1:3) 
-   !!       .mag. A = Vector magnitude (performance tests indicate some compilers do a better job with norm2(A) vs sqrt(dot_product(A)))
    !!
    !! Each operator can also do element-wise computation on arrays of the form .mag. A(1:3, 1:n)
    use swiftest_globals
@@ -92,38 +91,6 @@ module swiftest_operators
          integer(I8B), dimension(:,:), intent(in) :: A, B
          integer(I8B), dimension(:,:), allocatable :: C
       end function operator_cross_el_i8b
-   end interface
-
-   !********************************************************************************************************************************
-   ! Interfaces for .mag. operator
-   !********************************************************************************************************************************
-
-   interface operator(.mag.)
-      module pure function operator_mag_sp(A) result(B)
-         !$omp declare simd(operator_mag_sp)
-         implicit none
-         real(SP), dimension(:), intent(in) :: A
-         real(SP)                           :: B
-      end function operator_mag_sp
-
-      module pure function operator_mag_dp(A) result(B)
-         !$omp declare simd(operator_mag_dp)
-         implicit none
-         real(DP), dimension(:), intent(in) :: A
-         real(DP)                           :: B
-      end function operator_mag_dp
-
-      module pure function operator_mag_el_sp(A) result(B)
-         implicit none
-         real(SP), dimension(:,:), intent(in)   :: A
-         real(SP), dimension(:),   allocatable  :: B
-      end function operator_mag_el_sp
-
-      module pure function operator_mag_el_dp(A) result(B)
-         implicit none
-         real(DP), dimension(:,:), intent(in)   :: A
-         real(DP), dimension(:),   allocatable  :: B
-      end function operator_mag_el_dp
    end interface
 
 end module swiftest_operators

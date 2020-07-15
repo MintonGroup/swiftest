@@ -21,7 +21,7 @@ contains
          do i = 1, n
             xh(:) = xb(:, i) - xbsun(:)
             vh(:) = vb(:, i) - vbsun(:)
-            rmag = .mag. xh 
+            rmag = norm2(xh(:))
             vmag2 = dot_product(vh(:), vh(:))
             rdotv = dot_product(xh(:), vh(:))
             agr(:, i) =  mu * c2 / rmag**3 * ((4 * mu(i) / rmag - vmag2) * xh(:) + 4 * rdotv * vh(:))

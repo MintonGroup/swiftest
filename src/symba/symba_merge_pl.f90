@@ -157,7 +157,7 @@ contains
       mergeadd_list%vh(:,nmergeadd) = vnew(:) - vbs(:)
       eold = 0.5_DP*(m1*dot_product(v1(:), v1(:)) + m2*dot_product(v2(:), v2(:)))
       xr(:) = x2(:) - x1(:)
-      eold = eold - m1*m2/sqrt(dot_product(xr(:), xr(:)))
+      eold = eold - m1*m2/norm2(xr(:))
       enew = 0.5_DP*mtot*dot_product(vnew(:), vnew(:))
       eoffset = eoffset + eold - enew
 

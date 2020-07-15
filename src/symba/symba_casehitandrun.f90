@@ -94,7 +94,7 @@ implicit none
    ! find energy pre-frag
    eold = 0.5_DP*(m1*dot_product(v1(:), v1(:)) + m2*dot_product(v2(:), v2(:)))
    xr(:) = x2(:) - x1(:)
-   eold = eold - (m1*m2/(sqrt(dot_product(xr(:), xr(:)))))
+   eold = eold - (m1*m2/(norm2(xr(:), xr(:)))))
 
    write(*, *) "hit and run between particles ", name1, " and ", name2, " at time t = ",t
    write(*, *) "particle ", name_keep, " survives; particle ", name_rm, " is fragmented."

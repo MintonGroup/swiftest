@@ -220,7 +220,7 @@ contains
 
       associate (c2 => config%inv_c2)
          pv(1:NDIM) = vh(1:NDIM) ! Initial guess
-         rterm = 3 * mu / (.mag. xh(:)) 
+         rterm = 3 * mu / norm2(xh(:))
          v2 = dot_product(vh(:), vh(:))
          do n = 1, MAXITER
             pv2 = dot_product(pv(:), pv(:))
@@ -288,7 +288,7 @@ contains
    
       associate(c2 => config%inv_c2)
          vmag2 = dot_product(pv(:), pv(:))
-         rmag  = .mag. xh(:) 
+         rmag  = norm2(xh(:))
          grterm = 1.0_DP - c2 * (0.5_DP * vmag2 + 3 * mu / rmag)
          vh(:) = pv(:) * grterm
       end associate

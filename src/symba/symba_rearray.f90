@@ -93,7 +93,7 @@ contains
 
         do i = nkpl+1, npl
           mu = symba_plA%mass(1) + symba_plA%mass(i)
-          r = sqrt(dot_product(symba_plA%xh(:,i), symba_plA%xh(:,i)))
+          r = norm2(symba_plA%xh(:,i))
           v2 = dot_product(symba_plA%vh(:,i), symba_plA%vh(:,i))
           energy = 0.5_DP*v2 - mu/r
           ap = -0.5_DP*mu/energy
