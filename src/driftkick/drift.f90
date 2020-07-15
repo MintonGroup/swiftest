@@ -380,7 +380,7 @@ module procedure drift_body
       a1 = r0 / denom
       a0 = -dt / denom
       q = (a1 - a2**2 / 3.0_DP) / 3.0_DP
-      r = (a1**2 - 3.0_DP * a0) / 6.0_DP - a2**3 / 27.0_DP
+      r = (a1 * a2 - 3 * a0) / 6.0_DP - a2**3 / 27.0_DP
       sq2 = q**3+ r**2
       if (sq2 >= 0.0_DP) then
          sq = sqrt(sq2)
