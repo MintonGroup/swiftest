@@ -353,7 +353,7 @@ module procedure drift_body
          ds = -f / (fp + ds * fpp / 2.0_DP + ds**2 * fppp / 6.0_DP)
          s = s + ds
          fdt = f / dt
-         if (fdt * fdt < DANBYB * DANBYB) then
+         if (fdt**2 < DANBYB**2) then
             iflag = 0
             return
          end if
@@ -381,7 +381,7 @@ module procedure drift_body
       a0 = -dt / denom
       q = (a1 - a2**2 / 3.0_DP) / 3.0_DP
       r = (a1 * a2 - 3 * a0) / 6.0_DP - a2**3 / 27.0_DP
-      sq2 = q**3+ r**2
+      sq2 = q**3 + r**2
       if (sq2 >= 0.0_DP) then
          sq = sqrt(sq2)
          if ((r + sq) <= 0.0_DP) then
