@@ -17,7 +17,7 @@ contains
                 j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, msun => cb%Gmass)
          do concurrent (i = 1:n)
             rinv2 = irh(i)**2
-            t0 = -msun * rinv2**v2 * irh(i)
+            t0 = -msun * rinv2**2 * irh(i)
             t1 = 1.5_DP * j2rp2
             t2 = xh(3, i)**2 * rinv2
             t3 = 1.875_DP * j4rp4 * rinv2
