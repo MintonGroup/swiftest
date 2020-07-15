@@ -47,16 +47,18 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 # this is done explicitly as needed in the Makefile
 
 FORTRAN         = ifort
-FFLAGS          = -O3 -parallel -xHost -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
+FFLAGS          = -O3 -g -no-pie -traceback -parallel -xHost -132 -align all -pad -inline all -mp1 -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens -no-wrap-margin 
 
 #debug flags
-#FFLAGS          = -O0 -g #-fpe-all=0 -traceback -check all -CB -debug all -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
+#FFLAGS          = -O0 -g -traceback -mp1 -fp-model strict -fpe-all=0 -check all -CB -debug all -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
 
 
 #FORTRAN         = gfortran
-#FFLAGS          = -Ofast -ftree-parallelize-loops=2 #-fbacktrace -fbounds-check -fcheck=all
+#FFLAGS          = -Ofast -fno-pie #-ftree-parallelize-loops=2 -fopenmp -fbacktrace -fbounds-check -fcheck=all 
 #debug flags
-#FFLAGS		= -Og -ggdb -g3 -fimplicit-none -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace -fsanitize=undefined -fsanitize=address -fsanitize=leak #-Wall -Warray-bounds  -Wimplicit-interface -Wextra 
+#FFLAGS		= -Og -ggdb -g3 #-ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace -fsanitize=undefined -fsanitize=address -fsanitize=leak 
+
+#-Wall -Warray-bounds  -Wimplicit-interface -Wextra 
 
 #-Warray-temporaries
 
