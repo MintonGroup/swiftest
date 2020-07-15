@@ -13,20 +13,18 @@ contains
       implicit none
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm
-      real(DP), dimension(NDIM) :: x, v, hvec
+      real(DP), dimension(NDIM) :: hvec
 
       a = 0.0_DP
       q = 0.0_DP
       capm = 0.0_DP
       tperi = 0.0_DP
-      x  = (/px, py, pz/)
-      v = (/vx, vy, vz/)
       r = .mag. x(:) 
-      v2 = v(:) .dot. v(:) 
+      v2 = dot_product(v(:), v(:))
       hvec(:) = x(:) .cross. v(:)
-      h2 = hvec(:) .dot. hvec(:) 
+      h2 = dot_product(hvec(:), hvec(:))
       if (h2 == 0.0_DP) return
-      rdotv = x(:) .dot. v(:) 
+      rdotv = dot_product(x(:), v(:))
       energy = 0.5_DP * v2 - mu / r
       if (abs(energy * r / mu) < sqrt(VSMALL)) then
          iorbit_type = PARABOLA

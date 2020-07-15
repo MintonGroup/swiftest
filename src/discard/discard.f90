@@ -59,7 +59,7 @@ contains
          rmaxu2 = config%rmaxu**2
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
-               rh2 = tp%xh(:, i) .dot. tp%xh(:, i) 
+               rh2 = dot_product(tp%xh(:, i), tp%xh(:, i))
                if ((config%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   tp%status(i) = DISCARDED_RMAX
                   write(*, *) "Particle ", tp%name(i), " too far from sun at t = ", t
@@ -69,8 +69,8 @@ contains
                   write(*, *) "Particle ", tp%name(i), " too close to sun at t = ", t
                   tp%ldiscard(i) = .true.
                else if (config%rmaxu >= 0.0_DP) then
-                  rb2 = tp%xb(:, i) .dot. tp%xb(:, i) 
-                  vb2 = tp%vb(:, i) .dot. tp%vb(:, i) 
+                  rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
+                  vb2 = dot_product(tp%vb(:, i), tp%vb(:, i))
                   energy = 0.5_DP * vb2 - msys / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      tp%status(i) = DISCARDED_RMAXU
@@ -113,7 +113,7 @@ contains
                      ih = 1
                      do j = 1, npl
                         dx(:) = tp%xh(:, i) - pl%xh(:, j)
-                        r2 = dx(:) .dot. dx(:) 
+                        r2 = dot_product(dx(:), dx(:))
                         if (r2 <= (pl%rhill(j))**2) ih = 0
                      end do
                      if (ih == 1) then
@@ -183,15 +183,15 @@ contains
       use swiftest
       real(DP) :: r2, v2, vdotr, tmin
    
-      r2 = dx(:) .dot. dx(:) 
+      r2 = dot_product(dx(:), dx(:))
       if (r2 <= r2crit) then
          iflag = 1
       else
-         vdotr = dx(:) .dot. dv(:) 
+         vdotr = dot_product(dx(:), dv(:))
          if (vdotr > 0.0_DP) then
             iflag = 0
          else
-            v2 = dv(:) .dot. dv(:) 
+            v2 = dot_product(dv(:), dv(:))
             tmin = -vdotr / v2
             if (tmin < dt) then
                r2min = r2 - vdotr * vdotr / v2

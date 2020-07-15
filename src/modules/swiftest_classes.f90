@@ -513,38 +513,29 @@ module swiftest_classes
    type, abstract, public, extends(swiftest_base) :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
       class(swiftest_cb),  allocatable :: cb                      !! Central body data structure
-      class(swiftest_pl),            allocatable :: pl                      !! Massive body data structure
-      class(swiftest_tp),            allocatable :: tp                      !! Test particle data structure
-      real(DP)                                   :: msys = 0.0_DP           !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                                   :: ke = 0.0_DP             !! System kinetic energy
-      real(DP)                                   :: pe = 0.0_DP             !! System potential energy
-      real(DP)                                   :: te = 0.0_DP             !! System total energy
-      real(DP), dimension(NDIM)                  :: htot = 0.0_DP           !! System angular momentum vector
+      class(swiftest_pl),            allocatable :: pl            !! Massive body data structure
+      class(swiftest_tp),            allocatable :: tp            !! Test particle data structure
+      real(DP)                                   :: msys = 0.0_DP !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                                   :: ke = 0.0_DP   !! System kinetic energy
+      real(DP)                                   :: pe = 0.0_DP   !! System potential energy
+      real(DP)                                   :: te = 0.0_DP   !! System total energy
+      real(DP), dimension(NDIM)                  :: htot = 0.0_DP !! System angular momentum vector
    contains
       private
       !> Each integrator will have its own version of the step
-      procedure(abstract_step_system),      public, deferred :: step       !! Method to advance the system one step in time given by the step size dt
+      !procedure(abstract_step_system),      public, deferred :: step !! Method to advance the system one step in time given by the step size dt
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure, public :: discard                => discard_system               !! Perform a discard step on the system
       procedure, public :: dump                   => io_dump_system               !! Dump the state of the system to a file
       procedure, public :: get_energy_and_momenum => util_get_energy_and_momentum !! Calculate total energy and angular momentum of system
-      procedure, public :: initialize             => io_read_initialize_system         !! Initialize the system from an input file
+      procedure, public :: initialize             => io_read_initialize_system    !! Initialize the system from an input file
       procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
       procedure, public :: set_msys               => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard          => io_write_discard             !! Append a frame of output data to file
       procedure, public :: write_frame            => io_write_frame_system        !! Append a frame of output data to file
-
+      procedure, public :: step                   => step_system                  !! Method to advance the system one step in time given by the step size dt
    end type swiftest_nbody_system
-
-   abstract interface
-      !> Steps the Swiftest nbody system forward in time one stepsize
-      subroutine abstract_step_system(self, config)
-         import swiftest_nbody_system, swiftest_configuration
-         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
-      end subroutine abstract_step_system
-   end interface
 
    !> Interfaces for concrete type-bound procedures for the Swiftest nbody system class
    interface
@@ -603,6 +594,12 @@ module swiftest_classes
          class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
          class(swiftest_body), intent(inout)          :: discards !! Swiftest discard object 
       end subroutine io_write_discard
+
+      module subroutine step_system(self, config)
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+      end subroutine step_system
 
       !> Method for calculating the energy and angular momentum of the system
       module subroutine util_get_energy_and_momentum(self)
@@ -730,8 +727,6 @@ module swiftest_classes
          integer(I4B), intent(out)              :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
-
-
    end interface
 
 
@@ -824,19 +819,17 @@ module swiftest_classes
          real(DP), intent(out) :: sx, cx
       end subroutine orbel_scget
 
-      module elemental subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+      module pure subroutine orbel_xv2aeq(mu, x, v, a, e, q)
          implicit none
          real(DP), intent(in)  :: mu
-         real(DP), intent(in)  :: px, py, pz
-         real(DP), intent(in)  :: vx, vy, vz
+         real(DP), dimension(:), intent(in)  :: x, v
          real(DP), intent(out) :: a, e, q
       end subroutine orbel_xv2aeq
 
-      module elemental subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+      module pure subroutine orbel_xv2aqt(mu, x, v, a, q, capm, tperi)
          implicit none
          real(DP), intent(in)  :: mu
-         real(DP), intent(in)  :: px, py, pz
-         real(DP), intent(in)  :: vx, vy, vz
+         real(DP), dimension(:), intent(in)  :: x, v
          real(DP), intent(out) :: a, q, capm, tperi
       end subroutine orbel_xv2aqt
 

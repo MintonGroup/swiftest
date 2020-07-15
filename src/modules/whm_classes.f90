@@ -236,7 +236,7 @@ module whm_classes
       private
       !> Replace the abstract procedures with concrete ones
       procedure, public :: initialize    => whm_setup_system  !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
-      procedure, public :: step          => whm_step_system        !! Method to advance the system one step in time given by the step size dt
+      
    end type whm_nbody_system
 
    interface
@@ -246,12 +246,6 @@ module whm_classes
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
       end subroutine whm_setup_system
 
-      !> Steps the Swiftest nbody system forward in time one stepsize
-      module subroutine whm_step_system(self, config)
-         implicit none
-         class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
-      end subroutine whm_step_system
    end interface
 
    !> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
@@ -263,9 +257,15 @@ module whm_classes
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
       end subroutine whm_discard_spill
+
+      !> Steps the Swiftest nbody system forward in time one stepsize
+      module subroutine whm_step_system(cb, pl, tp, config)
+         implicit none
+         class(whm_cb),            intent(inout) :: cb      !! WHM central body object  
+         class(whm_pl),            intent(inout) :: pl      !! WHM central body object  
+         class(whm_tp),            intent(inout) :: tp      !! WHM central body object  
+         class(whm_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+      end subroutine whm_step_system
    end interface
-
-
-
 
 end module whm_classes

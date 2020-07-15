@@ -1,0 +1,32 @@
+submodule (swiftest_classes) step_implementations
+
+contains
+   module procedure step_system
+      !! author: David A. Minton
+      !!
+      !! Wrapper function that selects the correct step function for the integrator type.
+      !! The nested select statements serve to make this method a "bridge" between the polymorphic swiftest_nbody_system class
+      !! in which the cb, pl, and tp components are allocatable abstract classes and the actual integrator-specific methods that are
+      !! called internally. Before this point, the actual types of cb, pl, and tp are ambiguous. The select type constructs remove the 
+      !! ambiguity.
+      !! 
+      use swiftest
+      implicit none
+
+      select type(config => config)
+      class is (whm_configuration) ! Determine the overall integrator type from the config type
+         select type(cb => self%cb)
+         class is (whm_cb)
+            select type(pl => self%pl)
+            class is (whm_pl)
+               select type(tp => self%tp)
+               class is (whm_tp)
+                  call whm_step_system(cb, pl, tp, config)
+               end select
+            end select
+         end select
+      end select
+      return
+   end procedure step_system
+
+end submodule step_implementations

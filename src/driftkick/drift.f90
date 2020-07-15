@@ -64,7 +64,7 @@ module procedure drift_body
       real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
       if (config%lgr) then
          rmag = .mag. x
-         vmag2 = v .dot. v 
+         vmag2 = dot_product(v(:), v(:)) 
          energy = 0.5_DP * vmag2 - cb%Gmass / rmag
          dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
       else
@@ -115,8 +115,8 @@ module procedure drift_body
       iflag = 0
       dt = dt0
       r0 = .mag. x0(:) 
-      v0s = v0(:) .dot. v0(:) 
-      u = x0(:) .dot. v0(:) 
+      v0s = dot_product(v0(:), v0(:))
+      u = dot_product(x0(:),  v0(:))
       alpha = 2 * mu / r0 - v0s
       if (alpha > 0.0_DP) then
          a = mu / alpha

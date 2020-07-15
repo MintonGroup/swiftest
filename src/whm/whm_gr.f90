@@ -13,18 +13,16 @@ contains
       integer(I4B)                   :: i
       real(DP), dimension(NDIM)      :: suma
       real(DP), dimension(:, :), allocatable :: aj
-      real(DP), dimension(:), allocatable :: rjmag4, beta
+      real(DP) :: beta, rjmag4
       
       associate(n => self%nbody, msun => cb%Gmass, mu => self%muj, c2 => config%inv_c2, &
          ah => self%ah, xj => self%xj, GMpl => self%Gmass, eta => self%eta)
          if (n == 0) return
-         allocate(rjmag4(n))
-         allocate(beta(n))
          allocate(aj, mold = ah)
-         rjmag4(:) = (xj(:, 1:n) .dot. xj(:, 1:n))**2
-         beta(:)   = - mu(1:n)**2 * c2 
-         do concurrent (i = 1:n)
-            aj(:, i) = 2 * beta(i) * xj(:, i) / rjmag4(i)
+         do concurrent(i = 1:n)
+            rjmag4 = (dot_product(xj(:, i), xj(:, i)))**2
+            beta   = - mu(i)**2 * c2 
+            aj(:, i)  = 2 * beta * xj(:, i) / rjmag4
          end do
          suma(:) = 0.0_DP
          ah(:, 1) = ah(:, 1) + aj(:, 1)
@@ -53,7 +51,7 @@ contains
          c2 => config%inv_c2, ah => self%ah, xh => self%xh, status => self%status)
          if (n == 0) return
          do concurrent (i = 1:n, status(i) == active)
-            rjmag4 = (xh(i, 1:n) .dot. xh(i, 1:n))**2
+            rjmag4 = (dot_product(xh(:, i), xh(:, i)))**2
             beta = - mu(i)**2 * c2 
             ah(:, i) = ah(:, i) + beta * xh(:, i) / rjmag4
          end do
@@ -223,9 +221,9 @@ contains
       associate (c2 => config%inv_c2)
          pv(1:NDIM) = vh(1:NDIM) ! Initial guess
          rterm = 3 * mu / (.mag. xh(:)) 
-         v2 = vh(:) .dot. vh(:)
+         v2 = dot_product(vh(:), vh(:))
          do n = 1, MAXITER
-            pv2 = pv(:) .dot. pv(:) 
+            pv2 = dot_product(pv(:), pv(:))
             G = 1.0_DP - c2 * (0.5_DP * pv2 + rterm)
             F(:) = pv(:) * G - vh(:)
             if (abs(sum(F) / v2 ) < TOL) exit ! Root found
@@ -289,7 +287,7 @@ contains
       real(DP) :: vmag2, rmag, grterm
    
       associate(c2 => config%inv_c2)
-         vmag2 = pv(:) .dot. pv(:) 
+         vmag2 = dot_product(pv(:), pv(:))
          rmag  = .mag. xh(:) 
          grterm = 1.0_DP - c2 * (0.5_DP * vmag2 + 3 * mu / rmag)
          vh(:) = pv(:) * grterm
@@ -307,7 +305,7 @@ contains
       real(DP)                              :: vmag2
       integer(I4B) :: i
 
-      vmag2 = v .dot. v 
+      vmag2 = dot_product(v(:), v(:)) 
       dr(:) = -2 * c2 * vmag2 * v(:)
       x(:) = x(:) + dr(:) * dt
 

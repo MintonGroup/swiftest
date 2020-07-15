@@ -31,11 +31,11 @@ contains
             mass = pl%Gmass(i)
             h(:) = x(:) .cross. v(:)
             htot(:) = htot(:) + mass * h(:)
-            v2 = v(:) .dot. v(:) 
+            v2 = dot_product(v(:), v(:))
             ke = ke + 0.5_DP * mass * v2
             do j = i + 1, pl%nbody
                dx(:) = pl%xb(:, j) - x(:)       
-               r2 = dx(:) .dot. dx(:) 
+               r2 = dot_product(dx(:), dx(:))
                if (r2 /= 0) then
                   pe = pe - mass * pl%Gmass(j) / sqrt(r2) 
                end if
@@ -52,12 +52,12 @@ contains
          mass = cb%Gmass
          h(:) = x(:) .cross. v(:)
          htot(:) = htot(:) + mass * h(:)
-         v2 = v(:) .dot. v(:) 
+         v2 = dot_product(v(:), v(:))
          ke = ke + 0.5_DP * mass * v2
          if (cb%j2rp2 /= 0.0_DP) then
             allocate(irh(self%pl%nbody))
             do i = 1, self%pl%nbody
-               r2 = self%pl%xh(i,:) .dot. self%pl%xh(i,:) 
+               r2 = dot_product(self%pl%xh(:, i), self%pl%xh(:, i)) 
                irh(i) = 1.0_DP / sqrt(r2)
             end do
             oblpot = self%pl%obl_pot(cb, irh)

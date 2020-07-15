@@ -48,12 +48,12 @@ contains
       omega = 0.0_DP
       capm = 0.0_DP
       r = .mag. x
-      v2 = v .dot. v
+      v2 = dot_product(v(:), v(:))
       hvec = x .cross. v
-      h2 = hvec .dot. hvec 
+      h2 = dot_product(hvec(:), hvec(:)) 
       h = sqrt(h2)
       if (h2 == 0.0_DP) return
-      rdotv = x .dot. v
+      rdotv = dot_product(x(:), v(:))
       energy = 0.5_DP * v2 - mu / r
       fac = hvec(3) / h
       if (fac < -1.0_DP) then

@@ -11,30 +11,30 @@ contains
    implicit none
    integer(I4B)                     :: i
    logical, save :: lmalloc = .false.  
-   real(DP), dimension(:), allocatable, save :: r2, fac
-   real(DP), dimension(:), allocatable, save    :: irh, irj, ir3h, ir3j
+   real(DP), dimension(:), allocatable, save    :: irh, irj, ir3h, ir3j, fac
    real(DP), dimension(NDIM) :: ah0
+   real(DP) :: r2
 
    associate(pl => self, npl => self%nbody, Gmpl => self%Gmass, xj => self%xj, xh => self%xh, &
              ah => self%ah, ah1 => self%ah1, ah2 => self%ah2, ah3 => self%ah3, &
              j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
       if (npl == 0) return
-      if (.not. allocated(r2)) allocate(r2(npl))
       if (.not. allocated(irj)) allocate(irj(npl))
       if (.not. allocated(ir3j)) allocate(ir3j(npl))
       if (.not. allocated(irh)) allocate(irh(npl))
       if (.not. allocated(ir3h)) allocate(ir3h(npl))
       if (.not. allocated(fac)) allocate(fac(npl))
-      r2(:) = xj(:, 1:npl) .dot. xj(:, 1:npl)
-      irj(:)= 1.0_DP / sqrt(r2(1:npl))
-      ir3j(:) = irj(1:npl) / r2(1:npl)
+      do concurrent(i = 1:npl)
+         r2 = dot_product(xj(:, i), xj(:, i))
+         irj(i)= 1.0_DP / sqrt(r2)
+         ir3j(i) = irj(i) / r2
 
-      r2(:) = xh(:, 1:npl) .dot. xh(:, 1:npl)
-      irh(:)= 1.0_DP / sqrt(r2(1:npl))
-      ir3h(:) = irh(1:npl) / r2(1:npl)
+         r2 = dot_product(xh(:, i), xh(:, i))
+         irh(i)= 1.0_DP / sqrt(r2)
+         ir3h(i) = irh(i) / r2
+      end do
 
       ah0(1) = 0.0_DP
-
       fac(2:npl) = Gmpl(2:npl) * ir3h(2:npl)
       do concurrent (i = 1:NDIM)
          ah0(i) = -sum(fac(2:npl) * xh(i, 2:npl))
@@ -71,29 +71,30 @@ contains
       use swiftest
       implicit none
       integer(I4B)                                 :: i
-      real(DP), dimension(:), allocatable, save    :: r2, fac
+      real(DP), dimension(:), allocatable, save    :: fac
       real(DP), dimension(:), allocatable, save    :: irh, ir3h
       real(DP), dimension(:), allocatable, save    :: irht
       real(DP), dimension(:, :), allocatable, save :: aobl
       real(DP), dimension(:, :), allocatable, save :: xht, aoblt
       real(DP), dimension(NDIM)                    :: ah0
-      real(DP)                                     ::r2t
+      real(DP)                                     :: r2
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
                 status => self%status, xht => self%xh, Gmpl => pl%Gmass, xh => pl%xh,&
                 j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
          if (ntp == 0 .or. npl == 0) return
-         if(.not.allocated(r2)) allocate(r2(npl))
          if(.not.allocated(irh)) allocate(irh(npl))
          if (.not.allocated(ir3h)) allocate(ir3h(npl))
          if (.not. allocated(irht)) allocate(irht(ntp))
-         r2(:) = xh(:, 1:npl) .dot. xh(:, 1:npl)
-         irh(:)= 1.0_DP / sqrt(r2(1:npl))
-         ir3h(:) = irh(1:npl) / r2(1:npl)
+         do concurrent(i = 1:npl)
+            r2 = dot_product(xh(:, i), xh(:, i))
+            irh(i)= 1.0_DP / sqrt(r2)
+            ir3h(i) = irh(i) / r2
+         end do
 
          do concurrent (i = 1:ntp, status(i) == ACTIVE)
-            r2t = xht(:, i) .dot. xht(:, i) 
-            irht(i) = 1.0_DP / sqrt(r2t)
+            r2 = dot_product(xht(:, i), xht(:, i))
+            irht(i) = 1.0_DP / sqrt(r2)
          end do
 
          ah0(:) = 0.0_DP
@@ -198,7 +199,7 @@ contains
          do i = 1, npl - 1
             do j = i + 1, npl
                dx(:) = xh(:, j) - xh(:, i)
-               rji2  = dx(:) .dot. dx(:) 
+               rji2  = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
                faci = Gmpl(i) * irij3
                facj = Gmpl(j) * irij3
@@ -236,7 +237,7 @@ contains
          do i = 1, ntp
             do j = 1, npl
                dx(:) = xht(:, i) - xh(:, j)
-               rji2 = dx(:) .dot. dx(:) 
+               rji2 = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
                fac = Gmpl(j) * irij3
                aht(:, i) = aht(:, i) - fac * dx(:)

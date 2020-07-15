@@ -1,6 +1,6 @@
 submodule (swiftest_classes) s_orbel_xv2aeq
 contains
-   module procedure orbel_xv2aeq !(mu, px, py, pz, vx, vy, vz, a, e, q)
+   module procedure orbel_xv2aeq 
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
@@ -11,17 +11,15 @@ contains
       implicit none
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, energy, fac
-      real(DP), dimension(NDIM) :: x, v, hvec
+      real(DP), dimension(NDIM) :: hvec
 
       a = 0.0_DP
       e = 0.0_DP
       q = 0.0_DP
-      x = (/px, py, pz/)
-      v = (/vx, vy, vz/)
       r = .mag. x(:) 
-      v2 = v(:) .dot. v(:) 
+      v2 = dot_product(v(:), v(:))
       hvec(:) = x(:) .cross. v(:)
-      h2 = hvec(:) .dot. hvec(:) 
+      h2 = dot_product(hvec(:), hvec(:))
       if (h2 == 0.0_DP) return
       energy = 0.5_DP * v2 - mu / r
       if (abs(energy * r / mu) < sqrt(VSMALL)) then

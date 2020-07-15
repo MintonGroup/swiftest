@@ -22,8 +22,8 @@ contains
             xh(:) = xb(:, i) - xbsun(:)
             vh(:) = vb(:, i) - vbsun(:)
             rmag = .mag. xh 
-            vmag2 = vh .dot. vh
-            rdotv = xh .dot. vh
+            vmag2 = dot_product(vh(:), vh(:))
+            rdotv = dot_product(xh(:), vh(:))
             agr(:, i) =  mu * c2 / rmag**3 * ((4 * mu(i) / rmag - vmag2) * xh(:) + 4 * rdotv * vh(:))
          end do
 
