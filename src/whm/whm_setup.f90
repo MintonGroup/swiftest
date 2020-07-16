@@ -83,20 +83,18 @@ contains
       if (self%pl%nbody > 0) then
          select type(pl => self%pl)
          class is (whm_pl)
-            associate(vh => pl%vh)
-               call pl%set_mu(self%cb)
-               if (config%lgr) call pl%gr_vh2pv(config)
-            end associate
+            call pl%set_mu(self%cb)
+            if (config%lgr) call pl%gr_vh2pv(config)
+            call pl%eucl_index()
          end select
       end if
 
       if (self%tp%nbody > 0) then
          select type(tp => self%tp)
          class is (whm_tp)
-            associate(vh => tp%vh)
-               call tp%set_mu(self%cb)
-               if (config%lgr) call tp%gr_vh2pv(config)
-            end associate
+            call tp%set_mu(self%cb)
+            if (config%lgr) call tp%gr_vh2pv(config)
+            call tp%eucl_index(self%pl)
          end select
       end if
 

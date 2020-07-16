@@ -242,6 +242,10 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: omega      !! Argument of pericenter
       real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
       real(DP),     dimension(:),   allocatable :: mu         !! G * (Mcb + [m])
+      integer(I4B)                              :: num_comparisons        !! Number of pl-pl Euclidean distance comparisons
+      integer(I4B), dimension(:,:), allocatable :: k_eucl     !! Index array that converts i, j array indices into k index for use in 
+                                                              !!  the Euclidean distance matrix
+      real(DP),     dimension(:),   allocatable :: irij3      !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and discard_spill
    contains
@@ -315,6 +319,8 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine drift_body
 
+
+
       module subroutine gr_getaccb_ns_body(self, cb, config, agr, agr0) 
          implicit none
          class(swiftest_body),          intent(inout) :: self
@@ -379,13 +385,13 @@ module swiftest_classes
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine orbel_el2xv_vec
 
       module subroutine orbel_xv2el_vec(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine orbel_xv2el_vec
    end interface
       
@@ -405,9 +411,6 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: rot                    !! Body rotation vector in inertial coordinate frame (units rad / TU)
       real(DP),     dimension(:),   allocatable :: k2                     !! Tidal Love number
       real(DP),     dimension(:),   allocatable :: Q                      !! Tidal quality factor
-      integer(I4B), dimension(:,:), allocatable :: k_plpl                 !! Index array that converts i, j array indices to i,j indices 
-                                                                          !!     into k index for use in the Euclidean distance matrix
-      integer(I4B)                              :: num_comparisons        !! Number of pl-pl Euclidean distance comparisons
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and discard_spill
    contains
@@ -416,7 +419,7 @@ module swiftest_classes
       ! These are concrete because they are the same implemenation for all integrators
 
       procedure, public :: eucl_index => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_irij3 => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: eucl_irij3  => eucl_irij3_plpl     !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
       procedure, public :: obl_pot    => obl_pot_pl           !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure, public :: setup      => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_mu     => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
@@ -430,10 +433,9 @@ module swiftest_classes
          class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
       end subroutine
 
-      module subroutine eucl_irij3_plpl(self, irij3)
+      module pure subroutine eucl_irij3_plpl(self)
          implicit none
          class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
-         real(DP), dimension(:),         intent(out)   :: irij3 !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
       end subroutine eucl_irij3_plpl
 
       module subroutine setup_set_mu_pl(self, cb)
@@ -467,9 +469,6 @@ module swiftest_classes
       integer(I4B), dimension(:),   allocatable :: isperi          !! Perihelion passage flag
       real(DP),     dimension(:),   allocatable :: peri            !! Perihelion distance
       real(DP),     dimension(:),   allocatable :: atp             !! Semimajor axis following perihelion passage
-      integer(I4B), dimension(:,:), allocatable :: k_pltp          !! Index array that converts i, j array indices to i,j indices 
-                                                                   !!     into k index for use in the Euclidean distance matrix.
-      integer(I4B)                              :: num_comparisons !! Number of pl-pl Euclidean distance comparisons
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and discard_spill
    contains
@@ -480,7 +479,7 @@ module swiftest_classes
       procedure, public :: discard_peri => discard_peri_tp      !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
       procedure, public :: discard_pl   => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
       procedure, public :: eucl_index   => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_dist    => eucl_dist_pltp       !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: eucl_irij3   => eucl_irij3_pltp      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
       procedure, public :: setup        => setup_tp             !! A base constructor that sets the number of bodies and 
       procedure, public :: set_mu       => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
@@ -522,12 +521,11 @@ module swiftest_classes
          class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
       end subroutine
 
-      module subroutine eucl_dist_pltp(self, pl, irij3)
+      module pure subroutine eucl_irij3_pltp(self, pl)
          implicit none
-         class(swiftest_tp),             intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_pl),             intent(in)    :: pl     !! Swiftest massive body object
-         real(DP), dimension(:),         intent(out)   :: irij3  !! Output distance array
-      end subroutine eucl_dist_pltp
+         class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
+         class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
+      end subroutine eucl_irij3_pltp
 
       module subroutine setup_set_mu_tp(self, cb)
          implicit none

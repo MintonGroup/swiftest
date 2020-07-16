@@ -188,24 +188,36 @@ contains
       implicit none
 
       class(whm_pl),           intent(inout) :: pl
-      integer(I4B)                           :: i, j
-      real(DP)                               :: rji2, irij3, faci, facj
+      integer(I4B)                           :: i, j, k
+      real(DP)                               :: rji2, faci, facj
       real(DP), dimension(NDIM)              :: dx
    
-      associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass) 
+      associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass, &
+         nk => pl%num_comparisons, k_plpl => pl%k_eucl, irij3 => pl%irij3) 
          ah3(:, 1:npl) = 0.0_DP
 
-         do i = 1, npl - 1
-            do j = i + 1, npl
-               dx(:) = xh(:, j) - xh(:, i)
-               rji2  = dot_product(dx(:), dx(:))
-               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               faci = Gmpl(i) * irij3
-               facj = Gmpl(j) * irij3
-               ah3(:, i) = ah3(:, i) + facj * dx(:)
-               ah3(:, j) = ah3(:, j) - faci * dx(:)
-            end do
+         call pl%eucl_irij3()
+         do concurrent(k = 1:nk)
+            i = k_plpl(1, k)
+            j = k_plpl(2, k)
+            dx(:) = xh(:, j) - xh(:, i)
+            faci = Gmpl(i) * irij3(k)
+            facj = Gmpl(j) * irij3(k)
+            ah3(:, i) = ah3(:, i) + facj * dx(:)
+            ah3(:, j) = ah3(:, j) + faci * dx(:)
          end do
+
+         !do i = 1, npl - 1
+         !   do j = i + 1, npl
+         !      dx(:) = xh(:, j) - xh(:, i)
+         !      rji2  = dot_product(dx(:), dx(:))
+         !      irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+         !      faci = Gmpl(i) * irij3
+         !      facj = Gmpl(j) * irij3
+         !      ah3(:, i) = ah3(:, i) + facj * dx(:)
+         !      ah3(:, j) = ah3(:, j) - faci * dx(:)
+         !   end do
+         !end do
       end associate
    
       return
