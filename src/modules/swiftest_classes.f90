@@ -194,7 +194,7 @@ module swiftest_classes
    interface              
       module subroutine io_write_frame_cb(self, iu, config, t, dt)
          implicit none
-         class(swiftest_cb),  intent(in)    :: self   !! Swiftest central body object 
+         class(swiftest_cb),            intent(in)    :: self   !! Swiftest central body object 
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
          real(DP),                      intent(in)    :: t      !! Current simulation time
@@ -203,7 +203,7 @@ module swiftest_classes
 
       module subroutine io_read_frame_cb(self, iu, config, form, t, ierr)
          implicit none
-         class(swiftest_cb),  intent(inout) :: self     !! Swiftest central body object
+         class(swiftest_cb),            intent(inout) :: self     !! Swiftest central body object
          integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
          class(swiftest_configuration), intent(inout) :: config   !! Input collection of user-defined configuration parameters 
          character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
@@ -213,7 +213,7 @@ module swiftest_classes
 
       module subroutine io_read_cb_in(self, config) 
          implicit none
-         class(swiftest_cb),  intent(inout) :: self
+         class(swiftest_cb),            intent(inout) :: self
          class(swiftest_configuration), intent(inout) :: config
       end subroutine io_read_cb_in
 
@@ -270,13 +270,13 @@ module swiftest_classes
       subroutine abstract_set_mu(self, cb) 
          import swiftest_body, swiftest_cb
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body objectt
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objectt
       end subroutine abstract_set_mu
 
       subroutine abstract_gr_getacch(self, cb, config)
          import swiftest_body, swiftest_cb, swiftest_configuration
          class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb),  intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
       end subroutine abstract_gr_getacch
    end interface
@@ -286,31 +286,31 @@ module swiftest_classes
       module subroutine coord_b2h_body(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine coord_b2h_body
 
       module subroutine coord_h2b_body(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine coord_h2b_body
 
       module subroutine coord_vb2vh_body(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine coord_vb2vh_body
 
       module subroutine coord_vh2vb_body(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine coord_vh2vb_body
 
       module subroutine drift_body(self, cb, config, dt)
          implicit none
-         class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb),  intent(inout) :: cb     !! WHM central body particle data structur
+         class(swiftest_body),          intent(inout) :: self   !! Swiftest massive body particle data structure
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structur
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine drift_body
@@ -318,7 +318,7 @@ module swiftest_classes
       module subroutine gr_getaccb_ns_body(self, cb, config, agr, agr0) 
          implicit none
          class(swiftest_body),          intent(inout) :: self
-         class(swiftest_cb),  intent(inout) :: cb
+         class(swiftest_cb),            intent(inout) :: cb
          class(swiftest_configuration), intent(in)    :: config
          real(DP), dimension(:, :),     intent(inout) :: agr
          real(DP), dimension(NDIM),     intent(out)   :: agr0
@@ -364,7 +364,7 @@ module swiftest_classes
       module subroutine obl_acc_body(self, cb, irh, xh)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
          real(DP), dimension(:),       intent(in)    :: irh  !! Inverse heliocentric radii of bodies
          real(DP), dimension(:, :),    intent(in)    :: xh   !! Heliocentric position vectors of bodies 
                                                              !! (not necessarily the same as what is passed to self)
@@ -400,10 +400,13 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: rhill                  !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: radius                 !! Body radius (units DU)
       real(DP),     dimension(:),   allocatable :: density                !! Body mass density - calculated internally (units MU / DU**3)
-      real(DP),     dimension(:,:), allocatable :: Ip                     !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
+      real(DP),     dimension(:,:), allocatable :: Ip                     !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). 
+                                                                          !!     Principal axis rotation assumed. 
       real(DP),     dimension(:,:), allocatable :: rot                    !! Body rotation vector in inertial coordinate frame (units rad / TU)
       real(DP),     dimension(:),   allocatable :: k2                     !! Tidal Love number
       real(DP),     dimension(:),   allocatable :: Q                      !! Tidal quality factor
+      integer(I4B), dimension(:,:), allocatable :: k_plpl                 !! Index array that converts i, j array indices to i,j indices 
+                                                                          !!     into k index for use in the Euclidean distance matrix
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and discard_spill
    contains
@@ -446,7 +449,7 @@ module swiftest_classes
       module function obl_pot_pl(self, cb, irh) result(oblpot)
          implicit none
          class(swiftest_pl),           intent(inout) :: self  !! Swiftest massive body object
-         class(swiftest_cb), intent(inout) :: cb    !! Swiftest central body object
+         class(swiftest_cb),           intent(inout) :: cb    !! Swiftest central body object
          real(DP), dimension(:),       intent(in)    :: irh   !! Inverse heliocentric radii of bodies
          real(DP)                                    :: oblpot
       end function obl_pot_pl
@@ -492,9 +495,9 @@ module swiftest_classes
 
       module subroutine discard_peri_tp(self, cb, pl, config, t, msys)
          implicit none
-         class(swiftest_tp),            intent(inout) :: self   !! Swiftest massive body object
-         class(swiftest_cb),  intent(inout) :: cb     !! Swiftest central body object
-         class(swiftest_pl),            intent(inout) :: pl     !! Swiftest central body object
+         class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
+         class(swiftest_pl),            intent(inout) :: pl     !! Swiftest massive body object
          class(swiftest_configuration), intent(in)    :: config !! User-defined configuration parameters
          real(DP),                      intent(in)    :: t      !! Current simulation tim
          real(DP),                      intent(in)    :: msys   !! Total system mass
@@ -543,7 +546,7 @@ module swiftest_classes
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract, public, extends(swiftest_base) :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
-      class(swiftest_cb),  allocatable :: cb                      !! Central body data structure
+      class(swiftest_cb),            allocatable :: cb            !! Central body data structure
       class(swiftest_pl),            allocatable :: pl            !! Massive body data structure
       class(swiftest_tp),            allocatable :: tp            !! Test particle data structure
       real(DP)                                   :: msys = 0.0_DP !! Total system mass - used for barycentric coordinate conversion
@@ -623,7 +626,7 @@ module swiftest_classes
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
          class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined configuration parameters 
-         class(swiftest_body), intent(inout)          :: discards !! Swiftest discard object 
+         class(swiftest_body),          intent(inout) :: discards !! Swiftest discard object 
       end subroutine io_write_discard
 
       module subroutine step_system(self, config)
@@ -837,7 +840,6 @@ module swiftest_classes
       end subroutine io_write_hdr
 
    end interface
-
 
    !********************************************************************************************************************************
    ! Interfaces for non type-bound orbel subroutines
