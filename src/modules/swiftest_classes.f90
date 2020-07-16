@@ -416,7 +416,7 @@ module swiftest_classes
       ! These are concrete because they are the same implemenation for all integrators
 
       procedure, public :: eucl_index => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_dist  => eucl_dist_plpl       !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: eucl_irij3 => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
       procedure, public :: obl_pot    => obl_pot_pl           !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure, public :: setup      => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_mu     => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
@@ -430,12 +430,11 @@ module swiftest_classes
          class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
       end subroutine
 
-      module subroutine eucl_dist_plpl(self, invar, outvar)
+      module subroutine eucl_irij3_plpl(self, irij3)
          implicit none
-         class(swiftest_pl),             intent(inout) :: self   !! Swiftest massive body object
-         real(DP), dimension(:,:),       intent(in)    :: invar  !! Input distance array
-         real(DP), dimension(:,:),       intent(inout) :: outvar !! Output distance array
-      end subroutine eucl_dist_plpl
+         class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
+         real(DP), dimension(:),         intent(out)   :: irij3 !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
+      end subroutine eucl_irij3_plpl
 
       module subroutine setup_set_mu_pl(self, cb)
          implicit none

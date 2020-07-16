@@ -1,44 +1,56 @@
 submodule (swiftest_classes) eucl_implementations
 contains
+
+
+   module procedure eucl_k2ij_plpl
+      !! author: David A. Minton
+      !!
+      !! Converts k linear index to lower triangular subscripts i,j, columnt-wise numbering.
+      !!
+      !! Reference:
+      !!
+      !!    Mélodie Angeletti, Jean-Marie Bonny, Jonas Koko. Parallel Euclidean distance matrix computation on big datasets *. 
+      !!       2019. hal-02047514
+      use swiftest
+      implicit none
+      integer(I4B)      :: kp, p
+
+      associate(npl => self%nbody)
+         kp = npl * (npl - 1) / 2 - k
+         p = floor((sqrt(1._DP + 8 * kp) - 1_DP) / 2._DP)
+         i = k - (npl - 1) * (npl - 2) / 2 + p * (p + 1) / 2 + 1
+         j = npl - 1 - p
+      end associate
+      return
+   end procedure eucl_k2ij_plpl
+
    module procedure eucl_dist_index_plpl
-      !! author: Jacob R. Elliott
+      !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix
+      !!
+      !! Reference:
+      !!
+      !!    Mélodie Angeletti, Jean-Marie Bonny, Jonas Koko. Parallel Euclidean distance matrix computation on big datasets *. 
+      !!       2019. hal-0204751
       use swiftest
-      integer(I4B)          :: i,j,counter
+      implicit none
+
+      integer(I4B) :: i, j, k, kp, p
 
       associate(npl => self%nbody, num_comparisons => self%num_comparisons)
-         num_comparisons = ((npl - 1) * (npl - 2) / 2) ! number of entries in a strict lower triangle, nplm x npl, minus first column
+         num_comparisons = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, nplm x npl, minus first column
          allocate(self%k_plpl(2, num_comparisons))
-         ! this is a 'fancier' code, but so far i think it runs slower
-         ! so leaving it in, but commenting it out
-         ! i think it's because of the 'mod' call, but i haven't profiled it yet
-         ! don't forget to uncomment the 'k' declaration up top!
-         ! allocate(k(num_comparisons))
-   
-         ! m = ceiling(sqrt(2. * num_comparisons))
-   
-         ! k = (/(i, i=1,num_comparisons, 1)/)
-   
-         ! ik_plpl = m - nint( sqrt( dble(2) * (dble(1) + num_comparisons - k))) + 1
-         ! jk_plpl = mod(k + (ik_plpl - 1) * ik_plpl / 2 - 1, m) + 2
-   
-         ! brute force the index creation
-   
-         !$omp parallel do default(none) schedule(dynamic) &
-         !$omp shared (k_plpl, npl) &
-         !$omp private (i, j, counter)
-         do i = 1, npl - 1
-            do concurrent(j = i + 1:npl)
-               counter = (i - 1) * npl - i * (i - 1) / 2 + (j - i)
-               self%k_plpl(1, counter) = i
-               self%k_plpl(2, counter) = j
-            end do
+         do concurrent(k = 1:num_comparisons)
+            kp = npl * (npl - 1) / 2 - k
+            p = floor((sqrt(1._DP + 8 * kp) - 1_DP) / 2._DP)
+            i = k - (npl - 1) * (npl - 2) / 2 + p * (p + 1) / 2 + 1
+            j = npl - 1 - p 
+            self%k_plpl(1, k) = i 
+            self%k_plpl(2, k) = j
          end do
-         !$omp end parallel do
-   
-         return
       end associate
+      return
    end procedure eucl_dist_index_plpl
 
    module procedure eucl_dist_index_pltp
@@ -50,7 +62,7 @@ contains
   
       associate(k_pltp => self%k_pltp, ntp => self%nbody, num_comparisons => self%num_comparisons, &
                 npl => pl%nbody, nplm => pl%nbody)
-         num_comparisons = (nplm - 1) * ntp ! number of entries in our distance array
+         num_comparisons = nplm * ntp ! number of entries in our distance array
    
          allocate(self%k_pltp(2, num_comparisons))
    
@@ -71,14 +83,14 @@ contains
       
          counter = 1
       
-         do i = 2, nplm, np
+         do i = 1, nplm, np
             ii_end = min(i + np - 1, nplm)
             do j = 1, ntp, np
                jj_end = min(j + np - 1, ntp)
                do ii = i, ii_end
                   do jj = j, jj_end
-                     k_pltp(1,counter) = ii
-                     k_pltp(2,counter) = jj
+                     self%k_pltp(1,counter) = ii
+                     self%k_pltp(2,counter) = jj
                      counter = counter + 1
                   end do
                end do
@@ -133,29 +145,34 @@ contains
    ! end procedure eucl_dist_index_plplm
 
 
-   module procedure eucl_dist_plpl
+   module procedure eucl_irij3_plpl
       !! author: Jacob R. Elliott
       !!
       !! Efficient parallel loop-blocking algrorithm for evaluating the Euclidean distance matrix for planet-planet
       use swiftest
       implicit none
-      integer(I4B) :: k
+      integer(I4B) :: k, i, j
+      real(DP), dimension(NDIM) :: dx
+      real(DP) :: rji2
 
-      associate(k_plpl => self%k_plpl, num_comparisons => self%num_comparisons)
+      associate(k_plpl => self%k_plpl, num_comparisons => self%num_comparisons, x => self%xh)
       
          !$omp parallel do schedule(static) default(none) &
          !$omp num_threads(min(omp_get_max_threads(),ceiling(num_comparisons/10000.))) &
-         !$omp shared (outvar, invar, num_comparisons, k_plpl) &
-         !$omp private(k)
+         !$omp shared (x, irij3, num_comparisons, k_plpl) &
+         !$omp private(k, dx, rji2)
          do k = 1,num_comparisons
-            outvar(:, k) = invar(:, k_plpl(2, k)) - invar(:, k_plpl(1, k))
+            call eucl_k2ij_plpl(self, k, i, j)  
+            dx(:) = x(:, j) - x(:, i)
+            rji2  = dot_product(dx(:), dx(:))
+            irij3(k) = 1.0_DP / (rji2 * sqrt(rji2))
          end do
          !$omp end parallel do
       end associate
 
       return
    
-   end procedure eucl_dist_plpl
+   end procedure eucl_irij3_plpl
 
    module procedure eucl_dist_pltp
       !! author: Jacob R. Elliott
