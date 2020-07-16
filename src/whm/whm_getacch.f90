@@ -204,7 +204,7 @@ contains
             faci = Gmpl(i) * irij3(k)
             facj = Gmpl(j) * irij3(k)
             ah3(:, i) = ah3(:, i) + facj * dx(:)
-            ah3(:, j) = ah3(:, j) + faci * dx(:)
+            ah3(:, j) = ah3(:, j) - faci * dx(:)
          end do
 
          !do i = 1, npl - 1
