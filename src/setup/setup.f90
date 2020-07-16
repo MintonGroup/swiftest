@@ -122,6 +122,7 @@ contains
       self%radius(:) = 0.0_DP
       self%density(:) = 0.0_DP
       self%Ip(:,:) = 0.0_DP
+      self%num_comparisons = 0   
       return
    end procedure setup_pl
 
@@ -145,6 +146,7 @@ contains
       self%isperi(:) = 0
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP
+      self%num_comparisons = 0   
 
       return
    end procedure setup_tp

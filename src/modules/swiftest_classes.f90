@@ -407,6 +407,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: Q                      !! Tidal quality factor
       integer(I4B), dimension(:,:), allocatable :: k_plpl                 !! Index array that converts i, j array indices to i,j indices 
                                                                           !!     into k index for use in the Euclidean distance matrix
+      integer(I4B)                              :: num_comparisons        !! Number of pl-pl Euclidean distance comparisons
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and discard_spill
    contains
@@ -464,11 +465,12 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest test particles
    type, abstract, public, extends(swiftest_body) :: swiftest_tp
       !! Superclass that defines the generic elements of a Swiftest test particle 
-      integer(I4B), dimension(:),   allocatable :: isperi  !! Perihelion passage flag
-      real(DP),     dimension(:),   allocatable :: peri    !! Perihelion distance
-      real(DP),     dimension(:),   allocatable :: atp     !! Semimajor axis following perihelion passage
-      integer(I4B), dimension(:,:), allocatable :: k_pltp  !! Index array that converts i, j array indices to i,j indices 
-                                                           !!     into k index for use in the Euclidean distance matrix.
+      integer(I4B), dimension(:),   allocatable :: isperi          !! Perihelion passage flag
+      real(DP),     dimension(:),   allocatable :: peri            !! Perihelion distance
+      real(DP),     dimension(:),   allocatable :: atp             !! Semimajor axis following perihelion passage
+      integer(I4B), dimension(:,:), allocatable :: k_pltp          !! Index array that converts i, j array indices to i,j indices 
+                                                                   !!     into k index for use in the Euclidean distance matrix.
+      integer(I4B)                              :: num_comparisons !! Number of pl-pl Euclidean distance comparisons
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and discard_spill
    contains
@@ -515,7 +517,7 @@ module swiftest_classes
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine discard_pl_tp
 
-      module subroutine eucl_dist_index_pltp(self, tp)
+      module subroutine eucl_dist_index_pltp(self, pl)
          implicit none
          class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
          class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
