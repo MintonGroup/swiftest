@@ -137,7 +137,6 @@ contains
       real(DP), dimension(NDIM) :: ah1h, ah1j
 
       associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
-         ah1(:, 1:npl) = 0.0_DP
          do concurrent (i = 2:npl)
             ah1j(:) = xj(:, i) * ir3j(i)
             ah1h(:) = xh(:, i) * ir3h(i)
@@ -166,7 +165,7 @@ contains
       real(DP)                               :: etaj, fac
    
       associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah2 => pl%ah2, Gmpl => pl%Gmass)
-         ah2(:, 1:npl) = 0.0_DP
+         ah2(:, 1) = 0.0_DP
          etaj = Gmsun
          do i = 2, npl
             etaj = etaj + Gmpl(i - 1)
