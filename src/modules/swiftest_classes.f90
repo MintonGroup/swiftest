@@ -522,13 +522,11 @@ module swiftest_classes
          class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
       end subroutine
 
-      module subroutine eucl_dist_pltp(self, pl, intp, inpl, outvar)
+      module subroutine eucl_dist_pltp(self, pl, irij3)
          implicit none
          class(swiftest_tp),             intent(inout) :: self   !! Swiftest test particle object
          class(swiftest_pl),             intent(in)    :: pl     !! Swiftest massive body object
-         real(DP), dimension(:,:),       intent(in)    :: intp   !! Input distance array
-         real(DP), dimension(:,:),       intent(in)    :: inpl   !! Input distance array
-         real(DP), dimension(:,:),       intent(inout) :: outvar !! Output distance array
+         real(DP), dimension(:),         intent(out)   :: irij3  !! Output distance array
       end subroutine eucl_dist_pltp
 
       module subroutine setup_set_mu_tp(self, cb)
