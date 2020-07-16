@@ -414,9 +414,11 @@ module swiftest_classes
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
 
-      procedure, public :: setup   => setup_pl        !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
-      procedure, public :: set_mu  => setup_set_mu_pl !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: obl_pot => obl_pot_pl      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      procedure, public :: eucl_index => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: eucl_dist  => eucl_dist_plpl       !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: obl_pot    => obl_pot_pl           !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      procedure, public :: setup      => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
+      procedure, public :: set_mu     => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
    end type swiftest_pl
 
    !> Interfaces for concrete type-bound procedures for swiftest_pl
@@ -473,13 +475,13 @@ module swiftest_classes
       private
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: eucl_index   => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_dist    => eucl_dist_plpl       !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
-      procedure, public :: setup        => setup_tp             !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_mu       => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
       procedure, public :: discard_sun  => discard_sun_tp       !! Check to see if test particles should be discarded based on their positions relative to the Sun
       procedure, public :: discard_peri => discard_peri_tp      !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
       procedure, public :: discard_pl   => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      procedure, public :: eucl_index   => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: eucl_dist    => eucl_dist_pltp       !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: setup        => setup_tp             !! A base constructor that sets the number of bodies and 
+      procedure, public :: set_mu       => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp
