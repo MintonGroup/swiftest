@@ -35,21 +35,6 @@ module util
          character(len=*), intent(in)      :: qmin_coord   !! Coordinate frame for qmin (see swiftest_globals for symbolic definitions)
       end subroutine util_peri
 
-      module subroutine util_sort_i4b(arr)
-         implicit none
-         integer(I4B), dimension(:), intent(inout) :: arr
-      end subroutine util_sort_i4b
-
-      module subroutine util_sort_sp(arr)
-         implicit none
-         real(SP), dimension(:), intent(inout) :: arr
-      end subroutine util_sort_sp
-
-      module subroutine util_sort_dp(arr)
-         implicit none
-         real(DP), dimension(:), intent(inout) :: arr
-      end subroutine util_sort_dp
-
       module subroutine util_toupper(string)
          implicit none
          character(*), intent(inout) :: string
@@ -65,6 +50,23 @@ module util
          implicit none
       end subroutine util_version
 
+   end interface
+
+   interface util_sort
+      module subroutine util_sort_i4b(arr)
+         implicit none
+         integer(I4B), dimension(:), intent(inout) :: arr
+      end subroutine util_sort_i4b
+
+      module subroutine util_sort_sp(arr)
+         implicit none
+         real(SP), dimension(:), intent(inout) :: arr
+      end subroutine util_sort_sp
+
+      module subroutine util_sort_dp(arr)
+         implicit none
+         real(DP), dimension(:), intent(inout) :: arr
+      end subroutine util_sort_dp
    end interface
 
    interface 
