@@ -418,10 +418,23 @@ module swiftest_classes
 
    !> Interfaces for concrete type-bound procedures for swiftest_pl
    interface
+
+      module subroutine eucl_dist_index_plpl(self)
+         implicit none
+         class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
+      end subroutine
+
+      module subroutine eucl_dist_plpl(self, invar, outvar)
+         implicit none
+         class(swiftest_pl),             intent(inout) :: self   !! Swiftest massive body object
+         real(DP), dimension(:,:),       intent(in)    :: invar  !! Input distance array
+         real(DP), dimension(:,:),       intent(inout) :: outvar !! Output distance array
+      end subroutine eucl_dist_plpl
+
       module subroutine setup_set_mu_pl(self, cb)
          implicit none
-         class(swiftest_pl),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body objectt
+         class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objectt
       end subroutine setup_set_mu_pl
 
       module subroutine setup_pl(self,n)
@@ -446,28 +459,32 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest test particles
    type, abstract, public, extends(swiftest_body) :: swiftest_tp
       !! Superclass that defines the generic elements of a Swiftest test particle 
-      integer(I4B), dimension(:), allocatable :: isperi ! Perihelion passage flag
-      real(DP),     dimension(:), allocatable :: peri   ! Perihelion distance
-      real(DP),     dimension(:), allocatable :: atp    ! Semimajor axis following perihelion passage
+      integer(I4B), dimension(:),   allocatable :: isperi  !! Perihelion passage flag
+      real(DP),     dimension(:),   allocatable :: peri    !! Perihelion distance
+      real(DP),     dimension(:),   allocatable :: atp     !! Semimajor axis following perihelion passage
+      integer(I4B), dimension(:,:), allocatable :: k_pltp  !! Index array that converts i, j array indices to i,j indices 
+                                                           !!     into k index for use in the Euclidean distance matrix.
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and discard_spill
    contains
       private
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: setup        => setup_tp        !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_mu       => setup_set_mu_tp !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: discard_sun  => discard_sun_tp  !! Check to see if test particles should be discarded based on their positions relative to the Sun
-      procedure, public :: discard_peri => discard_peri_tp !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
-      procedure, public :: discard_pl   => discard_pl_tp   !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      procedure, public :: eucl_index   => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: eucl_dist    => eucl_dist_plpl       !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: setup        => setup_tp             !! A base constructor that sets the number of bodies and 
+      procedure, public :: set_mu       => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: discard_sun  => discard_sun_tp       !! Check to see if test particles should be discarded based on their positions relative to the Sun
+      procedure, public :: discard_peri => discard_peri_tp      !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
+      procedure, public :: discard_pl   => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
    end type swiftest_tp
 
    !> Interfaces for concrete type-bound procedures for swiftest_tp
    interface
       module subroutine discard_sun_tp(self, cb, config, t, msys)
          implicit none
-         class(swiftest_tp),            intent(inout) :: self   !! Swiftest massive body object
-         class(swiftest_cb),  intent(inout) :: cb     !! Swiftest central body object
+         class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
          class(swiftest_configuration), intent(in)    :: config !! User-defined configuration parameters
          real(DP),                      intent(in)    :: t      !! Current simulation tim
          real(DP),                      intent(in)    :: msys   !! Total system mass
@@ -485,24 +502,38 @@ module swiftest_classes
 
       module subroutine discard_pl_tp(self, cb, pl, config, t, dt)
          implicit none
-         class(swiftest_tp),            intent(inout) :: self   !! Swiftest massive body object
-         class(swiftest_cb),  intent(inout) :: cb     !! Swiftest central body object
-         class(swiftest_pl),            intent(inout) :: pl     !! Swiftest central body object
+         class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
+         class(swiftest_pl),            intent(inout) :: pl     !! Swiftest massive body object
          class(swiftest_configuration), intent(in)    :: config !! User-defined configuration parameters
          real(DP),                      intent(in)    :: t      !! Current simulation tim
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine discard_pl_tp
 
+      module subroutine eucl_dist_index_pltp(self, tp)
+         implicit none
+         class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
+         class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
+      end subroutine
+
+      module subroutine eucl_dist_pltp(self, pl, invar, outvar)
+         implicit none
+         class(swiftest_tp),             intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_pl),             intent(in)    :: pl     !! Swiftest massive body object
+         real(DP), dimension(:,:),       intent(in)    :: invar  !! Input distance array
+         real(DP), dimension(:,:),       intent(inout) :: outvar !! Output distance array
+      end subroutine eucl_dist_pltp
+
       module subroutine setup_set_mu_tp(self, cb)
          implicit none
-         class(swiftest_tp),           intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body objectt
+         class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objectt
       end subroutine setup_set_mu_tp
 
-      module subroutine setup_tp(self,n)
+      module subroutine setup_tp(self, n)
          implicit none
-         class(swiftest_tp),           intent(inout) :: self !! Swiftest massive body object
-         integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
+         class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
+         integer,                      intent(in)    :: n    !! Number of bodies to allocate space for
       end subroutine setup_tp
    end interface
 
