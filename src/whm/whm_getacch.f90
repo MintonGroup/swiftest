@@ -268,7 +268,6 @@ contains
       class(whm_cb), intent(in) :: cb 
       class(whm_pl), intent(in) :: pl 
       class(whm_tp), intent(inout) :: tp
-      real(DP), dimension(:,:), intent(in) :: xh
       integer(I4B)          :: i, j, k
       real(DP)            :: rji2, fac
       real(DP), dimension(NDIM) :: dx, acc
