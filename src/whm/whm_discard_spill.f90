@@ -16,13 +16,13 @@ contains
       class is (whm_pl)
          associate(npl => keeps%nbody)
             !do concurrent (i = 1:NDIM)
+            discards%eta(:) = pack(keeps%eta(1:npl),       lspill_list(1:npl))
+            keeps%eta(:)    = pack(keeps%eta(1:npl), .not. lspill_list(1:npl))
+
+            discards%muj(:) = pack(keeps%muj(1:npl),       lspill_list(1:npl))
+            keeps%muj(:)    = pack(keeps%muj(1:npl), .not. lspill_list(1:npl))
+
             do i = 1, NDIM
-               discards%eta(:) = pack(keeps%eta(1:npl),       lspill_list(1:npl))
-               keeps%eta(:)    = pack(keeps%eta(1:npl), .not. lspill_list(1:npl))
-
-               discards%muj(:) = pack(keeps%muj(1:npl),       lspill_list(1:npl))
-               keeps%muj(:)    = pack(keeps%muj(1:npl), .not. lspill_list(1:npl))
-
                discards%xj(i, :) = pack(keeps%xj(i, 1:npl),       lspill_list(1:npl))
                keeps%xj(i, :)    = pack(keeps%xj(i, 1:npl), .not. lspill_list(1:npl))
    
