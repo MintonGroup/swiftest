@@ -3,7 +3,6 @@ module swiftest
    !! graph: false
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
-   !$ use omp_lib
    use swiftest_globals
    use swiftest_operators
    use swiftest_classes
@@ -13,6 +12,8 @@ module swiftest
    !use symba_classes
    use util
    use module_nrutil
+   !$ use omp_lib
+
 
 
    implicit none

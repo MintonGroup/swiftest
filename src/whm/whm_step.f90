@@ -15,7 +15,7 @@ contains
   
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt, &
          xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj, ah => pl%ah,  eta => pl%eta, & ! These two lines of associations aid in debugging with gdb
-         xht => tp%xh, vht => tp%vh, aht => tp%ah) 
+         xht => tp%xh, vht => tp%vh, aht => tp%ah, irij3 => tp%irij3) 
          dth = 0.5_DP * dt 
          if (lfirst) then
             call pl%h2j(cb)

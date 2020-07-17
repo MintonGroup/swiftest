@@ -21,7 +21,8 @@ contains
          if (allocated(self%irij3)) deallocate(self%irij3)  
          allocate(self%k_eucl(2, num_comparisons))
          allocate(self%irij3(num_comparisons))
-         do concurrent(k = 1:num_comparisons)
+        !do concurrent(k = 1:num_comparisons)
+         do k = 1, num_comparisons
             kp = npl * (npl - 1) / 2 - k
             p = floor((sqrt(1._DP + 8 * kp) - 1._DP) / 2._DP)
             i = k - (npl - 1) * (npl - 2) / 2 + p * (p + 1) / 2 + 1
@@ -39,26 +40,13 @@ contains
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix
       use swiftest
-      integer(I4B)          :: i, j, k, kp, p
+      integer(I4B)          :: i, j
   
-      associate(ntp => self%nbody, num_comparisons => self%num_comparisons, npl => pl%nbody)
-         num_comparisons = npl * ntp ! number of entries in our distance array
-         if (allocated(self%k_eucl)) deallocate(self%k_eucl) ! Reset the index array if it's been set previously
-         if (allocated(self%irij3)) deallocate(self%irij3)  
-         allocate(self%k_eucl(2, num_comparisons))
-         allocate(self%irij3(num_comparisons))
-         do concurrent(k = 1:num_comparisons)
-            i = (k - 1) / npl + 1
-            j = k - (i - 1) * npl 
-            self%k_eucl(1, k) = i 
-            self%k_eucl(2, k) = j
-         end do
+      if (allocated(self%irij3)) deallocate(self%irij3)  
+      allocate(self%irij3(self%nbody, pl%nbody))
 
-      end associate
       return
-   
     end procedure eucl_dist_index_pltp
-
 
    module procedure eucl_irij3_plpl
       !! author: Jacob R. Elliott and David A. Minton
@@ -70,30 +58,61 @@ contains
       real(DP), dimension(NDIM) :: dx
       real(DP) :: rji2
 
+      !!$omp num_threads(min(omp_get_max_threads(),ceiling(num_comparisons/10000.))) &
 
-      !$omp parallel do schedule(static) default(none) &
-      !$omp num_threads(min(omp_get_max_threads(),ceiling(num_comparisons/10000.))) &
-      !$omp shared (self) &
-      !$omp private(k, i, j, dx, rji2)
+      !!$omp parallel do schedule(static) default(none) &
+      !!$omp shared (self) &
+      !!$omp private(k, i, j, dx, rji2)
       do k = 1, self%num_comparisons
+      !do concurrent (k = 1:self%num_comparisons)
          i = self%k_eucl(1, k)
          j = self%k_eucl(2, k)
          dx(:) = self%xh(:, j) - self%xh(:, i)
          rji2  = dot_product(dx(:), dx(:))
          self%irij3(k) = 1.0_DP / (rji2 * sqrt(rji2))
       end do
-      !$omp end parallel do
+      !!$omp end parallel do
 
       return
    end procedure eucl_irij3_plpl
 
-    module procedure eucl_irij3_pltp
-       !! author: Jacob R. Elliott
-       !!
-       !! Efficient parallel loop-blocking algrorithm for evaluating the Euclidean distance matrix for planet-test particles
-       use swiftest
-       implicit none
-   
+   module procedure eucl_irij3_pltp
+      !! author: David A. Minton
+      !!
+      !! Calculates the term 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance between pl-tp pairs
+      use swiftest
+      implicit none
+
+      call irij3_pltp(self%nbody, pl%nbody, self%xh, pl%xh, self%irij3)
+
+   end procedure eucl_irij3_pltp
+
+   subroutine irij3_pltp(ntp, npl, xht, xhp, irij3)
+      use swiftest
+      implicit none
+      integer(I4B), intent(in) :: ntp, npl 
+      real(DP), dimension(:,:), intent(in) :: xht, xhp
+      real(DP), dimension(:,:), intent(out) :: irij3
+
+      integer(I4B) :: i, j
+      real(DP), dimension(NDIM) :: dx
+      real(DP) :: rji2
+
+      !$omp parallel do schedule(static) default(private) &
+      !$omp shared (ntp, npl, irij3, xhp, xht) 
+      do j = 1, npl
+         !$omp simd
+         do i = 1, ntp
+            dx(:) = xht(:, i) - xhp(:, j)
+            rji2  = dot_product(dx(:), dx(:))
+            irij3(i, j) = 1.0_DP / (rji2 * sqrt(rji2))
+         end do
+      end do
+      !$omp end parallel do
+
+      return
+   end subroutine irij3_pltp
+
    !    integer(I4B)          :: k
      ! associate(k_eucl => self%k_eucl, ntp => self%nbody, num_pltp_comparisons => self%num_comparisons, &
      !    test_particles => intp, planets => inpl)
@@ -132,9 +151,6 @@ contains
 !    !   enddo
 !       return
    
-    end procedure eucl_irij3_pltp
-
-
 
    ! module procedure eucl_dist_index_plplm
    !    !! author: Jacob R. Elliott

@@ -26,12 +26,7 @@ program swiftest_driver
    character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
                                              'Number of active pl, tp = ", I5, ", ", I5)'
 
-   !> Define the maximum number of threads
-   nthreads = 1            ! In the *serial* case
-   !$ nthreads = omp_get_max_threads() ! In the *parallel* case
-   !$ write(*,'(a)')   ' OpenMP parameters:'
-   !$ write(*,'(a)')   ' ------------------'
-   !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads  
+ 
 
    ierr = io_get_args(integrator, config_file_name)
    if (ierr /= 0) then
@@ -55,6 +50,12 @@ program swiftest_driver
       iout = istep_out
       idump = istep_dump
       if (istep_out > 0) call nbody_system%write_frame(iu, config, t, dt)
+      !> Define the maximum number of threads
+      nthreads = 1            ! In the *serial* case
+      !$ nthreads = omp_get_max_threads() ! In the *parallel* case
+      !$ write(*,'(a)')   ' OpenMP parameters:'
+      !$ write(*,'(a)')   ' ------------------'
+      !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, LOOPMAX 
          ntp = nbody_system%tp%nbody

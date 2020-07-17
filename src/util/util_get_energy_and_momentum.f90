@@ -22,9 +22,9 @@ contains
          ke = 0.0_DP
          pe = 0.0_DP
 
-         !$omp parallel do default(private) &
-         !$omp shared (self) &
-         !$omp reduction (+:ke, pe, htot)
+         !!$omp parallel do default(private) &
+         !!$omp shared (self) &
+         !!$omp reduction (+:ke, pe, htot)
          do i = 1, pl%nbody 
             x(:) = pl%xb(:, i)
             v(:) = pl%vb(:, i)
@@ -41,7 +41,7 @@ contains
                end if
             end do
          end do
-         !$omp end parallel do
+         !!$omp end parallel do
       end select
 
       select type(cb => self%cb)

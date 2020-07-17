@@ -177,7 +177,7 @@ contains
       return
    end subroutine whm_getacch_ah2
 
-   pure subroutine whm_getacch_ah3(pl)
+   subroutine whm_getacch_ah3(pl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of planets
@@ -223,7 +223,7 @@ contains
       return
    end subroutine whm_getacch_ah3
 
-   pure subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
+   subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles
@@ -236,24 +236,27 @@ contains
       class(whm_pl), intent(in) :: pl 
       class(whm_tp), intent(inout) :: tp
       real(DP), dimension(:,:), intent(in) :: xh
-      integer(I4B)          :: i, j
-      real(DP)            :: rji2, irij3, fac
+      integer(I4B)          :: i, j, k
+      real(DP)            :: rji2, fac
       real(DP), dimension(NDIM) :: dx, acc
 
       associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
-                  xht => tp%xh, aht => tp%ah)
+                  xht => tp%xh, aht => tp%ah, irij3 => tp%irij3)
    
          if (ntp == 0) return
-         aht(:,:) = 0.0_DP
-         do i = 1, ntp
-            do j = 1, npl
-               dx(:) = xht(:, i) - xh(:, j)
-               rji2 = dot_product(dx(:), dx(:))
-               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = Gmpl(j) * irij3
-               aht(:, i) = aht(:, i) - fac * dx(:)
-            end do
-         end do
+
+          aht(:,:) = 0.0_DP
+          call tp%eucl_irij3(pl)
+          do j = 1, npl
+             do concurrent(i = 1:ntp)
+                dx(:) = xht(:, i) - xh(:, j)
+                !rji2 = dot_product(dx(:), dx(:))
+                !irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+                !fac = Gmpl(j) * irij3
+                fac = Gmpl(j) * irij3(i,j)
+                aht(:, i) = aht(:, i) - fac * dx(:)
+             end do
+          end do
       end associate
       return
    end subroutine whm_getacch_ah3_tp

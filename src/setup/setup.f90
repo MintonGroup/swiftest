@@ -146,7 +146,6 @@ contains
       self%isperi(:) = 0
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP
-      self%num_comparisons = 0   
 
       return
    end procedure setup_tp

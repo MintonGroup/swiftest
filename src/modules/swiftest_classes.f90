@@ -242,10 +242,6 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: omega      !! Argument of pericenter
       real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
       real(DP),     dimension(:),   allocatable :: mu         !! G * (Mcb + [m])
-      integer(I4B)                              :: num_comparisons        !! Number of pl-pl Euclidean distance comparisons
-      integer(I4B), dimension(:,:), allocatable :: k_eucl     !! Index array that converts i, j array indices into k index for use in 
-                                                              !!  the Euclidean distance matrix
-      real(DP),     dimension(:),   allocatable :: irij3      !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and discard_spill
    contains
@@ -318,8 +314,6 @@ module swiftest_classes
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine drift_body
-
-
 
       module subroutine gr_getaccb_ns_body(self, cb, config, agr, agr0) 
          implicit none
@@ -411,6 +405,10 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: rot                    !! Body rotation vector in inertial coordinate frame (units rad / TU)
       real(DP),     dimension(:),   allocatable :: k2                     !! Tidal Love number
       real(DP),     dimension(:),   allocatable :: Q                      !! Tidal quality factor
+      integer(I4B)                              :: num_comparisons        !! Number of pl-pl Euclidean distance comparisons
+      integer(I4B), dimension(:,:), allocatable :: k_eucl     !! Index array that converts i, j array indices into k index for use in 
+                                                              !!  the Euclidean distance matrix
+      real(DP),     dimension(:),   allocatable :: irij3      !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and discard_spill
    contains
@@ -433,7 +431,7 @@ module swiftest_classes
          class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
       end subroutine
 
-      module pure subroutine eucl_irij3_plpl(self)
+      module subroutine eucl_irij3_plpl(self)
          implicit none
          class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
       end subroutine eucl_irij3_plpl
@@ -469,6 +467,7 @@ module swiftest_classes
       integer(I4B), dimension(:),   allocatable :: isperi          !! Perihelion passage flag
       real(DP),     dimension(:),   allocatable :: peri            !! Perihelion distance
       real(DP),     dimension(:),   allocatable :: atp             !! Semimajor axis following perihelion passage
+      real(DP),     dimension(:, :),   allocatable :: irij3       !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance betwen each pl-tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and discard_spill
    contains
@@ -521,7 +520,7 @@ module swiftest_classes
          class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
       end subroutine
 
-      module pure subroutine eucl_irij3_pltp(self, pl)
+      module subroutine eucl_irij3_pltp(self, pl)
          implicit none
          class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
          class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
