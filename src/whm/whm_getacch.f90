@@ -188,24 +188,17 @@ contains
       implicit none
 
       class(whm_pl),           intent(inout) :: pl
-      integer(I4B)                           :: i, j, k
-      real(DP)                               :: rji2, faci, facj
-      real(DP), dimension(NDIM)              :: dx
+      real(DP) :: rji2
    
       associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass, &
          nk => pl%num_comparisons, k_plpl => pl%k_eucl, irij3 => pl%irij3) 
          ah3(:, 1:npl) = 0.0_DP
 
          call pl%eucl_irij3()
-         do concurrent(k = 1:nk)
-            i = k_plpl(1, k)
-            j = k_plpl(2, k)
-            dx(:) = xh(:, j) - xh(:, i)
-            faci = Gmpl(i) * irij3(k)
-            facj = Gmpl(j) * irij3(k)
-            ah3(:, i) = ah3(:, i) + facj * dx(:)
-            ah3(:, j) = ah3(:, j) - faci * dx(:)
-         end do
+         call ah3p(nk, k_plpl, xh, irij3, Gmpl, ah3)
+
+
+         rji2 = 0.0_DP
 
          !do i = 1, npl - 1
          !   do j = i + 1, npl
@@ -222,6 +215,32 @@ contains
    
       return
    end subroutine whm_getacch_ah3
+
+   subroutine ah3p(nk, k_plpl, xh, irij3, Gmpl, ah3)
+      use swiftest
+      implicit none
+      integer(I4B), intent(in) :: nk
+      integer(I4B), dimension(:,:), intent(in) :: k_plpl
+      real(DP), dimension(:,:), intent(in) :: xh
+      real(DP), dimension(:), intent(in) :: irij3, Gmpl
+      real(DP), dimension(:,:), intent(out) :: ah3
+
+      integer(I4B)                           :: i, j, k
+      real(DP)                               :: rji2, faci, facj
+      real(DP), dimension(NDIM)              :: dx
+
+      do concurrent(k = 1:nk)
+         i = k_plpl(1, k)
+         j = k_plpl(2, k)
+         dx(:) = xh(:, j) - xh(:, i)
+         faci = Gmpl(i) * irij3(k)
+         facj = Gmpl(j) * irij3(k)
+         ah3(:, i) = ah3(:, i) + facj * dx(:)
+         ah3(:, j) = ah3(:, j) - faci * dx(:)
+      end do
+
+      return
+   end subroutine ah3p
 
    subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
       !! author: David A. Minton
@@ -257,6 +276,8 @@ contains
                 aht(:, i) = aht(:, i) - fac * dx(:)
              end do
           end do
+
+          rji2 = 0._DP
       end associate
       return
    end subroutine whm_getacch_ah3_tp
