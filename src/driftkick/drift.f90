@@ -10,71 +10,6 @@ submodule (swiftest_classes) drift_implementation
 
 contains
 
-module procedure drift_body
-   !! author: David A. Minton
-   !!
-   !! Loop through bodies and call Danby drift routine
-   !!
-   !! Adapted from Hal Levison's Swift routine drift.f
-   !! Adapted from David E. Kaufmann's Swifter routine whm_drift.f90
-   use swiftest
-   implicit none
-   integer(I4B)          :: i
-
-   integer(I4B), dimension(:), allocatable  :: iflag
-
-   associate(n => self%nbody, status => self%status, mu => self%mu)
-      if (n ==0) return
-      allocate(iflag(n))
-      iflag(:) = 0
-      select type(self)
-      class is (whm_pl)
-         associate(xj => self%xj, vj => self%vj)
-            do concurrent (i = 1:n, status(i) == ACTIVE)
-               call whm_drift_func(config, cb, mu(i), xj(:, i), vj(:, i), dt, iflag(i))
-            end do
-         end associate
-      class is (whm_tp)
-         associate(xh => self%xh, vh => self%vh)
-            do concurrent (i = 1:n, status(i) == ACTIVE)
-               call whm_drift_func(config, cb, mu(i), xh(:, i), vh(:, i), dt, iflag(i))
-            end do
-         end associate
-      end select 
-      if (any(iflag(1:n) /= 0)) then
-         do i = 1, n
-            write(*, *) " Body ", self%name(i), " is lost!!!!!!!!!!"
-            write(*, *) " stopping "
-            call util_exit(FAILURE)
-         end do
-      end if
-   end associate
-
-   return
-   end procedure drift_body
-
-   pure subroutine whm_drift_func(config, cb, mu, x, v, dt, iflag)
-      use swiftest
-      implicit none
-      class(swiftest_configuration), intent(in) :: config
-      class(swiftest_cb),  intent(in) :: cb
-      real(DP), dimension(:), intent(inout) :: x, v
-      real(DP), intent(in) :: mu, dt 
-      integer(I4B), intent(out)  :: iflag
-      real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
-      if (config%lgr) then
-         rmag = norm2(x(:))
-         vmag2 = dot_product(v(:), v(:)) 
-         energy = 0.5_DP * vmag2 - cb%Gmass / rmag
-         dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
-      else
-         dtp = dt
-      end if
-      call drift_one(mu, x, v, dt, iflag)
-      return
-   end subroutine whm_drift_func 
-
-
    module procedure drift_one
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -99,7 +34,7 @@ module procedure drift_body
       return
    end procedure drift_one
 
-   module procedure drift_dan
+   pure subroutine drift_dan(mu, x0, v0, dt0, iflag)
       !! author: David A. Minton
       !!
       !! Perform Kepler drift, solving Kepler's equation in appropriate variables
@@ -108,6 +43,9 @@ module procedure drift_body
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_dan.f
       use swiftest
       implicit none
+      integer(I4B), intent(out)                :: iflag
+      real(DP), intent(in)                     :: mu, dt0
+      real(DP), dimension(:), intent(inout)    :: x0, v0
       real(DP)        :: dt, f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
       real(DP)        :: v0s, a, asq, en, dm, ec, es, esq, xkep, fchk, s, c
       real(DP), dimension(NDIM) :: x, v
@@ -116,7 +54,7 @@ module procedure drift_body
       dt = dt0
       r0 = norm2(x0(:))
       v0s = dot_product(v0(:), v0(:))
-      u = dot_product(x0(:),  v0(:))
+      u = dot_product(x0(:), v0(:))
       alpha = 2 * mu / r0 - v0s
       if (alpha > 0.0_DP) then
          a = mu / alpha
@@ -163,9 +101,9 @@ module procedure drift_body
          v0(:) = v(:)
       end if
       return
-   end procedure drift_dan
+   end subroutine drift_dan
 
-   module procedure drift_kepmd
+   pure subroutine drift_kepmd(dm, es, ec, x, s, c)
       !! author: David A. Minton
       !!
       !! Solve Kepler's equation in difference form for an ellipse for small input dm and eccentricity
@@ -176,6 +114,8 @@ module procedure drift_body
       !! Adapted from Martin Duncan's Swift routine drift_kepmd.f
       use swiftest
       implicit none
+      real(DP), intent(in)  :: dm, es, ec
+      real(DP), intent(out) :: x, s, c
       real(DP), parameter :: a0 = 39916800.0_DP, a1 = 6652800.0_DP, a2 = 332640.0_DP, a3 = 7920.0_DP, a4 = 110.0_DP
       real(DP)      :: dx, fac1, fac2, q, y, f, fp, fpp, fppp
       
@@ -200,10 +140,10 @@ module procedure drift_body
       c = sqrt(1.0_DP - s * s)
       
       return
-   end procedure drift_kepmd
+   end subroutine drift_kepmd
 
-   module procedure drift_kepu
-      !! author: David A. Minton
+   pure subroutine drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
+      ! author: David A. Minton
       !!
       !! Solve Kepler's equation in universal variables
       !!
@@ -211,6 +151,9 @@ module procedure drift_body
       !! Adapted from Hal Levison's Swift routine drift_kepu.f
       use swiftest
       implicit none
+      integer(I4B), intent(out) :: iflag
+      real(DP), intent(in)      :: dt, r0, mu, alpha, u
+      real(DP), intent(out)     :: fp, c1, c2, c3
       real(DP) :: s, st, fo, fn
       
       ! executable code
@@ -225,9 +168,9 @@ module procedure drift_body
       end if
       
       return
-   end procedure drift_kepu
+   end subroutine drift_kepu
 
-   module procedure drift_kepu_fchk
+   pure subroutine drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
       !! author: David A. Minton
       !!
       !! Computes the value of f, the function whose root we are trying to find in universal variables
@@ -236,6 +179,8 @@ module procedure drift_body
       !! Adapted from Martin Duncan's Swift routine drift_kepu_fchk.f
       use swiftest
       implicit none
+      real(DP), intent(in)  :: dt, r0, mu, alpha, u, s
+      real(DP), intent(out) :: f
       real(DP) :: x, c0, c1, c2, c3
 
       x = s * s * alpha
@@ -246,9 +191,9 @@ module procedure drift_body
       f = r0 * c1 + u * c2 + mu * c3 - dt
 
       return
-   end procedure drift_kepu_fchk
+   end subroutine drift_kepu_fchk
 
-   module procedure drift_kepu_guess
+   pure subroutine drift_kepu_guess(dt, r0, mu, alpha, u, s)
       !! author: David A. Minton
       !!
       !! Compute initial guess for solving Kepler's equation using universal variables
@@ -257,6 +202,8 @@ module procedure drift_body
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_kepu_guess.f
       use swiftest
       implicit none
+      real(DP), intent(in)  :: dt, r0, mu, alpha, u
+      real(DP), intent(out) :: s
       integer(I4B)      :: iflag
       real(DP), parameter :: thresh = 0.4_DP, danbyk = 0.85_DP
       real(DP)        :: y, sy, cy, sigma, es, x, a, en, ec, e
@@ -282,10 +229,10 @@ module procedure drift_body
       end if
 
       return
-   end procedure drift_kepu_guess
+   end subroutine drift_kepu_guess
 
-   module procedure drift_kepu_lag
-      !! author: David A. Minton
+   pure subroutine drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+      ! author: David A. Minton
       !!
       !! Solve Kepler's equation in universal variables using Laguerre's method
       !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 178 - 180.
@@ -294,6 +241,10 @@ module procedure drift_body
       !! Adapted from Hal Levison's Swift routine drift_kepu_lag.f
       use swiftest
       implicit none
+      integer(I4B), intent(out) :: iflag
+      real(DP), intent(in)      :: dt, r0, mu, alpha, u
+      real(DP), intent(inout)   :: s
+      real(DP), intent(out)     :: fp, c1, c2, c3
       integer( I4B) :: nc, ncmax
       real(DP)   :: ln, x, fpp, ds, c0, f, fdt
    
@@ -323,9 +274,9 @@ module procedure drift_body
       iflag = 2
    
       return
-   end procedure drift_kepu_lag
+   end subroutine drift_kepu_lag
 
-   module procedure drift_kepu_new
+   pure subroutine drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
       !! author: David A. Minton
       !!
       !! Solve Kepler's equation in universal variables using Newton's method
@@ -335,6 +286,10 @@ module procedure drift_body
       !! Adapted from Hal Levison's Swift routine drift_kepu_new.f
       use swiftest
       implicit none
+      integer(I4B), intent(out) :: iflag
+      real(DP), intent(in)      :: dt, r0, mu, alpha, u
+      real(DP), intent(inout)   :: s
+      real(DP), intent(out)     :: fp, c1, c2, c3
       integer( I4B) :: nc
       real(DP)   :: x, c0, ds, f, fpp, fppp, fdt
    
@@ -361,9 +316,9 @@ module procedure drift_body
       iflag = 1
    
       return
-   end procedure drift_kepu_new
+   end subroutine drift_kepu_new
 
-   module procedure drift_kepu_p3solve
+  pure subroutine drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
       !! author: David A. Minton
       !!
       !! Computes real root of cubic involved in setting initial guess for solving Kepler's equation in universal variables
@@ -373,6 +328,9 @@ module procedure drift_body
       !! Adapted from Martin Duncan's Swift routine drift_kepu_p3solve.f
       use swiftest
       implicit none
+      integer(I4B), intent(out) :: iflag
+      real(DP), intent(in)      :: dt, r0, mu, alpha, u
+      real(DP), intent(out)     :: s
       real(DP) :: denom, a0, a1, a2, q, r, sq2, sq, p1, p2
 
       denom = (mu - alpha * r0) / 6.0_DP
@@ -402,9 +360,9 @@ module procedure drift_body
       end if
 
       return
-   end procedure drift_kepu_p3solve
+   end subroutine drift_kepu_p3solve
 
-   module procedure drift_kepu_stumpff
+   pure subroutine drift_kepu_stumpff(x, c0, c1, c2, c3)
       !! author: David A. Minton
       !!
       !! Compute Stumpff functions needed for Kepler drift in universal variables
@@ -414,6 +372,8 @@ module procedure drift_body
       !! Adapted from Hal Levison's Swift routine drift_kepu_stumpff.f
       use swiftest
       implicit none
+      real(DP), intent(inout) :: x
+      real(DP), intent(out)   :: c0, c1, c2, c3
       integer(I4B) :: i, n
       real(DP)   :: xm
 
@@ -442,6 +402,6 @@ module procedure drift_body
       end if
 
       return
-   end procedure drift_kepu_stumpff
+   end subroutine drift_kepu_stumpff
 
 end submodule drift_implementation

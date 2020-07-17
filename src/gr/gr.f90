@@ -30,7 +30,8 @@ contains
          agr0 =  0.0_DP
          select type(self)
          class is (swiftest_pl)
-            do concurrent(i = 1:NDIM)
+            !do concurrent(i = 1:NDIM)
+            do i = 1, NDIM
                agr0(i) = -sum(self%Gmass(1:n) * agr(1:n, i) / msun)
             end do
          end select

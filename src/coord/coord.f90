@@ -12,18 +12,23 @@ contains
       integer(I4B)  :: i
       real(DP)      :: msys
 
-      associate(n => self%nbody)
+      associate(n => self%nbody, xbcb => cb%xb, vbcb => cb%vb, status => self%status, Mcb => cb%Gmass, &
+         xb => self%xb, xh => self%xh, vb => self%vb, vh => self%vh)
+
          select type(self)
          class is (swiftest_pl)
-            msys = cb%mass + sum(self%mass(1:n), self%status(i) == ACTIVE)
-            do i = 1, NDIM
-               cb%xb(i) = -sum(self%mass(1:n) * self%xh(i, 1:n), self%status(i) == ACTIVE) / msys
-               cb%vb(i) = -sum(self%mass(1:n) * self%vh(i, 1:n), self%status(i) == ACTIVE) / msys
-            end do
+            associate(Mpl => self%Gmass)
+               msys = Mcb + sum(Mpl(1:n), status(1:n) == ACTIVE)
+               do i = 1, NDIM
+                  xbcb(i) = -sum(Mpl(1:n) * xh(i, 1:n), status(1:n) == ACTIVE) / msys
+                  vbcb(i) = -sum(Mpl(1:n) * vh(i, 1:n), status(1:n) == ACTIVE) / msys
+               end do
+            end associate
          end select
-         do concurrent(i = 1:n, self%status(i) == ACTIVE)
-            self%xb(:, i) = self%xh(:, i) + cb%xb(:)
-            self%vb(:, i) = self%vh(:, i) + cb%vb(:)
+
+         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, status, xb, xh, xbcb, vb, vh, xbcb, vbcb)
+            xb(:, i) = xh(:, i) + xbcb(:)
+            vb(:, i) = vh(:, i) + vbcb(:)
          end do
       end associate
 
@@ -41,10 +46,11 @@ contains
       use swiftest
       integer(I4B)          :: i
 
-      associate(n => self%nbody)
-         do concurrent(i = 1:n, self%status(i) == ACTIVE)
-            self%xh(:, i) = self%xb(:, i) - cb%xb(:)
-            self%vh(:, i) = self%vb(:, i) - cb%vb(:)
+      associate(n => self%nbody, xbcb => cb%xb, vbcb => cb%vb, status => self%status, & 
+         xb => self%xb, xh => self%xh, vb => self%vb, vh => self%vh)
+         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, status, xb, xbh, vb, vh, xbcb, vbcb)
+            xh(:, i) = xb(:, i) - xbcb(:)
+            vh(:, i) = vb(:, i) - vbcb(:)
          end do
       end associate
 
@@ -65,15 +71,18 @@ contains
       real(DP), dimension(NDIM) :: vtmp
    
       vtmp(:) = 0.0_DP
-      associate(n => self%nbody)
+      associate(n => self%nbody, vbcb => cb%vb, status => self%status, & 
+         xh => self%xh, vb => self%vb, vh => self%vh, Mcb => cb%Gmass)
          select type(self)
          class is (swiftest_pl)
-            do i = 1, NDIM
-               cb%vb(i) = -sum(self%mass(1:n) * self%vb(i, 1:n), self%status(1:n) == ACTIVE) / cb%mass
-            end do
+            associate(Mpl => self%Gmass)
+               do i = 1, NDIM
+                  vbcb(i) = -sum(Mpl(1:n) * vb(i, 1:n), status(1:n) == ACTIVE) / Mcb
+               end do
+            end associate
          end select
-         do concurrent(i = 1:n, self%status(i) == ACTIVE)
-            self%vh(:, i) = self%vb(:, i) - cb%vb(:)
+         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, status, vh, vb, vbcb)
+            vh(:, i) = vb(:, i) - vbcb(:)
          end do
       end associate
    
@@ -92,16 +101,19 @@ contains
       integer(I4B)  :: i
       real(DP)      :: msys
 
-      associate(n => self%nbody)
+      associate(n => self%nbody, vbcb => cb%vb, status => self%status, & 
+         vb => self%vb, vh => self%vh, Mcb => cb%Gmass)
          select type(self)
          class is (swiftest_pl)
-            msys = cb%mass + sum(self%mass(1:n))
-            do i = 1, NDIM
-               cb%vb(i) = -sum(self%mass(1:n) * self%vh(i, 1:n), self%status(1:n) == ACTIVE) / msys
-            end do
+            associate(Mpl => self%Gmass)
+               msys = Mcb + sum(Mpl(1:n))
+               do i = 1, NDIM
+                  vbcb(i) = -sum(Mpl(1:n) * vh(i, 1:n), status(1:n) == ACTIVE) / msys
+               end do
+            end associate
          end select
-         do concurrent(i = 1:n, self%status(i) == ACTIVE)
-            self%vb(:, i) = self%vh(:, i) + cb%vb(:)
+         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, status, vb, vh, vbcb)
+            vb(:, i) = vh(:, i) + vbcb(:)
          end do
       end associate
 

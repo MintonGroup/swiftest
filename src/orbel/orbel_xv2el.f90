@@ -11,7 +11,8 @@ contains
     
       if (self%nbody == 0) return
       call self%set_mu(cb)
-      do concurrent (i = 1:self%nbody)
+      !do concurrent (i = 1:self%nbody)
+      do i = 1, self%nbody
          call orbel_xv2el(self%mu(i), self%xh(:, i), self%vh(:, i), self%a(i), self%e(i), self%inc(i),  &
                           self%capom(i), self%omega(i), self%capm(i))
       end do

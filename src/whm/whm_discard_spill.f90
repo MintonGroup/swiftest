@@ -15,7 +15,8 @@ contains
       select type(discards)
       class is (whm_pl)
          associate(npl => keeps%nbody)
-            do concurrent (i = 1:NDIM)
+            !do concurrent (i = 1:NDIM)
+            do i = 1, NDIM
                discards%eta(:) = pack(keeps%eta(1:npl),       lspill_list(1:npl))
                keeps%eta(:)    = pack(keeps%eta(1:npl), .not. lspill_list(1:npl))
 

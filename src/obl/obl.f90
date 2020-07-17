@@ -10,14 +10,15 @@ contains
       !! Adapted from Hal Levison's Swift routine obl_acc.f and obl_acc_tp.f
       use swiftest
       implicit none
-      integer(I4B) :: i, npl
-      real(DP)     :: rinv2, t0, t1, t2, t3, fac1, fac2, msun
+      integer(I4B) :: i
+      real(DP)     :: rinv2, t0, t1, t2, t3, fac1, fac2
 
-      associate(bd => self, n => self%nbody, aobl => self%aobl, &
-                j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, msun => cb%Gmass)
-         do concurrent (i = 1:n)
+      associate(n => self%nbody, aobl => self%aobl, xh => self%xh, j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, &
+                Mcb => cb%Gmass, aoblcb => cb%aobl)
+         do concurrent (i = 1:n) !shared(n, aobl, j2rp2, j4rp4, Mcb, xh, irh) &
+                                 !local(rinv2, t0, t1, t2, t3, fac1, fac2)
             rinv2 = irh(i)**2
-            t0 = -msun * rinv2**2 * irh(i)
+            t0 = -Mcb * rinv2**2 * irh(i)
             t1 = 1.5_DP * j2rp2
             t2 = xh(3, i)**2 * rinv2
             t3 = 1.875_DP * j4rp4 * rinv2
@@ -26,13 +27,15 @@ contains
             aobl(:, i) = fac1 * xh(:, i)
             aobl(3, i) = fac2 * xh(3, i) + aobl(3, i)
          end do
+         select type(self)
+         class is (swiftest_pl)
+            associate(Mpl => self%Gmass)
+               do i = 1, NDIM
+                  aoblcb(i) = -sum(aobl(i, 1:n) * Mpl(1:n)) / Mcb
+               end do
+            end associate
+         end select
       end associate
-      select type(pl => self)
-      class is (swiftest_pl)
-         do concurrent (i = 1:NDIM)
-            cb%aobl(i) = -sum(pl%aobl(i, 1:pl%nbody) * pl%Gmass(1:pl%nbody)) / cb%Gmass
-         end do
-      end select
       return
 
    end procedure obl_acc_body
@@ -52,12 +55,13 @@ contains
       integer(I4B) :: i
       real(DP)     :: rinv2, t0, t1, t2, t3, p2, p4
 
-      associate(pl => self, npl => self%nbody, mupl => self%Gmass, xh => self%xh, &
-               j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, mu => cb%Gmass)
+      associate(pl => self, npl => self%nbody, Mpl => self%Gmass, xh => self%xh, &
+               j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, Mcb => cb%Gmass)
          oblpot = 0.0_DP
-         do concurrent (i = 1:npl)
+         do concurrent (i = 1:npl) !shared(npl, oblpot, j2rp2, j4rp4, Mcb, Mpl, xh, irh) &
+                                   !local(rinv2, t0, t1, t2, t3, p2, p4)
             rinv2 = irh(i)**2
-            t0 = mu * mupl(i) * rinv2 * irh(i)
+            t0 = Mcb * Mpl(i) * rinv2 * irh(i)
             t1 = j2rp2
             t2 = xh(3, i)**2 * rinv2
             t3 = j4rp4 * rinv2

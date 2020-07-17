@@ -16,23 +16,21 @@ module procedure whm_drift_pl
    real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
    integer(I4B), dimension(:), allocatable  :: iflag
 
-   associate(npl    => self%nbody, &
-      xj     => self%xj, &
-      vj     => self%vj, &
-      status => self%status,&
-      mu     => self%muj)
-
+   associate(npl => self%nbody, xj => self%xj, vj => self%vj, status => self%status, mu => self%muj, &
+             lgr => config%lgr, c2 => config%inv_c2)
       if (npl == 0) return
 
       allocate(iflag(npl))
       iflag(:) = 0
       
-      do concurrent (i = 1:npl, status(i) == ACTIVE)
-         if (config%lgr) then
-            rmag =norm2(xj(:, i))
+      !do concurrent (i = 1:npl, status(i) == ACTIVE) !shared(npl, status, lgr, dt, xj, vj, dt, c2, mu, iflag) &
+      !                                               !local(dtp, energy, vmag2, rmag) 
+      do i = 1, npl
+         if (lgr) then
+            rmag = norm2(xj(:, i))
             vmag2 = dot_product(vj(:, i),  vj(:, i))
             energy = 0.5_DP * vmag2 - mu(i) / rmag
-            dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+            dtp = dt * (1.0_DP + 3 * c2 * energy)
          else
             dtp = dt
          end if
@@ -40,12 +38,14 @@ module procedure whm_drift_pl
       end do 
       if (any(iflag(1:npl) /= 0)) then
          do i = 1, npl
-            write(*, *) " Planet ", self%name(i), " is lost!!!!!!!!!!"
-            write(*, *) xj
-            write(*, *) vj
-            write(*, *) " stopping "
-            call util_exit(FAILURE)
+            if (iflag(i) /= 0) then
+               write(*, *) " Planet ", self%name(i), " is lost!!!!!!!!!!"
+               write(*, *) xj
+               write(*, *) vj
+               write(*, *) " stopping "
+            end if
          end do
+         call util_exit(FAILURE)
       end if
    end associate
 
@@ -67,25 +67,24 @@ module procedure whm_drift_pl
       real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
       integer(I4B), dimension(:), allocatable  :: iflag
 
-      associate(ntp    => self%nbody, &
-                xh     => self%xh, &
-                vh     => self%vh, &
-                status => self%status,&
-                mu     => self%mu)
+      associate(ntp => self%nbody, xh => self%xh, vh => self%vh, status => self%status, mu => self%mu, &
+               lgr => config%lgr, c2 => config%inv_c2)
          if (ntp == 0) return
          allocate(iflag(ntp))
          iflag(:) = 0
-         do concurrent (i = 1:ntp, status(i) == ACTIVE) 
-            if (config%lgr) then
+         !do concurrent (i = 1:ntp, status(i) == ACTIVE) !shared(ntp, status, lgr, dt, xh, vh, c2, mu, iflag) &
+         !                                               !local(dtp, energy, vmag2, rmag)
+         do i = 1, ntp
+            if (lgr) then
                rmag = norm2(xh(:, i))
                vmag2 = dot_product(vh(:, i), vh(:, i))
-               energy = 0.5_DP * vmag2 - cb%Gmass / rmag
-               dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+               energy = 0.5_DP * vmag2 - mu(i) / rmag
+               dtp = dt * (1.0_DP + 3 * c2 * energy)
             else
                dtp = dt
             end if
             call drift_one(mu(i), xh(:, i), vh(:, i), dtp, iflag(i))
-            if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
+            if (iflag(i) /= 0) status(i) = DISCARDED_DRIFTERR
          end do
          if (any(iflag(1:ntp) /= 0)) then
             do i = 1, ntp

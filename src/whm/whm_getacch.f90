@@ -24,7 +24,8 @@ contains
       if (.not. allocated(irh)) allocate(irh(npl))
       if (.not. allocated(ir3h)) allocate(ir3h(npl))
       if (.not. allocated(fac)) allocate(fac(npl))
-      do concurrent(i = 1:npl)
+      !do concurrent(i = 1:npl)
+      do i = 1, npl
          r2 = dot_product(xj(:, i), xj(:, i))
          irj(i)= 1.0_DP / sqrt(r2)
          ir3j(i) = irj(i) / r2
@@ -36,21 +37,24 @@ contains
 
       ah0(1) = 0.0_DP
       fac(2:npl) = Gmpl(2:npl) * ir3h(2:npl)
-      do concurrent (i = 1:NDIM)
+      !do concurrent (i = 1:NDIM)
+      do i = 1, NDIM
          ah0(i) = -sum(fac(2:npl) * xh(i, 2:npl))
       end do
       call whm_getacch_ah1(cb, pl, ir3h, ir3j)
       call whm_getacch_ah2(cb, pl, ir3j)
       call whm_getacch_ah3(pl)
       
-      do concurrent (i = 1:NDIM)
+      !do concurrent (i = 1:NDIM)
+      do i = 1, NDIM
          ah(i, 1:npl) = ah0(i) + ah1(i, 1:npl) + ah2(i, 1:npl) + ah3(i, 1:npl)
       end do
 
       if (j2rp2 /= 0.0_DP) then
-         call  self%obl_acc(cb, irh, xh)
+         call  self%obl_acc(cb, irh)
 
-         do concurrent (i = 1:NDIM)
+         !do concurrent (i = 1:NDIM)
+         do i = 1, NDIM
             ah(i, 1:npl) = ah(i, 1:npl) + aobl(i, 1:npl) - aobl0(i)
          end do
       end if
@@ -86,13 +90,15 @@ contains
          if(.not.allocated(irh)) allocate(irh(npl))
          if (.not.allocated(ir3h)) allocate(ir3h(npl))
          if (.not. allocated(irht)) allocate(irht(ntp))
-         do concurrent(i = 1:npl)
+         !do concurrent(i = 1:npl)
+         do i = 1, npl
             r2 = dot_product(xh(:, i), xh(:, i))
             irh(i)= 1.0_DP / sqrt(r2)
             ir3h(i) = irh(i) / r2
          end do
 
-         do concurrent (i = 1:ntp, status(i) == ACTIVE)
+         !do concurrent (i = 1:ntp, status(i) == ACTIVE)
+         do i = 1, ntp
             r2 = dot_product(xht(:, i), xht(:, i))
             irht(i) = 1.0_DP / sqrt(r2)
          end do
@@ -100,17 +106,20 @@ contains
          ah0(:) = 0.0_DP
          if(.not.allocated(fac)) allocate(fac(npl))
          fac(:) = Gmpl(1:npl) * ir3h(1:npl)
-         do concurrent (i = 1:NDIM)
+         !do concurrent (i = 1:NDIM)
+         do i = 1, NDIM
             ah0(i) = -sum(fac(1:npl) * xh(i, 1:npl))
          end do
          call whm_getacch_ah3_tp(cb, pl, tp, xh)
-         do concurrent (i = 1:ntp, status(i) == ACTIVE)
+         !do concurrent (i = 1:ntp, status(i) == ACTIVE)
+         do i = 1, ntp
             aht(:, i) = aht(:, i) + ah0(:)
          end do
          if (j2rp2 /= 0.0_DP) then
-            call pl%obl_acc(cb, irh, xh) 
-            call tp%obl_acc(cb, irht, xht)
-            do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            call pl%obl_acc(cb, irh)
+            call tp%obl_acc(cb, irht)
+            !do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            do i = 1, ntp
                aht(:, i) = aht(:, i) + tp%aobl(:, i) - aobl0(:)
             end do
          end if
@@ -137,7 +146,8 @@ contains
       real(DP), dimension(NDIM) :: ah1h, ah1j
 
       associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
-         do concurrent (i = 2:npl)
+         do concurrent (i = 2:pl%nbody) !local(ah1j, ah1h) shared(pl, cb, xj, xh, ir3h, ir3j, msun, ah1)
+         !do i = 2, npl
             ah1j(:) = xj(:, i) * ir3j(i)
             ah1h(:) = xh(:, i) * ir3h(i)
             ah1(:, i) = msun * (ah1j(:) - ah1h(:))
@@ -229,7 +239,11 @@ contains
       real(DP)                               :: rji2, faci, facj
       real(DP), dimension(NDIM)              :: dx
 
-      do concurrent(k = 1:nk)
+      !$omp parallel do schedule(static) default(private) &
+      !$omp shared (nk, k_plpl, xh, irij3, Gmpl) &
+      !$omp reduction(+:ah3)
+      do k = 1, nk
+      !do concurrent(k = 1:nk)
          i = k_plpl(1, k)
          j = k_plpl(2, k)
          dx(:) = xh(:, j) - xh(:, i)
@@ -238,6 +252,7 @@ contains
          ah3(:, i) = ah3(:, i) + facj * dx(:)
          ah3(:, j) = ah3(:, j) - faci * dx(:)
       end do
+      !$omp end parallel do
 
       return
    end subroutine ah3p
@@ -260,25 +275,47 @@ contains
       real(DP), dimension(NDIM) :: dx, acc
 
       associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
-                  xht => tp%xh, aht => tp%ah, irij3 => tp%irij3)
+                  xht => tp%xh, xhp => pl%xh, aht => tp%ah, irij3 => tp%irij3)
    
          if (ntp == 0) return
 
-          aht(:,:) = 0.0_DP
-          call tp%eucl_irij3(pl)
-          do j = 1, npl
-             do concurrent(i = 1:ntp)
-                dx(:) = xht(:, i) - xh(:, j)
-                !rji2 = dot_product(dx(:), dx(:))
-                !irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                !fac = Gmpl(j) * irij3
-                fac = Gmpl(j) * irij3(i,j)
-                aht(:, i) = aht(:, i) - fac * dx(:)
-             end do
-          end do
+         aht(:,:) = 0.0_DP
+         call tp%eucl_irij3(pl)
+         call ah3t(ntp, npl, xht, xhp, irij3, Gmpl, aht)
 
-          rji2 = 0._DP
+         rji2 = 0._DP
+
       end associate
       return
    end subroutine whm_getacch_ah3_tp
+
+   subroutine ah3t(ntp, npl, xht, xhp, irij3, Gmpl, aht)
+      use swiftest
+      implicit none
+      integer(I4B), intent(in) :: ntp, npl
+      real(DP), dimension(:,:), intent(in) :: xht, xhp, irij3
+      real(DP), dimension(:), intent(in) ::  Gmpl
+      real(DP), dimension(:,:), intent(out) :: aht
+
+      integer(I4B)                           :: i, j
+      real(DP)                               :: rji2, fac
+      real(DP), dimension(NDIM)              :: dx
+
+      aht = 0._DP
+      !$omp parallel do schedule(static) default(private) &
+      !$omp shared (ntp, npl, xht, xhp, irij3, Gmpl) &
+      !$omp reduction(-:aht)
+      do j = 1, npl
+         !$omp simd
+         do i = 1, ntp 
+            dx(:) = xht(:, i) - xhp(:, j)
+            fac = Gmpl(j) * irij3(i,j)
+            aht(:, i) = aht(:, i) - fac * dx(:)
+         end do
+      end do
+      !$omp end parallel do
+
+      rji2 = 0._DP
+      return
+   end subroutine ah3t
 end submodule whm_getacch_implementations

@@ -19,7 +19,8 @@ contains
          ah => self%ah, xj => self%xj, GMpl => self%Gmass, eta => self%eta)
          if (n == 0) return
          allocate(aj, mold = ah)
-         do concurrent(i = 1:n)
+         !do concurrent(i = 1:n)
+         do i = 1, n
             rjmag4 = (dot_product(xj(:, i), xj(:, i)))**2
             beta   = - mu(i)**2 * c2 
             aj(:, i)  = 2 * beta * xj(:, i) / rjmag4
@@ -50,7 +51,8 @@ contains
       associate(n => self%nbody, msun => cb%Gmass, mu => self%mu,& 
          c2 => config%inv_c2, ah => self%ah, xh => self%xh, status => self%status)
          if (n == 0) return
-         do concurrent (i = 1:n, status(i) == active)
+         !do concurrent (i = 1:n, status(i) == active)
+         do i = 1, n
             rjmag4 = (dot_product(xh(:, i), xh(:, i)))**2
             beta = - mu(i)**2 * c2 
             ah(:, i) = ah(:, i) + beta * xh(:, i) / rjmag4
@@ -72,7 +74,8 @@ contains
 
       associate(n => self%nbody, xj => self%xj, vj => self%vj, status => self%status, c2 => config%inv_c2)
          if (n == 0) return
-         do concurrent (i = 1:n, status(i) == ACTIVE)
+         !do concurrent (i = 1:n, status(i) == ACTIVE)
+         do i = 1,n
             call p4_func(xj(:, i), vj(:, i), dt, c2)
          end do
       end associate
@@ -93,7 +96,8 @@ contains
 
       associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, c2 => config%inv_c2)
          if (n == 0) return
-         do concurrent (i = 1:n, status(i) == ACTIVE)
+         !do concurrent (i = 1:n, status(i) == ACTIVE)
+         do i = 1, n
             call p4_func(xh(:, i), vh(:, i), dt, c2)
          end do
       end associate
@@ -116,7 +120,8 @@ contains
       associate(n => self%nbody, xh => self%xh, pv => self%vh, status => self%status, mu => self%muj)
          if (n == 0) return
          allocate(vh, mold = pv)
-         do concurrent(i = 1:n, status(i) == ACTIVE)
+         !do concurrent(i = 1:n, status(i) == ACTIVE)
+         do i = 1, n
             call gr_pseudovel2vel(config, mu(i), xh(:, i), pv(:, i), vh(:, i))
             pv(:, i) = vh(:, i)
          end do
@@ -140,7 +145,8 @@ contains
       associate(n => self%nbody, xh => self%xh, pv => self%vh, status => self%status, mu => self%mu)
          if (n == 0) return
          allocate(vh, mold = pv)
-         do concurrent(i = 1:n, status(i) == ACTIVE)
+         !do concurrent(i = 1:n, status(i) == ACTIVE)
+         do i = 1, n
             call gr_pseudovel2vel(config, mu(i), xh(:, i), pv(:, i), vh(:, i))
             pv(:, i) = vh(:, i)
          end do
@@ -163,7 +169,8 @@ contains
       associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, mu => self%muj)
          if (n == 0) return
          allocate(pv, mold = vh)
-         do concurrent(i = 1:n, status(i) == ACTIVE)
+         !do concurrent(i = 1:n, status(i) == ACTIVE)
+         do i = 1, n
             call gr_vel2pseudovel(config, mu(i), xh(:, i), vh(:, i), pv(:, i))
             vh(:, i) = pv(:, i)
          end do
@@ -186,7 +193,8 @@ contains
       associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, mu => self%mu)
          if (n == 0) return
          allocate(pv, mold = vh)
-         do concurrent(i = 1:n, status(i) == ACTIVE)
+         !do concurrent(i = 1:n, status(i) == ACTIVE)
+         do i = 1, n
             call gr_vel2pseudovel(config, mu(i), xh(:, i), vh(:, i), pv(:, i))
             vh(:, i) = pv(:, i)
          end do

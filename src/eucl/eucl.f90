@@ -21,15 +21,16 @@ contains
          if (allocated(self%irij3)) deallocate(self%irij3)  
          allocate(self%k_eucl(2, num_comparisons))
          allocate(self%irij3(num_comparisons))
-        !do concurrent(k = 1:num_comparisons)
-         do k = 1, num_comparisons
-            kp = npl * (npl - 1) / 2 - k
-            p = floor((sqrt(1._DP + 8 * kp) - 1._DP) / 2._DP)
-            i = k - (npl - 1) * (npl - 2) / 2 + p * (p + 1) / 2 + 1
-            j = npl - 1 - p 
-            self%k_eucl(1, k) = i 
-            self%k_eucl(2, k) = j
-         end do
+         associate(k_eucl => self%k_eucl)
+            do concurrent(k = 1:num_comparisons) !shared(num_comparisons, k_eucl, npl) local(kp, i, j, p)
+               kp = npl * (npl - 1) / 2 - k
+               p = floor((sqrt(1._DP + 8 * kp) - 1._DP) / 2._DP)
+               i = k - (npl - 1) * (npl - 2) / 2 + p * (p + 1) / 2 + 1
+               j = npl - 1 - p 
+               k_eucl(1, k) = i 
+               k_eucl(2, k) = j
+            end do
+         end associate
       end associate
       return
 
@@ -63,14 +64,16 @@ contains
       !!$omp parallel do schedule(static) default(none) &
       !!$omp shared (self) &
       !!$omp private(k, i, j, dx, rji2)
-      do k = 1, self%num_comparisons
-      !do concurrent (k = 1:self%num_comparisons)
-         i = self%k_eucl(1, k)
-         j = self%k_eucl(2, k)
-         dx(:) = self%xh(:, j) - self%xh(:, i)
-         rji2  = dot_product(dx(:), dx(:))
-         self%irij3(k) = 1.0_DP / (rji2 * sqrt(rji2))
-      end do
+      !do k = 1, self%num_comparisons
+      associate(k_eucl => self%k_eucl, xh => self%xh, irij3 => self%irij3, nk => self%num_comparisons)
+         do concurrent (k = 1:nk) !shared(nk, k_eucl, xh, irij3) local(i, j, dx, rji2)
+            i = k_eucl(1, k)
+            j = k_eucl(2, k)
+            dx(:) = xh(:, j) - xh(:, i)
+            rji2  = dot_product(dx(:), dx(:))
+            irij3(k) = 1.0_DP / (rji2 * sqrt(rji2))
+         end do
+      end associate
       !!$omp end parallel do
 
       return

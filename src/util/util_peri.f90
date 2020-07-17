@@ -21,11 +21,13 @@ contains
       if (lfirst) then
          if (.not. allocated(vdotr)) allocate(vdotr(ntp))
          if (qmin_coord == "HELIO") then
-            do concurrent(i = 1:ntp, status(i) == ACTIVE)
+            !do concurrent(i = 1:ntp, status(i) == ACTIVE)
+            do i = 1, ntp
                vdotr(i) = dot_product(xht(:, i), vht(:, i))
             end do
          else
-            do concurrent(i = 1:ntp, status(i) == ACTIVE)
+            !do concurrent(i = 1:ntp, status(i) == ACTIVE)
+            do i = 1, ntp
                vdotr(i) = dot_product(xbt(:, i), vbt(:, i))
             end do
          end if
@@ -36,7 +38,8 @@ contains
          end where
       else
          if (qmin_coord == "HELIO") then
-            do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            !do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            do i = 1, ntp
                vdotr(i) = dot_product(xht(:, i), vht(:, i))
                if (isperi(i) == -1) then
                   if (vdotr(i) >= 0.0_DP) then
@@ -52,7 +55,8 @@ contains
                end if
             end do
          else
-            do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            !do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            do i = 1, ntp
                vdotr(i) = dot_product(xbt(:, i), vbt(:, i))
                if (isperi(i) == -1) then
                   if (vdotr(i) >= 0.0_DP) then

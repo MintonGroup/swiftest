@@ -250,7 +250,6 @@ module swiftest_classes
       procedure(abstract_gr_getacch), public, deferred :: gr_getacch
       ! These are concrete because the implementation is the same for all types of particles
       procedure, public :: b2h         => coord_b2h_body      !! Convert position vectors from barycentric to heliocentric coordinates
-      procedure, public :: drift       => drift_body          !! Drifts particles on Keplerian orbits with Danby's method
       procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
       procedure, public :: gr_getaccb  => gr_getaccb_ns_body  !! Add relativistic correction acceleration for non-symplectic integrators
       procedure, public :: h2b         => coord_h2b_body      !! Convert position vectors from barycentric to heliocentric coordinates
@@ -307,14 +306,6 @@ module swiftest_classes
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine coord_vh2vb_body
 
-      module subroutine drift_body(self, cb, config, dt)
-         implicit none
-         class(swiftest_body),          intent(inout) :: self   !! Swiftest massive body particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structur
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
-         real(DP),                      intent(in)    :: dt     !! Stepsize
-      end subroutine drift_body
-
       module subroutine gr_getaccb_ns_body(self, cb, config, agr, agr0) 
          implicit none
          class(swiftest_body),          intent(inout) :: self
@@ -361,13 +352,11 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize
       end subroutine kick_vh_body
 
-      module subroutine obl_acc_body(self, cb, irh, xh)
+      module subroutine obl_acc_body(self, cb, irh)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
          real(DP), dimension(:),       intent(in)    :: irh  !! Inverse heliocentric radii of bodies
-         real(DP), dimension(:, :),    intent(in)    :: xh   !! Heliocentric position vectors of bodies 
-                                                             !! (not necessarily the same as what is passed to self)
       end subroutine obl_acc_body
 
       module subroutine setup_body(self,n)
@@ -689,79 +678,15 @@ module swiftest_classes
    !********************************************************************************************************************************
 
    interface
-      module pure subroutine drift_dan(mu, x0, v0, dt0, iflag)
-         implicit none
-         integer(I4B), intent(out)                :: iflag
-         real(DP), intent(in)                     :: mu, dt0
-         real(DP), dimension(:), intent(inout)    :: x0, v0
-      end subroutine drift_dan
-
-      module pure subroutine drift_kepmd(dm, es, ec, x, s, c)
-         implicit none
-         real(DP), intent(in)  :: dm, es, ec
-         real(DP), intent(out) :: x, s, c
-      end subroutine drift_kepmd
-
-      module pure subroutine drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
-         implicit none
-         integer(I4B), intent(out) :: iflag
-         real(DP), intent(in)      :: dt, r0, mu, alpha, u
-         real(DP), intent(out)     :: fp, c1, c2, c3
-      end subroutine drift_kepu
-
-      module pure subroutine drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
-         implicit none
-         real(DP), intent(in)  :: dt, r0, mu, alpha, u, s
-         real(DP), intent(out) :: f
-      end subroutine drift_kepu_fchk
-
-      module pure subroutine drift_kepu_guess(dt, r0, mu, alpha, u, s)
-         implicit none
-         real(DP), intent(in)  :: dt, r0, mu, alpha, u
-         real(DP), intent(out) :: s
-      end subroutine drift_kepu_guess
-
-      module pure subroutine drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-         implicit none
-         integer(I4B), intent(out) :: iflag
-         real(DP), intent(in)      :: dt, r0, mu, alpha, u
-         real(DP), intent(inout)   :: s
-         real(DP), intent(out)     :: fp, c1, c2, c3
-      end subroutine drift_kepu_lag
-
-      module pure subroutine drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-         implicit none
-         integer(I4B), intent(out) :: iflag
-         real(DP), intent(in)      :: dt, r0, mu, alpha, u
-         real(DP), intent(inout)   :: s
-         real(DP), intent(out)     :: fp, c1, c2, c3
-      end subroutine drift_kepu_new
-
-      module pure subroutine drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
-         implicit none
-         integer(I4B), intent(out) :: iflag
-         real(DP), intent(in)      :: dt, r0, mu, alpha, u
-         real(DP), intent(out)     :: s
-      end subroutine drift_kepu_p3solve
-
-      module pure subroutine drift_kepu_stumpff(x, c0, c1, c2, c3)
-         implicit none
-         real(DP), intent(inout) :: x
-         real(DP), intent(out)   :: c0, c1, c2, c3
-      end subroutine drift_kepu_stumpff
-
       module pure subroutine drift_one(mu, x, v, dt, iflag)
          !$omp declare simd(drift_one) 
          implicit none
          real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-         real(DP), dimension(:), intent(inout)  :: x     !! Position of body to drift
-         real(DP), dimension(:), intent(inout)  :: v     !! Velocity of body to drift
+         real(DP), dimension(:), intent(inout)  :: x, v  !! Position and velocity of body to drift
          real(DP), intent(in)                   :: dt    !! Step size
          integer(I4B), intent(out)              :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
-
    end interface
-
 
    !********************************************************************************************************************************
    ! Interfaces for non type-bound io subroutines

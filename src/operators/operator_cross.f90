@@ -59,7 +59,7 @@ submodule(swiftest_operators) operator_cross_implementation
       integer(I4B) :: i, n
       n = size(A, 2)
       allocate(C, mold = A)
-      do concurrent (i = 1:n)
+      do concurrent (i = 1:n) !shared(n, C, A, B)
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
          C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
          C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
@@ -72,7 +72,7 @@ submodule(swiftest_operators) operator_cross_implementation
       integer(I4B) :: i, n
       n = size(A, 2)
       allocate(C, mold = A)
-      do concurrent (i = 1:n)
+      do concurrent (i = 1:n) !shared(n, C, A, B)
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
          C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
          C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
@@ -85,7 +85,7 @@ submodule(swiftest_operators) operator_cross_implementation
       integer(I4B) :: i, n
       n = size(A, 2)
       allocate(C, mold = A)
-      do concurrent (i = 1:n)
+      do concurrent (i = 1:n) !shared(n, C, A, B)
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
          C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
          C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
@@ -98,7 +98,7 @@ submodule(swiftest_operators) operator_cross_implementation
       integer(I4B) :: i, n
       n = size(A, 2)
       allocate(C, mold = A)
-      do concurrent (i = 1:n)
+      do concurrent (i = 1:n) !shared(n, C, A, B)
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
          C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
          C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
@@ -111,7 +111,7 @@ submodule(swiftest_operators) operator_cross_implementation
       integer(I4B) :: i, n
       n = size(A, 2)
       allocate(C, mold = A)
-      do concurrent (i = 1:n)
+      do concurrent (i = 1:n) !shared(n, C, A, B)
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
          C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
          C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
@@ -124,7 +124,7 @@ submodule(swiftest_operators) operator_cross_implementation
       integer(I4B) :: i, n
       n = size(A, 2)
       allocate(C, mold = A)
-      do concurrent (i = 1:n)
+      do concurrent (i = 1:n) !shared(n, C, A, B)
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
          C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
          C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)

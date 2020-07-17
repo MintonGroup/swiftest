@@ -31,7 +31,8 @@ contains
                discards%density(:)  = pack(keeps%density(1:npl),       lspill_list(1:npl))
                keeps%density(:)     = pack(keeps%density(1:npl), .not. lspill_list(1:npl))
 
-               do concurrent (i = 1:NDIM)
+               !do concurrent (i = 1:NDIM)
+               do i = 1, NDIM
                   discards%Ip(i, :)  = pack(keeps%Ip(i, 1:npl),          lspill_list(1:npl))
                   keeps%Ip(i, :)     = pack(keeps%Ip(i, 1:npl),    .not. lspill_list(1:npl))
 
@@ -74,7 +75,8 @@ contains
          discards%ldiscard(:)  = pack(keeps%ldiscard(1:n),        lspill_list(1:n))
          keeps%ldiscard(:)     = pack(keeps%ldiscard(1:n),  .not. lspill_list(1:n))
 
-         do concurrent (i = 1:NDIM)
+         !do concurrent (i = 1:NDIM)
+         do i = 1, NDIM
             discards%xh(i, :) = pack(keeps%xh(i, 1:n),          lspill_list(1:n))
             keeps%xh(i, :)    = pack(keeps%xh(i, 1:n),    .not. lspill_list(1:n))
 
