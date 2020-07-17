@@ -90,6 +90,8 @@ contains
 
       deallocate(cb, pl, tp)
 
+      close(iu)
+
       return
    end procedure io_write_frame_system
 
