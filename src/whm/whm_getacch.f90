@@ -110,9 +110,8 @@ contains
          do i = 1, NDIM
             ah0(i) = -sum(fac(1:npl) * xh(i, 1:npl))
          end do
-         call whm_getacch_ah3_tp(cb, pl, tp, xh)
-         !do concurrent (i = 1:ntp, status(i) == ACTIVE)
-         do i = 1, ntp
+         call whm_getacch_ah3_tp(cb, pl, tp)
+         do concurrent (i = 1:ntp, status(i) == ACTIVE)
             aht(:, i) = aht(:, i) + ah0(:)
          end do
          if (j2rp2 /= 0.0_DP) then
@@ -257,7 +256,7 @@ contains
       return
    end subroutine ah3p
 
-   subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
+   subroutine whm_getacch_ah3_tp(cb, pl, tp) 
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles
