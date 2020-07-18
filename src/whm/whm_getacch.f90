@@ -79,7 +79,6 @@ contains
       real(DP), dimension(:), allocatable, save    :: irh, ir3h
       real(DP), dimension(:), allocatable, save    :: irht, r2p, r2t
       real(DP), dimension(NDIM)                    :: ah0
-      !real(DP)                                     :: r2
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
                 status => self%status, xht => self%xh, Gmpl => pl%Gmass, xh => pl%xh,&
@@ -91,19 +90,15 @@ contains
          if (.not. allocated(r2p)) allocate(r2p(npl))
          if (.not. allocated(r2t)) allocate(r2t(ntp))
 
-         !dir$ assume_aligned r2p(1):64 
          !$omp simd
          do i = 1, npl
-            !dir$ assume_aligned pl%xh(1,i):64 
             r2p(i) = dot_product(xh(:, i), xh(:, i))
          end do
          irh(:)= 1.0_DP / sqrt(r2p(:))
          ir3h(:) = irh(:) / r2p(:)
 
-         !dir$ assume_aligned r2t(1):64 
          !$omp simd
-         do i = 1, npl
-            !dir$ assume_aligned self%xh(1,i):64 
+         do i = 1, ntp
             r2t(i) = dot_product(xht(:, i), xht(:, i))
          end do
          irht(:) = 1.0_DP / sqrt(r2t(:))
@@ -120,7 +115,6 @@ contains
             aht(:, i) = aht(:, i) + ah0(:)
          end do
          if (j2rp2 /= 0.0_DP) then
-            !call pl%obl_acc(cb, irh)
             call tp%obl_acc(cb, irht)
             do concurrent (i = 1:ntp)
                aht(:, i) = aht(:, i) + tp%aobl(:, i) - aobl0(:)

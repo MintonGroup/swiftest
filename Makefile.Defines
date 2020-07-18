@@ -47,7 +47,7 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 # this is done explicitly as needed in the Makefile
 
 FORTRAN         = ifort
-FFLAGS          = -O3 -g -parallel -ipo -fp-model no-except -xhost -traceback # -132 -align array64byte -mp1 -fp-model strict -fpe-all=0 -pad -prec-div -prec-sqrt -ftz -assume protect-parens -no-wrap-margin
+FFLAGS          = -O3 -p -no-pie -ipo -g -parallel -fp-model no-except -mp1 -xhost -traceback # -132 -align array64byte -mp1 -fp-model strict -fpe-all=0 -pad -prec-div -prec-sqrt -ftz -assume protect-parens -no-wrap-margin
 
 #debug flags
 #FFLAGS          = -O0 -g -traceback -mp1 -fp-model strict -fpe-all=0 -CB -debug all -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 

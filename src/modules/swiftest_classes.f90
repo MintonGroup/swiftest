@@ -407,7 +407,7 @@ module swiftest_classes
 
       procedure, public :: eucl_index => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure, public :: eucl_irij3  => eucl_irij3_plpl     !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
-      procedure, public :: obl_pot    => obl_pot_pl           !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      !procedure, public :: obl_pot    => obl_pot_pl           !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure, public :: setup      => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_mu     => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
    end type swiftest_pl
@@ -437,13 +437,13 @@ module swiftest_classes
          integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
       end subroutine setup_pl
 
-      module function obl_pot_pl(self, cb, irh) result(oblpot)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self  !! Swiftest massive body object
-         class(swiftest_cb),           intent(inout) :: cb    !! Swiftest central body object
-         real(DP), dimension(:),       intent(in)    :: irh   !! Inverse heliocentric radii of bodies
-         real(DP)                                    :: oblpot
-      end function obl_pot_pl
+      !module function obl_pot_pl(self, cb, irh) result(oblpot)
+      !   implicit none
+      !   class(swiftest_pl),           intent(inout) :: self  !! Swiftest massive body object
+      !   class(swiftest_cb),           intent(inout) :: cb    !! Swiftest central body object
+      !   real(DP), dimension(:),       intent(in)    :: irh   !! Inverse heliocentric radii of bodies
+      !   real(DP)                                    :: oblpot
+      !end function obl_pot_pl
 
    end interface
 
@@ -536,7 +536,7 @@ module swiftest_classes
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure, public :: discard                => discard_system               !! Perform a discard step on the system
       procedure, public :: dump                   => io_dump_system               !! Dump the state of the system to a file
-      procedure, public :: get_energy_and_momenum => util_get_energy_and_momentum !! Calculate total energy and angular momentum of system
+      !procedure, public :: get_energy_and_momenum => util_get_energy_and_momentum !! Calculate total energy and angular momentum of system
       procedure, public :: initialize             => io_read_initialize_system    !! Initialize the system from an input file
       procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
       procedure, public :: set_msys               => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
@@ -610,10 +610,10 @@ module swiftest_classes
       end subroutine step_system
 
       !> Method for calculating the energy and angular momentum of the system
-      module subroutine util_get_energy_and_momentum(self)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
-      end subroutine util_get_energy_and_momentum
+      !module subroutine util_get_energy_and_momentum(self)
+      !   implicit none
+      !   class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
+      !end subroutine util_get_energy_and_momentum
    end interface
 
    !********************************************************************************************************************************
