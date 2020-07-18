@@ -47,7 +47,7 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 # this is done explicitly as needed in the Makefile
 
 FORTRAN         = ifort
-FFLAGS          = -O3 -g -parallel -ipo -fp-model no-except -xhost #-traceback -CB  -132 -align all -mp1 -fp-model strict -fpe-all=0 -check all -CB -pad -ip -prec-div -prec-sqrt -ftz -assume protect-parens -no-wrap-margin
+FFLAGS          = -O3 -g -parallel -ipo -fp-model no-except -xhost -traceback # -132 -align array64byte -mp1 -fp-model strict -fpe-all=0 -pad -prec-div -prec-sqrt -ftz -assume protect-parens -no-wrap-margin
 
 #debug flags
 #FFLAGS          = -O0 -g -traceback -mp1 -fp-model strict -fpe-all=0 -CB -debug all -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
@@ -56,7 +56,7 @@ FFLAGS          = -O3 -g -parallel -ipo -fp-model no-except -xhost #-traceback -
 #FORTRAN         = gfortran
 #FFLAGS          = -Og -ggdb -g3 -fopenmp -ftree-parallelize-loops=4 -fbacktrace -fbounds-check -fcheck=all -fsanitize=undefined -fsanitize=address -fsanitize=leak  
 ##debug flags
-#FFLAGS		= -O3 -ggdb -g3 -fopenmp -ftree-parallelize-loops=4 -fbacktrace -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace -fsanitize=undefined -fsanitize=address -fsanitize=leak 
+#FFLAGS		= -O3 -ggdb -g3 -ftree-parallelize-loops=4 -fbacktrace -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace -fsanitize=undefined -fsanitize=address -fsanitize=leak 
 #-Wall -Warray-bounds  -Wimplicit-interface -Wextra 
 #-Warray-temporaries
 
