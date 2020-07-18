@@ -466,8 +466,6 @@ module swiftest_classes
       procedure, public :: discard_sun  => discard_sun_tp       !! Check to see if test particles should be discarded based on their positions relative to the Sun
       procedure, public :: discard_peri => discard_peri_tp      !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
       procedure, public :: discard_pl   => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
-      procedure, public :: eucl_index   => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_irij3   => eucl_irij3_pltp      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
       procedure, public :: setup        => setup_tp             !! A base constructor that sets the number of bodies and 
       procedure, public :: set_mu       => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
    end type swiftest_tp
@@ -502,18 +500,6 @@ module swiftest_classes
          real(DP),                      intent(in)    :: t      !! Current simulation tim
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine discard_pl_tp
-
-      module subroutine eucl_dist_index_pltp(self, pl)
-         implicit none
-         class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
-         class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
-      end subroutine
-
-      module subroutine eucl_irij3_pltp(self, pl)
-         implicit none
-         class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
-         class(swiftest_pl),             intent(in)    :: pl    !! Swiftest massive body object
-      end subroutine eucl_irij3_pltp
 
       module subroutine setup_set_mu_tp(self, cb)
          implicit none

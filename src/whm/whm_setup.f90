@@ -94,7 +94,6 @@ contains
          class is (whm_tp)
             call tp%set_mu(self%cb)
             if (config%lgr) call tp%gr_vh2pv(config)
-            call tp%eucl_index(self%pl)
          end select
       end if
 
