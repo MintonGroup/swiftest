@@ -77,11 +77,9 @@ contains
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable, save    :: fac
       real(DP), dimension(:), allocatable, save    :: irh, ir3h
-      real(DP), dimension(:), allocatable, save    :: irht
-      real(DP), dimension(:, :), allocatable, save :: aobl
-      real(DP), dimension(:, :), allocatable, save :: xht, aoblt
+      real(DP), dimension(:), allocatable, save    :: irht, r2p, r2t
       real(DP), dimension(NDIM)                    :: ah0
-      real(DP)                                     :: r2
+      !real(DP)                                     :: r2
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
                 status => self%status, xht => self%xh, Gmpl => pl%Gmass, xh => pl%xh,&
@@ -90,35 +88,41 @@ contains
          if(.not.allocated(irh)) allocate(irh(npl))
          if (.not.allocated(ir3h)) allocate(ir3h(npl))
          if (.not. allocated(irht)) allocate(irht(ntp))
-         !do concurrent(i = 1:npl)
-         do i = 1, npl
-            r2 = dot_product(xh(:, i), xh(:, i))
-            irh(i)= 1.0_DP / sqrt(r2)
-            ir3h(i) = irh(i) / r2
-         end do
+         if (.not. allocated(r2p)) allocate(r2p(npl))
+         if (.not. allocated(r2t)) allocate(r2t(ntp))
 
-         !do concurrent (i = 1:ntp, status(i) == ACTIVE)
-         do i = 1, ntp
-            r2 = dot_product(xht(:, i), xht(:, i))
-            irht(i) = 1.0_DP / sqrt(r2)
+         !dir$ assume_aligned r2p(1):64 
+         !$omp simd
+         do i = 1, npl
+            !dir$ assume_aligned pl%xh(1,i):64 
+            r2p(i) = dot_product(xh(:, i), xh(:, i))
          end do
+         irh(:)= 1.0_DP / sqrt(r2p(:))
+         ir3h(:) = irh(:) / r2p(:)
+
+         !dir$ assume_aligned r2t(1):64 
+         !$omp simd
+         do i = 1, npl
+            !dir$ assume_aligned self%xh(1,i):64 
+            r2t(i) = dot_product(xht(:, i), xht(:, i))
+         end do
+         irht(:) = 1.0_DP / sqrt(r2t(:))
 
          ah0(:) = 0.0_DP
          if(.not.allocated(fac)) allocate(fac(npl))
-         fac(:) = Gmpl(1:npl) * ir3h(1:npl)
-         !do concurrent (i = 1:NDIM)
-         do i = 1, NDIM
-            ah0(i) = -sum(fac(1:npl) * xh(i, 1:npl))
+         fac(:) = Gmpl(:) * ir3h(:)
+
+         do concurrent (i = 1:NDIM)
+            ah0(i) = -sum(fac(:) * xh(i, :))
          end do
          call whm_getacch_ah3_tp(cb, pl, tp)
-         do concurrent (i = 1:ntp, status(i) == ACTIVE)
+         do concurrent (i = 1:ntp)
             aht(:, i) = aht(:, i) + ah0(:)
          end do
          if (j2rp2 /= 0.0_DP) then
-            call pl%obl_acc(cb, irh)
+            !call pl%obl_acc(cb, irh)
             call tp%obl_acc(cb, irht)
-            !do concurrent (i = 1:ntp, status(i) == ACTIVE)
-            do i = 1, ntp
+            do concurrent (i = 1:ntp)
                aht(:, i) = aht(:, i) + tp%aobl(:, i) - aobl0(:)
             end do
          end if
@@ -206,20 +210,6 @@ contains
          call pl%eucl_irij3()
          call ah3p(nk, k_plpl, xh, irij3, Gmpl, ah3)
 
-
-         rji2 = 0.0_DP
-
-         !do i = 1, npl - 1
-         !   do j = i + 1, npl
-         !      dx(:) = xh(:, j) - xh(:, i)
-         !      rji2  = dot_product(dx(:), dx(:))
-         !      irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-         !      faci = Gmpl(i) * irij3
-         !      facj = Gmpl(j) * irij3
-         !      ah3(:, i) = ah3(:, i) + facj * dx(:)
-         !      ah3(:, j) = ah3(:, j) - faci * dx(:)
-         !   end do
-         !end do
       end associate
    
       return
@@ -238,11 +228,11 @@ contains
       real(DP)                               :: rji2, faci, facj
       real(DP), dimension(NDIM)              :: dx
 
-      !$omp parallel do schedule(static) default(private) &
-      !$omp shared (nk, k_plpl, xh, irij3, Gmpl) &
-      !$omp reduction(+:ah3)
+      !!$omp parallel do schedule(static) default(private) &
+      !!$omp shared (nk, k_plpl, xh, irij3, Gmpl) &
+      !!$omp reduction(+:ah3)
+      !$omp simd
       do k = 1, nk
-      !do concurrent(k = 1:nk)
          i = k_plpl(1, k)
          j = k_plpl(2, k)
          dx(:) = xh(:, j) - xh(:, i)
@@ -251,7 +241,6 @@ contains
          ah3(:, i) = ah3(:, i) + facj * dx(:)
          ah3(:, j) = ah3(:, j) - faci * dx(:)
       end do
-      !$omp end parallel do
 
       return
    end subroutine ah3p
@@ -268,52 +257,31 @@ contains
       class(whm_cb), intent(in) :: cb 
       class(whm_pl), intent(in) :: pl 
       class(whm_tp), intent(inout) :: tp
-      integer(I4B)          :: i, j, k
-      real(DP)            :: rji2, fac
+      integer(I4B)          :: i, j
+      real(DP)            :: irij3, rji2, fac
       real(DP), dimension(NDIM) :: dx, acc
 
       associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
-                  xht => tp%xh, xhp => pl%xh, aht => tp%ah, irij3 => tp%irij3)
+                  xht => tp%xh, xhp => pl%xh, aht => tp%ah)
    
          if (ntp == 0) return
 
-         aht(:,:) = 0.0_DP
-         call tp%eucl_irij3(pl)
-         call ah3t(ntp, npl, xht, xhp, irij3, Gmpl, aht)
-
-         rji2 = 0._DP
+         !dir$ parallel private(acc, dx, rji2, irij3, fac)
+         do j = 1, ntp
+            acc(:) = 0.0_DP
+            !$omp simd 
+            do i = 1, npl
+               dx(:) = xht(:, j) - xhp(:, i)
+               rji2  = dot_product(dx(:), dx(:))
+               irij3 = 1.0_DP / (rji2 * sqrt(rji2)) 
+               fac = Gmpl(i) * irij3
+               acc(:) = acc(:) - fac * dx(:) 
+            end do
+            aht(:, j) = acc(:)
+         end do
 
       end associate
       return
    end subroutine whm_getacch_ah3_tp
 
-   subroutine ah3t(ntp, npl, xht, xhp, irij3, Gmpl, aht)
-      use swiftest
-      implicit none
-      integer(I4B), intent(in) :: ntp, npl
-      real(DP), dimension(:,:), intent(in) :: xht, xhp, irij3
-      real(DP), dimension(:), intent(in) ::  Gmpl
-      real(DP), dimension(:,:), intent(out) :: aht
-
-      integer(I4B)                           :: i, j
-      real(DP)                               :: rji2, fac
-      real(DP), dimension(NDIM)              :: dx
-
-      aht = 0._DP
-      !$omp parallel do schedule(static) default(private) &
-      !$omp shared (ntp, npl, xht, xhp, irij3, Gmpl) &
-      !$omp reduction(-:aht)
-      do j = 1, npl
-         !$omp simd
-         do i = 1, ntp 
-            dx(:) = xht(:, i) - xhp(:, j)
-            fac = Gmpl(j) * irij3(i,j)
-            aht(:, i) = aht(:, i) - fac * dx(:)
-         end do
-      end do
-      !$omp end parallel do
-
-      rji2 = 0._DP
-      return
-   end subroutine ah3t
 end submodule whm_getacch_implementations
