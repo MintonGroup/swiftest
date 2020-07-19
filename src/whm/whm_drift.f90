@@ -35,7 +35,7 @@ contains
                dtp(i) = dt
             end if
          end do
-         !!dir$ parallel always
+         !dir$ parallel always
          do i = 1, npl
             call drift_one(mu(i), xj(1, i), xj(2, i), xj(3, i), vj(1, i), vj(2, i), vj(3, i), dtp(i), iflag(i),&
                            px, py, pz, vx, vy, vz)
@@ -99,7 +99,7 @@ contains
                dtp(i) = dt
             end if
          end do
-         !!dir$ parallel always
+         !dir$ parallel always
          do i = 1, ntp
             call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vh(1, i), vh(2, i), vh(3, i), dtp(i), iflag(i),&
                            px, py, pz, vx, vy, vz)
