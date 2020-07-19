@@ -664,13 +664,15 @@ module swiftest_classes
    !********************************************************************************************************************************
 
    interface
-      module pure subroutine drift_one(mu, x, v, dt, iflag)
-         !$omp declare simd(drift_one) 
+      module elemental subroutine drift_one(mu, px0, py0, pz0, vx0, vy0, vz0, dt, iflag, px, py, pz, vx, vy, vz)
          implicit none
          real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-         real(DP), dimension(:), intent(inout)  :: x, v  !! Position and velocity of body to drift
+         !real(DP), dimension(:), intent(in)     :: x0, v0  !! Position and velocity of body to drift
+         !real(DP), dimension(:), intent(out)    :: x, v  !! Position and velocity of body to drift
+         real(DP), intent(in)                   :: px0, py0, pz0, vx0, vy0, vz0
          real(DP), intent(in)                   :: dt    !! Step size
          integer(I4B), intent(out)              :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
+         real(DP), intent(out)                  :: px, py, pz, vx, vy, vz
       end subroutine drift_one
    end interface
 

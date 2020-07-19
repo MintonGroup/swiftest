@@ -21,7 +21,10 @@ contains
       use swiftest_globals
       integer(I4B) :: i
       real(DP)   :: dttmp
+      real(DP), dimension(NDIM) :: x, v
 
+      x(:) = (/px0, py0, pz0/)
+      v(:) = (/vx0, vy0, vz0/)
       call drift_dan(mu, x(:), v(:), dt, iflag)
       if (iflag /= 0) then
          dttmp = 0.1_DP * dt
@@ -30,6 +33,12 @@ contains
             if (iflag /= 0) return
          end do
       end if
+      px =  x(1)
+      py =  x(2)
+      pz =  x(3)
+      vx =  v(1)
+      vy =  v(2)
+      vz =  v(3)
    
       return
    end procedure drift_one
