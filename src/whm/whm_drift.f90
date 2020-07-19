@@ -21,6 +21,7 @@ contains
          if (npl == 0) return
 
          allocate(iflag(npl))
+         iflag = 0
          allocate(dtp(npl))
          iflag(:) = 0
          
@@ -83,6 +84,7 @@ contains
                lgr => config%lgr, c2 => config%inv_c2)
          if (ntp == 0) return
          allocate(iflag(ntp))
+         iflag = 0
          allocate(dtp(ntp))
          allocate(xnew, mold = self%xh)
          allocate(vnew, mold = self%vh)
