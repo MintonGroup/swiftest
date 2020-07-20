@@ -114,7 +114,7 @@ contains
    end subroutine drift_dan
 
    pure subroutine drift_kepmd(dm, es, ec, x, s, c)
-      !$omp declare simd (drift_kepmd) uniform(dm, es, ex)
+      !$omp declare simd (drift_kepmd) uniform(dm, es, ec)
       !! author: David A. Minton
       !!
       !! Solve Kepler's equation in difference form for an ellipse for small input dm and eccentricity
@@ -206,8 +206,8 @@ contains
       return
    end subroutine drift_kepu_fchk
 
-   pure subroutine drift_kepu_guess(dt, r0, mu, alpha, u)
-      !$omp declare simd (drift_kepu_guess) uniform(dt, r0, mu, alpha, u, s)
+   pure subroutine drift_kepu_guess(dt, r0, mu, alpha, u, s)
+      !$omp declare simd (drift_kepu_guess) uniform(dt, r0, mu, alpha, u)
       !! author: David A. Minton
       !!
       !! Compute initial guess for solving Kepler's equation using universal variables
