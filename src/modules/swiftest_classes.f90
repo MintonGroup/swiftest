@@ -665,7 +665,7 @@ module swiftest_classes
 
    interface
       module elemental subroutine drift_one(mu, px0, py0, pz0, vx0, vy0, vz0, dt, iflag, px, py, pz, vx, vy, vz)
-         !$omp declare simd (drift_one) uniform(mu, px0, py0, pz0, vx0, vy0, vz0, dt) 
+         !$omp declare simd (drift_one) !!uniform(mu, px0, py0, pz0, vx0, vy0, vz0, dt) 
          implicit none
          real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
          !real(DP), dimension(:), intent(in)     :: x0, v0  !! Position and velocity of body to drift

@@ -99,20 +99,22 @@ contains
                dtp(i) = dt
             end if
          end do
-         call annotate_site_begin("drift_tp_loop") 
+         !call annotate_site_begin("drift_tp_loop") 
          !$omp simd safelen(1200)
          do i = 1, ntp
-            call annotate_iteration_task("i")
-            call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vh(1, i), vh(2, i), vh(3, i), dtp(i), iflag(i),&
-                           px, py, pz, vx, vy, vz)
-            xh(1, i) = px
-            xh(2, i) = py
-            xh(3, i) = pz
-            vh(1, i) = vx
-            vh(2, i) = vy
-            vh(3, i) = vz
+         !   call annotate_iteration_task("i")
+            call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vh(1, i), vh(2, i), vh(3, i), dtp(i), iflag(i), &
+                                  xh(1, i), xh(2, i), xh(3, i), vh(1, i), vh(2, i), vh(3, i))
+         !   call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vh(1, i), vh(2, i), vh(3, i), dtp(i), iflag(i),&
+         !                  px, py, pz, vx, vy, vz)
+         !   xh(1, i) = px
+         !   xh(2, i) = py
+         !   xh(3, i) = pz
+         !   vh(1, i) = vx
+         !   vh(2, i) = vy
+         !   vh(3, i) = vz
          end do
-         call annotate_site_end()
+         !call annotate_site_end()
          if (any(iflag(1:ntp) /= 0)) then
             do i = 1, ntp
                if (iflag(i) /= 0) then
