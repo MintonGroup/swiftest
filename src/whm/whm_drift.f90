@@ -112,7 +112,7 @@ contains
             vh(2, i) = vy
             vh(3, i) = vz
          end do
-         call annotate_site_end("drift_tp_loop") 
+         call annotate_site_end()
          if (any(iflag(1:ntp) /= 0)) then
             do i = 1, ntp
                if (iflag(i) /= 0) then
