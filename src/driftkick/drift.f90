@@ -114,6 +114,7 @@ contains
    end subroutine drift_dan
 
    pure subroutine drift_kepmd(dm, es, ec, x, s, c)
+      !$omp declare simd (drift_kepmd) uniform(dm, es, ex)
       !! author: David A. Minton
       !!
       !! Solve Kepler's equation in difference form for an ellipse for small input dm and eccentricity
@@ -153,7 +154,8 @@ contains
    end subroutine drift_kepmd
 
    pure subroutine drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
-      ! author: David A. Minton
+      !$omp declare simd (drift_kepu) uniform(dt, r0, mu, alpha, u)
+      !! author: David A. Minton
       !!
       !! Solve Kepler's equation in universal variables
       !!
@@ -181,6 +183,7 @@ contains
    end subroutine drift_kepu
 
    pure subroutine drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
+      !$omp declare simd (drift_kepu_fchk) uniform(dt, r0, mu, alpha, u, s)
       !! author: David A. Minton
       !!
       !! Computes the value of f, the function whose root we are trying to find in universal variables
@@ -203,7 +206,8 @@ contains
       return
    end subroutine drift_kepu_fchk
 
-   pure subroutine drift_kepu_guess(dt, r0, mu, alpha, u, s)
+   pure subroutine drift_kepu_guess(dt, r0, mu, alpha, u)
+      !$omp declare simd (drift_kepu_guess) uniform(dt, r0, mu, alpha, u, s)
       !! author: David A. Minton
       !!
       !! Compute initial guess for solving Kepler's equation using universal variables
@@ -242,7 +246,8 @@ contains
    end subroutine drift_kepu_guess
 
    pure subroutine drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
-      ! author: David A. Minton
+      !$omp declare simd (drift_kepu_lag) uniform(dt, r0, mu, alpha, u, s)
+      !! author: David A. Minton
       !!
       !! Solve Kepler's equation in universal variables using Laguerre's method
       !!      Reference: Danby, J. M. A. 1988. Fundamentals of Celestial Mechanics, (Willmann-Bell, Inc.), 178 - 180.
@@ -287,6 +292,7 @@ contains
    end subroutine drift_kepu_lag
 
    pure subroutine drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
+      !$omp declare simd (drift_kepu_new) uniform(dt, r0, mu, alpha, u, s)
       !! author: David A. Minton
       !!
       !! Solve Kepler's equation in universal variables using Newton's method
@@ -329,6 +335,7 @@ contains
    end subroutine drift_kepu_new
 
   pure subroutine drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
+      !$omp declare simd (drift_kepu_p3solve) uniform(dt, r0, mu, alpha, u)
       !! author: David A. Minton
       !!
       !! Computes real root of cubic involved in setting initial guess for solving Kepler's equation in universal variables
@@ -373,6 +380,7 @@ contains
    end subroutine drift_kepu_p3solve
 
    pure subroutine drift_kepu_stumpff(x, c0, c1, c2, c3)
+      !$omp declare simd (drift_kepu_stumpff) uniform(x)
       !! author: David A. Minton
       !!
       !! Compute Stumpff functions needed for Kepler drift in universal variables
