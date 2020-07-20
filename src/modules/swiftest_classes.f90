@@ -4,6 +4,7 @@ module swiftest_classes
    !! Definition of data and structures generic to all integrators.
    !! Adapted from David E. Kaufmann's Swifter routine: module_swifter.f90
    use swiftest_globals
+   use advisor_annotat
    implicit none
    private
    public :: io_get_args, io_read_initialize_system, drift_one, discard_spill_body, &
