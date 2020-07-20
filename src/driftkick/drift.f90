@@ -44,6 +44,7 @@ contains
    end procedure drift_one
 
    pure subroutine drift_dan(mu, x0, v0, dt0, iflag)
+      !$omp declare simd (drift_dan) uniform(mu, x0, v0, dt0)
       !! author: David A. Minton
       !!
       !! Perform Kepler drift, solving Kepler's equation in appropriate variables
