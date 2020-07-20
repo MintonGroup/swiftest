@@ -12,7 +12,7 @@ module swiftest
    !use symba_classes
    use util
    use module_nrutil
-   use advisor_annotate
+   !use advisor_annotate
    !$ use omp_lib
 
 

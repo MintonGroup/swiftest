@@ -35,17 +35,11 @@ contains
                dtp(i) = dt
             end if
          end do
-         !dir$ parallel always
+         !!$omp simd safelen(128)
          do i = 1, npl
-            call drift_one(mu(i), xj(1, i), xj(2, i), xj(3, i), vj(1, i), vj(2, i), vj(3, i), dtp(i), iflag(i),&
-                           px, py, pz, vx, vy, vz)
-            xj(1, i) = px
-            xj(2, i) = py
-            xj(3, i) = pz
-            vj(1, i) = vx
-            vj(2, i) = vy
-            vj(3, i) = vz
-         end do 
+            call drift_one(mu(i), xj(1, i), xj(2, i), xj(3, i), vj(1, i), vj(2, i), vj(3, i), dtp(i), iflag(i), &
+                                  xj(1, i), xj(2, i), xj(3, i), vj(1, i), vj(2, i), vj(3, i))
+         end do
          if (any(iflag(1:npl) /= 0)) then
             do i = 1, npl
                if (iflag(i) /= 0) then
@@ -100,19 +94,11 @@ contains
             end if
          end do
          !call annotate_site_begin("drift_tp_loop") 
-         !$omp simd safelen(1200)
+         !!$omp simd safelen(128)
          do i = 1, ntp
          !   call annotate_iteration_task("i")
             call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vh(1, i), vh(2, i), vh(3, i), dtp(i), iflag(i), &
                                   xh(1, i), xh(2, i), xh(3, i), vh(1, i), vh(2, i), vh(3, i))
-         !   call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vh(1, i), vh(2, i), vh(3, i), dtp(i), iflag(i),&
-         !                  px, py, pz, vx, vy, vz)
-         !   xh(1, i) = px
-         !   xh(2, i) = py
-         !   xh(3, i) = pz
-         !   vh(1, i) = vx
-         !   vh(2, i) = vy
-         !   vh(3, i) = vz
          end do
          !call annotate_site_end()
          if (any(iflag(1:ntp) /= 0)) then
