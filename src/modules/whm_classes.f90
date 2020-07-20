@@ -5,7 +5,6 @@ module whm_classes
    !! Partially adapted from David E. Kaufmann's Swifter module: module_whm.f90
    use swiftest_globals
    use swiftest_classes
-   use advisor_annotate
    implicit none
 
    !********************************************************************************************************************************
