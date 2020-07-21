@@ -21,10 +21,7 @@ contains
       use swiftest_globals
       integer(I4B) :: i
       real(DP)   :: dttmp
-      real(DP), dimension(NDIM) :: x, v
 
-      x(:) = (/px0, py0, pz0/)
-      v(:) = (/vx0, vy0, vz0/)
       call drift_dan(mu, x(:), v(:), dt, iflag)
       if (iflag /= 0) then
          dttmp = 0.1_DP * dt
@@ -33,12 +30,6 @@ contains
             if (iflag /= 0) return
          end do
       end if
-      px =  x(1)
-      py =  x(2)
-      pz =  x(3)
-      vx =  v(1)
-      vy =  v(2)
-      vz =  v(3)
    
       return
    end procedure drift_one
@@ -68,20 +59,20 @@ contains
       alpha = 2 * mu / r0 - v0s
       if (alpha > 0.0_DP) then
          a = mu / alpha
-         asq = a**2
+         asq = a * a
          en = sqrt(mu / (a * asq))
          ec = 1.0_DP - r0 / a
          es = u / (en * asq)
-         esq = ec**2 + es**2
+         esq = ec * ec + es * es
          dm = dt * en - int(dt * en / TWOPI, kind = I4B) * TWOPI
          dt = dm / en
-         if ((esq < E2MAX) .and. (dm * dm < DM2MAX) .and. (esq * dm**2 < E2DM2MAX)) then
+         if ((esq < E2MAX) .and. (dm * dm < DM2MAX) .and. (esq * dm * dm < E2DM2MAX)) then
             call drift_kepmd(dm, es, ec, xkep, s, c)
             fchk = (xkep - ec * s + es * (1.0_DP - c) - dm)
             ! DEK - original code compared fchk*fchk with DANBYB, but i think it should
             ! DEK - be compared with DANBYB*DANBYB, and i changed it accordingly - please
             ! DEK - check with hal and/or martin about this
-            if (fchk**2 > DANBYB**2) then
+            if (fchk * fchk > DANBYB * DANBYB) then
                iflag = 1
                return
             end if
@@ -224,13 +215,13 @@ contains
 
       if (alpha > 0.0_DP) then
          if (dt / r0 <= thresh) then
-            s = dt / r0 - (dt**2 * u) / (2 * r0**3)
+            s = dt / r0 - (dt * dt * u) / (2.0_DP * r0 * r0 * r0)
          else
             a = mu / alpha
-            en = sqrt(mu / a**3)
+            en = sqrt(mu / (a * a * a))
             ec = 1.0_DP - r0 / a
-            es = u / (en * a**2)
-            e = sqrt(ec**2 + es**2)
+            es = u / (en * a * a)
+            e = sqrt(ec * ec + es * es)
             y = en * dt - es
             call orbel_scget(y, sy, cy)
             sigma = sign(1.0_DP, es * cy + ec * sy)
@@ -273,15 +264,15 @@ contains
          x = s * s * alpha
          call drift_kepu_stumpff(x, c0, c1, c2, c3)
          c1 = c1 * s
-         c2 = c2 * s**2
-         c3 = c3 * s**3
+         c2 = c2 * s * s
+         c3 = c3 * s * s * s
          f = r0 * c1 + u * c2 + mu * c3 - dt
          fp = r0 * c0 + u * c1 + mu * c2
          fpp = (-r0 * alpha + mu) * c1 + u * c0
-         ds = -ln * f / (fp + sign(1.0_DP, fp) * sqrt(abs((ln - 1.0_DP)**2 * fp**2 - (ln - 1.0_DP) * ln * f * fpp)))
+         ds = -ln * f / (fp + sign(1.0_DP, fp) * sqrt(abs((ln - 1.0_DP) * (ln - 1.0_DP) * fp * fp - (ln - 1.0_DP) * ln * f * fpp)))
          s = s + ds
          fdt = f / dt
-         if (fdt**2 < DANBYB**2) then
+         if (fdt * fdt < DANBYB * DANBYB) then
             iflag = 0
             return
          end if
@@ -310,21 +301,21 @@ contains
       real(DP)   :: x, c0, ds, f, fpp, fppp, fdt
    
       do nc = 0, 6
-         x = s**2 * alpha
+         x = s * s * alpha
          call drift_kepu_stumpff(x, c0, c1, c2, c3)
          c1 = c1 * s
-         c2 = c2 * s**2
-         c3 = c3 * s**3
+         c2 = c2 * s * s 
+         c3 = c3 * s * s * s
          f = r0 * c1 + u * c2 + mu * c3 - dt
          fp = r0 * c0 + u * c1 + mu * c2
          fpp = (-r0 * alpha + mu) * c1 + u * c0
          fppp = (-r0 * alpha + mu) * c0 - u * alpha * c1
          ds = -f / fp
          ds = -f / (fp + ds * fpp / 2.0_DP)
-         ds = -f / (fp + ds * fpp / 2.0_DP + ds**2 * fppp / 6.0_DP)
+         ds = -f / (fp + ds * fpp / 2.0_DP + ds * ds * fppp / 6.0_DP)
          s = s + ds
          fdt = f / dt
-         if (fdt**2 < DANBYB**2) then
+         if (fdt * fdt < DANBYB * DANBYB) then
             iflag = 0
             return
          end if
@@ -354,9 +345,9 @@ contains
       a2 = 0.5_DP * u / denom
       a1 = r0 / denom
       a0 = -dt / denom
-      q = (a1 - a2**2 / 3.0_DP) / 3.0_DP
-      r = (a1 * a2 - 3 * a0) / 6.0_DP - a2**3 / 27.0_DP
-      sq2 = q**3 + r**2
+      q = (a1 - a2 * a2 / 3.0_DP) / 3.0_DP
+      r = (a1 * a2 - 3.0_DP * a0) / 6.0_DP - (a2 * a2 * a2) / 27.0_DP
+      sq2 = q * q * q + r * r
       if (sq2 >= 0.0_DP) then
          sq = sqrt(sq2)
          if ((r + sq) <= 0.0_DP) then
@@ -412,10 +403,10 @@ contains
       if (n /= 0) then
          do i = n, 1, -1
             c3 = (c2 + c0 * c3) / 4.0_DP
-            c2 = c1**2 / 2.0_DP
+            c2 = c1 * c1 / 2.0_DP
             c1 = c0 * c1
-            c0 = 2 * c0**2 - 1.0_DP
-            x = x * 4
+            c0 = 2 * c0 * c0 - 1.0_DP
+            x = x * 4.0_DP
          end do
       end if
 
