@@ -13,8 +13,8 @@ contains
 
    associate(n => self%nbody, vh => self%vh, ah => self%ah, status => self%status)
       if (n == 0) return
-      !do i = 1, n
-      do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, vh, ah, dt, status)
+      !do concurrent(i = 1:n, status(i) == ACTIVE) 
+      do i = 1, n
          vh(:, i) = vh(:, i) + ah(:, i) * dt
       end do
    end associate
@@ -36,7 +36,8 @@ contains
 
       associate(n => self%nbody, vb => self%vb, ah => self%ah, status => self%status)
          if (n ==0) return
-         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, vb, ah, dt, status)
+         !do concurrent(i = 1:n, status(i) == ACTIVE) 
+         do i = 1, n
             vb(:, i) = vb(:, i) + ah(:, i) * dt
          end do
       end associate

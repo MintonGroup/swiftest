@@ -201,7 +201,7 @@ module whm_classes
       module subroutine whm_gr_getacch_tp(self, cb, config)
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb),  intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
       end subroutine whm_gr_getacch_tp
 

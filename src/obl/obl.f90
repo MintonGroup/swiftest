@@ -15,7 +15,8 @@ contains
 
       associate(n => self%nbody, aobl => self%aobl, xh => self%xh, j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, &
                 msun => cb%Gmass, aoblcb => cb%aobl)
-         do concurrent (i = 1:n) 
+         !do concurrent (i = 1:n) 
+         do i = 1, n 
             rinv2 = irh(i)**2
             t0 = -msun * rinv2 * rinv2 * irh(i)
             t1 = 1.5_DP * j2rp2

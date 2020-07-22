@@ -10,7 +10,6 @@ contains
    use swiftest
    implicit none
    integer(I4B)                     :: i
-   logical, save :: lmalloc = .false.  
    real(DP), dimension(:), allocatable, save    :: irh, irj, ir3h, ir3j, fac
    real(DP), dimension(NDIM) :: ah0
    real(DP) :: r2
@@ -51,8 +50,7 @@ contains
       end do
 
       if (j2rp2 /= 0.0_DP) then
-         call  self%obl_acc(cb, irh)
-
+         call self%obl_acc(cb, irh)
          !do concurrent (i = 1:NDIM)
          do i = 1, NDIM
             ah(i, 1:npl) = ah(i, 1:npl) + aobl(i, 1:npl) - aobl0(i)
@@ -77,47 +75,47 @@ contains
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable, save    :: fac
       real(DP), dimension(:), allocatable, save    :: irh, ir3h
-      real(DP), dimension(:), allocatable, save    :: irht, r2p, r2t
+      real(DP), dimension(:), allocatable, save    :: irht
       real(DP), dimension(NDIM)                    :: ah0
+      real(DP)                                     :: r2
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
                 status => self%status, xht => self%xh, Gmpl => pl%Gmass, xh => pl%xh,&
-                j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
+                j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aoblt => self%aobl, aobl0 => cb%aobl)
          if (ntp == 0 .or. npl == 0) return
          if(.not.allocated(irh)) allocate(irh(npl))
          if (.not.allocated(ir3h)) allocate(ir3h(npl))
          if (.not. allocated(irht)) allocate(irht(ntp))
-         if (.not. allocated(r2p)) allocate(r2p(npl))
-         if (.not. allocated(r2t)) allocate(r2t(ntp))
-
-         !$omp simd
+         !do concurrent(i = 1:npl)
          do i = 1, npl
-            r2p(i) = dot_product(xh(:, i), xh(:, i))
+            r2 = dot_product(xh(:, i), xh(:, i))
+            irh(i)= 1.0_DP / sqrt(r2)
+            ir3h(i) = irh(i) / r2
          end do
-         irh(:)= 1.0_DP / sqrt(r2p(:))
-         ir3h(:) = irh(:) / r2p(:)
 
-         !$omp simd
+         !do concurrent (i = 1:ntp, status(i) == ACTIVE)
          do i = 1, ntp
-            r2t(i) = dot_product(xht(:, i), xht(:, i))
+            r2 = dot_product(xht(:, i), xht(:, i))
+            irht(i) = 1.0_DP / sqrt(r2)
          end do
-         irht(:) = 1.0_DP / sqrt(r2t(:))
 
          ah0(:) = 0.0_DP
          if(.not.allocated(fac)) allocate(fac(npl))
-         fac(:) = Gmpl(:) * ir3h(:)
-
-         do concurrent (i = 1:NDIM)
-            ah0(i) = -sum(fac(:) * xh(i, :))
+         fac(:) = Gmpl(1:npl) * ir3h(1:npl)
+         !do concurrent (i = 1:NDIM)
+         do i = 1, NDIM
+            ah0(i) = -sum(fac(1:npl) * xh(i, 1:npl))
          end do
-         call whm_getacch_ah3_tp(cb, pl, tp)
-         do concurrent (i = 1:ntp)
+         call whm_getacch_ah3_tp(cb, pl, tp, xh)
+         !do concurrent (i = 1:ntp, status(i) == ACTIVE)
+         do i = 1, ntp
             aht(:, i) = aht(:, i) + ah0(:)
          end do
          if (j2rp2 /= 0.0_DP) then
             call tp%obl_acc(cb, irht)
-            do concurrent (i = 1:ntp)
-               aht(:, i) = aht(:, i) + tp%aobl(:, i) - aobl0(:)
+            !do concurrent (i = 1:ntp, status(i) == ACTIVE)
+            do i = 1, ntp
+               aht(:, i) = aht(:, i) + aoblt(:, i) - aobl0(:)
             end do
          end if
          if (config%lextra_force) call tp%user_getacch(cb, config, t)
@@ -143,8 +141,8 @@ contains
       real(DP), dimension(NDIM) :: ah1h, ah1j
 
       associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
-         do concurrent (i = 2:pl%nbody) !local(ah1j, ah1h) shared(pl, cb, xj, xh, ir3h, ir3j, msun, ah1)
-         !do i = 2, npl
+         !do concurrent (i = 2:npl)
+         do i = 2, npl
             ah1j(:) = xj(:, i) * ir3j(i)
             ah1h(:) = xh(:, i) * ir3h(i)
             ah1(:, i) = msun * (ah1j(:) - ah1h(:))
@@ -184,7 +182,7 @@ contains
       return
    end subroutine whm_getacch_ah2
 
-   subroutine whm_getacch_ah3(pl)
+   pure subroutine whm_getacch_ah3(pl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of planets
@@ -195,51 +193,30 @@ contains
       implicit none
 
       class(whm_pl),           intent(inout) :: pl
-      real(DP) :: rji2
+      integer(I4B)                           :: i, j
+      real(DP)                               :: rji2, irij3, faci, facj
+      real(DP), dimension(NDIM)              :: dx
    
-      associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass, &
-         nk => pl%num_comparisons, k_plpl => pl%k_eucl, irij3 => pl%irij3) 
+      associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass) 
          ah3(:, 1:npl) = 0.0_DP
 
-         call pl%eucl_irij3()
-         call ah3p(nk, k_plpl, xh, irij3, Gmpl, ah3)
-
+         do i = 1, npl - 1
+            do j = i + 1, npl
+               dx(:) = xh(:, j) - xh(:, i)
+               rji2  = dot_product(dx(:), dx(:))
+               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+               faci = Gmpl(i) * irij3
+               facj = Gmpl(j) * irij3
+               ah3(:, i) = ah3(:, i) + facj * dx(:)
+               ah3(:, j) = ah3(:, j) - faci * dx(:)
+            end do
+         end do
       end associate
    
       return
    end subroutine whm_getacch_ah3
 
-   subroutine ah3p(nk, k_plpl, xh, irij3, Gmpl, ah3)
-      use swiftest
-      implicit none
-      integer(I4B), intent(in) :: nk
-      integer(I4B), dimension(:,:), intent(in) :: k_plpl
-      real(DP), dimension(:,:), intent(in) :: xh
-      real(DP), dimension(:), intent(in) :: irij3, Gmpl
-      real(DP), dimension(:,:), intent(out) :: ah3
-
-      integer(I4B)                           :: i, j, k
-      real(DP)                               :: rji2, faci, facj
-      real(DP), dimension(NDIM)              :: dx
-
-      !!$omp parallel do schedule(static) default(private) &
-      !!$omp shared (nk, k_plpl, xh, irij3, Gmpl) &
-      !!$omp reduction(+:ah3)
-      !$omp simd
-      do k = 1, nk
-         i = k_plpl(1, k)
-         j = k_plpl(2, k)
-         dx(:) = xh(:, j) - xh(:, i)
-         faci = Gmpl(i) * irij3(k)
-         facj = Gmpl(j) * irij3(k)
-         ah3(:, i) = ah3(:, i) + facj * dx(:)
-         ah3(:, j) = ah3(:, j) - faci * dx(:)
-      end do
-
-      return
-   end subroutine ah3p
-
-   subroutine whm_getacch_ah3_tp(cb, pl, tp) 
+   pure subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles
@@ -251,31 +228,26 @@ contains
       class(whm_cb), intent(in) :: cb 
       class(whm_pl), intent(in) :: pl 
       class(whm_tp), intent(inout) :: tp
+      real(DP), dimension(:,:), intent(in) :: xh
       integer(I4B)          :: i, j
-      real(DP)            :: irij3, rji2, fac
+      real(DP)            :: rji2, irij3, fac
       real(DP), dimension(NDIM) :: dx, acc
 
       associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
-                  xht => tp%xh, xhp => pl%xh, aht => tp%ah)
+                  xht => tp%xh, aht => tp%ah)
    
          if (ntp == 0) return
-
-         !dir$ parallel private(acc, dx, rji2, irij3, fac)
-         do j = 1, ntp
-            acc(:) = 0.0_DP
-            !$omp simd 
-            do i = 1, npl
-               dx(:) = xht(:, j) - xhp(:, i)
-               rji2  = dot_product(dx(:), dx(:))
-               irij3 = 1.0_DP / (rji2 * sqrt(rji2)) 
-               fac = Gmpl(i) * irij3
-               acc(:) = acc(:) - fac * dx(:) 
+         aht(:,:) = 0.0_DP
+         do i = 1, ntp
+            do j = 1, npl
+               dx(:) = xht(:, i) - xh(:, j)
+               rji2 = dot_product(dx(:), dx(:))
+               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+               fac = Gmpl(j) * irij3
+               aht(:, i) = aht(:, i) - fac * dx(:)
             end do
-            aht(:, j) = acc(:)
          end do
-
       end associate
       return
    end subroutine whm_getacch_ah3_tp
-
 end submodule whm_getacch_implementations

@@ -22,7 +22,8 @@ contains
          allocate(self%k_eucl(2, num_comparisons))
          allocate(self%irij3(num_comparisons))
          associate(k_eucl => self%k_eucl)
-            do concurrent(k = 1:num_comparisons) !shared(num_comparisons, k_eucl, npl) local(kp, i, j, p)
+            !do concurrent(k = 1:num_comparisons) !shared(num_comparisons, k_eucl, npl) local(kp, i, j, p)
+            do k = 1, num_comparisons
                kp = npl * (npl - 1) / 2 - k
                p = floor((sqrt(1._DP + 8 * kp) - 1._DP) / 2._DP)
                i = k - (npl - 1) * (npl - 2) / 2 + p * (p + 1) / 2 + 1

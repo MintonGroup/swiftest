@@ -26,7 +26,8 @@ contains
             end associate
          end select
 
-         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, status, xb, xh, xbcb, vb, vh, xbcb, vbcb)
+         !$omp simd
+         do i = 1, n 
             xb(:, i) = xh(:, i) + xbcb(:)
             vb(:, i) = vh(:, i) + vbcb(:)
          end do
@@ -48,7 +49,7 @@ contains
 
       associate(n => self%nbody, xbcb => cb%xb, vbcb => cb%vb, status => self%status, & 
          xb => self%xb, xh => self%xh, vb => self%vb, vh => self%vh)
-         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, status, xb, xbh, vb, vh, xbcb, vbcb)
+         do i = 1, n 
             xh(:, i) = xb(:, i) - xbcb(:)
             vh(:, i) = vb(:, i) - vbcb(:)
          end do
@@ -81,7 +82,8 @@ contains
                end do
             end associate
          end select
-         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, status, vh, vb, vbcb)
+         !do concurrent(i = 1:n, status(i) == ACTIVE) 
+         do i = 1, n
             vh(:, i) = vb(:, i) - vbcb(:)
          end do
       end associate
@@ -112,7 +114,8 @@ contains
                end do
             end associate
          end select
-         do concurrent(i = 1:n, status(i) == ACTIVE) !shared(n, status, vb, vh, vbcb)
+         !do concurrent(i = 1:n, status(i) == ACTIVE) 
+         do i = 1, n
             vb(:, i) = vh(:, i) + vbcb(:)
          end do
       end associate

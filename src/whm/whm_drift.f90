@@ -26,8 +26,8 @@ module procedure whm_drift_pl
 
       allocate(iflag(npl))
       iflag(:) = 0
-      
-      do concurrent (i = 1:npl, status(i) == ACTIVE)
+     
+      do i = 1, npl
          if (config%lgr) then
             rmag =norm2(xj(:, i))
             vmag2 = dot_product(vj(:, i),  vj(:, i))
@@ -75,7 +75,7 @@ module procedure whm_drift_pl
          if (ntp == 0) return
          allocate(iflag(ntp))
          iflag(:) = 0
-         do concurrent (i = 1:ntp, status(i) == ACTIVE) 
+         do i = 1,ntp
             if (config%lgr) then
                rmag = norm2(xh(:, i))
                vmag2 = dot_product(vh(:, i), vh(:, i))

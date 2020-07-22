@@ -26,8 +26,6 @@ program swiftest_driver
    character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
                                              'Number of active pl, tp = ", I5, ", ", I5)'
 
- 
-
    ierr = io_get_args(integrator, config_file_name)
    if (ierr /= 0) then
       write(*,*) 'Error reading in arguments from the command line'
