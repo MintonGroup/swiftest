@@ -18,20 +18,22 @@ contains
          xht => tp%xh, vht => tp%vh, aht => tp%ah, irij3 => tp%irij3) 
          dth = 0.5_DP * dt 
          if (lfirst) then
-            allocate(xtmp, source = xht)
-            allocate(vtmp, source = vht)
-            allocate(atmp, source = aht)
+            if (ntp > 0) then
+               allocate(xtmp, source = xht)
+               allocate(vtmp, source = vht)
+               allocate(atmp, source = aht)
+            end if
             call pl%h2j(cb)
             call pl%getacch(cb, config, t)
             call tp%getacch(cb, pl, config, t)
-            atmp = aht
+            if (ntp > 0) atmp = aht
             lfirst = .false.
          end if
 
          ! ****** Kick  ******
          call pl%kickvh(dth)
          call tp%kickvh(dth)
-         vtmp = vht
+         if (ntp > 0) vtmp = vht
          call pl%vh2vj(cb) 
          ! *******************
 
@@ -44,8 +46,10 @@ contains
          ! ****** Drift ******
          call pl%drift(cb, config, dt)
          call tp%drift(cb, config, dt)
-         xtmp = xht
-         vtmp = vht
+         if (ntp > 0) then
+            xtmp = xht
+            vtmp = vht
+         end if 
          ! *******************
 
          if (config%lgr) then
@@ -56,12 +60,12 @@ contains
 
          call pl%getacch(cb, config, t + dt)
          call tp%getacch(cb, pl, config, t + dt)
-         atmp = aht
+         if (ntp > 0) atmp = aht
 
          ! ****** Kick  ******
          call pl%kickvh(dth)
          call tp%kickvh(dth)
-         vtmp = vht
+         if (ntp > 0) vtmp = vht
          ! *******************
       end associate
 
