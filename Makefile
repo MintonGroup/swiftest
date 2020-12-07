@@ -60,8 +60,8 @@ MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES)
 .PHONY : all mod lib libdir drivers bin clean force 
 
 % : %.f90 force
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I${ADVISOR_2019_DIR}/include/intel64 $< -o $@ \
-	  -L$(SWIFTEST_HOME)/lib -lswiftest -L${ADVISOR_2019_DIR}/lib64 -ladvisor -ldl
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include $< -o $@ \
+	  -L$(SWIFTEST_HOME)/lib -lswiftest
 	$(INSTALL_PROGRAM) $@ $(SWIFTEST_HOME)/bin
 	rm -f $@
 
@@ -73,7 +73,7 @@ all:
 
 mod:
 	cd $(SWIFTEST_HOME)/src/modules/; \
-	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I${ADVISOR_2019_DIR}/include/intel64 -c $(MODULES); \
+	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c $(MODULES); \
 	  $(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o; \
 	  $(INSTALL_DATA) *.mod *.smod $(SWIFTEST_HOME)/include; \
 	  rm -f *.o *.mod  *.smod
@@ -146,7 +146,7 @@ lib:
 	  make libdir
 
 libdir:
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I${ADVISOR_2019_DIR}/include/intel64 -c *.f90; \
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90; \
 	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
 	$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
 	rm -f *.o *.smod
