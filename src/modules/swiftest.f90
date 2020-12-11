@@ -7,8 +7,8 @@ module swiftest
    use swiftest_operators
    use swiftest_classes
    use whm_classes
+   use rmvs_classes
    !use helio_classes
-   !use rmvs_classes
    !use symba_classes
    use util
    use module_nrutil

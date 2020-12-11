@@ -21,6 +21,7 @@ contains
       case (WHM)
          allocate(whm_nbody_system :: system)
          allocate(whm_configuration :: config)
+         config%integrator = WHM
          select type(system)
          class is (whm_nbody_system)
             allocate(whm_cb :: system%cb)
@@ -29,7 +30,16 @@ contains
             allocate(whm_tp :: system%tp_discards)
          end select
       case (RMVS)
-         write(*,*) 'RMVS integrator not yet enabled'
+         allocate(rmvs_nbody_system :: system)
+         allocate(rmvs_configuration :: config)
+         config%integrator = RMVS
+         select type(system)
+         class is (rmvs_nbody_system)
+            allocate(rmvs_cb :: system%cb)
+            allocate(rmvs_pl :: system%pl)
+            allocate(rmvs_tp :: system%tp)
+            allocate(rmvs_tp :: system%tp_discards)
+         end select
       case (SYMBA)
          write(*,*) 'SyMBA integrator not yet enabled'
       case (RINGMOONS)

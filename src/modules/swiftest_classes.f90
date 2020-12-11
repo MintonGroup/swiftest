@@ -16,6 +16,7 @@ module swiftest_classes
    !> User defined configuration parameters that are read in from the configuration input file. 
    !>    Each paramter is initialized to a default values. 
    type, abstract, public :: swiftest_configuration
+      integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
       integer(I4B)         :: nplmax         = -1                 !! Maximum allowed number of massive bodies
       integer(I4B)         :: ntpmax         = -1                 !! Maximum allowed number of test particles
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
@@ -705,7 +706,6 @@ module swiftest_classes
          real(DP), dimension(NDIM), intent(out) :: xh1, xh2, vh1, vh2
          character(*), intent(in)      :: encounter_file,out_type
       end function io_read_encounter
-
       module function io_read_hdr(iu, t, npl, ntp, out_form, out_type)
          implicit none
          integer(I4B)      :: io_read_hdr
@@ -758,7 +758,6 @@ module swiftest_classes
    
    interface
       module pure subroutine orbel_scget(angle, sx, cx)
-         !$omp declare simd (orbel_scget) uniform(angle)
          implicit none
          real(DP), intent(in)  :: angle
          real(DP), intent(out) :: sx, cx

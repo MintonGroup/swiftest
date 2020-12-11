@@ -1,4 +1,4 @@
-submodule (rmvs) s_rmvs_chk_ind
+submodule (rmvs_classes) s_rmvs_chk_ind
 contains
    module procedure rmvs_chk_ind
    !! author: David A. Minton

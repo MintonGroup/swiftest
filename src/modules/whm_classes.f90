@@ -11,7 +11,7 @@ module whm_classes
    ! whm_configuration class definitions and method interfaces
    !*******************************************************************************************************************************
    type, public, extends(swiftest_configuration) :: whm_configuration
-      integer(I4B)         :: integrator     = WHM   !! Symbolic name of the nbody integrator  used
+      
    contains
    end type
 

@@ -48,6 +48,7 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
                      swiftest_classes.f90 \
                      swiftest_operators.f90 \
                      whm_classes.f90 \
+                     rmvs_classes.f90 \
                      util.f90 \
                      module_nrutil.f90 \
                      swiftest.f90 
@@ -144,6 +145,11 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
+	cd $(SWIFTEST_HOME)/src/rmvs; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make libdir
 
 libdir:
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90; \
@@ -185,6 +191,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/whm;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/rmvs;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/bin;     rm -f swiftest_*
 	cd $(SWIFTEST_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTEST_HOME)/lib;     rm -f lib*
