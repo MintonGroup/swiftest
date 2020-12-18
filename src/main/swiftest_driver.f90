@@ -10,7 +10,7 @@ program swiftest_driver
    implicit none
 
    class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
-   class(swiftest_configuration), allocatable :: config
+   type(swiftest_configuration)               :: config
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable               :: config_file_name !! Name of the file containing user-defined configuration parameters
    integer(I4B)                               :: ierr             !! I/O error code 
@@ -33,8 +33,9 @@ program swiftest_driver
    end if
    !$ start_wall_time = omp_get_wtime()
    !> Read in the user-defined parameter file and the initial conditions of the system
-   call setup_construct_system(nbody_system, config, integrator)
-   call config%read_from_file(config_file_name, integrator)
+   config%integrator = integrator
+   call setup_construct_system(nbody_system, config)
+   call config%read_from_file(config_file_name)
    associate(t          => config%t, &
              t0         => config%t0, &
              dt         => config%dt, &

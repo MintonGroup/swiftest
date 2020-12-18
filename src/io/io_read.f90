@@ -43,7 +43,7 @@ contains
       !!    as the newline characters are ignored in the input file when compiled in ifort.
 
       !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) config
-      call self%reader(LUN, iotype= "none", v_list = [integrator], iostat = ierr, iomsg = error_message)
+      call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = error_message)
       if (ierr /= 0) then
          write(*,*) 'Swiftest error reading ', trim(adjustl(config_file_name))
          write(*,*) ierr,trim(adjustl(error_message))

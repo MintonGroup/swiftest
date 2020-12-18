@@ -15,7 +15,7 @@ module swiftest_classes
 
    !> User defined configuration parameters that are read in from the configuration input file. 
    !>    Each paramter is initialized to a default values. 
-   type, abstract, public :: swiftest_configuration
+   type, public :: swiftest_configuration
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
       integer(I4B)         :: nplmax         = -1                 !! Maximum allowed number of massive bodies
       integer(I4B)         :: ntpmax         = -1                 !! Maximum allowed number of test particles
@@ -105,10 +105,9 @@ module swiftest_classes
       end subroutine io_dump_config
 
       !> Type-bound procedure to read in the input parameters from a file
-      module subroutine io_read_config_in(self, config_file_name, integrator) 
+      module subroutine io_read_config_in(self, config_file_name) 
          class(swiftest_configuration),intent(out) :: self             !! Input collection of user-defined configuration parameters
          character(len=*), intent(in)              :: config_file_name !! Parameter input file name (i.e. param.in)
-         integer(I4B), intent(in)                  :: integrator       !! Symbolic name of integrator to use
       end subroutine io_read_config_in
    end interface
 
@@ -243,7 +242,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: omega      !! Argument of pericenter
       real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
       real(DP),     dimension(:),   allocatable :: mu         !! G * (Mcb + [m])
-      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and discard_spill
    contains
       private
@@ -399,7 +398,7 @@ module swiftest_classes
       integer(I4B), dimension(:,:), allocatable :: k_eucl     !! Index array that converts i, j array indices into k index for use in 
                                                               !!  the Euclidean distance matrix
       real(DP),     dimension(:),   allocatable :: irij3      !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
-      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and discard_spill
    contains
       private
@@ -458,7 +457,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: peri            !! Perihelion distance
       real(DP),     dimension(:),   allocatable :: atp             !! Semimajor axis following perihelion passage
       real(DP),     dimension(:, :),   allocatable :: irij3       !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance betwen each pl-tp
-      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and discard_spill
    contains
       private
@@ -543,7 +542,7 @@ module swiftest_classes
       procedure, public :: set_msys               => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard          => io_write_discard             !! Append a frame of output data to file
       procedure, public :: write_frame            => io_write_frame_system        !! Append a frame of output data to file
-      procedure, public :: step                   => step_system                  !! Method to advance the system one step in time given by the step size dt
+      procedure, public :: step                   => step_system    
    end type swiftest_nbody_system
 
    !> Interfaces for concrete type-bound procedures for the Swiftest nbody system class
@@ -623,11 +622,10 @@ module swiftest_classes
 
    interface
       !> Constructs an nbody system
-      module subroutine setup_construct_system(system, config, integrator)
+      module subroutine setup_construct_system(system, config)
          implicit none
          class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-         class(swiftest_configuration), allocatable,  intent(inout) :: config     !! Swiftest system object
-         integer, intent(in)                                        :: integrator !! Integrator type code
+         type(swiftest_configuration),                intent(in)    :: config     !! Swiftest configuration parameters
       end subroutine setup_construct_system
    end interface
 

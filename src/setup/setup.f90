@@ -8,8 +8,7 @@ contains
       !! 
       use swiftest
       implicit none
-
-      select case(integrator)
+      select case(config%integrator)
       case (BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
       case (HELIO)
@@ -20,8 +19,6 @@ contains
          write(*,*) 'TU4 integrator not yet enabled'
       case (WHM)
          allocate(whm_nbody_system :: system)
-         allocate(whm_configuration :: config)
-         config%integrator = WHM
          select type(system)
          class is (whm_nbody_system)
             allocate(whm_cb :: system%cb)
@@ -31,8 +28,6 @@ contains
          end select
       case (RMVS)
          allocate(rmvs_nbody_system :: system)
-         allocate(rmvs_configuration :: config)
-         config%integrator = RMVS
          select type(system)
          class is (rmvs_nbody_system)
             allocate(rmvs_cb :: system%cb)
@@ -45,7 +40,7 @@ contains
       case (RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
       case default
-         write(*,*) 'Unkown integrator',integrator
+         write(*,*) 'Unkown integrator',config%integrator
          call util_exit(FAILURE)
       end select
 
