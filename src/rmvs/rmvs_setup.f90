@@ -13,19 +13,13 @@ contains
       call whm_setup_pl(self, n) 
       if (n <= 0) return
 
-      allocate(self%xout(NDIM, n))
-      allocate(self%vout(NDIM, n))
-      allocate(self%xin(NDIM, n))
-      allocate(self%vin(NDIM, n))
+      allocate(self%nenc(n))
       allocate(self%xpc(NDIM, n))
       allocate(self%tpenc1P(n))
 
-      self%xout(:)   = 0.0_DP
-      self%vout(:)   = 0.0_DP
-      self%xin(:,:)  = 0.0_DP
-      self%vin(:,:)  = 0.0_DP
-      self%xpc(:,:) = 0.0_DP
-      self%tpenc1P   = 0
+      self%nenc       = 0
+      self%xpc(:,:)   = 0.0_DP
+      self%tpenc1P(:) = 0
 
       return
    end procedure rmvs_setup_pl 
@@ -40,22 +34,24 @@ contains
       implicit none
 
       !> Call allocation method for parent class
-      call setup_whm_tp(self, n) 
+      call whm_setup_tp(self, n) 
       if (n <= 0) return
-
 
       allocate(self%lperi(n))
       allocate(self%xpc(NDIM, n))
       allocate(self%vpc(NDIM, n))
       allocate(self%apc(NDIM, n))
+      allocate(self%plperP(n))
+      allocate(self%plencP(n))
+      allocate(self%tpencP(n))
 
-      self%lperi(:) = .false.
-      self%xpc(:,:) = 0.0_DP
-      self%vpc(:,:) = 0.0_DP
-      self%apc(:,:) = 0.0_DP
-      self%plperP  = 0
-      self%plencP  = 0
-      self%tpencP  = 0
+      self%lperi(:)  = .false.
+      self%xpc(:,:)  = 0.0_DP
+      self%vpc(:,:)  = 0.0_DP
+      self%apc(:,:)  = 0.0_DP
+      self%plperP(:) = 0
+      self%plencP(:) = 0
+      self%tpencP(:) = 0
 
       return
    end procedure rmvs_setup_tp
