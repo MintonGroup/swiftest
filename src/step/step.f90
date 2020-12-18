@@ -13,8 +13,8 @@ contains
       use swiftest
       implicit none
 
-      select type(config => config)
-      class is (whm_configuration) ! Determine the overall integrator type from the config type
+      select type(system => self)
+      class is (whm_nbody_system) ! Determine the overall integrator type from the config type
          select type(cb => self%cb)
          class is (whm_cb)
             select type(pl => self%pl)
@@ -25,6 +25,20 @@ contains
                end select
             end select
          end select
+
+      class is (rmvs_nbody_system) ! Determine the overall integrator type from the config type
+         select type(cb => self%cb)
+         class is (rmvs_cb)
+            select type(pl => self%pl)
+            class is (rmvs_pl)
+               select type(tp => self%tp)
+               class is (rmvs_tp)
+                  call rmvs_step_system(cb, pl, tp, config)
+               end select
+            end select
+         end select
+
+
       end select
       return
    end procedure step_system
