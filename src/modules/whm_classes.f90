@@ -6,14 +6,8 @@ module whm_classes
    use swiftest_globals
    use swiftest_classes
    implicit none
-
-   !********************************************************************************************************************************
-   ! whm_configuration class definitions and method interfaces
-   !*******************************************************************************************************************************
-   type, public, extends(swiftest_configuration) :: whm_configuration
-      
-   contains
-   end type
+   private
+   public :: whm_setup_pl, whm_setup_tp, whm_setup_system, whm_step_system, whm_discard_spill
 
    !********************************************************************************************************************************
    ! whm_cb class definitions and method interfaces
@@ -264,7 +258,7 @@ module whm_classes
          class(whm_cb),            intent(inout) :: cb      !! WHM central body object  
          class(whm_pl),            intent(inout) :: pl      !! WHM central body object  
          class(whm_tp),            intent(inout) :: tp      !! WHM central body object  
-         class(whm_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
       end subroutine whm_step_system
    end interface
 
