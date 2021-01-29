@@ -536,7 +536,7 @@ contains
       end select
       close(iu)
       if (ierr /= 0 ) then
-         write(*,*) 'Error reading in massive body initial conditions from ',trim(adjustl(infile))
+         write(*,*) 'Error reading in initial conditions from ',trim(adjustl(infile))
          call util_exit(FAILURE)
       end if
 
