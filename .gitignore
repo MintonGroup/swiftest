@@ -17,6 +17,8 @@ src/*/Makefile
 src/*/Makefile.Defines
 !.gitignore
 !*.py
+!*.ipynb
+*ipynb_checkpoints
 
 #fxdr library
 !fxdr*/*.c
@@ -44,7 +46,7 @@ src/*/Makefile.Defines
 !collresolve/cambioni2019/*.c
 collresolve/config.h
 
-example/
+
 
 #Documentation
 #Disable for now
@@ -53,4 +55,3 @@ docs/
 #!docs/*/*
 #!docs/*/*/*
 
-swiftest/r002tr/symbols/
