@@ -9,52 +9,74 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_step.f90
       use swiftest
       implicit none
+
+      associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
+         allocate(tp%xbeg, source=pl%xh)
+         call pl%step(cb, config, t)
+         if (ntp > 0) then
+            allocate(tp%xend, source=pl%xh)
+            call tp%step(cb, pl, config, t)
+         end if
+         deallocate(tp%xbeg, tp%xend)
+      end associate
+   end procedure whm_step_system 
+
+   module procedure whm_step_pl
+      !! author: David A. Minton
+      !!
+      !! Step planets ahead using kick-drift-kick algorithm
+      !! 
+      !! Adapted from Hal Levison's Swift routine step_kdk_pl.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_step_pl.f90
       logical, save :: lfirst = .true.
       real(DP) :: dth
-  
-      associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt, &
-         xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj, ah => pl%ah,  eta => pl%eta, & ! These two lines of associations aid in debugging with gdb
-         xht => tp%xh, vht => tp%vh, aht => tp%ah, irij3 => tp%irij3) 
-         dth = 0.5_DP * dt 
+      
+      associate(t => config%t, dt => config%dt)
+         dth = 0.5_DP * dt
          if (lfirst) then
-            call pl%h2j(cb)
-            call pl%getacch(cb, config, t)
-            call tp%getacch(cb, pl, config, t)
+            call self%h2j(cb)
+            call self%getacch(cb, config, t)
             lfirst = .false.
          end if
 
-         ! ****** Kick  ******
-         call pl%kickvh(dth)
-         call tp%kickvh(dth)
-         call pl%vh2vj(cb) 
-         ! *******************
-
+         call self%kickvh(dth)
+         call self%vh2vj(cb) 
          !If GR enabled, calculate the p4 term before and after each drift
-         if (config%lgr) then 
-            call pl%gr_p4(config, dth)
-            call tp%gr_p4(config, dth)
-         end if
-
-         ! ****** Drift ******
-         call pl%drift(cb, config, dt)
-         call tp%drift(cb, config, dt)
-         ! *******************
-
-         if (config%lgr) then
-            call pl%gr_p4(config, dth)
-            call tp%gr_p4(config, dth)
-         end if
-         call pl%j2h(cb)
-
-         call pl%getacch(cb, config, t + dt)
-         call tp%getacch(cb, pl, config, t + dt)
-
-         ! ****** Kick  ******
-         call pl%kickvh(dth)
-         call tp%kickvh(dth)
-         ! *******************
+         if (config%lgr) call self%gr_p4(config, dth)
+         call self%drift(cb, config, dt)
+         if (config%lgr) call self%gr_p4(config, dth)
+         call self%j2h(cb)
+         call self%getacch(cb, config, t + dt)
+         call self%kickvh(dth)
       end associate
 
-   end procedure whm_step_system 
+   end procedure whm_step_pl
+
+   module procedure whm_step_tp
+      !! author: David A. Minton
+      !!
+      !! Step active test particles ahead using kick-drift-kick algorithm
+      !! 
+      !! Adapted from Hal Levison's Swift routine step_kdk_tp.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
+      logical, save :: lfirst = .true.
+      real(DP) :: dth
+      
+      associate(t => config%t, dt => config%dt)
+         dth = 0.5_DP * dt
+         if (lfirst) then
+            call self%getacch(cb, pl, config, t, self%xbeg)
+            lfirst = .false.
+         end if
+         call self%kickvh(dth)
+         !If GR enabled, calculate the p4 term before and after each drift
+         if (config%lgr) call self%gr_p4(config, dth)
+         call self%drift(cb, config, dt)
+         if (config%lgr) call self%gr_p4(config, dth)
+         call self%getacch(cb, pl, config, t + dt, self%xend)
+         call self%kickvh(dth)
+      end associate
+
+   end procedure whm_step_tp   
 
 end submodule whm_step

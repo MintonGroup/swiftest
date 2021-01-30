@@ -80,7 +80,7 @@ contains
       real(DP)                                     :: r2
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
-                status => self%status, xht => self%xh, Gmpl => pl%Gmass, xh => pl%xh,&
+                status => self%status, xht => self%xh, Gmpl => pl%Gmass, &
                 j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aoblt => self%aobl, aobl0 => cb%aobl)
          if (ntp == 0 .or. npl == 0) return
          if(.not.allocated(irh)) allocate(irh(npl))

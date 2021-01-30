@@ -81,7 +81,6 @@ module rmvs_classes
          integer, intent(in)             :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_tp
    end interface
-
    !********************************************************************************************************************************
    !  rmvs_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
