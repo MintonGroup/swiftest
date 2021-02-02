@@ -28,10 +28,6 @@ GU       = GC / (DU2M**3 / (MU2KG * TU2S**2))
 
 GMSun = GMSunSI / (DU2M**3 / TU2S**2)
 
-t_print = 1000.e0 * year / TU2S #output interval to print results
-deltaT	= 3.6525 * JD / TU2S    #timestep simulation
-end_sim = 1.0e6 * year / TU2S + t_print #end time
-
 # Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
 J2 = 2.198e-7 * (Rsun / DU2M)**2
 J4 = -4.805e-9 * (Rsun / DU2M)**4
@@ -143,9 +139,9 @@ if __name__ == '__main__':
 
    # Simulation start, stop, and output cadence times
    t_0	  = 0 # simulation start time
-   end_sim = 1000.0e0 * year / TU2S # simulation end time
    deltaT	= 0.25 * JD / TU2S   # simulation step size
-   t_print = 1.0 * year / TU2S #output interval to print results
+   end_sim = 1000 * deltaT # simulation end time
+   t_print = deltaT #1.0 * year / TU2S #output interval to print results
 
    iout = int(np.ceil(t_print / deltaT))
    rmin = Rsun / DU2M
@@ -184,7 +180,7 @@ if __name__ == '__main__':
    print(f'ISTEP_DUMP    {iout:d}')
    print(f'BIN_OUT       {swifter_bin}')
    print(f'OUT_TYPE      REAL8')
-   print(f'OUT_FORM      EL')
+   print(f'OUT_FORM      XV')
    print(f'OUT_STAT      NEW')
    print(f'J2            {J2}')
    print(f'J4            {J4}')
@@ -237,7 +233,7 @@ if __name__ == '__main__':
    print(f'ISTEP_DUMP     {iout:d}')
    print(f'BIN_OUT        {swiftest_bin}')
    print(f'OUT_TYPE       REAL8')
-   print(f'OUT_FORM       EL')
+   print(f'OUT_FORM       XV')
    print(f'OUT_STAT       REPLACE')
    print(f'CHK_CLOSE      yes')
    print(f'CHK_RMIN       {rmin}')

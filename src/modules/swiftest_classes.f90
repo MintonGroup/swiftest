@@ -664,7 +664,6 @@ module swiftest_classes
 
    interface
       module pure subroutine drift_one(mu, x, v, dt, iflag) 
-         !!$omp declare simd (drift_one) 
          implicit none
          real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
          !real(DP), dimension(:), intent(in)   :: x0, v0  !! Position and velocity of body to drift
