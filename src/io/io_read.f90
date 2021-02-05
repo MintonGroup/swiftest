@@ -426,12 +426,15 @@ contains
       integer(I4B)            :: i, ierr
       logical                 :: is_ascii 
       real(DP)                :: t
+      real(QP)                :: val
 
       ierr = 0
       is_ascii = (config%in_type == 'ASCII') 
       if (is_ascii) then
          open(unit = iu, file = config%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
-         read(iu, *, iostat = ierr) self%mass
+         read(iu, *, iostat = ierr) val 
+         self%Gmass = real(val, kind=DP)
+         self%mass = real(val / config%GU * val, kind=DP)
          read(iu, *, iostat = ierr) self%radius
          read(iu, *, iostat = ierr) self%j2rp2
          read(iu, *, iostat = ierr) self%j4rp4
@@ -454,7 +457,6 @@ contains
          call util_exit(FAILURE)
       end if
 
-      self%Gmass = config%GU * self%mass
       return
    end procedure io_read_cb_in
 
@@ -469,12 +471,13 @@ contains
       implicit none
 
 
-      integer(I4B), parameter :: LUN = 7              !! Unit number of input file
-      integer(I4B)            :: iu = LUN
-      integer(I4B)            :: i, ierr, nbody
-      logical                 :: is_ascii, is_pl
+      integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
+      integer(I4B)                  :: iu = LUN
+      integer(I4B)                  :: i, ierr, nbody
+      logical                       :: is_ascii, is_pl
       character(len=:), allocatable :: infile
-      real(DP)               :: t
+      real(DP)                      :: t
+      real(QP)                      :: val
 
       ! Select the appropriate polymorphic class (test particle or massive body)
       select type(self)
@@ -497,7 +500,9 @@ contains
             do i = 1, nbody
                select type(self)
                class is (swiftest_pl)
-                  read(iu, *, iostat = ierr) self%name(i), self%mass(i)
+                  read(iu, *, iostat = ierr) self%name(i), val !self%mass(i)
+                  self%mass(i) = real(val / config%GU, kind=DP)
+                  self%Gmass(i) = real(val, kind=DP)
                   if (config%lclose) then
                      read(iu, *, iostat = ierr) self%radius(i)
                      if (ierr /= 0 ) exit
@@ -539,11 +544,6 @@ contains
          write(*,*) 'Error reading in initial conditions from ',trim(adjustl(infile))
          call util_exit(FAILURE)
       end if
-
-      select type(self)
-      class is (swiftest_pl)
-         self%Gmass(:) = config%GU * self%mass(:)
-      end select
 
       return
    end procedure io_read_body_in
@@ -626,7 +626,8 @@ contains
       use swiftest
       implicit none
 
-      read(iu, iostat = ierr) self%mass
+      read(iu, iostat = ierr) self%Gmass
+      self%mass = self%Gmass / config%GU
       read(iu, iostat = ierr) self%radius
       read(iu, iostat = ierr) self%j2rp2 
       read(iu, iostat = ierr) self%j4rp4 
@@ -658,6 +659,7 @@ contains
       implicit none
 
       associate(n => self%nbody)
+         read(iu, iostat = ierr) self%name(1:n)
          select case (form)
          case (EL) 
             read(iu, iostat = ierr) self%a(1:n)
@@ -676,7 +678,8 @@ contains
          end select
          select type(self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            read(iu, iostat = ierr) self%mass(1:n)
+            read(iu, iostat = ierr) self%Gmass(1:n)
+            self%mass(1:n) = self%mass / config%GU 
             read(iu, iostat = ierr) self%radius(1:n)
             if (config%lrotation) then
                read(iu, iostat = ierr) self%Ip(1, 1:n)

@@ -141,7 +141,7 @@ contains
       use swiftest
       implicit none
 
-      write(iu) self%mass
+      write(iu) self%Gmass
       write(iu) self%radius
       write(iu) self%j2rp2 
       write(iu) self%j4rp4 
@@ -193,7 +193,7 @@ contains
          end select
          select type(self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            write(iu) self%mass(1:n)
+            write(iu) self%Gmass(1:n)
             write(iu) self%radius(1:n)
             if (config%lrotation) then
                write(iu) self%Ip(1, 1:n)

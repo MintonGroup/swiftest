@@ -26,7 +26,7 @@ contains
       
          do i = 1, npl
             if (config%lgr) then
-               rmag =norm2(xj(:, i))
+               rmag = norm2(xj(:, i))
                vmag2 = dot_product(vj(:, i),  vj(:, i))
                energy = 0.5_DP * vmag2 - mu(i) / rmag
                dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)

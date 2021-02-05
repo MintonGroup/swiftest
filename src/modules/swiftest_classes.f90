@@ -41,12 +41,12 @@ module swiftest_classes
       real(DP)             :: qmin_alo       = -1.0_DP            !! Minimum semimajor axis for qmin
       real(DP)             :: qmin_ahi       = -1.0_DP            !! Maximum semimajor axis for qmin
       character(STRMAX)    :: encounter_file = ENC_OUTFILE        !! Name of output file for encounters
-      real(DP)             :: MTINY          = -1.0_DP            !! Smallest mass that is fully gravitating
-      real(DP)             :: MU2KG          = -1.0_DP            !! Converts mass units to grams
-      real(DP)             :: TU2S           = -1.0_DP            !! Converts time units to seconds
-      real(DP)             :: DU2M           = -1.0_DP            !! Converts distance unit to centimeters
-      real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
-      real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
+      real(DP)             :: MTINY          = -1.0_QP            !! Smallest mass that is fully gravitating
+      real(QP)             :: MU2KG          = -1.0_QP            !! Converts mass units to grams
+      real(QP)             :: TU2S           = -1.0_QP            !! Converts time units to seconds
+      real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
+      real(QP)             :: GU             = -1.0_QP            !! Universal gravitational constant in the system units
+      real(DP)             :: inv_c2         = -1.0_QP            !! Inverse speed of light squared in the system units
 
       !Logical flags to turn on or off various features of the code
       logical :: lextra_force   = .false. !! User defined force function turned on
