@@ -188,4 +188,20 @@ contains
       return
    end procedure setup_set_mu_tp
 
+   module procedure setup_set_rhill
+      !! author: David A. Minton
+      !!
+      !! Sets the value of the Hill's radius
+      use swiftest
+      implicit none
+
+
+      if (self%nbody > 0) then
+         call self%xv2el(cb) 
+         self%rhill(:) = self%a(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
+      end if
+
+      return
+   end procedure setup_set_rhill
+
 end submodule setup_implementations

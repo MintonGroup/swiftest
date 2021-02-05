@@ -16,8 +16,9 @@ contains
          if (ntp > 0) then
             allocate(tp%xend, source=pl%xh)
             call tp%step(cb, pl, config, t)
+            deallocate(tp%xend)
          end if
-         deallocate(tp%xbeg, tp%xend)
+         deallocate(tp%xbeg)
       end associate
    end procedure whm_step_system 
 

@@ -20,7 +20,8 @@ module swiftest_globals
    real(QP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_QP !! Definition of /(\pi / 2\)
    real(QP), parameter :: PI     = 3.141592653589793238462643383279502884197_QP !! Definition of /(\pi\)
    real(QP), parameter :: PI3BY2 = 4.712388980384689857693965074919254326296_QP !! Definition of /(3 \pi / 2\)
-   real(QP), parameter :: TWOPI  = 6.283185307179586476925286766559005768394_QP !! Definition of /(2\pi)
+   real(QP), parameter :: TWOPI  = 6.283185307179586476925286766559005768394_QP !! Definition of 2 \pi
+   real(QP), parameter :: THIRD  = 0.333333333333333333333333333333333333333_QP !! Definition of 1 / 3
    real(QP), parameter :: DEGRAD = 180.0_DP/PI !! Definition of conversion factor from degrees to radians
 
    integer(I4B), parameter :: LOWERCASE_BEGIN  = iachar('a') !! ASCII character set parameter for lower to upper conversion - start of lowercase

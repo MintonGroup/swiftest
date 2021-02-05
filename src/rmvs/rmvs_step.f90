@@ -12,19 +12,20 @@ contains
       logical, save :: lfirst = .true.
       logical :: lencounter
       real(DP) :: rts
-      real(DP), dimension(:,:), allocatable :: xbeg, vbeg, xend
+      !real(DP), dimension(:,:), allocatable :: xbeg, vbeg, xend
  
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt, &
          xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj, ah => pl%ah,  eta => pl%eta, & ! These two lines of associations aid in debugging with gdb
          xht => tp%xh, vht => tp%vh, aht => tp%ah, irij3 => tp%irij3) 
-
+         allocate(tp%xbeg, source=pl%xh)
+         allocate(tp%vbeg, source=pl%vh)
          ! ****** Check for close encounters ***** !
-         allocate(xbeg, source=pl%xh)
-         allocate(vbeg, source=pl%vh)
          rts = RHSCALE
-         lencounter = rmvs_chk(pl, tp, xbeg, vbeg, dt, rts)
+         lencounter = tp%close_chk(cb, pl, dt, rts)
+         if (lencounter) write(*,*) 'Heyooo!!'
+         deallocate(tp%xbeg)
+         deallocate(tp%vbeg)
          call whm_step_system(cb, pl, tp, config)
-
       end associate
 
    end procedure rmvs_step_system 

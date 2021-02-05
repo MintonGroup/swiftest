@@ -1,6 +1,6 @@
 submodule (rmvs_classes) s_rmvs_chk
 contains
-   module procedure rmvs_chk
+   module procedure rmvs_close_chk
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -14,21 +14,23 @@ contains
       real(DP), dimension(NDIM) :: xht, vht, xr, vr
       integer(I4B)              :: tpencPindex
 
-      associate(ntp => tp%nbody, npl => pl%nbody)
+      associate(ntp => self%nbody, npl => pl%nbody)
          lencounter = .false.
          pl%nenc(:) = 0
          pl%tpenc1p(:) = 0
+         call pl%set_rhill(cb)
          do i = 1, ntp
-            if (tp%status(i) == ACTIVE) then
-               tp%plencP(i) = 0
-               tp%tpencP(i) = 0
+            if (self%status(i) == ACTIVE) then
+               self%plencP(i) = 0
+               self%tpencP(i) = 0
                iflag = 0
-               xht(:) = tp%xh(:, i)
-               vht(:) = tp%vh(:, i)
+               xht(:) = self%xh(:, i)
+               vht(:) = self%vh(:, i)
+
                do j = 1, npl
                   r2crit = (rts * pl%rhill(j))**2
-                  xr(:) = xht(:) - xh(:, j)
-                  vr(:) = vht(:) - vh(:, j)
+                  xr(:) = xht(:) - self%xbeg(:, j)
+                  vr(:) = vht(:) - self%vbeg(:, j)
                   iflag = rmvs_chk_ind(xr(:), vr(:), dt, r2crit)
                   if (iflag /= 0) then
                         lencounter = .true.
@@ -39,11 +41,11 @@ contains
                         else
                            tpencPindex = pl%tpenc1P(j)
                            do k = 2, nenc - 1
-                              tpencPindex = tp%tpencP(tpencPindex)
+                              tpencPindex = self%tpencP(tpencPindex)
                            end do
-                           tp%tpencP(tpencPindex) = i
+                           self%tpencP(tpencPindex) = i
                         end if
-                        tp%plencP(i) = j
+                        self%plencP(i) = j
                         exit
                   end if
                end do
@@ -51,7 +53,7 @@ contains
          end do
       end associate
       return
-   end procedure rmvs_chk
+   end procedure rmvs_close_chk
 
    module procedure rmvs_chk_ind
       !! author: David A. Minton

@@ -70,8 +70,10 @@ module rmvs_classes
       ! RMVS time step)
       integer(I4B), dimension(:),   allocatable :: tpencP ! index of next test particle encountering planet
 
+      real(DP),     dimension(:,:), allocatable :: vbeg   ! Planet velocities at beginning ot step
    contains
       procedure, public :: setup        => rmvs_setup_tp    !! Constructor method - Allocates space for number of particles
+      procedure, public :: close_chk    => rmvs_close_chk   !! Checks if any test particles are undergoing a close encounter with a massive body
    end type rmvs_tp
 
    interface
@@ -80,6 +82,17 @@ module rmvs_classes
          class(rmvs_tp), intent(inout)   :: self !! Swiftest test particle object
          integer, intent(in)             :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_tp
+
+      module function rmvs_close_chk(self, cb, pl, dt, rts) result(lencounter)
+         implicit none
+         class(rmvs_tp),            intent(inout) :: self    !! RMVS test particle object  
+         class(rmvs_cb),            intent(inout) :: cb      !! RMVS central body object  
+         class(rmvs_pl),            intent(inout) :: pl      !! RMVS massive body object  
+         real(DP),                  intent(in)    :: dt  !! time step
+         real(DP),                  intent(in)    :: rts !! fraction of Hill's sphere radius to use as radius of encounter regio
+         logical                                  :: lencounter        
+
+      end function rmvs_close_chk
    end interface
    !********************************************************************************************************************************
    !  rmvs_nbody_system class definitions and method interfaces
@@ -90,7 +103,7 @@ module rmvs_classes
    contains
       private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize    => rmvs_setup_system  !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure, public :: initialize    => rmvs_setup_system  !! Performs RMVS-specific initilization steps, like calculating the Jacobi masses
    end type rmvs_nbody_system
    
 
@@ -105,17 +118,6 @@ module rmvs_classes
 
    !> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
    interface
-
-      module function rmvs_chk(pl, tp, xh, vh, dt, rts) result(lencounter)
-         implicit none
-         class(rmvs_pl),            intent(inout) :: pl      !! WHM central body object  
-         class(rmvs_tp),            intent(inout) :: tp      !! WHM central body object  
-         real(DP), dimension(:, :), intent(in)    :: xh, vh  !! planet positions/velocities at beginning of time step
-         real(DP),                  intent(in)    :: dt  !! time step
-         real(DP),                  intent(in)    :: rts !! fraction of Hill's sphere radius to use as radius of encounter regio
-         logical                                  :: lencounter        
-
-      end function rmvs_chk
 
       module function rmvs_chk_ind(xr, vr, dt, r2crit) result(iflag)
          implicit none
