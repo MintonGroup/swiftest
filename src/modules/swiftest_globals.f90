@@ -15,6 +15,7 @@ module swiftest_globals
 
    integer, parameter :: SP = real32  !! Symbolic name for kind types of single-precision reals
    integer, parameter :: DP = real64  !! Symbolic name for kind types of double-precision reals
+   integer, parameter :: QP = real128 !! Symbolic name for kind types of quad-precision reals
 
    real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP !! Definition of /(\pi / 2\)
    real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP !! Definition of /(\pi\)
