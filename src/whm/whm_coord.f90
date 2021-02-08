@@ -54,8 +54,6 @@ contains
       integer(I4B)              :: i
       real(DP), dimension(NDIM) :: sumx, sumv
 
-      real(DP),dimension(9) :: GM,et,rat
-     
       associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
          if (npl == 0) return
@@ -63,9 +61,6 @@ contains
          vh(:, 1) = vj(:, 1)
          sumx(:) = 0.0_DP
          sumv(:) = 0.0_DP
-         GM(:) = GMpl(:)
-         et(:) = eta(:)
-         rat(:) = GM(:) / et(:)
          do i = 2, npl 
             sumx(:) = sumx(:) + GMpl(i - 1) * xj(:, i - 1) / eta(i - 1)
             sumv(:) = sumv(:) + GMpl(i - 1) * vj(:, i - 1) / eta(i - 1)
