@@ -22,7 +22,6 @@ contains
          ! ****** Check for close encounters ***** !
          rts = RHSCALE
          lencounter = tp%encounter_check(cb, pl, dt, rts)
-         if (lencounter) write(*,*) 'Heyooo!!'
          deallocate(tp%xbeg)
          deallocate(tp%vbeg)
          call whm_step_system(cb, pl, tp, config)
