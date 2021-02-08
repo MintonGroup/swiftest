@@ -9,10 +9,11 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_chk.f
       use swiftest
       implicit none
-      integer(I4B)              :: i, j, k, iflag, nenc
+      integer(I4B)              :: i, j, k, nenc
       real(DP)                  :: r2crit
       real(DP), dimension(NDIM) :: xht, vht, xr, vr
       integer(I4B)              :: tpencPindex
+      logical                   :: lflag
 
       associate(ntp => self%nbody, npl => pl%nbody)
          lencounter = .false.
@@ -23,7 +24,7 @@ contains
             if (self%status(i) == ACTIVE) then
                self%plencP(i) = 0
                self%tpencP(i) = 0
-               iflag = 0
+               lflag = .false. 
                xht(:) = self%xh(:, i)
                vht(:) = self%vh(:, i)
 
@@ -31,8 +32,8 @@ contains
                   r2crit = (rts * pl%rhill(j))**2
                   xr(:) = xht(:) - self%xbeg(:, j)
                   vr(:) = vht(:) - self%vbeg(:, j)
-                  iflag = rmvs_chk_ind(xr(:), vr(:), dt, r2crit)
-                  if (iflag /= 0) then
+                  lflag = rmvs_chk_ind(xr(:), vr(:), dt, r2crit)
+                  if (lflag) then
                         lencounter = .true.
                         pl%nenc(j) = pl%nenc(j) + 1
                         nenc = pl%nenc(j)
@@ -66,23 +67,23 @@ contains
       implicit none
       real(DP) :: r2, v2, vdotr, tmin, r2min
 
-      iflag = 0
+      lflag = .false.
       r2 = dot_product(xr(:), xr(:))
       if (r2 < r2crit) then
-      iflag = 1
+         lflag = .true.
       else
-      vdotr = dot_product(vr(:), xr(:))
-      if (vdotr < 0.0_DP) then
-         v2 = dot_product(vr(:), vr(:))
-         tmin = -vdotr / v2
-         if (tmin < dt) then
-            r2min = r2 - vdotr**2 / v2
-         else
-            r2min = r2 + 2 * vdotr * dt + v2 * dt**2
+         vdotr = dot_product(vr(:), xr(:))
+         if (vdotr < 0.0_DP) then
+            v2 = dot_product(vr(:), vr(:))
+            tmin = -vdotr / v2
+            if (tmin < dt) then
+               r2min = r2 - vdotr**2 / v2
+            else
+               r2min = r2 + 2 * vdotr * dt + v2 * dt**2
+            end if
+            r2min = min(r2min, r2)
+            if (r2min <= r2crit) lflag = .true.
          end if
-         r2min = min(r2min, r2)
-         if (r2min <= r2crit) iflag = 1
-      end if
       end if
 
       return

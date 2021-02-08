@@ -119,11 +119,11 @@ module rmvs_classes
    !> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
    interface
 
-      module function rmvs_chk_ind(xr, vr, dt, r2crit) result(iflag)
+      module function rmvs_chk_ind(xr, vr, dt, r2crit) result(lflag)
          implicit none
          real(DP), intent(in)                :: dt, r2crit
          real(DP), dimension(:), intent(in)  :: xr, vr
-         integer(I4B)                        :: iflag
+         logical                             :: lflag
       end function rmvs_chk_ind
 
       module subroutine rmvs_step_system(cb, pl, tp, config)
