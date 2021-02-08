@@ -1,6 +1,6 @@
 submodule (rmvs_classes) s_rmvs_chk
 contains
-   module procedure rmvs_close_chk
+   module procedure rmvs_encounter_check
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -53,7 +53,7 @@ contains
          end do
       end associate
       return
-   end procedure rmvs_close_chk
+   end procedure rmvs_encounter_check
 
    module procedure rmvs_chk_ind
       !! author: David A. Minton

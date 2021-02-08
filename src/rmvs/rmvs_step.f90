@@ -21,7 +21,7 @@ contains
          allocate(tp%vbeg, source=pl%vh)
          ! ****** Check for close encounters ***** !
          rts = RHSCALE
-         lencounter = tp%close_chk(cb, pl, dt, rts)
+         lencounter = tp%encounter_check(cb, pl, dt, rts)
          if (lencounter) write(*,*) 'Heyooo!!'
          deallocate(tp%xbeg)
          deallocate(tp%vbeg)

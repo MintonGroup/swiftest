@@ -72,8 +72,8 @@ module rmvs_classes
 
       real(DP),     dimension(:,:), allocatable :: vbeg   ! Planet velocities at beginning ot step
    contains
-      procedure, public :: setup        => rmvs_setup_tp    !! Constructor method - Allocates space for number of particles
-      procedure, public :: close_chk    => rmvs_close_chk   !! Checks if any test particles are undergoing a close encounter with a massive body
+      procedure, public :: setup             => rmvs_setup_tp    !! Constructor method - Allocates space for number of particles
+      procedure, public :: encounter_check   => rmvs_encounter_check   !! Checks if any test particles are undergoing a close encounter with a massive body
    end type rmvs_tp
 
    interface
@@ -83,7 +83,7 @@ module rmvs_classes
          integer, intent(in)             :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_tp
 
-      module function rmvs_close_chk(self, cb, pl, dt, rts) result(lencounter)
+      module function rmvs_encounter_check(self, cb, pl, dt, rts) result(lencounter)
          implicit none
          class(rmvs_tp),            intent(inout) :: self    !! RMVS test particle object  
          class(rmvs_cb),            intent(inout) :: cb      !! RMVS central body object  
@@ -92,7 +92,7 @@ module rmvs_classes
          real(DP),                  intent(in)    :: rts !! fraction of Hill's sphere radius to use as radius of encounter regio
          logical                                  :: lencounter        
 
-      end function rmvs_close_chk
+      end function rmvs_encounter_check
    end interface
    !********************************************************************************************************************************
    !  rmvs_nbody_system class definitions and method interfaces
