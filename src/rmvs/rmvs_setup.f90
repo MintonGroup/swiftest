@@ -14,12 +14,22 @@ contains
       if (n <= 0) return
 
       allocate(self%nenc(n))
-      allocate(self%xpc(NDIM, n))
       allocate(self%tpenc1P(n))
+      allocate(self%xout(NDIM, n, 0:NTENC))
+      allocate(self%vout(NDIM, n, 0:NTENC))
+      allocate(self%xin(NDIM, n, 0:NTPHENC))
+      allocate(self%vin(NDIM, n, 0:NTPHENC))
+      allocate(self%xpc(NDIM, n, 0:NTPHENC))
+      allocate(self%aoblin(NDIM, n, 0:NTPHENC))
 
       self%nenc       = 0
-      self%xpc(:,:)   = 0.0_DP
       self%tpenc1P(:) = 0
+      self%xout(:,:,:)  = 0.0_DP
+      self%vout(:,:,:)  = 0.0_DP
+      self%xin(:,:,:)  = 0.0_DP
+      self%vin(:,:,:)  = 0.0_DP
+      self%xpc(:,:,:)   = 0.0_DP
+      self%aoblin(:,:,:)   = 0.0_DP
 
       return
    end procedure rmvs_setup_pl 

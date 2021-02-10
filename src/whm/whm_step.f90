@@ -29,15 +29,15 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk_pl.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_pl.f90
-      logical, save :: lfirst = .true.
+      !logical, save :: lfirst = .true.
       real(DP) :: dth
       
       associate(t => config%t, dt => config%dt)
          dth = 0.5_DP * dt
-         if (lfirst) then
+         if (self%lfirst) then
             call self%h2j(cb)
             call self%getacch(cb, config, t)
-            lfirst = .false.
+            self%lfirst = .false.
          end if
 
          call self%kickvh(dth)
@@ -60,14 +60,13 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
-      logical, save :: lfirst = .true.
       real(DP) :: dth
       
       associate(t => config%t, dt => config%dt)
          dth = 0.5_DP * dt
-         if (lfirst) then
+         if (self%lfirst) then
             call self%getacch(cb, pl, config, t, self%xbeg)
-            lfirst = .false.
+            self%lfirst = .false.
          end if
          call self%kickvh(dth)
          !If GR enabled, calculate the p4 term before and after each drift
