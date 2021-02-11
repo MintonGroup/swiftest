@@ -19,7 +19,7 @@ contains
       associate(ntp => self%nbody, npl => pl%nbody)
          lencounter = .false.
          pl%nenc(:) = 0
-         pl%tpenc1p(:) = 0
+         pl%tpenc1P(:) = 0
          ! if first time through, calc hill's sphere for the planets
          if (lfirst) then
             call pl%set_rhill(cb)

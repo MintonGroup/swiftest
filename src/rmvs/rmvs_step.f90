@@ -81,7 +81,7 @@ contains
                self%aoblin(:,:,i) = self%aobl(:,:) ! Save the oblateness acceleration on the planet for this substep
             end do
             ! Put back the original heliocentric position for the planets
-            self%xh(:,) = xh_original(:,:)
+            self%xh(:,:) = xh_original(:,:)
             deallocate(xh_original, irh)
          end if
          do i = 1, npl
@@ -107,7 +107,7 @@ contains
                time = t
                mu = self%mass(i)
                rhill = self%rhill(i)
-               call self%tpenc(i)%peri_pass(cb, self, dti, .true., 0, nenc, i, config) 
+               call self%tpenc(i)%peri_pass(cb, self, time, dti, .true., 0, nenc, i, config) 
       ! now step the encountering test particles fully through the inner encounter
                lfirsttp = .true.
                do j = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
@@ -116,7 +116,7 @@ contains
                   call self%tpenc(i)%step(self%cbenc, self%plenc, config, time)
                   deallocate(self%tpenc(i)%xend)
                   time = t + j * dti
-                  call self%tpenc(i)%peri_pass(cb, self, dti, .false., j, nenc, i, config) 
+                  call self%tpenc(i)%peri_pass(cb, self, time, dti, .false., j, nenc, i, config) 
                end do
                link = self%tpenc1P(i)
                do j = 1, nenc

@@ -53,8 +53,9 @@ module rmvs_classes
    !*******************************************************************************************************************************
 
    !> RMVS massive body particle class
-   type, private, extends(whm_pl) :: rmvs_pl
+   type, public, extends(whm_pl) :: rmvs_pl
       integer(I4B), dimension(:),        allocatable :: nenc   !! number of test particles encountering planet this full rmvs time step
+      integer(I4B), dimension(:),        allocatable :: tpenc1P !! index of first test particle encountering planet
       real(DP),     dimension(:, :, :),  allocatable :: xout   !! interpolated heliocentric planet position for outer encounter
       real(DP),     dimension(:, :, :),  allocatable :: vout   !! interpolated heliocentric planet velocity for outer encounter
       real(DP),     dimension(:, :, :),  allocatable :: xin    !! interpolated heliocentric planet position for inner encounter
@@ -187,10 +188,11 @@ module rmvs_classes
 
       end function rmvs_encounter_check_tp
 
-      module subroutine rmvs_peri_tp(self, cb, pl, dt, lfirst, index, nenc, ipleP, config)
+      module subroutine rmvs_peri_tp(self, cb, pl, t, dt, lfirst, index, nenc, ipleP, config)
          class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle object  
          class(rmvs_cb),                intent(inout) :: cb     !! RMVS central body object  
          class(rmvs_pl),                intent(inout) :: pl     !! RMVS massive body object  
+         real(DP),                      intent(in)    :: t      !! current time
          real(DP),                      intent(in)    :: dt     !! step size
          logical,                       intent(in)    :: lfirst !! Logical flag indicating whether current invocation is the first
          integer(I4B),                  intent(in)    :: index !! outer substep number within current set

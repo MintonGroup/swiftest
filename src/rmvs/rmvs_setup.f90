@@ -9,10 +9,6 @@ contains
       use swiftest
       implicit none
 
-      type(rmvs_tp), dimension(:),       allocatable :: tpenc  !! array of encountering test particles with this planet
-      type(whm_pl) , dimension(:, :),    allocatable :: plenc  !! array of massive bodies that includes the Sun, but not the encountering planet
-      type(rmvs_cb), dimension(:, :)                 :: cbenc  
-
       !> Call allocation method for parent class
       call whm_setup_pl(self, n) 
       if (n <= 0) return
@@ -94,7 +90,7 @@ contains
       !! planetocentric calculations. This subroutine is not based on an existing one from Swift and Swifter
       !!
       implicit none
-      integer(I4B) :: i, j, link, nenc
+      integer(I4B) :: i, j, k, link, nenc
 
       associate(npl => self%nbody)
 
@@ -116,20 +112,21 @@ contains
                ! Now create a planetocentric "planet" structure containing the *other* planets (plus the Sun) in it
                do j = 0, NTPHENC
                   call self%plenc(i, j)%setup(npl)
-                  self%plenc(i, j)%status(:) = self%pl%status(:)
+                  self%plenc(i, j)%status(:) = self%status(:)
                end do
-               do j = 1, npl
-                  if (j == i) then ! We will substitute the Sun in the array location occupied by the encountering planet
-                     self%plenc(i, :)%name(j) = 0
-                     self%plenc(i, :)%Gmass(j) = cb%Gmass
-                     self%plenc(i, :)%mass(j) = cb%mass
-                     self%plenc(i, :)%radius(j) = cb%radius
-                  else
-                     self%plenc(i, :)%name(j) = self%name(i)
-                     self%plenc(i, :)%Gmass(j) = self%Gmass(i)
-                     self%plenc(i, :)%mass(j) = self%mass(i)
-                  end if
-
+               do k = 0, NTPHENC
+                  do j = 1, npl
+                     if (j == i) then ! We will substitute the Sun in the array location occupied by the encountering planet
+                        self%plenc(i, k)%name(j) = 0
+                        self%plenc(i, k)%Gmass(j) = cb%Gmass
+                        self%plenc(i, k)%mass(j) = cb%mass
+                        self%plenc(i, k)%radius(j) = cb%radius
+                     else
+                        self%plenc(i, k)%name(j) = self%name(i)
+                        self%plenc(i, k)%Gmass(j) = self%Gmass(i)
+                        self%plenc(i, k)%mass(j) = self%mass(i)
+                     end if
+                  end do
                end do
                
             end if
@@ -146,19 +143,11 @@ contains
       !! Deallocates all of the encountering particle data structures for next time
       !!
       implicit none
-      integer(I4B) :: i, j
 
-      associate(npl => self%nbody)
 
-         do i = 1, npl
-            deallocate(self%tpenc(i))
-            deallocate(self%cbenc(i))
-            do j = 0, NTPHENC
-               deallocate(self%plenc(i,i))
-            end do
-         end do
-      end associate
-
+      deallocate(self%tpenc)
+      deallocate(self%cbenc)
+      deallocate(self%plenc)
 
    end procedure rmvs_destruct_encounter
 
