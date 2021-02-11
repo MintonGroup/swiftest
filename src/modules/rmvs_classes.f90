@@ -45,7 +45,6 @@ module rmvs_classes
    contains
       procedure, public :: setup             => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
       procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
-      procedure, public :: step_in           => rmvs_step_in_tp         !! Step all active test particles closely encountering a given planet ahead one substep in inner integration region
       procedure, public :: peri_pass         => rmvs_peri_tp            !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
    end type rmvs_tp
 
@@ -136,15 +135,6 @@ module rmvs_classes
          real(DP),                      intent(in)     :: dt   !! Step size
       end subroutine rmvs_step_in_pl
 
-      module subroutine rmvs_step_in_tp(self, cb, pl, ipleP, config, dt)
-         implicit none
-         class(rmvs_pl),                intent(inout)  :: self !! RMVS massive body object
-         class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
-         class(rmvs_pl),                intent(inout)  :: pl   !! RMVS massive body object
-         integer(I4B),                  intent(in)     :: ipleP !!index of RMVS planet being closely encountered
-         class(swiftest_configuration), intent(in)     :: config  !! Input collection of user-defined configuration parameters 
-         real(DP),                      intent(in)     :: dt   !! Step size
-      end subroutine rmvs_step_in_tp
       module subroutine rmvs_step_out(self, cb, tp, dt, config)
          implicit none
          class(rmvs_pl),                intent(inout)  :: self !! RMVS massive body object
