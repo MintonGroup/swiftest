@@ -101,8 +101,8 @@ contains
    
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, qmin_coord => config%qmin_coord)
-         call util_hills(npl, pl)
          if (lfirst) then
+            call util_hills(npl, pl)
             call util_peri(lfirst, ntp, tp, cb%Gmass, msys, config%qmin_coord)
             lfirst = .false.
          else

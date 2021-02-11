@@ -1,4 +1,4 @@
-submodule(rmvs_classes) rmvs_step
+submodule(rmvs_classes) s_rmvs_step
 contains
    module procedure rmvs_step_system
       !! author: David A. Minton
@@ -23,6 +23,7 @@ contains
          rts = RHSCALE
          lencounter = tp%encounter_check(cb, pl, dt, rts)
          if (lencounter) then
+            call pl%setup_encounter(tp)
             pl%xout(:,:,0) = tp%xbeg(:,:)
             pl%vout(:,:,0) = tp%vbeg(:,:)
             call pl%step(cb, config, t) 
@@ -39,6 +40,7 @@ contains
             where (tp%status(:) == INACTIVE) 
                tp%status(:) = ACTIVE
             end where
+            call pl%destruct_encounter()
          else
             deallocate(tp%xbeg)
             deallocate(tp%vbeg)
@@ -47,6 +49,91 @@ contains
       end associate
 
    end procedure rmvs_step_system 
+
+   module procedure rmvs_step_in_pl
+      !! author: David A. Minton
+      !!
+      !! Step active test particles ahead in the inner encounter region
+      !! 
+      !! Adapted from Hal Levison's Swift routine rmvs3_step_in.f
+      !! Adapted from David E. Kaufmann's Swifter routine rmvs_step_in.f90
+      use swiftest
+      implicit none
+
+      logical                                      :: lfirsttp
+      integer(I4B)                                 :: i, j, k, nenc, link
+      real(DP)                                     :: mu, rhill, dti, time
+      real(DP), dimension(:), allocatable          :: irh
+      real(DP), dimension(:, :), allocatable       :: xh_original 
+
+   ! executable code
+      dti = dt / NTPHENC
+      associate(npl => self%nbody)
+         if (cb%j2rp2 /= 0.0_DP) then
+            allocate(xh_original(:, :), source=self%xh(:,:))
+            allocate(irh(npl))
+            do i = 0, NTPHENC
+               self%xh(:,:) = self%xin(:,:,i) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
+               do j = 1, npl
+                  irh(j) = 1.0_DP / norm2(self%xh(:, j))
+               end do
+               call self%obl_acc(cb, irh)
+               self%aoblin(:,:,i) = self%aobl(:,:) ! Save the oblateness acceleration on the planet for this substep
+            end do
+            ! Put back the original heliocentric position for the planets
+            self%xh(:,) = xh_original(:,:)
+            deallocate(xh_original, irh)
+         end if
+         do i = 1, npl
+            nenc = self%nenc(i) 
+            if (nenc > 0) then
+            ! There are inner encounters with this planet...switch to planetocentric coordinates to proceed
+            ! Determine initial planetocentric positions and velocities for those test particles encountering this planet
+               link = self%tpenc1P(j)
+               do j = 1, nenc
+                  self%tpenc%xh(:, j) = tp%xh(:, link) - self%xin(:, 0)
+                  self%tpenc%vh(:, j) = tp%vh(:, link) - self%vin(:, 0)
+                  link = tp%tpencP(link)
+               end do
+               ! Determine planetocentric positions for planets and sun at all interpolated points in inner encounter
+               do j = 1, npl
+                  if (j == i) then ! We will substitute the Sun in the array location occupied by the encountering planet
+                     self%plenc(i, :)%xh(:, j) = cb%xin(:) - self%xin(:, :)
+                     self%plenc(i, :)%vh(:, j) = cb%vin(:) - self%vin(:, :)
+                  else
+                     self%plenc(i, :)%xh(:, j) = self%xin(:, :) - self%xin(:, :)
+                  end if
+               end do
+               time = t
+               mu = self%mass(i)
+               rhill = self%rhill(i)
+               call self%tpenc(i)%peri_pass(cb, self, dti, .true., 0, nenc, i, config) 
+      ! now step the encountering test particles fully through the inner encounter
+               lfirsttp = .true.
+               do j = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
+                  allocate(self%tpenc(i)%xend, source=self%plenc(i, j)%xh)
+                  self%tpenc(i)%lfirst = .true.
+                  call self%tpenc(i)%step(self%cbenc, self%plenc, config, time)
+                  deallocate(self%tpenc(i)%xend)
+                  time = t + j * dti
+                  call self%tpenc(i)%peri_pass(cb, self, dti, .false., j, nenc, i, config) 
+               end do
+               link = self%tpenc1P(i)
+               do j = 1, nenc
+                  ! Copy the results of the integration back over
+                  tp%xh(:, link) = self%xin(:, NTPHENC) + self%tpenc(i)%xh(:,j)
+                  tp%vh(:, link) = self%vin(:, NTPHENC) + self%tpenc(i)%vh(:,j)
+                  if (tp%status(link) == ACTIVE) tp%status(link) = INACTIVE
+                  link = tp%tpencP(link)
+
+               end do
+            end if
+         end do
+      end associate
+
+      return
+
+   end procedure rmvs_step_in_pl
 
    module procedure rmvs_step_out
       !! author: David A. Minton
@@ -62,7 +149,7 @@ contains
       type(rmvs_pl)      :: rmvs_plep
 
    ! executable code
-      dto = dt/NTENC
+      dto = dt / NTENC
       associate(npl => self%nbody, ntp => tp%nbody, t => config%t)
          where(tp%plencp(:) == 0)
             tp%status(:) = INACTIVE
@@ -111,6 +198,7 @@ contains
          rts = RHPSCALE
          lencounter = tp%encounter_check(cb, pl, dt, rts) 
          if (lencounter) then
+            ! Interpolate planets in inner encounter region
             pl%xin(:,:,0) = tp%xbeg(:,:)
             pl%vin(:,:,0) = tp%vbeg(:,:)
             pl%xin(:,:,NTPHENC) = tp%xend(:, :)
@@ -128,4 +216,4 @@ contains
    
       end procedure rmvs_step_out2
 
-end submodule rmvs_step
+end submodule s_rmvs_step

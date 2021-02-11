@@ -1,4 +1,4 @@
-submodule (rmvs_classes) rmvs_interp
+submodule (rmvs_classes) s_rmvs_interp
 contains
    module procedure rmvs_interp_in
       !! author: David A. Minton
@@ -115,4 +115,4 @@ contains
       return
 
    end procedure rmvs_interp_out   
-end submodule rmvs_interp
+end submodule s_rmvs_interp

@@ -1,4 +1,4 @@
-submodule(whm_classes) whm_step
+submodule(whm_classes) s_whm_step
 contains
    module procedure whm_step_system
       !! author: David A. Minton
@@ -79,4 +79,4 @@ contains
 
    end procedure whm_step_tp   
 
-end submodule whm_step
+end submodule s_whm_step

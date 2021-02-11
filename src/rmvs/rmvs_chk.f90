@@ -1,6 +1,6 @@
 submodule (rmvs_classes) s_rmvs_chk
 contains
-   module procedure rmvs_encounter_check
+   module procedure rmvs_encounter_check_tp
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -14,12 +14,17 @@ contains
       real(DP), dimension(NDIM) :: xht, vht, xr, vr
       integer(I4B)              :: tpencPindex
       logical                   :: lflag
+      logical, save             :: lfirst = .true.
 
       associate(ntp => self%nbody, npl => pl%nbody)
          lencounter = .false.
          pl%nenc(:) = 0
          pl%tpenc1p(:) = 0
-         call pl%set_rhill(cb)
+         ! if first time through, calc hill's sphere for the planets
+         if (lfirst) then
+            call pl%set_rhill(cb)
+            lfirst = .false.
+         end if
          do i = 1, ntp
             if (self%status(i) == ACTIVE) then
                self%plencP(i) = 0
@@ -54,7 +59,7 @@ contains
          end do
       end associate
       return
-   end procedure rmvs_encounter_check
+   end procedure rmvs_encounter_check_tp
 
    module procedure rmvs_chk_ind
       !! author: David A. Minton
