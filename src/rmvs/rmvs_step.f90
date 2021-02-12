@@ -106,18 +106,20 @@ contains
                   end do
                end do
                time = config%t
-               mu = self%mass(i)
+               mu = self%Gmass(i)
                rhill = self%rhill(i)
                call self%tpenc(i)%peri_pass(cb, self, time, dti, .true., 0, nenc, i, config) 
       ! now step the encountering test particles fully through the inner encounter
                lfirsttp = .true.
                do j = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
-                  allocate(self%tpenc(i)%xend, source=self%plenc(i, j)%xh)
                   self%tpenc(i)%lfirst = .true.
+                  allocate(self%tpenc(i)%xbeg, source=self%plenc(i,j-1)%xh)
+                  allocate(self%tpenc(i)%xend, source=self%plenc(i,j)%xh)
                   call self%tpenc(i)%step(self%cbenc(i), self%plenc(i,j), config, time)
-                  deallocate(self%tpenc(i)%xend)
                   time = config%t + j * dti
                   call self%tpenc(i)%peri_pass(cb, self, time, dti, .false., j, nenc, i, config) 
+                  deallocate(self%tpenc(i)%xbeg)
+                  deallocate(self%tpenc(i)%xend)
                end do
                link = self%tpenc1P(i)
                do j = 1, nenc
