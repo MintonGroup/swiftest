@@ -264,6 +264,7 @@ module swiftest_classes
       procedure, public :: vh2vb       => coord_vh2vb_body    !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure, public :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
+      procedure, public :: reverse_status => util_reverse_status !! Reverses the active/inactive status of all particles in a structure
    end type swiftest_body
 
    abstract interface
@@ -377,6 +378,11 @@ module swiftest_classes
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine orbel_xv2el_vec
+
+      module subroutine util_reverse_status(self)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self
+      end subroutine util_reverse_status
    end interface
       
    !********************************************************************************************************************************

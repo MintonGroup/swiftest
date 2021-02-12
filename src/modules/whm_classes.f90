@@ -65,12 +65,13 @@ module whm_classes
          class(swiftest_cb),           intent(inout) :: cb     !! WHM central body particle data structure
       end subroutine whm_setup_set_mu_eta_pl
 
-      module subroutine whm_step_pl(self, cb, config, t)
+      module subroutine whm_step_pl(self, cb, config, t, dt)
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structure
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
-         real(DP),                      intent(in)    :: t         !! Current time
+         real(DP),                      intent(in)    :: t      !! Current time
+         real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_pl
 
       !> Get heliocentric accelration of massive bodies
@@ -199,13 +200,14 @@ module whm_classes
          real(DP), dimension(:,:),      intent(in)    :: xh
       end subroutine whm_getacch_tp
 
-      module subroutine whm_step_tp(self, cb, pl, config, t)
+      module subroutine whm_step_tp(self, cb, pl, config, t, dt)
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structure
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
          class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
-         real(DP),                      intent(in)    :: t         !! Current time
+         real(DP),                      intent(in)    :: t      !! Current time
+         real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_tp
       module subroutine whm_user_getacch_tp(self, cb, config, t)
          implicit none

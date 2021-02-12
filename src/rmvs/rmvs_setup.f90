@@ -21,9 +21,6 @@ contains
       allocate(self%vin(NDIM, n, 0:NTPHENC))
       allocate(self%xpc(NDIM, n, 0:NTPHENC))
       allocate(self%aoblin(NDIM, n, 0:NTPHENC))
-      allocate(self%tpenc(n))
-      allocate(self%plenc(n, 0:NTPHENC))
-      allocate(self%cbenc(n))
 
       self%nenc       = 0
       self%tpenc1P(:) = 0
@@ -93,7 +90,9 @@ contains
       integer(I4B) :: i, j, k, link, nenc
 
       associate(npl => self%nbody)
-
+         allocate(self%tpenc(npl))
+         allocate(self%plenc(npl, 0:NTPHENC))
+         allocate(self%cbenc(npl))
          do i = 1, npl
             nenc = self%nenc(i) 
             if (nenc > 0) then
@@ -108,6 +107,8 @@ contains
                   self%tpenc(i)%status(j) = tp%status(link)
                   link = tp%tpencP(link)
                end do
+
+               call self%tpenc(i)%set_mu(self%cbenc(i)) ! Make sure that the test particles get the proper value of mu 
                
                ! Now create a planetocentric "planet" structure containing the *other* planets (plus the Sun) in it
                do j = 0, NTPHENC
@@ -142,6 +143,7 @@ contains
       !!
       !! Deallocates all of the encountering particle data structures for next time
       !!
+      use swiftest
       implicit none
 
 
@@ -149,7 +151,34 @@ contains
       deallocate(self%cbenc)
       deallocate(self%plenc)
 
+      return
+
    end procedure rmvs_destruct_encounter
+
+
+   module procedure rmvs_setup_set_beg_end
+      !! author: David A. Minton
+      !! 
+      !! Sets one or more of the values of xbeg, xend, and vbeg
+      use swiftest
+      implicit none
+
+      if (present(xbeg)) then
+         if (allocated(self%xbeg)) deallocate(self%xbeg)
+         allocate(self%xbeg, source=xbeg)
+      end if
+      if (present(xend)) then
+         if (allocated(self%xend)) deallocate(self%xend)
+         allocate(self%xend, source=xend)
+      end if
+      if (present(vbeg)) then
+         if (allocated(self%vbeg)) deallocate(self%vbeg)
+         allocate(self%vbeg, source=vbeg)
+      end if
+
+      return
+
+   end procedure rmvs_setup_set_beg_end
 
 
 end submodule s_rmvs_setup

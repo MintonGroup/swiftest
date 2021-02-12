@@ -44,8 +44,10 @@ module rmvs_classes
       real(DP),     dimension(:,:), allocatable :: vbeg   !! Planet velocities at beginning ot step
    contains
       procedure, public :: setup             => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
+      procedure, public :: set_beg_end       => rmvs_setup_set_beg_end   
       procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: peri_pass         => rmvs_peri_tp            !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
+
    end type rmvs_tp
 
    !********************************************************************************************************************************
@@ -108,6 +110,12 @@ module rmvs_classes
          class(rmvs_cb),   intent(in)     :: cb   !! RMVS central body particle type
          class(rmvs_tp),   intent(in)     :: tp   !! RMVS test particle object
       end subroutine rmvs_setup_encounter
+
+      module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
+         implicit none
+         class(rmvs_tp),   intent(inout)  :: self !! Swiftest test particle object
+         real(DP), dimension(:,:), optional :: xbeg, xend, vbeg
+      end subroutine rmvs_setup_set_beg_end
 
       module subroutine rmvs_destruct_encounter(self)
          implicit none
