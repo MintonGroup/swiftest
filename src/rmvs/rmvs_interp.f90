@@ -16,7 +16,7 @@ contains
       real(DP), dimension(NDIM)  :: xtmp, vtmp
 
       dntphenc = real(NTPHENC, kind=DP)
-      associate (msun => cb%mass, npl => self%nbody)
+      associate (msun => cb%Gmass, npl => self%nbody)
          dti = dt / dntphenc
          do i = 1, npl
             xtmp(:) = self%xin(:, i, 0)
@@ -74,7 +74,7 @@ contains
 
    ! executable code
       dntenc = real(NTENC, DP)
-      associate (msun => cb%mass, npl => self%nbody)
+      associate (msun => cb%Gmass, npl => self%nbody)
          dto = dt / dntenc
          do i = i, npl
             xtmp(:) = self%xout(:, i, 0)

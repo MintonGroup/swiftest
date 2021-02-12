@@ -33,7 +33,7 @@ contains
             irh(i) = 1.0_DP / sqrt(r2)
          end do
          call obl_acc(helio_plA, config%j2rp2, config%j4rp4, xh, irh, aobl)
-         mu = helio_plA%mass(1)
+         mu = helio_plA%Gmass(1)
          do i = 1, ntp
             xht(:, i) = self%xh(:,i)
             r2 = dot_product(xht(:, i), xht(:, i))

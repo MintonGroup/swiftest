@@ -17,9 +17,9 @@ module procedure helio_lindrift_pl
    npl = self%nbody
    pttmp(:) = 0.0_DP
    do i = 2, npl
-      pttmp(:) = pttmp(:) + self%mass(i) * self%vb(:,i)
+      pttmp(:) = pttmp(:) + self%Gmass(i) * self%vb(:,i)
    end do
-   pttmp(:) = pttmp(:) / self%mass(1)
+   pttmp(:) = pttmp(:) / self%Gmass(1)
    do i = 2, npl
       self%xh(:,i) = self%xh(:,i) + pttmp(:) * dt
    end do

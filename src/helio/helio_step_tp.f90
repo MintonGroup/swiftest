@@ -17,7 +17,7 @@ module procedure helio_step_tp
 ! executable code
    dth = 0.5_DP * dt
    lflag = lfirst
-   mu = helio_plA%mass(1)
+   mu = helio_plA%Gmass(1)
    if (lfirst) then
       call self%vh2vb(vs = -ptb)
       lfirst = .false.

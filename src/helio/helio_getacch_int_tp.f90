@@ -20,7 +20,7 @@ module procedure helio_getacch_int_tp
          do j = 2, npl
             dx(:) = self%xh(:,i) - helio_plA%xh(:,j)
             r2 = dot_product(dx(:), dx(:))
-            fac = helio_plA%mass(j) / (r2 * sqrt(r2))
+            fac = helio_plA%Gmass(j) / (r2 * sqrt(r2))
             self%ahi(:,i) = self%ahi(:,i) - fac * dx(:)
          end do
       end if

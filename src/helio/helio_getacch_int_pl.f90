@@ -20,8 +20,8 @@ module procedure helio_getacch_int_pl
             dx(:) = self%xh(:,j) - self%xh(:,i)
             rji2 = dot_product(dx(:), dx(:))
             irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-            faci = self%mass(i) * irij3
-            facj = self%mass(j) * irij3
+            faci = self%Gmass(i) * irij3
+            facj = self%Gmass(j) * irij3
             self%ahi(:,i) = self%ahi(:,i) + facj * dx(:)
             self%ahi(:,i) = self%ahi(:,j) - faci * dx(:)
          end do
