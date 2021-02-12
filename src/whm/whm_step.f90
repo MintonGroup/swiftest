@@ -11,14 +11,14 @@ contains
       implicit none
 
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
+         if (allocated(tp%xbeg)) deallocate(tp%xbeg)
          allocate(tp%xbeg, source=pl%xh)
          call pl%step(cb, config, t)
          if (ntp > 0) then
+            if (allocated(tp%xend)) deallocate(tp%xend)
             allocate(tp%xend, source=pl%xh)
             call tp%step(cb, pl, config, t)
-            deallocate(tp%xend)
          end if
-         deallocate(tp%xbeg)
       end associate
    end procedure whm_step_system 
 

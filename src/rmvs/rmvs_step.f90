@@ -19,7 +19,9 @@ contains
          xht => tp%xh, vht => tp%vh, aht => tp%ah, irij3 => tp%irij3) 
          allocate(xbeg, source=pl%xh)
          allocate(vbeg, source=pl%vh)
+         if (allocated(tp%xbeg)) deallocate(tp%xbeg)
          allocate(tp%xbeg, source=xbeg)
+         if (allocated(tp%vbeg)) deallocate(tp%vbeg) 
          allocate(tp%vbeg, source=vbeg) 
          ! ****** Check for close encounters ***** !
          rts = RHSCALE
@@ -39,7 +41,9 @@ contains
             elsewhere (tp%status(:) == INACTIVE)
                tp%status(:) = ACTIVE
             end where
+            if (allocated(tp%xbeg)) deallocate(tp%xbeg)
             allocate(tp%xbeg, source=xbeg)
+            if (allocated(tp%xend)) deallocate(tp%xend)
             allocate(tp%xend, source=xend)
             call tp%step(cb, pl, config, t)
             deallocate(tp%xbeg, tp%xend)
