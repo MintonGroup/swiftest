@@ -229,9 +229,9 @@ contains
       integer(I4B)        :: ierr
       integer(I4B), save    :: iu = lun
 
-      open(unit = iu, file = encounter_file, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED')
+      open(unit = iu, file = encounter_file, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
       if ((ierr /= 0) .and. lfirst) then
-         open(unit = iu, file = encounter_file, status = 'NEW', form = 'UNFORMATTED')
+         open(unit = iu, file = encounter_file, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
       end if
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
