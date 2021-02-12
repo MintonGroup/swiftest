@@ -73,16 +73,18 @@ contains
          allocate(iflag(ntp))
          iflag(:) = 0
          do i = 1,ntp
-            if (config%lgr) then
-               rmag = norm2(xh(:, i))
-               vmag2 = dot_product(vh(:, i), vh(:, i))
-               energy = 0.5_DP * vmag2 - cb%Gmass / rmag
-               dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
-            else
-               dtp = dt
+            if (status(i) == ACTIVE) then
+               if (config%lgr) then
+                  rmag = norm2(xh(:, i))
+                  vmag2 = dot_product(vh(:, i), vh(:, i))
+                  energy = 0.5_DP * vmag2 - cb%Gmass / rmag
+                  dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+               else
+                  dtp = dt
+               end if
+               call drift_one(mu(i), xh(:, i), vh(:, i), dtp, iflag(i))
+               if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
             end if
-            call drift_one(mu(i), xh(:, i), vh(:, i), dtp, iflag(i))
-            if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
          end do
          if (any(iflag(1:ntp) /= 0)) then
             do i = 1, ntp
