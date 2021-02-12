@@ -12,13 +12,15 @@ contains
       logical, save :: lfirst = .true.
       logical :: lencounter
       real(DP) :: rts
-      !real(DP), dimension(:,:), allocatable :: xbeg, vbeg, xend
+      real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
  
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt, &
          xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj, ah => pl%ah,  eta => pl%eta, & ! These two lines of associations aid in debugging with gdb
          xht => tp%xh, vht => tp%vh, aht => tp%ah, irij3 => tp%irij3) 
-         allocate(tp%xbeg, source=pl%xh)
-         allocate(tp%vbeg, source=pl%vh)
+         allocate(xbeg, source=pl%xh)
+         allocate(vbeg, source=pl%vh)
+         allocate(tp%xbeg, source=xbeg)
+         allocate(tp%vbeg, source=vbeg) 
          ! ****** Check for close encounters ***** !
          rts = RHSCALE
          lencounter = tp%encounter_check(cb, pl, dt, rts)
@@ -29,6 +31,7 @@ contains
             call pl%step(cb, config, t) 
             pl%xout(:,:,NTENC) = pl%xh(:,:)
             pl%vout(:,:,NTENC) = pl%vh(:,:)
+            allocate(xend, source=pl%xh)
             call pl%interp_out(cb, dt)
             call pl%step_out(cb, tp, dt, config)
             where (tp%status(:) == ACTIVE)
@@ -36,14 +39,15 @@ contains
             elsewhere (tp%status(:) == INACTIVE)
                tp%status(:) = ACTIVE
             end where
+            allocate(tp%xbeg, source=xbeg)
+            allocate(tp%xend, source=xend)
             call tp%step(cb, pl, config, t)
+            deallocate(tp%xbeg, tp%xend)
             where (tp%status(:) == INACTIVE) 
                tp%status(:) = ACTIVE
             end where
             call pl%destruct_encounter()
          else
-            deallocate(tp%xbeg)
-            deallocate(tp%vbeg)
             call whm_step_system(cb, pl, tp, config)
          end if
       end associate
@@ -200,7 +204,7 @@ contains
          if (allocated(tp%xend)) deallocate(tp%xend)
          allocate(tp%xbeg, source=pl%xout(:, :, index-1))
          allocate(tp%vbeg, source=pl%vout(:, :, index-1))
-         allocate(tp%xend, source=pl%xout(:, :, index-1))
+         allocate(tp%xend, source=pl%xout(:, :, index))
          rts = RHPSCALE
          lencounter = tp%encounter_check(cb, pl, dt, rts) 
          if (lencounter) then
@@ -217,7 +221,6 @@ contains
             call tp%step(cb, pl, config, t)
          end if
          deallocate(tp%xbeg, tp%vbeg, tp%xend)
-   
          return
    
       end procedure rmvs_step_out2
