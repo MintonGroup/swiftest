@@ -76,7 +76,7 @@ contains
       dntenc = real(NTENC, DP)
       associate (msun => cb%Gmass, npl => self%nbody)
          dto = dt / dntenc
-         do i = i, npl
+         do i = 1, npl
             xtmp(:) = self%xout(:, i, 0)
             vtmp(:) = self%vout(:, i, 0)
             do j = 1, NTENC - 1
