@@ -86,14 +86,12 @@ contains
          if(.not.allocated(irh)) allocate(irh(npl))
          if (.not.allocated(ir3h)) allocate(ir3h(npl))
          if (.not. allocated(irht)) allocate(irht(ntp))
-         !do concurrent(i = 1:npl)
          do i = 1, npl
             r2 = dot_product(xh(:, i), xh(:, i))
             irh(i)= 1.0_DP / sqrt(r2)
             ir3h(i) = irh(i) / r2
          end do
 
-         !do concurrent (i = 1:ntp, status(i) == ACTIVE)
          do i = 1, ntp
             r2 = dot_product(xht(:, i), xht(:, i))
             irht(i) = 1.0_DP / sqrt(r2)
@@ -102,18 +100,15 @@ contains
          ah0(:) = 0.0_DP
          if(.not.allocated(fac)) allocate(fac(npl))
          fac(:) = Gmpl(1:npl) * ir3h(1:npl)
-         !do concurrent (i = 1:NDIM)
          do i = 1, NDIM
             ah0(i) = -sum(fac(1:npl) * xh(i, 1:npl))
          end do
          call whm_getacch_ah3_tp(cb, pl, tp, xh)
-         !do concurrent (i = 1:ntp, status(i) == ACTIVE)
          do i = 1, ntp
             aht(:, i) = aht(:, i) + ah0(:)
          end do
          if (j2rp2 /= 0.0_DP) then
             call tp%obl_acc(cb, irht)
-            !do concurrent (i = 1:ntp, status(i) == ACTIVE)
             do i = 1, ntp
                aht(:, i) = aht(:, i) + aoblt(:, i) - aobl0(:)
             end do
