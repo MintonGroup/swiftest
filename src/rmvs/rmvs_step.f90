@@ -23,7 +23,7 @@ contains
          rts = RHSCALE
          lencounter = tp%encounter_check(cb, pl, dt, rts)
          if (lencounter) then
-            call pl%setup_encounter(tp)
+            call pl%setup_encounter(cb, tp)
             pl%xout(:,:,0) = tp%xbeg(:,:)
             pl%vout(:,:,0) = tp%vbeg(:,:)
             call pl%step(cb, config, t) 
@@ -70,7 +70,7 @@ contains
       dti = dt / NTPHENC
       associate(npl => self%nbody)
          if (cb%j2rp2 /= 0.0_DP) then
-            allocate(xh_original(:, :), source=self%xh(:,:))
+            allocate(xh_original, source=self%xh)
             allocate(irh(npl))
             do i = 0, NTPHENC
                self%xh(:,:) = self%xin(:,:,i) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
@@ -91,20 +91,21 @@ contains
             ! Determine initial planetocentric positions and velocities for those test particles encountering this planet
                link = self%tpenc1P(j)
                do j = 1, nenc
-                  self%tpenc%xh(:, j) = tp%xh(:, link) - self%xin(:, 0)
-                  self%tpenc%vh(:, j) = tp%vh(:, link) - self%vin(:, 0)
+                  self%tpenc(i)%xh(:, j) = tp%xh(:, link) - self%xin(:, i, 0)
+                  self%tpenc(i)%vh(:, j) = tp%vh(:, link) - self%vin(:, i, 0)
                   link = tp%tpencP(link)
                end do
                ! Determine planetocentric positions for planets and sun at all interpolated points in inner encounter
-               do j = 1, npl
-                  if (j == i) then ! We will substitute the Sun in the array location occupied by the encountering planet
-                     self%plenc(i, :)%xh(:, j) = cb%xin(:) - self%xin(:, :)
-                     self%plenc(i, :)%vh(:, j) = cb%vin(:) - self%vin(:, :)
-                  else
-                     self%plenc(i, :)%xh(:, j) = self%xin(:, :) - self%xin(:, :)
-                  end if
+               do k = 0, NTPHENC
+                  do j = 1, npl
+                     if (j == i) then ! We will substitute the Sun in the array location occupied by the encountering planet
+                           self%plenc(i, k)%xh(:, j) = cb%xin(:) - self%xin(:, i, k)
+                     else
+                        self%plenc(i, k)%xh(:, j) = self%xin(:, i, k) - self%xin(:, i, k)
+                     end if
+                  end do
                end do
-               time = t
+               time = config%t
                mu = self%mass(i)
                rhill = self%rhill(i)
                call self%tpenc(i)%peri_pass(cb, self, time, dti, .true., 0, nenc, i, config) 
@@ -113,16 +114,16 @@ contains
                do j = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
                   allocate(self%tpenc(i)%xend, source=self%plenc(i, j)%xh)
                   self%tpenc(i)%lfirst = .true.
-                  call self%tpenc(i)%step(self%cbenc, self%plenc, config, time)
+                  call self%tpenc(i)%step(self%cbenc(i), self%plenc(i,j), config, time)
                   deallocate(self%tpenc(i)%xend)
-                  time = t + j * dti
+                  time = config%t + j * dti
                   call self%tpenc(i)%peri_pass(cb, self, time, dti, .false., j, nenc, i, config) 
                end do
                link = self%tpenc1P(i)
                do j = 1, nenc
                   ! Copy the results of the integration back over
-                  tp%xh(:, link) = self%xin(:, NTPHENC) + self%tpenc(i)%xh(:,j)
-                  tp%vh(:, link) = self%vin(:, NTPHENC) + self%tpenc(i)%vh(:,j)
+                  tp%xh(:, link) = self%xin(:, i, NTPHENC) + self%tpenc(i)%xh(:,j)
+                  tp%vh(:, link) = self%vin(:, i, NTPHENC) + self%tpenc(i)%vh(:,j)
                   if (tp%status(link) == ACTIVE) tp%status(link) = INACTIVE
                   link = tp%tpencP(link)
 

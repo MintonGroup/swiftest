@@ -6,8 +6,9 @@ module swiftest_classes
    use swiftest_globals
    implicit none
    private
-   public :: io_get_args, io_read_initialize_system, drift_one, discard_spill_body, &
-              orbel_xv2aeq, setup_pl, setup_tp, setup_construct_system, setup_set_mu_pl, setup_set_mu_tp
+   public :: io_get_args, io_read_initialize_system, io_write_encounter, drift_one, discard_spill_body, &
+              orbel_xv2aeq, orbel_xv2aqt, setup_pl, setup_tp, setup_construct_system, &
+              setup_set_mu_pl, setup_set_mu_tp 
 
    !********************************************************************************************************************************
    ! swiftest_configuration class definitions and method interfaces
