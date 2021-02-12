@@ -285,6 +285,9 @@ contains
       write(*,*) "EXTRA_FORCE    = ",self%lextra_force
       write(*,*) "BIG_DISCARD    = ",self%lbig_discard
       if (self%lenergy) write(*,*) "ENERGY         = ",self%lenergy
+      write(*,*) "MU2KG          = ",self%MU2KG       
+      write(*,*) "TU2S           = ",self%TU2S        
+      write(*,*) "DU2M           = ",self%DU2M        
 
       if ((self%MU2KG < 0.0_DP) .or. (self%TU2S < 0.0_DP) .or. (self%DU2M < 0.0_DP)) then
          write(iomsg,*) 'Invalid unit conversion factor'
@@ -500,7 +503,7 @@ contains
             do i = 1, nbody
                select type(self)
                class is (swiftest_pl)
-                  read(iu, *, iostat = ierr) self%name(i), val !self%mass(i)
+                  read(iu, *, iostat = ierr) self%name(i), val 
                   self%mass(i) = real(val / config%GU, kind=DP)
                   self%Gmass(i) = real(val, kind=DP)
                   if (config%lclose) then
@@ -679,7 +682,7 @@ contains
          select type(self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             read(iu, iostat = ierr) self%Gmass(1:n)
-            self%mass(1:n) = self%mass / config%GU 
+            self%mass(1:n) = self%Gmass / config%GU 
             read(iu, iostat = ierr) self%radius(1:n)
             if (config%lrotation) then
                read(iu, iostat = ierr) self%Ip(1, 1:n)
