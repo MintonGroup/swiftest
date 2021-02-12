@@ -102,7 +102,7 @@ contains
 
                ! Next create an encountering test particle structure
                call self%tpenc(i)%setup(nenc)  
-               link = self%tpenc1P(j)
+               link = self%tpenc1P(i)
                do j = 1, nenc
                   self%tpenc(i)%name(j) = tp%name(link)
                   self%tpenc(i)%status(j) = tp%status(link)

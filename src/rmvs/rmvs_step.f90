@@ -89,7 +89,7 @@ contains
             if (nenc > 0) then
             ! There are inner encounters with this planet...switch to planetocentric coordinates to proceed
             ! Determine initial planetocentric positions and velocities for those test particles encountering this planet
-               link = self%tpenc1P(j)
+               link = self%tpenc1P(i)
                do j = 1, nenc
                   self%tpenc(i)%xh(:, j) = tp%xh(:, link) - self%xin(:, i, 0)
                   self%tpenc(i)%vh(:, j) = tp%vh(:, link) - self%vin(:, i, 0)
@@ -99,7 +99,7 @@ contains
                do k = 0, NTPHENC
                   do j = 1, npl
                      if (j == i) then ! We will substitute the Sun in the array location occupied by the encountering planet
-                           self%plenc(i, k)%xh(:, j) = cb%xin(:) - self%xin(:, i, k)
+                        self%plenc(i, k)%xh(:, j) = cb%xin(:) - self%xin(:, i, k)
                      else
                         self%plenc(i, k)%xh(:, j) = self%xin(:, i, k) - self%xin(:, i, k)
                      end if
@@ -192,7 +192,10 @@ contains
          integer(I4B)    :: i
          real(DP)        :: rts
          logical         :: lencounter
-  
+
+         if (allocated(tp%xbeg)) deallocate(tp%xbeg)
+         if (allocated(tp%vbeg)) deallocate(tp%vbeg)
+         if (allocated(tp%xend)) deallocate(tp%xend)
          allocate(tp%xbeg, source=pl%xout(:, :, index-1))
          allocate(tp%vbeg, source=pl%vout(:, :, index-1))
          allocate(tp%xend, source=pl%xout(:, :, index-1))
