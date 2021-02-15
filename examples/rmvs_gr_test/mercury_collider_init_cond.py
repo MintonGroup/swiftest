@@ -97,7 +97,7 @@ for key,val in planetid.items():
    Rhill[key] = pdata[key].elements()['a'][0] * (3 * MSun_over_Mpl[key])**(-1.0 / 3.0)
 
 # Make a test particle initially at Mercury's position but with 10% higher velocity
-vfactor = 1.15
+vfactor = 1.00
 tpdata = Horizons(id='1', id_type='majorbody',location='@sun',
             epochs={'start': tstart, 'stop': tend,
             'step': tstep}) 

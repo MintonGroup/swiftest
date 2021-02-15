@@ -41,8 +41,8 @@ GMSun = np.longdouble(GMSunSI / (DU2M**3 / TU2S**2))
 # Simulation start, stop, and output cadence times
 t_0	  = 0 # simulation start time
 deltaT	= 0.25 * JD / TU2S   # simulation step size
-end_sim = 1000 * year  / TU2S # simulation end time
-t_print = year / TU2S #output interval to print results
+end_sim = 500 * year  / TU2S # simulation end time
+t_print = 0.1 * year / TU2S #output interval to print results
 
 # Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
 J2 = np.longdouble(2.198e-7) * (Rsun / DU2M)**2
@@ -192,7 +192,7 @@ if __name__ == '__main__':
    print(f'ISTEP_DUMP    {iout:d}')
    print(f'BIN_OUT       {swifter_bin}')
    print(f'OUT_TYPE      REAL8')
-   print(f'OUT_FORM      XV')
+   print(f'OUT_FORM      EL')
    print(f'OUT_STAT      NEW')
    print(f'J2            {J2}')
    print(f'J4            {J4}')
@@ -291,7 +291,7 @@ if __name__ == '__main__':
    print(f'ISTEP_DUMP     {iout:d}')
    print(f'BIN_OUT        {swiftest_bin}')
    print(f'OUT_TYPE       REAL8')
-   print(f'OUT_FORM       XV')
+   print(f'OUT_FORM       EL')
    print(f'OUT_STAT       REPLACE')
    print(f'CHK_CLOSE      yes')
    print(f'CHK_RMIN       {rmin}')

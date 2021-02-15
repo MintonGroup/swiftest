@@ -82,7 +82,7 @@ swiftest_enc   = "enc.swiftest.dat"
 # Simulation start, stop, and output cadence times
 t_0	  = 0 # simulation start time
 deltaT	= 0.25 * JD / TU2S   # simulation step size
-end_sim = 10 * JD / TU2S # simulation end time
+end_sim = year / TU2S #10 * JD / TU2S # simulation end time
 t_print = deltaT  #output interval to print results
 
 iout = int(np.ceil(t_print / deltaT))
