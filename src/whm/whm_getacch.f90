@@ -46,12 +46,7 @@ contains
          ah(i, 1:npl) = ah0(i) + ah1(i, 1:npl) + ah2(i, 1:npl) + ah3(i, 1:npl)
       end do
 
-      if (j2rp2 /= 0.0_DP) then
-         call self%obl_acc(cb, irh)
-         do i = 1, NDIM
-            ah(i, 1:npl) = ah(i, 1:npl) + aobl(i, 1:npl) - aobl0(i)
-         end do
-      end if
+      if (j2rp2 /= 0.0_DP) call self%obl_acc(cb, irh)
       if (config%lextra_force) call pl%user_getacch(cb, config, t)
       if (config%lgr) call pl%gr_getacch(cb, config) 
 
@@ -103,12 +98,7 @@ contains
          do i = 1, ntp
             aht(:, i) = aht(:, i) + ah0(:)
          end do
-         if (j2rp2 /= 0.0_DP) then
-            call tp%obl_acc(cb, irht)
-            do i = 1, ntp
-               aht(:, i) = aht(:, i) + aoblt(:, i) - aobl0(:)
-            end do
-         end if
+         if (j2rp2 /= 0.0_DP) call tp%obl_acc(cb, irht)
          if (config%lextra_force) call tp%user_getacch(cb, config, t)
          if (config%lgr) call tp%gr_getacch(cb, config) 
       end associate

@@ -14,8 +14,7 @@ contains
       real(DP)     :: rinv2, t0, t1, t2, t3, fac1, fac2
 
       associate(n => self%nbody, aobl => self%aobl, xh => self%xh, j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, &
-                msun => cb%Gmass, aoblcb => cb%aobl)
-         !do concurrent (i = 1:n) 
+                msun => cb%Gmass, aoblcb => cb%aobl, ah => self%ah)
          do i = 1, n 
             rinv2 = irh(i)**2
             t0 = -msun * rinv2 * rinv2 * irh(i)
@@ -35,6 +34,10 @@ contains
                end do
             end associate
          end select
+
+         do i = 1, NDIM
+            ah(i, 1:n) = ah(i, 1:n) + aobl(i, 1:n) - aoblcb(i)
+         end do
       end associate
       return
 
