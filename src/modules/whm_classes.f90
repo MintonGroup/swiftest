@@ -32,6 +32,7 @@ module whm_classes
       real(DP), dimension(:,:), allocatable :: ah1    !! First term of heliocentric acceleration
       real(DP), dimension(:,:), allocatable :: ah2    !! Second term of heliocentric acceleration
       real(DP), dimension(:,:), allocatable :: ah3    !! Third term of heliocentric acceleration
+      real(DP), dimension(:),   allocatable :: ir3j    !! Third term of heliocentric acceleration
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_pl and whm_discard_spill_pl
       logical                               :: lfirst = .true.
@@ -46,6 +47,7 @@ module whm_classes
       procedure, public :: gr_vh2pv     => whm_gr_vh2pv_pl         !! Converts from heliocentric velocity to psudeovelocity for GR calculations
       procedure, public :: gr_pv2vh     => whm_gr_pv2vh_pl         !! Converts from psudeovelocity to heliocentric velocity for GR calculations
       procedure, public :: set_mu       => whm_setup_set_mu_eta_pl !! Sets the Jacobi mass value for all massive bodies.
+      procedure, public :: set_ir3      => whm_setup_set_ir3j     !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
       procedure, public :: step         => whm_step_pl             !! Steps the body forward one stepsize
       procedure, public :: user_getacch => whm_user_getacch_pl     !! User-defined acceleration
       procedure, public :: drift        => whm_drift_pl            !! Loop through massive bodies and call Danby drift routine
@@ -64,6 +66,11 @@ module whm_classes
          class(whm_pl),                intent(inout) :: self    !! Swiftest system object
          class(swiftest_cb),           intent(inout) :: cb     !! WHM central body particle data structure
       end subroutine whm_setup_set_mu_eta_pl
+
+      module subroutine whm_setup_set_ir3j(self)
+         implicit none
+         class(whm_pl),                intent(inout) :: self    !! WHM massive body object
+      end subroutine whm_setup_set_ir3j
 
       module subroutine whm_step_pl(self, cb, config, t, dt)
          implicit none

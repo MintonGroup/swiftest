@@ -10,43 +10,25 @@ contains
    use swiftest
    implicit none
    integer(I4B)                     :: i
-   real(DP), dimension(:), allocatable, save    :: irh, irj, ir3h, ir3j, fac
+   real(DP), dimension(:), allocatable, save    :: fac
    real(DP), dimension(NDIM) :: ah0
    real(DP) :: r2
 
-   associate(pl => self, npl => self%nbody, Gmpl => self%Gmass, xj => self%xj, xh => self%xh, &
-             ah => self%ah, ah1 => self%ah1, ah2 => self%ah2, ah3 => self%ah3, &
-             j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aobl => self%aobl, aobl0 => cb%aobl)
+   associate(pl => self, npl => self%nbody, j2rp2 => cb%j2rp2, &
+      ah1 => self%ah1, ah2 => self%ah2, ah3 => self%ah3, ah => self%ah, &
+      xh => self%xh, xj => self%xj, vh => self%vh, vj => self%vj)
       if (npl == 0) return
-      if (.not. allocated(irj)) allocate(irj(npl))
-      if (.not. allocated(ir3j)) allocate(ir3j(npl))
-      if (.not. allocated(irh)) allocate(irh(npl))
-      if (.not. allocated(ir3h)) allocate(ir3h(npl))
-      if (.not. allocated(fac)) allocate(fac(npl))
-      do i = 1, npl
-         r2 = dot_product(xj(:, i), xj(:, i))
-         irj(i)= 1.0_DP / sqrt(r2)
-         ir3j(i) = irj(i) / r2
+      call pl%set_ir3()
 
-         r2 = dot_product(xh(:, i), xh(:, i))
-         irh(i)= 1.0_DP / sqrt(r2)
-         ir3h(i) = irh(i) / r2
-      end do
-
-      ah0(1) = 0.0_DP
-      fac(2:npl) = Gmpl(2:npl) * ir3h(2:npl)
-      do i = 1, NDIM
-         ah0(i) = -sum(fac(2:npl) * xh(i, 2:npl))
-      end do
-      call whm_getacch_ah1(cb, pl, ir3h, ir3j)
-      call whm_getacch_ah2(cb, pl, ir3j)
+      ah0 = whm_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl))
+      call whm_getacch_ah1(cb, pl, pl%ir3h, pl%ir3j)
+      call whm_getacch_ah2(cb, pl, pl%ir3j)
       call whm_getacch_ah3(pl)
-      
       do i = 1, NDIM
-         ah(i, 1:npl) = ah0(i) + ah1(i, 1:npl) + ah2(i, 1:npl) + ah3(i, 1:npl)
+         pl%ah(i, 1:npl) = ah0(i) + pl%ah1(i, 1:npl) + pl%ah2(i, 1:npl) + pl%ah3(i, 1:npl)
       end do
 
-      if (j2rp2 /= 0.0_DP) call self%obl_acc(cb, irh)
+      if (j2rp2 /= 0.0_DP) call self%obl_acc(cb)
       if (config%lextra_force) call pl%user_getacch(cb, config, t)
       if (config%lgr) call pl%gr_getacch(cb, config) 
 
@@ -65,45 +47,50 @@ contains
       implicit none
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable, save    :: fac
-      real(DP), dimension(:), allocatable, save    :: irh, ir3h
-      real(DP), dimension(:), allocatable, save    :: irht
       real(DP), dimension(NDIM)                    :: ah0
       real(DP)                                     :: r2
    
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody, aht => self%ah, &
-                status => self%status, xht => self%xh, Gmpl => pl%Gmass, &
-                j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, aoblt => self%aobl, aobl0 => cb%aobl)
+      associate(tp => self, ntp => self%nbody, npl => pl%nbody, j2rp2 => cb%j2rp2, aht => self%ah, &
+               ir3h => pl%ir3h, GMpl => pl%Gmass)
          if (ntp == 0 .or. npl == 0) return
-         if(.not.allocated(irh)) allocate(irh(npl))
-         if (.not.allocated(ir3h)) allocate(ir3h(npl))
-         if (.not. allocated(irht)) allocate(irht(ntp))
-         do i = 1, npl
-            r2 = dot_product(xh(:, i), xh(:, i))
-            irh(i)= 1.0_DP / sqrt(r2)
-            ir3h(i) = irh(i) / r2
-         end do
 
-         do i = 1, ntp
-            r2 = dot_product(xht(:, i), xht(:, i))
-            irht(i) = 1.0_DP / sqrt(r2)
-         end do
-
-         ah0(:) = 0.0_DP
-         if(.not.allocated(fac)) allocate(fac(npl))
-         fac(:) = Gmpl(1:npl) * ir3h(1:npl)
-         do i = 1, NDIM
-            ah0(i) = -sum(fac(1:npl) * xh(i, 1:npl))
-         end do
+         ah0 = whm_getacch_ah0(pl%Gmass(:), xh(:,:))
          call whm_getacch_ah3_tp(cb, pl, tp, xh)
          do i = 1, ntp
-            aht(:, i) = aht(:, i) + ah0(:)
+            tp%ah(:, i) = tp%ah(:, i) + ah0(:)
          end do
-         if (j2rp2 /= 0.0_DP) call tp%obl_acc(cb, irht)
+         if (j2rp2 /= 0.0_DP) call tp%obl_acc(cb)
          if (config%lextra_force) call tp%user_getacch(cb, config, t)
          if (config%lgr) call tp%gr_getacch(cb, config) 
       end associate
       return
    end procedure whm_getacch_tp
+
+   pure function whm_getacch_ah0(mu, xh) result(ah0)
+      !! author: David A. Minton
+      !!
+      !! Compute zeroth term heliocentric accelerations of planets 
+      use swiftest
+      implicit none
+      real(DP), dimension(:), intent(in)    :: mu
+      real(DP), dimension(:,:), intent(in)  :: xh
+      real(DP) :: fac, r2, irh, ir3h
+      real(DP), dimension(NDIM) :: ah0
+      integer(I4B) :: i, n
+
+      n = size(mu)
+
+      ah0(:) = 0.0_DP
+      do i = 1, n
+         r2 = dot_product(xh(:, i), xh(:, i))
+         irh = 1.0_DP / sqrt(r2) 
+         ir3h = irh / r2
+         fac = mu(i) * ir3h !/ (norm2(xh(:, i)))**3
+         ah0(:) = ah0(:) - fac * xh(:, i)
+      end do
+
+      return
+   end function whm_getacch_ah0
 
    pure subroutine whm_getacch_ah1(cb, pl, ir3h, ir3j)
       !! author: David A. Minton
@@ -122,7 +109,7 @@ contains
       real(DP), dimension(NDIM) :: ah1h, ah1j
 
       associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
-         !do concurrent (i = 2:npl)
+         ah1(:,:) = 0.0_DP
          do i = 2, npl
             ah1j(:) = xj(:, i) * ir3j(i)
             ah1h(:) = xh(:, i) * ir3h(i)
@@ -133,6 +120,7 @@ contains
       return
    
    end subroutine whm_getacch_ah1
+
 
    pure subroutine whm_getacch_ah2(cb, pl, ir3j) 
       !! author: David A. Minton
@@ -151,7 +139,7 @@ contains
       real(DP)                               :: etaj, fac
    
       associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah2 => pl%ah2, Gmpl => pl%Gmass)
-         ah2(:, 1) = 0.0_DP
+         ah2(:, :) = 0.0_DP
          etaj = Gmsun
          do i = 2, npl
             etaj = etaj + Gmpl(i - 1)

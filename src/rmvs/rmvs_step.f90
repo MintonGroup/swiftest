@@ -153,10 +153,6 @@ contains
                allocate(irh(npl))
                do i = 0, NTPHENC
                   self%xh(:,:) = self%xin(:,:,i) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
-                  do j = 1, npl
-                     irh(j) = 1.0_DP / norm2(self%xh(:, j))
-                  end do
-                  call self%obl_acc(cb, irh)
                   self%aoblin(:,:,i) = self%aobl(:,:) ! Save the oblateness acceleration on the planet for this substep
                end do
                ! Put back the original heliocentric position for the planets

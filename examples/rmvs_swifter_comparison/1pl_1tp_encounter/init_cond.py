@@ -154,6 +154,7 @@ print(f'ENC_OUT        {swifter_enc}')
 print(f'EXTRA_FORCE    no')
 print(f'BIG_DISCARD    no')
 print(f'RHILL_PRESENT  yes')
+sys.stdout = sys.__stdout__
 
 #Now make Swiftest files
 cbfile = FortranFile(swiftest_cb, 'w')
@@ -222,7 +223,6 @@ print(f'DU2M           {DU2M}')
 print(f'TU2S           {TU2S}')
 
 
-sys.stdout = sys.__stdout__
 
 
 

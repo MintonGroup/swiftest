@@ -236,6 +236,7 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: vb         !! Barycentric velocity
       real(DP),     dimension(:,:), allocatable :: ah         !! Total heliocentric acceleration
       real(DP),     dimension(:,:), allocatable :: aobl       !! Barycentric accelerations of bodies due to central body oblatenes
+      real(DP),     dimension(:),   allocatable :: ir3h       !! Inverse heliocentric radius term (1/rh**3)
       real(DP),     dimension(:),   allocatable :: a          !! Semimajor axis (pericentric distance for a parabolic orbit)
       real(DP),     dimension(:),   allocatable :: e          !! Eccentricity
       real(DP),     dimension(:),   allocatable :: inc        !! Inclination
@@ -259,6 +260,7 @@ module swiftest_classes
       procedure, public :: kickvh      => kick_vh_body        !! Kicks the heliocentric velocities
       procedure, public :: obl_acc     => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public :: set_ir3     => setup_set_ir3h      !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure, public :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure, public :: vb2vh       => coord_vb2vh_body    !! Convert velocity vectors from barycentric to heliocentric coordinates 
       procedure, public :: vh2vb       => coord_vh2vb_body    !! Convert velocity vectors from heliocentric to barycentric coordinates 
@@ -354,11 +356,10 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize
       end subroutine kick_vh_body
 
-      module subroutine obl_acc_body(self, cb, irh)
+      module subroutine obl_acc_body(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
-         real(DP), dimension(:),       intent(in)    :: irh  !! Inverse heliocentric radii of bodies
       end subroutine obl_acc_body
 
       module subroutine setup_body(self,n)
@@ -366,6 +367,11 @@ module swiftest_classes
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
          integer,                      intent(in)    :: n    !! Number of particles to allocate space for
       end subroutine setup_body
+
+      module subroutine setup_set_ir3h(self)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
+      end subroutine setup_set_ir3h
 
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none

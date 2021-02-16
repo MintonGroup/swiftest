@@ -69,6 +69,7 @@ contains
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%aobl(NDIM, n))
+      allocate(self%ir3h(n))
       allocate(self%a(n))
       allocate(self%e(n))
       allocate(self%inc(n))
@@ -85,7 +86,8 @@ contains
       self%xb(:,:)   = 0.0_DP
       self%vb(:,:)   = 0.0_DP
       self%ah(:,:)   = 0.0_DP
-      self%aobl(:,:)  = 0.0_DP
+      self%aobl(:,:) = 0.0_DP
+      self%ir3h(:)   = 0.0_DP
       self%a(:)      = 0.0_DP
       self%e(:)      = 0.0_DP
       self%inc(:)    = 0.0_DP
@@ -203,5 +205,28 @@ contains
 
       return
    end procedure setup_set_rhill
+
+   module procedure setup_set_ir3h  
+      !! author: David A. Minton
+      !!
+      !! Sets the inverse heliocentric radius term (1/rh**3) for all bodies in a structure
+      use swiftest
+      implicit none
+
+      integer(I4B) :: i
+      real(DP) :: r2, irh
+
+      if (self%nbody > 0) then
+
+         do i = 1, self%nbody
+            r2 = dot_product(self%xh(:, i), self%xh(:, i))
+            irh = 1.0_DP / sqrt(r2)
+            self%ir3h(i) = irh / r2
+            !self%ir3h(i) = 1.0_DP / (norm2(self%xh(:, i)))**3
+         end do
+      end if
+
+      return
+   end procedure setup_set_ir3h
 
 end submodule setup_implementations

@@ -20,6 +20,7 @@ contains
       allocate(self%ah1(NDIM, n))
       allocate(self%ah2(NDIM, n))
       allocate(self%ah3(NDIM, n))
+      allocate(self%ir3j(n))
 
       self%eta(:)   = 0.0_DP
       self%muj(:)   = 0.0_DP
@@ -28,6 +29,7 @@ contains
       self%ah1(:,:) = 0.0_DP
       self%ah2(:,:) = 0.0_DP
       self%ah3(:,:) = 0.0_DP
+      self%ir3j(:) = 0.0_DP
 
       return
    end procedure whm_setup_pl 
@@ -98,6 +100,28 @@ contains
       end if
 
    end procedure whm_setup_system
+
+   module procedure whm_setup_set_ir3j
+      !! author: David A. Minton
+      !!
+      !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
+      implicit none
+      integer(I4B) :: i
+      real(DP) :: r2, ir
+
+      if (self%nbody > 0) then
+         do i = 1, self%nbody
+            !self%ir3h(i) = 1.0_DP / (norm2(self%xh(:, i)))**3
+            !self%ir3j(i) = 1.0_DP / (norm2(self%xj(:, i)))**3
+            r2 = dot_product(self%xh(:, i), self%xh(:, i))
+            ir = 1.0_DP / sqrt(r2)
+            self%ir3h(i) = ir / r2
+            r2 = dot_product(self%xj(:, i), self%xj(:, i))
+            ir = 1.0_DP / sqrt(r2)
+            self%ir3j(i) = ir / r2
+         end do
+      end if
+   end procedure whm_setup_set_ir3j
 
 
 end submodule s_whm_setup

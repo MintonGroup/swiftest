@@ -32,13 +32,13 @@ GMSun = np.longdouble(GMSunSI / (DU2M**3 / TU2S**2))
 # Simulation start, stop, and output cadence times
 t_0	  = 0 # simulation start time
 deltaT	= 0.25 * JD / TU2S   # simulation step size
-end_sim = 100 * year  / TU2S # simulation end time
-t_print = year / TU2S #output interval to print results
+end_sim = 1 * year  / TU2S # simulation end time
+t_print = deltaT #year / TU2S #output interval to print results
 
 
 # Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
-J2 = np.longdouble(2.198e-7) * (Rsun / DU2M)**2
-J4 = np.longdouble(-4.805e-9) * (Rsun / DU2M)**4
+J2 = 0.0 #np.longdouble(2.198e-7) * (Rsun / DU2M)**2
+J4 = 0.0 #np.longdouble(-4.805e-9) * (Rsun / DU2M)**4
 
 tstart = '2021-01-28'
 tend = '2021-01-29'
@@ -100,7 +100,6 @@ for key,val in planetid.items():
          ])
 
    Rhill[key] = np.longdouble(pdata[key].elements()['a'][0]) * (3 * MSun_over_Mpl[key])**(-THIRDLONG)
-
 
 asteroidid = {
    '100001'  : 'Ceres',
