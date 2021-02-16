@@ -17,18 +17,12 @@ contains
       allocate(self%muj(n))
       allocate(self%xj(NDIM, n))
       allocate(self%vj(NDIM, n))
-      allocate(self%ah1(NDIM, n))
-      allocate(self%ah2(NDIM, n))
-      allocate(self%ah3(NDIM, n))
       allocate(self%ir3j(n))
 
       self%eta(:)   = 0.0_DP
       self%muj(:)   = 0.0_DP
       self%xj(:,:)  = 0.0_DP
       self%vj(:,:)  = 0.0_DP
-      self%ah1(:,:) = 0.0_DP
-      self%ah2(:,:) = 0.0_DP
-      self%ah3(:,:) = 0.0_DP
       self%ir3j(:) = 0.0_DP
 
       return

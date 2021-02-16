@@ -15,18 +15,17 @@ contains
    real(DP) :: r2
 
    associate(pl => self, npl => self%nbody, j2rp2 => cb%j2rp2, &
-      ah1 => self%ah1, ah2 => self%ah2, ah3 => self%ah3, ah => self%ah, &
-      xh => self%xh, xj => self%xj, vh => self%vh, vj => self%vj)
+       ah => self%ah, xh => self%xh, xj => self%xj, vh => self%vh, vj => self%vj)
       if (npl == 0) return
       call pl%set_ir3()
 
       ah0 = whm_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl))
-      call whm_getacch_ah1(cb, pl, pl%ir3h, pl%ir3j)
-      call whm_getacch_ah2(cb, pl, pl%ir3j)
-      call whm_getacch_ah3(pl)
       do i = 1, NDIM
-         pl%ah(i, 1:npl) = ah0(i) + pl%ah1(i, 1:npl) + pl%ah2(i, 1:npl) + pl%ah3(i, 1:npl)
+         pl%ah(i, 1:npl) = ah0(i)
       end do
+      call whm_getacch_ah1(cb, pl) 
+      call whm_getacch_ah2(cb, pl) 
+      call whm_getacch_ah3(pl)
 
       if (j2rp2 /= 0.0_DP) call self%obl_acc(cb)
       if (config%lextra_force) call pl%user_getacch(cb, config, t)
@@ -92,7 +91,7 @@ contains
       return
    end function whm_getacch_ah0
 
-   pure subroutine whm_getacch_ah1(cb, pl, ir3h, ir3j)
+   pure subroutine whm_getacch_ah1(cb, pl)
       !! author: David A. Minton
       !!
       !! Compute first term heliocentric accelerations of planets
@@ -103,17 +102,15 @@ contains
       implicit none
       class(whm_cb), intent(in) :: cb
       class(whm_pl), intent(inout)        :: pl
-      real(DP), dimension(:), intent(in) :: ir3h, ir3j
 
       integer(I4B)              :: i
       real(DP), dimension(NDIM) :: ah1h, ah1j
 
-      associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah1 => pl%ah1)
-         ah1(:,:) = 0.0_DP
+      associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ir3j => pl%ir3j, ir3h => pl%ir3h )
          do i = 2, npl
             ah1j(:) = xj(:, i) * ir3j(i)
             ah1h(:) = xh(:, i) * ir3h(i)
-            ah1(:, i) = msun * (ah1j(:) - ah1h(:))
+            pl%ah(:, i) = pl%ah(:, i) + msun * (ah1j(:) - ah1h(:))
          end do
       end associate
    
@@ -122,7 +119,7 @@ contains
    end subroutine whm_getacch_ah1
 
 
-   pure subroutine whm_getacch_ah2(cb, pl, ir3j) 
+   pure subroutine whm_getacch_ah2(cb, pl)
       !! author: David A. Minton
       !!
       !! Compute second term heliocentric accelerations of planets
@@ -134,17 +131,20 @@ contains
 
       class(whm_cb), intent(in)    :: cb
       class(whm_pl),           intent(inout) :: pl
-      real(DP), dimension(:),  intent(in)    :: ir3j
       integer(I4B)                           :: i
       real(DP)                               :: etaj, fac
+      real(DP), dimension(NDIM)              :: ah2, ah2o
    
-      associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, ah2 => pl%ah2, Gmpl => pl%Gmass)
-         ah2(:, :) = 0.0_DP
+      associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, Gmpl => pl%Gmass, ir3j => pl%ir3j)
+         ah2(:) = 0.0_DP
+         ah2o(:) = 0.0_DP
          etaj = Gmsun
          do i = 2, npl
             etaj = etaj + Gmpl(i - 1)
             fac = Gmpl(i) * Gmsun * ir3j(i) / etaj
-            ah2(:, i) = ah2(:, i - 1) + fac * xj(:, i)
+            ah2(:) = ah2o + fac * xj(:, i)
+            pl%ah(:,i) = pl%ah(:, i) + ah2(:)
+            ah2o(:) = ah2(:)
          end do
       end associate
    
@@ -165,8 +165,10 @@ contains
       integer(I4B)                           :: i, j
       real(DP)                               :: rji2, irij3, faci, facj
       real(DP), dimension(NDIM)              :: dx
+      real(DP), dimension(:,:), allocatable  :: ah3
    
-      associate(npl => pl%nbody, xh => pl%xh, ah3 => pl%ah3, Gmpl => pl%Gmass) 
+      associate(npl => pl%nbody, xh => pl%xh, Gmpl => pl%Gmass) 
+         allocate(ah3, mold=pl%ah)
          ah3(:, 1:npl) = 0.0_DP
 
          do i = 1, npl - 1
@@ -180,6 +182,10 @@ contains
                ah3(:, j) = ah3(:, j) - faci * dx(:)
             end do
          end do
+         do i = 1, NDIM
+            pl%ah(i, 1:npl) = pl%ah(i, 1:npl) + ah3(i, 1:npl)
+         end do
+         deallocate(ah3)
       end associate
    
       return

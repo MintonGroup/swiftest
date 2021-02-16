@@ -29,9 +29,6 @@ module whm_classes
       real(DP), dimension(:,:), allocatable :: xj     !! Jacobi position
       real(DP), dimension(:,:), allocatable :: vj     !! Jacobi velocity
       real(DP), dimension(:),   allocatable :: muj    !! Jacobi mu: GMcb * eta(i) / eta(i - 1) 
-      real(DP), dimension(:,:), allocatable :: ah1    !! First term of heliocentric acceleration
-      real(DP), dimension(:,:), allocatable :: ah2    !! Second term of heliocentric acceleration
-      real(DP), dimension(:,:), allocatable :: ah3    !! Third term of heliocentric acceleration
       real(DP), dimension(:),   allocatable :: ir3j    !! Third term of heliocentric acceleration
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_pl and whm_discard_spill_pl
