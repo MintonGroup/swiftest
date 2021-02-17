@@ -44,7 +44,7 @@ module rmvs_classes
       real(DP),     dimension(:,:), allocatable :: vbeg   !! Planet velocities at beginning ot step
    contains
       procedure, public :: setup             => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
-      procedure, public :: set_beg_end       => rmvs_setup_set_beg_end   
+      procedure, public :: set_beg_end       => rmvs_setup_set_beg_end  !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS
       procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: peri_pass         => rmvs_peri_tp            !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
 

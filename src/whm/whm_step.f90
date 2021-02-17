@@ -11,12 +11,10 @@ contains
       implicit none
 
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
-         if (allocated(tp%xbeg)) deallocate(tp%xbeg)
-         allocate(tp%xbeg, source=pl%xh)
+         call tp%set_beg_end(xbeg = pl%xh)
          call pl%step(cb, config, t, dt)
          if (ntp > 0) then
-            if (allocated(tp%xend)) deallocate(tp%xend)
-            allocate(tp%xend, source=pl%xh)
+            call tp%set_beg_end(xend = pl%xh)
             call tp%step(cb, pl, config, t, dt)
          end if
       end associate
@@ -32,22 +30,25 @@ contains
       !logical, save :: lfirst = .true.
       real(DP) :: dth
       
-      dth = 0.5_DP * dt
-      if (self%lfirst) then
-         call self%h2j(cb)
-         call self%getacch(cb, config, t)
-         self%lfirst = .false.
-      end if
+      associate(pl => self, xh => self%xh, vh => self%vh, ah => self%ah)
+         dth = 0.5_DP * dt
+         if (pl%lfirst) then
+            call pl%h2j(cb)
+            call pl%getacch(cb, config, t)
+            pl%lfirst = .false.
+         end if
 
-      call self%kickvh(dth)
-      call self%vh2vj(cb) 
-      !If GR enabled, calculate the p4 term before and after each drift
-      if (config%lgr) call self%gr_p4(config, dth)
-      call self%drift(cb, config, dt)
-      if (config%lgr) call self%gr_p4(config, dth)
-      call self%j2h(cb)
-      call self%getacch(cb, config, t + dt)
-      call self%kickvh(dth)
+         call pl%kickvh(dth)
+         call pl%vh2vj(cb) 
+         !If GR enabled, calculate the p4 term before and after each drift
+         if (config%lgr) call pl%gr_p4(config, dth)
+         call pl%drift(cb, config, dt)
+         if (config%lgr) call pl%gr_p4(config, dth)
+         call pl%j2h(cb)
+         call pl%getacch(cb, config, t + dt)
+         call pl%kickvh(dth)
+      end associate
+      return
 
    end procedure whm_step_pl
 
@@ -59,18 +60,21 @@ contains
       !! Adapted from Hal Levison's Swift routine step_kdk_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
       real(DP) :: dth
-      dth = 0.5_DP * dt
-      if (self%lfirst) then
-         call self%getacch(cb, pl, config, t, self%xbeg)
-         self%lfirst = .false.
-      end if
-      call self%kickvh(dth)
-      !If GR enabled, calculate the p4 term before and after each drift
-      if (config%lgr) call self%gr_p4(config, dth)
-      call self%drift(cb, config, dt)
-      if (config%lgr) call self%gr_p4(config, dth)
-      call self%getacch(cb, pl, config, t + dt, self%xend)
-      call self%kickvh(dth)
+
+      associate(tp => self, xht => self%xh, vht => self%vh, aht => self%ah)
+         dth = 0.5_DP * dt
+         if (tp%lfirst) then
+            call tp%getacch(cb, pl, config, t, tp%xbeg)
+            tp%lfirst = .false.
+         end if
+         call tp%kickvh(dth)
+         !If GR enabled, calculate the p4 term before and after each drift
+         if (config%lgr) call tp%gr_p4(config, dth)
+         call tp%drift(cb, config, dt)
+         if (config%lgr) call tp%gr_p4(config, dth)
+         call tp%getacch(cb, pl, config, t + dt, tp%xend)
+         call tp%kickvh(dth)
+      end associate
       return
    end procedure whm_step_tp   
 

@@ -172,6 +172,7 @@ module whm_classes
       procedure, public :: gr_vh2pv     => whm_gr_vh2pv_tp     !! Converts from heliocentric velocity to psudeovelocity for GR calculations
       procedure, public :: gr_pv2vh     => whm_gr_pv2vh_tp     !! Converts from psudeovelocity to heliocentric velocity for GR calculations
       procedure, public :: step         => whm_step_tp         !! Steps the particle forward one stepsize
+      procedure, public :: set_beg_end  => whm_setup_set_beg_end     !! Sets the beginning and ending positions of planets.
       procedure, public :: user_getacch => whm_user_getacch_tp !! User-defined acceleration
       procedure, public :: drift        => whm_drift_tp        !! Loop through test particles and call Danby drift routine
 
@@ -213,6 +214,13 @@ module whm_classes
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_tp
+
+      module subroutine whm_setup_set_beg_end(self, xbeg, xend, vbeg)
+         implicit none
+         class(whm_tp),   intent(inout)  :: self !! Swiftest test particle object
+         real(DP), dimension(:,:), optional :: xbeg, xend
+         real(DP), dimension(:,:), optional :: vbeg ! vbeg is an unused variable to keep this method compatible with RMVS
+      end subroutine whm_setup_set_beg_end
       module subroutine whm_user_getacch_tp(self, cb, config, t)
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure

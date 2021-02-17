@@ -16,7 +16,7 @@ contains
       logical                   :: lflag
       logical, save             :: lfirst = .true.
 
-      associate(ntp => self%nbody, npl => pl%nbody)
+      associate(tp => self, ntp => self%nbody, npl => pl%nbody)
          lencounter = .false.
          pl%nenc(:) = 0
          pl%tpenc1P(:) = 0
@@ -26,17 +26,17 @@ contains
             lfirst = .false.
          end if
          do i = 1, ntp
-            if (self%status(i) == ACTIVE) then
-               self%plencP(i) = 0
-               self%tpencP(i) = 0
+            if (tp%status(i) == ACTIVE) then
+               tp%plencP(i) = 0
+               tp%tpencP(i) = 0
                lflag = .false. 
-               xht(:) = self%xh(:, i)
-               vht(:) = self%vh(:, i)
+               xht(:) = tp%xh(:, i)
+               vht(:) = tp%vh(:, i)
 
                do j = 1, npl
                   r2crit = (rts * pl%rhill(j))**2
-                  xr(:) = xht(:) - self%xbeg(:, j)
-                  vr(:) = vht(:) - self%vbeg(:, j)
+                  xr(:) = xht(:) - tp%xbeg(:, j)
+                  vr(:) = vht(:) - tp%vbeg(:, j)
                   lflag = rmvs_chk_ind(xr(:), vr(:), dt, r2crit)
                   if (lflag) then
                         lencounter = .true.
@@ -47,11 +47,11 @@ contains
                         else
                            tpencPindex = pl%tpenc1P(j)
                            do k = 2, nenc - 1
-                              tpencPindex = self%tpencP(tpencPindex)
+                              tpencPindex = tp%tpencP(tpencPindex)
                            end do
-                           self%tpencP(tpencPindex) = i
+                           tp%tpencP(tpencPindex) = i
                         end if
-                        self%plencP(i) = j
+                        tp%plencP(i) = j
                         exit
                   end if
                end do

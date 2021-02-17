@@ -118,4 +118,25 @@ contains
    end procedure whm_setup_set_ir3j
 
 
+   module procedure whm_setup_set_beg_end
+      !! author: David A. Minton
+      !! 
+      !! Sets one or more of the values of xbeg and xend
+      use swiftest
+      implicit none
+
+      if (present(xbeg)) then
+         if (allocated(self%xbeg)) deallocate(self%xbeg)
+         allocate(self%xbeg, source=xbeg)
+      end if
+      if (present(xend)) then
+         if (allocated(self%xend)) deallocate(self%xend)
+         allocate(self%xend, source=xend)
+      end if
+
+      return
+
+   end procedure whm_setup_set_beg_end
+
+
 end submodule s_whm_setup

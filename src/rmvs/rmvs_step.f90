@@ -155,6 +155,8 @@ contains
                   call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .true., 0, nenc, i, config) 
          ! now step the encountering test particles fully through the inner encounter
                   lfirsttp = .true.
+                 
+                  associate(xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah)
                   do j = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
                      pl%tpenc(i)%lfirst = .true.
                      call pl%tpenc(i)%set_beg_end(xbeg = pl%plenc(i,j-1)%xh, xend = pl%plenc(i,j)%xh )
@@ -162,6 +164,7 @@ contains
                      time = config%t + j * dti
                      call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .false., j, nenc, i, config) 
                   end do
+                  end associate
 
                end if
             end do
@@ -283,6 +286,7 @@ contains
                   link = tp%tpencP(link)
                end do
             end do
+      
       
             deallocate(pl%tpenc)
             deallocate(pl%cbenc)
