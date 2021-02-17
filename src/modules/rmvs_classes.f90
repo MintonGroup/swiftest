@@ -71,12 +71,13 @@ module rmvs_classes
       !!    component list, such as rmvs_setup_pl and rmvs_discard_spill_pl
       contains
       procedure, public :: setup           => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
-      procedure, public :: setup_encounter => rmvs_setup_encounter !! Creates encountering test particle structure for the planets
-      procedure, public :: destruct_encounter => rmvs_destruct_encounter !! Creates encountering test particle structure for the planets
+      procedure, public :: make_planetocentric  => rmvs_step_make_planetocentric !! Creates encountering test particle structure for the planets
+      procedure, public :: end_planetocentric => rmvs_step_end_planetocentric  !! Creates encountering test particle structure for the planets
       procedure, public :: interp_in       => rmvs_interp_in   !! Interpolate planet positions between two Keplerian orbits in inner encounter region
       procedure, public :: interp_out      => rmvs_interp_out  !! Interpolate planet positions between two Keplerian orbits in outer encounter region
       procedure, public :: step_in         => rmvs_step_in_pl  !! Step active test particles ahead in the inner encounter region with planets   
       procedure, public :: step_out        => rmvs_step_out    !! Step active test particles ahead in the outer encounter region with planets
+      procedure, public :: obl_acc_in     => rmvs_step_in_obl_acc  !! Compute the oblateness acceleration in the inner encounter region with planets 
    end type rmvs_pl
 
    !********************************************************************************************************************************
@@ -92,6 +93,12 @@ module rmvs_classes
    
 
    interface
+
+      module subroutine rmvs_step_in_obl_acc(self, cb)
+         implicit none
+         class(rmvs_pl),        intent(inout) :: self !! Swiftest generic body object
+         class(rmvs_cb),           intent(inout) :: cb   !! Swiftest central body object
+      end subroutine rmvs_step_in_obl_acc
       module subroutine rmvs_setup_system(self, config)
          implicit none
          class(rmvs_nbody_system),      intent(inout) :: self    !! Swiftest system object
@@ -104,12 +111,18 @@ module rmvs_classes
          integer,         intent(in)    :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_pl
 
-      module subroutine rmvs_setup_encounter(self, cb, tp)
+      module subroutine rmvs_step_make_planetocentric(self, cb, tp)
          implicit none
          class(rmvs_pl),   intent(inout)  :: self !! Swiftest test particle object
          class(rmvs_cb),   intent(in)     :: cb   !! RMVS central body particle type
          class(rmvs_tp),   intent(in)     :: tp   !! RMVS test particle object
-      end subroutine rmvs_setup_encounter
+      end subroutine rmvs_step_make_planetocentric
+
+      module subroutine rmvs_step_end_planetocentric(self, tp)
+         implicit none
+         class(rmvs_pl),   intent(inout)  :: self !! Swiftest test particle object
+         class(rmvs_tp),   intent(inout)  :: tp   !! RMVS test particle object
+      end subroutine rmvs_step_end_planetocentric
 
       module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
          implicit none
@@ -117,10 +130,10 @@ module rmvs_classes
          real(DP), dimension(:,:), optional :: xbeg, xend, vbeg
       end subroutine rmvs_setup_set_beg_end
 
-      module subroutine rmvs_destruct_encounter(self)
+      module subroutine rmvs_destruct_planetocentric_encounter(self)
          implicit none
          class(rmvs_pl),   intent(inout)  :: self !! Swiftest test particle object
-      end subroutine rmvs_destruct_encounter
+      end subroutine rmvs_destruct_planetocentric_encounter
 
       module subroutine rmvs_interp_in(self, cb, dt)
          implicit none

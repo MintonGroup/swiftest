@@ -59,7 +59,6 @@ contains
       !! Adapted from Hal Levison's Swift routine step_kdk_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
       real(DP) :: dth
-      associate(xht => self%xh, vht => self%vh, aht =>self%ah) 
       dth = 0.5_DP * dt
       if (self%lfirst) then
          call self%getacch(cb, pl, config, t, self%xbeg)
@@ -72,7 +71,6 @@ contains
       if (config%lgr) call self%gr_p4(config, dth)
       call self%getacch(cb, pl, config, t + dt, self%xend)
       call self%kickvh(dth)
-      end associate
       return
    end procedure whm_step_tp   
 
