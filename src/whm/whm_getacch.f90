@@ -54,10 +54,10 @@ contains
          if (ntp == 0 .or. npl == 0) return
 
          ah0 = whm_getacch_ah0(pl%Gmass(:), xh(:,:))
-         call whm_getacch_ah3_tp(cb, pl, tp, xh)
          do i = 1, ntp
-            tp%ah(:, i) = tp%ah(:, i) + ah0(:)
+            tp%ah(:, i) = ah0(:)
          end do
+         call whm_getacch_ah3_tp(cb, pl, tp, xh)
          if (j2rp2 /= 0.0_DP) call tp%obl_acc(cb)
          if (config%lextra_force) call tp%user_getacch(cb, config, t)
          if (config%lgr) call tp%gr_getacch(cb, config) 
@@ -212,7 +212,6 @@ contains
                   xht => tp%xh, aht => tp%ah)
    
          if (ntp == 0) return
-         aht(:,:) = 0.0_DP
          do i = 1, ntp
             do j = 1, npl
                dx(:) = xht(:, i) - xh(:, j)
