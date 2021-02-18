@@ -9,8 +9,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_step.f90
       use swiftest
       implicit none
-      logical, save :: lfirst = .true.
-      logical :: lencounter
+      logical :: lencounter, lfirstpl, lfirsttp 
       real(DP) :: rts
       real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
  
@@ -24,6 +23,8 @@ contains
          rts = RHSCALE
          lencounter = tp%encounter_check(cb, pl, dt, rts)
          if (lencounter) then
+            lfirstpl = pl%lfirst
+            lfirsttp = tp%lfirst
             pl%xout(:,:,0) = tp%xbeg(:,:)
             pl%vout(:,:,0) = tp%vbeg(:,:)
             call pl%step(cb, config, t, dt) 
@@ -37,6 +38,8 @@ contains
             tp%lfirst = .true.
             call tp%step(cb, pl, config, t, dt)
             call tp%reverse_status()
+            pl%lfirst = lfirstpl
+            tp%lfirst = lfirsttp
          else
             call whm_step_system(cb, pl, tp, config)
          end if
@@ -191,9 +194,9 @@ contains
             allocate(xh_original, source=pl%xh)
             do i = 0, NTPHENC
                pl%xh(:,:) = pl%xin(:,:,i) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
+               call pl%obl_acc(cb)
                pl%aoblin(:,:,i) = pl%aobl(:,:) ! Save the oblateness acceleration on the planet for this substep
             end do
-            call self%obl_acc(cb)
          ! Put back the original heliocentric position for the planets
             pl%xh(:,:) = xh_original(:,:)
             deallocate(xh_original)
