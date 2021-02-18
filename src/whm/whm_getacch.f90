@@ -118,7 +118,6 @@ contains
    
    end subroutine whm_getacch_ah1
 
-
    pure subroutine whm_getacch_ah2(cb, pl)
       !! author: David A. Minton
       !!
@@ -212,14 +211,19 @@ contains
                   xht => tp%xh, aht => tp%ah)
    
          if (ntp == 0) return
+         acc(:) = 0.0_DP
          do i = 1, ntp
             do j = 1, npl
-               dx(:) = xht(:, i) - xh(:, j)
+               dx(:) = tp%xh(:, i) - xh(:, j)
                rji2 = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = Gmpl(j) * irij3
-               aht(:, i) = aht(:, i) - fac * dx(:)
+               fac = pl%gmass(j) * irij3
+               acc(:) = acc(:) - fac * dx(:)
+               !tp%ah(:, i) = tp%ah(:, i) - fac * dx(:)
             end do
+         end do
+         do i = 1, NDIM
+            tp%ah(i, 1:ntp) = tp%ah(i, 1:ntp) + acc(i)
          end do
       end associate
       return

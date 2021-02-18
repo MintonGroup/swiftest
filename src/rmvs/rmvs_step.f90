@@ -148,7 +148,7 @@ contains
    
          dti = dt / NTPHENC
          associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh)
-            if (cb%j2rp2 /= 0.0_DP) call pl%obl_acc_in(cb)
+            if (config%loblatecb) call pl%obl_acc_in(cb)
             call pl%make_planetocentric(cb, tp)
             do i = 1, npl
                nenc = pl%nenc(i) 
@@ -161,10 +161,11 @@ contains
          ! now step the encountering test particles fully through the inner encounter
                   lfirsttp = .true.
                  
-                  associate(xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah)
+                  associate(xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah, aoblcb =>pl%cbenc(i)%aobl)
                   do j = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
                      pl%tpenc(i)%lfirst = .true.
-                     call pl%tpenc(i)%set_beg_end(xbeg = pl%plenc(i,j-1)%xh, xend = pl%plenc(i,j)%xh )
+                     call pl%tpenc(i)%set_beg_end(xbeg = pl%plenc(i,j-1)%xh, xend = pl%plenc(i,j)%xh)
+                     if (config%loblatecb) pl%tpenc(i)%cb%aobl(:) = pl%aoblin(:,i,j) 
                      call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i,j), config, time, dti)
                      do k = 1, NDIM
                         pl%tpenc(i)%xheliocen(k,:) = pl%tpenc(i)%xh(k,:) + pl%xin(k, i, j)
@@ -184,55 +185,6 @@ contains
    
       end procedure rmvs_step_in_pl
 
-      module procedure rmvs_step_in_obl_acc
-         !! author: David A. Minton
-         !!
-         !! Compute the oblateness acceleration in the inner encounter region with planets 
-         !! 
-   
-         use swiftest
-         implicit none
-         integer(I4B) :: i
-         real(DP), dimension(:, :), allocatable       :: xh_original 
-
-         associate(pl => self)
-            allocate(xh_original, source=pl%xh)
-            do i = 0, NTPHENC
-               pl%xh(:,:) = pl%xin(:,:,i) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
-               call pl%obl_acc(cb)
-               pl%aoblin(:,:,i) = pl%aobl(:,:) ! Save the oblateness acceleration on the planet for this substep
-            end do
-         ! Put back the original heliocentric position for the planets
-            pl%xh(:,:) = xh_original(:,:)
-            deallocate(xh_original)
-         end associate
-   
-         return
-      end procedure rmvs_step_in_obl_acc
-
-      module procedure rmvs_obl_acc_tp
-         !! author: David A. Minton
-         !!
-         !! During a close encounter, the encountering planet and Sun are swapped. This subroutine ensures that the coorrect
-         !! solar oblateness acceleration term is computed
-         !! 
-         implicit none
-         real(DP), dimension(:,:), allocatable :: xh
-
-         associate(tp => self)
-            if (tp%lenc) then ! This is a close encounter body, so 
-               allocate(xh, source=tp%xh)
-               tp%xh(:,:) = tp%xheliocen(:,:)
-               call obl_acc_body(tp, tp%cb)
-               tp%xh(:,:) = xh(:,:)
-               deallocate(xh)
-            else
-               call obl_acc_body(tp, cb)
-            end if
-         end associate
-
-         return
-      end procedure rmvs_obl_acc_tp
 
       module procedure rmvs_step_make_planetocentric
          !! author: David A. Minton

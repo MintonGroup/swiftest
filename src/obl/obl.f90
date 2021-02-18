@@ -11,14 +11,16 @@ contains
       use swiftest
       implicit none
       integer(I4B) :: i
-      real(DP)     :: irh, rinv2, t0, t1, t2, t3, fac1, fac2
+      real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
 
       associate(n => self%nbody, aobl => self%aobl, xh => self%xh, j2rp2 => cb%j2rp2, j4rp4 => cb%j4rp4, &
                 msun => cb%Gmass, aoblcb => cb%aobl, ah => self%ah)
          do i = 1, n 
-            irh = 1.0_DP / norm2(xh(:,i))
+            r2 = dot_product(xh(:, i), xh(:, i))
+            irh = 1.0_DP / sqrt(r2)
+            !irh = 1.0_DP / norm2(xh(:,i))
             rinv2 = irh**2
-            t0 = -msun * rinv2**2 * irh
+            t0 = -msun * rinv2*rinv2*irh
             t1 = 1.5_DP * j2rp2
             t2 = xh(3, i) * xh(3, i) * rinv2
             t3 = 1.875_DP * j4rp4 * rinv2

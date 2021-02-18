@@ -71,14 +71,14 @@ module rmvs_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as rmvs_setup_pl and rmvs_discard_spill_pl
       contains
-      procedure, public :: setup           => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
-      procedure, public :: make_planetocentric  => rmvs_step_make_planetocentric !! Creates encountering test particle structure for the planets
-      procedure, public :: end_planetocentric => rmvs_step_end_planetocentric  !! Creates encountering test particle structure for the planets
-      procedure, public :: interp_in       => rmvs_interp_in   !! Interpolate planet positions between two Keplerian orbits in inner encounter region
-      procedure, public :: interp_out      => rmvs_interp_out  !! Interpolate planet positions between two Keplerian orbits in outer encounter region
-      procedure, public :: step_in         => rmvs_step_in_pl  !! Step active test particles ahead in the inner encounter region with planets   
-      procedure, public :: step_out        => rmvs_step_out    !! Step active test particles ahead in the outer encounter region with planets
-      procedure, public :: obl_acc_in     => rmvs_step_in_obl_acc  !! Compute the oblateness acceleration in the inner encounter region with planets 
+      procedure, public :: setup               => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
+      procedure, public :: make_planetocentric => rmvs_step_make_planetocentric !! Creates encountering test particle structure for the planets
+      procedure, public :: end_planetocentric  => rmvs_step_end_planetocentric  !! Creates encountering test particle structure for the planets
+      procedure, public :: interp_in           => rmvs_interp_in   !! Interpolate planet positions between two Keplerian orbits in inner encounter region
+      procedure, public :: interp_out          => rmvs_interp_out  !! Interpolate planet positions between two Keplerian orbits in outer encounter region
+      procedure, public :: step_in             => rmvs_step_in_pl  !! Step active test particles ahead in the inner encounter region with planets   
+      procedure, public :: step_out            => rmvs_step_out    !! Step active test particles ahead in the outer encounter region with planets
+      procedure, public :: obl_acc_in          => rmvs_obl_acc_in  !! Compute the oblateness acceleration in the inner encounter region with planets 
    end type rmvs_pl
 
    !********************************************************************************************************************************
@@ -92,18 +92,16 @@ module rmvs_classes
       procedure, public :: initialize    => rmvs_setup_system  !! Performs RMVS-specific initilization steps, like calculating the Jacobi masses
    end type rmvs_nbody_system
    
-
    interface
-
-      module subroutine rmvs_step_in_obl_acc(self, cb)
+      module subroutine rmvs_obl_acc_in(self, cb)
          implicit none
          class(rmvs_pl),        intent(inout) :: self !! RMVS massive body object
          class(rmvs_cb),        intent(inout) :: cb   !! Swiftest central body object
-      end subroutine rmvs_step_in_obl_acc
+      end subroutine rmvs_obl_acc_in
 
       module subroutine rmvs_obl_acc_tp(self, cb)
          implicit none
-         class(rmvs_tp),         intent(inout) :: self !! RMVS test tparticle object
+         class(rmvs_tp),         intent(inout) :: self !! RMVS test particle object
          class(swiftest_cb),     intent(inout) :: cb   !! RMVS central body object
       end subroutine rmvs_obl_acc_tp
       module subroutine rmvs_setup_system(self, config)

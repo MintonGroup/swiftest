@@ -162,6 +162,7 @@ module whm_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_tp and whm_discard_spill_tp
       real(DP), dimension(:,:), allocatable :: xbeg, xend
+      logical                               :: beg
       logical                               :: lfirst = .true.
    contains
       private
@@ -219,7 +220,7 @@ module whm_classes
          implicit none
          class(whm_tp),   intent(inout)  :: self !! Swiftest test particle object
          real(DP), dimension(:,:), optional :: xbeg, xend
-         real(DP), dimension(:,:), optional :: vbeg ! vbeg is an unused variable to keep this method compatible with RMVS
+         real(DP), dimension(:,:), optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
       end subroutine whm_setup_set_beg_end
       module subroutine whm_user_getacch_tp(self, cb, config, t)
          implicit none
