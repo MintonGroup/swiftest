@@ -162,9 +162,9 @@ contains
                   lfirsttp = .true.
                  
                   associate(index => pl%tpenc(i)%index, &
-                     xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah, aoblcb =>pl%cbenc(i)%aobl)
+                     xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah)
+                     pl%tpenc(i)%lfirst = .true.
                      do index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
-                        pl%tpenc(i)%lfirst = .true.
                         call pl%tpenc(i)%set_beg_end(xbeg = pl%plenc(i,index - 1)%xh, xend = pl%plenc(i, index)%xh)
                         call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i, index), config, time, dti)
                         do j = 1, NDIM
