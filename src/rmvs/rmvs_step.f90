@@ -61,8 +61,8 @@ contains
       type(rmvs_pl)      :: rmvs_plep
 
    ! executable code
-      dto = dt / NTENC
       associate(pl => self, npl => self%nbody, ntp => tp%nbody, t => config%t, xht => tp%xh, vht => tp%vh)
+         dto = dt / NTENC
          where(tp%plencp(:) == 0)
             tp%status(:) = INACTIVE
          elsewhere  
@@ -99,7 +99,7 @@ contains
          use swiftest
          implicit none
    
-         logical, save   :: lmalloc = .true.
+         logical         :: lfirsttp
          integer(I4B)    :: i
          real(DP)        :: rts
          logical         :: lencounter
@@ -119,8 +119,10 @@ contains
                pl%vin(:,:,NTPHENC) = pl%vout(:, :, index)
                call pl%interp_in(cb, dt)
                call pl%step_in(cb, tp, config, dt)
+               lfirsttp = tp%lfirst
                tp%lfirst = .true.
                call tp%step(cb, pl, config, t, dt)
+               tp%lfirst = lfirsttp
             else
                call tp%step(cb, pl, config, t, dt)
             end if
