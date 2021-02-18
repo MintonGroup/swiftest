@@ -166,6 +166,9 @@ contains
                      pl%tpenc(i)%lfirst = .true.
                      call pl%tpenc(i)%set_beg_end(xbeg = pl%plenc(i,j-1)%xh, xend = pl%plenc(i,j)%xh )
                      call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i,j), config, time, dti)
+                     do k = 1, NDIM
+                        pl%tpenc(i)%xheliocen(k,:) = pl%tpenc(i)%xh(k,:) + pl%xin(k, i, j)
+                     end do
                      time = config%t + j * dti
                      call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .false., j, nenc, i, config) 
                   end do
@@ -207,6 +210,30 @@ contains
          return
       end procedure rmvs_step_in_obl_acc
 
+      module procedure rmvs_obl_acc_tp
+         !! author: David A. Minton
+         !!
+         !! During a close encounter, the encountering planet and Sun are swapped. This subroutine ensures that the coorrect
+         !! solar oblateness acceleration term is computed
+         !! 
+         implicit none
+         real(DP), dimension(:,:), allocatable :: xh
+
+         associate(tp => self)
+            if (tp%lenc) then ! This is a close encounter body, so 
+               allocate(xh, source=tp%xh)
+               tp%xh(:,:) = tp%xheliocen(:,:)
+               call obl_acc_body(tp, tp%cb)
+               tp%xh(:,:) = xh(:,:)
+               deallocate(xh)
+            else
+               call obl_acc_body(tp, cb)
+            end if
+         end associate
+
+         return
+      end procedure rmvs_obl_acc_tp
+
       module procedure rmvs_step_make_planetocentric
          !! author: David A. Minton
          !!
@@ -221,10 +248,14 @@ contains
             allocate(pl%tpenc(npl))
             allocate(pl%plenc(npl, 0:NTPHENC))
             allocate(pl%cbenc(npl))
+            pl%tpenc%lenc = .true.
+            pl%tpenc%cb = cb ! Save the central body object
             do i = 1, npl
                if (nenc(i) > 0) then
                   ! There are inner encounters with this planet...first make the planet a central body
                   pl%cbenc(i)%Gmass = pl%Gmass(i)
+                  pl%cbenc(i)%j2rp2 = cb%j2rp2
+                  pl%cbenc(i)%j4rp4 = cb%j4rp4
    
                   ! Next create an encountering test particle structure
                   call pl%tpenc(i)%setup(nenc(i))  
@@ -232,6 +263,7 @@ contains
                   do j = 1, nenc(i)
                      pl%tpenc(i)%name(j) = tp%name(link)
                      pl%tpenc(i)%status(j) = tp%status(link)
+                     pl%tpenc(i)%xheliocen(:, j) = tp%xh(:, link)
                      pl%tpenc(i)%xh(:, j) = tp%xh(:, link) - pl%xin(:, i, 0)
                      pl%tpenc(i)%vh(:, j) = tp%vh(:, link) - pl%vin(:, i, 0)
                      link = tp%tpencP(link)

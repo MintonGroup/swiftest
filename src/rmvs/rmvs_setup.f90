@@ -19,7 +19,6 @@ contains
       allocate(self%vout(NDIM, n, 0:NTENC))
       allocate(self%xin(NDIM, n, 0:NTPHENC))
       allocate(self%vin(NDIM, n, 0:NTPHENC))
-      allocate(self%xpc(NDIM, n, 0:NTPHENC))
       allocate(self%aoblin(NDIM, n, 0:NTPHENC))
 
       self%nenc       = 0
@@ -28,7 +27,6 @@ contains
       self%vout(:,:,:)  = 0.0_DP
       self%xin(:,:,:)  = 0.0_DP
       self%vin(:,:,:)  = 0.0_DP
-      self%xpc(:,:,:)   = 0.0_DP
       self%aoblin(:,:,:)   = 0.0_DP
 
       return
@@ -48,17 +46,13 @@ contains
       if (n <= 0) return
 
       allocate(self%lperi(n))
-      allocate(self%xpc(NDIM, n))
-      allocate(self%vpc(NDIM, n))
-      allocate(self%apc(NDIM, n))
+      allocate(self%xheliocen(NDIM, n))
       allocate(self%plperP(n))
       allocate(self%plencP(n))
       allocate(self%tpencP(n))
 
       self%lperi(:)  = .false.
-      self%xpc(:,:)  = 0.0_DP
-      self%vpc(:,:)  = 0.0_DP
-      self%apc(:,:)  = 0.0_DP
+      self%xheliocen(:,:)  = 0.0_DP
       self%plperP(:) = 0
       self%plencP(:) = 0
       self%tpencP(:) = 0

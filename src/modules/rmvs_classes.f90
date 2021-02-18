@@ -34,10 +34,10 @@ module rmvs_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as rmvs_setup_tp and rmvs_discard_spill_tp
       ! encounter steps)
+      logical                                   :: lenc = .false.   !! Flag that indicates that the object is a planetocentric close encounter set of test particles
+      type(rmvs_cb)                             :: cb     !! Copy of original central body object passed to close encounter (used for oblateness acceleration during planetocentric encoountters)
       logical,      dimension(:),   allocatable :: lperi  !! planetocentric pericenter passage flag (persistent for a full rmvs time step) over a full RMVS time step)
-      real(DP),     dimension(:,:), allocatable :: xpc    !! planetocentric position
-      real(DP),     dimension(:,:), allocatable :: vpc    !! planetocentric velocity
-      real(DP),     dimension(:,:), allocatable :: apc    !! total planetocentric acceleration
+      real(DP),     dimension(:,:), allocatable :: xheliocen !! original heliocentric position (used for oblateness calculation during close encounters)
       integer(I4B), dimension(:),   allocatable :: plperP !! index of planet associated with pericenter distance peri (persistent over a full RMVS time step)
       integer(I4B), dimension(:),   allocatable :: plencP !! index of planet that test particle is encountering (not persistent for a full RMVS time step)
       integer(I4B), dimension(:),   allocatable :: tpencP !! index of next test particle encountering planet
@@ -47,6 +47,8 @@ module rmvs_classes
       procedure, public :: set_beg_end       => rmvs_setup_set_beg_end  !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS
       procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: peri_pass         => rmvs_peri_tp            !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
+      procedure, public :: obl_acc           => rmvs_obl_acc_tp         !!  Calculates either the standard or modified version of the oblateness acceleration depending if the
+                                                                        !! if the test particle is undergoing a close encounter or not
 
    end type rmvs_tp
 
@@ -62,7 +64,6 @@ module rmvs_classes
       real(DP),     dimension(:, :, :),  allocatable :: vout   !! interpolated heliocentric planet velocity for outer encounter
       real(DP),     dimension(:, :, :),  allocatable :: xin    !! interpolated heliocentric planet position for inner encounter
       real(DP),     dimension(:, :, :),  allocatable :: vin    !! interpolated heliocentric planet velocity for inner encounter
-      real(DP),     dimension(:, :, :),  allocatable :: xpc    !! interpolated planetocentric planet position for inner encounter
       real(DP),     dimension(:, :, :),  allocatable :: aoblin !! barycentric acceleration due to central body oblateness during inner encounter
       type(rmvs_tp), dimension(:),       allocatable :: tpenc  !! array of encountering test particles with this planet
       type(whm_pl) , dimension(:, :),    allocatable :: plenc  !! array of massive bodies that includes the Sun, but not the encountering planet
@@ -96,9 +97,15 @@ module rmvs_classes
 
       module subroutine rmvs_step_in_obl_acc(self, cb)
          implicit none
-         class(rmvs_pl),        intent(inout) :: self !! Swiftest generic body object
-         class(rmvs_cb),           intent(inout) :: cb   !! Swiftest central body object
+         class(rmvs_pl),        intent(inout) :: self !! RMVS massive body object
+         class(rmvs_cb),        intent(inout) :: cb   !! Swiftest central body object
       end subroutine rmvs_step_in_obl_acc
+
+      module subroutine rmvs_obl_acc_tp(self, cb)
+         implicit none
+         class(rmvs_tp),         intent(inout) :: self !! RMVS test tparticle object
+         class(swiftest_cb),     intent(inout) :: cb   !! RMVS central body object
+      end subroutine rmvs_obl_acc_tp
       module subroutine rmvs_setup_system(self, config)
          implicit none
          class(rmvs_nbody_system),      intent(inout) :: self    !! Swiftest system object
