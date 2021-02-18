@@ -7,7 +7,7 @@ module whm_classes
    use swiftest_classes
    implicit none
    private
-   public :: whm_setup_pl, whm_setup_tp, whm_setup_system, whm_step_system, whm_discard_spill
+   public :: whm_setup_pl, whm_setup_tp, whm_setup_system, whm_step_system, whm_discard_spill, whm_getacch_tp
 
    !********************************************************************************************************************************
    ! whm_cb class definitions and method interfaces
@@ -46,7 +46,7 @@ module whm_classes
       procedure, public :: set_mu       => whm_setup_set_mu_eta_pl !! Sets the Jacobi mass value for all massive bodies.
       procedure, public :: set_ir3      => whm_setup_set_ir3j     !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
       procedure, public :: step         => whm_step_pl             !! Steps the body forward one stepsize
-      procedure, public :: user_getacch => whm_user_getacch_pl     !! User-defined acceleration
+      procedure, public :: user_getacch => whm_user_getacch_pl     !! n
       procedure, public :: drift        => whm_drift_pl            !! Loop through massive bodies and call Danby drift routine
    end type whm_pl
 
@@ -73,7 +73,7 @@ module whm_classes
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structure
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_pl
@@ -83,7 +83,7 @@ module whm_classes
          implicit none
          class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
          class(whm_cb),                 intent(inout) :: cb       !! WHM central body particle data structure
-         class(swiftest_configuration), intent(in)    :: config   !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
          real(DP),                      intent(in)    :: t        !! Current time
       end subroutine whm_getacch_pl
 
@@ -91,7 +91,7 @@ module whm_classes
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structur
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_pl
 
@@ -104,7 +104,7 @@ module whm_classes
       module subroutine whm_user_getacch_pl(self, cb, config, t)
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: t      !! Current time
       end subroutine whm_user_getacch_pl
 
@@ -130,26 +130,26 @@ module whm_classes
          implicit none
          class(whm_pl),       intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_cb),  intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       end subroutine whm_gr_getacch_pl
 
       module pure subroutine whm_gr_p4_pl(self, config, dt)
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
          real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine whm_gr_p4_pl
 
       module pure subroutine whm_gr_vh2pv_pl(self, config)
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       end subroutine whm_gr_vh2pv_pl
 
       module pure subroutine whm_gr_pv2vh_pl(self, config)
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       end subroutine whm_gr_pv2vh_pl
    end interface
 
@@ -174,7 +174,7 @@ module whm_classes
       procedure, public :: gr_pv2vh     => whm_gr_pv2vh_tp     !! Converts from psudeovelocity to heliocentric velocity for GR calculations
       procedure, public :: step         => whm_step_tp         !! Steps the particle forward one stepsize
       procedure, public :: set_beg_end  => whm_setup_set_beg_end     !! Sets the beginning and ending positions of planets.
-      procedure, public :: user_getacch => whm_user_getacch_tp !! User-defined acceleration
+      procedure, public :: user_getacch => whm_user_getacch_tp !! n
       procedure, public :: drift        => whm_drift_tp        !! Loop through test particles and call Danby drift routine
 
    end type whm_tp
@@ -191,7 +191,7 @@ module whm_classes
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_tp
 
@@ -201,9 +201,9 @@ module whm_classes
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree 
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
-         real(DP),                      intent(in)    :: t         !! Current time
-         real(DP), dimension(:,:),      intent(in)    :: xh
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+         real(DP),                      intent(in)    :: t      !! Current time
+         real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
       end subroutine whm_getacch_tp
 
       module subroutine whm_step_tp(self, cb, pl, config, t, dt)
@@ -211,7 +211,7 @@ module whm_classes
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structure
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_tp
@@ -226,7 +226,7 @@ module whm_classes
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(whm_cb),       intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(in)    :: config    !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config    !! Input collection of 
          real(DP),                      intent(in)    :: t         !! Current time
       end subroutine whm_user_getacch_tp
 
@@ -234,26 +234,26 @@ module whm_classes
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined parameter
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       end subroutine whm_gr_getacch_tp
 
       module pure subroutine whm_gr_p4_tp(self, config, dt)
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
          real(DP),                      intent(in)    :: dt     !! Step size
       end subroutine whm_gr_p4_tp
 
       module pure subroutine whm_gr_vh2pv_tp(self, config)
          implicit none
          class(whm_tp),                 intent(inout)    :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       end subroutine whm_gr_vh2pv_tp
 
       module pure subroutine whm_gr_pv2vh_tp(self, config)
          implicit none
          class(whm_tp),                 intent(inout)    :: self   !! Swiftest particle object
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       end subroutine whm_gr_pv2vh_tp
    end interface
 
@@ -275,7 +275,7 @@ module whm_classes
       module subroutine whm_setup_system(self, config)
          implicit none
          class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(inout) :: config  !! Input collection of on parameters 
       end subroutine whm_setup_system
 
    end interface
@@ -296,7 +296,7 @@ module whm_classes
          class(whm_cb),            intent(inout) :: cb      !! WHM central body object  
          class(whm_pl),            intent(inout) :: pl      !! WHM central body object  
          class(whm_tp),            intent(inout) :: tp      !! WHM central body object  
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of on parameters 
       end subroutine whm_step_system
    end interface
 

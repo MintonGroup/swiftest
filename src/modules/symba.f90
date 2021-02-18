@@ -457,7 +457,7 @@ interface
       implicit none
       type(symba_pl), intent(inout) :: symba_plA  !! SyMBA massive body structure
       type(symba_tp), intent(inout) :: symba_tpA  !! SyMBA test particle structure
-      type(swiftest_configuration)  :: config     !! Input collection of user-defined configuration parameters
+      type(swiftest_configuration)  :: config     !! Input collection of on parameters
    end subroutine symba_set_initial_conditions
 
    !> Method to remove the inactive symba test particles and spill them to a discard object
@@ -745,7 +745,7 @@ contains
       !! This method is needed in order to extend the abstract type swiftest_body. It does nothing
       implicit none
       class(symba_encounter), intent(inout)  :: self  !! SyMBA encounter data structure 
-      type(swiftest_configuration),intent(in) :: config !! Input collection of user-defined configuration parameters
+      type(swiftest_configuration),intent(in) :: config !! Input collection of on parameters
       return
    end subroutine symba_encounter_dummy_input
 

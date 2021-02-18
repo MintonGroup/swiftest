@@ -1,8 +1,8 @@
 module rmvs_classes
    !! author: David A. Minton
    !!
-   !! Definition of classes and methods specific to the Democratic Heliocentric Method
-   !! Partially adapted from David E. Kaufmann's Swifter module: module_whm.f90
+   !! Definition of classes and methods specific to the Regularized Mixed Variable Symplectic (RMVS) integrator
+   !! Partially adapted from David E. Kaufmann's Swifter module: module_rmvs.f90
    use swiftest_globals
    use swiftest_classes
    use whm_classes
@@ -34,20 +34,25 @@ module rmvs_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as rmvs_setup_tp and rmvs_discard_spill_tp
       ! encounter steps)
-      logical                                   :: lenc = .false.   !! Flag that indicates that the object is a planetocentric close encounter set of test particles
-      type(rmvs_cb)                             :: cb     !! Copy of original central body object passed to close encounter (used for oblateness acceleration during planetocentric encoountters)
+      logical                                   :: lplanetocentric = .false.   !! Flag that indicates that the object is a planetocentric set of test particles used for close encounter calculations
       logical,      dimension(:),   allocatable :: lperi  !! planetocentric pericenter passage flag (persistent for a full rmvs time step) over a full RMVS time step)
-      real(DP),     dimension(:,:), allocatable :: xheliocen !! original heliocentric position (used for oblateness calculation during close encounters)
       integer(I4B), dimension(:),   allocatable :: plperP !! index of planet associated with pericenter distance peri (persistent over a full RMVS time step)
       integer(I4B), dimension(:),   allocatable :: plencP !! index of planet that test particle is encountering (not persistent for a full RMVS time step)
       integer(I4B), dimension(:),   allocatable :: tpencP !! index of next test particle encountering planet
       real(DP),     dimension(:,:), allocatable :: vbeg   !! Planet velocities at beginning ot step
+
+      ! The following are used to correctly set the oblateness values of the acceleration during an inner encounter with a planet
+      type(rmvs_cb)                                  :: cb     !! Copy of original central body object passed to close encounter (used for oblateness acceleration during planetocentric encoountters)
+      real(DP),     dimension(:,:),      allocatable :: xheliocen !! original heliocentric position (used for oblateness calculation during close encounters)
+      integer(I4B)                                   :: index   !!  inner substep number within current set
+      integer(I4B)                                   :: ipleP   !!  index value of encountering planet
+      real(DP),     dimension(:,:),      allocatable :: aoblin_pl !! Encountering planet's oblateness acceleration value
    contains
       procedure, public :: setup             => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
       procedure, public :: set_beg_end       => rmvs_setup_set_beg_end  !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS
       procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: peri_pass         => rmvs_peri_tp            !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
-      procedure, public :: obl_acc           => rmvs_obl_acc_tp         !!  Calculates either the standard or modified version of the oblateness acceleration depending if the
+      procedure, public :: getacch           => rmvs_getacch_in_tp         !!  Calculates either the standard or modified version of the oblateness acceleration depending if the
                                                                         !! if the test particle is undergoing a close encounter or not
 
    end type rmvs_tp
@@ -58,16 +63,16 @@ module rmvs_classes
 
    !> RMVS massive body particle class
    type, public, extends(whm_pl) :: rmvs_pl
-      integer(I4B), dimension(:),        allocatable :: nenc   !! number of test particles encountering planet this full rmvs time step
-      integer(I4B), dimension(:),        allocatable :: tpenc1P !! index of first test particle encountering planet
-      real(DP),     dimension(:, :, :),  allocatable :: xout   !! interpolated heliocentric planet position for outer encounter
-      real(DP),     dimension(:, :, :),  allocatable :: vout   !! interpolated heliocentric planet velocity for outer encounter
-      real(DP),     dimension(:, :, :),  allocatable :: xin    !! interpolated heliocentric planet position for inner encounter
-      real(DP),     dimension(:, :, :),  allocatable :: vin    !! interpolated heliocentric planet velocity for inner encounter
-      real(DP),     dimension(:, :, :),  allocatable :: aoblin !! barycentric acceleration due to central body oblateness during inner encounter
-      type(rmvs_tp), dimension(:),       allocatable :: tpenc  !! array of encountering test particles with this planet
-      type(whm_pl) , dimension(:, :),    allocatable :: plenc  !! array of massive bodies that includes the Sun, but not the encountering planet
-      type(rmvs_cb), dimension(:),       allocatable :: cbenc  !! Use the planet parameters to act as a central body for close encounters
+      integer(I4B),  dimension(:),       allocatable :: nenc    !! number of test particles encountering planet this full rmvs time step
+      integer(I4B),  dimension(:),       allocatable :: tpenc1P !! index of first test particle encountering planet
+      real(DP),      dimension(:, :, :), allocatable :: xout    !! interpolated heliocentric planet position for outer encounter
+      real(DP),      dimension(:, :, :), allocatable :: vout    !! interpolated heliocentric planet velocity for outer encounter
+      real(DP),      dimension(:, :, :), allocatable :: xin     !! interpolated heliocentric planet position for inner encounter
+      real(DP),      dimension(:, :, :), allocatable :: vin     !! interpolated heliocentric planet velocity for inner encounter
+      type(rmvs_tp), dimension(:),       allocatable :: tpenc   !! array of encountering test particles with this planet in planetocentric coordinates
+      type(whm_pl) , dimension(:, :),    allocatable :: plenc   !! array of massive bodies that includes the Sun, but not the encountering planet in planetocentric coordinates
+      type(rmvs_cb), dimension(:),       allocatable :: cbenc   !! The planet acting as a central body for close encounters
+      real(DP),      dimension(:, :, :), allocatable :: aoblin  !! barycentric acceleration on planets due to central body oblateness during inner encounter
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as rmvs_setup_pl and rmvs_discard_spill_pl
       contains
@@ -93,63 +98,70 @@ module rmvs_classes
    end type rmvs_nbody_system
    
    interface
+
+      module subroutine rmvs_getacch_in_tp(self, cb, pl, config, t, xh)
+         implicit none
+         class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle data structure
+         class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree 
+         class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of  parameter
+         real(DP),                      intent(in)    :: t      !! Current time
+         real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+      end subroutine rmvs_getacch_in_tp
+
       module subroutine rmvs_obl_acc_in(self, cb)
          implicit none
-         class(rmvs_pl),        intent(inout) :: self !! RMVS massive body object
-         class(rmvs_cb),        intent(inout) :: cb   !! Swiftest central body object
+         class(rmvs_pl),         intent(inout) :: self !! RMVS massive body object
+         class(swiftest_cb),     intent(inout) :: cb   !! Swiftest central body object
       end subroutine rmvs_obl_acc_in
 
-      module subroutine rmvs_obl_acc_tp(self, cb)
-         implicit none
-         class(rmvs_tp),         intent(inout) :: self !! RMVS test particle object
-         class(swiftest_cb),     intent(inout) :: cb   !! RMVS central body object
-      end subroutine rmvs_obl_acc_tp
       module subroutine rmvs_setup_system(self, config)
          implicit none
-         class(rmvs_nbody_system),      intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(inout) :: config  !! Input collection of user-defined configuration parameters 
+         class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
+         class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_setup_system
 
       module subroutine rmvs_setup_pl(self,n)
          implicit none
-         class(rmvs_pl),  intent(inout) :: self !! Swiftest test particle object
+         class(rmvs_pl),  intent(inout) :: self !! RMVS test particle object
          integer,         intent(in)    :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_pl
 
-      module subroutine rmvs_step_make_planetocentric(self, cb, tp)
+      module subroutine rmvs_step_make_planetocentric(self, cb, tp, config)
          implicit none
-         class(rmvs_pl),   intent(inout)  :: self !! Swiftest test particle object
+         class(rmvs_pl),   intent(inout)  :: self !! RMVS test particle object
          class(rmvs_cb),   intent(in)     :: cb   !! RMVS central body particle type
          class(rmvs_tp),   intent(in)     :: tp   !! RMVS test particle object
+         class(swiftest_configuration), intent(in) :: config !! Input collection of configuration parameters 
       end subroutine rmvs_step_make_planetocentric
 
       module subroutine rmvs_step_end_planetocentric(self, tp)
          implicit none
-         class(rmvs_pl),   intent(inout)  :: self !! Swiftest test particle object
+         class(rmvs_pl),   intent(inout)  :: self !! RMVS test particle object
          class(rmvs_tp),   intent(inout)  :: tp   !! RMVS test particle object
       end subroutine rmvs_step_end_planetocentric
 
       module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
          implicit none
-         class(rmvs_tp),   intent(inout)  :: self !! Swiftest test particle object
+         class(rmvs_tp),   intent(inout)  :: self !! RMVS test particle object
          real(DP), dimension(:,:), optional :: xbeg, xend, vbeg
       end subroutine rmvs_setup_set_beg_end
 
       module subroutine rmvs_destruct_planetocentric_encounter(self)
          implicit none
-         class(rmvs_pl),   intent(inout)  :: self !! Swiftest test particle object
+         class(rmvs_pl),   intent(inout)  :: self !! RMVS test particle object
       end subroutine rmvs_destruct_planetocentric_encounter
 
       module subroutine rmvs_interp_in(self, cb, dt)
          implicit none
-         class(rmvs_pl), intent(inout)   :: self !! Swiftest test particle object
+         class(rmvs_pl), intent(inout)   :: self !! RMVS test particle object
          class(rmvs_cb), intent(in)      :: cb   !! RMVS central body particle type
          real(DP), intent(in)            :: dt   !! Step size
       end subroutine rmvs_interp_in
 
       module subroutine rmvs_interp_out(self, cb, dt)
          implicit none
-         class(rmvs_pl), intent(inout)   :: self !! Swiftest test particle object
+         class(rmvs_pl), intent(inout)   :: self !! RMVS test particle object
          class(rmvs_cb), intent(in)      :: cb   !! RMVS central body particle type
          real(DP), intent(in)            :: dt   !! Step size
       end subroutine rmvs_interp_out
@@ -158,7 +170,7 @@ module rmvs_classes
          class(rmvs_pl),                intent(inout)  :: self !! RMVS massive body object
          class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
          class(rmvs_tp),                intent(inout)  :: tp   !! RMVS test particle object
-         class(swiftest_configuration), intent(in)     :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)     :: config  !! Input collection of  configuration parameters 
          real(DP),                      intent(in)     :: dt   !! Step size
       end subroutine rmvs_step_in_pl
 
@@ -168,7 +180,7 @@ module rmvs_classes
          class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
          class(rmvs_tp),                intent(inout)  :: tp   !! RMVS test particle object
          real(DP),                      intent(in)     :: dt   !! Step size
-         class(swiftest_configuration), intent(in)     :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)     :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_step_out
 
       module subroutine rmvs_step_out2(cb, pl, tp, t, dt, index, config)
@@ -179,7 +191,7 @@ module rmvs_classes
          real(DP),                      intent(in)    :: t     !! Simulation time
          real(DP),                      intent(in)    :: dt    !! Step size
          integer(I4B),                  intent(in)    :: index !! outer substep number within current set
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_step_out2   
 
       module function rmvs_chk_ind(xr, vr, dt, r2crit) result(lflag)
@@ -194,12 +206,12 @@ module rmvs_classes
          class(rmvs_cb),                intent(inout) :: cb      !! WHM central body object  
          class(rmvs_pl),                intent(inout) :: pl      !! WHM central body object  
          class(rmvs_tp),                intent(inout) :: tp      !! WHM central body object  
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_step_system
 
       module subroutine rmvs_setup_tp(self,n)
          implicit none
-         class(rmvs_tp), intent(inout)   :: self !! Swiftest test particle object
+         class(rmvs_tp), intent(inout)   :: self !! RMVS test particle object
          integer,        intent(in)      :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_tp
 
@@ -224,7 +236,7 @@ module rmvs_classes
          integer(I4B),                  intent(in)    :: index !! outer substep number within current set
          integer(I4B),                  intent(in)    :: nenc  !! number of test particles encountering current planet 
          integer(I4B),                  intent(in)    :: ipleP !!index of RMVS planet being closely encountered
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of user-defined configuration parameters 
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_peri_tp
    end interface
 

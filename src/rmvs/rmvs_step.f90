@@ -149,7 +149,7 @@ contains
          dti = dt / NTPHENC
          associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh)
             if (config%loblatecb) call pl%obl_acc_in(cb)
-            call pl%make_planetocentric(cb, tp)
+            call pl%make_planetocentric(cb, tp, config)
             do i = 1, npl
                nenc = pl%nenc(i) 
                if (nenc > 0) then
@@ -161,18 +161,18 @@ contains
          ! now step the encountering test particles fully through the inner encounter
                   lfirsttp = .true.
                  
-                  associate(xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah, aoblcb =>pl%cbenc(i)%aobl)
-                  do j = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
-                     pl%tpenc(i)%lfirst = .true.
-                     call pl%tpenc(i)%set_beg_end(xbeg = pl%plenc(i,j-1)%xh, xend = pl%plenc(i,j)%xh)
-                     if (config%loblatecb) pl%tpenc(i)%cb%aobl(:) = pl%aoblin(:,i,j) 
-                     call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i,j), config, time, dti)
-                     do k = 1, NDIM
-                        pl%tpenc(i)%xheliocen(k,:) = pl%tpenc(i)%xh(k,:) + pl%xin(k, i, j)
+                  associate(index => pl%tpenc(i)%index, &
+                     xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah, aoblcb =>pl%cbenc(i)%aobl)
+                     do index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
+                        pl%tpenc(i)%lfirst = .true.
+                        call pl%tpenc(i)%set_beg_end(xbeg = pl%plenc(i,index - 1)%xh, xend = pl%plenc(i, index)%xh)
+                        call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i, index), config, time, dti)
+                        do j = 1, NDIM
+                           pl%tpenc(i)%xheliocen(j, :) = pl%tpenc(i)%xh(j, :) + pl%xin(j, i, index)
+                        end do
+                        time = config%t + j * dti
+                        call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .false., index, nenc, i, config) 
                      end do
-                     time = config%t + j * dti
-                     call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .false., j, nenc, i, config) 
-                  end do
                   end associate
 
                end if
@@ -185,7 +185,6 @@ contains
    
       end procedure rmvs_step_in_pl
 
-
       module procedure rmvs_step_make_planetocentric
          !! author: David A. Minton
          !!
@@ -196,61 +195,79 @@ contains
          implicit none
          integer(I4B) :: i, j, k, link, nenc
    
-         associate(pl => self, npl => self%nbody, nenc => self%nenc)
-            allocate(pl%tpenc(npl))
-            allocate(pl%plenc(npl, 0:NTPHENC))
-            allocate(pl%cbenc(npl))
-            pl%tpenc%lenc = .true.
-            pl%tpenc%cb = cb ! Save the central body object
+         allocate(self%tpenc(self%nbody))
+         allocate(self%plenc(self%nbody, 0:NTPHENC))
+         allocate(self%cbenc(self%nbody))
+         associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, plenc => self%plenc)
+            ! Indicate that this is a planetocentric close encounter structor
+            tpenc%lplanetocentric = .true.
+
+            ! Save the original central body object so that it can be passed down as needed through the planetocentric structures
+            tpenc%cb = cb 
+
             do i = 1, npl
-               if (nenc(i) > 0) then
-                  ! There are inner encounters with this planet...first make the planet a central body
-                  pl%cbenc(i)%Gmass = pl%Gmass(i)
-                  pl%cbenc(i)%j2rp2 = cb%j2rp2
-                  pl%cbenc(i)%j4rp4 = cb%j4rp4
-   
-                  ! Next create an encountering test particle structure
-                  call pl%tpenc(i)%setup(nenc(i))  
+               if (nenc(i) > 0) then ! There are inner encounters with this planet
+
+                  ! Make the planet a central body for the encounter
+                  cbenc(i)        = cb
+                  cbenc(i)%Gmass  = pl%Gmass(i)
+                  cbenc(i)%mass   = pl%mass(i)
+                  cbenc(i)%radius = pl%radius(i)
+
+                  ! Create an encountering test particle structure
+                  call tpenc(i)%setup(nenc(i))  
+
+                  ! Create space for the heliocentric position values for those acceleration calculations that need them
+                  allocate(tpenc(i)%xheliocen(NDIM, nenc(i)))
+
+                  ! Save the index value of the planet corresponding to this encounter 
+                  tpenc(i)%ipleP = i
+
+                  ! Grab all the encountering test particles and convert them to a planetocentric frame
                   link = pl%tpenc1P(i)
                   do j = 1, nenc(i)
-                     pl%tpenc(i)%name(j) = tp%name(link)
-                     pl%tpenc(i)%status(j) = tp%status(link)
-                     pl%tpenc(i)%xheliocen(:, j) = tp%xh(:, link)
-                     pl%tpenc(i)%xh(:, j) = tp%xh(:, link) - pl%xin(:, i, 0)
-                     pl%tpenc(i)%vh(:, j) = tp%vh(:, link) - pl%vin(:, i, 0)
+                     tpenc(i)%name(j)         = tp%name(link)
+                     tpenc(i)%status(j)       = tp%status(link)
+                     tpenc(i)%xh(:, j)        = tp%xh(:, link) - pl%xin(:, i, 0)
+                     tpenc(i)%vh(:, j)        = tp%vh(:, link) - pl%vin(:, i, 0)
+                     tpenc(i)%xheliocen(:, j) = tp%xh(:, link)
                      link = tp%tpencP(link)
                   end do
-   
-                  call pl%tpenc(i)%set_mu(pl%cbenc(i)) ! Make sure that the test particles get the proper value of mu 
-                  
-                  ! Now create a planetocentric "planet" structure containing the *other* planets (plus the Sun) in it
-                  do j = 0, NTPHENC
-                     call pl%plenc(i, j)%setup(npl)
-                     pl%plenc(i, j)%status(:) = pl%status(:)
-                  end do
+
+                  ! Make sure that the test particles get the planetocentric value of mu 
+                  call tpenc(i)%set_mu(pl%cbenc(i)) 
+
+                  ! Save the encountering planet's values of oblateness acceleration 
+                  if (config%loblatecb) then
+                     allocate(tpenc(i)%aoblin_pl(NDIM,0:NTPHENC))
+                     tpenc(i)%aoblin_pl(:,:) = pl%aoblin(:,i,0:NTPHENC)
+                  end if
+                  ! Now create a planetocentric "planet" structure containing the *other* planets (plus the Sun) in it at each point along
+                  ! the innner encounter trajectory of the planet
                   do k = 0, NTPHENC
+                     call plenc(i, k)%setup(npl)
+
+                     ! Create space for the planet accelerations during the interpolated inner steps
+                     plenc(i, k)%status(:) = pl%status(:)
                      do j = 1, npl
-                        if (j == i) then ! We will substitute the Sun in the array location occupied by the encountering planet
-                           pl%plenc(i, k)%name(j) = 0
-                           pl%plenc(i, k)%Gmass(j) = cb%Gmass
-                           pl%plenc(i, k)%mass(j) = cb%mass
-                           pl%plenc(i, k)%radius(j) = cb%radius
-                           pl%plenc(i, k)%xh(:, j) = cb%xin(:) - self%xin(:, i, k)
-                        else
-                           pl%plenc(i, k)%name(j) = self%name(i)
-                           pl%plenc(i, k)%Gmass(j) = pl%Gmass(i)
-                           pl%plenc(i, k)%mass(j) = pl%mass(i)
-                           pl%plenc(i, k)%xh(:, j) = pl%xin(:, i, k) - pl%xin(:, i, k)
+                        if (j == i) then ! Substitute the Sun in the array location occupied by the encountering planet
+                           plenc(i, k)%name(j)   = 0
+                           plenc(i, k)%Gmass(j)  = cb%Gmass
+                           plenc(i, k)%mass(j)   = cb%mass
+                           plenc(i, k)%radius(j) = cb%radius
+                           plenc(i, k)%xh(:, j)  = cb%xin(:) - self%xin(:, i, k)
+                        else ! Shift the 
+                           plenc(i, k)%name(j)   = self%name(i)
+                           plenc(i, k)%Gmass(j)  = pl%Gmass(i)
+                           plenc(i, k)%mass(j)   = pl%mass(i)
+                           plenc(i, k)%radius(j) = pl%radius(i)
+                           plenc(i, k)%xh(:, j)  = pl%xin(:, i, k) - pl%xin(:, i, k)
                         end if
                      end do
                   end do
-   
                end if
-   
             end do
          end associate
-   
-   
       end procedure rmvs_step_make_planetocentric
    
       module procedure rmvs_step_end_planetocentric

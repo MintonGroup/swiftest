@@ -32,7 +32,7 @@ program swiftest_driver
       call util_exit(FAILURE)
    end if
    !$ start_wall_time = omp_get_wtime()
-   !> Read in the user-defined parameter file and the initial conditions of the system
+   !> Read in the user-defined configuration file and the initial conditions of the system
    config%integrator = integrator
    call setup_construct_system(nbody_system, config)
    call config%read_from_file(config_file_name)
