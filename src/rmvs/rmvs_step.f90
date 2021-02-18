@@ -237,6 +237,9 @@ contains
                   ! Make sure that the test particles get the planetocentric value of mu 
                   call tpenc(i)%set_mu(pl%cbenc(i)) 
 
+                  ! Save the heliocentric position values of the encountering planet
+                  allocate(tpenc(i)%xh_pl(NDIM,0:NTPHENC))
+                  tpenc(i)%xh_pl(:,:) = pl%xin(:,i,0:NTPHENC)
                   ! Save the encountering planet's values of oblateness acceleration 
                   if (config%loblatecb) then
                      allocate(tpenc(i)%aoblin_pl(NDIM,0:NTPHENC))
@@ -293,7 +296,6 @@ contains
                end do
             end do
       
-      
             deallocate(pl%tpenc)
             deallocate(pl%cbenc)
             deallocate(pl%plenc)
@@ -304,6 +306,4 @@ contains
    
       end procedure rmvs_step_end_planetocentric
    
-   
- 
 end submodule s_rmvs_step

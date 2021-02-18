@@ -11,6 +11,7 @@ contains
       implicit none
       type(swiftest_configuration) :: config_planetocen
       real(DP), dimension(:, :), allocatable       :: xh_original
+      integer(I4B) :: i
 
 
       associate(tp => self, cb_heliocen => self%cb, ipleP => self%ipleP, index => self%index, &
@@ -26,6 +27,16 @@ contains
             call whm_getacch_tp(tp, cb, pl, config_planetocen, t, xh)
 
             ! Now compute the heliocentric values of acceleration
+            if (tp%lfirst) then
+               do i = 1, NDIM
+                  tp%xheliocen(i,:) = tp%xh(i,:) + tp%xh_pl(i, index - 1)
+               end do
+            else
+               do i = 1, NDIM
+                  tp%xheliocen(i,:) = tp%xh(i,:) + tp%xh_pl(i, index)
+               end do
+            end if
+
             tp%xh(:,:) = tp%xheliocen(:,:)
             if (config%loblatecb) then
                ! Put in the current encountering planet's oblateness acceleration as the central body's

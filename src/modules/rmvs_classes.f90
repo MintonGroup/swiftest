@@ -47,6 +47,7 @@ module rmvs_classes
       integer(I4B)                                   :: index   !!  inner substep number within current set
       integer(I4B)                                   :: ipleP   !!  index value of encountering planet
       real(DP),     dimension(:,:),      allocatable :: aoblin_pl !! Encountering planet's oblateness acceleration value
+      real(DP),     dimension(:,:),      allocatable :: xh_pl     !! Encountering planet's heliocentric position values
    contains
       procedure, public :: setup             => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
       procedure, public :: set_beg_end       => rmvs_setup_set_beg_end  !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS
