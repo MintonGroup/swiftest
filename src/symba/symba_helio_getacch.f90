@@ -23,7 +23,7 @@ implicit none
       end do
       call symba_helio_getacch_int(npl, nplm, helio_plA) 
    end if
-   if (config%j2rp2 /= 0.0_DP) then
+   if (config%loblatecb) then
       if (lmalloc) then
          allocate(xh(NDIM, config%nplmax), aobl(NDIM, config%nplmax), irh(config%nplmax))
          lmalloc = .false.

@@ -459,6 +459,7 @@ contains
          write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(config%incbfile))
          call util_exit(FAILURE)
       end if
+      if (self%j2rp2 /= 0.0_DP) config%loblatecb = .true.
 
       return
    end procedure io_read_cb_in

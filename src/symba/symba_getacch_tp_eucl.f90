@@ -55,7 +55,7 @@ implicit none
       end if
    end do
    ! $omp end parallel do
-   if (config%j2rp2 /= 0.0_DP) then
+   if (config%loblatecb) then
       if (lmalloc) then
          allocate(aobl(NDIM, config%nplmax), irh(config%nplmax), xht(NDIM, config%ntpmax), aoblt(NDIM, config%ntpmax), irht(config%ntpmax))
          lmalloc = .false.

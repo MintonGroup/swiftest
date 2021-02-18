@@ -69,7 +69,7 @@ implicit none
          symba_plA%ah(:,index_j) = symba_plA%ah(:,index_j) + faci*dx(:)
       end if
    end do
-   if (config%j2rp2 /= 0.0_DP) then
+   if (config%loblatecb) then
       !if (lmalloc) then
           !allocate(xh(npl, NDIM),aobl(npl, NDIM), irh(npl))
          !lmalloc = .false.

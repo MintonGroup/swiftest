@@ -27,7 +27,7 @@ contains
       call whm_getacch_ah2(cb, pl) 
       call whm_getacch_ah3(pl)
 
-      if (j2rp2 /= 0.0_DP) call self%obl_acc(cb)
+      if (config%loblatecb) call self%obl_acc(cb)
       if (config%lextra_force) call pl%user_getacch(cb, config, t)
       if (config%lgr) call pl%gr_getacch(cb, config) 
 
@@ -58,7 +58,7 @@ contains
             tp%ah(:, i) = ah0(:)
          end do
          call whm_getacch_ah3_tp(cb, pl, tp, xh)
-         if (j2rp2 /= 0.0_DP) call tp%obl_acc(cb)
+         if (config%loblatecb) call tp%obl_acc(cb)
          if (config%lextra_force) call tp%user_getacch(cb, config, t)
          if (config%lgr) call tp%gr_getacch(cb, config) 
       end associate

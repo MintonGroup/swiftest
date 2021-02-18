@@ -21,7 +21,7 @@ contains
          self%ahi(:,2:npl) = 0.0_DP
          call helio_getacch_int_pl(self)
       end if
-      if (config%j2rp2 /= 0.0_DP) then
+      if (config%loblatecb) then
          if (lmalloc) then
             allocate(xh_loc(NDIM, config%nplmax), aobl(NDIM, config%nplmax), irh(config%nplmax))
             lmalloc = .false.

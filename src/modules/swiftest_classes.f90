@@ -58,6 +58,7 @@ module swiftest_classes
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
       logical :: lenergy        = .false. !! Track the total energy of the system
+      logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR

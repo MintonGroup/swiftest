@@ -22,7 +22,7 @@ contains
          self%ahi(:,:) = 0.0_DP
          call helio_getacch_int_tp(self, helio_plA)
       end if
-      if (config%j2rp2 /= 0.0_DP) then
+      if (config%loblatecb) then
          if (lmalloc) then
             allocate(aobl(NDIM, config%nplmax), irh(config%nplmax), xht(NDIM, config%ntpmax), &
                         aoblt(NDIM, config%ntpmax), irht(config%ntpmax))
