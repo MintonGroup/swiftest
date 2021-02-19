@@ -73,7 +73,7 @@ contains
       implicit none
       real(DP), dimension(:), intent(in)    :: mu
       real(DP), dimension(:,:), intent(in)  :: xh
-      real(DP) :: fac, r2, irh, ir3h
+      real(DP) :: fac, r2, ir3h
       real(DP), dimension(NDIM) :: ah0
       integer(I4B) :: i, n
 
@@ -82,8 +82,7 @@ contains
       ah0(:) = 0.0_DP
       do i = 1, n
          r2 = dot_product(xh(:, i), xh(:, i))
-         irh = 1.0_DP / sqrt(r2) 
-         ir3h = irh / r2
+         ir3h = 1.0_DP / (r2 * sqrt(r2))
          fac = mu(i) * ir3h !/ (norm2(xh(:, i)))**3
          ah0(:) = ah0(:) - fac * xh(:, i)
       end do

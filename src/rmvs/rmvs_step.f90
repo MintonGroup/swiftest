@@ -104,7 +104,8 @@ contains
          real(DP)        :: rts
          logical         :: lencounter
 
-         associate(xht => tp%xh, vht => tp%vh, xbeg => tp%xbeg, xend => tp%xend, aht => tp%ah)
+         associate(xht => tp%xh, vht => tp%vh, xbeg => tp%xbeg, xend => tp%xend, aht => tp%ah,&
+            xout1 => pl%xout(:, :, index-1), vout1 => pl%vout(:,:,index-1), xout2 => pl%xout(:,:,index))
 
             call tp%set_beg_end(xbeg = pl%xout(:, :, index-1), &
                                 vbeg = pl%vout(:, :, index-1), &
@@ -258,7 +259,7 @@ contains
                            plenc(i, k)%Gmass(j)  = cb%Gmass
                            plenc(i, k)%mass(j)   = cb%mass
                            plenc(i, k)%radius(j) = cb%radius
-                           plenc(i, k)%xh(:, j)  = cb%xin(:) - self%xin(:, i, k)
+                           plenc(i, k)%xh(:, j)  = cb%xin(:) - pl%xin(:, i, k)
                         else ! Shift the 
                            plenc(i, k)%name(j)   = self%name(i)
                            plenc(i, k)%Gmass(j)  = pl%Gmass(i)
