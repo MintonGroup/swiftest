@@ -63,14 +63,13 @@ contains
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
+      use swiftest
       implicit none
 
       ! Call parent method
       call whm_setup_system(self, config)
 
    end procedure rmvs_setup_system
-
-
    
    module procedure rmvs_setup_set_beg_end
       !! author: David A. Minton

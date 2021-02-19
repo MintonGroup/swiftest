@@ -51,6 +51,7 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_j2h.f 
       use swiftest
       implicit none
+
       integer(I4B)              :: i
       real(DP), dimension(NDIM) :: sumx, sumv
 

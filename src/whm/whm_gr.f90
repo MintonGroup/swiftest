@@ -70,6 +70,7 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_p4.f90
       use swiftest
       implicit none
+
       integer(I4B) :: i
 
       associate(n => self%nbody, xj => self%xj, vj => self%vj, status => self%status, c2 => config%inv_c2)
@@ -92,6 +93,7 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_p4.f90
       use swiftest
       implicit none
+
       integer(I4B) :: i
 
       associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, c2 => config%inv_c2)
@@ -162,6 +164,7 @@ contains
       !! in a WHM object
       use swiftest
       implicit none
+
       integer(I4B) :: i
       real(DP), dimension(:), allocatable :: mu
       real(DP), dimension(:,:), allocatable :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -186,6 +189,7 @@ contains
       !! in a WHM object
       use swiftest
       implicit none
+
       integer(I4B) :: i
       real(DP), dimension(:), allocatable :: mu
       real(DP), dimension(:,:), allocatable :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -213,6 +217,7 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_vel2pseudovel.f90
       use swiftest
       implicit none
+
       class(swiftest_configuration), intent(in)  :: config !! Input collection of  configuration parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 

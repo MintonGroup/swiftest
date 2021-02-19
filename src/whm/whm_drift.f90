@@ -9,6 +9,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift.f90
       use swiftest
       implicit none
+
       integer(I4B)          :: i
       real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
       integer(I4B), dimension(:), allocatable  :: iflag
@@ -60,6 +61,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
       use swiftest
       implicit none
+
       integer(I4B)                            :: i   
       real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
       integer(I4B), dimension(:), allocatable  :: iflag

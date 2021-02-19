@@ -4,8 +4,7 @@ module rmvs_classes
    !! Definition of classes and methods specific to the Regularized Mixed Variable Symplectic (RMVS) integrator
    !! Partially adapted from David E. Kaufmann's Swifter module: module_rmvs.f90
    use swiftest_globals
-   use swiftest_classes
-   use whm_classes
+   use whm_classes, only : whm_cb, whm_pl, whm_tp, whm_nbody_system
    implicit none
 
    integer(I4B), parameter :: NTENC = 10
@@ -55,6 +54,7 @@ module rmvs_classes
       procedure, public :: peri_pass         => rmvs_peri_tp            !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
       procedure, public :: getacch           => rmvs_getacch_in_tp         !!  Calculates either the standard or modified version of the oblateness acceleration depending if the
                                                                         !! if the test particle is undergoing a close encounter or not
+      procedure, public :: discard_test      => rmvs_discard_pl_tp
 
    end type rmvs_tp
 
@@ -99,8 +99,20 @@ module rmvs_classes
    end type rmvs_nbody_system
    
    interface
+      module subroutine rmvs_discard_pl_tp(self, cb, pl, config, t, dt)
+         use swiftest_classes
+         implicit none
+         class(rmvs_tp),                intent(inout) :: self
+         class(swiftest_cb),            intent(inout) :: cb   !! Swiftest central body object
+         class(swiftest_pl),            intent(inout) :: pl     !! WHM massive body particle data structure. 
+         class(swiftest_configuration), intent(in)    :: config !!  configuration parameters
+         real(DP),                      intent(in)    :: t      !! Current simulation time
+         real(DP),                      intent(in)    :: dt     !! Stepsize
+      end subroutine rmvs_discard_pl_tp
 
       module subroutine rmvs_getacch_in_tp(self, cb, pl, config, t, xh)
+         use swiftest_classes
+         use whm_classes
          implicit none
          class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle data structure
          class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree 
@@ -111,12 +123,14 @@ module rmvs_classes
       end subroutine rmvs_getacch_in_tp
 
       module subroutine rmvs_obl_acc_in(self, cb)
+         use swiftest_classes
          implicit none
          class(rmvs_pl),         intent(inout) :: self !! RMVS massive body object
          class(swiftest_cb),     intent(inout) :: cb   !! Swiftest central body object
       end subroutine rmvs_obl_acc_in
 
       module subroutine rmvs_setup_system(self, config)
+         use swiftest_classes
          implicit none
          class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
@@ -129,6 +143,7 @@ module rmvs_classes
       end subroutine rmvs_setup_pl
 
       module subroutine rmvs_step_make_planetocentric(self, cb, tp, config)
+         use swiftest_classes
          implicit none
          class(rmvs_pl),   intent(inout)  :: self !! RMVS test particle object
          class(rmvs_cb),   intent(in)     :: cb   !! RMVS central body particle type
@@ -166,8 +181,10 @@ module rmvs_classes
          class(rmvs_cb), intent(in)      :: cb   !! RMVS central body particle type
          real(DP), intent(in)            :: dt   !! Step size
       end subroutine rmvs_interp_out
+
       module subroutine rmvs_step_in_pl(self, cb, tp, config, dt)
-         implicit none
+         use swiftest_classes
+         implicit none 
          class(rmvs_pl),                intent(inout)  :: self !! RMVS massive body object
          class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
          class(rmvs_tp),                intent(inout)  :: tp   !! RMVS test particle object
@@ -176,6 +193,7 @@ module rmvs_classes
       end subroutine rmvs_step_in_pl
 
       module subroutine rmvs_step_out(self, cb, tp, dt, config)
+         use swiftest_classes
          implicit none
          class(rmvs_pl),                intent(inout)  :: self !! RMVS massive body object
          class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
@@ -185,6 +203,7 @@ module rmvs_classes
       end subroutine rmvs_step_out
 
       module subroutine rmvs_step_out2(cb, pl, tp, t, dt, index, config)
+         use swiftest_classes
          implicit none
          class(rmvs_cb),                intent(inout) :: cb   !! RMVS central body object
          class(rmvs_pl),                intent(inout)  :: pl   !! RMVS massive body object
@@ -203,6 +222,7 @@ module rmvs_classes
       end function rmvs_chk_ind
 
       module subroutine rmvs_step_system(cb, pl, tp, config)
+         use swiftest_classes
          implicit none
          class(rmvs_cb),                intent(inout) :: cb      !! WHM central body object  
          class(rmvs_pl),                intent(inout) :: pl      !! WHM central body object  
@@ -228,6 +248,7 @@ module rmvs_classes
       end function rmvs_encounter_check_tp
 
       module subroutine rmvs_peri_tp(self, cb, pl, t, dt, lfirst, index, nenc, ipleP, config)
+         use swiftest_classes
          class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle object  
          class(rmvs_cb),                intent(inout) :: cb     !! RMVS central body object  
          class(rmvs_pl),                intent(inout) :: pl     !! RMVS massive body object  

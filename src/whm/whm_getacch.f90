@@ -9,6 +9,7 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
    use swiftest
    implicit none
+
    integer(I4B)                     :: i
    real(DP), dimension(:), allocatable, save    :: fac
    real(DP), dimension(NDIM) :: ah0
@@ -44,6 +45,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
       use swiftest
       implicit none
+
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable, save    :: fac
       real(DP), dimension(NDIM)                    :: ah0
@@ -71,6 +73,7 @@ contains
       !! Compute zeroth term heliocentric accelerations of planets 
       use swiftest
       implicit none
+
       real(DP), dimension(:), intent(in)    :: mu
       real(DP), dimension(:,:), intent(in)  :: xh
       real(DP) :: fac, r2, ir3h
@@ -99,6 +102,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
       use swiftest
       implicit none
+
       class(whm_cb), intent(in) :: cb
       class(whm_pl), intent(inout)        :: pl
 
@@ -198,6 +202,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
       use swiftest
       implicit none
+
       class(whm_cb), intent(in) :: cb 
       class(whm_pl), intent(in) :: pl 
       class(whm_tp), intent(inout) :: tp

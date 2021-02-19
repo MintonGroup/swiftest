@@ -48,6 +48,7 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the Jacobi mass value eta for all massive bodies
+      use swiftest
       implicit none
       integer(I4B) :: i
 
@@ -70,6 +71,7 @@ contains
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
+      use swiftest
       implicit none
 
       call io_read_initialize_system(self, config)
@@ -99,6 +101,7 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
+      use swiftest
       implicit none
       integer(I4B) :: i
       real(DP) :: r2, ir

@@ -8,6 +8,7 @@ contains
       !! 
       !! Performs a similar task as David E. Kaufmann's Swifter routine rmvs_getacch_tp.f90, but 
       !! uses object polymorphism, and so is not directly adapted.
+      use swiftest
       implicit none
       type(swiftest_configuration) :: config_planetocen
       real(DP), dimension(:, :), allocatable       :: xh_original

@@ -8,6 +8,7 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
    use swiftest
    implicit none
+
    integer(I4B) :: i
 
    select type(keeps)

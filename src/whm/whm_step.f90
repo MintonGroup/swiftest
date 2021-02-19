@@ -28,6 +28,9 @@ contains
       !! Adapted from Hal Levison's Swift routine step_kdk_pl.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_pl.f90
       !logical, save :: lfirst = .true.
+      use swiftest
+      implicit none
+
       real(DP) :: dth
       
       associate(pl => self, xh => self%xh, vh => self%vh, ah => self%ah)
@@ -59,6 +62,8 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
+      use swiftest
+      implicit none
       real(DP) :: dth
 
       associate(tp => self, xht => self%xh, vht => self%vh, aht => self%ah)
