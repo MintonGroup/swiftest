@@ -7,8 +7,7 @@ module whm_classes
    use swiftest_classes, only : swiftest_cb, swiftest_pl, swiftest_tp, swiftest_nbody_system
 
    implicit none
-   private
-   public :: whm_setup_pl, whm_setup_tp, whm_setup_system, whm_step_system, whm_discard_spill, whm_getacch_tp
+   public
 
    !********************************************************************************************************************************
    ! whm_cb class definitions and method interfaces
@@ -32,7 +31,7 @@ module whm_classes
       real(DP), dimension(:),   allocatable :: muj    !! Jacobi mu: GMcb * eta(i) / eta(i - 1) 
       real(DP), dimension(:),   allocatable :: ir3j    !! Third term of heliocentric acceleration
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as whm_setup_pl and whm_discard_spill_pl
+      !!    component list, such as whm_setup_pl and whm_spill_pl
       logical                               :: lfirst = .true.
    contains
       procedure, public :: h2j          => whm_coord_h2j_pl        !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
@@ -49,6 +48,8 @@ module whm_classes
       procedure, public :: step         => whm_step_pl             !! Steps the body forward one stepsize
       procedure, public :: user_getacch => whm_user_getacch_pl     !! n
       procedure, public :: drift        => whm_drift_pl            !! Loop through massive bodies and call Danby drift routine
+      procedure, public :: spill        => whm_spill_pl            !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: fill         => whm_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
    end type whm_pl
 
    !********************************************************************************************************************************
@@ -58,7 +59,7 @@ module whm_classes
    !! WHM test particle class
    type, public, extends(swiftest_tp) :: whm_tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as whm_setup_tp and whm_discard_spill_tp
+      !!    component list, such as whm_setup_tp and whm_spill_tp
       real(DP), dimension(:,:), allocatable :: xbeg, xend
       logical                               :: beg
       logical                               :: lfirst = .true.
@@ -293,15 +294,21 @@ module whm_classes
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of on parameters 
       end subroutine whm_setup_system
 
-      !> Interfaces for all non-type bound whm methods that are implemented in separate submodules 
-      !> Move spilled (discarded) Swiftest basic body components from active list to discard list
-      module subroutine whm_discard_spill(keeps, discards, lspill_list)
+      module subroutine whm_spill_pl(self, discards, lspill_list)
          use swiftest_classes
          implicit none
-         class(swiftest_body),  intent(inout) :: keeps       !! WHM test particle object
+         class(whm_pl),         intent(inout) :: self        !! WHM massive body object
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-      end subroutine whm_discard_spill
+      end subroutine whm_spill_pl
+
+      module subroutine whm_fill_pl(self, inserts, lfill_list)
+         use swiftest_classes
+         implicit none
+         class(whm_pl),         intent(inout) :: self       !! WHM massive body object
+         class(swiftest_body),  intent(inout) :: inserts    !! inserted object 
+         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine whm_fill_pl
 
       !> Steps the Swiftest nbody system forward in time one stepsize
       module subroutine whm_step_system(cb, pl, tp, config)

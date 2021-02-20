@@ -199,7 +199,9 @@ contains
          allocate(self%tpenc(self%nbody))
          allocate(self%plenc(self%nbody, 0:NTPHENC))
          allocate(self%cbenc(self%nbody))
-         associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, plenc => self%plenc)
+         associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
+            plenc => self%plenc, &
+            xpc => self%tpenc(1)%xh, vpc => self%tpenc(1)%vh)
             ! Indicate that this is a planetocentric close encounter structor
             tpenc%lplanetocentric = .true.
 
@@ -215,24 +217,18 @@ contains
                   cbenc(i)%mass   = pl%mass(i)
                   cbenc(i)%radius = pl%radius(i)
 
-                  ! Create an encountering test particle structure
-                  call tpenc(i)%setup(nenc(i))  
-
                   ! Create space for the heliocentric position values for those acceleration calculations that need them
                   allocate(tpenc(i)%xheliocen(NDIM, nenc(i)))
 
                   ! Save the index value of the planet corresponding to this encounter 
                   tpenc(i)%ipleP = i
-
+                  call pl%tpenc(i)%setup(nenc(i))
+                  call tp%spill(pl%tpenc(i), pl%encmask(:,i))
                   ! Grab all the encountering test particles and convert them to a planetocentric frame
-                  link = pl%tpenc1P(i)
                   do j = 1, nenc(i)
-                     tpenc(i)%name(j)         = tp%name(link)
-                     tpenc(i)%status(j)       = tp%status(link)
-                     tpenc(i)%xh(:, j)        = tp%xh(:, link) - pl%xin(:, i, 0)
-                     tpenc(i)%vh(:, j)        = tp%vh(:, link) - pl%vin(:, i, 0)
-                     tpenc(i)%xheliocen(:, j) = tp%xh(:, link)
-                     link = tp%tpencP(link)
+                     tpenc(i)%xheliocen(:, j) = tpenc(i)%xh(:, j)
+                     tpenc(i)%xh(:, j)        = tpenc(i)%xh(:, j) - pl%xin(:, i, 0)
+                     tpenc(i)%vh(:, j)        = tpenc(i)%vh(:, j) - pl%vin(:, i, 0)
                   end do
 
                   ! Make sure that the test particles get the planetocentric value of mu 
@@ -282,19 +278,20 @@ contains
          use swiftest
          implicit none
 
-         integer(I4B) :: link, i, j
+         integer(I4B) :: i, j
 
-         associate(pl => self, nenc => self%nenc, npl => self%nbody)
+         associate(pl => self, nenc => self%nenc, npl => self%nbody, &
+            tpenc => self%tpenc, plenc => self%plenc, cbenc => self%cbenc, encmask => self%encmask)
 
             do i = 1, npl
-               link = pl%tpenc1P(i)
+               if (nenc(i) == 0) cycle
                do j = 1, nenc(i)
                   ! Copy the results of the integration back over
-                  tp%xh(:, link) = pl%xin(:, i, NTPHENC) + pl%tpenc(i)%xh(:,j)
-                  tp%vh(:, link) = pl%vin(:, i, NTPHENC) + pl%tpenc(i)%vh(:,j)
-                  if (tp%status(link) == ACTIVE) tp%status(link) = INACTIVE
-                  link = tp%tpencP(link)
+                  tpenc(i)%xh(:, j) = pl%xin(:, i, NTPHENC) + tpenc(i)%xh(:,j)
+                  tpenc(i)%vh(:, j) = pl%vin(:, i, NTPHENC) + tpenc(i)%vh(:,j)
+                  if (tpenc(i)%status(j) == ACTIVE) tpenc(i)%status(j) = INACTIVE
                end do
+               call tp%fill(tpenc(i), encmask(:,i))
             end do
       
             deallocate(pl%tpenc)

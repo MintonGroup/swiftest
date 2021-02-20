@@ -7,6 +7,8 @@ module rmvs_classes
    use whm_classes, only : whm_cb, whm_pl, whm_tp, whm_nbody_system
    implicit none
 
+   public
+
    integer(I4B), parameter :: NTENC = 10
    integer(I4B), parameter :: NTPHENC = 3
    integer(I4B), parameter :: NTPENC = NTENC * NTPHENC
@@ -31,7 +33,7 @@ module rmvs_classes
    !! RMVS test particle class
    type, public, extends(whm_tp) :: rmvs_tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as rmvs_setup_tp and rmvs_discard_spill_tp
+      !!    component list, such as rmvs_setup_tp and rmvs_spill_tp
       ! encounter steps)
       logical                                   :: lplanetocentric = .false.   !! Flag that indicates that the object is a planetocentric set of test particles used for close encounter calculations
       logical,      dimension(:),   allocatable :: lperi  !! planetocentric pericenter passage flag (persistent for a full rmvs time step) over a full RMVS time step)
@@ -52,10 +54,11 @@ module rmvs_classes
       procedure, public :: set_beg_end       => rmvs_setup_set_beg_end  !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS
       procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: peri_pass         => rmvs_peri_tp            !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
-      procedure, public :: getacch           => rmvs_getacch_in_tp         !!  Calculates either the standard or modified version of the oblateness acceleration depending if the
+      procedure, public :: getacch           => rmvs_getacch_in_tp      !!  Calculates either the standard or modified version of the oblateness acceleration depending if the
                                                                         !! if the test particle is undergoing a close encounter or not
-      procedure, public :: discard_test      => rmvs_discard_pl_tp
-
+      procedure, public :: discard_pl        => rmvs_discard_pl_tp
+      procedure, public :: spill             => rmvs_spill_tp           !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: fill              => rmvs_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
    end type rmvs_tp
 
    !********************************************************************************************************************************
@@ -74,8 +77,9 @@ module rmvs_classes
       type(whm_pl) , dimension(:, :),    allocatable :: plenc   !! array of massive bodies that includes the Sun, but not the encountering planet in planetocentric coordinates
       type(rmvs_cb), dimension(:),       allocatable :: cbenc   !! The planet acting as a central body for close encounters
       real(DP),      dimension(:, :, :), allocatable :: aoblin  !! barycentric acceleration on planets due to central body oblateness during inner encounter
+      logical,       dimension(:, :),    allocatable :: encmask !! logical mask indicating which test particles are encountering a particular planet
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as rmvs_setup_pl and rmvs_discard_spill_pl
+      !!    component list, such as rmvs_setup_pl and rmvs_spill_pl
       contains
       procedure, public :: setup               => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
       procedure, public :: make_planetocentric => rmvs_step_make_planetocentric !! Creates encountering test particle structure for the planets
@@ -85,6 +89,8 @@ module rmvs_classes
       procedure, public :: step_in             => rmvs_step_in_pl  !! Step active test particles ahead in the inner encounter region with planets   
       procedure, public :: step_out            => rmvs_step_out    !! Step active test particles ahead in the outer encounter region with planets
       procedure, public :: obl_acc_in          => rmvs_obl_acc_in  !! Compute the oblateness acceleration in the inner encounter region with planets 
+      procedure, public :: spill               => rmvs_spill_pl    !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: fill                => rmvs_fill_pl    !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
    end type rmvs_pl
 
    !********************************************************************************************************************************
@@ -147,7 +153,7 @@ module rmvs_classes
          implicit none
          class(rmvs_pl),   intent(inout)  :: self !! RMVS test particle object
          class(rmvs_cb),   intent(in)     :: cb   !! RMVS central body particle type
-         class(rmvs_tp),   intent(in)     :: tp   !! RMVS test particle object
+         class(rmvs_tp),   intent(inout)     :: tp   !! RMVS test particle object
          class(swiftest_configuration), intent(in) :: config !! Input collection of configuration parameters 
       end subroutine rmvs_step_make_planetocentric
 
@@ -260,6 +266,38 @@ module rmvs_classes
          integer(I4B),                  intent(in)    :: ipleP !!index of RMVS planet being closely encountered
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_peri_tp
+
+      module subroutine rmvs_spill_pl(self, discards, lspill_list)
+         use swiftest_classes
+         implicit none
+         class(rmvs_pl), intent(inout) :: self      !! Swiftest massive body body object
+         class(swiftest_body), intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)   :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine rmvs_spill_pl
+
+      module subroutine rmvs_fill_pl(self, inserts, lfill_list)
+         use swiftest_classes
+         implicit none
+         class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
+         class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine rmvs_fill_pl
+
+      module subroutine rmvs_spill_tp(self, discards, lspill_list)
+         use swiftest_classes
+         implicit none
+         class(rmvs_tp),        intent(inout) :: self       !! RMVS test particle object
+         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine rmvs_spill_tp
+
+      module subroutine rmvs_fill_tp(self, inserts, lfill_list)
+         use swiftest_classes
+         implicit none
+         class(rmvs_tp),        intent(inout) :: self        !! RMVS massive body object
+         class(swiftest_body),  intent(inout) :: inserts     !!  Inserted object 
+         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine rmvs_fill_tp
    end interface
 
 end module rmvs_classes

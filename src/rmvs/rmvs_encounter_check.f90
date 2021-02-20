@@ -17,6 +17,8 @@ contains
       logical, save             :: lfirst = .true.
 
       associate(tp => self, ntp => self%nbody, npl => pl%nbody)
+         if (.not.allocated(pl%encmask)) allocate(pl%encmask(ntp, npl))
+         pl%encmask(:,:) = .false.
          lencounter = .false.
          pl%nenc(:) = 0
          pl%tpenc1P(:) = 0
@@ -40,6 +42,7 @@ contains
                   lflag = rmvs_chk_ind(xr(:), vr(:), dt, r2crit)
                   if (lflag) then
                         lencounter = .true.
+                        pl%encmask(i,j) = .true.
                         pl%nenc(j) = pl%nenc(j) + 1
                         nenc = pl%nenc(j)
                         if (nenc == 1) then

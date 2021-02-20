@@ -561,13 +561,11 @@ contains
       !! Adapted from Hal Levison's Swift routine io_read_hdr.f
       use swiftest
       implicit none
-      integer(I4B)         :: ierr
       real(SP)             :: ttmp
 
       select case (out_type)
       case (REAL4_TYPE, SWIFTER_REAL4_TYPE)
          read(iu, iostat = ierr) ttmp, npl, ntp, out_form
-         io_read_hdr = ierr
          if (ierr /= 0) return
          t = ttmp
       case (REAL8_TYPE, SWIFTER_REAL8_TYPE)
@@ -575,10 +573,9 @@ contains
          read(iu, iostat = ierr) npl
          read(iu, iostat = ierr) ntp
          read(iu, iostat = ierr) out_form
-         io_read_hdr = ierr
       case default
          write(*,*) trim(adjustl(out_type)) // ' is an unrecognized file type'
-         io_read_hdr = -1
+         ierr = -1
       end select
 
       return
@@ -721,7 +718,6 @@ contains
       logical         :: lxdr
       logical , save    :: lfirst = .true.
       integer(I4B), parameter :: lun = 30
-      integer(I4B)        :: ierr
       integer(I4B), save    :: iu = lun
 
       if (lfirst) then
@@ -734,7 +730,6 @@ contains
          lfirst = .false.
       end if
       read(iu, iostat = ierr) t
-      io_read_encounter = ierr
       if (ierr /= 0) then
          close(unit = iu, iostat = ierr)
          return

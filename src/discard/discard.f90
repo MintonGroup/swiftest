@@ -32,7 +32,7 @@ contains
             if (any(tp%ldiscard(1:ntp))) then
                ! Spill the discards to the spill list
                allocate(lspill_list, source = tp%ldiscard)
-               call whm_discard_spill(tp, discards, lspill_list) 
+               call tp%spill(discards, lspill_list) 
                call self%write_discard(config, discards)
                deallocate(lspill_list)
             end if

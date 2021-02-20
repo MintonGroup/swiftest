@@ -5,10 +5,7 @@ module swiftest_classes
    !! Adapted from David E. Kaufmann's Swifter routine: module_swifter.f90
    use swiftest_globals
    implicit none
-   private
-   public :: io_get_args, io_read_initialize_system, io_write_encounter, drift_one, discard_spill_body, &
-              orbel_xv2aeq, orbel_xv2aqt, setup_pl, setup_tp, setup_construct_system, &
-              setup_set_mu_pl, setup_set_mu_tp, obl_acc_body
+   public
 
    !********************************************************************************************************************************
    ! swiftest_configuration class definitions 
@@ -87,6 +84,7 @@ module swiftest_classes
       procedure(abstract_initialize),  public, deferred :: initialize
       procedure(abstract_write_frame), public, deferred :: write_frame
       procedure(abstract_read_frame),  public, deferred :: read_frame
+      procedure(abstract_copy),        public, deferred :: copy
    end type swiftest_base
 
    !********************************************************************************************************************************
@@ -112,6 +110,7 @@ module swiftest_classes
       procedure, public         :: initialize  => io_read_cb_in      !! I/O routine for reading in central body data
       procedure, public         :: write_frame => io_write_frame_cb  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public         :: read_frame  => io_read_frame_cb   !! I/O routine for reading out a single frame of time-series data for the central body
+      procedure, public         :: copy        => util_copy_cb       !! Copies elements of one object to another.
    end type swiftest_cb
 
    !********************************************************************************************************************************
@@ -139,7 +138,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
       real(DP),     dimension(:),   allocatable :: mu         !! G * (Mcb + [m])
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as setup_body and discard_spill
+      !!    component list, such as setup_body and util_spill
    contains
       private
       procedure(abstract_set_mu),  public, deferred :: set_mu
@@ -161,6 +160,9 @@ module swiftest_classes
       procedure, public :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
       procedure, public :: reverse_status => util_reverse_status !! Reverses the active/inactive status of all particles in a structure
+      procedure, public :: copy        => util_copy_body       !! Copies elements of one object to another.
+      procedure, public :: spill       => util_spill_body       !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: fill        => util_fill_body        !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
    end type swiftest_body
       
    !********************************************************************************************************************************
@@ -184,17 +186,20 @@ module swiftest_classes
                                                               !!  the Euclidean distance matrix
       real(DP),     dimension(:),   allocatable :: irij3      !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as setup_pl and discard_spill
+      !!    component list, such as setup_pl and util_spill_pl
    contains
       private
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
 
       procedure, public :: eucl_index => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_irij3  => eucl_irij3_plpl     !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: eucl_irij3 => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
       procedure, public :: setup      => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_mu     => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
       procedure, public :: set_rhill  => setup_set_rhill
+      procedure, public :: copy       => util_copy_pl         !! Copies elements of one object to another.
+      procedure, public :: spill      => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: fill       => util_fill_pl         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
    end type swiftest_pl
 
    !********************************************************************************************************************************
@@ -208,7 +213,7 @@ module swiftest_classes
       real(DP),     dimension(:),    allocatable :: atp             !! Semimajor axis following perihelion passage
       real(DP),     dimension(:, :), allocatable :: irij3       !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance betwen each pl-tp
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as setup_tp and discard_spill
+      !!    component list, such as setup_tp and util_spill_tp
    contains
       private
       ! Test particle-specific concrete methods 
@@ -218,6 +223,9 @@ module swiftest_classes
       procedure, public :: discard_pl   => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
       procedure, public :: setup        => setup_tp             !! A base constructor that sets the number of bodies and 
       procedure, public :: set_mu       => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: copy         => util_copy_tp       !! Copies elements of one object to another.
+      procedure, public :: spill        => util_spill_tp   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: fill         => util_fill_tp     !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
    end type swiftest_tp
 
 
@@ -240,17 +248,25 @@ module swiftest_classes
       !> Each integrator will have its own version of the step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure, public :: discard                => discard_system               !! Perform a discard step on the system
-      procedure, public :: dump                   => io_dump_system               !! Dump the state of the system to a file
-      procedure, public :: initialize             => io_read_initialize_system    !! Initialize the system from an input file
-      procedure, public :: read_frame             => io_read_frame_system         !! Append a frame of output data to file
-      procedure, public :: set_msys               => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
-      procedure, public :: write_discard          => io_write_discard             !! Append a frame of output data to file
-      procedure, public :: write_frame            => io_write_frame_system        !! Append a frame of output data to file
-      procedure, public :: step                   => step_system    
+      procedure, public :: discard        => discard_system               !! Perform a discard step on the system
+      procedure, public :: dump           => io_dump_system               !! Dump the state of the system to a file
+      procedure, public :: initialize     => io_read_initialize_system    !! Initialize the system from an input file
+      procedure, public :: read_frame     => io_read_frame_system         !! Append a frame of output data to file
+      procedure, public :: set_msys       => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
+      procedure, public :: write_discard  => io_write_discard             !! Append a frame of output data to file
+      procedure, public :: write_frame    => io_write_frame_system        !! Append a frame of output data to file
+      procedure, public :: step           => step_system    
+      procedure, public :: copy           => util_copy_system   !! Copies elements of one object to another.
    end type swiftest_nbody_system
 
    abstract interface
+      subroutine abstract_copy(self, src, mask)
+         import swiftest_base
+         class(swiftest_base),         intent(inout) :: self
+         class(swiftest_base),         intent(in)    :: src
+         logical, dimension(:),        intent(in)    :: mask
+      end subroutine abstract_copy 
+
       subroutine abstract_set_mu(self, cb) 
          import swiftest_body, swiftest_cb
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
@@ -527,18 +543,18 @@ module swiftest_classes
       end function io_get_args
 
       module function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                           xh1, xh2, vh1, vh2, encounter_file, out_type)
+                                           xh1, xh2, vh1, vh2, encounter_file, out_type) result(ierr)
          implicit none
-         integer(I4B)         :: io_read_encounter
+         integer(I4B)         :: ierr
          integer(I4B), intent(out)     :: name1, name2
          real(DP), intent(out)      :: t, mass1, mass2, radius1, radius2
          real(DP), dimension(NDIM), intent(out) :: xh1, xh2, vh1, vh2
          character(*), intent(in)      :: encounter_file,out_type
       end function io_read_encounter
 
-      module function io_read_hdr(iu, t, npl, ntp, out_form, out_type)
+      module function io_read_hdr(iu, t, npl, ntp, out_form, out_type) result(ierr)
          implicit none
-         integer(I4B)      :: io_read_hdr
+         integer(I4B)      :: ierr
          integer(I4B), intent(in)   :: iu
          integer(I4B), intent(out)  :: npl, ntp
          character(*), intent(out)  ::  out_form
@@ -579,13 +595,7 @@ module swiftest_classes
          character(*), intent(in) :: out_form !! Output format type ("EL" or  "XV")
          character(*), intent(in) :: out_type !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
       end subroutine io_write_hdr
-      !> Move spilled (discarded) Swiftest basic body components from active list to discard list
-      module subroutine discard_spill_body(keeps, discards, lspill_list)
-         implicit none
-         class(swiftest_body), intent(inout) :: keeps       !! Swiftest generic body object
-         class(swiftest_body), intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in)   :: lspill_list !! Logical array of bodies to spill into the discards
-      end subroutine discard_spill_body
+
 
       module subroutine discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
          implicit none
@@ -722,6 +732,85 @@ module swiftest_classes
          implicit none
          class(swiftest_body),         intent(inout) :: self
       end subroutine util_reverse_status
+
+      module subroutine util_copy_cb(self, src, mask)
+         implicit none
+         class(swiftest_cb),         intent(inout) :: self
+         class(swiftest_base),       intent(in)    :: src
+         logical, dimension(:),      intent(in)    :: mask
+      end subroutine util_copy_cb
+
+      module subroutine util_copy_body(self, src, mask)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self
+         class(swiftest_base),       intent(in)    :: src
+         logical, dimension(:),      intent(in)    :: mask
+      end subroutine util_copy_body
+
+      module subroutine util_copy_pl(self, src, mask)
+         implicit none
+         class(swiftest_pl),         intent(inout) :: self
+         class(swiftest_base),       intent(in)    :: src
+         logical, dimension(:),      intent(in)    :: mask
+      end subroutine util_copy_pl
+
+      module subroutine util_copy_tp(self, src, mask)
+         implicit none
+         class(swiftest_tp),         intent(inout) :: self
+         class(swiftest_base),       intent(in)    :: src
+         logical, dimension(:),      intent(in)    :: mask
+      end subroutine util_copy_tp
+
+      module subroutine util_copy_system(self, src, mask)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self
+         class(swiftest_base),         intent(in)    :: src
+         logical, dimension(:),        intent(in)    :: mask
+      end subroutine util_copy_system
+
+      !> Move spilled (discarded) Swiftest basic body components from active list to discard list
+      module subroutine util_spill_body(self, discards, lspill_list)
+         implicit none
+         class(swiftest_body), intent(inout) :: self       !! Swiftest generic body object
+         class(swiftest_body), intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)   :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine util_spill_body
+
+      module subroutine util_fill_body(self, inserts, lfill_list)
+         implicit none
+         class(swiftest_body), intent(inout) :: self       !! Swiftest generic body object
+         class(swiftest_body), intent(inout) :: inserts     !! Insertted object 
+         logical, dimension(:), intent(in)   :: lfill_list  !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_body
+
+      module subroutine util_spill_pl(self, discards, lspill_list)
+         implicit none
+         class(swiftest_pl),    intent(inout) :: self        !! Swiftest massive body body object
+         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine util_spill_pl
+
+      module subroutine util_fill_pl(self, inserts, lfill_list)
+         implicit none
+         class(swiftest_pl),    intent(inout) :: self        !! Swiftest massive body object
+         class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_pl
+
+      module subroutine util_spill_tp(self, discards, lspill_list)
+         implicit none
+         class(swiftest_tp), intent(inout)   :: self        !! Swiftest test particle object
+         class(swiftest_body), intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)   :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine util_spill_tp
+
+      module subroutine util_fill_tp(self, inserts, lfill_list)
+         implicit none
+         class(swiftest_tp),    intent(inout) :: self         !! Swiftest test particle object
+         class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_tp
+
    end interface
 
 end module swiftest_classes

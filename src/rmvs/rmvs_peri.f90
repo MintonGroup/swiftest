@@ -16,55 +16,55 @@ contains
 
       rhill2 = pl%Rhill(ipleP)**2
       mu = pl%Gmass(ipleP)
-      associate(nenc => self%nbody)
+      associate(tp => self, nenc => self%nbody)
          if (lfirst) then
             do i = 1, nenc
-               if (self%status(i) == ACTIVE) then
-                  vdotr = dot_product(self%xh(:, i), self%vh(:, i))
+               if (tp%status(i) == ACTIVE) then
+                  vdotr = dot_product(tp%xh(:, i), tp%vh(:, i))
                   if (vdotr > 0.0_DP) then
-                     self%isperi(i) = 1
+                     tp%isperi(i) = 1
                   else
-                     self%isperi(i) = -1
+                     tp%isperi(i) = -1
                   end if
                end if
             end do
          else
             do i = 1, nenc
-               if (self%status(i) == ACTIVE) then
-                  vdotr = dot_product(self%xh(:, i), self%vh(:, i))
-                  if (self%isperi(i) == -1) then
+               if (tp%status(i) == ACTIVE) then
+                  vdotr = dot_product(tp%xh(:, i), tp%vh(:, i))
+                  if (tp%isperi(i) == -1) then
                      if (vdotr >= 0.0_DP) then
-                        self%isperi(i) = 0
-                        call orbel_xv2aqt(mu, self%xh(:, i), self%vh(:, i), a, peri, capm, tperi)
-                        r2 = dot_product(self%xh(:, i), self%xh(:, i))
+                        tp%isperi(i) = 0
+                        call orbel_xv2aqt(mu, tp%xh(:, i), tp%vh(:, i), a, peri, capm, tperi)
+                        r2 = dot_product(tp%xh(:, i), tp%xh(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)
                         if (config%encounter_file /= "") then
                            id1 = pl%name(ipleP)
                            rpl = pl%radius(ipleP)
                            xh1(:) = pl%xin(:, ipleP, index)
                            vh1(:) = pl%vin(:, ipleP, index)
-                           id2 = self%name(i)
-                           xh2(:) = self%xh(:, i) + pl%xin(:, ipleP, index) 
-                           vh2(:) = self%vh(:, i) + pl%vin(:, ipleP, index)
+                           id2 = tp%name(i)
+                           xh2(:) = tp%xh(:, i) + pl%xin(:, ipleP, index) 
+                           vh2(:) = tp%vh(:, i) + pl%vin(:, ipleP, index)
                            call io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),  &
                               config%encounter_file, config%out_type)
                         end if
-                        if (self%lperi(i)) then
-                           if (peri < self%peri(i)) then
-                              self%peri(i) = peri
-                              self%plperP(i) = ipleP
+                        if (tp%lperi(i)) then
+                           if (peri < tp%peri(i)) then
+                              tp%peri(i) = peri
+                              tp%plperP(i) = ipleP
                            end if
                         else
-                           self%lperi(i) = .true.
-                           self%peri(i) = peri
-                           self%plperP(i) = ipleP
+                           tp%lperi(i) = .true.
+                           tp%peri(i) = peri
+                           tp%plperP(i) = ipleP
                         end if
                      end if
                   else
                      if (vdotr > 0.0_DP) then
-                        self%isperi(i) = 1
+                        tp%isperi(i) = 1
                      else
-                        self%isperi(i) = -1
+                        tp%isperi(i) = -1
                      end if
                   end if
                end if
