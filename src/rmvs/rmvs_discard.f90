@@ -21,6 +21,7 @@ contains
                   if ((tp%peri(i) < pl%radius(iplperP))) then
                      tp%status(i) = DISCARDED_PLQ
                      write(*, *) "Particle ",tp%name(i)," q with respect to Planet ",pl%name(iplperP)," is too small at t = ",t
+                     tp%ldiscard(i) = .true.
                   end if
                end if
             end associate
