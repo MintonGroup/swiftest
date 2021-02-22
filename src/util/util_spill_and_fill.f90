@@ -106,8 +106,7 @@ contains
          keeps%mu(:)    = merge(inserts%mu(:),    keeps%mu(:),    lfill_list(:))
 
          ! This is the base class, so will be the last to be called in the cascade. 
-         ! Therefore we need to set the nbody values for both the keeps and discareds
-         keeps%nbody = count(lfill_list(:))
+         keeps%nbody = max(keeps%nbody, inserts%nbody)
       end associate
       
    end procedure util_fill_body

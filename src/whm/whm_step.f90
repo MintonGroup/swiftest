@@ -11,6 +11,7 @@ contains
       implicit none
 
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
+         call pl%set_rhill(cb)
          call tp%set_beg_end(xbeg = pl%xh)
          call pl%step(cb, config, t, dt)
          if (ntp > 0) then
@@ -66,7 +67,8 @@ contains
       implicit none
       real(DP) :: dth
 
-      associate(tp => self, xht => self%xh, vht => self%vh, aht => self%ah)
+      associate(tp => self, xht => self%xh, vht => self%vh, aht => self%ah, &
+         xbeg => self%xbeg, xend => self%xend)
          dth = 0.5_DP * dt
          if (tp%lfirst) then
             call tp%getacch(cb, pl, config, t, tp%xbeg)

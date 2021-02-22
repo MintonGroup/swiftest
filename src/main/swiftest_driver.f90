@@ -59,10 +59,11 @@ program swiftest_driver
       do iloop = 1, LOOPMAX 
          ntp = nbody_system%tp%nbody
          npl = nbody_system%pl%nbody
-         t = t0 + iloop * dt
-         if (t > tstop) exit 
          !> Step the system forward in time
          call nbody_system%step(config)
+
+         t = t0 + iloop * dt
+         if (t > tstop) exit 
 
          !> Evaluate any discards or mergers
          call nbody_system%discard(config)

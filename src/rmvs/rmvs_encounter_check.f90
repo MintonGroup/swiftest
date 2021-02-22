@@ -16,17 +16,17 @@ contains
       logical                   :: lflag
       logical, save             :: lfirst = .true.
 
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody)
+      associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill)
          if (.not.allocated(pl%encmask)) allocate(pl%encmask(ntp, npl))
          pl%encmask(:,:) = .false.
          lencounter = .false.
          pl%nenc(:) = 0
          pl%tpenc1P(:) = 0
          ! if first time through, calc hill's sphere for the planets
-         if (lfirst) then
-            call pl%set_rhill(cb)
-            lfirst = .false.
-         end if
+         !if (lfirst) then
+           
+         !   lfirst = .false.
+         !end if
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                tp%plencP(i) = 0

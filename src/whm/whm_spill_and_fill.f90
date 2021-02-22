@@ -30,7 +30,7 @@ contains
             discards%vj(i, :) = pack(keeps%vj(i, 1:npl),       lspill_list(1:npl))
             keeps%vj(i, :)    = pack(keeps%vj(i, 1:npl), .not. lspill_list(1:npl))
          end do
-         call util_spill_body(keeps, discards, lspill_list)
+         call util_spill_pl(keeps, discards, lspill_list)
       class default
          write(*,*) 'Error! spill method called for incompatible return type on whm_pl'
       end select
@@ -63,7 +63,7 @@ contains
                keeps%xj(i, :) = merge(inserts%xj(i, :), keeps%xj(i, :), lfill_list(:))
                keeps%vj(i, :) = merge(inserts%vj(i, :), keeps%vj(i, :), lfill_list(:))
             end do
-            call util_fill_body(keeps, inserts, lfill_list)
+            call util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on whm_pl'
          end select

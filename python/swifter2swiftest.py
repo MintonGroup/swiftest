@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import swiftestio as swio
 
 """
   Converts initial conditions files from Swifter to Swiftest
@@ -78,8 +79,8 @@ if __name__ == '__main__':
             i_list = [i for i in line.split(" ") if i.strip()]
             name = int(i_list[0])
             GMpl = float(i_list[1])
-            print(f'{name} {GMpl} -> {GMpl / GU}')
-            print(name, GMpl / GU,file=plnew)
+            #print(f'{name} {GMpl} -> {GMpl / GU}')
+            print(name, GMpl,file=plnew)
             if config['CHK_CLOSE'] == 'YES':
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
@@ -142,7 +143,7 @@ if __name__ == '__main__':
     cbnew = open(config['CB_NEW'], 'w')
 
     print(f'GMsun = {GMsun} -> {GMsun / GU}')
-    print(GMsun / GU, file=cbnew)
+    print(GMsun, file=cbnew)
     print(cbrad)
     print(cbrad, file=cbnew)
     print(config['J2'])

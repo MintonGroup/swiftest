@@ -18,6 +18,7 @@ contains
          xht => tp%xh, vht => tp%vh, aht => tp%ah, irij3 => tp%irij3) 
          allocate(xbeg, source=pl%xh)
          allocate(vbeg, source=pl%vh)
+         call pl%set_rhill(cb)
          call tp%set_beg_end(xbeg = xbeg, vbeg = vbeg)
          ! ****** Check for close encounters ***** !
          rts = RHSCALE
@@ -61,7 +62,8 @@ contains
       type(rmvs_pl)      :: rmvs_plep
 
    ! executable code
-      associate(pl => self, npl => self%nbody, ntp => tp%nbody, t => config%t, xht => tp%xh, vht => tp%vh)
+      associate(pl => self, npl => self%nbody, ntp => tp%nbody, t => config%t, xht => tp%xh, vht => tp%vh, &
+         status => tp%status)
          dto = dt / NTENC
          where(tp%plencp(:) == 0)
             tp%status(:) = INACTIVE
@@ -175,7 +177,6 @@ contains
                         call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .false., index, nenc, i, config) 
                      end do
                   end associate
-
                end if
             end do
             call pl%end_planetocentric(tp)
@@ -195,10 +196,13 @@ contains
          !!
          implicit none
          integer(I4B) :: i, j, k, link, nenc
+         type(rmvs_pl) :: cb_as_pl, pl_as_cb
+         logical, dimension(:), allocatable :: copyflag
    
          allocate(self%tpenc(self%nbody))
          allocate(self%plenc(self%nbody, 0:NTPHENC))
          allocate(self%cbenc(self%nbody))
+         allocate(copyflag(self%nbody))
          associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
             plenc => self%plenc, &
             xpc => self%tpenc(1)%xh, vpc => self%tpenc(1)%vh)
@@ -207,10 +211,16 @@ contains
 
             ! Save the original central body object so that it can be passed down as needed through the planetocentric structures
             tpenc%cb = cb 
+            call cb_as_pl%setup(npl)
+            cb_as_pl%name(:) = spread(0, 1, npl)
+            cb_as_pl%Gmass(:)  = spread(cb%Gmass, 1, npl)
+            cb_as_pl%mass(:)   = spread(cb%mass, 1, npl)
+            cb_as_pl%radius(:) = spread(cb%radius, 1, npl)
+
+            call pl_as_cb%setup(npl)
 
             do i = 1, npl
                if (nenc(i) > 0) then ! There are inner encounters with this planet
-
                   ! Make the planet a central body for the encounter
                   cbenc(i)        = cb
                   cbenc(i)%Gmass  = pl%Gmass(i)
@@ -244,26 +254,25 @@ contains
                   end if
                   ! Now create a planetocentric "planet" structure containing the *other* planets (plus the Sun) in it at each point along
                   ! the innner encounter trajectory of the planet
-                  do k = 0, NTPHENC
-                     call plenc(i, k)%setup(npl)
 
-                     ! Create space for the planet accelerations during the interpolated inner steps
-                     plenc(i, k)%status(:) = pl%status(:)
+
+                  do k = 0, NTPHENC
+
+                     call plenc(i, k)%setup(npl)
+                     ! Copy all the basic planet parameters and positions
+                     copyflag(:) =  .true.
+                     call plenc(i,k)%copy(pl,copyflag)
+                     ! Give each planet a position and velocity vector that is planetocentric wrt planet i (the encountering planet)
                      do j = 1, npl
-                        if (j == i) then ! Substitute the Sun in the array location occupied by the encountering planet
-                           plenc(i, k)%name(j)   = 0
-                           plenc(i, k)%Gmass(j)  = cb%Gmass
-                           plenc(i, k)%mass(j)   = cb%mass
-                           plenc(i, k)%radius(j) = cb%radius
-                           plenc(i, k)%xh(:, j)  = cb%xin(:) - pl%xin(:, i, k)
-                        else ! Shift the 
-                           plenc(i, k)%name(j)   = self%name(i)
-                           plenc(i, k)%Gmass(j)  = pl%Gmass(i)
-                           plenc(i, k)%mass(j)   = pl%mass(i)
-                           plenc(i, k)%radius(j) = pl%radius(i)
-                           plenc(i, k)%xh(:, j)  = pl%xin(:, i, k) - pl%xin(:, i, k)
-                        end if
+                        plenc(i, k)%xh(:, j)  = pl%xin(:, j, k) - pl%xin(:, i, k)
+                        plenc(i, k)%vh(:, j)  = pl%vin(:, j, k) - pl%vin(:, i, k)
                      end do
+                     cb_as_pl%xh(:, i)  = cb%xin(:) - pl%xin(:, i, k)
+                     cb_as_pl%vh(:, i)  = cb%vin(:) - pl%vin(:, i, k)
+                     ! Slot the Sun into the encounter planet's position of the planet list
+                     copyflag(:) = .false.
+                     copyflag(i) = .true.
+                     call plenc(i, k)%fill(cb_as_pl, copyflag)
                   end do
                end if
             end do
@@ -287,13 +296,17 @@ contains
                if (nenc(i) == 0) cycle
                do j = 1, nenc(i)
                   ! Copy the results of the integration back over
-                  tpenc(i)%xh(:, j) = pl%xin(:, i, NTPHENC) + tpenc(i)%xh(:,j)
-                  tpenc(i)%vh(:, j) = pl%vin(:, i, NTPHENC) + tpenc(i)%vh(:,j)
+                  tpenc(i)%xh(:, j) = tpenc(i)%xh(:, j) + pl%xin(:, i, NTPHENC) 
+                  tpenc(i)%vh(:, j) = tpenc(i)%vh(:, j) + pl%vin(:, i, NTPHENC) 
                   if (tpenc(i)%status(j) == ACTIVE) tpenc(i)%status(j) = INACTIVE
                end do
+
+               ! Presevere the heliocentric value of mu
+               where(encmask(:,i)) 
+                  tpenc(i)%mu(:) = tp%mu(:)
+               end where
                call tp%fill(tpenc(i), encmask(:,i))
             end do
-      
             deallocate(pl%tpenc)
             deallocate(pl%cbenc)
             deallocate(pl%plenc)

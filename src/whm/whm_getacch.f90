@@ -221,7 +221,7 @@ contains
                dx(:) = tp%xh(:, i) - xh(:, j)
                rji2 = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = pl%gmass(j) * irij3
+               fac = pl%Gmass(j) * irij3
                acc(:) = acc(:) - fac * dx(:)
                !tp%ah(:, i) = tp%ah(:, i) - fac * dx(:)
             end do
