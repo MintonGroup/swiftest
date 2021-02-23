@@ -86,7 +86,7 @@ contains
       do i = 1, n
          r2 = dot_product(xh(:, i), xh(:, i))
          ir3h = 1.0_DP / (r2 * sqrt(r2))
-         fac = mu(i) * ir3h !/ (norm2(xh(:, i)))**3
+         fac = mu(i) * ir3h 
          ah0(:) = ah0(:) - fac * xh(:, i)
       end do
 

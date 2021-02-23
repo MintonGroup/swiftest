@@ -19,7 +19,7 @@ contains
       q = 0.0_DP
       capm = 0.0_DP
       tperi = 0.0_DP
-      r = norm2(x(:))
+      r = sqrt(dot_product(x(:), x(:)))
       v2 = dot_product(v(:), v(:))
       hvec(:) = x(:) .cross. v(:)
       h2 = dot_product(hvec(:), hvec(:))

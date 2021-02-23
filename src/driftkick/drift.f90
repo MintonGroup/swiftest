@@ -51,7 +51,7 @@ contains
       ! Executable code
       iflag = 0
       dt = dt0
-      r0 = norm2(x0(:))
+      r0 = sqrt(dot_product(x0(:), x0(:))) 
       v0s = dot_product(v0(:), v0(:))
       u = dot_product(x0(:),  v0(:))
       alpha = 2 * mu / r0 - v0s

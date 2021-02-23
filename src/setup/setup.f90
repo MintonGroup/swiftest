@@ -225,7 +225,6 @@ contains
             r2 = dot_product(self%xh(:, i), self%xh(:, i))
             irh = 1.0_DP / sqrt(r2)
             self%ir3h(i) = irh / r2
-            !self%ir3h(i) = 1.0_DP / (norm2(self%xh(:, i)))**3
          end do
       end if
 

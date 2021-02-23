@@ -108,8 +108,6 @@ contains
 
       if (self%nbody > 0) then
          do i = 1, self%nbody
-            !self%ir3h(i) = 1.0_DP / (norm2(self%xh(:, i)))**3
-            !self%ir3j(i) = 1.0_DP / (norm2(self%xj(:, i)))**3
             r2 = dot_product(self%xh(:, i), self%xh(:, i))
             ir = 1.0_DP / sqrt(r2)
             self%ir3h(i) = ir / r2

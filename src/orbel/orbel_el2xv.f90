@@ -79,7 +79,7 @@ contains
       if (iorbit_type == ELLIPSE) then
          cape = orbel_ehybrid(e,capm)
          call orbel_scget(cape,scap,ccap)
-         sqe = sqrt(1._DP - e * e)
+         sqe = sqrt(1._DP - e**2)
          sqgma = sqrt(mu* a)
          xfac1 = a * (ccap - e)
          xfac2 = a * sqe * scap
@@ -91,7 +91,7 @@ contains
       if (iorbit_type == HYPERBOLA) then
          capf = orbel_fhybrid(e,capm)
          call orbel_schget(capf,shcap,chcap)
-         sqe = sqrt(e * e - 1._DP )
+         sqe = sqrt(e**2 - 1._DP )
          sqgma = sqrt(mu * a)
          xfac1 = a * (e - chcap)
          xfac2 = a * sqe * shcap
@@ -213,7 +213,7 @@ contains
 
       a = 6 * ( e - 1.d0) / e
       b = -6 * capn / e
-      sq = SQRT(0.25_DP * b**2+ a**3/ 27._DP)
+      sq = SQRT(0.25_DP * b**2 + a**3 / 27._DP)
       biga =  (-0.5_DP * b + sq)**(1.0_DP / 3.0_DP)
       bigb = -(+0.5_DP * b + sq)**(1.0_DP / 3.0_DP) 
       x = biga + bigb
@@ -557,7 +557,7 @@ contains
       fppp = ec
       dx = -f / fp
       dx = -f / (fp + dx * fpp / 2._DP)
-      dx = -f / (fp + dx * fpp / 2._DP + dx * dx * fppp / 6._DP)
+      dx = -f / (fp + dx * fpp / 2._DP + dx*2 * fppp / 6._DP)
       orbel_eget = x + dx
 
       ! do another iteration.
@@ -566,15 +566,15 @@ contains
 
       x = orbel_eget
       call orbel_scget(x,sx,cx)
-      es = e*sx
-      ec = e*cx
+      es = e * sx
+      ec = e * cx
       f = x - es  - m
       fp = 1._DP - ec
       fpp = es
       fppp = ec
       dx = -f / fp
       dx = -f / (fp + dx * fpp / 2._DP)
-      dx = -f / (fp + dx * fpp / 2._DP + dx * dx * fppp / 6._DP)
+      dx = -f / (fp + dx * fpp / 2._DP + dx**2 * fppp / 6._DP)
 
       orbel_eget = x + dx
 

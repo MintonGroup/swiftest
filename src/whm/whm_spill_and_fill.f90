@@ -15,21 +15,22 @@ contains
       select type(discards)
       class is (whm_pl)
          discards%eta(:) = pack(keeps%eta(1:npl),       lspill_list(1:npl))
-         keeps%eta(:)    = pack(keeps%eta(1:npl), .not. lspill_list(1:npl))
-
          discards%muj(:) = pack(keeps%muj(1:npl),       lspill_list(1:npl))
-         keeps%muj(:)    = pack(keeps%muj(1:npl), .not. lspill_list(1:npl))
-
          discards%ir3j(:) = pack(keeps%ir3j(1:npl),       lspill_list(1:npl))
-         keeps%ir3j(:)    = pack(keeps%ir3j(1:npl), .not. lspill_list(1:npl))
-
          do i = 1, NDIM
             discards%xj(i, :) = pack(keeps%xj(i, 1:npl),       lspill_list(1:npl))
-            keeps%xj(i, :)    = pack(keeps%xj(i, 1:npl), .not. lspill_list(1:npl))
-
             discards%vj(i, :) = pack(keeps%vj(i, 1:npl),       lspill_list(1:npl))
-            keeps%vj(i, :)    = pack(keeps%vj(i, 1:npl), .not. lspill_list(1:npl))
          end do
+
+         if (count(.not.lspill_list(1:npl))  > 0) then 
+            keeps%eta(:)    = pack(keeps%eta(1:npl), .not. lspill_list(1:npl))
+            keeps%muj(:)    = pack(keeps%muj(1:npl), .not. lspill_list(1:npl))
+            keeps%ir3j(:)    = pack(keeps%ir3j(1:npl), .not. lspill_list(1:npl))
+            do i = 1, NDIM
+               keeps%xj(i, :)    = pack(keeps%xj(i, 1:npl), .not. lspill_list(1:npl))
+               keeps%vj(i, :)    = pack(keeps%vj(i, 1:npl), .not. lspill_list(1:npl))
+            end do
+         end if
          call util_spill_pl(keeps, discards, lspill_list)
       class default
          write(*,*) 'Error! spill method called for incompatible return type on whm_pl'

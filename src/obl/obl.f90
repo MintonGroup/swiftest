@@ -18,7 +18,6 @@ contains
          do i = 1, n 
             r2 = dot_product(xh(:, i), xh(:, i))
             irh = 1.0_DP / sqrt(r2)
-            !irh = 1.0_DP / norm2(xh(:,i))
             rinv2 = irh**2
             t0 = -msun * rinv2*rinv2*irh
             t1 = 1.5_DP * j2rp2

@@ -204,13 +204,10 @@ contains
          allocate(self%cbenc(self%nbody))
          allocate(copyflag(self%nbody))
          associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
-            plenc => self%plenc, &
-            xpc => self%tpenc(1)%xh, vpc => self%tpenc(1)%vh)
+            plenc => self%plenc)
             ! Indicate that this is a planetocentric close encounter structor
-            tpenc%lplanetocentric = .true.
 
             ! Save the original central body object so that it can be passed down as needed through the planetocentric structures
-            tpenc%cb = cb 
             call cb_as_pl%setup(npl)
             cb_as_pl%name(:) = spread(0, 1, npl)
             cb_as_pl%Gmass(:)  = spread(cb%Gmass, 1, npl)
@@ -232,6 +229,8 @@ contains
 
                   ! Save the index value of the planet corresponding to this encounter 
                   tpenc(i)%ipleP = i
+                  tpenc(i)%lplanetocentric = .true.
+                  tpenc(i)%cb = cb 
                   call pl%tpenc(i)%setup(nenc(i))
                   call tp%spill(pl%tpenc(i), pl%encmask(:,i))
                   ! Grab all the encountering test particles and convert them to a planetocentric frame
@@ -307,11 +306,11 @@ contains
                end where
                call tp%fill(tpenc(i), encmask(:,i))
             end do
-            deallocate(pl%tpenc)
-            deallocate(pl%cbenc)
-            deallocate(pl%plenc)
 
          end associate
+         deallocate(self%tpenc)
+         deallocate(self%cbenc)
+         deallocate(self%plenc)
    
          return
    

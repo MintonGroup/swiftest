@@ -18,7 +18,7 @@ contains
       x = angle - nper * TWOPI
       if (x < 0.0_DP) x = x + TWOPI
       sx = sin(x)
-      cx = sqrt(1.0_DP - sx * sx)
+      cx = sqrt(1.0_DP - sx**2)
       if ((x > PIBY2) .and. (x < PI3BY2)) cx = -cx
 
       return

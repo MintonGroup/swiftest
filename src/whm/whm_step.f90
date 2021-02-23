@@ -34,7 +34,8 @@ contains
 
       real(DP) :: dth
       
-      associate(pl => self, xh => self%xh, vh => self%vh, ah => self%ah)
+      associate(pl => self, xh => self%xh, vh => self%vh, ah => self%ah, &
+               xj => self%xj, vj => self%vj)
          dth = 0.5_DP * dt
          if (pl%lfirst) then
             call pl%h2j(cb)

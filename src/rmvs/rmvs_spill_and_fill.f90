@@ -16,11 +16,11 @@ module procedure rmvs_spill_pl
       class is (rmvs_pl)
 
          discards%nenc(:)    = pack(keeps%nenc(1:npl),         lspill_list(1:npl))
-         keeps%nenc(:)       = pack(keeps%nenc(1:npl),   .not. lspill_list(1:npl))
-
          discards%tpenc1P(:) = pack(keeps%tpenc1P(1:npl),       lspill_list(1:npl))
-         keeps%tpenc1P(:)    = pack(keeps%tpenc1P(1:npl), .not. lspill_list(1:npl))
-
+         if (count(.not.lspill_list(1:npl))  > 0) then
+            keeps%nenc(:)       = pack(keeps%nenc(1:npl),   .not. lspill_list(1:npl))
+            keeps%tpenc1P(:)    = pack(keeps%tpenc1P(1:npl), .not. lspill_list(1:npl))
+         end if
          call whm_spill_pl(keeps, discards, lspill_list)
       class default
          write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
@@ -74,16 +74,15 @@ module procedure rmvs_spill_pl
       select type(discards)
       class is (rmvs_tp)
          discards%lperi(:)  = pack(keeps%lperi(1:ntp),       lspill_list(1:ntp))
-         keeps%lperi(:)     = pack(keeps%lperi(1:ntp), .not. lspill_list(1:ntp))
-
          discards%plperP(:) = pack(keeps%plperP(1:ntp),       lspill_list(1:ntp))
-         keeps%plperP(:)    = pack(keeps%plperP(1:ntp), .not. lspill_list(1:ntp))
-
          discards%plencP(:) = pack(keeps%plencP(1:ntp),       lspill_list(1:ntp))
-         keeps%plencP(:)    = pack(keeps%plencP(1:ntp), .not. lspill_list(1:ntp))
-
          discards%tpencP(:) = pack(keeps%tpencP(1:ntp),       lspill_list(1:ntp))
-         keeps%tpencP(:)    = pack(keeps%tpencP(1:ntp), .not. lspill_list(1:ntp))
+         if (count(.not.lspill_list(1:ntp))  > 0) then
+            keeps%lperi(:)     = pack(keeps%lperi(1:ntp), .not. lspill_list(1:ntp))
+            keeps%plperP(:)    = pack(keeps%plperP(1:ntp), .not. lspill_list(1:ntp))
+            keeps%plencP(:)    = pack(keeps%plencP(1:ntp), .not. lspill_list(1:ntp))
+            keeps%tpencP(:)    = pack(keeps%tpencP(1:ntp), .not. lspill_list(1:ntp))
+         end if
 
          call util_spill_tp(keeps, discards, lspill_list)
       class default
