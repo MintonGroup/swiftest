@@ -1,6 +1,6 @@
 submodule(whm_classes) whm_drift
 contains
-   module procedure whm_drift_pl
+   module subroutine whm_drift_pl(self, cb, config, dt)
       !! author: David A. Minton
       !!
       !! Loop through planets and call Danby drift routine
@@ -9,10 +9,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift.f90
       use swiftest
       implicit none
-
-      integer(I4B)          :: i
-      real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
-      integer(I4B), dimension(:), allocatable  :: iflag
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structur
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      real(DP),                      intent(in)    :: dt     !! Stepsize
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP)                                     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
+      integer(I4B), dimension(:), allocatable      :: iflag
 
       associate(npl    => self%nbody, &
          xj     => self%xj, &
@@ -49,9 +54,9 @@ contains
 
       return
 
-   end procedure whm_drift_pl
+   end subroutine whm_drift_pl
 
-   module procedure whm_drift_tp
+   module subroutine whm_drift_tp(self, cb, config, dt)
       !! author: David A. Minton
       !!
       !! Loop through test particles and call Danby drift routine
@@ -61,10 +66,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
       use swiftest
       implicit none
-
-      integer(I4B)                            :: i   
-      real(DP)     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
-      integer(I4B), dimension(:), allocatable  :: iflag
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      real(DP),                      intent(in)    :: dt     !! Stepsize
+      !! Internals
+      integer(I4B)                                 :: i   
+      real(DP)                                     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
+      integer(I4B), dimension(:), allocatable      :: iflag
 
       associate(ntp    => self%nbody, &
                 xh     => self%xh, &
@@ -97,5 +107,5 @@ contains
 
       return
 
-      end procedure whm_drift_tp
+      end subroutine whm_drift_tp
 end submodule whm_drift
