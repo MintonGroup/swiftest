@@ -9,6 +9,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_step.f90
       use swiftest
       implicit none
+      !! Arguments
       class(whm_cb),                 intent(inout) :: cb      !! WHM central body object  
       class(whm_pl),                 intent(inout) :: pl      !! WHM central body object  
       class(whm_tp),                 intent(inout) :: tp      !! WHM central body object  
@@ -25,7 +26,7 @@ contains
       end associate
    end subroutine whm_step_system 
 
-   module procedure whm_step_pl
+   module subroutine whm_step_pl(self, cb, config, t, dt)
       !! author: David A. Minton
       !!
       !! Step planets ahead using kick-drift-kick algorithm
@@ -35,8 +36,14 @@ contains
       !logical, save :: lfirst = .true.
       use swiftest
       implicit none
-
-      real(DP) :: dth
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structure
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      real(DP),                      intent(in)    :: t      !! Current time
+      real(DP),                      intent(in)    :: dt     !! Stepsize
+      !! Internals
+      real(DP)                                     :: dth
       
       associate(pl => self, xh => self%xh, vh => self%vh, ah => self%ah, &
                xj => self%xj, vj => self%vj)
@@ -58,10 +65,9 @@ contains
          call pl%kickvh(dth)
       end associate
       return
+   end subroutine whm_step_pl
 
-   end procedure whm_step_pl
-
-   module procedure whm_step_tp
+   module subroutine whm_step_tp(self, cb, pl, config, t, dt)
       !! author: David A. Minton
       !!
       !! Step active test particles ahead using kick-drift-kick algorithm
@@ -70,7 +76,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
       use swiftest
       implicit none
-      real(DP) :: dth
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structure
+      class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      real(DP),                      intent(in)    :: t      !! Current time
+      real(DP),                      intent(in)    :: dt     !! Stepsize
+      !! Internals
+      real(DP)                                     :: dth
 
       associate(tp => self, xht => self%xh, vht => self%vh, aht => self%ah, &
          xbeg => self%xbeg, xend => self%xend)
@@ -88,6 +102,6 @@ contains
          call tp%kickvh(dth)
       end associate
       return
-   end procedure whm_step_tp   
+   end subroutine whm_step_tp   
 
 end submodule s_whm_step
