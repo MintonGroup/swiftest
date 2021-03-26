@@ -1,7 +1,7 @@
 submodule(rmvs_classes) s_rmvs_getacch
 contains  
 
-   module procedure rmvs_getacch_in_tp
+   module subroutine rmvs_getacch_in_tp(self, cb, pl, config, t, xh)
       !! author: David A. Minton
       !!
       !! Compute the oblateness acceleration in the inner encounter region with planets 
@@ -10,9 +10,17 @@ contains
       !! uses object polymorphism, and so is not directly adapted.
       use swiftest
       implicit none
-      type(swiftest_configuration) :: config_planetocen
+      !! Arguments
+      class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle data structure
+      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree 
+      class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of  parameter
+      real(DP),                      intent(in)    :: t      !! Current time
+      real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+      !! Internals
+      type(swiftest_configuration)                 :: config_planetocen
       real(DP), dimension(:, :), allocatable       :: xh_original
-      integer(I4B) :: i
+      integer(I4B)                                 :: i
 
 
       associate(tp => self, cb_heliocen => self%cb, ipleP => self%ipleP, index => self%index, &
@@ -60,6 +68,6 @@ contains
 
       return
 
-   end procedure rmvs_getacch_in_tp
+   end subroutine rmvs_getacch_in_tp
 
 end submodule s_rmvs_getacch
