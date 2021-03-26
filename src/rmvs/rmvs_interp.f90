@@ -1,6 +1,6 @@
 submodule (rmvs_classes) s_rmvs_interp
 contains
-   module procedure rmvs_interp_in
+   module subroutine rmvs_interp_in(self, cb, dt)
       !! author: David A. Minton
       !!
       !! Interpolate planet positions between two Keplerian orbits in inner encounter regio
@@ -10,10 +10,14 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_interp.f
       use swiftest
       implicit none
-
-      integer(I4B)               :: i, j, iflag
-      real(DP)                   :: dti, frac, dntphenc
-      real(DP), dimension(NDIM)  :: xtmp, vtmp
+      !! Arguments
+      class(rmvs_pl), intent(inout)   :: self !! RMVS test particle object
+      class(rmvs_cb), intent(in)      :: cb   !! RMVS central body particle type
+      real(DP), intent(in)            :: dt   !! Step size
+      !! Internals
+      integer(I4B)                    :: i, j, iflag
+      real(DP)                        :: dti, frac, dntphenc
+      real(DP), dimension(NDIM)       :: xtmp, vtmp
 
       dntphenc = real(NTPHENC, kind=DP)
       associate (msun => cb%Gmass, npl => self%nbody)
@@ -55,9 +59,9 @@ contains
       end associate
       return
 
-   end procedure rmvs_interp_in
+   end subroutine rmvs_interp_in
 
-   module procedure rmvs_interp_out
+   module subroutine rmvs_interp_out(self, cb, dt)
       !! author: David A. Minton
       !!
       !! Interpolate planet positions between two Keplerian orbits in outer encounter region
@@ -67,10 +71,14 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_interp.f
       use swiftest
       implicit none
-
-      integer(I4B)              :: i, j, iflag
-      real(DP)                  :: dto, frac, dntenc
-      real(DP), dimension(NDIM) :: xtmp, vtmp
+      !! Arguments
+      class(rmvs_pl), intent(inout)   :: self !! RMVS test particle object
+      class(rmvs_cb), intent(in)      :: cb   !! RMVS central body particle type
+      real(DP), intent(in)            :: dt   !! Step size
+      !! Internals
+      integer(I4B)                    :: i, j, iflag
+      real(DP)                        :: dto, frac, dntenc
+      real(DP), dimension(NDIM)       :: xtmp, vtmp
 
    ! executable code
       dntenc = real(NTENC, DP)
@@ -114,5 +122,5 @@ contains
 
       return
 
-   end procedure rmvs_interp_out   
+   end subroutine rmvs_interp_out   
 end submodule s_rmvs_interp
