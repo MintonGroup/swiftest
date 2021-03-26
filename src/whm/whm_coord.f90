@@ -1,6 +1,6 @@
 submodule (whm_classes) whm_coord_implementations
 contains
-   module procedure whm_coord_h2j_pl
+   module subroutine whm_coord_h2j_pl(self, cb)
       !! author: David A. Minton
       !!
       !! Convert from heliocentric to Jacobi coordinates, massive bodies only
@@ -12,9 +12,12 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2j.f 
       use swiftest
       implicit none
-
-      integer(I4B)              :: i
-      real(DP), dimension(NDIM) :: sumx, sumv, cap, capv
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(NDIM)                    :: sumx, sumv, cap, capv
 
       associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
@@ -36,9 +39,9 @@ contains
       end associate
     
       return
-   end procedure whm_coord_h2j_pl
+   end subroutine whm_coord_h2j_pl
 
-   module procedure whm_coord_j2h_pl
+   module subroutine whm_coord_j2h_pl(self, cb)
       !! author: David A. Minton
       !!
       !! Convert from Jacobi to heliocentric coordinates, massive bodies only.
@@ -51,9 +54,12 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_j2h.f 
       use swiftest
       implicit none
-
-      integer(I4B)              :: i
-      real(DP), dimension(NDIM) :: sumx, sumv
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(NDIM)                    :: sumx, sumv
 
       associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
@@ -71,9 +77,9 @@ contains
       end associate
     
       return
-   end procedure whm_coord_j2h_pl
+   end subroutine whm_coord_j2h_pl
 
-   module procedure whm_coord_vh2vj_pl
+   module subroutine whm_coord_vh2vj_pl(self, cb)
       !! author: David A. Minton
       !!
       !! Convert from heliocentric to Jadcobi coordinates, massive body velocities only
@@ -85,8 +91,12 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vh2vj.f 
       use swiftest
       implicit none
-      integer(I4B)              :: i
-      real(DP), dimension(NDIM) :: sumv, capv
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
+      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(NDIM)                    :: sumv, capv
 
       associate(npl => self%nbody, GMpl => self%Gmass, vh => self%vh, vj => self%vj, eta => self%eta)
          cb%vj(:) = 0.0_DP
@@ -101,6 +111,6 @@ contains
       end associate
     
       return
-   end procedure whm_coord_vh2vj_pl
+   end subroutine whm_coord_vh2vj_pl
 end submodule whm_coord_implementations
 
