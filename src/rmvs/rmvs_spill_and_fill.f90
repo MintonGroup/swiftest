@@ -1,6 +1,6 @@
 submodule(rmvs_classes) s_rmvs_spill_and_fill
 contains
-module procedure rmvs_spill_pl
+module subroutine rmvs_spill_pl(self, discards, lspill_list)
    !! author: David A. Minton
    !!
    !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -8,8 +8,12 @@ module procedure rmvs_spill_pl
    !! Adapted from David E. Kaufmann's Swifter routine discard_discard_spill.f90
    use swiftest
    implicit none
-
-   integer(I4B) :: i
+   !! Arguments
+   class(rmvs_pl),                        intent(inout) :: self      !! Swiftest massive body body object
+   class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
+   logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+   !! Internals
+   integer(I4B)                                         :: i
 
    associate(keeps => self, npl => self%nbody)
       select type(discards)
@@ -29,9 +33,9 @@ module procedure rmvs_spill_pl
 
    return
 
-   end procedure rmvs_spill_pl
+   end subroutine rmvs_spill_pl
 
-   module procedure rmvs_fill_pl
+   module subroutine rmvs_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new RMVS massive body structure into an old one. 
@@ -39,8 +43,12 @@ module procedure rmvs_spill_pl
       !! 
       use swiftest
       implicit none
-   
-      integer(I4B) :: i
+      !! Arguments
+      class(rmvs_tp),                     intent(inout) :: self       !! RMVS test particle object
+      class(swiftest_body),               intent(inout) :: discards    !! Discarded object 
+      logical, dimension(:),              intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      !! Internals
+      integer(I4B)                                      :: i
    
       associate(keeps => self)
          select type(inserts)
@@ -57,9 +65,9 @@ module procedure rmvs_spill_pl
    
       return
    
-   end procedure rmvs_fill_pl
+   end subroutine rmvs_fill_pl
 
-   module procedure rmvs_spill_tp
+   module subroutine rmvs_spill_tp(self, discards, lspill_list)
    !! author: David A. Minton
    !!
    !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -67,8 +75,12 @@ module procedure rmvs_spill_pl
    !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
    use swiftest
    implicit none
-
-   integer(I4B) :: i
+   !! Arguments
+   class(rmvs_tp),                        intent(inout) :: self       !! RMVS test particle object
+   class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
+   logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+   !! Internals
+   integer(I4B)                                         :: i
 
    associate(keeps => self, ntp => self%nbody)
       select type(discards)
@@ -92,9 +104,9 @@ module procedure rmvs_spill_pl
 
    return
 
-   end procedure rmvs_spill_tp
+   end subroutine rmvs_spill_tp
 
-   module procedure rmvs_fill_tp
+   module subroutine rmvs_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new RMVS test particle structure into an old one. 
@@ -102,6 +114,10 @@ module procedure rmvs_spill_pl
       !! 
       use swiftest
       implicit none
+      !! Arguments
+      class(rmvs_tp),                     intent(inout) :: self        !! RMVS massive body object
+      class(swiftest_body),               intent(inout) :: inserts     !!  Inserted object 
+      logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
    
       associate(keeps => self)
          select type(inserts)
@@ -120,6 +136,6 @@ module procedure rmvs_spill_pl
    
       return
    
-      end procedure rmvs_fill_tp
+      end subroutine rmvs_fill_tp
 
 end submodule s_rmvs_spill_and_fill
