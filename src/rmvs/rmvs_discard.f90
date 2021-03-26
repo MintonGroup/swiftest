@@ -1,7 +1,7 @@
 submodule(rmvs_classes) s_rmvs_discard
 contains  
 
-   module procedure rmvs_discard_pl_tp
+   module subroutine rmvs_discard_pl_tp(self, cb, pl, config, t, dt)
       !! author: David A. Minton
       !!
       !! Check to see if test particles should be discarded based on pericenter passage distances with respect to
@@ -11,8 +11,15 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs_discard_pl.f90
       use swiftest
       implicit none
-
-      integer(I4B) :: i
+      !! Arguments
+      class(rmvs_tp),                intent(inout) :: self
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
+      class(swiftest_pl),            intent(inout) :: pl     !! WHM massive body particle data structure. 
+      class(swiftest_configuration), intent(in)    :: config !!  configuration parameters
+      real(DP),                      intent(in)    :: t      !! Current simulation time
+      real(DP),                      intent(in)    :: dt     !! Stepsize
+      !! Internals
+      integer(I4B)                                 :: i
 
       associate(tp => self, ntp => self%nbody)
          do i = 1, ntp
@@ -29,5 +36,5 @@ contains
          call discard_pl_tp(tp, cb, pl, config, t, dt)
       end associate
 
-   end procedure rmvs_discard_pl_tp
+   end subroutine rmvs_discard_pl_tp
 end submodule s_rmvs_discard
