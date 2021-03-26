@@ -1,6 +1,6 @@
 submodule(whm_classes) s_whm_spill_and_fill
 contains
-   module procedure whm_spill_pl
+   module subroutine whm_spill_pl(self, discards, lspill_list)
    !! author: David A. Minton
    !!
    !! Move spilled (discarded) WHM test particle structure from active list to discard list
@@ -8,9 +8,12 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
    use swiftest
    implicit none
-
-   integer(I4B) :: i
-
+   !! Arguments
+   class(whm_pl),                         intent(inout) :: self        !! WHM massive body object
+   class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
+   logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+   !! Internals
+   integer(I4B)                                         :: i
    associate(keeps => self, npl => self%nbody)
       select type(discards)
       class is (whm_pl)
@@ -39,9 +42,9 @@ contains
 
    return
 
-   end procedure whm_spill_pl
+   end subroutine whm_spill_pl
 
-   module procedure whm_fill_pl
+   module subroutine whm_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new WHM test particle structure into an old one. 
@@ -50,8 +53,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       use swiftest
       implicit none
-   
-      integer(I4B) :: i
+      !! Arguments
+      class(whm_pl),                      intent(inout) :: self       !! WHM massive body object
+      class(swiftest_body),               intent(inout) :: inserts    !! inserted object 
+      logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      !! Internals
+      integer(I4B)                                      :: i
    
       associate(keeps => self)
          select type(inserts)
@@ -72,6 +79,6 @@ contains
    
       return
    
-      end procedure whm_fill_pl
+      end subroutine whm_fill_pl
 
 end submodule s_whm_spill_and_fill
