@@ -1,6 +1,6 @@
 submodule(whm_classes) whm_gr_implementations
 contains
-   module procedure whm_gr_getacch_pl 
+   module subroutine whm_gr_getacch_pl(self, cb, config)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
@@ -9,11 +9,15 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
       use swiftest
       implicit none
-
-      integer(I4B)                   :: i
-      real(DP), dimension(NDIM)      :: suma
-      real(DP), dimension(:, :), allocatable :: aj
-      real(DP) :: beta, rjmag4
+      !! Arguments
+      class(whm_pl),       intent(inout)           :: self   !! WHM massive body particle data structure
+      class(swiftest_cb),  intent(inout)           :: cb     !! WHM central body particle data structuree
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(NDIM)                    :: suma
+      real(DP), dimension(:, :), allocatable       :: aj
+      real(DP)                                     :: beta, rjmag4
       
       associate(n => self%nbody, msun => cb%Gmass, mu => self%muj, c2 => config%inv_c2, &
          ah => self%ah, xj => self%xj, GMpl => self%Gmass, eta => self%eta)
@@ -33,9 +37,9 @@ contains
          end do
       end associate
       return
-   end procedure whm_gr_getacch_pl
+   end subroutine whm_gr_getacch_pl
 
-   module procedure whm_gr_getacch_tp
+   module subroutine whm_gr_getacch_tp(self, cb, config)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of test particles
@@ -44,9 +48,13 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
       use swiftest
       implicit none
-
-      integer(I4B)                   :: i
-      real(DP) :: rjmag4, beta
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self   !! WHM massive body particle data structure
+      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP)                                     :: rjmag4, beta
       
       associate(n => self%nbody, msun => cb%Gmass, mu => self%mu,& 
          c2 => config%inv_c2, ah => self%ah, xh => self%xh, status => self%status)
@@ -59,9 +67,9 @@ contains
          end do
       end associate
       return
-   end procedure whm_gr_getacch_tp
+   end subroutine whm_gr_getacch_tp
 
-   module procedure whm_gr_p4_pl
+   module subroutine whm_gr_p4_pl(self, config, dt)
       !! author: David A. Minton
       !!
       !! Position kick to massive bodies due to p**4 term in the post-Newtonian correction
@@ -70,8 +78,12 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_p4.f90
       use swiftest
       implicit none
-
-      integer(I4B) :: i
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      real(DP),                      intent(in)    :: dt     !! Step size
+      !! Internals
+      integer(I4B)                                 :: i
 
       associate(n => self%nbody, xj => self%xj, vj => self%vj, status => self%status, c2 => config%inv_c2)
          if (n == 0) return
@@ -82,9 +94,9 @@ contains
       end associate
  
      return
-   end procedure whm_gr_p4_pl
+   end subroutine whm_gr_p4_pl
 
-   module procedure whm_gr_p4_tp
+   module subroutine whm_gr_p4_tp(self, config, dt)
       !! author: David A. Minton
       !!
       !! Position kick to test particles due to p**4 term in the post-Newtonian correction
@@ -93,8 +105,12 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_p4.f90
       use swiftest
       implicit none
-
-      integer(I4B) :: i
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      real(DP),                      intent(in)    :: dt     !! Step size
+      !! Internals
+      integer(I4B)                                 :: i
 
       associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, c2 => config%inv_c2)
          if (n == 0) return
@@ -105,19 +121,22 @@ contains
       end associate
  
      return
-   end procedure whm_gr_p4_tp
+   end subroutine whm_gr_p4_tp
 
-   module procedure whm_gr_pv2vh_pl
+   module subroutine whm_gr_pv2vh_pl(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from pseudovelocity to heliocentric velocity for massive bodies
       !! in a WHM object
       use swiftest
       implicit none
-
-      integer(I4B) :: i
-      real(DP), dimension(:), allocatable :: mu
-      real(DP), dimension(:,:), allocatable :: vh !! Temporary holder of pseudovelocity for in-place conversion
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(:), allocatable          :: mu
+      real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
       
       associate(n => self%nbody, xh => self%xh, pv => self%vh, status => self%status, mu => self%muj)
          if (n == 0) return
@@ -130,19 +149,22 @@ contains
          deallocate(vh)
       end associate
       return
-   end procedure whm_gr_pv2vh_pl
+   end subroutine whm_gr_pv2vh_pl
 
-   module procedure whm_gr_pv2vh_tp
+   module subroutine whm_gr_pv2vh_tp(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from pseudovelocity to heliocentric velocity for test particles bodies
       !! in a WHM object
       use swiftest
       implicit none
-
-      integer(I4B) :: i
-      real(DP), dimension(:), allocatable :: mu
-      real(DP), dimension(:,:), allocatable :: vh !! Temporary holder of pseudovelocity for in-place conversion
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(:), allocatable          :: mu
+      real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
       
       associate(n => self%nbody, xh => self%xh, pv => self%vh, status => self%status, mu => self%mu)
          if (n == 0) return
@@ -155,19 +177,22 @@ contains
          deallocate(vh)
       end associate
       return
-   end procedure whm_gr_pv2vh_tp
+   end subroutine whm_gr_pv2vh_tp
 
-   module procedure whm_gr_vh2pv_pl
+   module subroutine whm_gr_vh2pv_pl(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for massive bodies
       !! in a WHM object
       use swiftest
       implicit none
-
-      integer(I4B) :: i
-      real(DP), dimension(:), allocatable :: mu
-      real(DP), dimension(:,:), allocatable :: pv !! Temporary holder of pseudovelocity for in-place conversion
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(:), allocatable          :: mu
+      real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
       
       associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, mu => self%muj)
          if (n == 0) return
@@ -180,19 +205,22 @@ contains
          deallocate(pv)
       end associate
       return
-   end procedure whm_gr_vh2pv_pl
+   end subroutine whm_gr_vh2pv_pl
 
-   module procedure whm_gr_vh2pv_tp
+   module subroutine whm_gr_vh2pv_tp(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for teset particles
       !! in a WHM object
       use swiftest
       implicit none
-
-      integer(I4B) :: i
-      real(DP), dimension(:), allocatable :: mu
-      real(DP), dimension(:,:), allocatable :: pv !! Temporary holder of pseudovelocity for in-place conversion
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(:), allocatable          :: mu
+      real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
       
       associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, mu => self%mu)
          if (n == 0) return
@@ -205,7 +233,7 @@ contains
          deallocate(pv)
       end associate
       return
-   end procedure whm_gr_vh2pv_tp
+   end subroutine whm_gr_vh2pv_tp
 
    pure subroutine gr_vel2pseudovel(config, mu, xh, vh, pv)
       !! author: David A. Minton
