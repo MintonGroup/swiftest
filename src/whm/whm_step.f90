@@ -9,6 +9,10 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_step.f90
       use swiftest
       implicit none
+      class(whm_cb),                 intent(inout) :: cb      !! WHM central body object  
+      class(whm_pl),                 intent(inout) :: pl      !! WHM central body object  
+      class(whm_tp),                 intent(inout) :: tp      !! WHM central body object  
+      class(swiftest_configuration), intent(in)    :: config  !! Input collection of on parameters 
 
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
          call pl%set_rhill(cb)
