@@ -3,7 +3,7 @@ contains
    module procedure whm_setup_pl
       !! author: David A. Minton
       !!
-      !! Allocate WHM test particle structure
+      !! Allocate WHM planet structure
       !!
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       use swiftest
