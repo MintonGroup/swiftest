@@ -1,6 +1,6 @@
 submodule(whm_classes) s_whm_step
 contains
-   module procedure whm_step_system
+   module subroutine whm_step_system(cb, pl, tp, config)
       !! author: David A. Minton
       !!
       !! Step massive bodies and and active test particles ahead in heliocentric coordinates
@@ -23,7 +23,7 @@ contains
             call tp%step(cb, pl, config, t, dt)
          end if
       end associate
-   end procedure whm_step_system 
+   end subroutine whm_step_system 
 
    module procedure whm_step_pl
       !! author: David A. Minton
