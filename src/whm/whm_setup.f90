@@ -1,6 +1,6 @@
 submodule(whm_classes) s_whm_setup
 contains
-   module procedure whm_setup_pl
+   module subroutine whm_setup_pl(self,n)
       !! author: David A. Minton
       !!
       !! Allocate WHM planet structure
@@ -8,7 +8,9 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       use swiftest
       implicit none
-
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self !! Swiftest test particle object
+      integer(I4B),                     intent(in) :: n    !! Number of test particles to allocate
       !> Call allocation method for parent class
       call setup_pl(self, n) 
       if (n <= 0) return
@@ -26,9 +28,9 @@ contains
       self%ir3j(:) = 0.0_DP
 
       return
-   end procedure whm_setup_pl 
+   end subroutine whm_setup_pl 
 
-   module procedure whm_setup_tp
+   module subroutine whm_setup_tp(self,n)
       !! author: David A. Minton
       !!
       !! Allocate WHM test particle structure
@@ -36,21 +38,27 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       use swiftest
       implicit none
-
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+      integer,                       intent(in)    :: n      !! Number of test particles to allocate
       !> Call allocation method for parent class
       call setup_tp(self, n) 
       if (n <= 0) return
 
       return
-   end procedure whm_setup_tp
+   end subroutine whm_setup_tp
 
-   module procedure whm_setup_set_mu_eta_pl
+   module subroutine whm_setup_set_mu_eta_pl(self, cb)
       !! author: David A. Minton
       !!
       !! Sets the Jacobi mass value eta for all massive bodies
       use swiftest
       implicit none
-      integer(I4B) :: i
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self    !! Swiftest system object
+      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structure
+      !! Internals
+      integer(I4B)                                 :: i
 
       associate(pl => self, npl => self%nbody,  GMpl => self%Gmass, muj => self%muj, &
                 eta => self%eta, GMcb => cb%Gmass)
@@ -64,16 +72,18 @@ contains
          end do
       end associate
 
-   end procedure whm_setup_set_mu_eta_pl
+   end subroutine whm_setup_set_mu_eta_pl
 
-   module procedure whm_setup_system
+   module subroutine whm_setup_system(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
       use swiftest
       implicit none
-
+      !! Arguments
+      class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
+      class(swiftest_configuration), intent(inout) :: config  !! Input collection of on parameters 
       call io_read_initialize_system(self, config)
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(self%tp%nbody)
@@ -95,16 +105,19 @@ contains
          end select
       end if
 
-   end procedure whm_setup_system
+   end subroutine whm_setup_system
 
-   module procedure whm_setup_set_ir3j
+   module subroutine whm_setup_set_ir3j(self)
       !! author: David A. Minton
       !!
       !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
       use swiftest
       implicit none
-      integer(I4B) :: i
-      real(DP) :: r2, ir
+      !! Arguments
+      class(whm_pl),                 intent(inout) :: self    !! WHM massive body object
+      !! Internals
+      integer(I4B)                                 :: i
+      real(DP)                                     :: r2, ir
 
       if (self%nbody > 0) then
          do i = 1, self%nbody
@@ -116,15 +129,19 @@ contains
             self%ir3j(i) = ir / r2
          end do
       end if
-   end procedure whm_setup_set_ir3j
+   end subroutine whm_setup_set_ir3j
 
 
-   module procedure whm_setup_set_beg_end
+   module subroutine whm_setup_set_beg_end(self, xbeg, xend, vbeg)
       !! author: David A. Minton
       !! 
       !! Sets one or more of the values of xbeg and xend
       use swiftest
       implicit none
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self !! Swiftest test particle object
+      real(DP), dimension(:,:),           optional :: xbeg, xend
+      real(DP), dimension(:,:),           optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
 
       if (present(xbeg)) then
          if (allocated(self%xbeg)) deallocate(self%xbeg)
@@ -137,7 +154,6 @@ contains
 
       return
 
-   end procedure whm_setup_set_beg_end
-
+   end subroutine whm_setup_set_beg_end
 
 end submodule s_whm_setup
