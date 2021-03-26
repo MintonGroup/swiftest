@@ -1,6 +1,6 @@
 submodule (rmvs_classes) s_rmvs_chk
 contains
-   module procedure rmvs_encounter_check_tp
+   module subroutine rmvs_encounter_check_tp(self, cb, pl, dt, rts) result(lencounter)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -9,12 +9,20 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_chk.f
       use swiftest
       implicit none
-      integer(I4B)              :: i, j, k, nenc
-      real(DP)                  :: r2crit
-      real(DP), dimension(NDIM) :: xht, vht, xr, vr
-      integer(I4B)              :: tpencPindex
-      logical                   :: lflag
-      logical, save             :: lfirst = .true.
+      !! Arguments
+      class(rmvs_tp),            intent(inout) :: self        !! RMVS test particle object  
+      class(rmvs_cb),            intent(inout) :: cb          !! RMVS central body object  
+      class(rmvs_pl),            intent(inout) :: pl          !! RMVS massive body object  
+      real(DP),                  intent(in)    :: dt          !! step size
+      real(DP),                  intent(in)    :: rts         !! fraction of Hill's sphere radius to use as radius of encounter regio
+      logical                                  :: lencounter  !! Returns true if there is at least one close encounter
+      !! Internals
+      integer(I4B)                             :: i, j, k, nenc
+      real(DP)                                 :: r2crit
+      real(DP), dimension(NDIM)                :: xht, vht, xr, vr
+      integer(I4B)                             :: tpencPindex
+      logical                                  :: lflag
+      logical, save                            :: lfirst = .true.
 
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill)
          if (.not.allocated(pl%encmask)) allocate(pl%encmask(ntp, npl))
@@ -62,9 +70,9 @@ contains
          end do
       end associate
       return
-   end procedure rmvs_encounter_check_tp
+   end subroutine rmvs_encounter_check_tp
 
-   module procedure rmvs_chk_ind
+   module subroutine rmvs_chk_ind(xr, vr, dt, r2crit) result(lflag)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -73,6 +81,11 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs_chk_ind.f
       use swiftest
       implicit none
+      !! Arguments
+      real(DP), intent(in)                     :: dt, r2crit
+      real(DP), dimension(:), intent(in)       :: xr, vr
+      logical                                  :: lflag
+      !! Internals
       real(DP) :: r2, v2, vdotr, tmin, r2min
 
       lflag = .false.
@@ -96,5 +109,5 @@ contains
 
       return
 
-   end procedure rmvs_chk_ind
+   end subroutine rmvs_chk_ind
 end submodule s_rmvs_chk
