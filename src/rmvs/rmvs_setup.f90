@@ -1,6 +1,6 @@
 submodule(rmvs_classes) s_rmvs_setup
 contains
-   module procedure rmvs_setup_pl
+   module subroutine rmvs_setup_pl(self,n)
       !! author: David A. Minton
       !!
       !! Allocate RMVS test particle structure
@@ -8,6 +8,9 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_setup.f90
       use swiftest
       implicit none
+      !! Arguments
+      class(rmvs_pl),                intent(inout) :: self !! RMVS test particle object
+      integer,                       intent(in)    :: n    !! Number of test particles to allocate
 
       !> Call allocation method for parent class
       call whm_setup_pl(self, n) 
@@ -30,9 +33,9 @@ contains
       self%aoblin(:,:,:) = 0.0_DP
 
       return
-   end procedure rmvs_setup_pl 
+   end subroutine rmvs_setup_pl 
 
-   module procedure rmvs_setup_tp
+   module subroutine rmvs_setup_tp(self,n)
       !! author: David A. Minton
       !!
       !! Allocate WHM test particle structure
@@ -40,6 +43,9 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       use swiftest
       implicit none
+      !! Arguments
+      class(rmvs_tp),              intent(inout)   :: self !! RMVS test particle object
+      integer,                     intent(in)      :: n    !! Number of test particles to allocate
 
       !> Call allocation method for parent class
       call whm_setup_tp(self, n) 
@@ -56,27 +62,33 @@ contains
       self%tpencP(:) = 0
 
       return
-   end procedure rmvs_setup_tp
+   end subroutine rmvs_setup_tp
 
-   module procedure rmvs_setup_system
+   module subroutine rmvs_setup_system(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
       use swiftest
       implicit none
+      !! Arguments
+      class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
+      class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
 
       ! Call parent method
       call whm_setup_system(self, config)
 
-   end procedure rmvs_setup_system
+   end subroutine rmvs_setup_system
    
-   module procedure rmvs_setup_set_beg_end
+   module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
       !! author: David A. Minton
       !! 
       !! Sets one or more of the values of xbeg, xend, and vbeg
       use swiftest
       implicit none
+      !! Arguments
+      class(rmvs_tp),                intent(inout) :: self !! RMVS test particle object
+      real(DP), dimension(:,:),           optional :: xbeg, xend, vbeg
 
       if (present(xbeg)) then
          if (allocated(self%xbeg)) deallocate(self%xbeg)
@@ -93,7 +105,6 @@ contains
 
       return
 
-   end procedure rmvs_setup_set_beg_end
-
+   end subroutine rmvs_setup_set_beg_end
 
 end submodule s_rmvs_setup
