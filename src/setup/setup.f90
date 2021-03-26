@@ -13,6 +13,14 @@ contains
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
       case (HELIO)
          write(*,*) 'Democratic Heliocentric integrator not yet enabled'
+         allocate(helio_nbody_system :: system)
+         select type(system)
+         class is (helio_nbody_system)
+            allocate(helio_cb :: system%cb)
+            allocate(helio_pl :: system%pl)
+            allocate(helio_tp :: system%tp)
+            allocate(helio_tp :: system%tp_discards)
+         end select
       case (RA15)
          write(*,*) 'Radau integrator not yet enabled'
       case (TU4)
