@@ -1,6 +1,6 @@
 submodule(whm_classes) whm_getacch_implementations
 contains
-   module procedure whm_getacch_pl  
+   module subroutine whm_getacch_pl(self, cb, config, t)
    !! author: David A. Minton
    !!
    !! Compute heliocentric accelerations of planets
@@ -9,11 +9,16 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
    use swiftest
    implicit none
-
-   integer(I4B)                     :: i
+   !! Arguments
+   class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
+   class(whm_cb),                 intent(inout) :: cb       !! WHM central body particle data structure
+   class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
+   real(DP),                      intent(in)    :: t        !! Current time
+   !! Internals
+   integer(I4B)                                 :: i
    real(DP), dimension(:), allocatable, save    :: fac
-   real(DP), dimension(NDIM) :: ah0
-   real(DP) :: r2
+   real(DP), dimension(NDIM)                    :: ah0
+   real(DP)                                     :: r2
 
    associate(pl => self, npl => self%nbody, j2rp2 => cb%j2rp2, &
        ah => self%ah, xh => self%xh, xj => self%xj, vh => self%vh, vj => self%vj)
@@ -34,9 +39,9 @@ contains
 
    end associate
    return
-   end procedure whm_getacch_pl
+   end subroutine whm_getacch_pl
 
-   module procedure whm_getacch_tp 
+   module subroutine whm_getacch_tp(self, cb, pl, config, t, xh)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -45,7 +50,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
       use swiftest
       implicit none
-
+      !! Arguments
+      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
+      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree 
+      class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      real(DP),                      intent(in)    :: t      !! Current time
+      real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+      !! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable, save    :: fac
       real(DP), dimension(NDIM)                    :: ah0
@@ -65,7 +77,7 @@ contains
          if (config%lgr) call tp%gr_getacch(cb, config) 
       end associate
       return
-   end procedure whm_getacch_tp
+   end subroutine whm_getacch_tp
 
    pure function whm_getacch_ah0(mu, xh) result(ah0)
       !! author: David A. Minton
@@ -74,11 +86,11 @@ contains
       use swiftest
       implicit none
 
-      real(DP), dimension(:), intent(in)    :: mu
-      real(DP), dimension(:,:), intent(in)  :: xh
-      real(DP) :: fac, r2, ir3h
-      real(DP), dimension(NDIM) :: ah0
-      integer(I4B) :: i, n
+      real(DP), dimension(:), intent(in)           :: mu
+      real(DP), dimension(:,:), intent(in)         :: xh
+      real(DP)                                     :: fac, r2, ir3h
+      real(DP), dimension(NDIM)                    :: ah0
+      integer(I4B)                                 :: i, n
 
       n = size(mu)
 
@@ -103,11 +115,10 @@ contains
       use swiftest
       implicit none
 
-      class(whm_cb), intent(in) :: cb
-      class(whm_pl), intent(inout)        :: pl
-
-      integer(I4B)              :: i
-      real(DP), dimension(NDIM) :: ah1h, ah1j
+      class(whm_cb), intent(in)                    :: cb
+      class(whm_pl), intent(inout)                 :: pl
+      integer(I4B)                                 :: i
+      real(DP), dimension(NDIM)                    :: ah1h, ah1j
 
       associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ir3j => pl%ir3j, ir3h => pl%ir3h )
          do i = 2, npl
@@ -131,11 +142,11 @@ contains
       use swiftest
       implicit none
 
-      class(whm_cb), intent(in)    :: cb
-      class(whm_pl),           intent(inout) :: pl
-      integer(I4B)                           :: i
-      real(DP)                               :: etaj, fac
-      real(DP), dimension(NDIM)              :: ah2, ah2o
+      class(whm_cb), intent(in)                    :: cb
+      class(whm_pl),           intent(inout)       :: pl
+      integer(I4B)                                 :: i
+      real(DP)                                     :: etaj, fac
+      real(DP), dimension(NDIM)                    :: ah2, ah2o
    
       associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, Gmpl => pl%Gmass, ir3j => pl%ir3j)
          ah2(:) = 0.0_DP
@@ -163,11 +174,11 @@ contains
       use swiftest
       implicit none
 
-      class(whm_pl),           intent(inout) :: pl
-      integer(I4B)                           :: i, j
-      real(DP)                               :: rji2, irij3, faci, facj
-      real(DP), dimension(NDIM)              :: dx
-      real(DP), dimension(:,:), allocatable  :: ah3
+      class(whm_pl),           intent(inout)       :: pl
+      integer(I4B)                                 :: i, j
+      real(DP)                                     :: rji2, irij3, faci, facj
+      real(DP), dimension(NDIM)                    :: dx
+      real(DP), dimension(:,:), allocatable        :: ah3
    
       associate(npl => pl%nbody, xh => pl%xh, Gmpl => pl%Gmass) 
          allocate(ah3, mold=pl%ah)
@@ -203,13 +214,13 @@ contains
       use swiftest
       implicit none
 
-      class(whm_cb), intent(in) :: cb 
-      class(whm_pl), intent(in) :: pl 
-      class(whm_tp), intent(inout) :: tp
-      real(DP), dimension(:,:), intent(in) :: xh
-      integer(I4B)          :: i, j
-      real(DP)            :: rji2, irij3, fac
-      real(DP), dimension(NDIM) :: dx, acc
+      class(whm_cb), intent(in)                    :: cb 
+      class(whm_pl), intent(in)                    :: pl 
+      class(whm_tp), intent(inout)                 :: tp
+      real(DP), dimension(:,:), intent(in)         :: xh
+      integer(I4B)                                 :: i, j
+      real(DP)                                     :: rji2, irij3, fac
+      real(DP), dimension(NDIM)                    :: dx, acc
 
       associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
                   xht => tp%xh, aht => tp%ah)
