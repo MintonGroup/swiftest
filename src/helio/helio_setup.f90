@@ -44,30 +44,6 @@ contains
       return
    end procedure helio_setup_tp
 
-
-   !!! CW NOTE : is this necessary now that we are working in the democratic heliocentric coordinate frame?
-   module procedure helio_setup_set_mu_eta_pl
-      !! author: David A. Minton & Carlisle A. Wishard
-      !!
-      !! Sets the Jacobi mass value eta for all massive bodies
-      use swiftest
-      implicit none
-      integer(I4B) :: i
-
-      associate(pl => self, npl => self%nbody,  GMpl => self%Gmass, muj => self%muj, &
-                eta => self%eta, GMcb => cb%Gmass)
-         if (npl == 0) return
-         call setup_set_mu_pl(pl, cb)
-         eta(1) = GMcb + GMpl(1)
-         muj(1) = eta(1)
-         do i = 2, npl
-            eta(i) = eta(i - 1) + GMpl(i)
-            muj(i) = GMcb * eta(i) / eta(i - 1)
-         end do
-      end associate
-
-   end procedure helio_setup_set_mu_eta_pl
-
    module procedure helio_setup_system
       !! author: David A. Minton & Carlisle A. Wishard
       !!
@@ -98,28 +74,6 @@ contains
       end if
 
    end procedure helio_setup_system
-
-   !!! CW NOTE : is this necessary now that we are working in the democratic heliocentric coordinate frame?
-   module procedure helio_setup_set_ir3j
-      !! author: David A. Minton & Carlisle A. Wishard
-      !!
-      !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
-      use swiftest
-      implicit none
-      integer(I4B) :: i
-      real(DP) :: r2, ir
-
-      if (self%nbody > 0) then
-         do i = 1, self%nbody
-            r2 = dot_product(self%xh(:, i), self%xh(:, i))
-            ir = 1.0_DP / sqrt(r2)
-            self%ir3h(i) = ir / r2
-            r2 = dot_product(self%xj(:, i), self%xj(:, i))
-            ir = 1.0_DP / sqrt(r2)
-            self%ir3j(i) = ir / r2
-         end do
-      end if
-   end procedure helio_setup_set_ir3j
 
    module procedure helio_setup_set_beg_end
       !! author: David A. Minton & Carlisle A. Wishard
