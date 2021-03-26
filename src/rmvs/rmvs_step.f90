@@ -1,6 +1,6 @@
 submodule(rmvs_classes) s_rmvs_step
 contains
-   module procedure rmvs_step_system
+   module subroutine rmvs_step_system(cb, pl, tp, config)
       !! author: David A. Minton
       !!
       !! Step massive bodies and and active test particles ahead in heliocentric coordinates
@@ -9,6 +9,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_step.f90
       use swiftest
       implicit none
+      !! Arguments
+      class(rmvs_cb),                    intent(inout)  :: cb      !! WHM central body object  
+      class(rmvs_pl),                    intent(inout)  :: pl      !! WHM central body object  
+      class(rmvs_tp),                    intent(inout)  :: tp      !! WHM central body object  
+      class(swiftest_configuration),     intent(in)     :: config  !! Input collection of  configuration parameters 
+      !! Internals
       logical :: lencounter, lfirstpl, lfirsttp 
       real(DP) :: rts
       real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
@@ -46,9 +52,9 @@ contains
          end if
       end associate
 
-   end procedure rmvs_step_system 
+   end subroutine rmvs_step_system 
 
-   module procedure rmvs_step_out
+   module subroutine rmvs_step_out(self, cb, tp, dt, config)
       !! author: David A. Minton
       !!
       !! Step ACTIVE test particles ahead in the outer encounter region
@@ -57,9 +63,16 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_step_out.f90
       use swiftest
       implicit none
-      integer(I4B)       :: i, j, k, nenc, itpp
-      real(DP)           :: dto, time
-      type(rmvs_pl)      :: rmvs_plep
+      !! Arguments
+      class(rmvs_pl),                    intent(inout)  :: self !! RMVS massive body object
+      class(rmvs_cb),                    intent(inout)  :: cb   !! RMVS central body object
+      class(rmvs_tp),                    intent(inout)  :: tp   !! RMVS test particle object
+      real(DP),                          intent(in)     :: dt   !! Step size
+      class(swiftest_configuration),     intent(in)     :: config  !! Input collection of  configuration parameters
+      !! Internals
+      integer(I4B)                                      :: i, j, k, nenc, itpp
+      real(DP)                                          :: dto, time
+      type(rmvs_pl)                                     :: rmvs_plep
 
    ! executable code
       associate(pl => self, npl => self%nbody, ntp => tp%nbody, t => config%t, xht => tp%xh, vht => tp%vh, &
@@ -87,9 +100,9 @@ contains
       end associate
       return
 
-      end procedure rmvs_step_out   
+      end subroutine rmvs_step_out   
 
-      module procedure rmvs_step_out2
+      module subroutine rmvs_step_out2(cb, pl, tp, t, dt, index, config)
          !! author: David A. Minton
          !!
          !! Step active test particles ahead in the outer encounter region, setting up and calling the inner region
@@ -100,11 +113,19 @@ contains
    
          use swiftest
          implicit none
-   
-         logical         :: lfirsttp
-         integer(I4B)    :: i
-         real(DP)        :: rts
-         logical         :: lencounter
+         !! Arguments
+         class(rmvs_cb),                 intent(inout)  :: cb   !! RMVS central body object
+         class(rmvs_pl),                 intent(inout)  :: pl   !! RMVS massive body object
+         class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
+         real(DP),                       intent(in)     :: t     !! Simulation time
+         real(DP),                       intent(in)     :: dt    !! Step size
+         integer(I4B),                   intent(in)     :: index !! outer substep number within current set
+         class(swiftest_configuration),  intent(in)     :: config  !! Input collection of  configuration parameters
+         !! Internals
+         logical                                        :: lfirsttp
+         integer(I4B)                                   :: i
+         real(DP)                                       :: rts
+         logical                                        :: lencounter
 
          associate(xht => tp%xh, vht => tp%vh, xbeg => tp%xbeg, xend => tp%xend, aht => tp%ah,&
             xout1 => pl%xout(:, :, index-1), vout1 => pl%vout(:,:,index-1), xout2 => pl%xout(:,:,index))
@@ -132,9 +153,9 @@ contains
          end associate
          return
    
-      end procedure rmvs_step_out2
+      end subroutine rmvs_step_out2
 
-      module procedure rmvs_step_in_pl
+      module subroutine rmvs_step_in_pl(self, cb, tp, config, dt)
          !! author: David A. Minton
          !!
          !! Step active test particles ahead in the inner encounter region
@@ -143,10 +164,16 @@ contains
          !! Adapted from David E. Kaufmann's Swifter routine rmvs_step_in.f90
          use swiftest
          implicit none
-   
-         logical                                      :: lfirsttp
-         integer(I4B)                                 :: i, j, k, nenc, link
-         real(DP)                                     :: mu, rhill, dti, time
+         !! Arguments
+         class(rmvs_pl),                 intent(inout)  :: self !! RMVS massive body object
+         class(rmvs_cb),                 intent(inout)  :: cb   !! RMVS central body object
+         class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
+         class(swiftest_configuration),  intent(in)     :: config  !! Input collection of  configuration parameters 
+         real(DP),                       intent(in)     :: dt   !! Step size
+         !! Internals
+         logical                                        :: lfirsttp
+         integer(I4B)                                   :: i, j, k, nenc, link
+         real(DP)                                       :: mu, rhill, dti, time
 
    
          dti = dt / NTPHENC
@@ -185,9 +212,9 @@ contains
    
          return
    
-      end procedure rmvs_step_in_pl
+      end subroutine rmvs_step_in_pl
 
-      module procedure rmvs_step_make_planetocentric
+      module subroutine rmvs_step_make_planetocentric(self, cb, tp, config)
          !! author: David A. Minton
          !!
          !! When encounters are detected, this method will call the interpolation methods for the planets and 
@@ -195,9 +222,15 @@ contains
          !! planetocentric calculations. This subroutine is not based on an existing one from Swift and Swifter
          !!
          implicit none
-         integer(I4B) :: i, j, k, link, nenc
-         type(rmvs_pl) :: cb_as_pl, pl_as_cb
-         logical, dimension(:), allocatable :: copyflag
+         !! Arguments
+         class(rmvs_pl),                 intent(inout)  :: self !! RMVS test particle object
+         class(rmvs_cb),                 intent(in)     :: cb   !! RMVS central body particle type
+         class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
+         class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
+         !! Internals
+         integer(I4B)                                   :: i, j, k, link, nenc
+         type(rmvs_pl)                                  :: cb_as_pl, pl_as_cb
+         logical, dimension(:), allocatable             :: copyflag
    
          allocate(self%tpenc(self%nbody))
          allocate(self%plenc(self%nbody, 0:NTPHENC))
@@ -276,16 +309,19 @@ contains
                end if
             end do
          end associate
-      end procedure rmvs_step_make_planetocentric
+      end subroutine rmvs_step_make_planetocentric
    
-      module procedure rmvs_step_end_planetocentric
+      module subroutine rmvs_step_end_planetocentric(self, tp)
          !! author: David A. Minton
          !!
          !! Deallocates all of the encountering particle data structures for next time
          !!
          use swiftest
          implicit none
-
+         !! Arguments
+         class(rmvs_pl),                 intent(inout)  :: self !! RMVS test particle object
+         class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
+         !! Internals
          integer(I4B) :: i, j
 
          associate(pl => self, nenc => self%nenc, npl => self%nbody, &
@@ -313,7 +349,7 @@ contains
          deallocate(self%plenc)
    
          return
-   
-      end procedure rmvs_step_end_planetocentric
+
+      end subroutine rmvs_step_end_planetocentric
    
 end submodule s_rmvs_step
