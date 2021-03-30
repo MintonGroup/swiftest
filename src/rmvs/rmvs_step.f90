@@ -230,7 +230,7 @@ contains
          class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
          ! Internals
          integer(I4B)                                   :: i, j, k, link, nenc
-         type(rmvs_pl)                                  :: cb_as_pl, pl_as_cb
+         type(rmvs_pl)                                  :: cb_as_pl
          logical, dimension(:), allocatable             :: copyflag
    
          allocate(self%tpenc(self%nbody))
@@ -242,13 +242,11 @@ contains
             ! Indicate that this is a planetocentric close encounter structor
 
             ! Save the original central body object so that it can be passed down as needed through the planetocentric structures
-            call cb_as_pl%setup(npl)
-            cb_as_pl%name(:) = spread(0, 1, npl)
-            cb_as_pl%Gmass(:)  = spread(cb%Gmass, 1, npl)
-            cb_as_pl%mass(:)   = spread(cb%mass, 1, npl)
-            cb_as_pl%radius(:) = spread(cb%radius, 1, npl)
-
-            call pl_as_cb%setup(npl)
+            call cb_as_pl%setup(1)
+            cb_as_pl%name(1) = 0
+            cb_as_pl%Gmass(1)  = cb%Gmass
+            cb_as_pl%mass(1)   = cb%mass
+            cb_as_pl%radius(1) = cb%radius
 
             do i = 1, npl
                if (nenc(i) > 0) then ! There are inner encounters with this planet
@@ -291,14 +289,14 @@ contains
                      call plenc(i, k)%setup(npl)
                      ! Copy all the basic planet parameters and positions
                      copyflag(:) =  .true.
-                     call plenc(i,k)%copy(pl,copyflag)
+                     call plenc(i, k)%copy(pl,copyflag)
                      ! Give each planet a position and velocity vector that is planetocentric wrt planet i (the encountering planet)
                      do j = 1, npl
                         plenc(i, k)%xh(:, j)  = pl%xin(:, j, k) - pl%xin(:, i, k)
                         plenc(i, k)%vh(:, j)  = pl%vin(:, j, k) - pl%vin(:, i, k)
                      end do
-                     cb_as_pl%xh(:, i)  = cb%xin(:) - pl%xin(:, i, k)
-                     cb_as_pl%vh(:, i)  = cb%vin(:) - pl%vin(:, i, k)
+                     cb_as_pl%xh(:, 1)  = cb%xin(:) - pl%xin(:, i, k)
+                     cb_as_pl%vh(:, 1)  = cb%vin(:) - pl%vin(:, i, k)
                      ! Slot the central body into the encounter planet's position of the planet list
                      copyflag(:) = .false.
                      copyflag(i) = .true.
