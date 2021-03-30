@@ -9,7 +9,7 @@ submodule (swiftest_classes) drift_implementation
    integer(I2B), parameter :: NLAG2    = 40
 
 contains
-   module procedure drift_one
+   module pure subroutine drift_one(mu, x, v, dt, iflag) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Perform Danby drift for one body, redoing drift with smaller substeps if original accuracy is insufficient
@@ -17,6 +17,13 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine routine drift_one.f90
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_one.f
       use swiftest_globals
+      implicit none
+      ! Arguments
+      real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
+      real(DP), dimension(:), intent(inout)  :: x, v  !! Position and velocity of body to drift
+      real(DP), intent(in)                   :: dt    !! Step size
+      integer(I4B), intent(out)              :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
+      ! Internals
       integer(I4B) :: i
       real(DP)   :: dttmp
 
@@ -30,7 +37,7 @@ contains
       end if
    
       return
-   end procedure drift_one
+   end subroutine drift_one
 
    pure subroutine drift_dan(mu, x0, v0, dt0, iflag)
       !! author: David A. Minton
