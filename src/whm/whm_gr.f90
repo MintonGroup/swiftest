@@ -69,7 +69,7 @@ contains
       return
    end subroutine whm_gr_getacch_tp
 
-   module subroutine whm_gr_p4_pl(self, config, dt)
+   module pure subroutine whm_gr_p4_pl(self, config, dt)
       !! author: David A. Minton
       !!
       !! Position kick to massive bodies due to p**4 term in the post-Newtonian correction
@@ -96,7 +96,7 @@ contains
      return
    end subroutine whm_gr_p4_pl
 
-   module subroutine whm_gr_p4_tp(self, config, dt)
+   module pure subroutine whm_gr_p4_tp(self, config, dt)
       !! author: David A. Minton
       !!
       !! Position kick to test particles due to p**4 term in the post-Newtonian correction
@@ -123,7 +123,7 @@ contains
      return
    end subroutine whm_gr_p4_tp
 
-   module subroutine whm_gr_pv2vh_pl(self, config)
+   module pure subroutine whm_gr_pv2vh_pl(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from pseudovelocity to heliocentric velocity for massive bodies
@@ -151,7 +151,7 @@ contains
       return
    end subroutine whm_gr_pv2vh_pl
 
-   module subroutine whm_gr_pv2vh_tp(self, config)
+   module pure subroutine whm_gr_pv2vh_tp(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from pseudovelocity to heliocentric velocity for test particles bodies
@@ -179,7 +179,7 @@ contains
       return
    end subroutine whm_gr_pv2vh_tp
 
-   module subroutine whm_gr_vh2pv_pl(self, config)
+   module pure subroutine whm_gr_vh2pv_pl(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for massive bodies
@@ -207,7 +207,7 @@ contains
       return
    end subroutine whm_gr_vh2pv_pl
 
-   module subroutine whm_gr_vh2pv_tp(self, config)
+   module pure subroutine whm_gr_vh2pv_tp(self, config)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for teset particles
