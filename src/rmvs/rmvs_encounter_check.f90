@@ -1,6 +1,6 @@
 submodule (rmvs_classes) s_rmvs_chk
 contains
-   module subroutine rmvs_encounter_check_tp(self, cb, pl, dt, rts) result(lencounter)
+   module function rmvs_encounter_check_tp(self, cb, pl, dt, rts) result(lencounter)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -70,9 +70,9 @@ contains
          end do
       end associate
       return
-   end subroutine rmvs_encounter_check_tp
+   end function rmvs_encounter_check_tp
 
-   module subroutine rmvs_chk_ind(xr, vr, dt, r2crit) result(lflag)
+   module function rmvs_chk_ind(xr, vr, dt, r2crit) result(lflag)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -109,5 +109,5 @@ contains
 
       return
 
-   end subroutine rmvs_chk_ind
+   end function rmvs_chk_ind
 end submodule s_rmvs_chk
