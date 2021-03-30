@@ -44,9 +44,9 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
       use swiftest
       implicit none
       !! Arguments
-      class(rmvs_tp),                     intent(inout) :: self       !! RMVS test particle object
-      class(swiftest_body),               intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:),              intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
+      class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       !! Internals
       integer(I4B)                                      :: i
    
