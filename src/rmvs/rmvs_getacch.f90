@@ -12,7 +12,7 @@ contains
       implicit none
       !! Arguments
       class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle data structure
-      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree 
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree 
       class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
       class(swiftest_configuration), intent(in)    :: config !! Input collection of  parameter
       real(DP),                      intent(in)    :: t      !! Current time

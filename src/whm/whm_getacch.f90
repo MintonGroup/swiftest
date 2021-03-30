@@ -1,4 +1,4 @@
-submodule(whm_classes) whm_getacch_implementations
+submodule(whm_classes) s_whm_getacch
 contains
    module subroutine whm_getacch_pl(self, cb, config, t)
    !! author: David A. Minton
@@ -11,7 +11,7 @@ contains
    implicit none
    !! Arguments
    class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
-   class(whm_cb),                 intent(inout) :: cb       !! WHM central body particle data structure
+   class(swiftest_cb),            intent(inout) :: cb  !! Swiftest central body particle data structure
    class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
    real(DP),                      intent(in)    :: t        !! Current time
    !! Internals
@@ -33,7 +33,7 @@ contains
       call whm_getacch_ah2(cb, pl) 
       call whm_getacch_ah3(pl)
 
-      if (config%loblatecb) call self%obl_acc(cb)
+      if (config%loblatecb) call pl%obl_acc(cb)
       if (config%lextra_force) call pl%user_getacch(cb, config, t)
       if (config%lgr) call pl%gr_getacch(cb, config) 
 
@@ -50,14 +50,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree 
-      class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
+      class(swiftest_cb),            intent(inout) :: cb     !! Generic Swiftest central body particle data structuree 
+      class(whm_pl),                 intent(inout) :: pl     !! Generic Swiftest massive body particle data structure. 
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable, save    :: fac
       real(DP), dimension(NDIM)                    :: ah0
@@ -85,9 +85,10 @@ contains
       !! Compute zeroth term heliocentric accelerations of planets 
       use swiftest
       implicit none
-
+      ! Arguments
       real(DP), dimension(:), intent(in)           :: mu
       real(DP), dimension(:,:), intent(in)         :: xh
+      ! Internals
       real(DP)                                     :: fac, r2, ir3h
       real(DP), dimension(NDIM)                    :: ah0
       integer(I4B)                                 :: i, n
@@ -114,11 +115,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
       use swiftest
       implicit none
-
-      class(whm_cb), intent(in)                    :: cb
-      class(whm_pl), intent(inout)                 :: pl
-      integer(I4B)                                 :: i
-      real(DP), dimension(NDIM)                    :: ah1h, ah1j
+      ! Arguments
+      class(swiftest_cb), intent(in)  :: cb !! Swiftest central body object
+      class(whm_pl), intent(inout)    :: pl !! WHM massive body object
+      ! Internals
+      integer(I4B)                    :: i
+      real(DP), dimension(NDIM)       :: ah1h, ah1j
 
       associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ir3j => pl%ir3j, ir3h => pl%ir3h )
          do i = 2, npl
@@ -141,9 +143,10 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
       use swiftest
       implicit none
-
-      class(whm_cb), intent(in)                    :: cb
-      class(whm_pl),           intent(inout)       :: pl
+      ! Arguments
+      class(swiftest_cb), intent(in)     :: cb !! Swiftest central body object
+      class(whm_pl),      intent(inout)  :: pl !! WHM massive body object
+      ! Internals
       integer(I4B)                                 :: i
       real(DP)                                     :: etaj, fac
       real(DP), dimension(NDIM)                    :: ah2, ah2o
@@ -213,11 +216,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
       use swiftest
       implicit none
-
-      class(whm_cb), intent(in)                    :: cb 
-      class(whm_pl), intent(in)                    :: pl 
-      class(whm_tp), intent(inout)                 :: tp
-      real(DP), dimension(:,:), intent(in)         :: xh
+      ! Arguments
+      class(swiftest_cb), intent(in)               :: cb  !! Swiftest central body object
+      class(whm_pl), intent(in)                    :: pl  !! WHM massive body object
+      class(whm_tp), intent(inout)                 :: tp  !! WHM test particle object
+      real(DP), dimension(:,:), intent(in)         :: xh  !! Position vector of massive bodies at required point in step
+      ! Internals
       integer(I4B)                                 :: i, j
       real(DP)                                     :: rji2, irij3, fac
       real(DP), dimension(NDIM)                    :: dx, acc
@@ -243,4 +247,4 @@ contains
       end associate
       return
    end subroutine whm_getacch_ah3_tp
-end submodule whm_getacch_implementations
+end submodule s_whm_getacch

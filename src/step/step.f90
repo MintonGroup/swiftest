@@ -14,7 +14,7 @@ contains
       implicit none
 
       select type(system => self)
-      class is (whm_nbody_system) ! Determine the overall integrator type from the config type
+      class is (whm_nbody_system) 
          select type(cb => self%cb)
          class is (whm_cb)
             select type(pl => self%pl)
@@ -25,8 +25,7 @@ contains
                end select
             end select
          end select
-
-      class is (rmvs_nbody_system) ! Determine the overall integrator type from the config type
+      class is (rmvs_nbody_system) 
          select type(cb => self%cb)
          class is (rmvs_cb)
             select type(pl => self%pl)
@@ -37,8 +36,17 @@ contains
                end select
             end select
          end select
-
-
+      class is (helio_nbody_system) 
+         select type(cb => self%cb)
+         class is (helio_cb)
+            select type(pl => self%pl)
+            class is (helio_pl)
+               select type(tp => self%tp)
+               class is (helio_tp)
+                  call helio_step_system(cb, pl, tp, config)
+               end select
+            end select
+         end select
       end select
       return
    end procedure step_system

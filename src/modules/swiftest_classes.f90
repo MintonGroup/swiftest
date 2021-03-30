@@ -163,6 +163,7 @@ module swiftest_classes
       procedure, public :: copy        => util_copy_body       !! Copies elements of one object to another.
       procedure, public :: spill       => util_spill_body       !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure, public :: fill        => util_fill_body        !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: user_getacch => user_getacch_body    !! Base user-defined acceleration subroutine
    end type swiftest_body
       
    !********************************************************************************************************************************
@@ -520,7 +521,6 @@ module swiftest_classes
       module pure subroutine drift_one(mu, x, v, dt, iflag) 
          implicit none
          real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-         !real(DP), dimension(:), intent(in)   :: x0, v0  !! Position and velocity of body to drift
          real(DP), dimension(:), intent(inout)  :: x, v  !! Position and velocity of body to drift
          real(DP), intent(in)                   :: dt    !! Step size
          integer(I4B), intent(out)              :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
@@ -727,6 +727,14 @@ module swiftest_classes
          class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine orbel_xv2el_vec
+
+      module subroutine user_getacch_body(self, cb, config, t)
+         implicit none
+         class(swiftest_body),          intent(inout) :: self   !! Swiftest massive body particle data structure
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
+         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+         real(DP),                      intent(in)    :: t      !! Current time
+      end subroutine user_getacch_body
 
       module subroutine util_reverse_status(self)
          implicit none

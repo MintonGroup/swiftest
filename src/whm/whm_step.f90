@@ -36,13 +36,13 @@ contains
       !logical, save :: lfirst = .true.
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structure
+      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structure
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
-      !! Internals
+      ! Internals
       real(DP)                                     :: dth
       
       associate(pl => self, xh => self%xh, vh => self%vh, ah => self%ah, &
@@ -76,14 +76,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structure
+      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structure
       class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
-      !! Internals
+      ! Internals
       real(DP)                                     :: dth
 
       associate(tp => self, xht => self%xh, vht => self%vh, aht => self%ah, &
