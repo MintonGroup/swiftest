@@ -9,11 +9,11 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),       intent(inout)           :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),  intent(inout)           :: cb     !! WHM central body particle data structuree
+      class(swiftest_cb),  intent(inout)           :: cb     !! Swiftest central body particle data structuree
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: suma
       real(DP), dimension(:, :), allocatable       :: aj
@@ -48,11 +48,11 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP)                                     :: rjmag4, beta
       
@@ -78,11 +78,11 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_p4.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
       class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       real(DP),                      intent(in)    :: dt     !! Step size
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
 
       associate(n => self%nbody, xj => self%xj, vj => self%vj, status => self%status, c2 => config%inv_c2)
@@ -105,11 +105,11 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_p4.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
       class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       real(DP),                      intent(in)    :: dt     !! Step size
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
 
       associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, c2 => config%inv_c2)
@@ -130,10 +130,10 @@ contains
       !! in a WHM object
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
       class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable          :: mu
       real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
@@ -158,10 +158,10 @@ contains
       !! in a WHM object
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
       class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable          :: mu
       real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
@@ -186,10 +186,10 @@ contains
       !! in a WHM object
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
       class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable          :: mu
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -214,10 +214,10 @@ contains
       !! in a WHM object
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
       class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:), allocatable          :: mu
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion

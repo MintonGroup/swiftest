@@ -9,14 +9,14 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_chk.f
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_tp),            intent(inout) :: self        !! RMVS test particle object  
       class(rmvs_cb),            intent(inout) :: cb          !! RMVS central body object  
       class(rmvs_pl),            intent(inout) :: pl          !! RMVS massive body object  
       real(DP),                  intent(in)    :: dt          !! step size
       real(DP),                  intent(in)    :: rts         !! fraction of Hill's sphere radius to use as radius of encounter regio
       logical                                  :: lencounter  !! Returns true if there is at least one close encounter
-      !! Internals
+      ! Internals
       integer(I4B)                             :: i, j, k, nenc
       real(DP)                                 :: r2crit
       real(DP), dimension(NDIM)                :: xht, vht, xr, vr
@@ -81,11 +81,11 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs_chk_ind.f
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       real(DP), intent(in)                     :: dt, r2crit
       real(DP), dimension(:), intent(in)       :: xr, vr
       logical                                  :: lflag
-      !! Internals
+      ! Internals
       real(DP) :: r2, v2, vdotr, tmin, r2min
 
       lflag = .false.

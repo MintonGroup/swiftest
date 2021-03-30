@@ -8,7 +8,7 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self !! Swiftest test particle object
       integer(I4B),                     intent(in) :: n    !! Number of test particles to allocate
       !> Call allocation method for parent class
@@ -38,7 +38,7 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
       integer,                       intent(in)    :: n      !! Number of test particles to allocate
       !> Call allocation method for parent class
@@ -54,10 +54,10 @@ contains
       !! Sets the Jacobi mass value eta for all massive bodies
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self    !! Swiftest system object
-      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structure
-      !! Internals
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
+      ! Internals
       integer(I4B)                                 :: i
 
       associate(pl => self, npl => self%nbody,  GMpl => self%Gmass, muj => self%muj, &
@@ -81,7 +81,7 @@ contains
       !!
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
       class(swiftest_configuration), intent(inout) :: config  !! Input collection of on parameters 
       call io_read_initialize_system(self, config)
@@ -113,9 +113,9 @@ contains
       !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self    !! WHM massive body object
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP)                                     :: r2, ir
 
@@ -138,7 +138,7 @@ contains
       !! Sets one or more of the values of xbeg and xend
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self !! Swiftest test particle object
       real(DP), dimension(:,:),           optional :: xbeg, xend
       real(DP), dimension(:,:),           optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS

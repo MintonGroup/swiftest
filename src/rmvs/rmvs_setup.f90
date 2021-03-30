@@ -8,7 +8,7 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_setup.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_pl),                intent(inout) :: self !! RMVS test particle object
       integer,                       intent(in)    :: n    !! Number of test particles to allocate
 
@@ -43,7 +43,7 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_tp),              intent(inout)   :: self !! RMVS test particle object
       integer,                     intent(in)      :: n    !! Number of test particles to allocate
 
@@ -71,7 +71,7 @@ contains
       !!
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
       class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
 
@@ -86,7 +86,7 @@ contains
       !! Sets one or more of the values of xbeg, xend, and vbeg
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_tp),                intent(inout) :: self !! RMVS test particle object
       real(DP), dimension(:,:),           optional :: xbeg, xend, vbeg
 

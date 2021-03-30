@@ -10,11 +10,11 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_interp.f
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_pl), intent(inout)   :: self !! RMVS test particle object
       class(rmvs_cb), intent(in)      :: cb   !! RMVS central body particle type
       real(DP), intent(in)            :: dt   !! Step size
-      !! Internals
+      ! Internals
       integer(I4B)                    :: i, j, iflag
       real(DP)                        :: dti, frac, dntphenc
       real(DP), dimension(NDIM)       :: xtmp, vtmp
@@ -71,11 +71,11 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_interp.f
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_pl), intent(inout)   :: self !! RMVS test particle object
       class(rmvs_cb), intent(in)      :: cb   !! RMVS central body particle type
       real(DP), intent(in)            :: dt   !! Step size
-      !! Internals
+      ! Internals
       integer(I4B)                    :: i, j, iflag
       real(DP)                        :: dto, frac, dntenc
       real(DP), dimension(NDIM)       :: xtmp, vtmp

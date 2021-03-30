@@ -9,12 +9,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structur
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structur
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
       real(DP)                                     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
       integer(I4B), dimension(:), allocatable      :: iflag
@@ -66,12 +66,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i   
       real(DP)                                     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
       integer(I4B), dimension(:), allocatable      :: iflag

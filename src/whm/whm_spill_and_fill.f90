@@ -8,11 +8,11 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
    use swiftest
    implicit none
-   !! Arguments
+   ! Arguments
    class(whm_pl),                         intent(inout) :: self        !! WHM massive body object
    class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
    logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-   !! Internals
+   ! Internals
    integer(I4B)                                         :: i
    associate(keeps => self, npl => self%nbody)
       select type(discards)
@@ -53,11 +53,11 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                      intent(inout) :: self       !! WHM massive body object
       class(swiftest_body),               intent(inout) :: inserts    !! inserted object 
       logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      !! Internals
+      ! Internals
       integer(I4B)                                      :: i
    
       associate(keeps => self)

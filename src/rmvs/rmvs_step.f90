@@ -9,12 +9,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_step.f90
       use swiftest
       implicit none
-      !! Arguments
-      class(rmvs_cb),                    intent(inout)  :: cb      !! WHM central body object  
-      class(rmvs_pl),                    intent(inout)  :: pl      !! WHM central body object  
-      class(rmvs_tp),                    intent(inout)  :: tp      !! WHM central body object  
+      ! Arguments
+      class(rmvs_cb),                    intent(inout)  :: cb      !! RMVS central body object  
+      class(rmvs_pl),                    intent(inout)  :: pl      !! RMVS central body object  
+      class(rmvs_tp),                    intent(inout)  :: tp      !! RMVS central body object  
       class(swiftest_configuration),     intent(in)     :: config  !! Input collection of  configuration parameters 
-      !! Internals
+      ! Internals
       logical :: lencounter, lfirstpl, lfirsttp 
       real(DP) :: rts
       real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
@@ -63,13 +63,13 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_step_out.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_pl),                    intent(inout)  :: self !! RMVS massive body object
       class(rmvs_cb),                    intent(inout)  :: cb   !! RMVS central body object
       class(rmvs_tp),                    intent(inout)  :: tp   !! RMVS test particle object
       real(DP),                          intent(in)     :: dt   !! Step size
       class(swiftest_configuration),     intent(in)     :: config  !! Input collection of  configuration parameters
-      !! Internals
+      ! Internals
       integer(I4B)                                      :: i, j, k, nenc, itpp
       real(DP)                                          :: dto, time
       type(rmvs_pl)                                     :: rmvs_plep
@@ -113,7 +113,7 @@ contains
    
          use swiftest
          implicit none
-         !! Arguments
+         ! Arguments
          class(rmvs_cb),                 intent(inout)  :: cb   !! RMVS central body object
          class(rmvs_pl),                 intent(inout)  :: pl   !! RMVS massive body object
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
@@ -121,7 +121,7 @@ contains
          real(DP),                       intent(in)     :: dt    !! Step size
          integer(I4B),                   intent(in)     :: index !! outer substep number within current set
          class(swiftest_configuration),  intent(in)     :: config  !! Input collection of  configuration parameters
-         !! Internals
+         ! Internals
          logical                                        :: lfirsttp
          integer(I4B)                                   :: i
          real(DP)                                       :: rts
@@ -164,13 +164,13 @@ contains
          !! Adapted from David E. Kaufmann's Swifter routine rmvs_step_in.f90
          use swiftest
          implicit none
-         !! Arguments
+         ! Arguments
          class(rmvs_pl),                 intent(inout)  :: self !! RMVS massive body object
          class(rmvs_cb),                 intent(inout)  :: cb   !! RMVS central body object
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
          class(swiftest_configuration),  intent(in)     :: config  !! Input collection of  configuration parameters 
          real(DP),                       intent(in)     :: dt   !! Step size
-         !! Internals
+         ! Internals
          logical                                        :: lfirsttp
          integer(I4B)                                   :: i, j, k, nenc, link
          real(DP)                                       :: mu, rhill, dti, time
@@ -223,12 +223,12 @@ contains
          !!
          use swiftest
          implicit none
-         !! Arguments
+         ! Arguments
          class(rmvs_pl),                 intent(inout)  :: self !! RMVS test particle object
          class(rmvs_cb),                 intent(in)     :: cb   !! RMVS central body particle type
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
          class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
-         !! Internals
+         ! Internals
          integer(I4B)                                   :: i, j, k, link, nenc
          type(rmvs_pl)                                  :: cb_as_pl, pl_as_cb
          logical, dimension(:), allocatable             :: copyflag
@@ -319,10 +319,10 @@ contains
          !!
          use swiftest
          implicit none
-         !! Arguments
+         ! Arguments
          class(rmvs_pl),                 intent(inout)  :: self !! RMVS test particle object
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
-         !! Internals
+         ! Internals
          integer(I4B) :: i, j
 
          associate(pl => self, nenc => self%nenc, npl => self%nbody, &

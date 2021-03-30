@@ -8,11 +8,11 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
    !! Adapted from David E. Kaufmann's Swifter routine discard_discard_spill.f90
    use swiftest
    implicit none
-   !! Arguments
+   ! Arguments
    class(rmvs_pl),                        intent(inout) :: self      !! Swiftest massive body body object
    class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
    logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-   !! Internals
+   ! Internals
    integer(I4B)                                         :: i
 
    associate(keeps => self, npl => self%nbody)
@@ -43,11 +43,11 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
       !! 
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
       class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      !! Internals
+      ! Internals
       integer(I4B)                                      :: i
    
       associate(keeps => self)
@@ -75,11 +75,11 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
    !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
    use swiftest
    implicit none
-   !! Arguments
+   ! Arguments
    class(rmvs_tp),                        intent(inout) :: self       !! RMVS test particle object
    class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
    logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-   !! Internals
+   ! Internals
    integer(I4B)                                         :: i
 
    associate(keeps => self, ntp => self%nbody)
@@ -114,7 +114,7 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
       !! 
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_tp),                     intent(inout) :: self        !! RMVS massive body object
       class(swiftest_body),               intent(inout) :: inserts     !!  Inserted object 
       logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps

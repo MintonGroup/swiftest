@@ -11,14 +11,14 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs_discard_pl.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_tp),                intent(inout) :: self
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
       class(swiftest_pl),            intent(inout) :: pl     !! WHM massive body particle data structure. 
       class(swiftest_configuration), intent(in)    :: config !!  configuration parameters
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Stepsize
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i
 
       associate(tp => self, ntp => self%nbody)

@@ -12,10 +12,8 @@ module whm_classes
    !********************************************************************************************************************************
    ! whm_cb class definitions and method interfaces
    !*******************************************************************************************************************************
-   !> WHM central body particle class
+   !> Swiftest central body particle class
    type, public, extends(swiftest_cb) :: whm_cb
-      real(DP), dimension(NDIM) :: xj      ! Jacobi position
-      real(DP), dimension(NDIM) :: vj      ! Jacobi velocity
    contains
    end type whm_cb
 
@@ -97,7 +95,7 @@ module whm_classes
       end subroutine whm_setup_pl
 
       module subroutine whm_setup_set_mu_eta_pl(self, cb)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb
          implicit none
          class(whm_pl),                intent(inout) :: self    !! WHM massive body object
          class(swiftest_cb),           intent(inout) :: cb     !! Swiftest central body object
@@ -109,10 +107,10 @@ module whm_classes
       end subroutine whm_setup_set_ir3j
 
       module subroutine whm_step_pl(self, cb, config, t, dt)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body object
-         class(whm_cb),             intent(inout) :: cb     !! WHM central body particle data structure
+         class(swiftest_cb),             intent(inout) :: cb     !! Swiftest central body particle data structure
          class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP),                      intent(in)    :: dt     !! Stepsize
@@ -120,57 +118,61 @@ module whm_classes
 
       !> Get heliocentric accelration of massive bodies
       module subroutine whm_getacch_pl(self, cb, config, t)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
          class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
-         class(whm_cb),            intent(inout) :: cb       !! WHM central body particle data structure
+         class(swiftest_cb),            intent(inout) :: cb       !! Swiftest central body particle data structure
          class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
          real(DP),                      intent(in)    :: t        !! Current time
       end subroutine whm_getacch_pl
 
       module subroutine whm_drift_pl(self, cb, config, dt)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structur
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structur
          class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_pl
 
       module subroutine whm_getacch_int_pl(self, cb)
+         use swiftest_classes, only : swiftest_cb
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-         class(whm_cb),       intent(inout) :: cb     !! WHM central body particle data structure
+         class(swiftest_cb),       intent(inout) :: cb     !! Swiftest central body particle data structure
       end subroutine whm_getacch_int_pl
 
       module subroutine whm_coord_h2j_pl(self, cb)
+         use swiftest_classes, only : swiftest_cb
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-         class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree
       end subroutine whm_coord_h2j_pl
 
       module subroutine whm_coord_j2h_pl(self, cb)
+         use swiftest_classes, only : swiftest_cb
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-         class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree
       end subroutine whm_coord_j2h_pl
 
       module subroutine whm_coord_vh2vj_pl(self, cb)
+         use swiftest_classes, only : swiftest_cb
          implicit none
          class(whm_pl),       intent(inout) :: self   !! WHM massive body particle data structure
-         class(whm_cb),       intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),       intent(inout) :: cb     !! Swiftest central body particle data structuree
       end subroutine whm_coord_vh2vj_pl
 
       module subroutine whm_gr_getacch_pl(self, cb, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
          class(whm_pl),       intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb),  intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),  intent(inout) :: cb     !! Swiftest central body particle data structuree
          class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       end subroutine whm_gr_getacch_pl
 
       module pure subroutine whm_gr_p4_pl(self, config, dt)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
@@ -178,14 +180,14 @@ module whm_classes
       end subroutine whm_gr_p4_pl
 
       module pure subroutine whm_gr_vh2pv_pl(self, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       end subroutine whm_gr_vh2pv_pl
 
       module pure subroutine whm_gr_pv2vh_pl(self, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
@@ -199,17 +201,17 @@ module whm_classes
       end subroutine whm_setup_tp
 
       module subroutine whm_drift_tp(self, cb, config, dt)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
          class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_tp
 
       !> Get heliocentric accelration of the test particle
       module subroutine whm_getacch_tp(self, cb, pl, config, t, xh)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
          class(swiftest_cb),            intent(inout) :: cb     !! Generic Swiftest central body particle data structuree 
@@ -220,10 +222,10 @@ module whm_classes
       end subroutine whm_getacch_tp
 
       module subroutine whm_step_tp(self, cb, pl, config, t, dt)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-         class(whm_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
          class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: t      !! Current time
@@ -238,15 +240,15 @@ module whm_classes
       end subroutine whm_setup_set_beg_end
 
       module subroutine whm_gr_getacch_tp(self, cb, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
          class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       end subroutine whm_gr_getacch_tp
 
       module pure subroutine whm_gr_p4_tp(self, config, dt)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
@@ -254,28 +256,28 @@ module whm_classes
       end subroutine whm_gr_p4_tp
 
       module pure subroutine whm_gr_vh2pv_tp(self, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(whm_tp),                 intent(inout)    :: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       end subroutine whm_gr_vh2pv_tp
 
       module pure subroutine whm_gr_pv2vh_tp(self, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(whm_tp),                 intent(inout)    :: self   !! Swiftest particle object
          class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
       end subroutine whm_gr_pv2vh_tp
 
       module subroutine whm_setup_system(self, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of on parameters 
       end subroutine whm_setup_system
 
       module subroutine whm_spill_pl(self, discards, lspill_list)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_body
          implicit none
          class(whm_pl),         intent(inout) :: self        !! WHM massive body object
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
@@ -283,7 +285,7 @@ module whm_classes
       end subroutine whm_spill_pl
 
       module subroutine whm_fill_pl(self, inserts, lfill_list)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_body
          implicit none
          class(whm_pl),         intent(inout) :: self       !! WHM massive body object
          class(swiftest_body),  intent(inout) :: inserts    !! inserted object 
@@ -292,7 +294,7 @@ module whm_classes
 
       !> Steps the Swiftest nbody system forward in time one stepsize
       module subroutine whm_step_system(cb, pl, tp, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(whm_cb),            intent(inout) :: cb      !! WHM central body object  
          class(whm_pl),            intent(inout) :: pl      !! WHM central body object  

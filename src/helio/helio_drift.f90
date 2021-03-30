@@ -67,8 +67,8 @@ contains
       use swiftest
       implicit none
       ! Arguments
-      class(helio_pl),         intent(inout) :: self !! Helio test particle data structure
-      class(swiftest_cb),      intent(in)    :: cb   !! Helio central body data structure
+      class(helio_pl),         intent(inout) :: self !! Helio massive body object
+      class(swiftest_cb),      intent(in)    :: cb   !! Helio central body object
       real(DP),                intent(in)    :: dt   !! Stepsize
       real(DP), dimension(:),  intent(out)   :: pt   !! negative barycentric velocity of the central body
       ! Internals
@@ -91,6 +91,59 @@ contains
       return
    
    end subroutine helio_drift_linear_pl
+
+   module subroutine helio_drift_tp(self, cb, config, dt)
+      !! author: David A. Minton
+      !!
+      !! Loop through test particles and call Danby drift routine
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine helio_drift_tp.f90
+      !! Adapted from Hal Levison's Swift routine drift_tp.f
+      use swiftest
+      implicit none
+      ! Arguments
+      class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
+      class(swiftest_cb),            intent(inout) :: cb     !! Helio central body particle data structuree
+      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      real(DP),                      intent(in)    :: dt     !! Stepsize
+      ! Internals
+      integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
+      integer(I4B) :: i !! Loop counter
+      real(DP) :: rmag, vmag2, energy, dtp
+   
+      associate(ntp    => self%nbody, &
+         xh     => self%xh, &
+         vb     => self%vb, &
+         status => self%status,&
+         mu     => self%mu)
+         if (ntp == 0) return
+         allocate(iflag(ntp))
+         iflag(:) = 0
+         do i = 1,ntp
+            if (status(i) == ACTIVE) then
+               if (config%lgr) then
+                  rmag = norm2(xh(:, i))
+                  vmag2 = dot_product(vb(:, i), vb(:, i))
+                  energy = 0.5_DP * vmag2 - cb%Gmass / rmag
+                  dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+               else
+                  dtp = dt
+               end if
+               call drift_one(mu(i), xh(:, i), vb(:, i), dtp, iflag(i))
+               if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
+            end if
+         end do
+         if (any(iflag(1:ntp) /= 0)) then
+            do i = 1, ntp
+               if (iflag(i) /= 0) write(*, *) "Particle ", self%name(i), " lost due to error in Danby drift"
+            end do
+         end if
+      end associate
+
+      return
+
+   
+   end subroutine helio_drift_tp
 
    module subroutine helio_drift_linear_tp(self, dt, pt)
       !! author: David A. Minton

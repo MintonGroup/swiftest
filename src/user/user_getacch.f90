@@ -8,7 +8,7 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_user_getacch.f90
    use swiftest
    implicit none
-   !! Arguments
+   ! Arguments
    class(swiftest_pl),                 intent(inout) :: self   !! Swiftest massive body particle data structure
    class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree
    class(swiftest_configuration), intent(in)    :: config !! Input collection of user configuration parameters

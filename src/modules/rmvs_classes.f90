@@ -106,7 +106,7 @@ module rmvs_classes
    
    interface
       module subroutine rmvs_discard_pl_tp(self, cb, pl, config, t, dt)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_pl, swiftest_configuration
          implicit none
          class(rmvs_tp),                intent(inout) :: self
          class(swiftest_cb),            intent(inout) :: cb   !! Swiftest central body object
@@ -117,11 +117,11 @@ module rmvs_classes
       end subroutine rmvs_discard_pl_tp
 
       module subroutine rmvs_getacch_in_tp(self, cb, pl, config, t, xh)
-         use swiftest_classes
-         use whm_classes
+         use swiftest_classes, only : swiftest_cb, swiftest_configuration
+         use whm_classes, only : whm_pl
          implicit none
          class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle data structure
-         class(whm_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree 
+         class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree 
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
          class(swiftest_configuration), intent(in)    :: config !! Input collection of  parameter
          real(DP),                      intent(in)    :: t      !! Current time
@@ -129,14 +129,14 @@ module rmvs_classes
       end subroutine rmvs_getacch_in_tp
 
       module subroutine rmvs_obl_acc_in(self, cb)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_cb
          implicit none
          class(rmvs_pl),         intent(inout) :: self !! RMVS massive body object
          class(swiftest_cb),     intent(inout) :: cb   !! Swiftest central body object
       end subroutine rmvs_obl_acc_in
 
       module subroutine rmvs_setup_system(self, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
@@ -149,11 +149,11 @@ module rmvs_classes
       end subroutine rmvs_setup_pl
 
       module subroutine rmvs_step_make_planetocentric(self, cb, tp, config)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none
          class(rmvs_pl),   intent(inout)  :: self !! RMVS test particle object
          class(rmvs_cb),   intent(in)     :: cb   !! RMVS central body particle type
-         class(rmvs_tp),   intent(inout)     :: tp   !! RMVS test particle object
+         class(rmvs_tp),   intent(inout)  :: tp   !! RMVS test particle object
          class(swiftest_configuration), intent(in) :: config !! Input collection of configuration parameters 
       end subroutine rmvs_step_make_planetocentric
 
@@ -189,7 +189,7 @@ module rmvs_classes
       end subroutine rmvs_interp_out
 
       module subroutine rmvs_step_in_pl(self, cb, tp, config, dt)
-         use swiftest_classes
+         use swiftest_classes, only : swiftest_configuration
          implicit none 
          class(rmvs_pl),                intent(inout)  :: self !! RMVS massive body object
          class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
@@ -230,9 +230,9 @@ module rmvs_classes
       module subroutine rmvs_step_system(cb, pl, tp, config)
          use swiftest_classes
          implicit none
-         class(rmvs_cb),                intent(inout) :: cb      !! WHM central body object  
-         class(rmvs_pl),                intent(inout) :: pl      !! WHM central body object  
-         class(rmvs_tp),                intent(inout) :: tp      !! WHM central body object  
+         class(rmvs_cb),                intent(inout) :: cb      !! RMVS central body object  
+         class(rmvs_pl),                intent(inout) :: pl      !! RMVS central body object  
+         class(rmvs_tp),                intent(inout) :: tp      !! RMVS central body object  
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_step_system
 

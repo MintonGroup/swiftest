@@ -81,11 +81,6 @@ mod:
 	  rm -f *.o *.mod  *.smod
 
 lib:
-	cd $(SWIFTEST_HOME)/src/coord; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTEST_HOME)/src/discard; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -183,7 +178,6 @@ bin: *.f90
 
 clean:
 	cd $(SWIFTEST_HOME)/src/modules;  rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTEST_HOME)/src/coord;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/driftkick;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/eucl;   rm -f Makefile.Defines Makefile *.gc*
@@ -198,6 +192,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/whm;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/rmvs;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/helio;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/bin;     rm -f swiftest_*
 	cd $(SWIFTEST_HOME)/bin;     rm -f tool_*
 	cd $(SWIFTEST_HOME)/lib;     rm -f lib*

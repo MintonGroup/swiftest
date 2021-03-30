@@ -9,7 +9,7 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_peri.f90
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle object  
       class(rmvs_cb),                intent(inout) :: cb     !! RMVS central body object  
       class(rmvs_pl),                intent(inout) :: pl     !! RMVS massive body object  
@@ -20,7 +20,7 @@ contains
       integer(I4B),                  intent(in)    :: nenc  !! number of test particles encountering current planet 
       integer(I4B),                  intent(in)    :: ipleP !!index of RMVS planet being closely encountered
       class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters
-      !! Internals
+      ! Internals
       integer(I4B)                                 :: i, id1, id2
       real(DP)                                     :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
       real(DP), dimension(NDIM)                    :: xh1, xh2, vh1, vh2

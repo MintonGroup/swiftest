@@ -9,12 +9,12 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
    use swiftest
    implicit none
-   !! Arguments
+   ! Arguments
    class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
    class(swiftest_cb),            intent(inout) :: cb  !! Swiftest central body particle data structure
    class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
    real(DP),                      intent(in)    :: t        !! Current time
-   !! Internals
+   ! Internals
    integer(I4B)                                 :: i
    real(DP), dimension(:), allocatable, save    :: fac
    real(DP), dimension(NDIM)                    :: ah0

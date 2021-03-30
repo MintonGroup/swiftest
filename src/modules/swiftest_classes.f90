@@ -144,10 +144,8 @@ module swiftest_classes
       procedure(abstract_set_mu),  public, deferred :: set_mu
       procedure(abstract_gr_getacch), public, deferred :: gr_getacch
       ! These are concrete because the implementation is the same for all types of particles
-      procedure, public :: b2h         => coord_b2h_body      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
       procedure, public :: gr_getaccb  => gr_getaccb_ns_body  !! Add relativistic correction acceleration for non-symplectic integrators
-      procedure, public :: h2b         => coord_h2b_body      !! Convert position vectors from barycentric to heliocentric coordinates
       procedure, public :: initialize  => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: kickvb      => kick_vb_body        !! Kicks the barycentric velocities
       procedure, public :: kickvh      => kick_vh_body        !! Kicks the heliocentric velocities
@@ -155,8 +153,6 @@ module swiftest_classes
       procedure, public :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: set_ir3     => setup_set_ir3h      !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure, public :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
-      procedure, public :: vb2vh       => coord_vb2vh_body    !! Convert velocity vectors from barycentric to heliocentric coordinates 
-      procedure, public :: vh2vb       => coord_vh2vb_body    !! Convert velocity vectors from heliocentric to barycentric coordinates 
       procedure, public :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
       procedure, public :: reverse_status => util_reverse_status !! Reverses the active/inactive status of all particles in a structure
@@ -277,7 +273,7 @@ module swiftest_classes
       subroutine abstract_gr_getacch(self, cb, config)
          import swiftest_body, swiftest_cb, swiftest_configuration
          class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structuree
+         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
          class(swiftest_configuration), intent(in)    :: config !! Input collection of  parameter
       end subroutine abstract_gr_getacch
 
@@ -628,30 +624,6 @@ module swiftest_classes
          real(DP), dimension(:), intent(in)  :: x, v
          real(DP), intent(out) :: a, q, capm, tperi
       end subroutine orbel_xv2aqt
-
-      module subroutine coord_b2h_body(self, cb)
-         implicit none
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
-      end subroutine coord_b2h_body
-
-      module subroutine coord_h2b_body(self, cb)
-         implicit none
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
-      end subroutine coord_h2b_body
-
-      module subroutine coord_vb2vh_body(self, cb)
-         implicit none
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
-      end subroutine coord_vb2vh_body
-
-      module subroutine coord_vh2vb_body(self, cb)
-         implicit none
-         class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
-      end subroutine coord_vh2vb_body
 
       module subroutine gr_getaccb_ns_body(self, cb, config, agr, agr0) 
          implicit none

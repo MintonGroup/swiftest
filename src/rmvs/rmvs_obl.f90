@@ -9,10 +9,10 @@ contains
 
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(rmvs_pl),            intent(inout) :: self !! RMVS massive body object
       class(swiftest_cb),        intent(inout) :: cb   !! Swiftest central body object
-      !! Internals
+      ! Internals
       integer(I4B)                             :: i
       real(DP), dimension(:, :), allocatable   :: xh_original 
 

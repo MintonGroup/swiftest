@@ -12,17 +12,15 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2j.f 
       use swiftest
       implicit none
-      !! Arguments
-      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
-      !! Internals
+      ! Arguments
+      class(whm_pl),         intent(inout) :: self   !! WHM massive body particle data structure
+      class(swiftest_cb),    intent(inout) :: cb     !! Swiftest central body particle data structuree
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: sumx, sumv, cap, capv
 
       associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
-         cb%xj(:) = 0.0_DP
-         cb%vj(:) = 0.0_DP
          if (npl == 0) return
          xj(:, 1) = xh(:, 1)
          vj(:, 1) = vh(:, 1)
@@ -54,10 +52,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_j2h.f 
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
-      !! Internals
+      class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: sumx, sumv
 
@@ -91,15 +89,14 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vh2vj.f 
       use swiftest
       implicit none
-      !! Arguments
+      ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(whm_cb),                 intent(inout) :: cb     !! WHM central body particle data structuree
-      !! Internals
+      class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree
+      ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: sumv, capv
 
       associate(npl => self%nbody, GMpl => self%Gmass, vh => self%vh, vj => self%vj, eta => self%eta)
-         cb%vj(:) = 0.0_DP
          if (npl == 0) return
          vj(:, 1) = vh(:, 1)
          sumv(:) = 0.0_DP

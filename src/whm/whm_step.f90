@@ -9,10 +9,10 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_step.f90
       use swiftest
       implicit none
-      !! Arguments
-      class(whm_cb),                 intent(inout) :: cb      !! WHM central body object  
-      class(whm_pl),                 intent(inout) :: pl      !! WHM central body object  
-      class(whm_tp),                 intent(inout) :: tp      !! WHM central body object  
+      ! Arguments
+      class(whm_cb),                 intent(inout) :: cb      !! Swiftest central body object  
+      class(whm_pl),                 intent(inout) :: pl      !! Swiftest central body object  
+      class(whm_tp),                 intent(inout) :: tp      !! Swiftest central body object  
       class(swiftest_configuration), intent(in)    :: config  !! Input collection of on parameters 
 
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
@@ -38,7 +38,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structure
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
@@ -78,7 +78,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! WHM central body particle data structure
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
       class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
