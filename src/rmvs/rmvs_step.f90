@@ -221,6 +221,7 @@ contains
          !! creates a Swiftest test particle structure for each planet's encountering test particles to simplify the 
          !! planetocentric calculations. This subroutine is not based on an existing one from Swift and Swifter
          !!
+         use swiftest
          implicit none
          !! Arguments
          class(rmvs_pl),                 intent(inout)  :: self !! RMVS test particle object
