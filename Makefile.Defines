@@ -57,11 +57,11 @@ IDEBUG = -O0 -g -traceback -mp1 -fp-model strict -debug all -align all -pad -ip 
 
 #debug flags
 
-#GDBFLAGS = -ggdb -g3 -O0 -fbacktrace -fbounds-check -fcheck=all 
+GDBFLAGS = -ggdb -g3 -O0 -fbacktrace -fbounds-check -fcheck=all 
 
 FORTRAN = gfortran
 FFLAGS = -O3
-#FFLAGS = $(GDBFLAGS)
+FFLAGS = $(GDBFLAGS)
 
 #FFLAGS          = -Og -ggdb -g3 -fopenmp -ftree-parallelize-loops=4 -fbacktrace -fbounds-check -fcheck=all -fsanitize=undefined -fsanitize=address -fsanitize=leak  
 ##debug flags

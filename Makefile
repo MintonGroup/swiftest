@@ -49,6 +49,7 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
                      swiftest_operators.f90 \
                      whm_classes.f90 \
                      rmvs_classes.f90 \
+                     helio_classes.f90 \
                      util.f90 \
                      module_nrutil.f90 \
                      swiftest.f90 
@@ -146,6 +147,11 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
 	cd $(SWIFTEST_HOME)/src/rmvs; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make libdir
+	cd $(SWIFTEST_HOME)/src/helio; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
