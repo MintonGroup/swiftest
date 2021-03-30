@@ -9,8 +9,8 @@ contains
    use swiftest
    implicit none
    ! Arguments
-   class(swiftest_pl),                 intent(inout) :: self   !! Swiftest massive body particle data structure
-   class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree
+   class(swiftest_body),          intent(inout) :: self   !! Swiftest massive body particle data structure
+   class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
    class(swiftest_configuration), intent(in)    :: config !! Input collection of user configuration parameters
    real(DP),                      intent(in)    :: t      !! Current time
 
