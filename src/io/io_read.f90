@@ -53,7 +53,7 @@ contains
       return 
    end procedure io_read_config_in
 
-   module procedure io_config_reader
+   module subroutine io_config_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read in parameters for the integration
@@ -67,7 +67,15 @@ contains
       !$ use omp_lib
       !use util, only: util_exit ! IMPLEMENTATION TBD
       implicit none
-
+      ! Arguments
+      class(swiftest_configuration), intent(inout) :: self       !! Collection of  configuration parameters
+      integer, intent(in)                          :: unit       !! File unit number
+      character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+                                                                 !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+      integer, intent(in)                          :: v_list(:)  !! The first element passes the integrator code to the reader
+      integer, intent(out)                         :: iostat     !! IO status code
+      character(len=*), intent(inout)              :: iomsg      !! Message to pass if iostat /= 
+      ! Internals
       logical                        :: t0_set = .false.        !! Is the initial time set in the input file?
       logical                        :: tstop_set = .false.     !! Is the final time set in the input file?
       logical                        :: dt_set = .false.        !! Is the step size set in the input file?
@@ -352,7 +360,7 @@ contains
       iostat = 0
 
       return 
-   end procedure io_config_reader
+   end subroutine io_config_reader
 
    module procedure io_get_token
       !! author: David A. Minton

@@ -206,7 +206,7 @@ contains
                   end associate
                end if
             end do
-            call pl%end_planetocentric(tp)
+            call pl%end_planetocentric(cb,tp)
 
          end associate
    
@@ -225,7 +225,7 @@ contains
          implicit none
          ! Arguments
          class(rmvs_pl),                 intent(inout)  :: self !! RMVS test particle object
-         class(rmvs_cb),                 intent(in)     :: cb   !! RMVS central body particle type
+         class(rmvs_cb),                 intent(inout)  :: cb   !! RMVS central body particle type
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
          class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
          ! Internals
@@ -287,10 +287,7 @@ contains
                   end if
                   ! Now create a planetocentric "planet" structure containing the *other* planets (plus the Sun) in it at each point along
                   ! the innner encounter trajectory of the planet
-
-
                   do k = 0, NTPHENC
-
                      call plenc(i, k)%setup(npl)
                      ! Copy all the basic planet parameters and positions
                      copyflag(:) =  .true.
@@ -302,7 +299,7 @@ contains
                      end do
                      cb_as_pl%xh(:, i)  = cb%xin(:) - pl%xin(:, i, k)
                      cb_as_pl%vh(:, i)  = cb%vin(:) - pl%vin(:, i, k)
-                     ! Slot the Sun into the encounter planet's position of the planet list
+                     ! Slot the central body into the encounter planet's position of the planet list
                      copyflag(:) = .false.
                      copyflag(i) = .true.
                      call plenc(i, k)%fill(cb_as_pl, copyflag)
@@ -312,7 +309,7 @@ contains
          end associate
       end subroutine rmvs_step_make_planetocentric
    
-      module subroutine rmvs_step_end_planetocentric(self, tp)
+      module subroutine rmvs_step_end_planetocentric(self, cb, tp)
          !! author: David A. Minton
          !!
          !! Deallocates all of the encountering particle data structures for next time
@@ -321,6 +318,7 @@ contains
          implicit none
          ! Arguments
          class(rmvs_pl),                 intent(inout)  :: self !! RMVS test particle object
+         class(rmvs_cb),                 intent(inout)  :: cb      !!  RMVS central body object
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
          ! Internals
          integer(I4B) :: i, j
@@ -335,12 +333,10 @@ contains
                   tpenc(i)%xh(:, j) = tpenc(i)%xh(:, j) + pl%xin(:, i, NTPHENC) 
                   tpenc(i)%vh(:, j) = tpenc(i)%vh(:, j) + pl%vin(:, i, NTPHENC) 
                   if (tpenc(i)%status(j) == ACTIVE) tpenc(i)%status(j) = INACTIVE
+                  ! Put back heliocentric value of mu
+                  call tpenc(i)%set_mu(cb)
                end do
-
-               ! Presevere the heliocentric value of mu
-               where(encmask(:,i)) 
-                  tpenc(i)%mu(:) = tp%mu(:)
-               end where
+               ! Replace the old test particle with the new one
                call tp%fill(tpenc(i), encmask(:,i))
             end do
 

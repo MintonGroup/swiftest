@@ -54,8 +54,8 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
          select type(inserts)
          class is (rmvs_pl)
    
-            keeps%nenc(:)    = merge(inserts%nenc(:),    keeps%nenc(:),    lfill_list(:))
-            keeps%tpenc1P(:) = merge(inserts%tpenc1P(:), keeps%tpenc1P(:), lfill_list(:))
+            keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
+            keeps%tpenc1P(:) = unpack(inserts%tpenc1P(:), lfill_list(:), keeps%tpenc1P(:))
    
             call whm_fill_pl(keeps, inserts, lfill_list)
          class default
@@ -123,10 +123,10 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
          select type(inserts)
          class is (rmvs_tp)
 
-            keeps%lperi(:)  = merge(inserts%lperi(:),  keeps%lperi(:), lfill_list(:)) 
-            keeps%plperP(:) = merge(inserts%plperP(:), keeps%plperP(:), lfill_list(:))
-            keeps%plencP(:) = merge(inserts%plencP(:), keeps%plencP(:), lfill_list(:))
-            keeps%tpencP(:) = merge(inserts%tpencP(:), keeps%tpencP(:), lfill_list(:))
+            keeps%lperi(:)  = unpack(inserts%lperi(:),  lfill_list(:), keeps%lperi(:))
+            keeps%plperP(:) = unpack(inserts%plperP(:), lfill_list(:), keeps%plperP(:))
+            keeps%plencP(:) = unpack(inserts%plencP(:), lfill_list(:), keeps%plencP(:))
+            keeps%tpencP(:) = unpack(inserts%tpencP(:), lfill_list(:), keeps%tpencP(:))
    
             call util_fill_tp(keeps, inserts, lfill_list)
          class default

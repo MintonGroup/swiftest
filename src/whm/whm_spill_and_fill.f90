@@ -63,13 +63,13 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (whm_pl)
-            keeps%eta(:)  = merge(inserts%eta(:),  keeps%eta(:),  lfill_list(:))
-            keeps%muj(:)  = merge(inserts%muj(:),  keeps%muj(:),  lfill_list(:))
-            keeps%ir3j(:) = merge(inserts%ir3j(:), keeps%ir3j(:), lfill_list(:))
+            keeps%eta(:)  = unpack(inserts%eta(:),  lfill_list(:), keeps%eta(:))
+            keeps%muj(:)  = unpack(inserts%muj(:),  lfill_list(:), keeps%muj(:))
+            keeps%ir3j(:) = unpack(inserts%ir3j(:), lfill_list(:), keeps%ir3j(:))
    
             do i = 1, NDIM
-               keeps%xj(i, :) = merge(inserts%xj(i, :), keeps%xj(i, :), lfill_list(:))
-               keeps%vj(i, :) = merge(inserts%vj(i, :), keeps%vj(i, :), lfill_list(:))
+               keeps%xj(i, :) = unpack(inserts%xj(i, :), lfill_list(:), keeps%xj(i, :))
+               keeps%vj(i, :) = unpack(inserts%vj(i, :), lfill_list(:), keeps%vj(i, :))
             end do
             call util_fill_pl(keeps, inserts, lfill_list)
          class default

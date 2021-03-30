@@ -71,26 +71,26 @@ contains
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
       associate(keeps => self)
-         keeps%name(:)     = merge(inserts%name(:), keeps%name(:), lfill_list(:))
-         keeps%status(:)   = merge(inserts%status(:), keeps%status(:),   lfill_list(:))
-         keeps%ldiscard(:) = merge(inserts%ldiscard(:), keeps%ldiscard(:),   lfill_list(:))
+         keeps%name(:)     = unpack(inserts%name(:), lfill_list(:), keeps%name(:))
+         keeps%status(:)   = unpack(inserts%status(:), lfill_list(:), keeps%status(:))
+         keeps%ldiscard(:) = unpack(inserts%ldiscard(:), lfill_list(:), keeps%ldiscard(:))
 
          do i = 1, NDIM
-            keeps%xh(i, :)    = merge(inserts%xh(i, :), keeps%xh(i, :),     lfill_list(:))
-            keeps%vh(i, :)    = merge(inserts%vh(i, :), keeps%vh(i, :),     lfill_list(:))
-            keeps%xb(i, :)    = merge(inserts%xb(i, :), keeps%xb(i, :),     lfill_list(:))
-            keeps%vb(i, :)    = merge(inserts%vb(i, :), keeps%vb(i, :),     lfill_list(:))
-            keeps%ah(i, :)    = merge(inserts%ah(i, :), keeps%ah(i, :),     lfill_list(:))
-            keeps%aobl(i, :)  = merge(inserts%aobl(i, :), keeps%aobl(i, :),     lfill_list(:))
+            keeps%xh(i, :)    = unpack(inserts%xh(i, :), lfill_list(:), keeps%xh(i, :))
+            keeps%vh(i, :)    = unpack(inserts%vh(i, :), lfill_list(:), keeps%vh(i, :))
+            keeps%xb(i, :)    = unpack(inserts%xb(i, :), lfill_list(:), keeps%xb(i, :))
+            keeps%vb(i, :)    = unpack(inserts%vb(i, :), lfill_list(:), keeps%vb(i, :))
+            keeps%ah(i, :)    = unpack(inserts%ah(i, :), lfill_list(:), keeps%ah(i, :))
+            keeps%aobl(i, :)  = unpack(inserts%aobl(i, :), lfill_list(:), keeps%aobl(i, :))
          end do
          
-         keeps%a(:)     = merge(inserts%a(:),     keeps%a(:),     lfill_list(:))
-         keeps%e(:)     = merge(inserts%e(:),     keeps%e(:),     lfill_list(:))
-         keeps%inc(:)   = merge(inserts%inc(:),   keeps%inc(:),   lfill_list(:))
-         keeps%capom(:) = merge(inserts%capom(:), keeps%capom(:), lfill_list(:))
-         keeps%omega(:) = merge(inserts%omega(:), keeps%omega(:), lfill_list(:))
-         keeps%capm(:)  = merge(inserts%capm(:),  keeps%capm(:),  lfill_list(:))
-         keeps%mu(:)    = merge(inserts%mu(:),    keeps%mu(:),    lfill_list(:))
+         keeps%a(:)     = unpack(inserts%a(:),    lfill_list(:), keeps%a(:))
+         keeps%e(:)     = unpack(inserts%e(:),    lfill_list(:), keeps%e(:))
+         keeps%inc(:)   = unpack(inserts%inc(:),  lfill_list(:), keeps%inc(:))
+         keeps%capom(:) = unpack(inserts%capom(:),lfill_list(:), keeps%capom(:))
+         keeps%omega(:) = unpack(inserts%omega(:),lfill_list(:), keeps%omega(:))
+         keeps%capm(:)  = unpack(inserts%capm(:), lfill_list(:), keeps%capm(:))
+         keeps%mu(:)    = unpack(inserts%mu(:),   lfill_list(:), keeps%mu(:))
 
          ! This is the base class, so will be the last to be called in the cascade. 
          keeps%nbody = max(keeps%nbody, inserts%nbody)
@@ -162,17 +162,17 @@ contains
          select type (inserts) ! The standard requires us to select the type of both arguments in order to access all the components
             class is (swiftest_pl)
             !> Spill components specific to the massive body class
-               keeps%mass(:)     = merge(inserts%mass(:), keeps%mass(:),     lfill_list(:))
-               keeps%Gmass(:)    = merge(inserts%Gmass(:), keeps%Gmass(:),    lfill_list(:))
-               keeps%rhill(:)    = merge(inserts%rhill(:), keeps%rhill(:),    lfill_list(:))
-               keeps%radius(:)   = merge(inserts%radius(:), keeps%radius(:),   lfill_list(:))
-               keeps%density(:)  = merge(inserts%density(:), keeps%density(:),  lfill_list(:))
+               keeps%mass(:)     = unpack(inserts%mass(:),lfill_list(:), keeps%mass(:))
+               keeps%Gmass(:)    = unpack(inserts%Gmass(:),lfill_list(:), keeps%Gmass(:))
+               keeps%rhill(:)    = unpack(inserts%rhill(:),lfill_list(:), keeps%rhill(:))
+               keeps%radius(:)   = unpack(inserts%radius(:),lfill_list(:), keeps%radius(:))
+               keeps%density(:)  = unpack(inserts%density(:),lfill_list(:), keeps%density(:))
                do i = 1, NDIM
-                  keeps%Ip(i, :)   = merge(inserts%Ip(i, :), keeps%Ip(i, :),     lfill_list(:))
-                  keeps%rot(i, :)  = merge(inserts%rot(i, :), keeps%rot(i, :),    lfill_list(:))
+                  keeps%Ip(i, :)   = unpack(inserts%Ip(i, :), lfill_list(:), keeps%Ip(i, :))
+                  keeps%rot(i, :)  = unpack(inserts%rot(i, :), lfill_list(:), keeps%rot(i, :))
                end do
-               keeps%k2(:)       = merge(inserts%k2(:), keeps%k2(:),       lfill_list(:))
-               keeps%Q(:)        = merge(inserts%Q(:), keeps%Q(:),         lfill_list(:))
+               keeps%k2(:)       = unpack(inserts%k2(:), lfill_list(:), keeps%k2(:))
+               keeps%Q(:)        = unpack(inserts%Q(:), lfill_list(:), keeps%Q(:))
                call util_fill_body(keeps, inserts, lfill_list)
             class default
                write(*,*) 'Error! fill method called for incompatible return type on swiftest_pl'
@@ -222,9 +222,9 @@ contains
          select type(inserts)
             class is (swiftest_tp)
             !> Spill components specific to the test particle class
-               keeps%isperi(:) = merge(inserts%isperi(:), keeps%isperi(:), lfill_list(:))
-               keeps%peri(:)   = merge(inserts%peri(:),   keeps%peri(:),   lfill_list(:))
-               keeps%atp(:)    = merge(inserts%atp(:),    keeps%atp(:),    lfill_list(:))
+               keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
+               keeps%peri(:)   = unpack(inserts%peri(:),   lfill_list(:), keeps%peri(:))
+               keeps%atp(:)    = unpack(inserts%atp(:),    lfill_list(:), keeps%atp(:))
                call util_fill_body(keeps, inserts, lfill_list)
             class default
                write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'

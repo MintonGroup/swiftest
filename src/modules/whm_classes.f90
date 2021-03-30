@@ -35,18 +35,18 @@ module whm_classes
       procedure, public :: h2j          => whm_coord_h2j_pl        !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
       procedure, public :: j2h          => whm_coord_j2h_pl        !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
       procedure, public :: vh2vj        => whm_coord_vh2vj_pl      !! Convert velocity vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: setup        => whm_setup_pl            !! Constructor method - Allocates space for number of particles
+      procedure, public :: drift        => whm_drift_pl            !! Loop through massive bodies and call Danby drift routine
       procedure, public :: getacch      => whm_getacch_pl          !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: fill         => whm_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: gr_getacch   => whm_gr_getacch_pl       !! Acceleration term arising from the post-Newtonian correction
       procedure, public :: gr_p4        => whm_gr_p4_pl            !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: gr_vh2pv     => whm_gr_vh2pv_pl         !! Converts from heliocentric velocity to psudeovelocity for GR calculations
       procedure, public :: gr_pv2vh     => whm_gr_pv2vh_pl         !! Converts from psudeovelocity to heliocentric velocity for GR calculations
+      procedure, public :: setup        => whm_setup_pl            !! Constructor method - Allocates space for number of particles
       procedure, public :: set_mu       => whm_setup_set_mu_eta_pl !! Sets the Jacobi mass value for all massive bodies.
       procedure, public :: set_ir3      => whm_setup_set_ir3j     !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
       procedure, public :: step         => whm_step_pl             !! Steps the body forward one stepsize
-      procedure, public :: drift        => whm_drift_pl            !! Loop through massive bodies and call Danby drift routine
       procedure, public :: spill        => whm_spill_pl            !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure, public :: fill         => whm_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
    end type whm_pl
 
    !********************************************************************************************************************************
@@ -62,15 +62,15 @@ module whm_classes
       logical                               :: lfirst = .true.
    contains
       private
-      procedure, public :: setup        => whm_setup_tp        !! Allocates new components of the whm class and recursively calls parent allocations
+      procedure, public :: drift        => whm_drift_tp        !! Loop through test particles and call Danby drift routine
       procedure, public :: getacch      => whm_getacch_tp      !! Compute heliocentric accelerations of test particles
       procedure, public :: gr_getacch   => whm_gr_getacch_tp   !! Acceleration term arising from the post-Newtonian correction
       procedure, public :: gr_p4        => whm_gr_p4_tp        !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: gr_vh2pv     => whm_gr_vh2pv_tp     !! Converts from heliocentric velocity to psudeovelocity for GR calculations
       procedure, public :: gr_pv2vh     => whm_gr_pv2vh_tp     !! Converts from psudeovelocity to heliocentric velocity for GR calculations
-      procedure, public :: step         => whm_step_tp         !! Steps the particle forward one stepsize
       procedure, public :: set_beg_end  => whm_setup_set_beg_end     !! Sets the beginning and ending positions of planets.
-      procedure, public :: drift        => whm_drift_tp        !! Loop through test particles and call Danby drift routine
+      procedure, public :: setup        => whm_setup_tp        !! Allocates new components of the whm class and recursively calls parent allocations
+      procedure, public :: step         => whm_step_tp         !! Steps the particle forward one stepsize
    end type whm_tp
 
    !********************************************************************************************************************************

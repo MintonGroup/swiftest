@@ -57,7 +57,7 @@ IDEBUG = -O0 -g -traceback -mp1 -fp-model strict -debug all -align all -pad -ip 
 
 #debug flags
 
-GDBFLAGS = -ggdb -g3 -O0 -fbacktrace -fbounds-check -fcheck=all 
+GDBFLAGS = -ggdb -g3 -O0 -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero
 
 FORTRAN = gfortran
 FFLAGS = -O3
