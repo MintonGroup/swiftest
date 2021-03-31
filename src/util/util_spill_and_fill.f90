@@ -93,7 +93,7 @@ contains
          keeps%mu(:)    = unpack(inserts%mu(:),   lfill_list(:), keeps%mu(:))
 
          ! This is the base class, so will be the last to be called in the cascade. 
-         keeps%nbody = max(keeps%nbody, inserts%nbody)
+         keeps%nbody = count(keeps%status(:) == ACTIVE) 
       end associate
       
    end procedure util_fill_body

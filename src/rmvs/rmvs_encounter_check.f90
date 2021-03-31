@@ -49,21 +49,21 @@ contains
                   vr(:) = vht(:) - tp%vbeg(:, j)
                   lflag = rmvs_chk_ind(xr(:), vr(:), dt, r2crit)
                   if (lflag) then
-                        lencounter = .true.
-                        pl%encmask(i,j) = .true.
-                        pl%nenc(j) = pl%nenc(j) + 1
-                        nenc = pl%nenc(j)
-                        if (nenc == 1) then
-                           pl%tpenc1P(j) = i
-                        else
-                           tpencPindex = pl%tpenc1P(j)
-                           do k = 2, nenc - 1
-                              tpencPindex = tp%tpencP(tpencPindex)
-                           end do
-                           tp%tpencP(tpencPindex) = i
-                        end if
-                        tp%plencP(i) = j
-                        exit
+                     lencounter = .true.
+                     pl%encmask(i,j) = .true.
+                     pl%nenc(j) = pl%nenc(j) + 1
+                     nenc = pl%nenc(j)
+                     if (nenc == 1) then
+                        pl%tpenc1P(j) = i
+                     else
+                        tpencPindex = pl%tpenc1P(j)
+                        do k = 2, nenc - 1
+                           tpencPindex = tp%tpencP(tpencPindex)
+                        end do
+                        tp%tpencP(tpencPindex) = i
+                     end if
+                     tp%plencP(i) = j
+                     exit
                   end if
                end do
             end if

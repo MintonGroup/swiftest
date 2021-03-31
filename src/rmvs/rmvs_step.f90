@@ -110,7 +110,6 @@ contains
          !! 
          !! Adapted from Hal Levison's Swift routine rmvs3_step_out.f
          !! Adapted from David E. Kaufmann's Swifter routine rmvs_step_out.f90 
-   
          use swiftest
          implicit none
          ! Arguments
@@ -142,7 +141,7 @@ contains
                pl%xin(:,:,NTPHENC) = tp%xend(:, :)
                pl%vin(:,:,NTPHENC) = pl%vout(:, :, index)
                call pl%interp_in(cb, dt)
-               call pl%step_in(cb, tp, config, dt)
+               call pl%step_in(cb, tp, config, t, dt)
                lfirsttp = tp%lfirst
                tp%lfirst = .true.
                call tp%step(cb, pl, config, t, dt)
@@ -155,7 +154,7 @@ contains
    
       end subroutine rmvs_step_out2
 
-      module subroutine rmvs_step_in_pl(self, cb, tp, config, dt)
+      module subroutine rmvs_step_in_pl(self, cb, tp, config, t, dt)
          !! author: David A. Minton
          !!
          !! Step active test particles ahead in the inner encounter region
@@ -165,17 +164,17 @@ contains
          use swiftest
          implicit none
          ! Arguments
-         class(rmvs_pl),                 intent(inout)  :: self !! RMVS massive body object
-         class(rmvs_cb),                 intent(inout)  :: cb   !! RMVS central body object
-         class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
-         class(swiftest_configuration),  intent(in)     :: config  !! Input collection of  configuration parameters 
-         real(DP),                       intent(in)     :: dt   !! Step size
+         class(rmvs_pl),                intent(inout)  :: self !! RMVS massive body object
+         class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
+         class(rmvs_tp),                intent(inout)  :: tp   !! RMVS test particle object
+         class(swiftest_configuration), intent(in)     :: config  !! Input collection of configuration parameters 
+         real(DP),                      intent(in)     :: t    !! Current time
+         real(DP),                      intent(in)     :: dt   !! Step size
          ! Internals
          logical                                        :: lfirsttp
          integer(I4B)                                   :: i, j, k, nenc, link
          real(DP)                                       :: mu, rhill, dti, time
 
-   
          dti = dt / NTPHENC
          associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh)
             if (config%loblatecb) call pl%obl_acc_in(cb)
@@ -184,13 +183,10 @@ contains
                nenc = pl%nenc(i) 
                if (nenc > 0) then
                ! There are inner encounters with this planet...switch to planetocentric coordinates to proceed
-                  time = config%t
-                  mu = pl%Gmass(i)
-                  rhill = pl%rhill(i)
+                  time = t
                   call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .true., 0, nenc, i, config) 
-         ! now step the encountering test particles fully through the inner encounter
+                  ! now step the encountering test particles fully through the inner encounter
                   lfirsttp = .true.
-                 
                   associate(index => pl%tpenc(i)%index, &
                      xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah)
                      pl%tpenc(i)%lfirst = .true.
@@ -264,6 +260,7 @@ contains
                   tpenc(i)%lplanetocentric = .true.
                   tpenc(i)%cb = cb 
                   call pl%tpenc(i)%setup(nenc(i))
+                  tpenc(i)%status(:) = ACTIVE
                   call tp%spill(pl%tpenc(i), pl%encmask(:,i))
                   ! Grab all the encountering test particles and convert them to a planetocentric frame
                   do j = 1, nenc(i)
@@ -330,7 +327,6 @@ contains
                   ! Copy the results of the integration back over
                   tpenc(i)%xh(:, j) = tpenc(i)%xh(:, j) + pl%xin(:, i, NTPHENC) 
                   tpenc(i)%vh(:, j) = tpenc(i)%vh(:, j) + pl%vin(:, i, NTPHENC) 
-                  if (tpenc(i)%status(j) == ACTIVE) tpenc(i)%status(j) = INACTIVE
                   ! Put back heliocentric value of mu
                   call tpenc(i)%set_mu(cb)
                end do

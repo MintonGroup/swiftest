@@ -189,13 +189,14 @@ module rmvs_classes
          real(DP), intent(in)            :: dt   !! Step size
       end subroutine rmvs_interp_out
 
-      module subroutine rmvs_step_in_pl(self, cb, tp, config, dt)
+      module subroutine rmvs_step_in_pl(self, cb, tp, config, t, dt)
          use swiftest_classes, only : swiftest_configuration
          implicit none 
          class(rmvs_pl),                intent(inout)  :: self !! RMVS massive body object
          class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
          class(rmvs_tp),                intent(inout)  :: tp   !! RMVS test particle object
-         class(swiftest_configuration), intent(in)     :: config  !! Input collection of  configuration parameters 
+         class(swiftest_configuration), intent(in)     :: config  !! Input collection of configuration parameters 
+         real(DP),                      intent(in)     :: t    !! Current time
          real(DP),                      intent(in)     :: dt   !! Step size
       end subroutine rmvs_step_in_pl
 
