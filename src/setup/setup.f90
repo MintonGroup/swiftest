@@ -1,4 +1,4 @@
-submodule (swiftest_classes) setup_implementations
+submodule (swiftest_classes) s_setup
 
 contains
    module procedure setup_construct_system
@@ -239,4 +239,4 @@ contains
       return
    end procedure setup_set_ir3h
 
-end submodule setup_implementations
+end submodule s_setup

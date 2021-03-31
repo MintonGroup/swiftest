@@ -15,15 +15,15 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
    ! Internals
    integer(I4B)                                         :: i
 
-   associate(keeps => self, npl => self%nbody)
+   associate(keeps => self)
       select type(discards)
       class is (rmvs_pl)
 
-         discards%nenc(:)    = pack(keeps%nenc(1:npl),         lspill_list(1:npl))
-         discards%tpenc1P(:) = pack(keeps%tpenc1P(1:npl),       lspill_list(1:npl))
-         if (count(.not.lspill_list(1:npl))  > 0) then
-            keeps%nenc(:)       = pack(keeps%nenc(1:npl),   .not. lspill_list(1:npl))
-            keeps%tpenc1P(:)    = pack(keeps%tpenc1P(1:npl), .not. lspill_list(1:npl))
+         discards%nenc(:)    = pack(keeps%nenc(:),         lspill_list(:))
+         discards%tpenc1P(:) = pack(keeps%tpenc1P(:),       lspill_list(:))
+         if (count(.not.lspill_list(:))  > 0) then
+            keeps%nenc(:)       = pack(keeps%nenc(:),   .not. lspill_list(:))
+            keeps%tpenc1P(:)    = pack(keeps%tpenc1P(:), .not. lspill_list(:))
          end if
          call whm_spill_pl(keeps, discards, lspill_list)
       class default
@@ -54,9 +54,12 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
          select type(inserts)
          class is (rmvs_pl)
    
+            keeps%nenc(:)    = unpack(keeps%nenc(:),    .not.lfill_list(:), keeps%nenc(:))
             keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
+            
+            keeps%tpenc1P(:) = unpack(keeps%tpenc1P(:), .not.lfill_list(:), keeps%tpenc1P(:))
             keeps%tpenc1P(:) = unpack(inserts%tpenc1P(:), lfill_list(:), keeps%tpenc1P(:))
-   
+            
             call whm_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
@@ -82,18 +85,18 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
    ! Internals
    integer(I4B)                                         :: i
 
-   associate(keeps => self, ntp => self%nbody)
+   associate(keeps => self)
       select type(discards)
       class is (rmvs_tp)
-         discards%lperi(:)  = pack(keeps%lperi(1:ntp),       lspill_list(1:ntp))
-         discards%plperP(:) = pack(keeps%plperP(1:ntp),       lspill_list(1:ntp))
-         discards%plencP(:) = pack(keeps%plencP(1:ntp),       lspill_list(1:ntp))
-         discards%tpencP(:) = pack(keeps%tpencP(1:ntp),       lspill_list(1:ntp))
-         if (count(.not.lspill_list(1:ntp))  > 0) then
-            keeps%lperi(:)     = pack(keeps%lperi(1:ntp), .not. lspill_list(1:ntp))
-            keeps%plperP(:)    = pack(keeps%plperP(1:ntp), .not. lspill_list(1:ntp))
-            keeps%plencP(:)    = pack(keeps%plencP(1:ntp), .not. lspill_list(1:ntp))
-            keeps%tpencP(:)    = pack(keeps%tpencP(1:ntp), .not. lspill_list(1:ntp))
+         discards%lperi(:)  = pack(keeps%lperi(:),       lspill_list(:))
+         discards%plperP(:) = pack(keeps%plperP(:),       lspill_list(:))
+         discards%plencP(:) = pack(keeps%plencP(:),       lspill_list(:))
+         discards%tpencP(:) = pack(keeps%tpencP(:),       lspill_list(:))
+         if (count(.not.lspill_list(:))  > 0) then
+            keeps%lperi(:)     = pack(keeps%lperi(:), .not. lspill_list(:))
+            keeps%plperP(:)    = pack(keeps%plperP(:), .not. lspill_list(:))
+            keeps%plencP(:)    = pack(keeps%plencP(:), .not. lspill_list(:))
+            keeps%tpencP(:)    = pack(keeps%tpencP(:), .not. lspill_list(:))
          end if
 
          call util_spill_tp(keeps, discards, lspill_list)
@@ -123,11 +126,18 @@ module subroutine rmvs_spill_pl(self, discards, lspill_list)
          select type(inserts)
          class is (rmvs_tp)
 
+            keeps%lperi(:)  = unpack(keeps%lperi(:),  .not.lfill_list(:), keeps%lperi(:))
             keeps%lperi(:)  = unpack(inserts%lperi(:),  lfill_list(:), keeps%lperi(:))
+            
+            keeps%plperP(:) = unpack(keeps%plperP(:), .not.lfill_list(:), keeps%plperP(:))
             keeps%plperP(:) = unpack(inserts%plperP(:), lfill_list(:), keeps%plperP(:))
+            
+            keeps%plencP(:) = unpack(keeps%plencP(:), .not.lfill_list(:), keeps%plencP(:))
             keeps%plencP(:) = unpack(inserts%plencP(:), lfill_list(:), keeps%plencP(:))
+            
+            keeps%tpencP(:) = unpack(keeps%tpencP(:), .not.lfill_list(:), keeps%tpencP(:))
             keeps%tpencP(:) = unpack(inserts%tpencP(:), lfill_list(:), keeps%tpencP(:))
-   
+            
             call util_fill_tp(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on rmvs_tp'

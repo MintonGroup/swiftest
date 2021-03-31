@@ -1,4 +1,4 @@
-submodule(swiftest_classes) kick_implementations
+submodule(swiftest_classes) s_kick
 contains
    module procedure kick_vh_body 
    !! author: David A. Minton
@@ -44,4 +44,4 @@ contains
       return
    
       end procedure kick_vb_body
-end submodule kick_implementations
+end submodule s_kick

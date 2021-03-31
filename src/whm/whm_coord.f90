@@ -1,4 +1,4 @@
-submodule (whm_classes) whm_coord_implementations
+submodule (whm_classes) s_whm_coord
 contains
    module subroutine whm_coord_h2j_pl(self, cb)
       !! author: David A. Minton
@@ -109,5 +109,5 @@ contains
     
       return
    end subroutine whm_coord_vh2vj_pl
-end submodule whm_coord_implementations
+end submodule s_whm_coord
 

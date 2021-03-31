@@ -1,4 +1,4 @@
-submodule (swiftest_classes) eucl_implementations
+submodule (swiftest_classes) s_eucl
 contains
 
    module procedure eucl_dist_index_plpl
@@ -62,4 +62,4 @@ contains
    end procedure eucl_irij3_plpl
 
 
- end submodule eucl_implementations
+ end submodule s_eucl

@@ -18,10 +18,11 @@ contains
       logical :: lencounter, lfirstpl, lfirsttp 
       real(DP) :: rts
       real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
+      integer(I4B) :: i
  
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt, &
          xh => pl%xh, vh => pl%vh, xj => pl%xj, vj => pl%vj, ah => pl%ah,  eta => pl%eta, & ! These two lines of associations aid in debugging with gdb
-         xht => tp%xh, vht => tp%vh, aht => tp%ah, irij3 => tp%irij3) 
+         xht => tp%xh, vht => tp%vh)
          allocate(xbeg, source=pl%xh)
          allocate(vbeg, source=pl%vh)
          call pl%set_rhill(cb)
@@ -44,7 +45,7 @@ contains
             call tp%set_beg_end(xbeg = xbeg, xend = xend)
             tp%lfirst = .true.
             call tp%step(cb, pl, config, t, dt)
-            call tp%reverse_status()
+            where (tp%status(:) == INACTIVE) tp%status(:) = ACTIVE
             pl%lfirst = lfirstpl
             tp%lfirst = lfirsttp
          else
@@ -225,8 +226,8 @@ contains
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
          class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
          ! Internals
-         integer(I4B)                                   :: i, j, k, link, nenc
-         type(rmvs_pl)                                  :: cb_as_pl
+         integer(I4B)                                   :: i, j, k, link, nenc, ntp
+         type(rmvs_pl)                                  :: cb_as_pl, tmp
          logical, dimension(:), allocatable             :: copyflag
    
          allocate(self%tpenc(self%nbody))
@@ -239,6 +240,7 @@ contains
 
             ! Save the original central body object so that it can be passed down as needed through the planetocentric structures
             call cb_as_pl%setup(1)
+            call tmp%setup(1)
             cb_as_pl%name(1) = 0
             cb_as_pl%Gmass(1)  = cb%Gmass
             cb_as_pl%mass(1)   = cb%mass
@@ -297,6 +299,7 @@ contains
                      ! Slot the central body into the encounter planet's position of the planet list
                      copyflag(:) = .false.
                      copyflag(i) = .true.
+                     call plenc(i, k)%spill(tmp, copyflag)
                      call plenc(i, k)%fill(cb_as_pl, copyflag)
                   end do
                end if
@@ -316,13 +319,18 @@ contains
          class(rmvs_cb),                 intent(inout)  :: cb      !!  RMVS central body object
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
          ! Internals
-         integer(I4B) :: i, j
+         integer(I4B) :: i, j, ntp
+         logical, dimension(:), allocatable :: pencmask
 
-         associate(pl => self, nenc => self%nenc, npl => self%nbody, &
+         associate(pl => self, nenc => self%nenc, npl => self%nbody, name => tp%name, &
             tpenc => self%tpenc, plenc => self%plenc, cbenc => self%cbenc, encmask => self%encmask)
+            ntp = size(pl%encmask,1)
 
             do i = 1, npl
                if (nenc(i) == 0) cycle
+               if (allocated(pencmask)) deallocate(pencmask)
+               allocate(pencmask(size(encmask,1)))
+               pencmask(:) = encmask(:,i)
                do j = 1, nenc(i)
                   ! Copy the results of the integration back over
                   tpenc(i)%xh(:, j) = tpenc(i)%xh(:, j) + pl%xin(:, i, NTPHENC) 
@@ -333,11 +341,11 @@ contains
                ! Replace the old test particle with the new one
                call tp%fill(tpenc(i), encmask(:,i))
             end do
-
          end associate
          deallocate(self%tpenc)
          deallocate(self%cbenc)
          deallocate(self%plenc)
+         deallocate(self%encmask)
    
          return
 

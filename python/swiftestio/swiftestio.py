@@ -504,12 +504,12 @@ def swiftest2xr(config):
 
 if __name__ == '__main__':
 
-    workingdir = '/Users/daminton/work/Projects/Swiftest/swiftest_whm_test/solar_system_plus_3tp/'
-    inparfile = workingdir + 'param.xv.in'
+    workingdir = '/Users/daminton/git/swiftest/examples/rmvs_swifter_comparison/mars_ejecta/'
+    inparfile = workingdir + 'param.swifter.in'
     param = read_swifter_param(inparfile)
     param['BIN_OUT'] = workingdir + param['BIN_OUT']
 
-    config_file_name = workingdir + 'config.xv.in'
+    config_file_name = workingdir + 'config.swiftest.in'
     config = read_swiftest_config(config_file_name)
     config['BIN_OUT'] = workingdir + config['BIN_OUT']
 

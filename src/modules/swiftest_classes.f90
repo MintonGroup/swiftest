@@ -144,22 +144,22 @@ module swiftest_classes
       procedure(abstract_set_mu),  public, deferred :: set_mu
       procedure(abstract_gr_getacch), public, deferred :: gr_getacch
       ! These are concrete because the implementation is the same for all types of particles
-      procedure, public :: el2xv       => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
-      procedure, public :: gr_getaccb  => gr_getaccb_ns_body  !! Add relativistic correction acceleration for non-symplectic integrators
-      procedure, public :: initialize  => io_read_body_in     !! Read in body initial conditions from a file
-      procedure, public :: kickvb      => kick_vb_body        !! Kicks the barycentric velocities
-      procedure, public :: kickvh      => kick_vh_body        !! Kicks the heliocentric velocities
-      procedure, public :: obl_acc     => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure, public :: read_frame  => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure, public :: set_ir3     => setup_set_ir3h      !! Sets the inverse heliocentric radius term (1/rh**3)
-      procedure, public :: setup       => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
-      procedure, public :: write_frame => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure, public :: xv2el       => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
+      procedure, public :: gr_getaccb     => gr_getaccb_ns_body  !! Add relativistic correction acceleration for non-symplectic integrators
+      procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
+      procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public :: write_frame    => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public :: kickvb         => kick_vb_body        !! Kicks the barycentric velocities
+      procedure, public :: kickvh         => kick_vh_body        !! Kicks the heliocentric velocities
+      procedure, public :: obl_acc        => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure, public :: el2xv          => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
+      procedure, public :: xv2el          => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
+      procedure, public :: set_ir3        => setup_set_ir3h      !! Sets the inverse heliocentric radius term (1/rh**3)
+      procedure, public :: setup          => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure, public :: user_getacch   => user_getacch_body   !! Base user-defined acceleration subroutine
+      procedure, public :: copy           => util_copy_body      !! Copies elements of one object to another.
+      procedure, public :: fill           => util_fill_body      !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: spill          => util_spill_body     !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure, public :: reverse_status => util_reverse_status !! Reverses the active/inactive status of all particles in a structure
-      procedure, public :: copy        => util_copy_body       !! Copies elements of one object to another.
-      procedure, public :: spill       => util_spill_body       !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure, public :: fill        => util_fill_body        !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: user_getacch => user_getacch_body    !! Base user-defined acceleration subroutine
    end type swiftest_body
       
    !********************************************************************************************************************************
@@ -194,9 +194,11 @@ module swiftest_classes
       procedure, public :: setup      => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_mu     => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
       procedure, public :: set_rhill  => setup_set_rhill
+      procedure, public :: h2b        => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
+      procedure, public :: b2h        => util_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure, public :: copy       => util_copy_pl         !! Copies elements of one object to another.
-      procedure, public :: spill      => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure, public :: fill       => util_fill_pl         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: spill      => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_pl
 
    !********************************************************************************************************************************
@@ -220,11 +222,12 @@ module swiftest_classes
       procedure, public :: discard_pl   => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
       procedure, public :: setup        => setup_tp             !! A base constructor that sets the number of bodies and 
       procedure, public :: set_mu       => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: h2b          => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
+      procedure, public :: b2h          => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure, public :: copy         => util_copy_tp       !! Copies elements of one object to another.
-      procedure, public :: spill        => util_spill_tp   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure, public :: fill         => util_fill_tp     !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: spill        => util_spill_tp   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_tp
-
 
    !********************************************************************************************************************************
    ! swiftest_nbody_system class definitions and methods
@@ -707,6 +710,30 @@ module swiftest_classes
          class(swiftest_configuration), intent(in)    :: config !! Input collection of 
          real(DP),                      intent(in)    :: t      !! Current time
       end subroutine user_getacch_body
+
+      module subroutine util_coord_b2h_pl(self, cb)
+         implicit none
+         class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_coord_b2h_pl
+
+      module subroutine util_coord_b2h_tp(self, cb)
+         implicit none
+         class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
+         class(swiftest_cb),           intent(in)    :: cb   !! Swiftest central body object
+      end subroutine util_coord_b2h_tp
+
+      module subroutine util_coord_h2b_pl(self, cb)
+         implicit none
+         class(swiftest_pl),     intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb),     intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_coord_h2b_pl
+
+      module subroutine util_coord_h2b_tp(self, cb)
+         implicit none
+         class(swiftest_tp),     intent(inout) :: self !! Swiftest test particle object
+         class(swiftest_cb),     intent(in)    :: cb   !! Swiftest central body object
+      end subroutine util_coord_h2b_tp
 
       module subroutine util_reverse_status(self)
          implicit none

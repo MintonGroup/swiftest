@@ -1,4 +1,4 @@
-submodule(swiftest_classes) gr_implementations
+submodule(swiftest_classes) s_gr
 contains
 
    module procedure gr_getaccb_ns_body
@@ -42,4 +42,4 @@ contains
 
    end procedure gr_getaccb_ns_body
 
-end submodule gr_implementations
+end submodule s_gr

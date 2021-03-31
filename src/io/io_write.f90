@@ -1,4 +1,4 @@
-submodule (swiftest_classes) io_write_implementations
+submodule (swiftest_classes) s_io_write
    !! author: David A. Minton
    !! 
    !! This submodule contains implementations of the following procedures:
@@ -525,4 +525,4 @@ contains
    end procedure io_write_discard
 
 
-end submodule io_write_implementations
+end submodule s_io_write

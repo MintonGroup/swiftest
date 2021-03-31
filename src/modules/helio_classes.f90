@@ -24,9 +24,7 @@ module helio_classes
       real(DP),     dimension(:,:), allocatable :: ahi         !!  heliocentric acceleration due to interactions
    contains
       procedure, public :: vh2vb       => helio_coord_vh2vb_pl  !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
-      procedure, public :: h2b         => helio_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure, public :: vb2vh       => helio_coord_vb2vh_pl  !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
-      procedure, public :: b2h         => helio_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure, public :: drift       => helio_drift_pl        !! Method for Danby drift in Democratic Heliocentric coordinates 
       procedure, public :: lindrift    => helio_drift_linear_pl !! Method for linear drift of massive bodies due to barycentric momentum of Sun
       procedure, public :: getacch     => helio_getacch_pl      !! Compute heliocentric accelerations of massive bodies
@@ -46,9 +44,7 @@ module helio_classes
       real(DP),     dimension(NDIM) :: ptend   !! negative barycentric velocity of the Sun at beginning of time step
    contains
       procedure, public :: vh2vb       => helio_coord_vh2vb_tp        !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure, public :: h2b         => helio_coord_h2b_tp          !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
       procedure, public :: vb2vh       => helio_coord_vb2vh_tp        !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
-      procedure, public :: b2h         => helio_coord_b2h_tp          !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure, public :: drift       => helio_drift_tp        !! Method for Danby drift in Democratic Heliocentric coordinates 
       procedure, public :: lindrift    => helio_drift_linear_tp !! Method for linear drift of massive bodies due to barycentric momentum of Sun
       procedure, public :: getacch     => helio_getacch_tp      !! Compute heliocentric accelerations of massive bodies
@@ -66,34 +62,6 @@ module helio_classes
    end type helio_nbody_system
 
    interface
-
-      module subroutine helio_coord_b2h_pl(self, cb)
-         use swiftest_classes, only : swiftest_cb
-         implicit none
-         class(helio_pl),              intent(inout) :: self !! Helio massive body object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
-      end subroutine helio_coord_b2h_pl
-
-      module subroutine helio_coord_b2h_tp(self, cb)
-         use swiftest_classes, only : swiftest_cb
-         implicit none
-         class(helio_tp),              intent(inout) :: self !! Helio massive body object
-         class(swiftest_cb),           intent(in)    :: cb   !! Swiftest central body object
-      end subroutine helio_coord_b2h_tp
-
-      module subroutine helio_coord_h2b_pl(self, cb)
-         use swiftest_classes, only : swiftest_cb
-         implicit none
-         class(helio_pl),        intent(inout) :: self !! Helio massive body object
-         class(swiftest_cb),     intent(inout) :: cb   !! Swiftest central body object
-      end subroutine helio_coord_h2b_pl
-
-      module subroutine helio_coord_h2b_tp(self, cb)
-         use swiftest_classes, only : swiftest_cb
-         implicit none
-         class(helio_tp),        intent(inout) :: self !! Helio massive body object
-         class(swiftest_cb),     intent(in)    :: cb   !! Swiftest central body object
-      end subroutine helio_coord_h2b_tp
 
       module subroutine helio_coord_vb2vh_pl(self, cb)
          use swiftest_classes, only : swiftest_cb

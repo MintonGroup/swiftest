@@ -1,4 +1,4 @@
-submodule (swiftest_classes) discard_implementations
+submodule (swiftest_classes) s_discard
 contains
    module procedure discard_system
       !! author: David A. Minton
@@ -18,11 +18,11 @@ contains
          associate(cb => self%cb, pl => self%pl, tp => self%tp, t => config%t, dt => config%dt, &
                    msys => self%msys, discards => self%tp_discards, &
                    ntp => self%tp%nbody)
-            !if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
-            !   (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
-            !      call pl%h2b(cb) 
-            !      if (ntp > 0) call tp%h2b(cb) 
-            !end if
+            if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
+               (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
+                  call pl%h2b(cb) 
+                  if (ntp > 0) call tp%h2b(cb) 
+            end if
             if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or.  (config%rmaxu >= 0.0_DP)) then
                if (ntp > 0) call tp%discard_sun(cb, config, t, msys)
             end if
@@ -211,4 +211,4 @@ contains
    
       end procedure discard_pl_close
 
-end submodule discard_implementations
+end submodule s_discard

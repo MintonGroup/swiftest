@@ -1,4 +1,4 @@
-submodule (swiftest_classes) step_implementations
+submodule (swiftest_classes) s_step
 
 contains
    module procedure step_system
@@ -51,4 +51,4 @@ contains
       return
    end procedure step_system
 
-end submodule step_implementations
+end submodule s_step

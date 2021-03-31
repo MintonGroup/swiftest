@@ -14,24 +14,24 @@ contains
    logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
    ! Internals
    integer(I4B)                                         :: i
-   associate(keeps => self, npl => self%nbody)
+   associate(keeps => self)
       select type(discards)
       class is (whm_pl)
-         discards%eta(:) = pack(keeps%eta(1:npl),       lspill_list(1:npl))
-         discards%muj(:) = pack(keeps%muj(1:npl),       lspill_list(1:npl))
-         discards%ir3j(:) = pack(keeps%ir3j(1:npl),       lspill_list(1:npl))
+         discards%eta(:) = pack(keeps%eta(:),       lspill_list(:))
+         discards%muj(:) = pack(keeps%muj(:),       lspill_list(:))
+         discards%ir3j(:) = pack(keeps%ir3j(:),       lspill_list(:))
          do i = 1, NDIM
-            discards%xj(i, :) = pack(keeps%xj(i, 1:npl),       lspill_list(1:npl))
-            discards%vj(i, :) = pack(keeps%vj(i, 1:npl),       lspill_list(1:npl))
+            discards%xj(i, :) = pack(keeps%xj(i, :),       lspill_list(:))
+            discards%vj(i, :) = pack(keeps%vj(i, :),       lspill_list(:))
          end do
 
-         if (count(.not.lspill_list(1:npl))  > 0) then 
-            keeps%eta(:)    = pack(keeps%eta(1:npl), .not. lspill_list(1:npl))
-            keeps%muj(:)    = pack(keeps%muj(1:npl), .not. lspill_list(1:npl))
-            keeps%ir3j(:)    = pack(keeps%ir3j(1:npl), .not. lspill_list(1:npl))
+         if (count(.not.lspill_list(:))  > 0) then 
+            keeps%eta(:)    = pack(keeps%eta(:), .not. lspill_list(:))
+            keeps%muj(:)    = pack(keeps%muj(:), .not. lspill_list(:))
+            keeps%ir3j(:)    = pack(keeps%ir3j(:), .not. lspill_list(:))
             do i = 1, NDIM
-               keeps%xj(i, :)    = pack(keeps%xj(i, 1:npl), .not. lspill_list(1:npl))
-               keeps%vj(i, :)    = pack(keeps%vj(i, 1:npl), .not. lspill_list(1:npl))
+               keeps%xj(i, :)    = pack(keeps%xj(i, :), .not. lspill_list(:))
+               keeps%vj(i, :)    = pack(keeps%vj(i, :), .not. lspill_list(:))
             end do
          end if
          call util_spill_pl(keeps, discards, lspill_list)
@@ -63,12 +63,21 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (whm_pl)
+            keeps%eta(:)  = unpack(keeps%eta(:),  .not.lfill_list(:), keeps%eta(:))
             keeps%eta(:)  = unpack(inserts%eta(:),  lfill_list(:), keeps%eta(:))
+            
+            keeps%muj(:)  = unpack(keeps%muj(:),  .not.lfill_list(:), keeps%muj(:))
             keeps%muj(:)  = unpack(inserts%muj(:),  lfill_list(:), keeps%muj(:))
+            
+            keeps%ir3j(:) = unpack(keeps%ir3j(:), .not.lfill_list(:), keeps%ir3j(:))
             keeps%ir3j(:) = unpack(inserts%ir3j(:), lfill_list(:), keeps%ir3j(:))
+            
    
             do i = 1, NDIM
+               keeps%xj(i, :) = unpack(keeps%xj(i, :), .not.lfill_list(:), keeps%xj(i, :))
                keeps%xj(i, :) = unpack(inserts%xj(i, :), lfill_list(:), keeps%xj(i, :))
+            
+               keeps%vj(i, :) = unpack(keeps%vj(i, :), .not.lfill_list(:), keeps%vj(i, :))
                keeps%vj(i, :) = unpack(inserts%vj(i, :), lfill_list(:), keeps%vj(i, :))
             end do
             call util_fill_pl(keeps, inserts, lfill_list)

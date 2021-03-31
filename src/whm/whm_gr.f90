@@ -1,4 +1,4 @@
-submodule(whm_classes) whm_gr_implementations
+submodule(whm_classes) s_whm_gr
 contains
    module subroutine whm_gr_getacch_pl(self, cb, config)
       !! author: David A. Minton
@@ -353,4 +353,4 @@ contains
       return
    end subroutine p4_func  
 
-end submodule whm_gr_implementations
+end submodule s_whm_gr
