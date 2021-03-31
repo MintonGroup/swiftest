@@ -35,8 +35,7 @@ contains
 
       associate(n => self%nbody, vb => self%vb, ah => self%ah, status => self%status)
          if (n ==0) return
-         !do concurrent(i = 1:n, status(i) == ACTIVE) 
-         do i = 1, n
+         do concurrent(i = 1:n, status(i) == ACTIVE) 
             vb(:, i) = vb(:, i) + ah(:, i) * dt
          end do
       end associate

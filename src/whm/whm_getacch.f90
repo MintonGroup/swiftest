@@ -88,9 +88,10 @@ contains
       ! Arguments
       real(DP), dimension(:), intent(in)           :: mu
       real(DP), dimension(:,:), intent(in)         :: xh
+      ! Result
+      real(DP), dimension(NDIM)                    :: ah0
       ! Internals
       real(DP)                                     :: fac, r2, ir3h
-      real(DP), dimension(NDIM)                    :: ah0
       integer(I4B)                                 :: i, n
 
       n = size(mu)
@@ -230,19 +231,16 @@ contains
                   xht => tp%xh, aht => tp%ah)
    
          if (ntp == 0) return
-         acc(:) = 0.0_DP
          do i = 1, ntp
+            acc(:) = 0.0_DP
             do j = 1, npl
-               dx(:) = tp%xh(:, i) - xh(:, j)
+               dx(:) = xht(:, i) - xh(:, j)
                rji2 = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = pl%Gmass(j) * irij3
+               fac = Gmpl(j) * irij3
                acc(:) = acc(:) - fac * dx(:)
-               !tp%ah(:, i) = tp%ah(:, i) - fac * dx(:)
             end do
-         end do
-         do i = 1, NDIM
-            tp%ah(i, 1:ntp) = tp%ah(i, 1:ntp) + acc(i)
+            aht(:, i) = aht(:, i) + acc(:)
          end do
       end associate
       return

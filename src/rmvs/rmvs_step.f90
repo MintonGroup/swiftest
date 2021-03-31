@@ -200,15 +200,15 @@ contains
                         time = config%t + j * dti
                         call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .false., index, nenc, i, config) 
                      end do
+                     where(pl%tpenc(i)%status(:) == ACTIVE) pl%tpenc(i)%status(:) = INACTIVE
                   end associate
                end if
             end do
             call pl%end_planetocentric(cb,tp)
 
          end associate
-   
+
          return
-   
       end subroutine rmvs_step_in_pl
 
       module subroutine rmvs_step_make_planetocentric(self, cb, tp, config)
@@ -296,10 +296,12 @@ contains
                      end do
                      cb_as_pl%xh(:, 1)  = cb%xin(:) - pl%xin(:, i, k)
                      cb_as_pl%vh(:, 1)  = cb%vin(:) - pl%vin(:, i, k)
-                     ! Slot the central body into the encounter planet's position of the planet list
+                     ! Pull the encountering body out of the massive body list
                      copyflag(:) = .false.
                      copyflag(i) = .true.
                      call plenc(i, k)%spill(tmp, copyflag)
+                     copyflag(:) = .false.
+                     copyflag(1) = .true. ! Put the central body as planet 1 like in the original Swifter version
                      call plenc(i, k)%fill(cb_as_pl, copyflag)
                   end do
                end if
@@ -319,18 +321,13 @@ contains
          class(rmvs_cb),                 intent(inout)  :: cb      !!  RMVS central body object
          class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
          ! Internals
-         integer(I4B) :: i, j, ntp
-         logical, dimension(:), allocatable :: pencmask
+         integer(I4B) :: i, j
 
          associate(pl => self, nenc => self%nenc, npl => self%nbody, name => tp%name, &
             tpenc => self%tpenc, plenc => self%plenc, cbenc => self%cbenc, encmask => self%encmask)
-            ntp = size(pl%encmask,1)
 
             do i = 1, npl
                if (nenc(i) == 0) cycle
-               if (allocated(pencmask)) deallocate(pencmask)
-               allocate(pencmask(size(encmask,1)))
-               pencmask(:) = encmask(:,i)
                do j = 1, nenc(i)
                   ! Copy the results of the integration back over
                   tpenc(i)%xh(:, j) = tpenc(i)%xh(:, j) + pl%xin(:, i, NTPHENC) 
