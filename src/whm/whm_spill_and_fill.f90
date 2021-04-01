@@ -1,4 +1,5 @@
 submodule(whm_classes) s_whm_spill_and_fill
+   use swiftest
 contains
    module subroutine whm_spill_pl(self, discards, lspill_list)
    !! author: David A. Minton
@@ -6,7 +7,6 @@ contains
    !! Move spilled (discarded) WHM test particle structure from active list to discard list
    !! 
    !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
-   use swiftest
    implicit none
    ! Arguments
    class(whm_pl),                         intent(inout) :: self        !! WHM massive body object
@@ -51,7 +51,6 @@ contains
       !! This is the inverse of a fill operation.
       !! 
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),                      intent(inout) :: self       !! WHM massive body object

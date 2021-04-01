@@ -1,11 +1,11 @@
 submodule (swiftest_classes) s_orbel_xv2el
+   use swiftest
 contains
 
    module procedure orbel_xv2el_vec
       !! author: David A. Minton
       !!
       !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
-      use swiftest
       implicit none
       integer(I4B) :: i
     
@@ -33,7 +33,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2el.f90
       !! Adapted from Martin Duncan's Swift routine orbel_xv2el.f
-      use swiftest
       implicit none
       real(DP), intent(in)  :: mu
       real(DP), dimension(:), intent(in)  :: x, v

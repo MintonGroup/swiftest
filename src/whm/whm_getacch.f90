@@ -1,44 +1,42 @@
 submodule(whm_classes) s_whm_getacch
+   use swiftest
 contains
    module subroutine whm_getacch_pl(self, cb, config, t)
-   !! author: David A. Minton
-   !!
-   !! Compute heliocentric accelerations of planets
-   !!
-   !! Adapted from Hal Levison's Swift routine getacch.f
-   !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
-   use swiftest
-   implicit none
-   ! Arguments
-   class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
-   class(swiftest_cb),            intent(inout) :: cb  !! Swiftest central body particle data structure
-   class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
-   real(DP),                      intent(in)    :: t        !! Current time
-   ! Internals
-   integer(I4B)                                 :: i
-   real(DP), dimension(:), allocatable, save    :: fac
-   real(DP), dimension(NDIM)                    :: ah0
-   real(DP)                                     :: r2
+      !! author: David A. Minton
+      !!
+      !! Compute heliocentric accelerations of planets
+      !!
+      !! Adapted from Hal Levison's Swift routine getacch.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
+      implicit none
+      ! Arguments
+      class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
+      class(swiftest_cb),            intent(inout) :: cb  !! Swiftest central body particle data structure
+      class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
+      real(DP),                      intent(in)    :: t        !! Current time
+      ! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(NDIM)                    :: ah0
 
-   associate(pl => self, npl => self%nbody, j2rp2 => cb%j2rp2, &
-       ah => self%ah, xh => self%xh, xj => self%xj, vh => self%vh, vj => self%vj)
-      if (npl == 0) return
-      call pl%set_ir3()
+      associate(pl => self, npl => self%nbody, j2rp2 => cb%j2rp2, &
+         ah => self%ah, xh => self%xh, xj => self%xj, vh => self%vh, vj => self%vj)
+         if (npl == 0) return
+         call pl%set_ir3()
 
-      ah0 = whm_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl))
-      do i = 1, NDIM
-         pl%ah(i, 1:npl) = ah0(i)
-      end do
-      call whm_getacch_ah1(cb, pl) 
-      call whm_getacch_ah2(cb, pl) 
-      call whm_getacch_ah3(pl)
+         ah0 = whm_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl))
+         do i = 1, NDIM
+            pl%ah(i, 1:npl) = ah0(i)
+         end do
+         call whm_getacch_ah1(cb, pl) 
+         call whm_getacch_ah2(cb, pl) 
+         call whm_getacch_ah3(pl)
 
-      if (config%loblatecb) call pl%obl_acc(cb)
-      if (config%lextra_force) call pl%user_getacch(cb, config, t)
-      if (config%lgr) call pl%gr_getacch(cb, config) 
+         if (config%loblatecb) call pl%obl_acc(cb)
+         if (config%lextra_force) call pl%user_getacch(cb, config, t)
+         if (config%lgr) call pl%gr_getacch(cb, config) 
 
-   end associate
-   return
+      end associate
+      return
    end subroutine whm_getacch_pl
 
    module subroutine whm_getacch_tp(self, cb, pl, config, t, xh)
@@ -48,7 +46,6 @@ contains
       !!
       !! Adapted from Hal Levison's Swift routine getacch_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
-      use swiftest
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
@@ -59,9 +56,7 @@ contains
       real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
       ! Internals
       integer(I4B)                                 :: i
-      real(DP), dimension(:), allocatable, save    :: fac
       real(DP), dimension(NDIM)                    :: ah0
-      real(DP)                                     :: r2
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, j2rp2 => cb%j2rp2, aht => self%ah, &
                ir3h => pl%ir3h, GMpl => pl%Gmass)
@@ -83,7 +78,6 @@ contains
       !! author: David A. Minton
       !!
       !! Compute zeroth term heliocentric accelerations of planets 
-      use swiftest
       implicit none
       ! Arguments
       real(DP), dimension(:), intent(in)           :: mu
@@ -114,7 +108,6 @@ contains
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah1.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
-      use swiftest
       implicit none
       ! Arguments
       class(swiftest_cb), intent(in)  :: cb !! Swiftest central body object
@@ -142,7 +135,6 @@ contains
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah2.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
-      use swiftest
       implicit none
       ! Arguments
       class(swiftest_cb), intent(in)     :: cb !! Swiftest central body object
@@ -175,7 +167,6 @@ contains
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
-      use swiftest
       implicit none
 
       class(whm_pl),           intent(inout)       :: pl
@@ -215,7 +206,6 @@ contains
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
-      use swiftest
       implicit none
       ! Arguments
       class(swiftest_cb), intent(in)               :: cb  !! Swiftest central body object

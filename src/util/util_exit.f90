@@ -1,4 +1,5 @@
 submodule (util) s_util_exit
+   use swiftest
 contains
    module procedure util_exit
    !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
    !!
    !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90
    !! Adapted from Hal Levison's Swift routine util_exit.f
-   use swiftest
    character(*), parameter :: BAR = '("------------------------------------------------")'
 
    select case(code)

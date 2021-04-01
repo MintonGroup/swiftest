@@ -1,5 +1,5 @@
 submodule (swiftest_classes) s_io
-use swiftest
+   use swiftest
 contains
    module subroutine io_config_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott

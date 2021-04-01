@@ -1,4 +1,5 @@
 submodule (util) s_util_peri
+   use swiftest
 contains
    module procedure util_peri
    !! author: David A. Minton
@@ -9,7 +10,6 @@ contains
    !!
    !! Adapted from David E. Kaufmann's Swifter routine: util_peri.f90
    !! Adapted from Hal Levison's Swift routine util_peri.f
-   use swiftest
    implicit none
    
    integer(I4B) :: i

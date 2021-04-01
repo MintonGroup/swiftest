@@ -1,11 +1,10 @@
 submodule (swiftest_classes) s_util_reverse_status
-
+   use swiftest
 contains
    module procedure util_reverse_status
       !! author: David A. Minton
       !!
       !! Reverses the active/inactive status of all particles in a structure
-      use swiftest
       implicit none
 
       where (self%status(:) == ACTIVE)

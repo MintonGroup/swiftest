@@ -1,4 +1,5 @@
 submodule (swiftest_classes) s_orbel_xv2aqt
+   use swiftest
 contains
    module procedure orbel_xv2aqt ! (mu, px, py, pz, vx, vy, vz, a, q, capm, tperi
       !! author: David A. Minton
@@ -9,7 +10,6 @@ contains
       !!      tperi < 0 means nearest pericenter passage is in the past
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2aqt.f90
-      use swiftest
       implicit none
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm

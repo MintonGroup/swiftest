@@ -1,10 +1,11 @@
 submodule(swiftest_operators) operator_cross_implementation
+   use swiftest
    !! author: David A. Minton
    !!
    !! Contains implementations for the .cross. operator for all defined integer and real types
    !! Single vector implementations: C(1:3)   = A(1:3)   .cross. B(1:3) 
    !! Vector list implementations:   C(1:3, :) = A(1:3, :) .cross. B(1:3, :)
-   contains
+contains
 
    module procedure operator_cross_sp
       implicit none

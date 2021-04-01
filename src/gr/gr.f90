@@ -1,6 +1,6 @@
 submodule(swiftest_classes) s_gr
+   use swiftest
 contains
-
    module procedure gr_getaccb_ns_body
       !! author: David A. Minton
       !!
@@ -8,7 +8,6 @@ contains
       !!    Based on Quinn, Tremaine, & Duncan 1998
       !!
       !! Adapted from David A. Minton's Swifter routine routine gr_getaccb_ns.f90
-      use swiftest
       implicit none
 
       real(DP), dimension(NDIM) :: xh, vh

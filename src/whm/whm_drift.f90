@@ -1,4 +1,5 @@
 submodule(whm_classes) whm_drift
+   use swiftest
 contains
    module subroutine whm_drift_pl(self, cb, config, dt)
       !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
       !!
       !! Adapted from Hal Levison's Swift routine drift.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift.f90
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
@@ -64,7 +64,6 @@ contains
       !! Adapted from Hal Levison's Swift routine drift_tp.f 
       !! Includes 
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
-      use swiftest
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure

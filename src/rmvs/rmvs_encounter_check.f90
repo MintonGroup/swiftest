@@ -1,4 +1,5 @@
 submodule (rmvs_classes) s_rmvs_chk
+   use swiftest
 contains
    module function rmvs_encounter_check_tp(self, cb, pl, dt, rts) result(lencounter)
       !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: rmvs_chk.f90
       !! Adapted from Hal Levison's Swift routine rmvs3_chk.f
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_tp),            intent(inout) :: self        !! RMVS test particle object  
@@ -79,7 +79,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: rmvs_chk_ind.f90
       !! Adapted from Hal Levison's Swift routine rmvs_chk_ind.f
-      use swiftest
       implicit none
       ! Arguments
       real(DP), intent(in)                     :: dt, r2crit

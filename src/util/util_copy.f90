@@ -1,12 +1,11 @@
 submodule (swiftest_classes) s_util_copy
-
+   use swiftest
 contains
    module procedure util_copy_cb
       !! author: David A. Minton
       !!
       !! Copies elements of one Swiftest central body object to another. The mask is ignored for this case
       !! 
-      use swiftest
       implicit none
       select type(src)
       class is(swiftest_cb)
@@ -35,7 +34,6 @@ contains
       !!
       !! Copies elements of one Swiftest generic body object to another. The elements are determined by a mask.
       !! 
-      use swiftest
       implicit none
       
       select type(src)
@@ -83,8 +81,7 @@ contains
       !!
       !! Copies elements of one Swiftest massive body object to another. The elements are determined by a mask.
       !! 
-      use swiftest
-
+      implicit none
       select type(src)
       class is(swiftest_pl)
          where (mask(:))
@@ -114,7 +111,6 @@ contains
        !! author: David A. Minton
       !!
       !! Copies elements of one swiftest test particle object to another. The elements are determined by a mask.
-      use swiftest
       implicit none
 
       select type(src)
@@ -139,7 +135,6 @@ contains
       !! Copies elements of one Swiftest nbody system object to another. The elements are determined by a mask. 
       !! In this case the mask contains the pl elements followed by the tp elements.
       !! 
-      use swiftest
       implicit none
 
       associate(pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)

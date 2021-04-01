@@ -1,4 +1,5 @@
 submodule (whm_classes) s_whm_coord
+   use swiftest
 contains
    module subroutine whm_coord_h2j_pl(self, cb)
       !! author: David A. Minton
@@ -10,7 +11,6 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine coord_h2j.f90 
       !!
       !! Adapted from Hal Levison's Swift routine coord_h2j.f 
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),         intent(inout) :: self   !! WHM massive body particle data structure
@@ -50,7 +50,6 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine coord_j2h.f90 
       !!
       !! Adapted from Hal Levison's Swift routine coord_j2h.f 
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
@@ -87,7 +86,6 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine coord_vh2vj.f90 
       !!
       !! Adapted from Hal Levison's Swift routine coord_vh2vj.f 
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure

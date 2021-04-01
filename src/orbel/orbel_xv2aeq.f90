@@ -1,4 +1,5 @@
 submodule (swiftest_classes) s_orbel_xv2aeq
+   use swiftest
 contains
    module procedure orbel_xv2aeq 
       !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2aeq.f90
       !! Adapted from Luke Dones' Swift routine orbel_xv2aeq.f
-      use swiftest
       implicit none
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, energy, fac

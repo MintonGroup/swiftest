@@ -1,4 +1,5 @@
 submodule(rmvs_classes) s_rmvs_peri
+   use swiftest
 contains   
    module subroutine rmvs_peri_tp(self, cb, pl, t, dt, lfirst, index, nenc, ipleP, config)
       !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine Adapted from Hal Levison's Swift routine util_peri.f
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_peri.f90
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle object  

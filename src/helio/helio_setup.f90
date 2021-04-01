@@ -1,4 +1,5 @@
 submodule(helio_classes) s_helio_setup
+   use swiftest
 contains
    module procedure helio_setup_pl
       !! author: David A. Minton & Carlisle A. Wishard
@@ -6,7 +7,6 @@ contains
       !! Allocate Helio planet structure
       !!
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine helio_setup.f90
-      use swiftest
       implicit none
 
       !> Call allocation method for great-grandparent class (we don't need Jacobi variables from WHM/RMVS)
@@ -24,7 +24,6 @@ contains
       !! Allocate Helio test particle structure
       !!
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine helio_setup.f90
-      use swiftest
       implicit none
 
       !> Call allocation method for great-grandparent class 

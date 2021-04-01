@@ -1,12 +1,11 @@
 submodule (swiftest_classes) s_util_spill_and_fill
-!! This submodule contains the methods spill, spill_body, spill_pl, and spill_tp for basic swiftest particles
+   use swiftest
 contains
    module subroutine util_spill_body(self, discards, lspill_list)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) Swiftest generic particle structure from active list to discard list
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
-      use swiftest    
       implicit none
       ! Arguments
       class(swiftest_body), intent(inout) :: self       !! Swiftest generic body object
@@ -69,7 +68,6 @@ contains
       !!
       !! Insert new Swiftest generic particle structure into an old one. 
       !! This is the inverse of a fill operation.
-      use swiftest    
       implicit none
       ! Arguments
       class(swiftest_body), intent(inout) :: self       !! Swiftest generic body object
@@ -145,7 +143,6 @@ contains
       !!
       !! Move spilled (discarded) Swiftest massive body structure from active list to discard list
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
-      use swiftest
       implicit none
 
       integer(I4B) :: i
@@ -194,7 +191,6 @@ contains
       !!
       !! Insert new Swiftest massive body structure into an old one. 
       !! This is the inverse of a fill operation.
-      use swiftest
       implicit none
 
       integer(I4B) :: i
@@ -247,7 +243,6 @@ contains
       !!
       !! Move spilled (discarded) Swiftest test particle structure from active list to discard list
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
-      use swiftest
       implicit none
 
       associate(keeps => self, ntp => self%nbody)
@@ -270,34 +265,33 @@ contains
       return
       end procedure util_spill_tp
 
-      module procedure util_fill_tp
-         !! author: David A. Minton
-         !!
-         !! Insert new Swiftest test particle structure into an old one. 
-         !! This is the inverse of a fill operation.
-         use swiftest
-         implicit none
-   
-         associate(keeps => self)
-         select type(inserts)
-            class is (swiftest_tp)
-            !> Spill components specific to the test particle class
-               keeps%isperi(:) = unpack(keeps%isperi(:), .not.lfill_list(:), keeps%isperi(:))
-               keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
-            
-               keeps%peri(:)   = unpack(keeps%peri(:),   .not.lfill_list(:), keeps%peri(:))
-               keeps%peri(:)   = unpack(inserts%peri(:),   lfill_list(:), keeps%peri(:))
-            
-               keeps%atp(:)    = unpack(keeps%atp(:),    .not.lfill_list(:), keeps%atp(:))
-               keeps%atp(:)    = unpack(inserts%atp(:),    lfill_list(:), keeps%atp(:))
-            
-               call util_fill_body(keeps, inserts, lfill_list)
-            class default
-               write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'
-            end select
-         end associate
-         return
-         end procedure util_fill_tp
+   module procedure util_fill_tp
+      !! author: David A. Minton
+      !!
+      !! Insert new Swiftest test particle structure into an old one. 
+      !! This is the inverse of a fill operation.
+      implicit none
+
+      associate(keeps => self)
+      select type(inserts)
+         class is (swiftest_tp)
+         !> Spill components specific to the test particle class
+            keeps%isperi(:) = unpack(keeps%isperi(:), .not.lfill_list(:), keeps%isperi(:))
+            keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
+         
+            keeps%peri(:)   = unpack(keeps%peri(:),   .not.lfill_list(:), keeps%peri(:))
+            keeps%peri(:)   = unpack(inserts%peri(:),   lfill_list(:), keeps%peri(:))
+         
+            keeps%atp(:)    = unpack(keeps%atp(:),    .not.lfill_list(:), keeps%atp(:))
+            keeps%atp(:)    = unpack(inserts%atp(:),    lfill_list(:), keeps%atp(:))
+         
+            call util_fill_body(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'
+         end select
+      end associate
+      return
+   end procedure util_fill_tp
 
 end submodule s_util_spill_and_fill
 

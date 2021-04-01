@@ -1,4 +1,5 @@
 submodule(swiftest_classes) s_util_coord
+   use swiftest
 contains
    module subroutine util_coord_h2b_pl(self, cb)
       !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_h2b.f90 
       !! Adapted from Hal Levison's Swift routine coord_h2b.f 
-      use swiftest
       implicit none
       ! Arguments
       class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
@@ -38,10 +38,9 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_h2b_tp.f90 
       !! Adapted from Hal Levison's Swift routine coord_h2b_tp.f 
-      use swiftest
       implicit none
       ! Arguments
-      class(swiftest_tp),    intent(inout) :: self !! Swiftest test particle object
+      class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb), intent(in) :: cb   !! Swiftest central body object
 
       associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, status => self%status, &
@@ -68,7 +67,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_b2h.f90 
       !! Adapted from Hal Levison's Swift routine coord_b2h.f 
-      use swiftest
       implicit none
       ! Arguments
       class(swiftest_pl),     intent(inout) :: self !! Swiftest massive body object
@@ -94,7 +92,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_b2h_tp.f90 
       !! Adapted from Hal Levison's Swift routine coord_b2h_tp.f 
-      use swiftest
       implicit none
       ! Arguments
       class(swiftest_tp),     intent(inout) :: self !! Swiftest massive body object

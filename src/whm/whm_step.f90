@@ -1,4 +1,5 @@
 submodule(whm_classes) s_whm_step
+   use swiftest
 contains
    module subroutine whm_step_system(cb, pl, tp, config)
       !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step.f90
-      use swiftest
       implicit none
       ! Arguments
       class(whm_cb),                 intent(inout) :: cb      !! Swiftest central body object  
@@ -34,7 +34,6 @@ contains
       !! Adapted from Hal Levison's Swift routine step_kdk_pl.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_pl.f90
       !logical, save :: lfirst = .true.
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
@@ -74,7 +73,6 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_tp.f90
-      use swiftest
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure

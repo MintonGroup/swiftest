@@ -1,4 +1,5 @@
 submodule (swiftest_classes) s_obl
+   use swiftest
 contains
    module procedure obl_acc_body 
       !! author: David A. Minton
@@ -8,7 +9,6 @@ contains
 
       !! Adapted from David E. Kaufmann's Swifter routine: obl_acc.f90 and obl_acc_tp.f90
       !! Adapted from Hal Levison's Swift routine obl_acc.f and obl_acc_tp.f
-      use swiftest
       implicit none
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2

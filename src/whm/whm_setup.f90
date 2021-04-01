@@ -1,4 +1,5 @@
 submodule(whm_classes) s_whm_setup
+   use swiftest
 contains
    module subroutine whm_setup_pl(self,n)
       !! author: David A. Minton
@@ -6,7 +7,6 @@ contains
       !! Allocate WHM planet structure
       !!
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self !! Swiftest test particle object
@@ -36,7 +36,6 @@ contains
       !! Allocate WHM test particle structure
       !!
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
-      use swiftest
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
@@ -52,7 +51,6 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the Jacobi mass value eta for all massive bodies
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self    !! Swiftest system object
@@ -79,7 +77,6 @@ contains
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
-      use swiftest
       implicit none
       ! Arguments
       class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
@@ -111,7 +108,6 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
-      use swiftest
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self    !! WHM massive body object
@@ -131,12 +127,10 @@ contains
       end if
    end subroutine whm_setup_set_ir3j
 
-
    module subroutine whm_setup_set_beg_end(self, xbeg, xend, vbeg)
       !! author: David A. Minton
       !! 
       !! Sets one or more of the values of xbeg and xend
-      use swiftest
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self !! Swiftest test particle object

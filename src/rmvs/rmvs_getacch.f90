@@ -1,6 +1,6 @@
 submodule(rmvs_classes) s_rmvs_getacch
+   use swiftest
 contains  
-
    module subroutine rmvs_getacch_in_tp(self, cb, pl, config, t, xh)
       !! author: David A. Minton
       !!
@@ -8,7 +8,6 @@ contains
       !! 
       !! Performs a similar task as David E. Kaufmann's Swifter routine rmvs_getacch_tp.f90, but 
       !! uses object polymorphism, and so is not directly adapted.
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle data structure

@@ -1,5 +1,5 @@
 submodule (swiftest_classes) s_step
-
+   use swiftest
 contains
    module procedure step_system
       !! author: David A. Minton
@@ -10,7 +10,6 @@ contains
       !! called internally. Before this point, the actual types of cb, pl, and tp are ambiguous. The select type constructs remove the 
       !! ambiguity.
       !! 
-      use swiftest
       implicit none
 
       select type(system => self)

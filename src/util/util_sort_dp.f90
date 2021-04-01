@@ -1,4 +1,5 @@
 submodule (util) s_util_sort_dp
+   use swiftest
 contains
    module procedure util_sort_dp
    !! author: David A. Minton
@@ -8,7 +9,6 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine: util_sort_dp.f90
    !! Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,
    !!        Vetterling, and Flannery, 2nd ed., pp. 1169-70
-   use swiftest
    integer(I4B), parameter :: NN = 15, NSTACK = 50
    real(DP)                :: a, dum
    integer(I4B)            :: n, k, i, j, jstack, l, r

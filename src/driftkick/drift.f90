@@ -1,5 +1,5 @@
 submodule (swiftest_classes) drift_implementation
-
+   use swiftest
    !> Integration control parameters:
    real(DP), parameter :: E2MAX    = 0.36_DP      
    real(DP), parameter :: DM2MAX   = 0.16_DP
@@ -16,7 +16,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine routine drift_one.f90
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_one.f
-      use swiftest_globals
       implicit none
       ! Arguments
       real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
@@ -46,7 +45,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_dan.f90
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_dan.f
-      use swiftest
       implicit none
       integer(I4B), intent(out)                :: iflag
       real(DP), intent(in)                     :: mu, dt0
@@ -118,7 +116,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_kepmd.f90
       !! Adapted from Martin Duncan's Swift routine drift_kepmd.f
-      use swiftest
       implicit none
       real(DP), intent(in)  :: dm, es, ec
       real(DP), intent(out) :: x, s, c      
@@ -155,7 +152,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu.f90
       !! Adapted from Hal Levison's Swift routine drift_kepu.f
-      use swiftest
       implicit none
       integer(I4B), intent(out) :: iflag
       real(DP), intent(in)      :: dt, r0, mu, alpha, u
@@ -183,7 +179,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_fchk.f90
       !! Adapted from Martin Duncan's Swift routine drift_kepu_fchk.f
-      use swiftest
       implicit none
       real(DP), intent(in)  :: dt, r0, mu, alpha, u, s
       real(DP), intent(out) :: f
@@ -206,7 +201,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_guess.f90
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_kepu_guess.f
-      use swiftest
       implicit none
       real(DP), intent(in)  :: dt, r0, mu, alpha, u
       real(DP), intent(out) :: s      
@@ -245,7 +239,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_lag.f90
       !! Adapted from Hal Levison's Swift routine drift_kepu_lag.f
-      use swiftest
       implicit none
       integer(I4B), intent(out) :: iflag
       real(DP), intent(in)      :: dt, r0, mu, alpha, u
@@ -290,7 +283,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_new.f90
       !! Adapted from Hal Levison's Swift routine drift_kepu_new.f
-      use swiftest
       implicit none
       integer(I4B), intent(out) :: iflag
       real(DP), intent(in)      :: dt, r0, mu, alpha, u
@@ -332,7 +324,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_p3solve.f90
       !! Adapted from Martin Duncan's Swift routine drift_kepu_p3solve.f
-      use swiftest
       implicit none
       integer(I4B), intent(out) :: iflag
       real(DP), intent(in)      :: dt, r0, mu, alpha, u
@@ -376,7 +367,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: drift_kepu_stumpff.f90
       !! Adapted from Hal Levison's Swift routine drift_kepu_stumpff.f
-      use swiftest
       implicit none
       real(DP), intent(inout) :: x
       real(DP), intent(out)   :: c0, c1, c2, c3

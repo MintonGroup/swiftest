@@ -1,4 +1,5 @@
 submodule (util) s_util_toupper
+   use swiftest
 contains
    module procedure util_toupper
    !! author: David A. Minton
@@ -6,7 +7,6 @@ contains
    !! Convert string to uppercase
    !!
    !! Adapted from David E. Kaufmann's Swifter routine: util_toupper.f90
-   use swiftest
    integer(I4B) :: i, length, idx
 
    length = len(string)

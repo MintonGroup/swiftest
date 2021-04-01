@@ -1,4 +1,5 @@
 submodule (util) s_util_hills
+   use swiftest
 contains
    module procedure util_hills
    !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
    !!
    !! Adapted from David E. Kaufmann's Swifter routine: util_hills.f90
    !! Adapted from Hal Levison's Swift routine util_hills.f
-   use swiftest
    integer(I4B)  :: i
    real(DP)      :: msun, mp, mu, energy, ap, r, v2
 

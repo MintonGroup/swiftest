@@ -1,12 +1,11 @@
 submodule (swiftest_classes) s_setup
-
+   use swiftest
 contains
    module procedure setup_construct_system
       !! author: David A. Minton
       !!
       !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
       !! 
-      use swiftest
       implicit none
       select case(config%integrator)
       case (BS)
@@ -61,7 +60,6 @@ contains
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
       !! initializes all components with a value.
       !! Note: Timing tests indicate that (NDIM, n) is more efficient than (NDIM, n) 
-      use swiftest
       implicit none
 
       self%nbody = n
@@ -113,7 +111,6 @@ contains
       !!
       !! Constructor for base Swiftest massive body class. Allocates space for all particles and
       !! initializes all components with a value. 
-      use swiftest
       implicit none
 
       !> Call allocation method for parent class
@@ -149,7 +146,6 @@ contains
       !!
       !! Constructor for base Swiftest test particle particle class. Allocates space for 
       !! all particles and initializes all components with a value. 
-      use swiftest
       implicit none
 
       !> Call allocation method for parent class
@@ -181,7 +177,6 @@ contains
       !! author: David A. Minton
       !!
       !! Computes G * (M + m) for each massive body
-      use swiftest
       implicit none
 
       if (self%nbody > 0) self%mu(:) = cb%Gmass + self%Gmass(:)
@@ -193,7 +188,6 @@ contains
       !! author: David A. Minton
       !!
       !! Converts certain scalar values to arrays so that they can be used in elemental functions
-      use swiftest
       implicit none
 
       if (self%nbody > 0) self%mu(:) = cb%Gmass
@@ -205,7 +199,6 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the value of the Hill's radius
-      use swiftest
       implicit none
 
 
@@ -221,7 +214,6 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the inverse heliocentric radius term (1/rh**3) for all bodies in a structure
-      use swiftest
       implicit none
 
       integer(I4B) :: i

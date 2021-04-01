@@ -1,4 +1,5 @@
 submodule(helio_classes) s_helio_step
+   use swiftest
 contains
    module subroutine helio_step_system(cb, pl, tp, config)
       !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk.f
       !! Adapted from David E. Kaufmann's Swifter routine helio_step.f90
-      use swiftest
       implicit none
       ! Arguments
       class(helio_cb),               intent(inout) :: cb      !! Helio central body object  
@@ -33,7 +33,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter helio_step_pl.f90
       !! Adapted from Hal Levison's Swift routine helio_step_pl.f
-      use swiftest
       implicit none
       ! Arguments
       class(helio_pl),               intent(inout) :: self   !! WHM massive body particle data structure
@@ -73,7 +72,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine helio_step_tp.f90
       !! Adapted from Hal Levison's Swift routine helio_step_tp.f
-      use swiftest
       implicit none
       ! Arguments
       class(helio_tp),                 intent(inout) :: self !! Helio test particle data structure

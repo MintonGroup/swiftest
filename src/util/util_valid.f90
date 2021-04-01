@@ -1,4 +1,5 @@
 submodule (util) s_util_valid
+   use swiftest
 contains
    module procedure util_valid
    !! author: David A. Minton
@@ -7,7 +8,6 @@ contains
    !! Subroutine causes program to exit with error if any ids are not unique
    !!
    !! Adapted from David E. Kaufmann's Swifter routine: util_valid.f90
-   use swiftest
    integer(I4B)                  :: i
    integer(I4B), dimension(:), allocatable :: idarr
 

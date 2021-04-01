@@ -1,6 +1,6 @@
 submodule (swiftest_classes) s_eucl
+   use swiftest
 contains
-
    module procedure eucl_dist_index_plpl
       !! author: Jacob R. Elliott and David A. Minton
       !!
@@ -10,7 +10,6 @@ contains
       !!
       !!    Mélodie Angeletti, Jean-Marie Bonny, Jonas Koko. Parallel Euclidean distance matrix computation on big datasets *. 
       !!       2019. hal-0204751
-      use swiftest
       implicit none
 
       integer(I4B) :: i, j, k, kp, p
@@ -41,7 +40,6 @@ contains
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Efficient parallel loop-blocking algrorithm for evaluating the Euclidean distance matrix for planet-planet
-      use swiftest
       implicit none
       integer(I4B) :: k, i, j
       real(DP), dimension(NDIM) :: dx

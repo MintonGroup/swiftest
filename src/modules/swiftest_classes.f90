@@ -520,22 +520,6 @@ module swiftest_classes
          class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
       end subroutine io_read_initialize_system
 
-      module function io_read_line_swifter(iu, id, d1, d2, d3, d4, d5, d6, out_type, MASS, RADIUS)
-         implicit none
-         integer(I4B)                        :: io_read_line_swifter
-         integer(I4B), intent(in)            :: iu       !! Unit number associated with input binary file
-         integer(I4B), intent(out)           :: id       !! Planet or test particle identifier
-         real(DP),     intent(out)           :: d1       !! First quantity (semimajor axis (pericentric distance for a parabola) or heliocentric x )
-         real(DP),     intent(out)           :: d2       !! Second quantity (eccentricity or heliocentric y )
-         real(DP),     intent(out)           :: d3       !! Third quantity (inclination or heliocentric z )
-         real(DP),     intent(out)           :: d4       !! Fourth quantity (longitude of the ascending node or heliocentric vx)
-         real(DP),     intent(out)           :: d5       !! Fifth quantity (argument of pericenter or heliocentric vy)
-         real(DP),     intent(out)           :: d6       !! Sixth quantity (mean anomaly or heliocentric vz)
-         real(DP),     intent(out), optional :: MASS     !! Optional mass (omitted for massless test particle)
-         real(DP),     intent(out), optional :: RADIUS   !! Optional radius (omitted for massless test particle)
-         character(*), intent(in)            :: out_type !! Format of input binary file
-      end function io_read_line_swifter
-
       module subroutine io_write_discard(self, config, discards)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object

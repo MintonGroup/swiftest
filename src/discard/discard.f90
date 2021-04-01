@@ -1,23 +1,23 @@
 submodule (swiftest_classes) s_discard
+   use swiftest
 contains
-   module procedure discard_system
+   module subroutine discard_system(self, config)
       !! author: David A. Minton
       !!
       !! Check to see if particles should be discarded based on their positions relative to the massive bodies
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: discard.f90
       !! Adapted from Hal Levison's Swift routine discard.f
-      use swiftest
       implicit none
-      logical, dimension(:), allocatable :: lspill_list
+      class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+      class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters
 
-      real(DP) :: msys
       if (self%tp%nbody == 0) return 
       select type(self)
       class is (whm_nbody_system)
          associate(cb => self%cb, pl => self%pl, tp => self%tp, t => config%t, dt => config%dt, &
                    msys => self%msys, discards => self%tp_discards, &
-                   ntp => self%tp%nbody)
+                   ntp => self%tp%nbody, ldiscard => self%tp%ldiscard)
             if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
                (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
                   call pl%h2b(cb) 
@@ -27,21 +27,19 @@ contains
                if (ntp > 0) call tp%discard_sun(cb, config, t, msys)
             end if
             if (config%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(cb, pl, config, t, msys)
-            if (config%lclose .and. ntp > 0) call tp%discard_pl(cb, pl, config, t, dt)
+            if (config%lclose .and. ntp > 0) call tp%discard_pl(pl, t, dt)
           
             if (any(tp%ldiscard(1:ntp))) then
                ! Spill the discards to the spill list
-               allocate(lspill_list, source = tp%ldiscard)
-               call tp%spill(discards, lspill_list) 
+               call tp%spill(discards, ldiscard)
                call self%write_discard(config, discards)
-               deallocate(lspill_list)
             end if
          end associate  
          end select
       return
-   end procedure discard_system
+   end subroutine discard_system
 
-   module procedure discard_sun_tp 
+   module subroutine discard_sun_tp(self, cb, config, t, msys)
       !! author: David A. Minton
       !!
       !!  Check to see if test particles should be discarded based on their positions relative to the Sun
@@ -49,7 +47,14 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: discard_sun.f90
       !! Adapted from Hal Levison's Swift routine discard_sun.f
-      use swiftest
+      implicit none
+      ! Arguments
+      class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
+      class(swiftest_configuration), intent(in)    :: config !!  configuration parameters
+      real(DP),                      intent(in)    :: t      !! Current simulation tim
+      real(DP),                      intent(in)    :: msys   !! Total system mass
+      ! Internals
       integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
 
@@ -83,22 +88,28 @@ contains
       end associate
 
       return
-   
-   end procedure discard_sun_tp
+   end subroutine discard_sun_tp
 
-   module procedure discard_peri_tp
+   module subroutine discard_peri_tp(self, cb, pl, config, t, msys)
       !! author: David A. Minton
       !!
       !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: discard_peri.f90
       !! Adapted from Hal Levison's Swift routine discard_peri.f
-      use swiftest
+      implicit none
+      ! Arguments
+      class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
+      class(swiftest_pl),            intent(inout) :: pl     !! Swiftest massive body object
+      class(swiftest_configuration), intent(in)    :: config !!  configuration parameters
+      real(DP),                      intent(in)    :: t      !! Current simulation tim
+      real(DP),                      intent(in)    :: msys   !! Total system mass 
+      ! Internals
       logical, save             :: lfirst = .true.
-      integer(I4B)              :: i, j, ih, ntp, npl
+      integer(I4B)              :: i, j, ih
       real(DP)                  :: r2
       real(DP), dimension(NDIM) :: dx
-   
    
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, qmin_coord => config%qmin_coord)
          if (lfirst) then
@@ -132,19 +143,23 @@ contains
       end associate
       return
    
-   end procedure discard_peri_tp
+   end subroutine discard_peri_tp
 
-   module procedure discard_pl_tp
+   module subroutine discard_pl_tp(self, pl, t, dt)
       !! author: David A. Minton
       !!
       !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: discard_pl.f90
       !! Adapted from Hal Levison's Swift routine discard_pl.f
-      use swiftest
       implicit none
-   
-      integer(I4B)              :: i, j, isp, ntp, npl
+      ! Arguments
+      class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_pl),            intent(inout) :: pl     !! Swiftest massive body object
+      real(DP),                      intent(in)    :: t      !! Current simulation tim
+      real(DP),                      intent(in)    :: dt     !! Stepsize
+      ! Internals 
+      integer(I4B)              :: i, j, isp
       real(DP)                  :: r2min, radius
       real(DP), dimension(NDIM) :: dx, dv
    
@@ -170,9 +185,9 @@ contains
       end associate
       return
    
-   end procedure discard_pl_tp
+   end subroutine discard_pl_tp
 
-   module procedure discard_pl_close
+   module subroutine discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
       !! author: David A. Minton
       !!
       !!  Check to see if a test particle and massive body are having, or will have within the next time step, an encounter such
@@ -180,9 +195,15 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: discard_pl_close.f90
       !! Adapted from Hal Levison's Swift routine discard_pl_close.f
-      use swiftest
+      implicit none
+      ! Arguments
+      real(DP), dimension(:), intent(in)    :: dx, dv
+      real(DP), intent(in)                  :: dt, r2crit
+      integer(I4B), intent(out)             :: iflag
+      real(DP), intent(out)                 :: r2min
+      ! Internals
       real(DP) :: r2, v2, vdotr, tmin
-   
+      
       r2 = dot_product(dx(:), dx(:))
       if (r2 <= r2crit) then
          iflag = 1
@@ -208,7 +229,6 @@ contains
       end if
    
       return
-   
-      end procedure discard_pl_close
+   end subroutine discard_pl_close
 
 end submodule s_discard

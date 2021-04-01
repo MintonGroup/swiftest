@@ -1,11 +1,10 @@
 submodule (swiftest_classes) s_orbel_el2xv
+   use swiftest
 contains
-
    module procedure orbel_el2xv_vec
       !! author: David A. Minton
       !!
       !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
-      use swiftest
       implicit none
       integer(I4B) :: i
    
@@ -33,7 +32,6 @@ contains
       !! DATE WRITTEN:  May 11, 1992.
       !! REVISIONS: May 26 - now use better Kepler solver for ellipses
       !!  and hyperbolae called EHYBRID.F and FHYBRID.F
-      use swiftest
       implicit none
       real(DP), intent(in)  :: mu
       real(DP), intent(in)  :: a, ie, inc, capom, omega, capm

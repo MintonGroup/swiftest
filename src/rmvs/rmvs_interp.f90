@@ -1,4 +1,5 @@
 submodule (rmvs_classes) s_rmvs_interp
+   use swiftest
 contains
    module subroutine rmvs_interp_in(self, cb, dt)
       !! author: David A. Minton
@@ -8,7 +9,6 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_interp_in.f90 
       !!
       !! Adapted from Hal Levison's Swift routine rmvs3_interp.f
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_pl), intent(inout)   :: self !! RMVS test particle object
@@ -69,7 +69,6 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_interp_out.f90 
       !!
       !! Adapted from Hal Levison's Swift routine rmvs3_interp.f
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_pl), intent(inout)   :: self !! RMVS test particle object

@@ -1,4 +1,5 @@
 submodule(rmvs_classes) s_rmvs_setup
+   use swiftest
 contains
    module subroutine rmvs_setup_pl(self,n)
       !! author: David A. Minton
@@ -6,7 +7,6 @@ contains
       !! Allocate RMVS test particle structure
       !!
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_setup.f90
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_pl),                intent(inout) :: self !! RMVS test particle object
@@ -41,7 +41,6 @@ contains
       !! Allocate WHM test particle structure
       !!
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_tp),              intent(inout)   :: self !! RMVS test particle object
@@ -69,7 +68,6 @@ contains
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
@@ -84,7 +82,6 @@ contains
       !! author: David A. Minton
       !! 
       !! Sets one or more of the values of xbeg, xend, and vbeg
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_tp),                intent(inout) :: self !! RMVS test particle object

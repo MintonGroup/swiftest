@@ -1,6 +1,6 @@
 submodule (helio_classes) s_helio_coord
+   use swiftest
 contains
-
    module subroutine helio_coord_vb2vh_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -8,7 +8,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_vb2vh.f90 
       !! Adapted from Hal Levison's Swift routine coord_vb2vh.f 
-      use swiftest
       implicit none
       ! Arguments
       class(helio_pl),              intent(inout) :: self !! Helio massive body object
@@ -34,7 +33,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_vb2vh_tp.f90 
       !! Adapted from Hal Levison's Swift routine coord_vb2h_tp.f 
-      use swiftest
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self !! Helio massive body object
@@ -58,7 +56,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_vh2vb.f90 
       !! Adapted from Hal Levison's Swift routine coord_vh2b.f 
-      use swiftest
       implicit none
       ! Arguments
       class(helio_pl),        intent(inout) :: self !! Helio massive body object
@@ -86,7 +83,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine coord_vh2vb_tp.f90
       !! Adapted from Hal Levison's Swift routine coord_vh2b_tp.f 
-      use swiftest
       implicit none
       ! Arguments
       class(helio_tp),        intent(inout) :: self !! Helio massive body object

@@ -105,13 +105,11 @@ module rmvs_classes
    end type rmvs_nbody_system
    
    interface
-      module subroutine rmvs_discard_pl_tp(self, cb, pl, config, t, dt)
+      module subroutine rmvs_discard_pl_tp(self, pl, t, dt)
          use swiftest_classes, only : swiftest_cb, swiftest_pl, swiftest_configuration
          implicit none
          class(rmvs_tp),                intent(inout) :: self
-         class(swiftest_cb),            intent(inout) :: cb   !! Swiftest central body object
          class(swiftest_pl),            intent(inout) :: pl     !! WHM massive body particle data structure. 
-         class(swiftest_configuration), intent(in)    :: config !!  configuration parameters
          real(DP),                      intent(in)    :: t      !! Current simulation time
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine rmvs_discard_pl_tp

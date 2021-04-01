@@ -1,4 +1,5 @@
 submodule (util) s_util_index
+   use swiftest
 contains
    module procedure util_index
    !! author: David A. Minton
@@ -8,7 +9,6 @@ contains
    !! Adapted from David E. Kaufmann's Swifter routine: util_index.f90
    !! Adapted from Numerical Recipes in Fortran 90: The Art of Parallel Scientific Computing, by Press, Teukolsky,
    !!      Vetterling, and Flannery, 2nd ed., pp. 1173-4
-   use swiftest
    integer(I4B), parameter       :: nn = 15, nstack = 50
    integer(I4B)            :: n, k, i, j, indext, jstack, l, r, dum
    integer(I4B), dimension(nstack) :: istack

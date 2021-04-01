@@ -1,4 +1,5 @@
 submodule (swiftest_classes) s_orbel_scget
+   use swiftest
 contains
    module procedure orbel_scget
       !! author: David A. Minton
@@ -8,7 +9,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: orbel_scget.f90
       !! Adapted from Hal Levison's Swift routine orbel_scget.f
-      use swiftest
       implicit none
       integer(I4B) :: nper
       real(DP)   :: x

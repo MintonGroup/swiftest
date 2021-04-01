@@ -1,13 +1,11 @@
 submodule(rmvs_classes) s_rmvs_obl
+   use swiftest
 contains  
-
    module subroutine rmvs_obl_acc_in(self, cb)
       !! author: David A. Minton
       !!
       !! Compute the oblateness acceleration in the inner encounter region with planets 
       !! 
-
-      use swiftest
       implicit none
       ! Arguments
       class(rmvs_pl),            intent(inout) :: self !! RMVS massive body object
