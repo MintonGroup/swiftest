@@ -1,7 +1,7 @@
 submodule(rmvs_classes) s_rmvs_peri
    use swiftest
 contains   
-   module subroutine rmvs_peri_tp(self, cb, pl, t, dt, lfirst, index, nenc, ipleP, config)
+   module subroutine rmvs_peri_tp(self, cb, pl, t, dt, lfirst, index, ipleP, config)
       !! author: David A. Minton
       !!
       !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
@@ -17,7 +17,6 @@ contains
       real(DP),                      intent(in)    :: dt     !! step size
       logical,                       intent(in)    :: lfirst !! Logical flag indicating whether current invocation is the first
       integer(I4B),                  intent(in)    :: index !! outer substep number within current set
-      integer(I4B),                  intent(in)    :: nenc  !! number of test particles encountering current planet 
       integer(I4B),                  intent(in)    :: ipleP !!index of RMVS planet being closely encountered
       class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters
       ! Internals

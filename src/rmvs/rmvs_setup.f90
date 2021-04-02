@@ -19,7 +19,6 @@ contains
       if (n <= 0) return
 
       allocate(self%nenc(n))
-      allocate(self%tpenc1P(n))
       allocate(self%xout(NDIM, n, 0:NTENC))
       allocate(self%vout(NDIM, n, 0:NTENC))
       allocate(self%xin(NDIM, n, 0:NTPHENC))
@@ -32,7 +31,6 @@ contains
       self%plenc(:)%nbody = n
 
       self%nenc          = 0
-      self%tpenc1P(:)    = 0
       self%xout(:,:,:)   = 0.0_DP
       self%vout(:,:,:)   = 0.0_DP
       self%xin(:,:,:)    = 0.0_DP
@@ -65,12 +63,10 @@ contains
       allocate(self%lperi(n))
       allocate(self%plperP(n))
       allocate(self%plencP(n))
-      allocate(self%tpencP(n))
 
       self%lperi(:)  = .false.
       self%plperP(:) = 0
       self%plencP(:) = 0
-      self%tpencP(:) = 0
 
       return
    end subroutine rmvs_setup_tp

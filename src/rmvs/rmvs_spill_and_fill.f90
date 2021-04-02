@@ -20,10 +20,8 @@ contains
          class is (rmvs_pl)
 
             discards%nenc(:)    = pack(keeps%nenc(:),         lspill_list(:))
-            discards%tpenc1P(:) = pack(keeps%tpenc1P(:),       lspill_list(:))
             if (count(.not.lspill_list(:))  > 0) then
                keeps%nenc(:)       = pack(keeps%nenc(:),   .not. lspill_list(:))
-               keeps%tpenc1P(:)    = pack(keeps%tpenc1P(:), .not. lspill_list(:))
             end if
             call whm_spill_pl(keeps, discards, lspill_list)
          class default
@@ -56,9 +54,6 @@ contains
                keeps%nenc(:)    = unpack(keeps%nenc(:),    .not.lfill_list(:), keeps%nenc(:))
                keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
                
-               keeps%tpenc1P(:) = unpack(keeps%tpenc1P(:), .not.lfill_list(:), keeps%tpenc1P(:))
-               keeps%tpenc1P(:) = unpack(inserts%tpenc1P(:), lfill_list(:), keeps%tpenc1P(:))
-               
                call whm_fill_pl(keeps, inserts, lfill_list)
             class default
                write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
@@ -89,12 +84,10 @@ contains
             discards%lperi(:)  = pack(keeps%lperi(:),       lspill_list(:))
             discards%plperP(:) = pack(keeps%plperP(:),       lspill_list(:))
             discards%plencP(:) = pack(keeps%plencP(:),       lspill_list(:))
-            discards%tpencP(:) = pack(keeps%tpencP(:),       lspill_list(:))
             if (count(.not.lspill_list(:))  > 0) then
                keeps%lperi(:)     = pack(keeps%lperi(:), .not. lspill_list(:))
                keeps%plperP(:)    = pack(keeps%plperP(:), .not. lspill_list(:))
                keeps%plencP(:)    = pack(keeps%plencP(:), .not. lspill_list(:))
-               keeps%tpencP(:)    = pack(keeps%tpencP(:), .not. lspill_list(:))
             end if
 
             call util_spill_tp(keeps, discards, lspill_list)
@@ -131,9 +124,6 @@ contains
             
             keeps%plencP(:) = unpack(keeps%plencP(:), .not.lfill_list(:), keeps%plencP(:))
             keeps%plencP(:) = unpack(inserts%plencP(:), lfill_list(:), keeps%plencP(:))
-            
-            keeps%tpencP(:) = unpack(keeps%tpencP(:), .not.lfill_list(:), keeps%tpencP(:))
-            keeps%tpencP(:) = unpack(inserts%tpencP(:), lfill_list(:), keeps%tpencP(:))
             
             call util_fill_tp(keeps, inserts, lfill_list)
          class default

@@ -254,7 +254,7 @@ module rmvs_classes
 
       end function rmvs_encounter_check_tp
 
-      module subroutine rmvs_peri_tp(self, cb, pl, t, dt, lfirst, index, nenc, ipleP, config)
+      module subroutine rmvs_peri_tp(self, cb, pl, t, dt, lfirst, index, ipleP, config)
          use swiftest_classes, only : swiftest_configuration
          class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle object  
          class(rmvs_cb),                intent(inout) :: cb     !! RMVS central body object  
@@ -263,7 +263,6 @@ module rmvs_classes
          real(DP),                      intent(in)    :: dt     !! step size
          logical,                       intent(in)    :: lfirst !! Logical flag indicating whether current invocation is the first
          integer(I4B),                  intent(in)    :: index !! outer substep number within current set
-         integer(I4B),                  intent(in)    :: nenc  !! number of test particles encountering current planet 
          integer(I4B),                  intent(in)    :: ipleP !!index of RMVS planet being closely encountered
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_peri_tp

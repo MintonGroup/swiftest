@@ -70,7 +70,7 @@ contains
       real(DP),                          intent(in)     :: dt   !! Step size
       class(swiftest_configuration),     intent(in)     :: config  !! Input collection of  configuration parameters
       ! Internals
-      integer(I4B)                                      :: i, j, k, nenc, itpp
+      integer(I4B)                                      :: i, j, k
       real(DP)                                          :: dto, time
 
    ! executable code
@@ -161,48 +161,46 @@ contains
       real(DP),                      intent(in)     :: dt   !! Step size
       ! Internals
       logical                                        :: lfirsttp
-      integer(I4B)                                   :: i, j, nenc
+      integer(I4B)                                   :: i, j
       real(DP)                                       :: dti, time
       real(DP), dimension(NDIM, self%nbody)          :: xbeg, xend, vbeg
 
       dti = dt / NTPHENC
 
-      associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh, plind => self%plind)
+      associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh, plind => self%plind, nenc => pl%nenc)
          if (config%loblatecb) call pl%obl_acc_in(cb)
          call pl%make_planetocentric(cb, tp, config)
          do i = 1, npl
-            nenc = pl%nenc(i) 
-            if (nenc > 0) then
+            if (nenc(i) == 0) cycle
             ! There are inner encounters with this planet...switch to planetocentric coordinates to proceed
-               time = t
-               call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .true., 0, nenc, i, config) 
-               ! now step the encountering test particles fully through the inner encounter
-               lfirsttp = .true.
-               associate(index => pl%tpenc(i)%index, &
-                  xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah)
-                  pl%tpenc(i)%lfirst = .true.
-                  do index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
-                     xbeg(:,1) = cb%xin(:) - pl%xin(:, i, index - 1) 
-                     xend(:,1) = cb%xin(:) - pl%xin(:, i, index)  
-                     vbeg(:,1) = cb%vin(:) - pl%vin(:, i, index - 1)
-                     do j = 1, NDIM
-                        xbeg(j,2:npl) = pl%xin(j, plind(i,2:npl), index - 1) - pl%xin(j, i, index - 1)  
-                        xend(j,2:npl) = pl%xin(j, plind(i,2:npl), index) - pl%xin(j, i, index)  
-                        vbeg(j,2:npl) = pl%vin(j, plind(i,2:npl), index - 1) - pl%vin(j, i, index - 1)
-                     end do
-                     pl%plenc(i)%xh(:,:) = xbeg(:,:)
-                     pl%plenc(i)%vh(:,:) = vbeg(:,:)
-                     call pl%tpenc(i)%set_beg_end(xbeg = xbeg, xend = xend)
-                     call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i), config, time, dti)
-                     do j = 1, NDIM
-                        pl%tpenc(i)%xheliocen(j, :) = pl%tpenc(i)%xh(j, :) + pl%xin(j, i, index)
-                     end do
-                     time = config%t + j * dti
-                     call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .false., index, nenc, i, config) 
+            time = t
+            call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .true., 0, i, config) 
+            ! now step the encountering test particles fully through the inner encounter
+            lfirsttp = .true.
+            associate(index => pl%tpenc(i)%index, &
+               xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah)
+               pl%tpenc(i)%lfirst = .true.
+               do index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
+                  xbeg(:,1) = cb%xin(:) - pl%xin(:, i, index - 1) 
+                  xend(:,1) = cb%xin(:) - pl%xin(:, i, index)  
+                  vbeg(:,1) = cb%vin(:) - pl%vin(:, i, index - 1)
+                  do j = 1, NDIM
+                     xbeg(j,2:npl) = pl%xin(j, plind(i,2:npl), index - 1) - pl%xin(j, i, index - 1)  
+                     xend(j,2:npl) = pl%xin(j, plind(i,2:npl), index) - pl%xin(j, i, index)  
+                     vbeg(j,2:npl) = pl%vin(j, plind(i,2:npl), index - 1) - pl%vin(j, i, index - 1)
                   end do
-                  where(pl%tpenc(i)%status(:) == ACTIVE) pl%tpenc(i)%status(:) = INACTIVE
-               end associate
-            end if
+                  pl%plenc(i)%xh(:,:) = xbeg(:,:)
+                  pl%plenc(i)%vh(:,:) = vbeg(:,:)
+                  call pl%tpenc(i)%set_beg_end(xbeg = xbeg, xend = xend)
+                  call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i), config, time, dti)
+                  do j = 1, NDIM
+                     pl%tpenc(i)%xheliocen(j, :) = pl%tpenc(i)%xh(j, :) + pl%xin(j, i, index)
+                  end do
+                  time = config%t + j * dti
+                  call pl%tpenc(i)%peri_pass(cb, pl, time, dti, .false., index, i, config) 
+               end do
+               where(pl%tpenc(i)%status(:) == ACTIVE) pl%tpenc(i)%status(:) = INACTIVE
+            end associate
          end do
          call pl%end_planetocentric(cb,tp)
 
@@ -225,12 +223,8 @@ contains
       class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
       class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
       ! Internals
-      integer(I4B)                                   :: i, j, k
-      type(rmvs_pl)                                  :: cb_as_pl
-      logical, dimension(:), allocatable             :: copyflag
+      integer(I4B)                                   :: i, j
 
-
-      !allocate(copyflag(self%nbody))
       associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
          plenc => self%plenc, GMpl => self%Gmass)
 
@@ -257,6 +251,8 @@ contains
             allocate(tpenc(i)%peri(nenc(i)))
             tpenc(i)%status(:) = ACTIVE
             tpenc(i)%lperi(:) = .false.
+            tpenc(i)%plperP(:) = 0
+            tpenc(i)%name(:) = pack(tp%name(:), pl%encmask(:,i)) 
             !call tp%spill(tpenc(i), pl%encmask(:,i))
             ! Grab all the encountering test particles and convert them to a planetocentric frame
             do j = 1, NDIM 
@@ -277,6 +273,7 @@ contains
             end if
          end do
       end associate
+      return
    end subroutine rmvs_step_make_planetocentric
 
    module subroutine rmvs_step_end_planetocentric(self, cb, tp)
@@ -324,9 +321,7 @@ contains
       end associate
       deallocate(self%encmask)
 
-
       return
-
    end subroutine rmvs_step_end_planetocentric
    
 end submodule s_rmvs_step

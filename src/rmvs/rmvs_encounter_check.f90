@@ -30,16 +30,9 @@ contains
          pl%encmask(:,:) = .false.
          lencounter = .false.
          pl%nenc(:) = 0
-         pl%tpenc1P(:) = 0
-         ! if first time through, calc hill's sphere for the planets
-         !if (lfirst) then
-           
-         !   lfirst = .false.
-         !end if
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                tp%plencP(i) = 0
-               !tp%tpencP(i) = 0
                lflag = .false. 
 
                do j = 1, npl
@@ -51,16 +44,6 @@ contains
                      lencounter = .true.
                      pl%encmask(i,j) = .true.
                      pl%nenc(j) = pl%nenc(j) + 1
-                     !nenc = pl%nenc(j)
-                     !if (nenc == 1) then
-                     !   pl%tpenc1P(j) = i
-                     !else
-                     !   tpencPindex = pl%tpenc1P(j)
-                     !   do k = 2, nenc - 1
-                     !      tpencPindex = tp%tpencP(tpencPindex)
-                     !   end do
-                     !   tp%tpencP(tpencPindex) = i
-                     !end if
                      tp%plencP(i) = j
                      exit
                   end if
