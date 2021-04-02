@@ -167,7 +167,7 @@ contains
 
       dti = dt / NTPHENC
 
-      associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh, plind => self%plind, nenc => pl%nenc)
+      associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh, plind => self%plind, nenc => self%nenc)
          if (config%loblatecb) call pl%obl_acc_in(cb)
          call pl%make_planetocentric(cb, tp, config)
          do i = 1, npl
