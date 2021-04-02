@@ -32,18 +32,34 @@ contains
             config_planetocen%loblatecb = .false.
             config_planetocen%lextra_force = .false.
             config_planetocen%lgr = .false.
+            ! Now compute the heliocentric values of acceleration
+            select type(pl)
+            class is (rmvs_pl)
+               if (tp%lfirst) then
+                  do i = 1, NDIM
+                     tp%xheliocen(i,:) = tp%xh(i,:) + pl%xin(i,ipleP,index - 1)
+                  end do
+               else
+                  do i = 1, NDIM
+                     tp%xheliocen(i,:) = tp%xh(i,:) + pl%xin(i,ipleP,index)
+                  end do
+               end if
+            end select
             call whm_getacch_tp(tp, cb, pl, config_planetocen, t, xh)
 
             ! Now compute the heliocentric values of acceleration
-            if (tp%lfirst) then
-               do i = 1, NDIM
-                  tp%xheliocen(i,:) = tp%xh(i,:) + tp%xh_pl(i, index - 1)
-               end do
-            else
-               do i = 1, NDIM
-                  tp%xheliocen(i,:) = tp%xh(i,:) + tp%xh_pl(i, index)
-               end do
-            end if
+            select type(pl)
+            class is (rmvs_pl)
+               if (tp%lfirst) then
+                  do i = 1, NDIM
+                     tp%xheliocen(i,:) = tp%xh(i,:) + pl%xin(i,ipleP,index - 1)
+                  end do
+               else
+                  do i = 1, NDIM
+                     tp%xheliocen(i,:) = tp%xh(i,:) + pl%xin(i,ipleP,index)
+                  end do
+               end if
+            end select
 
             tp%xh(:,:) = tp%xheliocen(:,:)
             if (config%loblatecb) then

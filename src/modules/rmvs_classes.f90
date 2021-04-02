@@ -74,10 +74,11 @@ module rmvs_classes
       real(DP),      dimension(:, :, :), allocatable :: xin     !! interpolated heliocentric planet position for inner encounter
       real(DP),      dimension(:, :, :), allocatable :: vin     !! interpolated heliocentric planet velocity for inner encounter
       type(rmvs_tp), dimension(:),       allocatable :: tpenc   !! array of encountering test particles with this planet in planetocentric coordinates
-      type(whm_pl) , dimension(:, :),    allocatable :: plenc   !! array of massive bodies that includes the Sun, but not the encountering planet in planetocentric coordinates
+      type(whm_pl) , dimension(:),    allocatable :: plenc   !! array of massive bodies that includes the Sun, but not the encountering planet in planetocentric coordinates
       type(rmvs_cb), dimension(:),       allocatable :: cbenc   !! The planet acting as a central body for close encounters
       real(DP),      dimension(:, :, :), allocatable :: aoblin  !! barycentric acceleration on planets due to central body oblateness during inner encounter
       logical,       dimension(:, :),    allocatable :: encmask !! logical mask indicating which test particles are encountering a particular planet
+      integer(I4B),  dimension(:,:),     allocatable :: plind
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as rmvs_setup_pl and rmvs_spill_pl
    contains

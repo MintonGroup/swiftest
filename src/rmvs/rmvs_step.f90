@@ -74,10 +74,9 @@ contains
       real(DP)                                          :: dto, time
 
    ! executable code
-      associate(pl => self, npl => self%nbody, ntp => tp%nbody, t => config%t, xht => tp%xh, vht => tp%vh, &
-         status => tp%status)
+      associate(pl => self, npl => self%nbody, ntp => tp%nbody, t => config%t, xht => tp%xh, vht => tp%vh)
          dto = dt / NTENC
-         where(tp%plencp(:) == 0)
+         where(tp%plencP(:) == 0)
             tp%status(:) = INACTIVE
          elsewhere  
             tp%lperi(:) = .false.
@@ -86,14 +85,8 @@ contains
             time = t + (i - 1) * dto
             call rmvs_step_out2(cb, pl, tp, time, dto, i, config)
             do j = 1, npl
-               nenc = pl%nenc(j) 
-               if (nenc > 0) then
-                  itpp = pl%tpenc1P(j)
-                  do k = 1, nenc
-                     if (tp%status(itpp) == INACTIVE) tp%status(itpp) = ACTIVE
-                     itpp = tp%tpencp(itpp)
-                  end do
-               end if
+               if (pl%nenc(j) == 0) cycle
+               where((tp%plencP(:) == j) .and. (tp%status(:) == INACTIVE)) tp%status(:) = ACTIVE
             end do
          end do
       end associate
@@ -170,9 +163,11 @@ contains
       logical                                        :: lfirsttp
       integer(I4B)                                   :: i, j, nenc
       real(DP)                                       :: dti, time
+      real(DP), dimension(NDIM, self%nbody)          :: xbeg, xend, vbeg
 
       dti = dt / NTPHENC
-      associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh)
+
+      associate(pl => self, npl => self%nbody, xht => tp%xh, vht => tp%vh, plind => self%plind)
          if (config%loblatecb) call pl%obl_acc_in(cb)
          call pl%make_planetocentric(cb, tp, config)
          do i = 1, npl
@@ -187,8 +182,18 @@ contains
                   xpc => self%tpenc(i)%xh, vpc => self%tpenc(i)%vh, apc => self%tpenc(i)%ah)
                   pl%tpenc(i)%lfirst = .true.
                   do index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
-                     call pl%tpenc(i)%set_beg_end(xbeg = pl%plenc(i,index - 1)%xh, xend = pl%plenc(i, index)%xh)
-                     call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i, index), config, time, dti)
+                     xbeg(:,1) = cb%xin(:) - pl%xin(:, i, index - 1) 
+                     xend(:,1) = cb%xin(:) - pl%xin(:, i, index)  
+                     vbeg(:,1) = cb%vin(:) - pl%vin(:, i, index - 1)
+                     do j = 1, NDIM
+                        xbeg(j,2:npl) = pl%xin(j, plind(i,2:npl), index - 1) - pl%xin(j, i, index - 1)  
+                        xend(j,2:npl) = pl%xin(j, plind(i,2:npl), index) - pl%xin(j, i, index)  
+                        vbeg(j,2:npl) = pl%vin(j, plind(i,2:npl), index - 1) - pl%vin(j, i, index - 1)
+                     end do
+                     pl%plenc(i)%xh(:,:) = xbeg(:,:)
+                     pl%plenc(i)%vh(:,:) = vbeg(:,:)
+                     call pl%tpenc(i)%set_beg_end(xbeg = xbeg, xend = xend)
+                     call pl%tpenc(i)%step(pl%cbenc(i), pl%plenc(i), config, time, dti)
                      do j = 1, NDIM
                         pl%tpenc(i)%xheliocen(j, :) = pl%tpenc(i)%xh(j, :) + pl%xin(j, i, index)
                      end do
@@ -221,83 +226,54 @@ contains
       class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
       ! Internals
       integer(I4B)                                   :: i, j, k
-      type(rmvs_pl)                                  :: cb_as_pl, tmp
+      type(rmvs_pl)                                  :: cb_as_pl
       logical, dimension(:), allocatable             :: copyflag
 
-      allocate(self%tpenc(self%nbody))
-      allocate(self%plenc(self%nbody, 0:NTPHENC))
-      allocate(self%cbenc(self%nbody))
-      allocate(copyflag(self%nbody))
-      associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
-         plenc => self%plenc)
-         ! Indicate that this is a planetocentric close encounter structor
 
-         ! Save the original central body object so that it can be passed down as needed through the planetocentric structures
-         call cb_as_pl%setup(1)
-         call tmp%setup(1)
-         cb_as_pl%name(1) = 0
-         cb_as_pl%Gmass(1)  = cb%Gmass
-         cb_as_pl%mass(1)   = cb%mass
-         cb_as_pl%radius(1) = cb%radius
+      !allocate(copyflag(self%nbody))
+      associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
+         plenc => self%plenc, GMpl => self%Gmass)
 
          do i = 1, npl
-            if (nenc(i) > 0) then ! There are inner encounters with this planet
-               ! Make the planet a central body for the encounter
-               cbenc(i)        = cb
-               cbenc(i)%Gmass  = pl%Gmass(i)
-               cbenc(i)%mass   = pl%mass(i)
-               cbenc(i)%radius = pl%radius(i)
+            if (nenc(i) == 0) cycle 
+            ! There are inner encounters with this planet
 
-               ! Create space for the heliocentric position values for those acceleration calculations that need them
-               allocate(tpenc(i)%xheliocen(NDIM, nenc(i)))
+            ! Save the index value of the planet corresponding to this encounter 
+            tpenc(i)%ipleP = i
+            tpenc(i)%lplanetocentric = .true.
+            tpenc(i)%nbody = nenc(i)
+            !call tpenc(i)%setup(nenc(i))
+            ! Create space for the heliocentric position values for those acceleration calculations that need them
+            allocate(tpenc(i)%xheliocen(NDIM, nenc(i)))
+            allocate(tpenc(i)%xh(NDIM, nenc(i)))
+            allocate(tpenc(i)%vh(NDIM, nenc(i)))
+            allocate(tpenc(i)%ah(NDIM, nenc(i)))
+            allocate(tpenc(i)%status(nenc(i)))
+            allocate(tpenc(i)%mu(nenc(i)))
+            allocate(tpenc(i)%isperi(nenc(i)))
+            allocate(tpenc(i)%name(nenc(i)))
+            allocate(tpenc(i)%plperP(nenc(i)))
+            allocate(tpenc(i)%lperi(nenc(i)))
+            allocate(tpenc(i)%peri(nenc(i)))
+            tpenc(i)%status(:) = ACTIVE
+            tpenc(i)%lperi(:) = .false.
+            !call tp%spill(tpenc(i), pl%encmask(:,i))
+            ! Grab all the encountering test particles and convert them to a planetocentric frame
+            do j = 1, NDIM 
+               tpenc(i)%xheliocen(j, :) = pack(tp%xh(j,:), pl%encmask(:,i)) 
+               tpenc(i)%xh(j, :) = tpenc(i)%xheliocen(j, :) - pl%xin(j, i, 0)
+               tpenc(i)%vh(j, :) = pack(tp%vh(j,:), pl%encmask(:,i)) - pl%vin(j, i, 0)
+            end do
 
-               ! Save the index value of the planet corresponding to this encounter 
-               tpenc(i)%ipleP = i
-               tpenc(i)%lplanetocentric = .true.
-               tpenc(i)%cb = cb 
-               call pl%tpenc(i)%setup(nenc(i))
-               tpenc(i)%status(:) = ACTIVE
-               call tp%spill(pl%tpenc(i), pl%encmask(:,i))
-               ! Grab all the encountering test particles and convert them to a planetocentric frame
-               do j = 1, nenc(i)
-                  tpenc(i)%xheliocen(:, j) = tpenc(i)%xh(:, j)
-                  tpenc(i)%xh(:, j)        = tpenc(i)%xh(:, j) - pl%xin(:, i, 0)
-                  tpenc(i)%vh(:, j)        = tpenc(i)%vh(:, j) - pl%vin(:, i, 0)
-               end do
+            ! Make sure that the test particles get the planetocentric value of mu 
+            call tpenc(i)%set_mu(pl%cbenc(i)) 
 
-               ! Make sure that the test particles get the planetocentric value of mu 
-               call tpenc(i)%set_mu(pl%cbenc(i)) 
-
-               ! Save the heliocentric position values of the encountering planet
-               allocate(tpenc(i)%xh_pl(NDIM,0:NTPHENC))
-               tpenc(i)%xh_pl(:,:) = pl%xin(:,i,0:NTPHENC)
-               ! Save the encountering planet's values of oblateness acceleration 
-               if (config%loblatecb) then
-                  allocate(tpenc(i)%aoblin_pl(NDIM,0:NTPHENC))
-                  tpenc(i)%aoblin_pl(:,:) = pl%aoblin(:,i,0:NTPHENC)
-               end if
-               ! Now create a planetocentric "planet" structure containing the *other* planets (plus the Sun) in it at each point along
-               ! the innner encounter trajectory of the planet
-               do k = 0, NTPHENC
-                  call plenc(i, k)%setup(npl)
-                  ! Copy all the basic planet parameters and positions
-                  copyflag(:) =  .true.
-                  call plenc(i, k)%copy(pl,copyflag)
-                  ! Give each planet a position and velocity vector that is planetocentric wrt planet i (the encountering planet)
-                  do j = 1, npl
-                     plenc(i, k)%xh(:, j)  = pl%xin(:, j, k) - pl%xin(:, i, k)
-                     plenc(i, k)%vh(:, j)  = pl%vin(:, j, k) - pl%vin(:, i, k)
-                  end do
-                  cb_as_pl%xh(:, 1)  = cb%xin(:) - pl%xin(:, i, k)
-                  cb_as_pl%vh(:, 1)  = cb%vin(:) - pl%vin(:, i, k)
-                  ! Pull the encountering body out of the massive body list
-                  copyflag(:) = .false.
-                  copyflag(i) = .true.
-                  call plenc(i, k)%spill(tmp, copyflag)
-                  copyflag(:) = .false.
-                  copyflag(1) = .true. ! Put the central body as planet 1 like in the original Swifter version
-                  call plenc(i, k)%fill(cb_as_pl, copyflag)
-               end do
+            ! Save the heliocentric position values of the encountering planet
+            !allocate(tpenc(i)%xh_pl(NDIM,0:NTPHENC))
+            ! Save the encountering planet's values of oblateness acceleration 
+            if (config%loblatecb) then
+               allocate(tpenc(i)%aoblin_pl(NDIM,0:NTPHENC))
+               tpenc(i)%aoblin_pl(:,:) = pl%aoblin(:,i,0:NTPHENC)
             end if
          end do
       end associate
@@ -315,27 +291,39 @@ contains
       class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
       ! Internals
       integer(I4B) :: i, j
+      integer(I4B), dimension(:), allocatable :: tpind
 
-      associate(pl => self, nenc => self%nenc, npl => self%nbody, name => tp%name, &
+      associate(pl => self, nenc => self%nenc, npl => self%nbody, ntp => tp%nbody, name => tp%name, &
          tpenc => self%tpenc, plenc => self%plenc, cbenc => self%cbenc, encmask => self%encmask)
 
          do i = 1, npl
             if (nenc(i) == 0) cycle
-            do j = 1, nenc(i)
-               ! Copy the results of the integration back over
-               tpenc(i)%xh(:, j) = tpenc(i)%xh(:, j) + pl%xin(:, i, NTPHENC) 
-               tpenc(i)%vh(:, j) = tpenc(i)%vh(:, j) + pl%vin(:, i, NTPHENC) 
-               ! Put back heliocentric value of mu
-               call tpenc(i)%set_mu(cb)
+            allocate(tpind(nenc(i)))
+            ! Index array of encountering test particles
+            tpind(:) = pack([(j,j=1,ntp)], encmask(1:ntp, i))
+
+            ! Copy the results of the integration back over and shift back to heliocentric reference
+            tp%status(tpind(1:nenc(i))) = tpenc(i)%status(1:nenc(i)) 
+            do j = 1, NDIM
+               tp%xh(j, tpind(1:nenc(i))) = tpenc(i)%xh(j,1:nenc(i)) + pl%xin(j, i, NTPHENC) 
+               tp%vh(j, tpind(1:nenc(i))) = tpenc(i)%vh(j,1:nenc(i)) + pl%vin(j, i, NTPHENC)
             end do
-            ! Replace the old test particle with the new one
-            call tp%fill(tpenc(i), encmask(:,i))
+            deallocate(tpenc(i)%xheliocen)
+            deallocate(tpenc(i)%xh)
+            deallocate(tpenc(i)%vh)
+            deallocate(tpenc(i)%ah)
+            deallocate(tpenc(i)%status)
+            deallocate(tpenc(i)%mu)
+            deallocate(tpenc(i)%isperi)
+            deallocate(tpenc(i)%name)
+            deallocate(tpenc(i)%plperP)
+            deallocate(tpenc(i)%lperi)
+            deallocate(tpenc(i)%peri)
+            deallocate(tpind)
          end do
       end associate
-      deallocate(self%tpenc)
-      deallocate(self%cbenc)
-      deallocate(self%plenc)
       deallocate(self%encmask)
+
 
       return
 

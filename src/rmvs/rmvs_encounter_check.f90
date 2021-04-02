@@ -19,12 +19,13 @@ contains
       ! Internals
       integer(I4B)                             :: i, j, k, nenc
       real(DP)                                 :: r2crit
-      real(DP), dimension(NDIM)                :: xht, vht, xr, vr
+      real(DP), dimension(NDIM)                :: xr, vr
       integer(I4B)                             :: tpencPindex
       logical                                  :: lflag
       logical, save                            :: lfirst = .true.
 
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill)
+      associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill, &
+                xht => self%xh, vht => self%vh, xbeg => self%xbeg, vbeg => self%vbeg)
          if (.not.allocated(pl%encmask)) allocate(pl%encmask(ntp, npl))
          pl%encmask(:,:) = .false.
          lencounter = .false.
@@ -38,30 +39,28 @@ contains
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                tp%plencP(i) = 0
-               tp%tpencP(i) = 0
+               !tp%tpencP(i) = 0
                lflag = .false. 
-               xht(:) = tp%xh(:, i)
-               vht(:) = tp%vh(:, i)
 
                do j = 1, npl
-                  r2crit = (rts * pl%rhill(j))**2
-                  xr(:) = xht(:) - tp%xbeg(:, j)
-                  vr(:) = vht(:) - tp%vbeg(:, j)
+                  r2crit = (rts * rhill(j))**2
+                  xr(:) = xht(:, i) - xbeg(:, j)
+                  vr(:) = vht(:, i) - vbeg(:, j)
                   lflag = rmvs_chk_ind(xr(:), vr(:), dt, r2crit)
                   if (lflag) then
                      lencounter = .true.
                      pl%encmask(i,j) = .true.
                      pl%nenc(j) = pl%nenc(j) + 1
-                     nenc = pl%nenc(j)
-                     if (nenc == 1) then
-                        pl%tpenc1P(j) = i
-                     else
-                        tpencPindex = pl%tpenc1P(j)
-                        do k = 2, nenc - 1
-                           tpencPindex = tp%tpencP(tpencPindex)
-                        end do
-                        tp%tpencP(tpencPindex) = i
-                     end if
+                     !nenc = pl%nenc(j)
+                     !if (nenc == 1) then
+                     !   pl%tpenc1P(j) = i
+                     !else
+                     !   tpencPindex = pl%tpenc1P(j)
+                     !   do k = 2, nenc - 1
+                     !      tpencPindex = tp%tpencP(tpencPindex)
+                     !   end do
+                     !   tp%tpencP(tpencPindex) = i
+                     !end if
                      tp%plencP(i) = j
                      exit
                   end if

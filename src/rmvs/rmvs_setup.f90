@@ -10,7 +10,9 @@ contains
       implicit none
       ! Arguments
       class(rmvs_pl),                intent(inout) :: self !! RMVS test particle object
-      integer,                       intent(in)    :: n    !! Number of test particles to allocate
+      integer(I4B),                  intent(in)    :: n    !! Number of test particles to allocate
+      ! Internals
+      integer(I4B)                                 :: i,j
 
       !> Call allocation method for parent class
       call whm_setup_pl(self, n) 
@@ -23,6 +25,11 @@ contains
       allocate(self%xin(NDIM, n, 0:NTPHENC))
       allocate(self%vin(NDIM, n, 0:NTPHENC))
       allocate(self%aoblin(NDIM, n, 0:NTPHENC))
+      allocate(self%plind(n,n))
+      allocate(self%tpenc(n))
+      allocate(self%plenc(n))
+      allocate(self%cbenc(n))
+      self%plenc(:)%nbody = n
 
       self%nenc          = 0
       self%tpenc1P(:)    = 0
@@ -31,6 +38,11 @@ contains
       self%xin(:,:,:)    = 0.0_DP
       self%vin(:,:,:)    = 0.0_DP
       self%aoblin(:,:,:) = 0.0_DP
+
+      do j = 1, n
+         self%plind(j,:) = [(i,i=1,n)] 
+         self%plind(j,2:n) = pack(self%plind(j,1:n), self%plind(j,1:n) /= j)
+      end do
 
       return
    end subroutine rmvs_setup_pl 
@@ -72,9 +84,32 @@ contains
       ! Arguments
       class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
       class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
-
+      ! Internals
+      integer(I4B) :: i
       ! Call parent method
       call whm_setup_system(self, config)
+
+      ! Set up the tp-planet encounter structures
+      select type(pl => self%pl)
+      class is(rmvs_pl)
+         select type(cb => self%cb)
+         class is (rmvs_cb)
+            select type (tp => self%tp)
+            class is (rmvs_tp)
+               associate(npl => pl%nbody)
+                  tp%cb = cb
+                  do i = 1, npl
+                     allocate(pl%plenc(i)%Gmass(npl))
+                     allocate(pl%plenc(i)%xh(NDIM,npl))
+                     allocate(pl%plenc(i)%vh(NDIM,npl))
+                     pl%cbenc(i)          = cb
+                     pl%cbenc(i)%Gmass    = pl%Gmass(i)
+                     pl%plenc(i)%Gmass(1) = cb%Gmass
+                  end do
+               end associate
+            end select
+         end select
+      end select
 
    end subroutine rmvs_setup_system
    
