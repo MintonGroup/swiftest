@@ -9,7 +9,7 @@
 !CHANGELOG 
 !README.md
 !README.swifter 
-!example/*.in
+!*.in
 !example/cleanup
 !example/swifter_symba_omp
 !Makefile
