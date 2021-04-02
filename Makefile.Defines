@@ -46,29 +46,35 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 # DO NOT include in FFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
 ADVIXE_DIR = /apps/cent7/intel/advisor_2019
-ADVIXE_FLAGS = -g -O2 -ipo -qopt-report=5 -vec -vecabi=cmdtarget -simd -parallel -parallel-source-info=2 -qopenmp -shared-intel -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -fp-model no-except -mp1 -xhost -traceback 
+ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vec -vecabi=cmdtarget -simd -shared-intel -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -fp-model no-except -mp1 -xhost -traceback 
 
 VTUNE_FLAGS = -g -O2 -vec -simd -shared-intel -qopenmp -debug inline-debug-info -parallel-source-info=2 -parallel -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -qopenmp -fp-model no-except -mp1 -xhost -traceback 
-IDEBUG = -O0 -g -traceback -mp1 -fp-model strict -debug all -align all -pad -ip -prec-div -prec-sqrt -ftz -assume protect-parens 
+#Be sure to set the environment variable KMP_FORKJOIN_FRAMES=1 for OpenMP debuging in vtune
 
-#FORTRAN = ifort
-#FFLAGS  = $(ADVIXE_FLAGS)
-#FFLAGS  = $(IDEBUG)
+IDEBUG = -O0 -warn all -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin 
 
-#debug flags
+STRICTREAL = -mp1 -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
+SIMDVEC = -vec -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget
+PAR = -parallel -qopenmp 
+HEAPARR = -heap-arrays 1048576 
+OPTIMIZE = -qopt-report=5
 
-GDBFLAGS = -ggdb -g3 -O0 -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero
+#FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -CB -nogen-interfaces -no-pie -fp-speculation=safe $(SIMDVEC) $(PAR) #$(HEAPARR)
+FORTRAN = ifort
+#FFLAGS  = $(IDEBUG) 
+FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g $(SIMDVEC) $(STRICTREAL) 
 
-FORTRAN = gfortran
-FFLAGS = -O3
-FFLAGS = $(GDBFLAGS)
 
-#FFLAGS          = -Og -ggdb -g3 -fopenmp -ftree-parallelize-loops=4 -fbacktrace -fbounds-check -fcheck=all -fsanitize=undefined -fsanitize=address -fsanitize=leak  
-##debug flags
-#FFLAGS		= -O3 -ggdb -g3 -ftree-parallelize-loops=4 -fbacktrace -ffpe-trap=zero,invalid,overflow,underflow,denormal -fcheck=all -fbounds-check -fbacktrace -fsanitize=undefined -fsanitize=address -fsanitize=leak 
-#-Wall -Warray-bounds  -Wimplicit-interface -Wextra 
-#-Warray-temporaries
+GDEBUG = -ggdb -g3 -Og -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=zero,invalid,overflow,underflow,denormal
+GPRODUCTION = -O3
+GPAR = -fopenmp -ftree-parallelize-loops=4
+GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
+GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 
+
+#FORTRAN = gfortran
+#FFLAGS =  -ffree-line-length-none $(GDEBUG)
+AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
