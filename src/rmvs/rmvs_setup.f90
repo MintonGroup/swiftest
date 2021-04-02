@@ -37,11 +37,6 @@ contains
       self%vin(:,:,:)    = 0.0_DP
       self%aoblin(:,:,:) = 0.0_DP
 
-      do j = 1, n
-         self%plind(j,:) = [(i,i=1,n)] 
-         self%plind(j,2:n) = pack(self%plind(j,1:n), self%plind(j,1:n) /= j)
-      end do
-
       return
    end subroutine rmvs_setup_pl 
 
@@ -81,7 +76,7 @@ contains
       class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
       class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, j
       ! Call parent method
       call whm_setup_system(self, config)
 
@@ -98,9 +93,14 @@ contains
                      allocate(pl%plenc(i)%Gmass(npl))
                      allocate(pl%plenc(i)%xh(NDIM,npl))
                      allocate(pl%plenc(i)%vh(NDIM,npl))
-                     pl%cbenc(i)          = cb
-                     pl%cbenc(i)%Gmass    = pl%Gmass(i)
-                     pl%plenc(i)%Gmass(1) = cb%Gmass
+                     pl%plind(i,:) = [(j,j=1,npl)] 
+                     pl%plind(i,2:npl) = pack(pl%plind(i,1:npl), pl%plind(i,1:npl) /= i)
+                     ! Shift the planet masses up so that the central body is the first planet
+                     ! During a planetocentric encounter (like the original Swifter)
+                     pl%plenc(i)%Gmass(1)     = cb%Gmass
+                     pl%plenc(i)%Gmass(2:npl) = pl%Gmass(pl%plind(i,2:npl))
+                     pl%cbenc(i)              = cb
+                     pl%cbenc(i)%Gmass        = pl%Gmass(i)
                   end do
                end associate
             end select
