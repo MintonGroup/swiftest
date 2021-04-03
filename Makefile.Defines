@@ -72,8 +72,8 @@ GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 
 
-#FORTRAN = gfortran
-#FFLAGS =  -ffree-line-length-none $(GDEBUG)
+FORTRAN = gfortran
+FFLAGS =  -ffree-line-length-none $(GDEBUG) $(GMEM)
 AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only

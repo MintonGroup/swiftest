@@ -226,14 +226,14 @@ contains
       integer(I4B)                                   :: i, j
       logical, dimension(:), allocatable             :: encmask
 
-      associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
+      associate(pl => self, npl => self%nbody, ntp => tp%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
          plenc => self%plenc, GMpl => self%Gmass)
 
          do i = 1, npl
             if (nenc(i) == 0) cycle 
             ! There are inner encounters with this planet
             if (allocated(encmask)) deallocate(encmask)
-            allocate(encmask(nenc(i)))
+            allocate(encmask(ntp))
             encmask(:) = tp%plencP(:) == i
 
             ! Save the index value of the planet corresponding to this encounter 
@@ -303,7 +303,7 @@ contains
             allocate(tpind(nenc(i)))
             ! Index array of encountering test particles
             if (allocated(encmask)) deallocate(encmask)
-            allocate(encmask(nenc(i)))
+            allocate(encmask(ntp))
             encmask(:) = tp%plencP(:) == i
             tpind(:) = pack([(j,j=1,ntp)], encmask(:))
 
