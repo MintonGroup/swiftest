@@ -224,6 +224,7 @@ contains
       class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
       ! Internals
       integer(I4B)                                   :: i, j
+      logical, dimension(:), allocatable             :: encmask
 
       associate(pl => self, npl => self%nbody, nenc => self%nenc, tpenc => self%tpenc, cbenc => self%cbenc, &
          plenc => self%plenc, GMpl => self%Gmass)
@@ -231,6 +232,9 @@ contains
          do i = 1, npl
             if (nenc(i) == 0) cycle 
             ! There are inner encounters with this planet
+            if (allocated(encmask)) deallocate(encmask)
+            allocate(encmask(nenc(i)))
+            encmask(:) = tp%plencP(:) == i
 
             ! Save the index value of the planet corresponding to this encounter 
             tpenc(i)%ipleP = i
@@ -252,13 +256,13 @@ contains
             tpenc(i)%status(:) = ACTIVE
             tpenc(i)%lperi(:) = .false.
             tpenc(i)%plperP(:) = 0
-            tpenc(i)%name(:) = pack(tp%name(:), pl%encmask(:,i)) 
+            tpenc(i)%name(:) = pack(tp%name(:), encmask(:)) 
             !call tp%spill(tpenc(i), pl%encmask(:,i))
             ! Grab all the encountering test particles and convert them to a planetocentric frame
             do j = 1, NDIM 
-               tpenc(i)%xheliocen(j, :) = pack(tp%xh(j,:), pl%encmask(:,i)) 
+               tpenc(i)%xheliocen(j, :) = pack(tp%xh(j,:), encmask(:)) 
                tpenc(i)%xh(j, :) = tpenc(i)%xheliocen(j, :) - pl%xin(j, i, 0)
-               tpenc(i)%vh(j, :) = pack(tp%vh(j,:), pl%encmask(:,i)) - pl%vin(j, i, 0)
+               tpenc(i)%vh(j, :) = pack(tp%vh(j,:), encmask(:)) - pl%vin(j, i, 0)
             end do
 
             ! Make sure that the test particles get the planetocentric value of mu 
@@ -289,15 +293,19 @@ contains
       ! Internals
       integer(I4B) :: i, j
       integer(I4B), dimension(:), allocatable :: tpind
+      logical, dimension(:), allocatable :: encmask
 
       associate(pl => self, nenc => self%nenc, npl => self%nbody, ntp => tp%nbody, name => tp%name, &
-         tpenc => self%tpenc, plenc => self%plenc, cbenc => self%cbenc, encmask => self%encmask)
+         tpenc => self%tpenc, plenc => self%plenc, cbenc => self%cbenc)
 
          do i = 1, npl
             if (nenc(i) == 0) cycle
             allocate(tpind(nenc(i)))
             ! Index array of encountering test particles
-            tpind(:) = pack([(j,j=1,ntp)], encmask(1:ntp, i))
+            if (allocated(encmask)) deallocate(encmask)
+            allocate(encmask(nenc(i)))
+            encmask(:) = tp%plencP(:) == i
+            tpind(:) = pack([(j,j=1,ntp)], encmask(:))
 
             ! Copy the results of the integration back over and shift back to heliocentric reference
             tp%status(tpind(1:nenc(i))) = tpenc(i)%status(1:nenc(i)) 
@@ -319,7 +327,6 @@ contains
             deallocate(tpind)
          end do
       end associate
-      deallocate(self%encmask)
 
       return
    end subroutine rmvs_step_end_planetocentric

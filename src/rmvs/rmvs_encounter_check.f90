@@ -21,26 +21,25 @@ contains
       real(DP)                                 :: r2, v2, vdotr
       real(DP), dimension(NDIM)                :: xr, vr
       real(DP), dimension(pl%nbody)            :: r2crit
+      logical                                  :: lflag
 
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill, &
                 xht => self%xh, vht => self%vh, xbeg => self%xbeg, vbeg => self%vbeg)
-         if (.not.allocated(pl%encmask)) allocate(pl%encmask(ntp, npl))
-         pl%encmask(:,:) = .false.
          r2crit(:) = (rts * rhill(:))**2
-         do i = 1, ntp
-            if (tp%status(i) /= ACTIVE) cycle
-            tp%plencP(i) = 0
-            do j = 1, npl
+         tp%plencP(:) = 0
+         do j = 1, npl
+            do i = 1, ntp
+               if ((tp%status(i) /= ACTIVE).or.(tp%plencP(i) /=0)) cycle
                xr(:) = xht(:, i) - xbeg(:, j)
                vr(:) = vht(:, i) - vbeg(:, j)
                r2 = dot_product(xr(:), xr(:))
                v2 = dot_product(vr(:), vr(:))
                vdotr = dot_product(vr(:), xr(:))
-               pl%encmask(i,j) = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit(j))
-               if (pl%encmask(i,j)) tp%plencP(i) = j
+               lflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit(j))
+               if (lflag) tp%plencP(i) = j
             end do
+            pl%nenc(j) = count(tp%plencP(:) == j)
          end do
-         pl%nenc(:) = count(pl%encmask(:,:), dim=1)
          lencounter = any(pl%nenc(:) > 0)
       end associate
       return
