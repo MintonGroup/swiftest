@@ -221,10 +221,9 @@ module rmvs_classes
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine rmvs_step_out2   
 
-      module function rmvs_chk_ind(xr, vr, dt, r2crit) result(lflag)
+      module elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
          implicit none
-         real(DP), intent(in)                :: dt, r2crit
-         real(DP), dimension(:), intent(in)  :: xr, vr
+         real(DP), intent(in)                :: r2, v2, vdotr, dt, r2crit
          logical                             :: lflag
       end function rmvs_chk_ind
 
