@@ -36,6 +36,19 @@ contains
 
    end subroutine eucl_dist_index_plpl
 
+   module subroutine eucl_dist_index_pltp(self, pl)
+      !! author: Jacob R. Elliott and David A. Minton
+      !!
+      !! Turns i,j indices into k index for use in the Euclidean distance matrix
+      !!
+      !! Reference:
+      !!
+      !!    Mélodie Angeletti, Jean-Marie Bonny, Jonas Koko. Parallel Euclidean distance matrix computation on big datasets *. 
+      !!       2019. hal-0204751      implicit none
+      class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
+      class(swiftest_pl),             intent(inout) :: pl    !! Swiftest massive body object
+   end subroutine eucl_dist_index_pltp
+
    module subroutine eucl_irij3_plpl(self)
       !! author: Jacob R. Elliott and David A. Minton
       !!
