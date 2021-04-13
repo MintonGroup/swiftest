@@ -90,7 +90,7 @@ contains
          class is (whm_pl)
             call pl%set_mu(self%cb)
             if (config%lgr) call pl%gr_vh2pv(config)
-            call pl%eucl_index()
+            !call pl%eucl_index()
          end select
       end if
 

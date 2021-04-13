@@ -4,7 +4,7 @@
 !NPLMAX         -1                 ! not used
 !NTPMAX         -1                 ! not used
 T0             0.0e0
-TSTOP          365.25e3           ! simulation length in days
+TSTOP          730.50e2           ! simulation length in days
 DT             2e0            ! stepsize in days 
 ISTEP_OUT      73500                   ! output cadence
 ISTEP_DUMP     73500                   ! system dump cadence
