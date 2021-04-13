@@ -23,24 +23,25 @@ contains
       real(DP), dimension(pl%nbody)            :: r2crit
       logical                                  :: lflag
 
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill, &
-                xht => self%xh, vht => self%vh, xbeg => self%xbeg, vbeg => self%vbeg)
+      associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill, xht => self%xh, vht => self%vh, &
+                 xbeg => self%xbeg, vbeg => self%vbeg, status => tp%status, plencP => tp%plencP, nenc => pl%nenc)
          r2crit(:) = (rts * rhill(:))**2
-         tp%plencP(:) = 0
+         plencP(:) = 0
          do j = 1, npl
+            !$omp simd private(xr,vr,r2,v2,vdotr,lflag) 
             do i = 1, ntp
-               if ((tp%status(i) /= ACTIVE).or.(tp%plencP(i) /=0)) cycle
+               if ((status(i) /= ACTIVE).or.(plencP(i) /= 0)) cycle
                xr(:) = xht(:, i) - xbeg(:, j)
                vr(:) = vht(:, i) - vbeg(:, j)
                r2 = dot_product(xr(:), xr(:))
                v2 = dot_product(vr(:), vr(:))
                vdotr = dot_product(vr(:), xr(:))
                lflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit(j))
-               if (lflag) tp%plencP(i) = j
+               if (lflag) plencP(i) = j
             end do
-            pl%nenc(j) = count(tp%plencP(:) == j)
+            nenc(j) = count(plencP(:) == j)
          end do
-         lencounter = any(pl%nenc(:) > 0)
+         lencounter = any(nenc(:) > 0)
       end associate
       return
    end function rmvs_encounter_check_tp
