@@ -215,25 +215,39 @@ contains
       ! Internals
       integer(I4B)                                 :: i, j
       real(DP)                                     :: rji2, irij3, fac
-      real(DP), dimension(NDIM)                    :: dx
+      real(DP), dimension(NDIM)                    :: dx, acc
       real(DP), dimension(:,:), allocatable        :: aht
 
-      associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
-                  xht => tp%xh)
+      associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  GMpl => pl%Gmass, xht => tp%xh)
   
-         allocate(aht, source=tp%ah)
          if (ntp == 0) return
-         do j = 1, npl
-            !$omp simd private(dx,rji2,irij3,fac) reduction(-:aht)
-            do i = 1, tp%nbody
-               dx(:) = tp%xh(:, i) - xh(:, j)
-               rji2 = dot_product(dx(:), dx(:))
-               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = pl%Gmass(j) * irij3
-               aht(:, i) = aht(:, i) - fac * dx(:)
+         if (ntp > npl) then
+            allocate(aht, source=tp%ah)
+            do j = 1, npl
+               !$omp simd private(dx,rji2,irij3,fac) reduction(-:aht)
+               do i = 1, ntp
+                  dx(:) = xht(:, i) - xh(:, j)
+                  rji2 = dot_product(dx(:), dx(:))
+                  irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+                  fac = GMpl(j) * irij3
+                  aht(:, i) = aht(:, i) - fac * dx(:)
+               end do
             end do
-         end do
-         call move_alloc(aht, tp%ah)
+            call move_alloc(aht, tp%ah)
+         else
+            do i = 1, ntp
+               acc(:) = 0.0_DP
+               !$omp simd private(dx,rji2,irij3,fac) reduction(-:acc)
+               do j = 1, npl
+                  dx(:) = xht(:, i) - xh(:, j)
+                  rji2 = dot_product(dx(:), dx(:))
+                  irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+                  fac = GMpl(j) * irij3
+                  acc(:) = acc(:) - fac * dx(:)
+               end do
+               tp%ah(:, i) = tp%ah(:, i) + acc(:)
+            end do
+         end if
       end associate
       return
    end subroutine whm_getacch_ah3_tp
