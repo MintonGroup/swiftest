@@ -216,10 +216,12 @@ contains
       integer(I4B)                                 :: i, j
       real(DP)                                     :: rji2, irij3, fac
       real(DP), dimension(NDIM)                    :: dx
+      real(DP), dimension(:,:), allocatable        :: aht
 
       associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
-                  xht => tp%xh, aht => tp%ah)
-   
+                  xht => tp%xh)
+  
+         allocate(aht, source=tp%ah)
          if (ntp == 0) return
          do j = 1, npl
             !$omp simd private(dx,rji2,irij3,fac) reduction(-:aht)
@@ -231,6 +233,7 @@ contains
                aht(:, i) = aht(:, i) - fac * dx(:)
             end do
          end do
+         call move_alloc(aht, tp%ah)
       end associate
       return
    end subroutine whm_getacch_ah3_tp

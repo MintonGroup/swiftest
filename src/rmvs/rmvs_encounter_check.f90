@@ -24,7 +24,7 @@ contains
       logical                                  :: lflag
 
       associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill, xht => self%xh, vht => self%vh, &
-                 xbeg => self%xbeg, vbeg => self%vbeg, status => tp%status, plencP => tp%plencP, nenc => pl%nenc)
+                 xbeg => self%xbeg, vbeg => self%vbeg, status => self%status, plencP => self%plencP, nenc => pl%nenc)
          r2crit(:) = (rts * rhill(:))**2
          plencP(:) = 0
          do j = 1, npl
