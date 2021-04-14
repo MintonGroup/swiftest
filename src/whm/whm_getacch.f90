@@ -215,23 +215,21 @@ contains
       ! Internals
       integer(I4B)                                 :: i, j
       real(DP)                                     :: rji2, irij3, fac
-      real(DP), dimension(NDIM)                    :: dx, acc
+      real(DP), dimension(NDIM)                    :: dx
 
       associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  Gmpl => pl%Gmass, &
                   xht => tp%xh, aht => tp%ah)
    
          if (ntp == 0) return
-         do i = 1, ntp
-            acc(:) = 0.0_DP
-            !$omp simd private(dx,rji2,irij3,fac) reduction(-:acc)
-            do j = 1, npl
+         do j = 1, npl
+            !$omp simd private(dx,rji2,irij3,fac) reduction(-:aht)
+            do i = 1, ntp
                dx(:) = xht(:, i) - xh(:, j)
                rji2 = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
                fac = Gmpl(j) * irij3
-               acc(:) = acc(:) - fac * dx(:)
+               aht(:, i) = aht(:, i) - fac * dx(:)
             end do
-            aht(:, i) = aht(:, i) + acc(:)
          end do
       end associate
       return
