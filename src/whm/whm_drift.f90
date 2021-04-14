@@ -16,8 +16,9 @@ contains
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B)                                 :: i
-      real(DP)                                     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
+      real(DP)                                     :: energy, vmag2, rmag  !! Variables used in GR calculation
       integer(I4B), dimension(:), allocatable      :: iflag
+      real(DP), dimension(:), allocatable          :: dtp
 
       associate(npl    => self%nbody, &
          xj     => self%xj, &
@@ -29,17 +30,22 @@ contains
 
          allocate(iflag(npl))
          iflag(:) = 0
-      
-         do i = 1, npl
-            if (config%lgr) then
+         allocate(dtp(npl))
+
+         if (config%lgr) then
+            do i = 1,npl
                rmag = norm2(xj(:, i))
                vmag2 = dot_product(vj(:, i),  vj(:, i))
                energy = 0.5_DP * vmag2 - mu(i) / rmag
-               dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
-            else
-               dtp = dt
-            end if
-            call drift_one(mu(i), xj(:, i), vj(:, i), dtp, iflag(i))
+               dtp(i) = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+            end do
+         else
+            dtp(:) = dt
+         end if 
+
+         !$omp simd
+         do i = 1, npl
+            call drift_one(mu(i), xj(:, i), vj(:, i), dtp(i), iflag(i))
          end do 
          if (any(iflag(1:npl) /= 0)) then
             do i = 1, npl
@@ -72,8 +78,9 @@ contains
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B)                                 :: i   
-      real(DP)                                     :: dtp, energy, vmag2, rmag  !! Variables used in GR calculation
+      real(DP)                                     :: energy, vmag2, rmag  !! Variables used in GR calculation
       integer(I4B), dimension(:), allocatable      :: iflag
+      real(DP), dimension(:), allocatable          :: dtp
 
       associate(ntp    => self%nbody, &
                 xh     => self%xh, &
@@ -83,21 +90,23 @@ contains
          if (ntp == 0) return
          allocate(iflag(ntp))
          iflag(:) = 0
+         allocate(dtp(ntp))
+         if (config%lgr) then
+            do i = 1,ntp
+               rmag = norm2(xh(:, i))
+               vmag2 = dot_product(vh(:, i), vh(:, i))
+               energy = 0.5_DP * vmag2 - cb%Gmass / rmag
+               dtp(i) = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+            end do
+         else
+            dtp(:) = dt
+         end if 
+         !$omp simd 
          do i = 1,ntp
-            if (status(i) == ACTIVE) then
-               if (config%lgr) then
-                  rmag = norm2(xh(:, i))
-                  vmag2 = dot_product(vh(:, i), vh(:, i))
-                  energy = 0.5_DP * vmag2 - cb%Gmass / rmag
-                  dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
-               else
-                  dtp = dt
-               end if
-               call drift_one(mu(i), xh(:, i), vh(:, i), dtp, iflag(i))
-               if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
-            end if
+            if (status(i) == ACTIVE) call drift_one(mu(i), xh(:, i), vh(:, i), dtp(i), iflag(i))
          end do
          if (any(iflag(1:ntp) /= 0)) then
+            where(iflag(:) /= 0) status(:) = DISCARDED_DRIFTERR
             do i = 1, ntp
                if (iflag(i) /= 0) write(*, *) "Particle ", self%name(i), " lost due to error in Danby drift"
             end do

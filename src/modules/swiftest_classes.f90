@@ -350,6 +350,7 @@ module swiftest_classes
       end subroutine discard_system
 
       module pure subroutine drift_one(mu, x, v, dt, iflag) 
+         !$omp declare simd(drift_one)
          implicit none
          real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
          real(DP), dimension(:), intent(inout)  :: x, v  !! Position and velocity of body to drift
@@ -592,6 +593,7 @@ module swiftest_classes
       end subroutine orbel_el2xv_vec
 
       module pure subroutine orbel_scget(angle, sx, cx)
+         !$omp declare simd(orbel_scget)
          implicit none
          real(DP), intent(in)  :: angle
          real(DP), intent(out) :: sx, cx
