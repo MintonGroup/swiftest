@@ -4,10 +4,10 @@
 !NPLMAX         -1                 ! not used
 !NTPMAX         -1                 ! not used
 T0             0.0e0
-TSTOP          730.50e2           ! simulation length in days
-DT             2e0            ! stepsize in days 
-ISTEP_OUT      73500                   ! output cadence
-ISTEP_DUMP     73500                   ! system dump cadence
+TSTOP          730.50e3           ! simulation length in days
+DT             1e0            ! stepsize in days 
+ISTEP_OUT      365250                  ! output cadence
+ISTEP_DUMP     365250                  ! system dump cadence
 CB_IN          cb.swiftest.in
 PL_IN          pl.swiftest.in
 TP_IN          tp.in

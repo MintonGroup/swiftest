@@ -225,11 +225,11 @@ contains
          if (ntp == 0) return
          do j = 1, npl
             !$omp simd private(dx,rji2,irij3,fac) reduction(-:aht)
-            do i = 1, ntp
-               dx(:) = xht(:, i) - xh(:, j)
+            do i = 1, tp%nbody
+               dx(:) = tp%xh(:, i) - xh(:, j)
                rji2 = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = Gmpl(j) * irij3
+               fac = pl%Gmass(j) * irij3
                aht(:, i) = aht(:, i) - fac * dx(:)
             end do
          end do

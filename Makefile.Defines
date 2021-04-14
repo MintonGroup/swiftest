@@ -53,8 +53,8 @@ VTUNE_FLAGS = -g -O2 -vec -simd -shared-intel -qopenmp -debug inline-debug-info 
 
 IDEBUG = -O0 -warn all -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin 
 
-STRICTREAL = -mp1 -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
-SIMDVEC = -vec -simd -xhost -fma -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -qopt-zmm-usage=high
+STRICTREAL =  -mp1 -prec-div -prec-sqrt -ftz -assume protect-parens -fp-speculation safe
+SIMDVEC = -vec -simd -xhost -fma -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -qopt-zmm-usage=high -fp-model no-except
 PAR = -parallel -qopenmp 
 HEAPARR = -heap-arrays 1048576 
 OPTIMIZE = -qopt-report=5
@@ -62,7 +62,7 @@ OPTIMIZE = -qopt-report=5
 #FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -CB -nogen-interfaces -no-pie -fp-speculation=safe $(SIMDVEC) $(PAR) #$(HEAPARR)
 FORTRAN = ifort
 #FFLAGS  = $(IDEBUG) 
-FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -shared-intel -debug inline-debug-info -qopt-report=5 $(SIMDVEC) $(STRICTREAL) 
+FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -shared-intel -debug inline-debug-info -qopt-report=5 $(SIMDVEC) $(STRICTREAL) $(PAR)
 
 
 GDEBUG = -ggdb -g3 -Og -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=zero,invalid,overflow,underflow,denormal
