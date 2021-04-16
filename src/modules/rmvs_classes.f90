@@ -34,7 +34,7 @@ module rmvs_classes
    !*******************************************************************************************************************************
    !> RMVS central body particle class 
    type, public, extends(whm_cb) :: rmvs_cb
-      logical                                   :: lplanetocentric  !! Flag that indicates that the object is a planetocentric set of test particles used for close encounter calculations
+      logical                                   :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of test particles used for close encounter calculations
       real(DP), dimension(NDIM) :: xin = [0.0_DP, 0.0_DP, 0.0_DP]
       real(DP), dimension(NDIM) :: vin = [0.0_DP, 0.0_DP, 0.0_DP]
    end type rmvs_cb
@@ -48,7 +48,7 @@ module rmvs_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as rmvs_setup_tp and rmvs_spill_tp
       ! encounter steps)
-      logical                                   :: lplanetocentric  !! Flag that indicates that the object is a planetocentric set of test particles used for close encounter calculations
+      logical                                   :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of test particles used for close encounter calculations
       logical,      dimension(:),   allocatable :: lperi  !! planetocentric pericenter passage flag (persistent for a full rmvs time step) over a full RMVS time step)
       integer(I4B), dimension(:),   allocatable :: plperP !! index of planet associated with pericenter distance peri (persistent over a full RMVS time step)
       integer(I4B), dimension(:),   allocatable :: plencP !! index of planet that test particle is encountering (not persistent for a full RMVS time step)
@@ -82,7 +82,7 @@ module rmvs_classes
 
    !> RMVS massive body particle class
    type, private, extends(whm_pl) :: rmvs_base_pl
-      logical                                                :: lplanetocentric    !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
+      logical                                                :: lplanetocentric = .false.   !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
       integer(I4B),                dimension(:), allocatable :: nenc    !! number of test particles encountering planet this full rmvs time step
       integer(I4B),                dimension(:), allocatable :: tpenc1P !! index of first test particle encountering planet
       integer(I4B),                dimension(:), allocatable :: plind ! Connects the planetocentric indices back to the heliocentric planet list

@@ -16,25 +16,25 @@ contains
       !type(swiftest_configuration)                 :: encounter_config
 
       !> Call allocation method for parent class
-      associate(system => self)
-         call whm_setup_pl(system, n) 
+      associate(pl => self)
+         call whm_setup_pl(pl, n) 
          if (n <= 0) return
 
-         if (.not.system%lplanetocentric) then
-            allocate(self%nenc(n))
-            self%nenc(:)         = 0
+         if (.not.pl%lplanetocentric) then
+            allocate(pl%nenc(n))
+            pl%nenc(:)         = 0
 
             ! Set up inner and outer planet interpolation vector storage containers
-            allocate(self%outer(0:NTENC))
+            allocate(pl%outer(0:NTENC))
             do i = 0, NTENC
-               allocate(self%outer(i)%x(NDIM, n))
-               allocate(self%outer(i)%v(NDIM, n))
+               allocate(pl%outer(i)%x(NDIM, n))
+               allocate(pl%outer(i)%v(NDIM, n))
             end do
-            allocate(self%inner(0:NTPHENC))
+            allocate(pl%inner(0:NTPHENC))
             do i = 0, NTPHENC
-               allocate(self%inner(i)%x(NDIM, n))
-               allocate(self%inner(i)%v(NDIM, n))
-               allocate(self%inner(i)%aobl(NDIM, n))
+               allocate(pl%inner(i)%x(NDIM, n))
+               allocate(pl%inner(i)%v(NDIM, n))
+               allocate(pl%inner(i)%aobl(NDIM, n))
             end do
          end if
       end associate
@@ -84,6 +84,7 @@ contains
       class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
       ! Internals
       integer(I4B) :: i, j
+
       ! Call parent method
       call whm_setup_system(self, config)
 
