@@ -16,13 +16,6 @@ module rmvs_classes
    real(DP), parameter     :: RHPSCALE = 1.0_DP
    real(DP), parameter     :: FACQDT = 2.0_DP
 
-   type, private :: rmvs_interp
-      real(DP), dimension(:, :), allocatable :: x    !! interpolated heliocentric planet position for outer encounter
-      real(DP), dimension(:, :), allocatable :: v    !! interpolated heliocentric planet velocity for outer encounter
-      real(DP), dimension(:, :), allocatable :: aobl !! Encountering planet's oblateness acceleration value
-   end type rmvs_interp 
-
-
    !********************************************************************************************************************************
    !  rmvs_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
@@ -81,10 +74,24 @@ module rmvs_classes
    !                                    rmvs_pl class definitions and method interfaces
    !*******************************************************************************************************************************
 
+   type, private :: rmvs_interp
+      real(DP), dimension(:, :), allocatable :: x    !! interpolated heliocentric planet position for outer encounter
+      real(DP), dimension(:, :), allocatable :: v    !! interpolated heliocentric planet velocity for outer encounter
+      real(DP), dimension(:, :), allocatable :: aobl !! Encountering planet's oblateness acceleration value
+   end type rmvs_interp 
+
    !> RMVS massive body particle class
    type, private, extends(whm_pl) :: rmvs_base_pl
-      logical                                  :: lplanetocentric    !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
-      integer(I4B),  dimension(:), allocatable :: plind ! Connects the planetocentric indices back to the heliocentric planet list
+      logical                                                :: lplanetocentric    !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
+      integer(I4B),                dimension(:), allocatable :: nenc    !! number of test particles encountering planet this full rmvs time step
+      integer(I4B),                dimension(:), allocatable :: tpenc1P !! index of first test particle encountering planet
+      integer(I4B),                dimension(:), allocatable :: plind ! Connects the planetocentric indices back to the heliocentric planet list
+      type(rmvs_interp),           dimension(:), allocatable :: outer !! interpolated heliocentric central body position for outer encounters
+      type(rmvs_interp),           dimension(:), allocatable :: inner !! interpolated heliocentric central body position for inner encounters
+   contains
+      procedure, public :: fill                => rmvs_fill_pl    !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: setup               => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
+      procedure, public :: spill               => rmvs_spill_pl    !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_base_pl
 
    type, public :: rmvs_encounter_system
@@ -94,17 +101,9 @@ module rmvs_classes
    end type rmvs_encounter_system
 
    type, public, extends(rmvs_base_pl) :: rmvs_pl
-      integer(I4B),                dimension(:), allocatable :: nenc    !! number of test particles encountering planet this full rmvs time step
-      integer(I4B),                dimension(:), allocatable :: tpenc1P !! index of first test particle encountering planet
       type(rmvs_encounter_system), dimension(:), allocatable :: planetocentric
-      type(rmvs_interp),           dimension(:), allocatable :: outer !! interpolated heliocentric central body position for outer encounters
-      type(rmvs_interp),           dimension(:), allocatable :: inner !! interpolated heliocentric central body position for inner encounters
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as rmvs_setup_pl and rmvs_spill_pl
-   contains
-      procedure, public :: fill                => rmvs_fill_pl    !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: setup               => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
-      procedure, public :: spill               => rmvs_spill_pl    !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_pl
    
    interface
@@ -138,7 +137,7 @@ module rmvs_classes
 
       module subroutine rmvs_setup_pl(self,n)
          implicit none
-         class(rmvs_pl),      intent(inout) :: self !! RMVS test particle object
+         class(rmvs_base_pl), intent(inout) :: self !! RMVS test particle object
          integer,             intent(in)    :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_pl
 
@@ -174,7 +173,7 @@ module rmvs_classes
       module subroutine rmvs_spill_pl(self, discards, lspill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
-         class(rmvs_pl),        intent(inout) :: self      !! RMVS massive body object
+         class(rmvs_base_pl),   intent(inout) :: self      !! RMVS massive body object
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
          logical, dimension(:), intent(in)   :: lspill_list !! Logical array of bodies to spill into the discards
       end subroutine rmvs_spill_pl
@@ -182,7 +181,7 @@ module rmvs_classes
       module subroutine rmvs_fill_pl(self, inserts, lfill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
-         class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object 
+         class(rmvs_base_pl),   intent(inout) :: self       !! RMVS massive body object 
          class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine rmvs_fill_pl

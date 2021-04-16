@@ -9,7 +9,7 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_setup.f90
       implicit none
       ! Arguments
-      class(rmvs_pl),                intent(inout) :: self !! RMVS test particle object
+      class(rmvs_base_pl),           intent(inout) :: self !! RMVS test particle object
       integer(I4B),                  intent(in)    :: n    !! Number of test particles to allocate
       ! Internals
       integer(I4B)                                 :: i,j
@@ -96,6 +96,9 @@ contains
       select type (tp => self%tp)
       class is (rmvs_tp)
          tp%cb_heliocentric = cb
+         pl%lplanetocentric = .false.
+         tp%lplanetocentric = .false.
+         cb%lplanetocentric = .false.
          associate(npl => pl%nbody)
             allocate(pl%planetocentric(npl))
             do i = 1, npl
@@ -103,7 +106,6 @@ contains
                allocate(rmvs_pl :: pl%planetocentric(i)%pl)
                associate(plenci => pl%planetocentric(i)%pl, cbenci => pl%planetocentric(i)%cb)
                   cbenci%lplanetocentric = .true.
-
                   plenci%lplanetocentric = .true.
                   call plenci%setup(npl)
                   plenci%status(:) = ACTIVE

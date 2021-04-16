@@ -411,20 +411,18 @@ contains
       real(DP), dimension(:, :), allocatable         :: xbeg, xend, vbeg
 
 
-      associate(npl => pl%nbody, nenc => pl%nenc, &
-                cbenci => pl%planetocentric(i)%cb, &
-                plenci => pl%planetocentric(i)%pl, &
-                tpenci => pl%planetocentric(i)%tp)
-         associate(enc_index => tpenci%index, plind => plenci%plind)
-
-            dti = dto / NTPHENC
-            allocate(xbeg, mold=pl%xh)
-            allocate(xend, mold=pl%xh)
-            allocate(vbeg, mold=pl%vh)
-            if (config%loblatecb) call pl%obl_acc(cb)
-            call rmvs_make_planetocentric(pl, cb, tp, config)
-            do i = 1, npl
-               if (nenc(i) == 0) cycle
+      associate(npl => pl%nbody, nenc => pl%nenc)
+         dti = dto / NTPHENC
+         allocate(xbeg, mold=pl%xh)
+         allocate(xend, mold=pl%xh)
+         allocate(vbeg, mold=pl%vh)
+         if (config%loblatecb) call pl%obl_acc(cb)
+         call rmvs_make_planetocentric(pl, cb, tp, config)
+         do i = 1, npl
+            if (nenc(i) == 0) cycle
+            associate(cbenci => pl%planetocentric(i)%cb, plenci => pl%planetocentric(i)%pl, &
+                        tpenci => pl%planetocentric(i)%tp)
+               associate(enc_index => tpenci%index, plind => plenci%plind)
                ! There are inner encounters with this planet...switch to planetocentric coordinates to proceed
                   tpenci%lfirst = .true.
                   inner_time = outer_time
@@ -432,18 +430,11 @@ contains
                   ! now step the encountering test particles fully through the inner encounter
                   lfirsttp = .true.
                   do enc_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
-                     write(*,*) 'enc_index: ',enc_index
-                     write(*,*) 'xin-1      ',pl%inner(enc_index - 1)%x(:, i)
-                     write(*,*) 'xin        ',pl%inner(enc_index    )%x(:, i)
                      xbeg(:,1) = cb%xin(:) - pl%inner(enc_index - 1)%x(:, i)
                      xend(:,1) = cb%xin(:) - pl%inner(enc_index    )%x(:, i)
                      vbeg(:,1) = cb%vin(:) - pl%inner(enc_index - 1)%v(:, i)
                      do j = 2, npl
                         ipleP = plind(j)
-                        write(*,*) 'sub planet ', j
-                        write(*,*) 'plind(i,j) ',ipleP
-                        write(*,*) 'xin-1      ',pl%inner(enc_index - 1)%x(:,ipleP)
-                        write(*,*) 'xin        ',pl%inner(enc_index    )%x(:,ipleP)
                         xbeg(:,j) = pl%inner(enc_index - 1)%x(:,ipleP) - pl%inner(enc_index - 1)%x(:,i)  
                         xend(:,j) = pl%inner(enc_index    )%x(:,ipleP) - pl%inner(enc_index    )%x(:,i)  
                         vbeg(:,j) = pl%inner(enc_index - 1)%v(:,ipleP) - pl%inner(enc_index - 1)%v(:,i)
@@ -451,11 +442,6 @@ contains
                      plenci%xh(:,:) = xbeg(:,:)
                      plenci%vh(:,:) = vbeg(:,:)
                      call tpenci%set_beg_end(xbeg = xbeg, xend = xend)
-                     write(*,*) 'xend check'
-                     do j = 1, npl
-                        write(*,*) 'xend: ',j,xend(:,j)
-                        write(*,*) 'xenc: ',j,tpenci%xend(:,j)
-                     end do
                      call tpenci%step(cbenci, plenci, config, inner_time, dti)
                      do j = 1, nenc(i)
                         tpenci%xheliocentric(:, j) = tpenci%xh(:, j) + pl%inner(enc_index    )%x(:,i)
@@ -464,10 +450,10 @@ contains
                      call rmvs_peri_tp(tpenci, pl, inner_time, dti, .false., enc_index, i, config) 
                   end do
                   where(tpenci%status(:) == ACTIVE) tpenci%status(:) = INACTIVE
-            end do
-            call rmvs_end_planetocentric(pl, cb, tp)
-         end associate
-
+               end associate
+            end associate
+         end do
+         call rmvs_end_planetocentric(pl, cb, tp)
       end associate
       return
    end subroutine rmvs_step_in
@@ -489,8 +475,7 @@ contains
       integer(I4B)                                   :: i, j
       logical, dimension(:), allocatable             :: encmask
 
-      associate(npl => pl%nbody, ntp => tp%nbody, GMpl => pl%Gmass, nenc => pl%nenc, &
-          cbenci => pl%planetocentric(i)%cb)
+      associate(npl => pl%nbody, ntp => tp%nbody, GMpl => pl%Gmass, nenc => pl%nenc)
          do i = 1, npl
             if (nenc(i) == 0) cycle 
             ! There are inner encounters with this planet
@@ -500,7 +485,7 @@ contains
 
             ! Create encountering test particle structure
             allocate(rmvs_tp :: pl%planetocentric(i)%tp)
-            associate(tpenci => pl%planetocentric(i)%tp)
+            associate(tpenci => pl%planetocentric(i)%tp, cbenci => pl%planetocentric(i)%cb, plenci => pl%planetocentric(i)%pl)
                tpenci%lplanetocentric = .true.
                call tpenci%setup(nenc(i))
                tpenci%ipleP = i
@@ -512,10 +497,8 @@ contains
                   tpenci%xh(j, :) = tpenci%xheliocentric(j, :) - pl%inner(0)%x(j, i)
                   tpenci%vh(j, :) = pack(tp%vh(j,:), encmask(:)) - pl%inner(0)%v(j, i)
                end do
-
+               allocate(plenci%inner, source = pl%inner)
                ! Make sure that the test particles get the planetocentric value of mu 
-               write(*,*) i,'nenc: ',nenc(i)
-               write(*,*) cbenci%Gmass
                call tpenci%set_mu(cbenci)
             end associate
          end do
@@ -538,27 +521,28 @@ contains
       integer(I4B), dimension(:), allocatable :: tpind
       logical, dimension(:), allocatable :: encmask
 
-      associate(nenc => pl%nenc, npl => pl%nbody, ntp => tp%nbody, tpenci => pl%planetocentric(i)%tp)
-
+      associate(nenc => pl%nenc, npl => pl%nbody, ntp => tp%nbody)
          do i = 1, npl
             if (nenc(i) == 0) cycle
-            allocate(tpind(nenc(i)))
-            ! Index array of encountering test particles
-            if (allocated(encmask)) deallocate(encmask)
-            allocate(encmask(ntp))
-            encmask(:) = tp%plencP(:) == i
-            tpind(:) = pack([(j,j=1,ntp)], encmask(:))
-   
-            ! Copy the results of the integration back over and shift back to heliocentric reference
-            tp%status(tpind(1:nenc(i))) = tpenci%status(1:nenc(i)) 
-            do j = 1, NDIM
-               tp%xh(j, tpind(1:nenc(i))) = tpenci%xh(j,1:nenc(i)) + pl%inner(NTPHENC)%x(j, i)
-               tp%vh(j, tpind(1:nenc(i))) = tpenci%vh(j,1:nenc(i)) + pl%inner(NTPHENC)%v(j, i)
-            end do
-            deallocate(pl%planetocentric(i)%tp)
+            associate(tpenci => pl%planetocentric(i)%tp)
+               allocate(tpind(nenc(i)))
+               ! Index array of encountering test particles
+               if (allocated(encmask)) deallocate(encmask)
+               allocate(encmask(ntp))
+               encmask(:) = tp%plencP(:) == i
+               tpind(:) = pack([(j,j=1,ntp)], encmask(:))
+      
+               ! Copy the results of the integration back over and shift back to heliocentric reference
+               tp%status(tpind(1:nenc(i))) = tpenci%status(1:nenc(i)) 
+               do j = 1, NDIM
+                  tp%xh(j, tpind(1:nenc(i))) = tpenci%xh(j,1:nenc(i)) + pl%inner(NTPHENC)%x(j, i)
+                  tp%vh(j, tpind(1:nenc(i))) = tpenci%vh(j,1:nenc(i)) + pl%inner(NTPHENC)%v(j, i)
+               end do
+               deallocate(pl%planetocentric(i)%tp)
+               deallocate(pl%planetocentric(i)%pl%inner)
+            end associate
          end do
       end associate
-
       return
    end subroutine rmvs_end_planetocentric
    

@@ -30,14 +30,6 @@ contains
             select type(pl)
                class is (rmvs_pl)
                   allocate(xh_original, source=tp%xh)
-                  write(*,*) 'ipleP = ',ipleP
-                  write(*,*) 'enc_index = ',enc_index
-                  write(*,*) 'xin-1:  ',pl%inner(enc_index - 1)%x(:, ipleP)
-                  write(*,*) 'xin  :  ',pl%inner(enc_index    )%x(:, ipleP)
-                  write(*,*) 'xh   :'
-                  do i = 1, pl%nbody
-                     write(*,*) i,pl%xh(:,i)
-                  end do
                   config_planetocen = config
                   ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter
                   config_planetocen%loblatecb = .false.
