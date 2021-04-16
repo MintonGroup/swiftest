@@ -11,9 +11,10 @@ contains
    implicit none
    integer(I4B)          :: i, iflag
 
+   associate(symba_tpA%xh => xh, symba_tpA%vb => vb)
    do i = 1, ntp
       if ((symba_tpA%levelg(i) == irec) .and. (symba_tpA%status(i) == ACTIVE)) then
-         call drift_one(mu, symba_tpA%xh(:,i), symba_tpA%vb(:,i), dt, iflag)
+         call drift_one(mu, xh(1,i), xh(2,i), xh(3,i), vb(1,i), vb(2,i), vb(3,i), dt, iflag)
          if (iflag /= 0) then
             symba_tpA%status(i) = DISCARDED_DRIFTERR
             write(*, *) "particle ", symba_tpA%name(i), " lost due to error in danby drift"

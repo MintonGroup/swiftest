@@ -247,6 +247,7 @@ module swiftest_classes
    contains
       private
       !> Each integrator will have its own version of the step
+      procedure(abstract_step_system), public, deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure, public :: discard        => discard_system               !! Perform a discard step on the system
@@ -256,7 +257,6 @@ module swiftest_classes
       procedure, public :: set_msys       => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard  => io_write_discard             !! Append a frame of output data to file
       procedure, public :: write_frame    => io_write_frame_system        !! Append a frame of output data to file
-      procedure, public :: step           => step_system    
       procedure, public :: copy           => util_copy_system   !! Copies elements of one object to another.
    end type swiftest_nbody_system
 
@@ -296,6 +296,13 @@ module swiftest_classes
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objectt
       end subroutine abstract_set_mu
+
+      subroutine abstract_step_system(self, config)
+         import swiftest_nbody_system, swiftest_configuration
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
+      end subroutine abstract_step_system
 
       subroutine abstract_write_frame(self, iu, config, t, dt)
          import DP, I4B, swiftest_base, swiftest_configuration
@@ -349,13 +356,13 @@ module swiftest_classes
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine discard_system
 
-      module pure subroutine drift_one(mu, x, v, dt, iflag) 
+      module pure subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
          !$omp declare simd(drift_one)
          implicit none
-         real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-         real(DP), dimension(:), intent(inout)  :: x, v  !! Position and velocity of body to drift
-         real(DP), intent(in)                   :: dt    !! Step size
-         integer(I4B), intent(out)              :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
+         real(DP), intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
+         real(DP),  intent(inout)   :: px, py, pz, vx, vy, vz  !! Position and velocity of body to drift
+         real(DP), intent(in)       :: dt    !! Step size
+         integer(I4B), intent(out)  :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
       module subroutine eucl_dist_index_plpl(self)
@@ -670,13 +677,6 @@ module swiftest_classes
          class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
          integer,                      intent(in)    :: n    !! Number of bodies to allocate space for
       end subroutine setup_tp
-
-      module subroutine step_system(self, config)
-         implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
-      end subroutine step_system
-
 
       module subroutine user_getacch_body(self, cb, config, t)
          implicit none

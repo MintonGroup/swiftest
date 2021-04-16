@@ -43,15 +43,15 @@ contains
             dtp(:) = dt
          end if 
 
-         !$omp simd
+         !!$omp simd
          do i = 1, npl
-            call drift_one(mu(i), xj(:, i), vj(:, i), dtp(i), iflag(i))
+            call drift_one(mu(i), xj(1, i), xj(2, i), xj(3, i), vj(1, i), vj(2, i), vj(3, i), dtp(i), iflag(i))
          end do 
-         if (any(iflag(1:npl) /= 0)) then
+         if (any(iflag(:) /= 0)) then
             do i = 1, npl
                write(*, *) " Planet ", self%name(i), " is lost!!!!!!!!!!"
-               write(*, *) xj
-               write(*, *) vj
+               write(*, *) xj(:,i)
+               write(*, *) vj(:,i)
                write(*, *) " stopping "
                call util_exit(FAILURE)
             end do
@@ -82,11 +82,13 @@ contains
       integer(I4B), dimension(:), allocatable      :: iflag
       real(DP), dimension(:), allocatable          :: dtp
 
+
       associate(ntp    => self%nbody, &
-                xh     => self%xh, &
-                vh     => self%vh, &
-                status => self%status,&
-                mu     => self%mu)
+         xh     => self%xh, &
+         vh     => self%vh, &
+         status => self%status,&
+         mu     => self%mu)
+         
          if (ntp == 0) return
          allocate(iflag(ntp))
          iflag(:) = 0
@@ -101,11 +103,13 @@ contains
          else
             dtp(:) = dt
          end if 
-         !$omp simd 
+         !!$omp simd 
          do i = 1,ntp
-            if (status(i) == ACTIVE) call drift_one(mu(i), xh(:, i), vh(:, i), dtp(i), iflag(i))
+            if (status(i) == ACTIVE) call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), &
+                                                           vh(1, i), vh(2, i), vh(3, i), dtp(i), &
+                                                    iflag(i))
          end do
-         if (any(iflag(1:ntp) /= 0)) then
+         if (any(iflag(:) /= 0)) then
             where(iflag(:) /= 0) status(:) = DISCARDED_DRIFTERR
             do i = 1, ntp
                if (iflag(i) /= 0) write(*, *) "Particle ", self%name(i), " lost due to error in Danby drift"

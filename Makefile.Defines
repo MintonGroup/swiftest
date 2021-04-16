@@ -71,6 +71,8 @@ GPAR = -fopenmp -ftree-parallelize-loops=4
 GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 
+FORTRAN = gfortran
+FFLAGS = $(GDEBUG)
 
 
 # DO NOT include in CFLAGS the "-c" option to compile object only

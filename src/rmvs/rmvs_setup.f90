@@ -13,30 +13,31 @@ contains
       integer(I4B),                  intent(in)    :: n    !! Number of test particles to allocate
       ! Internals
       integer(I4B)                                 :: i,j
+      !type(swiftest_configuration)                 :: encounter_config
 
       !> Call allocation method for parent class
-      call whm_setup_pl(self, n) 
-      if (n <= 0) return
+      associate(system => self)
+         call whm_setup_pl(system, n) 
+         if (n <= 0) return
 
-      allocate(self%nenc(n))
-      allocate(self%xout(NDIM, n, 0:NTENC))
-      allocate(self%vout(NDIM, n, 0:NTENC))
-      allocate(self%xin(NDIM, n, 0:NTPHENC))
-      allocate(self%vin(NDIM, n, 0:NTPHENC))
-      allocate(self%aoblin(NDIM, n, 0:NTPHENC))
-      allocate(self%plind(n,n))
-      allocate(self%tpenc(n))
-      allocate(self%plenc(n))
-      allocate(self%cbenc(n))
-      self%plenc(:)%nbody = n
+         if (.not.system%lplanetocentric) then
+            allocate(self%nenc(n))
+            self%nenc(:)         = 0
 
-      self%nenc          = 0
-      self%xout(:,:,:)   = 0.0_DP
-      self%vout(:,:,:)   = 0.0_DP
-      self%xin(:,:,:)    = 0.0_DP
-      self%vin(:,:,:)    = 0.0_DP
-      self%aoblin(:,:,:) = 0.0_DP
-
+            ! Set up inner and outer planet interpolation vector storage containers
+            allocate(self%outer(0:NTENC))
+            do i = 0, NTENC
+               allocate(self%outer(i)%x(NDIM, n))
+               allocate(self%outer(i)%v(NDIM, n))
+            end do
+            allocate(self%inner(0:NTPHENC))
+            do i = 0, NTPHENC
+               allocate(self%inner(i)%x(NDIM, n))
+               allocate(self%inner(i)%v(NDIM, n))
+               allocate(self%inner(i)%aobl(NDIM, n))
+            end do
+         end if
+      end associate
       return
    end subroutine rmvs_setup_pl 
 
@@ -58,10 +59,11 @@ contains
       allocate(self%lperi(n))
       allocate(self%plperP(n))
       allocate(self%plencP(n))
+      if (self%lplanetocentric) then
+         allocate(self%xheliocentric(NDIM, n))
+      end if
 
       self%lperi(:)  = .false.
-      self%plperP(:) = 0
-      self%plencP(:) = 0
 
       return
    end subroutine rmvs_setup_tp
@@ -69,8 +71,13 @@ contains
    module subroutine rmvs_setup_system(self, config)
       !! author: David A. Minton
       !!
-      !! Wrapper method to initialize a basic Swiftest nbody system from files
-      !!
+      !! Wrapper method to initialize a basic Swiftest nbody system from files.
+      !! 
+      !! We currently rearrange the pl order to keep it consistent with the way Swifter does it 
+      !! In Swifter, the central body occupies the first position in the pl list, and during
+      !! encounters, the encountering planet is skipped in loops. In Swiftest, we instantiate an
+      !! RMVS nbody system object attached to each pl to store planetocentric versions of the system
+      !! to use during close encounters. 
       implicit none
       ! Arguments
       class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
@@ -80,33 +87,50 @@ contains
       ! Call parent method
       call whm_setup_system(self, config)
 
-      ! Set up the tp-planet encounter structures
+      ! Set up the pl-tp planetocentric encounter structures for pl and cb. The planetocentric tp structures are 
+      ! generated as necessary during close encounter steps.
       select type(pl => self%pl)
       class is(rmvs_pl)
-         select type(cb => self%cb)
-         class is (rmvs_cb)
-            select type (tp => self%tp)
-            class is (rmvs_tp)
-               associate(npl => pl%nbody)
-                  tp%cb = cb
-                  do i = 1, npl
-                     allocate(pl%plenc(i)%Gmass(npl))
-                     allocate(pl%plenc(i)%xh(NDIM,npl))
-                     allocate(pl%plenc(i)%vh(NDIM,npl))
-                     pl%plind(i,:) = [(j,j=1,npl)] 
-                     pl%plind(i,2:npl) = pack(pl%plind(i,1:npl), pl%plind(i,1:npl) /= i)
-                     ! Shift the planet masses up so that the central body is the first planet
-                     ! During a planetocentric encounter (like the original Swifter)
-                     pl%plenc(i)%Gmass(1)     = cb%Gmass
-                     pl%plenc(i)%Gmass(2:npl) = pl%Gmass(pl%plind(i,2:npl))
-                     pl%cbenc(i)              = cb
-                     pl%cbenc(i)%Gmass        = pl%Gmass(i)
-                  end do
-               end associate
-            end select
-         end select
-      end select
+      select type(cb => self%cb)
+      class is (rmvs_cb)
+      select type (tp => self%tp)
+      class is (rmvs_tp)
+         tp%cb_heliocentric = cb
+         associate(npl => pl%nbody)
+            allocate(pl%planetocentric(npl))
+            do i = 1, npl
+               allocate(pl%planetocentric(i)%cb, source=cb)
+               allocate(rmvs_pl :: pl%planetocentric(i)%pl)
+               associate(plenci => pl%planetocentric(i)%pl, cbenci => pl%planetocentric(i)%cb)
+                  cbenci%lplanetocentric = .true.
 
+                  plenci%lplanetocentric = .true.
+                  call plenci%setup(npl)
+                  plenci%status(:) = ACTIVE
+
+                  ! plind stores the heliocentric index value of a planetocentric planet
+                  ! e.g. Consider an encounter with planet 3.  
+                  ! Then the following will be the values of plind:
+                  ! pl%planetocentric(3)%pl%plind(1) = 0 (central body - never used)  
+                  ! pl%planetocentric(3)%pl%plind(2) = 1  
+                  ! pl%planetocentric(3)%pl%plind(3) = 2
+                  ! pl%planetocentric(3)%pl%plind(4) = 4
+                  ! pl%planetocentric(3)%pl%plind(5) = 5
+                  ! etc.  
+                  allocate(plenci%plind(npl))
+                  plenci%plind(1:npl) = [(j,j=1,npl)] 
+                  plenci%plind(2:npl) = pack(plenci%plind(1:npl), plenci%plind(1:npl) /= i)
+                  plenci%plind(1)     = 0
+                  plenci%Gmass(1)     = cb%Gmass
+                  plenci%Gmass(2:npl) = pl%Gmass(plenci%plind(2:npl))
+                  cbenci%Gmass        = pl%Gmass(i)
+               end associate
+            end do
+         end associate
+      end select
+      end select
+      end select
+   
    end subroutine rmvs_setup_system
    
    module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
@@ -115,8 +139,8 @@ contains
       !! Sets one or more of the values of xbeg, xend, and vbeg
       implicit none
       ! Arguments
-      class(rmvs_tp),                intent(inout) :: self !! RMVS test particle object
-      real(DP), dimension(:,:),           optional :: xbeg, xend, vbeg
+      class(rmvs_tp),           intent(inout)          :: self !! RMVS test particle object
+      real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend, vbeg
 
       if (present(xbeg)) then
          if (allocated(self%xbeg)) deallocate(self%xbeg)

@@ -40,7 +40,7 @@ contains
             else
                dtp = dt
             end if
-            call drift_one(mu(i), xh(:, i), vb(:, i), dtp, iflag(i))
+            call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vb(1, i), vb(2, i), vb(3, i), dtp, iflag(i))
          end do 
          if (any(iflag(1:npl) /= 0)) then
             do i = 1, npl
@@ -125,7 +125,7 @@ contains
                else
                   dtp = dt
                end if
-               call drift_one(mu(i), xh(:, i), vb(:, i), dtp, iflag(i))
+               call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vb(1, i), vb(2, i), vb(3, i), dtp, iflag(i))
                if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
             end if
          end do

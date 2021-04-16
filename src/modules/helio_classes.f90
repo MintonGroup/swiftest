@@ -7,6 +7,16 @@ module helio_classes
    use rmvs_classes, only : rmvs_cb, rmvs_pl, rmvs_tp, rmvs_nbody_system
    implicit none
 
+
+   !********************************************************************************************************************************
+   !  helio_nbody_system class definitions and method interfaces
+   !********************************************************************************************************************************
+   type, public, extends(rmvs_nbody_system) :: helio_nbody_system
+   contains
+      private
+      procedure, public :: step          => helio_step_system
+   end type helio_nbody_system
+
    !********************************************************************************************************************************
    ! helio_cb class definitions and method interfaces
    !*******************************************************************************************************************************
@@ -53,13 +63,6 @@ module helio_classes
       procedure, public :: step        => helio_step_tp             !! Steps the body forward one stepsize
    end type helio_tp
 
-   !********************************************************************************************************************************
-   !  helio_nbody_system class definitions and method interfaces
-   !********************************************************************************************************************************
-   type, public, extends(rmvs_nbody_system) :: helio_nbody_system
-   contains
-      private
-   end type helio_nbody_system
 
    interface
 
@@ -171,19 +174,16 @@ module helio_classes
          integer,         intent(in)    :: n    !! Number of test particles to allocate
       end subroutine helio_setup_tp
 
-      module subroutine helio_step_system(cb, pl, tp, config)
-         use swiftest_classes
+      module subroutine helio_step_system(self, config)
+         use swiftest_classes, only : swiftest_configuration
          implicit none
-         class(helio_cb),               intent(inout) :: cb      !! Helio central body object  
-         class(helio_pl),               intent(inout) :: pl      !! Helio massive body object  
-         class(helio_tp),               intent(inout) :: tp      !! Helio test particle object  
+         class(helio_nbody_system),     intent(inout) :: self    !! Helio nbody system object
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine helio_step_system
 
       module subroutine helio_step_pl(self, cb, config, t, dt)
          use swiftest_classes, only : swiftest_cb, swiftest_configuration
          implicit none
-         ! Arguments
          class(helio_pl),               intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
          class(swiftest_configuration), intent(in)    :: config !! Input collection of 

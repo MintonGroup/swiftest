@@ -10,6 +10,20 @@ module whm_classes
    public
 
    !********************************************************************************************************************************
+   !  whm_nbody_system class definitions and method interfaces
+   !********************************************************************************************************************************
+   !> An abstract class for the WHM integrator nbody system 
+   type, public, extends(swiftest_nbody_system) :: whm_nbody_system
+      !> In the WHM integrator, only test particles are discarded
+      class(swiftest_tp), allocatable :: tp_discards
+   contains
+      private
+      !> Replace the abstract procedures with concrete ones
+      procedure, public :: initialize    => whm_setup_system  !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure, public :: step          => whm_step_system
+   end type whm_nbody_system
+
+   !********************************************************************************************************************************
    ! whm_cb class definitions and method interfaces
    !*******************************************************************************************************************************
    !> Swiftest central body particle class
@@ -73,18 +87,7 @@ module whm_classes
       procedure, public :: step         => whm_step_tp         !! Steps the particle forward one stepsize
    end type whm_tp
 
-   !********************************************************************************************************************************
-   !  whm_nbody_system class definitions and method interfaces
-   !********************************************************************************************************************************
-   !> An abstract class for the WHM integrator nbody system 
-   type, public, extends(swiftest_nbody_system) :: whm_nbody_system
-      !> In the WHM integrator, only test particles are discarded
-      class(swiftest_tp), allocatable :: tp_discards
-   contains
-      private
-      !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize    => whm_setup_system  !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
-   end type whm_nbody_system
+
 
    interface
       !> WHM massive body constructor method
@@ -234,9 +237,9 @@ module whm_classes
 
       module subroutine whm_setup_set_beg_end(self, xbeg, xend, vbeg)
          implicit none
-         class(whm_tp),   intent(inout)  :: self !! Swiftest test particle object
-         real(DP), dimension(:,:), optional :: xbeg, xend
-         real(DP), dimension(:,:), optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
+         class(whm_tp),            intent(inout)          :: self !! Swiftest test particle object
+         real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend
+         real(DP), dimension(:,:), intent(in),   optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
       end subroutine whm_setup_set_beg_end
 
       module subroutine whm_gr_getacch_tp(self, cb, config)
@@ -293,12 +296,10 @@ module whm_classes
       end subroutine whm_fill_pl
 
       !> Steps the Swiftest nbody system forward in time one stepsize
-      module subroutine whm_step_system(cb, pl, tp, config)
+      module subroutine whm_step_system(self, config)
          use swiftest_classes, only : swiftest_configuration
          implicit none
-         class(whm_cb),            intent(inout) :: cb      !! WHM central body object  
-         class(whm_pl),            intent(inout) :: pl      !! WHM central body object  
-         class(whm_tp),            intent(inout) :: tp      !! WHM central body object  
+         class(whm_nbody_system),       intent(inout) :: self    !! WHM system object
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of on parameters 
       end subroutine whm_step_system
    end interface

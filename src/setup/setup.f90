@@ -1,12 +1,16 @@
 submodule (swiftest_classes) s_setup
    use swiftest
 contains
-   module procedure setup_construct_system
+   module subroutine setup_construct_system(system, config)
       !! author: David A. Minton
       !!
       !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
       !! 
       implicit none
+      ! Arguments
+      class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
+      type(swiftest_configuration),                intent(in)    :: config     !! Swiftest configuration parameters
+
       select case(config%integrator)
       case (BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
@@ -52,7 +56,7 @@ contains
       end select
 
       return
-   end procedure setup_construct_system
+   end subroutine setup_construct_system
 
    module procedure setup_body
       !! author: David A. Minton

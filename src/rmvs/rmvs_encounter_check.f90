@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(rmvs_tp),            intent(inout) :: self        !! RMVS test particle object  
       class(rmvs_cb),            intent(inout) :: cb          !! RMVS central body object  
-      class(rmvs_pl),            intent(inout) :: pl          !! RMVS massive body object  
+      class(rmvs_pl),       intent(inout) :: pl          !! RMVS massive body object  
       real(DP),                  intent(in)    :: dt          !! step size
       real(DP),                  intent(in)    :: rts         !! fraction of Hill's sphere radius to use as radius of encounter regio
       logical                                  :: lencounter  !! Returns true if there is at least one close encounter
@@ -46,7 +46,7 @@ contains
       return
    end function rmvs_encounter_check_tp
 
-   module elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
+   elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step

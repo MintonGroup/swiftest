@@ -23,9 +23,9 @@ contains
          if (npl == 0) return
          call pl%set_ir3()
 
-         ah0 = whm_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl))
-         do i = 1, NDIM
-            pl%ah(i, 1:npl) = ah0(i)
+         ah0 = whm_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
+         do i = 1, npl
+            pl%ah(:, i) = ah0(:)
          end do
          call whm_getacch_ah1(cb, pl) 
          call whm_getacch_ah2(cb, pl) 
@@ -62,7 +62,7 @@ contains
                ir3h => pl%ir3h, GMpl => pl%Gmass)
          if (ntp == 0 .or. npl == 0) return
 
-         ah0 = whm_getacch_ah0(pl%Gmass(:), xh(:,:))
+         ah0 = whm_getacch_ah0(pl%Gmass(:), xh(:,:), npl)
          do i = 1, ntp
             tp%ah(:, i) = ah0(:)
          end do
@@ -74,21 +74,20 @@ contains
       return
    end subroutine whm_getacch_tp
 
-   pure function whm_getacch_ah0(mu, xh) result(ah0)
+   function whm_getacch_ah0(mu, xh, n) result(ah0)
       !! author: David A. Minton
       !!
       !! Compute zeroth term heliocentric accelerations of planets 
       implicit none
       ! Arguments
-      real(DP), dimension(:), intent(in)           :: mu
+      real(DP), dimension(:),   intent(in)         :: mu
       real(DP), dimension(:,:), intent(in)         :: xh
+      integer(I4B),             intent(in)         :: n
       ! Result
       real(DP), dimension(NDIM)                    :: ah0
       ! Internals
       real(DP)                                     :: fac, r2, ir3h
-      integer(I4B)                                 :: i, n
-
-      n = size(mu)
+      integer(I4B)                                 :: i
 
       ah0(:) = 0.0_DP
       do i = 1, n
@@ -221,7 +220,7 @@ contains
          if (ntp == 0) return
          do i = 1, ntp
             acc(:) = 0.0_DP
-            !$omp simd private(dx,rji2,irij3,fac) reduction(-:acc)
+            !!$omp simd private(dx,rji2,irij3,fac) reduction(-:acc)
             do j = 1, npl
                dx(:) = xht(:, i) - xh(:, j)
                rji2 = dot_product(dx(:), dx(:))

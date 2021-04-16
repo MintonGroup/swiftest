@@ -1,7 +1,7 @@
 submodule(helio_classes) s_helio_step
    use swiftest
 contains
-   module subroutine helio_step_system(cb, pl, tp, config)
+   module subroutine helio_step_system(self, config)
       !! author: David A. Minton
       !!
       !! Step massive bodies and and active test particles ahead in heliocentric coordinates
@@ -10,11 +10,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine helio_step.f90
       implicit none
       ! Arguments
-      class(helio_cb),               intent(inout) :: cb      !! Helio central body object  
-      class(helio_pl),               intent(inout) :: pl      !! Helio central body object  
-      class(helio_tp),               intent(inout) :: tp      !! Helio central body object  
+      class(helio_nbody_system),     intent(inout) :: self    !! Helio nbody system object
       class(swiftest_configuration), intent(in)    :: config  !! Input collection of on parameters 
 
+      select type(cb => self%cb)
+      class is (helio_cb)
+      select type(pl => self%pl)
+      class is (helio_pl)
+      select type(tp => self%tp)
+      class is (helio_tp)
       associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
          call pl%set_rhill(cb)
          call tp%set_beg_end(xbeg = pl%xh)
@@ -24,6 +28,10 @@ contains
             call tp%step(cb, pl, config, t, dt)
          end if
       end associate
+      end select
+      end select
+      end select
+      return
    end subroutine helio_step_system 
 
    module subroutine helio_step_pl(self, cb, config, t, dt)

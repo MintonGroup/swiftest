@@ -19,7 +19,7 @@ implicit none
 !$omp private (i, iflag)
    do i = 2, npl
       if ((symba_plA%levelg(i) == irec) .and. (symba_plA%status(i) == ACTIVE)) then
-         call drift_one(mu, symba_plA%xh(:,i), symba_plA%vb(:,i), dt, iflag)
+         call drift_one(mu, symba_plA%xh(1,i), symba_plA%xh(2,i), symba_plA%xh(3,i), symba_plA%vb(1,i), symba_plA%vb(2,i), symba_plA%vb(3,i), dt, iflag)
          if (iflag /= 0) then
             write(*, *) " massive body ", symba_plA%name(i), " is lost!!!!!!!!!!"
             write(*, *) mu, dt

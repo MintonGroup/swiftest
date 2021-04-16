@@ -133,9 +133,9 @@ contains
       !! Sets one or more of the values of xbeg and xend
       implicit none
       ! Arguments
-      class(whm_tp),                 intent(inout) :: self !! Swiftest test particle object
-      real(DP), dimension(:,:),           optional :: xbeg, xend
-      real(DP), dimension(:,:),           optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
+      class(whm_tp),            intent(inout)           :: self !! Swiftest test particle object
+      real(DP), dimension(:,:), intent(in),    optional :: xbeg, xend
+      real(DP), dimension(:,:), intent(in),    optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
 
       if (present(xbeg)) then
          if (allocated(self%xbeg)) deallocate(self%xbeg)
