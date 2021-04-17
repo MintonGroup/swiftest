@@ -36,7 +36,7 @@ contains
                   config_planetocen%lextra_force = .false.
                   config_planetocen%lgr = .false.
                   ! Now compute the planetocentric values of acceleration
-                  call whm_getacch_tp(tp, cb, pl, config_planetocen, t, pl%xh)
+                  call whm_getacch_tp(tp, cb, pl%planetocentric(ipleP)%pl, config_planetocen, t, pl%xh)
 
                   ! Now compute any heliocentric values of acceleration 
                   if (tp%lfirst) then

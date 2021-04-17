@@ -442,7 +442,7 @@ contains
                      plenci%xh(:,:) = xbeg(:,:)
                      plenci%vh(:,:) = vbeg(:,:)
                      call tpenci%set_beg_end(xbeg = xbeg, xend = xend)
-                     call tpenci%step(cbenci, plenci, config, inner_time, dti)
+                     call tpenci%step(cbenci, pl, config, inner_time, dti)
                      do j = 1, nenc(i)
                         tpenci%xheliocentric(:, j) = tpenci%xh(:, j) + pl%inner(enc_index    )%x(:,i)
                      end do
@@ -497,7 +497,6 @@ contains
                   tpenci%xh(j, :) = tpenci%xheliocentric(j, :) - pl%inner(0)%x(j, i)
                   tpenci%vh(j, :) = pack(tp%vh(j,:), encmask(:)) - pl%inner(0)%v(j, i)
                end do
-               allocate(plenci%inner, source = pl%inner)
                ! Make sure that the test particles get the planetocentric value of mu 
                call tpenci%set_mu(cbenci)
             end associate
@@ -539,7 +538,6 @@ contains
                   tp%vh(j, tpind(1:nenc(i))) = tpenci%vh(j,1:nenc(i)) + pl%inner(NTPHENC)%v(j, i)
                end do
                deallocate(pl%planetocentric(i)%tp)
-               deallocate(pl%planetocentric(i)%pl%inner)
             end associate
          end do
       end associate

@@ -87,8 +87,6 @@ module whm_classes
       procedure, public :: step         => whm_step_tp         !! Steps the particle forward one stepsize
    end type whm_tp
 
-
-
    interface
       !> WHM massive body constructor method
       module subroutine whm_setup_pl(self,n)
