@@ -29,14 +29,20 @@ module rmvs_classes
       procedure, public :: step          => rmvs_step_system
    end type rmvs_nbody_system
 
+   type, private :: rmvs_interp
+      real(DP), dimension(:, :), allocatable :: x    !! interpolated heliocentric planet position for outer encounter
+      real(DP), dimension(:, :), allocatable :: v    !! interpolated heliocentric planet velocity for outer encounter
+      real(DP), dimension(:, :), allocatable :: aobl !! Encountering planet's oblateness acceleration value
+   end type rmvs_interp
+
    !********************************************************************************************************************************
    ! rmvs_cb class definitions and method interfaces
    !*******************************************************************************************************************************
    !> RMVS central body particle class 
    type, public, extends(whm_cb) :: rmvs_cb
       logical                                   :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of test particles used for close encounter calculations
-      real(DP), dimension(NDIM) :: xin = [0.0_DP, 0.0_DP, 0.0_DP]
-      real(DP), dimension(NDIM) :: vin = [0.0_DP, 0.0_DP, 0.0_DP]
+      type(rmvs_interp),           dimension(:), allocatable :: outer !! interpolated heliocentric central body position for outer encounters
+      type(rmvs_interp),           dimension(:), allocatable :: inner !! interpolated heliocentric central body position for inner encounters
    end type rmvs_cb
 
    !********************************************************************************************************************************
@@ -73,12 +79,7 @@ module rmvs_classes
    !********************************************************************************************************************************
    !                                    rmvs_pl class definitions and method interfaces
    !*******************************************************************************************************************************
-
-   type, private :: rmvs_interp
-      real(DP), dimension(:, :), allocatable :: x    !! interpolated heliocentric planet position for outer encounter
-      real(DP), dimension(:, :), allocatable :: v    !! interpolated heliocentric planet velocity for outer encounter
-      real(DP), dimension(:, :), allocatable :: aobl !! Encountering planet's oblateness acceleration value
-   end type rmvs_interp 
+ 
 
    !> RMVS massive body particle class
    type, private, extends(whm_pl) :: rmvs_base_pl

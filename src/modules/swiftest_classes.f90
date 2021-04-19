@@ -356,8 +356,7 @@ module swiftest_classes
          class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
       end subroutine discard_system
 
-      module pure subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
-         !$omp declare simd(drift_one)
+      module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
          implicit none
          real(DP), intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
          real(DP),  intent(inout)   :: px, py, pz, vx, vy, vz  !! Position and velocity of body to drift

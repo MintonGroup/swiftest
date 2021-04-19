@@ -9,8 +9,7 @@ submodule (swiftest_classes) drift_implementation
    integer(I2B), parameter :: NLAG2    = 40
 
 contains
-   module pure subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
-      !$omp declare simd
+   module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Perform Danby drift for one body, redoing drift with smaller substeps if original accuracy is insufficient
@@ -36,7 +35,7 @@ contains
          dttmp = 0.1_DP * dt
          do i = 1, 10
             call drift_dan(mu, x(:), v(:), dttmp, iflag)
-            if (iflag /= 0) return
+            if (iflag /= 0) exit
          end do
       end if
       px = x(1); py = x(2); pz = x(3)

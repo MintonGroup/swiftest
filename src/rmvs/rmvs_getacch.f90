@@ -28,7 +28,10 @@ contains
          if (tp%lplanetocentric) then  ! This is a close encounter step, so any accelerations requiring heliocentric position values
                                        ! must be handeled outside the normal WHM method call
             select type(pl)
-               class is (rmvs_pl)
+            class is (rmvs_pl)
+            select type (cb)
+            class is (rmvs_cb)
+               associate(xpc => pl%xh, xpct => self%xh)
                   allocate(xh_original, source=tp%xh)
                   config_planetocen = config
                   ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter
@@ -36,16 +39,16 @@ contains
                   config_planetocen%lextra_force = .false.
                   config_planetocen%lgr = .false.
                   ! Now compute the planetocentric values of acceleration
-                  call whm_getacch_tp(tp, cb, pl%planetocentric(ipleP)%pl, config_planetocen, t, pl%xh)
+                  call whm_getacch_tp(tp, cb, pl, config_planetocen, t, pl%xh)
 
                   ! Now compute any heliocentric values of acceleration 
                   if (tp%lfirst) then
                      do i = 1, ntp
-                        tp%xheliocentric(:,i) = tp%xh(:,i) + pl%inner(enc_index - 1)%x(:,ipleP)
+                        tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(enc_index - 1)%x(:,1)
                      end do
                   else
                      do i = 1, ntp
-                        tp%xheliocentric(:,i) = tp%xh(:,i) + pl%inner(enc_index    )%x(:,ipleP)
+                        tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(enc_index    )%x(:,1)
                      end do
                   end if
                   ! Swap the planetocentric and heliocentric position vectors
@@ -53,9 +56,9 @@ contains
                   if (config%loblatecb) then
                      ! Put in the current encountering planet's oblateness acceleration as the central body's
                      if (tp%lfirst) then
-                        cb_heliocentric%aobl(:) = pl%inner(enc_index - 1)%aobl(:, ipleP)
+                        cb_heliocentric%aobl(:) = cb%inner(enc_index - 1)%aobl(:,1)
                      else
-                        cb_heliocentric%aobl(:) = pl%inner(enc_index    )%aobl(:, ipleP)
+                        cb_heliocentric%aobl(:) = cb%inner(enc_index    )%aobl(:,1)
                      end if
                      call tp%obl_acc(cb_heliocentric)
                   end if
@@ -64,6 +67,8 @@ contains
                   if (config%lgr) call tp%gr_getacch(cb_heliocentric, config)
                   
                   call move_alloc(xh_original, tp%xh)
+               end associate
+            end select
             end select
          else ! Not a close encounter, so just proceded with the standard WHM method
             call whm_getacch_tp(tp, cb, pl, config, t, pl%xh)

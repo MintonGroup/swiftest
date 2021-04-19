@@ -16,9 +16,10 @@ contains
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
-      integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
       integer(I4B) :: i !! Loop counter
-      real(DP) :: rmag, vmag2, energy, dtp
+      real(DP) :: rmag, vmag2, energy
+      integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
+      real(DP), dimension(:), allocatable          :: dtp
 
       associate(npl    => self%nbody, &
          xh     => self%xh, &
@@ -30,23 +31,28 @@ contains
 
          allocate(iflag(npl))
          iflag(:) = 0
-      
-         do i = 1, npl
-            if (config%lgr) then
+         allocate(dtp(npl))
+
+         if (config%lgr) then
+            do i = 1,npl
                rmag = norm2(xh(:, i))
                vmag2 = dot_product(vb(:, i),  vb(:, i))
                energy = 0.5_DP * vmag2 - mu(i) / rmag
-               dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
-            else
-               dtp = dt
-            end if
-            call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vb(1, i), vb(2, i), vb(3, i), dtp, iflag(i))
-         end do 
+               dtp(i) = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+            end do
+         else
+            dtp(:) = dt
+         end if 
+
+         !!$omp simd
+         call drift_one(mu(1:npl), xh(1,1:npl), xh(2,1:npl), xh(3,1:npl), &
+                                   vb(1,1:npl), vb(2,1:npl), vb(3,1:npl), &
+                                   dtp(1:npl), iflag(1:npl))
          if (any(iflag(1:npl) /= 0)) then
             do i = 1, npl
                write(*, *) " Planet ", self%name(i), " is lost!!!!!!!!!!"
-               write(*, *) xh
-               write(*, *) vb
+               write(*, *) xh(:,i)
+               write(*, *) vb(:,i)
                write(*, *) " stopping "
                call util_exit(FAILURE)
             end do
@@ -103,33 +109,39 @@ contains
       class(swiftest_configuration), intent(in)    :: config !! Input collection of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
-      integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
       integer(I4B) :: i !! Loop counter
-      real(DP) :: rmag, vmag2, energy, dtp
+      real(DP) :: rmag, vmag2, energy
+      real(DP), dimension(:), allocatable          :: dtp
+      integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
    
       associate(ntp    => self%nbody, &
          xh     => self%xh, &
-         vb     => self%vb, &
+         vh     => self%vh, &
          status => self%status,&
          mu     => self%mu)
          if (ntp == 0) return
          allocate(iflag(ntp))
+         allocate(dtp(ntp))
          iflag(:) = 0
-         do i = 1,ntp
-            if (status(i) == ACTIVE) then
-               if (config%lgr) then
-                  rmag = norm2(xh(:, i))
-                  vmag2 = dot_product(vb(:, i), vb(:, i))
-                  energy = 0.5_DP * vmag2 - cb%Gmass / rmag
-                  dtp = dt * (1.0_DP + 3 * config%inv_c2 * energy)
-               else
-                  dtp = dt
-               end if
-               call drift_one(mu(i), xh(1, i), xh(2, i), xh(3, i), vb(1, i), vb(2, i), vb(3, i), dtp, iflag(i))
-               if (iflag(i) /= 0) status = DISCARDED_DRIFTERR
-            end if
-         end do
+
+         iflag(:) = 0
+         allocate(dtp(ntp))
+
+         if (config%lgr) then
+            do i = 1,ntp
+               rmag = norm2(xh(:, i))
+               vmag2 = dot_product(vh(:, i),  vh(:, i))
+               energy = 0.5_DP * vmag2 - mu(i) / rmag
+               dtp(i) = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+            end do
+         else
+            dtp(:) = dt
+         end if 
+         call drift_one(mu(1:ntp), xh(1,1:ntp), xh(2,1:ntp), xh(3,1:ntp), &
+                                   vh(1,1:ntp), vh(2,1:ntp), vh(3,1:ntp), &
+                                   dtp(1:ntp), iflag(1:ntp))
          if (any(iflag(1:ntp) /= 0)) then
+            status = DISCARDED_DRIFTERR
             do i = 1, ntp
                if (iflag(i) /= 0) write(*, *) "Particle ", self%name(i), " lost due to error in Danby drift"
             end do

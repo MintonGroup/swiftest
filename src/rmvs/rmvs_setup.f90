@@ -20,17 +20,17 @@ contains
          call whm_setup_pl(pl, n) 
          if (n <= 0) return
 
+         allocate(pl%outer(0:NTENC))
+         allocate(pl%inner(0:NTPHENC))
          if (.not.pl%lplanetocentric) then
             allocate(pl%nenc(n))
             pl%nenc(:)         = 0
 
             ! Set up inner and outer planet interpolation vector storage containers
-            allocate(pl%outer(0:NTENC))
             do i = 0, NTENC
                allocate(pl%outer(i)%x(NDIM, n))
                allocate(pl%outer(i)%v(NDIM, n))
             end do
-            allocate(pl%inner(0:NTPHENC))
             do i = 0, NTPHENC
                allocate(pl%inner(i)%x(NDIM, n))
                allocate(pl%inner(i)%v(NDIM, n))
