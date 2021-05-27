@@ -61,8 +61,8 @@ OPTIMIZE = -qopt-report=5
 
 #FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -CB -nogen-interfaces -no-pie -fp-speculation=safe $(SIMDVEC) $(PAR) #$(HEAPARR)
 FORTRAN = ifort
-#FFLAGS  = $(IDEBUG) 
-FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -shared-intel -debug inline-debug-info -qopt-report=5 $(SIMDVEC) $(STRICTREAL) $(PAR)
+FFLAGS  = $(IDEBUG) 
+#FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -shared-intel -debug inline-debug-info -qopt-report=5 $(SIMDVEC) $(STRICTREAL) $(PAR)
 
 
 GDEBUG = -ggdb -g3 -Og -fbacktrace -fbounds-check 
@@ -71,8 +71,8 @@ GPAR = -fopenmp -ftree-parallelize-loops=4
 GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 
-FORTRAN = gfortran
-FFLAGS = $(GDEBUG)
+#FORTRAN = gfortran
+#FFLAGS = $(GDEBUG)
 
 
 # DO NOT include in CFLAGS the "-c" option to compile object only

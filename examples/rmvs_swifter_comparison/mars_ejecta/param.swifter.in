@@ -28,4 +28,3 @@ ENC_OUT        enc.swifter.dat
 EXTRA_FORCE    no                  ! no extra user-defined forces
 BIG_DISCARD    yes                 ! output all planets if anything discarded
 RHILL_PRESENT  yes                 ! Hill's sphere radii in input file
-EUCL_THRESHOLD  999999999
