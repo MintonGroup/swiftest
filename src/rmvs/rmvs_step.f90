@@ -540,6 +540,7 @@ contains
             associate(cbenci => pl%planetocentric(i)%cb, &
                       tpenci => pl%planetocentric(i)%tp, &
                       plenci => pl%planetocentric(i)%pl)
+               if (allocated(tpind)) deallocate(tpind)
                allocate(tpind(nenc(i)))
                ! Index array of encountering test particles
                if (allocated(encmask)) deallocate(encmask)

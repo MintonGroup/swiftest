@@ -65,7 +65,7 @@ FORTRAN = ifort
 FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -shared-intel -debug inline-debug-info -qopt-report=5 $(SIMDVEC) $(STRICTREAL) $(PAR)
 
 
-GDEBUG = -ggdb -g3 -Og -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=zero,invalid,overflow,underflow,denormal
+GDEBUG = -ggdb -g3 -Og -fbacktrace -fbounds-check 
 GPRODUCTION = -O3
 GPAR = -fopenmp -ftree-parallelize-loops=4
 GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
