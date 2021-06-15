@@ -482,6 +482,7 @@ contains
                       tpenci => pl%planetocentric(i)%tp)
                tpenci%lplanetocentric = .true.
                call tpenci%setup(nenc(i))
+               tpenci%cb_heliocentric = cb
                tpenci%ipleP = i
                tpenci%status(:) = ACTIVE
                tpenci%name(:) = pack(tp%name(:), encmask(:)) 
