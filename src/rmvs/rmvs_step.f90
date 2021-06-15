@@ -222,7 +222,7 @@ contains
          xtmp(:, :) = pl%inner(0)%x(:, :)
          vtmp(:, :) = pl%inner(0)%v(:, :)
          if (config%loblatecb) then
-            allocate(xh_original,mold=pl%xh)
+            allocate(xh_original,source=pl%xh)
             pl%xh(:, :) = xtmp(:, :) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
             call pl%obl_acc(cb)
             pl%inner(0)%aobl(:, :) = pl%aobl(:, :) ! Save the oblateness acceleration on the planet for this substep
