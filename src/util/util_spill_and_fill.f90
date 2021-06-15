@@ -19,7 +19,6 @@ contains
       associate(keeps => self)
          discards%name(:)     = pack(keeps%name(:),          lspill_list(:))
          discards%status(:)   = pack(keeps%status(:),        lspill_list(:))
-         discards%ldiscard(:) = pack(keeps%ldiscard(:),      lspill_list(:))
          discards%a(:)        = pack(keeps%a(:),             lspill_list(:))
          discards%e(:)        = pack(keeps%e(:),             lspill_list(:))
          discards%capom(:)    = pack(keeps%capom(:),         lspill_list(:))
@@ -37,7 +36,6 @@ contains
          if (count(.not.lspill_list(:))  > 0) then 
             keeps%name(:)       = pack(keeps%name(:),     .not. lspill_list(:))
             keeps%status(:)     = pack(keeps%status(:),   .not. lspill_list(:))
-            keeps%ldiscard(:)   = pack(keeps%ldiscard(:), .not. lspill_list(:))
             keeps%a(:)          = pack(keeps%a(:),        .not. lspill_list(:))
             keeps%e(:)          = pack(keeps%e(:),        .not. lspill_list(:))
             keeps%inc(:)        = pack(keeps%inc(:),      .not. lspill_list(:))
@@ -58,6 +56,12 @@ contains
          ! Therefore we need to set the nbody values for both the keeps and discareds
          discards%nbody = count(lspill_list(:))
          keeps%nbody = count(.not.lspill_list(:)) 
+         if (allocated(keeps%ldiscard)) deallocate(keeps%ldiscard)
+         if (allocated(discards%ldiscard)) deallocate(discards%ldiscard)
+         allocate(keeps%ldiscard(keeps%nbody))
+         allocate(discards%ldiscard(discards%nbody))
+         keeps%ldiscard = .false.
+         discards%ldiscard = .true.
 
       end associate
       
