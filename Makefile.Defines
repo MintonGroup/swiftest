@@ -51,29 +51,32 @@ ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vec -vecabi=cmdtarget -simd -shared-intel 
 VTUNE_FLAGS = -g -O2 -vec -simd -shared-intel -qopenmp -debug inline-debug-info -parallel-source-info=2 -parallel -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -qopenmp -fp-model no-except -mp1 -xhost -traceback 
 #Be sure to set the environment variable KMP_FORKJOIN_FRAMES=1 for OpenMP debuging in vtune
 
-IDEBUG = -O0 -warn all -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin 
+IDEBUG = -O0 -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin 
 
-STRICTREAL =  -mp1 -prec-div -prec-sqrt -ftz -assume protect-parens -fp-speculation safe
-SIMDVEC = -vec -simd -xhost -fma -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -qopt-zmm-usage=high -fp-model no-except
+STRICTREAL = -mp1 -fp-model strict -prec-div -prec-sqrt -assume protect-parens 
+SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -prec-div -prec-sqrt -assume protect-parens
 PAR = -parallel -qopenmp 
 HEAPARR = -heap-arrays 1048576 
-OPTIMIZE = -qopt-report=5
-
-#FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -CB -nogen-interfaces -no-pie -fp-speculation=safe $(SIMDVEC) $(PAR) #$(HEAPARR)
-FORTRAN = ifort
-FFLAGS  = $(IDEBUG) 
-#FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -shared-intel -debug inline-debug-info -qopt-report=5 $(SIMDVEC) $(STRICTREAL) $(PAR)
+OPTIMIZE = -qopt-report=5 
 
 
-GDEBUG = -ggdb -g3 -Og -fbacktrace -fbounds-check 
+#debug flags
+
+GDEBUG = -g -O0 -fbacktrace -fbounds-check 
 GPRODUCTION = -O3
 GPAR = -fopenmp -ftree-parallelize-loops=4
 GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 
-#FORTRAN = gfortran
-#FFLAGS = $(GDEBUG)
+#FFLAGS  = -init=snan,arrays -traceback -no-wrap-margin -O3 -g -CB -nogen-interfaces -no-pie -fp-speculation=safe $(SIMDVEC) $(PAR) #$(HEAPARR)
+#FFLAGS  = $(IDEBUG) $(HEAPARR)
+FFLAGS  = -init=snan,arrays -no-wrap-margin -fp-model strict -fp-model no-except -traceback -g $(OPTIMIZE) -O3  $(SIMDVEC) $(PAR) $(HEAPARR) 
+FORTRAN = ifort
+#AR     = xiar
 
+#FORTRAN = gfortran
+#FFLAGS =  -ffree-line-length-none $(GDEBUG) #$(GMEM)
+AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
