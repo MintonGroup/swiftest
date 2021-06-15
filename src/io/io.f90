@@ -740,7 +740,7 @@ contains
          open(unit = iu, file = config%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
          read(iu, *, iostat = ierr) val 
          self%Gmass = real(val, kind=DP)
-         self%mass = real(val / config%GU * val, kind=DP)
+         self%mass = real(val / config%GU, kind=DP)
          read(iu, *, iostat = ierr) self%radius
          read(iu, *, iostat = ierr) self%j2rp2
          read(iu, *, iostat = ierr) self%j4rp4
