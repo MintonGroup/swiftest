@@ -25,8 +25,8 @@ GU       = np.longdouble(GC / (DU2M**3 / (MU2KG * TU2S**2)))
 GMSun = np.longdouble(GMSunSI / (DU2M**3 / TU2S**2))
 
 # Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
-J2 = np.longdouble(2.198e-7) * (Rsun / DU2M)**2
-J4 = np.longdouble(-4.805e-9) * (Rsun / DU2M)**4
+J2 = 0.0 #np.longdouble(2.198e-7) * (Rsun / DU2M)**2
+J4 = 0.0 #np.longdouble(-4.805e-9) * (Rsun / DU2M)**4
 
 npl = 9
 ntp = 2 * npl
