@@ -391,7 +391,7 @@ contains
 
       rhill2 = pl%rhill(ipleP)**2
       mu = pl%Gmass(ipleP)
-      associate( nenc => tp%nbody, xpc => tp%xh, vpc => tp%vh)
+      associate(nenc => tp%nbody, xpc => tp%xh, vpc => tp%vh)
          if (lfirst) then
             do i = 1, nenc
                if (tp%status(i) == ACTIVE) then
