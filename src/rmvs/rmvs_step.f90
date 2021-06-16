@@ -278,8 +278,14 @@ contains
                pl%inner(inner_index)%aobl(:, :) = pl%aobl(:, :) 
             end if
          end do
-         ! Put the planet positions back into place
-         if (config%loblatecb) call move_alloc(xh_original, pl%xh)
+         if (config%loblatecb) then
+            ! Calculate the final value of oblateness accelerations at the final inner substep
+            pl%xh(:,:) = pl%inner(NTPHENC)%x(:, :)
+            call pl%obl_acc(cb)
+            pl%inner(NTPHENC)%aobl(:, :) = pl%aobl(:, :) 
+            ! Put the planet positions back into place
+            call move_alloc(xh_original, pl%xh)
+         end if
       end associate
       return
 

@@ -28,7 +28,6 @@ contains
             aobl(:, i) = fac1 * xh(:, i)
             aobl(3, i) = fac2 * xh(3, i) + aobl(3, i)
          end do
-         aoblcb(:) = 0.0_DP
          select type(self)
          class is (swiftest_pl)
             associate(Mpl => self%Gmass)
