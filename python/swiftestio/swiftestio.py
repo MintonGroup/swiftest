@@ -4,15 +4,20 @@ from scipy.io import FortranFile
 import xarray as xr
 from astroquery.jplhorizons import Horizons
 import astropy.constants as const
+import datetime
 
-# Constants, including values from JPL Horizons
+# Constants in SI units
 AU2M = np.longdouble(const.au.value)
 GMSunSI = np.longdouble(const.GM_sun.value)
-Rsun = np.longdouble(const.R_sun.value)
+RSun = np.longdouble(const.R_sun.value)
 GC = np.longdouble(const.G.value)
-JD = 86400
-year = np.longdouble(365.25 * JD)
+JD2S = 86400
+year = np.longdouble(365.25 * JD2S)
 einsteinC = np.longdouble(299792458.0)
+# Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
+J2Sun = np.longdouble(2.198e-7)
+J4Sun = np.longdouble(-4.805e-9)
+
 
 #I/O Routines for reading in Swifter and Swiftest parameter and binary data files
 def read_swifter_param(inparfile):
@@ -127,6 +132,7 @@ def read_swiftest_config(config_file_name):
     'DT'             : 0.0,
     'PL_IN'          : "",
     'TP_IN'          : "",
+    'CB_IN'          : "",
     'IN_TYPE'        : "ASCII",
     'ISTEP_OUT'      : -1,
     'BIN_OUT'        : "",
@@ -297,6 +303,47 @@ def swifter_stream(f, param):
         yield t, npl, plid, pvec.T, plab, \
               ntp, tpid, tvec.T, tlab
 
+
+def make_swiftest_labels(config):
+    tlab = []
+    if config['OUT_FORM'] == 'XV':
+        tlab.append('px')
+        tlab.append('py')
+        tlab.append('pz')
+        tlab.append('vx')
+        tlab.append('vy')
+        tlab.append('vz')
+    elif config['OUT_FORM'] == 'EL':
+        tlab.append('a')
+        tlab.append('e')
+        tlab.append('inc')
+        tlab.append('capom')
+        tlab.append('omega')
+        tlab.append('capm')
+    plab = tlab.copy()
+    plab.append('Mass')
+    plab.append('Radius')
+    clab = ['Mass', 'Radius', 'J_2', 'J_4']
+    if config['ROTATION'] == 'YES':
+        clab.append('Ip_x')
+        clab.append('Ip_y')
+        clab.append('Ip_z')
+        clab.append('rot_x')
+        clab.append('rot_y')
+        clab.append('rot_z')
+        plab.append('Ip_x')
+        plab.append('Ip_y')
+        plab.append('Ip_z')
+        plab.append('rot_x')
+        plab.append('rot_y')
+        plab.append('rot_z')
+    if config['TIDES'] == 'YES':
+        clab.append('k2')
+        clab.append('Q')
+        plab.append('k2')
+        plab.append('Q')
+    return clab, plab, tlab
+
 def swiftest_stream(f, config):
     """
     Reads in a Swifter bin.dat file and returns a single frame of data as a datastream
@@ -384,43 +431,7 @@ def swiftest_stream(f, config):
             t6 = f.read_reals(np.float64)
         cbid = np.array([0])
 
-        tlab = []
-        if config['OUT_FORM'] == 'XV':
-            tlab.append('px')
-            tlab.append('py')
-            tlab.append('pz')
-            tlab.append('vx')
-            tlab.append('vy')
-            tlab.append('vz')
-        elif config['OUT_FORM'] == 'EL':
-            tlab.append('a')
-            tlab.append('e')
-            tlab.append('inc')
-            tlab.append('capom')
-            tlab.append('omega')
-            tlab.append('capm')
-        plab = tlab.copy()
-        plab.append('Mass')
-        plab.append('Radius')
-        clab = ['Mass', 'Radius', 'J_2', 'J_4']
-        if config['ROTATION'] == 'YES':
-            clab.append('Ip_x')
-            clab.append('Ip_y')
-            clab.append('Ip_z')
-            clab.append('rot_x')
-            clab.append('rot_y')
-            clab.append('rot_z')
-            plab.append('Ip_x')
-            plab.append('Ip_y')
-            plab.append('Ip_z')
-            plab.append('rot_x')
-            plab.append('rot_y')
-            plab.append('rot_z')
-        if config['TIDES'] == 'YES':
-            clab.append('k2')
-            clab.append('Q')
-            plab.append('k2')
-            plab.append('Q')
+        clab, plab, tlab = make_swiftest_labels(config)
 
         if npl > 0:
             pvec = np.vstack([p1,p2,p3,p4,p5,p6,Mpl,Rpl])
@@ -519,18 +530,253 @@ def swiftest2xr(config):
     ds = xr.combine_by_coords([cbds, plds, tpds])
     return ds
 
+def solar_system_pl(config, ephemerides_start_date):
+    """
+    Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
+
+    Parameters
+    ----------
+    config : dict
+        Swiftest Configuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the config file
+    ephemerides_start_date : string
+        Date to use when obtaining the ephemerides in the format YYYY-MM-DD
+
+    Returns
+    -------
+    xarray dataset
+    """
+    # Planet ids
+    planetid = {
+        'mercury': '1',
+        'venus': '2',
+        'earthmoon': '3',
+        'mars': '4',
+        'jupiter': '5',
+        'saturn': '6',
+        'uranus': '7',
+        'neptune': '8',
+        'plutocharon': '9'
+    }
+
+    # Planet Msun/M ratio
+    MSun_over_Mpl = {
+        'mercury': np.longdouble(6023600.0),
+        'venus': np.longdouble(408523.71),
+        'earthmoon': np.longdouble(328900.56),
+        'mars': np.longdouble(3098708.),
+        'jupiter': np.longdouble(1047.3486),
+        'saturn': np.longdouble(3497.898),
+        'uranus': np.longdouble(22902.98),
+        'neptune': np.longdouble(19412.24),
+        'plutocharon': np.longdouble(1.35e8)
+    }
+
+    # Planet radii in meters
+    planetradius = {
+        'mercury': np.longdouble(2439.4e3),
+        'venus': np.longdouble(6051.8e3),
+        'earthmoon': np.longdouble(6371.0084e3),  # Earth only for radius
+        'mars': np.longdouble(3389.50e3),
+        'jupiter': np.longdouble(69911e3),
+        'saturn': np.longdouble(58232.0e3),
+        'uranus': np.longdouble(25362.e3),
+        'neptune': np.longdouble(24622.e3),
+        'plutocharon': np.longdouble(1188.3e3)
+    }
+
+    # Unit conversion factors
+    DCONV = AU2M / config['DU2M']
+    VCONV = (AU2M / JD2S) / (config['DU2M'] / config['TU2S'])
+    THIRDLONG = np.longdouble(1.0) / np.longdouble(3.0)
+
+    # Central body value vectors
+    GMcb = np.array([GMSunSI * config['TU2S']**2 / config['DU2M']**3])
+    Rcb = np.array([RSun / config['DU2M']])
+    J2RP2 = np.array([J2Sun * (RSun / config['DU2M'])**2])
+    J4RP4 = np.array([J4Sun * (RSun / config['DU2M'])**4])
+    cbid = np.array([0])
+    cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4])
+
+    # Horizons date time internal variables
+    tstart = datetime.date.fromisoformat(ephemerides_start_date)
+    tstep = datetime.timedelta(days=1)
+    tend = tstart + tstep
+    ephemerides_end_date = tend.isoformat()
+    ephemerides_step = '1d'
+
+    pldata = {}
+    p1 = []
+    p2 = []
+    p3 = []
+    p4 = []
+    p5 = []
+    p6 = []
+    Rhill = []
+    Rpl = []
+    GMpl = []
+
+    # Fetch solar system ephemerides from Horizons
+    for key, val in planetid.items():
+        pldata[key] = Horizons(id=val, id_type='majorbody', location='@sun',
+                               epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                       'step': ephemerides_step})
+        if config['OUT_FORM'] == 'XV':
+            p1.append(pldata[key].vectors()['x'][0] * DCONV)
+            p2.append(pldata[key].vectors()['y'][0] * DCONV)
+            p3.append(pldata[key].vectors()['z'][0] * DCONV)
+            p4.append(pldata[key].vectors()['vx'][0] * VCONV)
+            p5.append(pldata[key].vectors()['vy'][0] * VCONV)
+            p6.append(pldata[key].vectors()['vz'][0] * VCONV)
+        elif config['OUT_FORM'] == 'EL':
+            p1.append(pldata[key].elements()['a'][0] * DCONV)
+            p2.append(pldata[key].elements()['e'][0])
+            p3.append(pldata[key].elements()['inc'][0] * np.pi / 180.0)
+            p4.append(pldata[key].elements()['Omega'][0] * np.pi / 180.0)
+            p5.append(pldata[key].elements()['w'][0] * np.pi / 180.0)
+            p6.append(pldata[key].elements()['M'][0] * np.pi / 180.0)
+        Rhill.append(pldata[key].elements()['a'][0] * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
+        Rpl.append(planetradius[key] * DCONV)
+        GMpl.append(GMcb[0] / MSun_over_Mpl[key])
+    # Generate planet value vectors
+    plid = np.fromiter(planetid.values(), dtype=int)
+    pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl])
+
+    dims = ['time', 'id', 'vec']
+    cb = []
+    pl = []
+    tp = []
+    t = np.array([0.0])
+
+    clab, plab, tlab = make_swiftest_labels(config)
+
+    #Prepare frames by adding an extra axis for the time coordinate
+    cbframe = np.expand_dims(cvec.T, axis=0)
+    plframe = np.expand_dims(pvec.T, axis=0)
+
+    #Create xarray DataArrays out of each body type
+    cbxr = xr.DataArray(cbframe, dims = dims, coords = {'time' : t, 'id' : cbid, 'vec' : clab})
+    plxr = xr.DataArray(plframe, dims = dims, coords = {'time' : t, 'id' : plid, 'vec' : plab})
+
+    cb.append(cbxr)
+    pl.append(plxr)
+
+    cbda = xr.concat(cb,dim='time')
+    plda = xr.concat(pl,dim='time')
+
+    cbds = cbda.to_dataset(dim = 'vec')
+    plds = plda.to_dataset(dim = 'vec')
+    ds = xr.combine_by_coords([cbds, plds])
+    return ds
+
+def swiftest_xr2_infile(ds, config, framenum=-1):
+    """
+    Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
+
+    Parameters
+    ----------
+    ds : xarray dataset
+        Dataset containing Swiftest n-body data in XV format
+    framenum : int
+        Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+    config : dict
+        Swiftest Configuration parameters. This method uses the names of the cb, pl, and tp files from the configuration
+
+    Returns
+    -------
+    A set of three input files for a Swiftest run
+    """
+    frame = ds.isel(time=framenum)
+    cb = frame.where(frame.id == 0, drop=True)
+    pl = frame.where(frame.id > 0, drop=True)
+    pl = pl.where(np.invert(np.isnan(pl['Mass'])), drop=True).drop_vars(['J_2', 'J_4'])
+    tp = frame.where(np.isnan(frame['Mass']), drop=True).drop_vars(['Mass', 'Radius', 'J_2', 'J_4'])
+
+    GMSun = np.double(cb['Mass'])
+    RSun = np.double(cb['Radius'])
+    J2 = np.double(cb['J_2'])
+    J4 = np.double(cb['J_4'])
+
+    if config['IN_TYPE'] == 'ASCII':
+        # Swiftest Central body file
+        cbfile = open(config['CB_IN'], 'w')
+        print(GMSun, file=cbfile)
+        print(RSun, file=cbfile)
+        print(J2, file=cbfile)
+        print(J4, file=cbfile)
+        cbfile.close()
+
+        plfile = open(config['PL_IN'], 'w')
+        print(pl.id.count().values, file=plfile)
+        for i in pl.id:
+            pli = pl.sel(id=i)
+            print(i.values, pli['Mass'].values, file=plfile)
+            print(pli['Radius'].values, file=plfile)
+            print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
+            print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
+        plfile.close()
+
+        # TP file
+        tpfile = open(config['TP_IN'], 'w')
+        print(tp.id.count().values, file=tpfile)
+        for i in tp.id:
+            tpi = tp.sel(id=i)
+            print(i.values, file=tpfile)
+            print(tpi['px'].values, tpi['py'].values, tpi['pz'].values, file=tpfile)
+            print(tpi['vx'].values, tpi['vy'].values, tpi['vz'].values, file=tpfile)
+        tpfile.close()
+    elif config['IN_TYPE'] == 'REAL8':
+        # Now make Swiftest files
+        cbfile = FortranFile(swiftest_cb, 'w')
+        Msun = np.double(1.0)
+        cbfile.write_record(np.double(GMSun))
+        cbfile.write_record(np.double(rmin))
+        cbfile.write_record(np.double(J2))
+        cbfile.write_record(np.double(J4))
+        cbfile.close()
+
+        plfile = FortranFile(swiftest_pl, 'w')
+        plfile.write_record(npl)
+
+        plfile.write_record(plid)
+        plfile.write_record(p_pl[0])
+        plfile.write_record(p_pl[1])
+        plfile.write_record(p_pl[2])
+        plfile.write_record(v_pl[0])
+        plfile.write_record(v_pl[1])
+        plfile.write_record(v_pl[2])
+        plfile.write_record(mass)
+        plfile.write_record(radius)
+        plfile.close()
+        tpfile = FortranFile(swiftest_tp, 'w')
+        ntp = 1
+        tpfile.write_record(ntp)
+        tpfile.write_record(tpid)
+        tpfile.write_record(p_tp[0])
+        tpfile.write_record(p_tp[1])
+        tpfile.write_record(p_tp[2])
+        tpfile.write_record(v_tp[0])
+        tpfile.write_record(v_tp[1])
+        tpfile.write_record(v_tp[2])
+    else:
+        print(f"{config['IN_TYPE']} is an unknown file type")
 if __name__ == '__main__':
 
-    workingdir = '/Users/daminton/git/swiftest/examples/rmvs_swifter_comparison/mars_ejecta/'
-    inparfile = workingdir + 'param.swifter.in'
-    param = read_swifter_param(inparfile)
-    param['BIN_OUT'] = workingdir + param['BIN_OUT']
+    workingdir = '/Users/daminton/git/swiftest/examples/rmvs_swifter_comparison/9pl_18tp_encounters/'
+    #inparfile = workingdir + 'param.swifter.in'
+    #param = read_swifter_param(inparfile)
+    #param['BIN_OUT'] = workingdir + param['BIN_OUT']
 
     config_file_name = workingdir + 'config.swiftest.in'
     config = read_swiftest_config(config_file_name)
     config['BIN_OUT'] = workingdir + config['BIN_OUT']
+    ds = solar_system_pl(config, '2020-06-17')
+    ds
 
-    swiftestdat = swiftest2xr(config)
+    #swiftestdat = swiftest2xr(config)
+    config['CB_IN'] = workingdir + 'cb_test.in'
+    config['PL_IN'] = workingdir + 'pl_test.in'
+    config['TP_IN'] = workingdir + 'tp_test.in'
+    swiftest_xr2_infile(ds, config)
     #swifterdat = swifter2xr(param)
     #print(swiftestdat['a'])
     #print(swiftestdf.head())
