@@ -98,8 +98,6 @@ contains
             rts = RHPSCALE
             lencounter = tp%encounter_check(cb, pl, dt, rts) 
             if (lencounter) then
-               associate(xbeg => pl%outer(outer_index - 1)%x(:, :), xend => pl%outer(outer_index    )%x(:, :), &
-                         tpxbeg => tp%xbeg, tpxend => tp%xend)
                ! Interpolate planets in inner encounter region
                call rmvs_interp_in(pl, cb, dto, outer_index, config)
                ! Step through the inner region
@@ -108,7 +106,6 @@ contains
                tp%lfirst = .true.
                call tp%step(cb, pl, config, outer_time, dto)
                tp%lfirst = lfirsttp
-               end associate
             else
                call tp%step(cb, pl, config, outer_time, dto)
             end if
