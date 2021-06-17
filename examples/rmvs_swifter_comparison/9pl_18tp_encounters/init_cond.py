@@ -20,13 +20,13 @@ c = np.longdouble(299792458.0)
 
 MU2KG    = np.longdouble(GMSunSI / GC) #Conversion from mass unit to kg
 DU2M     = np.longdouble(AU2M)         #Conversion from radius unit to centimeters
-TU2S     = np.longdouble(year)         #Conversion from time unit to seconds
+TU2S     = np.longdouble(JD)         #Conversion from time unit to seconds
 GU       = np.longdouble(GC / (DU2M**3 / (MU2KG * TU2S**2)))
 GMSun = np.longdouble(GMSunSI / (DU2M**3 / TU2S**2))
 
 # Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
-J2 = 0.0 #np.longdouble(2.198e-7) * (Rsun / DU2M)**2
-J4 = 0.0 #np.longdouble(-4.805e-9) * (Rsun / DU2M)**4
+J2 = np.longdouble(2.198e-7) * (Rsun / DU2M)**2
+J4 = np.longdouble(-4.805e-9) * (Rsun / DU2M)**4
 
 npl = 9
 ntp = 2 * npl
@@ -190,7 +190,7 @@ print(f'ISTEP_OUT     {iout:d}')
 print(f'ISTEP_DUMP    {iout:d}')
 print(f'BIN_OUT       {swifter_bin}')
 print(f'OUT_TYPE      REAL8')
-print(f'OUT_FORM      XV')
+print(f'OUT_FORM      EL')
 print(f'OUT_STAT      NEW')
 print(f'J2            {J2}')
 print(f'J4            {J4}')
@@ -221,7 +221,7 @@ print(f'ISTEP_OUT      {iout:d}')
 print(f'ISTEP_DUMP     {iout:d}')
 print(f'BIN_OUT        {swiftest_bin}')
 print(f'OUT_TYPE       REAL8')
-print(f'OUT_FORM       XV')
+print(f'OUT_FORM       EL')
 print(f'OUT_STAT       REPLACE')
 print(f'CHK_CLOSE      yes')
 print(f'CHK_RMIN       {rmin}')
