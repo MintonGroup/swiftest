@@ -2,13 +2,19 @@ import numpy as np
 import pandas as pd
 from scipy.io import FortranFile
 import xarray as xr
+from astroquery.jplhorizons import Horizons
+import astropy.constants as const
+
+# Constants, including values from JPL Horizons
+AU2M = np.longdouble(const.au.value)
+GMSunSI = np.longdouble(const.GM_sun.value)
+Rsun = np.longdouble(const.R_sun.value)
+GC = np.longdouble(const.G.value)
+JD = 86400
+year = np.longdouble(365.25 * JD)
+c = np.longdouble(299792458.0)
 
 #I/O Routines for reading in Swifter and Swiftest parameter and binary data files
-
-
-GC = 6.6743E-11
-einstinC = 299792458.0
-
 def read_swifter_param(inparfile):
     """
     Reads in a Swifter param.in file and saves it as a dictionary
@@ -204,7 +210,7 @@ def read_swiftest_config(config_file_name):
     config['YORP']        = config['YORP'].upper()
 
     config['GU']         = GC / (config['DU2M']**3 / (config['MU2KG'] * config['TU2S']**2))
-    config['INV_C2']     = einstinC * config['TU2S'] / config['DU2M']
+    config['INV_C2']     = einsteinC * config['TU2S'] / config['DU2M']
     config['INV_C2']     = config['INV_C2']**(-2)
     return config
 
@@ -467,7 +473,18 @@ def swifter2xr(param):
     return ds
 
 def swiftest2xr(config):
-    """Reads in the """
+    """
+    Converts a Swiftest binary data file into an xarray DataSet.
+
+    Parameters
+    ----------
+    config : dict
+        Swiftest Configuration parameters
+
+    Returns
+    -------
+    xarray dataset
+    """
 
     dims  = ['time','id', 'vec']
     cb = []
