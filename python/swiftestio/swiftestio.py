@@ -12,7 +12,7 @@ Rsun = np.longdouble(const.R_sun.value)
 GC = np.longdouble(const.G.value)
 JD = 86400
 year = np.longdouble(365.25 * JD)
-c = np.longdouble(299792458.0)
+einsteinC = np.longdouble(299792458.0)
 
 #I/O Routines for reading in Swifter and Swiftest parameter and binary data files
 def read_swifter_param(inparfile):
