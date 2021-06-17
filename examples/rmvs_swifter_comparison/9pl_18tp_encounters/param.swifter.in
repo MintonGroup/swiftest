@@ -1,6 +1,6 @@
 ! Swifter input file generated using init_cond.py
 T0            0 
-TSTOP         365.25
+TSTOP         80.0  
 DT            1.0
 PL_IN         pl.swifter.in
 TP_IN         tp.in
