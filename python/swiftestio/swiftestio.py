@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from scipy.io import FortranFile
 import xarray as xr
 from astroquery.jplhorizons import Horizons
@@ -7,12 +6,13 @@ import astropy.constants as const
 import datetime
 
 # Constants in SI units
+GC = np.longdouble(const.G.value)
 AU2M = np.longdouble(const.au.value)
 GMSunSI = np.longdouble(const.GM_sun.value)
+MSun = np.longdouble(const.M_sun.value)
 RSun = np.longdouble(const.R_sun.value)
-GC = np.longdouble(const.G.value)
 JD2S = 86400
-year = np.longdouble(365.25 * JD2S)
+YR2S = np.longdouble(365.25 * JD2S)
 einsteinC = np.longdouble(299792458.0)
 # Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
 J2Sun = np.longdouble(2.198e-7)
@@ -156,7 +156,6 @@ def read_swiftest_param(param_file_name):
     'TU2S'           : -1.0,
     'DU2M'           : -1.0,
     'GU'             : -1.0,
-    'INV_C2'         : -1.0,
     'EXTRA_FORCE'    : 'NO',
     'BIG_DISCARD'    : 'NO',
     'CHK_CLOSE'      : 'NO',
@@ -204,7 +203,6 @@ def read_swiftest_param(param_file_name):
     param['DU2M']       = float(param['DU2M'])
     param['MU2KG']      = float(param['MU2KG'])
     param['TU2S']       = float(param['TU2S'])
-    param['INV_C2']     = float(param['INV_C2'])
     param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
     param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
     param['CHK_CLOSE']   = param['CHK_CLOSE'].upper()
@@ -558,7 +556,7 @@ def solar_system_pl(param, ephemerides_start_date):
         'plutocharon': '9'
     }
 
-    # Planet Msun/M ratio
+    # Planet MSun/M ratio
     MSun_over_Mpl = {
         'mercury': np.longdouble(6023600.0),
         'venus': np.longdouble(408523.71),
@@ -727,7 +725,7 @@ def swiftest_xr2_infile(ds, param, framenum=-1):
     elif param['IN_TYPE'] == 'REAL8':
         # Now make Swiftest files
         cbfile = FortranFile(swiftest_cb, 'w')
-        Msun = np.double(1.0)
+        MSun = np.double(1.0)
         cbfile.write_record(np.double(GMSun))
         cbfile.write_record(np.double(rmin))
         cbfile.write_record(np.double(J2))
@@ -759,6 +757,158 @@ def swiftest_xr2_infile(ds, param, framenum=-1):
         tpfile.write_record(v_tp[2])
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
+
+def swifter2swiftest(inparam,outparam):
+    print(f"Swifter parameter is {inparam}")
+    print(f"Swiftest parameter file is {outparam}")
+    swifter_param = read_swifter_param(inparam)
+    swiftest_param = swifter_param.copy()
+    print("Select the unit system to use:")
+    print("1) MSun-AU-year")
+    print("2) MSun-AU-day")
+    print("3) SI: kg-m-s")
+    print("4) CGS: g-cm-s")
+    print("5) Set units manually")
+    inval = input("> ")
+    try:
+        unit_type = int(inval)
+    except ValueError:
+        goodval = False
+    else:
+        goodval = (unit_type > 0 and unit_type < 6)
+    if not goodval:
+        print(f"{inval} is not a valid menu option")
+        sys.exit(-1)
+    if unit_type == 1:
+        print("Unit system is MSun-AU-year")
+        swiftest_param['MU2KG'] = MSun
+        swiftest_param['DU2M'] = AU2M
+        swiftest_param['TU2S'] = YR2S
+    elif unit_type == 2: # MSun-AU-day
+        print("Unit system is MSun-AU-day")
+        swiftest_param['MU2KG'] = MSun
+        swiftest_param['DU2M'] = AU2M
+        swiftest_param['TU2S'] = JD2S
+    elif unit_type == 3: # SI: kg-m-s
+        print("Unit system is SI: kg-m-s")
+        swiftest_param['MU2KG'] = 1.0
+        swiftest_param['DU2M'] = 1.0
+        swiftest_param['TU2S'] = 1.0
+    elif unit_type == 4:  # CGS: g-cm-s
+        print("Unit system is CGS: g-cm-s")
+        swiftest_param['MU2KG'] = 1e-3
+        swiftest_param['DU2M'] = 1.0e-2
+        swiftest_param['TU2S'] = 1.0
+    elif unit_type == 5:
+        print("User-defined units.")
+        print("Define each unit (mass, distance, and time) by its corresponding SI value.")
+        swiftest_param['MU2KG'] = input("Mass value in kilograms: ")
+        swiftest_param['DU2M'] = input("Distance value in meters: ")
+        swiftest_param['TU2S'] = input("Time unit in seconds: ")
+
+    print("Set central body radius:")
+    print(f"1) Use Swifter parameter value of CHK_RMIN = {swifter_param['CHK_RMIN']}")
+    print(f"2) Set value manually")
+    inval = input("> ")
+    try:
+        cbrad_type = int(inval)
+    except ValueError:
+        goodval = False
+    else:
+        goodval = (cbrad_type > 0 and cbrad_type < 3)
+    if not goodval:
+        print(f"{inval} is not a valid menu option")
+        sys.exit(-1)
+    if cbrad_type == 1:
+        cbrad = swifter_param['CHK_RMIN']
+    elif cbrad_type == 2:
+        cbrad = input("Enter radius of central body in simulation Distance Units: ")
+
+    swiftest_param['PL_IN'] = 'pl.swiftest.in'
+    swiftest_param['TP_IN'] = 'tp.swiftest.in'
+    swiftest_param['CB_IN'] = 'cb.swiftest.in'
+
+    plnew = open(swiftest_param['PL_IN'], 'w')
+
+    print(f'Writing out new PL file: {swiftest_param["PL_IN"]}')
+    with open(swifter_param['PL_IN'], 'r') as plold:
+        line = plold.readline()
+        line = line.split("!")[0]  # Ignore comments
+        i_list = [i for i in line.split(" ") if i.strip()]
+        npl = int(i_list[0])
+        print(npl - 1, file=plnew)
+        line = plold.readline()
+        i_list = [i for i in line.split(" ") if i.strip()]
+        GMcb = float(i_list[1]) # Store central body GM for later
+        line = plold.readline()  # Ignore the two zero vector lines
+        line = plold.readline()
+        for n in range(1, npl):  # Loop over planets
+            line = plold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            name = int(i_list[0])
+            GMpl = float(i_list[1])
+            print(name, GMpl,file=plnew)
+            if swifter_param['CHK_CLOSE'] == 'YES':
+                line = plold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                plrad = float(i_list[0])
+                print(plrad,file=plnew)
+            line = plold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            xh = float(i_list[0])
+            yh = float(i_list[1])
+            zh = float(i_list[2])
+            print(xh, yh, zh, file=plnew)
+            line = plold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            vx = float(i_list[0])
+            vy = float(i_list[1])
+            vz = float(i_list[2])
+            print(vx, vy, vz, file=plnew)
+
+    plold.close()
+    plnew.close()
+    tpnew = open(swiftest_param['TP_IN'], 'w')
+
+    print(f'Writing out new TP file: {swiftest_param["TP_IN"]}')
+    with open(swifter_param['TP_IN'], 'r') as tpold:
+        line = tpold.readline()
+        line = line.split("!")[0]  # Ignore comments
+        i_list = [i for i in line.split(" ") if i.strip()]
+        ntp = int(i_list[0])
+        print(ntp, file=tpnew)
+        for n in range(0, ntp):  # Loop over test particles
+            line = tpold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            name = int(i_list[0])
+            print(name, file=tpnew)
+            line = tpold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            xh = float(i_list[0])
+            yh = float(i_list[1])
+            zh = float(i_list[2])
+            print(xh, yh, zh, file=tpnew)
+            line = tpold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            vx = float(i_list[0])
+            vy = float(i_list[1])
+            vz = float(i_list[2])
+            print(vx, vy, vz, file=tpnew)
+
+    tpold.close()
+    tpnew.close()
+
+    print(f'Writing out new CB file: {swiftest_param["CB_IN"]}')
+    # Write out new central body file
+    cbnew = open(swiftest_param['CB_IN'], 'w')
+
+    print(GMcb, file=cbnew)
+    print(cbrad, file=cbnew)
+    print(swifter_param['J2'], file=cbnew)
+    print(swifter_param['J4'], file=cbnew)
+
+    cbnew.close()
+    return
 
 if __name__ == '__main__':
 
