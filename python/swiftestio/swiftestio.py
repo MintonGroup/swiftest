@@ -759,6 +759,7 @@ def swiftest_xr2_infile(ds, param, framenum=-1):
         tpfile.write_record(v_tp[2])
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
+
 if __name__ == '__main__':
 
     workingdir = '/Users/daminton/git/swiftest/examples/rmvs_swifter_comparison/9pl_18tp_encounters/'

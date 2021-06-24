@@ -35,9 +35,7 @@ keyring==23.0.1
 kiwisolver @ file:///tmp/build/80754af9/kiwisolver_1612282414123/work
 MarkupSafe @ file:///tmp/build/80754af9/markupsafe_1621528142364/work
 matplotlib==3.4.2
-mimeparse==0.1.3
 mistune @ file:///tmp/build/80754af9/mistune_1594373098390/work
-mkl-fft==1.3.0
 mkl-random @ file:///tmp/build/80754af9/mkl_random_1618853974840/work
 mkl-service==2.3.0
 nbclient @ file:///tmp/build/80754af9/nbclient_1614364831625/work
@@ -70,7 +68,6 @@ qtconsole @ file:///tmp/build/80754af9/qtconsole_1623278325812/work
 QtPy==1.9.0
 requests==2.25.1
 scipy==1.6.3
-SecretStorage==3.3.1
 Send2Trash @ file:///tmp/build/80754af9/send2trash_1607525499227/work
 six @ file:///tmp/build/80754af9/six_1623709665295/work
 soupsieve==2.2.1
