@@ -497,7 +497,7 @@ contains
      
 
       allocate(dump_param, source=param)
-      param_file_name = trim(adjustl(DUMP_param_FILE(idx)))
+      param_file_name = trim(adjustl(DUMP_PARAM_FILE(idx)))
       dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
       dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
       dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
