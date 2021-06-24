@@ -1,7 +1,7 @@
 submodule(whm_classes) whm_drift
    use swiftest
 contains
-   module subroutine whm_drift_pl(self, cb, config, dt)
+   module subroutine whm_drift_pl(self, cb, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through planets and call Danby drift routine
@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structur
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B)                                 :: i
@@ -32,12 +32,12 @@ contains
          iflag(:) = 0
          allocate(dtp(npl))
 
-         if (config%lgr) then
+         if (param%lgr) then
             do i = 1,npl
                rmag = norm2(xj(:, i))
                vmag2 = dot_product(vj(:, i),  vj(:, i))
                energy = 0.5_DP * vmag2 - mu(i) / rmag
-               dtp(i) = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+               dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
             end do
          else
             dtp(:) = dt
@@ -64,7 +64,7 @@ contains
 
    end subroutine whm_drift_pl
 
-   module subroutine whm_drift_tp(self, cb, config, dt)
+   module subroutine whm_drift_tp(self, cb, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through test particles and call Danby drift routine
@@ -76,7 +76,7 @@ contains
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B)                                 :: i   
@@ -95,12 +95,12 @@ contains
          allocate(iflag(ntp))
          iflag(:) = 0
          allocate(dtp(ntp))
-         if (config%lgr) then
+         if (param%lgr) then
             do i = 1,ntp
                rmag = norm2(xh(:, i))
                vmag2 = dot_product(vh(:, i), vh(:, i))
                energy = 0.5_DP * vmag2 - cb%Gmass / rmag
-               dtp(i) = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+               dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
             end do
          else
             dtp(:) = dt

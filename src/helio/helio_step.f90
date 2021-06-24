@@ -1,7 +1,7 @@
 submodule(helio_classes) s_helio_step
    use swiftest
 contains
-   module subroutine helio_step_system(self, config)
+   module subroutine helio_step_system(self, param)
       !! author: David A. Minton
       !!
       !! Step massive bodies and and active test particles ahead in heliocentric coordinates
@@ -11,7 +11,7 @@ contains
       implicit none
       ! Arguments
       class(helio_nbody_system),     intent(inout) :: self    !! Helio nbody system object
-      class(swiftest_configuration), intent(in)    :: config  !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param  !! Input collection of on parameters 
 
       select type(cb => self%cb)
       class is (helio_cb)
@@ -19,13 +19,13 @@ contains
       class is (helio_pl)
       select type(tp => self%tp)
       class is (helio_tp)
-      associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
+      associate(ntp => tp%nbody, npl => pl%nbody, t => param%t, dt => param%dt)
          call pl%set_rhill(cb)
          call tp%set_beg_end(xbeg = pl%xh)
-         call pl%step(cb, config, t, dt)
+         call pl%step(cb, param, t, dt)
          if (ntp > 0) then
             call tp%set_beg_end(xend = pl%xh)
-            call tp%step(cb, pl, config, t, dt)
+            call tp%step(cb, pl, param, t, dt)
          end if
       end associate
       end select
@@ -34,7 +34,7 @@ contains
       return
    end subroutine helio_step_system 
 
-   module subroutine helio_step_pl(self, cb, config, t, dt)
+   module subroutine helio_step_pl(self, cb, param, t, dt)
       !! author: David A. Minton
       !!
       !! Step massive bodies ahead Democratic Heliocentric method
@@ -45,7 +45,7 @@ contains
       ! Arguments
       class(helio_pl),               intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Helio central body particle data structure
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals 
@@ -61,10 +61,10 @@ contains
          lfirst = .false.
       end if
       call self%lindrift(cb, dth, ptbeg)
-      call self%getacch(cb, config, t)
+      call self%getacch(cb, param, t)
       call self%kickvb(dth)
-      call self%drift(cb, config, dt)
-      call self%getacch(cb, config, t + dt)
+      call self%drift(cb, param, dt)
+      call self%getacch(cb, param, t + dt)
       call self%kickvb(dth)
       call self%lindrift(cb, dth, ptend)
       call self%vb2vh(cb)
@@ -73,7 +73,7 @@ contains
    
    end subroutine helio_step_pl
 
-   module subroutine helio_step_tp(self, cb, pl, config, t, dt)
+   module subroutine helio_step_tp(self, cb, pl, param, t, dt)
       !! author: David A. Minton
       !!
       !! Step active test particles ahead using Democratic Heliocentric method
@@ -85,7 +85,7 @@ contains
       class(helio_tp),                 intent(inout) :: self !! Helio test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
       class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
@@ -101,10 +101,10 @@ contains
          lfirst = .false.
       end if
       call self%lindrift(dth, self%ptbeg)
-      call self%getacch(cb, pl, config, t, self%xbeg)
+      call self%getacch(cb, pl, param, t, self%xbeg)
       call self%kickvb(dth)
-      call self%drift(cb, config, dt)
-      call self%getacch(cb, pl, config, t + dt, self%xend)
+      call self%drift(cb, param, dt)
+      call self%getacch(cb, pl, param, t + dt, self%xend)
       call self%kickvb(dth)
       call self%lindrift(dth, self%ptend)
       call self%vb2vh(vbcb = -self%ptend)

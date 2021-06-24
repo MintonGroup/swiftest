@@ -73,7 +73,7 @@ implicit none
       if (ntp > 0) call symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%mass(1), dtl)
       if (lencounter) call symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset, nplplenc, &
          npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list, encounter_file, out_type, &
-         config%nplmax, config%ntpmax, fragmax, param)
+         param%nplmax, param%ntpmax, fragmax, param)
       sgn = 1.0_DP
       call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
       if (lclose) then
@@ -88,10 +88,10 @@ implicit none
                 ! determines collisional regime if lfrag=.true. for close encounter massive bodies
                 ! call symba_frag_pl(...)
                 ! determines if close encounter leads to merger if lfrag=.false.   
-               if (config%lfragmentation) then
+               if (param%lfragmentation) then
                   call symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-                        eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, config%nplmax, &
-                        config%ntpmax, fragmax)
+                        eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, param%nplmax, &
+                        param%ntpmax, fragmax)
                else
                   call symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
                   mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA)
@@ -171,7 +171,7 @@ implicit none
          if (ntp > 0) call symba_helio_drift_tp(ireci, ntp, symba_tpA, symba_plA%mass(1), dtl)
          if (lencounter) call symba_step_recur(lclose, t, irecp, npl, nplm, ntp, symba_plA, symba_tpA, dt0, eoffset,    &
             nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list, mergesub_list,       &
-            encounter_file, out_type, config%nplmax, config%ntpmax, fragmax, param)
+            encounter_file, out_type, param%nplmax, param%ntpmax, fragmax, param)
          sgn = 1.0_DP
          call symba_kick(irecp, nplplenc, npltpenc, plplenc_list, pltpenc_list, dth, sgn,symba_plA, symba_tpA) 
          sgn = -1.0_DP
@@ -184,10 +184,10 @@ implicit none
                if ((plplenc_list%status(i) == ACTIVE) .and.                                     &
                    (symba_plA%levelg(index_i) >= ireci) .and.                                   &
                    (symba_plA%levelg(index_j) >= ireci))  then    
-                  if (config%lfragmentation) then
+                  if (param%lfragmentation) then
                      call symba_fragmentation (t, dtl, i, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
-                        eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, config%nplmax, &
-                        config%ntpmax, fragmax)
+                        eoffset, vbs, encounter_file, out_type, npl, symba_plA, nplplenc, plplenc_list, param%nplmax, &
+                        param%ntpmax, fragmax)
                   else
                      call symba_merge_pl(t, dtl, i, nplplenc, plplenc_list, nmergeadd, nmergesub, mergeadd_list, &
                         mergesub_list, eoffset, vbs, encounter_file, out_type, npl, symba_plA)

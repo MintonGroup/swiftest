@@ -18,7 +18,7 @@ contains
 ! executable code
 
    if (lmalloc) then
-      allocate(xbeg(NDIM, config%nplmax), xend(NDIM, config%nplmax))
+      allocate(xbeg(NDIM, param%nplmax), xend(NDIM, param%nplmax))
       lmalloc = .false.
    end if
    dth = 0.5_DP*dt
@@ -34,10 +34,10 @@ contains
       end do
    end if
 
-   call symba_getacch_eucl(lextra_force, t, npl, nplm, config%nplmax, symba_plA, config%j2rp2, config%j4rp4, nplplenc, plplenc_list, &
+   call symba_getacch_eucl(lextra_force, t, npl, nplm, param%nplmax, symba_plA, param%j2rp2, param%j4rp4, nplplenc, plplenc_list, &
       num_plpl_comparisons, k_plpl)
-   if (ntp > 0) call symba_getacch_tp_eucl(lextra_force, t, npl, nplm, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, xbeg, config%j2rp2,&
-      config%j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
+   if (ntp > 0) call symba_getacch_tp_eucl(lextra_force, t, npl, nplm, param%nplmax, ntp, param%ntpmax, symba_plA, symba_tpA, xbeg, param%j2rp2,&
+      param%j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
 
    call helio_kickvb(npl, symba_plA, dth)
    if (ntp > 0) call helio_kickvb_tp(ntp, symba_tpA, dth)
@@ -54,10 +54,10 @@ contains
          xend(:, i) = symba_plA%xh(:,i)
       end do
    end if
-   call symba_getacch_eucl(lextra_force, t+dt, npl, nplm, config%nplmax, symba_plA, config%j2rp2, config%j4rp4, nplplenc, plplenc_list, &
+   call symba_getacch_eucl(lextra_force, t+dt, npl, nplm, param%nplmax, symba_plA, param%j2rp2, param%j4rp4, nplplenc, plplenc_list, &
       num_plpl_comparisons, k_plpl)
-   if (ntp > 0) call symba_getacch_tp_eucl(lextra_force, t+dt, npl, nplm, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, xend, &
-      config%j2rp2,config%j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
+   if (ntp > 0) call symba_getacch_tp_eucl(lextra_force, t+dt, npl, nplm, param%nplmax, ntp, param%ntpmax, symba_plA, symba_tpA, xend, &
+      param%j2rp2,param%j4rp4, npltpenc, pltpenc_list, num_pltp_comparisons, k_pltp)
    call helio_kickvb(npl, symba_plA, dth)
    if (ntp > 0) call helio_kickvb_tp(ntp, symba_tpA, dth)
    call coord_vb2vh(npl, symba_plA)

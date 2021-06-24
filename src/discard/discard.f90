@@ -1,7 +1,7 @@
 submodule (swiftest_classes) s_discard
    use swiftest
 contains
-   module subroutine discard_system(self, config)
+   module subroutine discard_system(self, param)
       !! author: David A. Minton
       !!
       !! Check to see if particles should be discarded based on their positions relative to the massive bodies
@@ -10,36 +10,36 @@ contains
       !! Adapted from Hal Levison's Swift routine discard.f
       implicit none
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters
+      class(swiftest_parameters), intent(in)    :: param  !! Input collection of  parameters parameters
 
       if (self%tp%nbody == 0) return 
       select type(self)
       class is (whm_nbody_system)
-         associate(cb => self%cb, pl => self%pl, tp => self%tp, t => config%t, dt => config%dt, &
+         associate(cb => self%cb, pl => self%pl, tp => self%tp, t => param%t, dt => param%dt, &
                    msys => self%msys, discards => self%tp_discards, &
                    ntp => self%tp%nbody, ldiscard => self%tp%ldiscard)
-            if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or. &
-               (config%rmaxu >= 0.0_DP) .or. ((config%qmin >= 0.0_DP) .and. (config%qmin_coord == "BARY"))) then
+            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
+               (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
                   call pl%h2b(cb) 
                   if (ntp > 0) call tp%h2b(cb) 
             end if
-            if ((config%rmin >= 0.0_DP) .or. (config%rmax >= 0.0_DP) .or.  (config%rmaxu >= 0.0_DP)) then
-               if (ntp > 0) call tp%discard_sun(cb, config, t, msys)
+            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
+               if (ntp > 0) call tp%discard_sun(cb, param, t, msys)
             end if
-            if (config%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(cb, pl, config, t, msys)
-            if (config%lclose .and. ntp > 0) call tp%discard_pl(pl, t, dt)
+            if (param%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(cb, pl, param, t, msys)
+            if (param%lclose .and. ntp > 0) call tp%discard_pl(pl, t, dt)
           
             if (any(tp%ldiscard(1:ntp))) then
                ! Spill the discards to the spill list
                call tp%spill(discards, ldiscard)
-               call self%write_discard(config, discards)
+               call self%write_discard(param, discards)
             end if
          end associate  
          end select
       return
    end subroutine discard_system
 
-   module subroutine discard_sun_tp(self, cb, config, t, msys)
+   module subroutine discard_sun_tp(self, cb, param, t, msys)
       !! author: David A. Minton
       !!
       !!  Check to see if test particles should be discarded based on their positions relative to the Sun
@@ -51,7 +51,7 @@ contains
       ! Arguments
       class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
-      class(swiftest_configuration), intent(in)    :: config !!  configuration parameters
+      class(swiftest_parameters), intent(in)    :: param !!  parameters parameters
       real(DP),                      intent(in)    :: t      !! Current simulation tim
       real(DP),                      intent(in)    :: msys   !! Total system mass
       ! Internals
@@ -59,21 +59,21 @@ contains
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
 
       associate(tp => self, ntp => self%nbody)
-         rmin2 = max(config%rmin * config%rmin, cb%radius * cb%radius)
-         rmax2 = config%rmax**2
-         rmaxu2 = config%rmaxu**2
+         rmin2 = max(param%rmin * param%rmin, cb%radius * cb%radius)
+         rmax2 = param%rmax**2
+         rmaxu2 = param%rmaxu**2
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                rh2 = dot_product(tp%xh(:, i), tp%xh(:, i))
-               if ((config%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
+               if ((param%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   tp%status(i) = DISCARDED_RMAX
                   write(*, *) "Particle ", tp%name(i), " too far from sun at t = ", t
                   tp%ldiscard(i) = .true.
-               else if ((config%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
+               else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   tp%status(i) = DISCARDED_RMIN
                   write(*, *) "Particle ", tp%name(i), " too close to sun at t = ", t
                   tp%ldiscard(i) = .true.
-               else if (config%rmaxu >= 0.0_DP) then
+               else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
                   vb2 = dot_product(tp%vb(:, i), tp%vb(:, i))
                   energy = 0.5_DP * vb2 - msys / sqrt(rb2)
@@ -90,7 +90,7 @@ contains
       return
    end subroutine discard_sun_tp
 
-   module subroutine discard_peri_tp(self, cb, pl, config, t, msys)
+   module subroutine discard_peri_tp(self, cb, pl, param, t, msys)
       !! author: David A. Minton
       !!
       !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
@@ -102,7 +102,7 @@ contains
       class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
       class(swiftest_pl),            intent(inout) :: pl     !! Swiftest massive body object
-      class(swiftest_configuration), intent(in)    :: config !!  configuration parameters
+      class(swiftest_parameters), intent(in)    :: param !!  parameters parameters
       real(DP),                      intent(in)    :: t      !! Current simulation tim
       real(DP),                      intent(in)    :: msys   !! Total system mass 
       ! Internals
@@ -111,13 +111,13 @@ contains
       real(DP)                  :: r2
       real(DP), dimension(NDIM) :: dx
    
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody, qmin_coord => config%qmin_coord)
+      associate(tp => self, ntp => self%nbody, npl => pl%nbody, qmin_coord => param%qmin_coord)
          if (lfirst) then
             call util_hills(npl, pl)
-            call util_peri(lfirst, ntp, tp, cb%Gmass, msys, config%qmin_coord)
+            call util_peri(lfirst, ntp, tp, cb%Gmass, msys, param%qmin_coord)
             lfirst = .false.
          else
-            call util_peri(lfirst, ntp, tp, cb%Gmass, msys, config%qmin_coord)
+            call util_peri(lfirst, ntp, tp, cb%Gmass, msys, param%qmin_coord)
             do i = 1, ntp
                if (tp%status(i) == ACTIVE) then
                   if (tp%isperi(i) == 0) then
@@ -128,9 +128,9 @@ contains
                         if (r2 <= (pl%rhill(j))**2) ih = 0
                      end do
                      if (ih == 1) then
-                        if ((tp%atp(i) >= config%qmin_alo) .and.    &
-                           (tp%atp(i) <= config%qmin_ahi) .and.    &           
-                           (tp%peri(i) <= config%qmin)) then
+                        if ((tp%atp(i) >= param%qmin_alo) .and.    &
+                           (tp%atp(i) <= param%qmin_ahi) .and.    &           
+                           (tp%peri(i) <= param%qmin)) then
                            tp%status(i) = DISCARDED_PERI
                            write(*, *) "Particle ", tp%name(i), " perihelion distance too small at t = ", t
                            tp%ldiscard(i) = .true.

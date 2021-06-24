@@ -72,7 +72,7 @@ contains
 
    end subroutine whm_setup_set_mu_eta_pl
 
-   module subroutine whm_setup_system(self, config)
+   module subroutine whm_setup_system(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
@@ -80,8 +80,8 @@ contains
       implicit none
       ! Arguments
       class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
-      class(swiftest_configuration), intent(inout) :: config  !! Input collection of on parameters 
-      call io_read_initialize_system(self, config)
+      class(swiftest_parameters), intent(inout) :: param  !! Input collection of on parameters 
+      call io_read_initialize_system(self, param)
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(self%tp%nbody)
 
@@ -89,7 +89,7 @@ contains
          select type(pl => self%pl)
          class is (whm_pl)
             call pl%set_mu(self%cb)
-            if (config%lgr) call pl%gr_vh2pv(config)
+            if (param%lgr) call pl%gr_vh2pv(param)
             !call pl%eucl_index()
          end select
       end if
@@ -98,7 +98,7 @@ contains
          select type(tp => self%tp)
          class is (whm_tp)
             call tp%set_mu(self%cb)
-            if (config%lgr) call tp%gr_vh2pv(config)
+            if (param%lgr) call tp%gr_vh2pv(param)
          end select
       end if
 

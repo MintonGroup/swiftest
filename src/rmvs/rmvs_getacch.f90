@@ -1,7 +1,7 @@
 submodule(rmvs_classes) s_rmvs_getacch
    use swiftest
 contains  
-   module subroutine rmvs_getacch_tp(self, cb, pl, config, t, xh)
+   module subroutine rmvs_getacch_tp(self, cb, pl, param, t, xh)
       !! author: David A. Minton
       !!
       !! Compute the oblateness acceleration in the inner encounter region with planets 
@@ -13,11 +13,11 @@ contains
       class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree 
       class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of  parameter
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameter
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
       ! Internals
-      type(swiftest_configuration)                 :: config_planetocen
+      type(swiftest_parameters)                 :: param_planetocen
       real(DP), dimension(:, :), allocatable       :: xh_original
       integer(I4B)                                 :: i
 
@@ -33,13 +33,13 @@ contains
             class is (rmvs_cb)
                associate(xpc => pl%xh, xpct => self%xh)
                   allocate(xh_original, source=tp%xh)
-                  config_planetocen = config
+                  param_planetocen = param
                   ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter
-                  config_planetocen%loblatecb = .false.
-                  config_planetocen%lextra_force = .false.
-                  config_planetocen%lgr = .false.
+                  param_planetocen%loblatecb = .false.
+                  param_planetocen%lextra_force = .false.
+                  param_planetocen%lgr = .false.
                   ! Now compute the planetocentric values of acceleration
-                  call whm_getacch_tp(tp, cb, pl, config_planetocen, t, xh)
+                  call whm_getacch_tp(tp, cb, pl, param_planetocen, t, xh)
 
                   ! Now compute any heliocentric values of acceleration 
                   if (tp%lfirst) then
@@ -53,7 +53,7 @@ contains
                   end if
                   ! Swap the planetocentric and heliocentric position vectors
                   tp%xh(:,:) = tp%xheliocentric(:,:)
-                  if (config%loblatecb) then
+                  if (param%loblatecb) then
                      ! Put in the current encountering planet's oblateness acceleration as the central body's
                      if (tp%lfirst) then
                         cb_heliocentric%aobl(:) = cb%inner(inner_index - 1)%aobl(:,1)
@@ -63,15 +63,15 @@ contains
                      call tp%obl_acc(cb_heliocentric)
                   end if
 
-                  if (config%lextra_force) call tp%user_getacch(cb_heliocentric, config, t)
-                  if (config%lgr) call tp%gr_getacch(cb_heliocentric, config)
+                  if (param%lextra_force) call tp%user_getacch(cb_heliocentric, param, t)
+                  if (param%lgr) call tp%gr_getacch(cb_heliocentric, param)
                   
                   tp%xh(:,:) = xh_original(:,:)
                end associate
             end select
             end select
          else ! Not a close encounter, so just proceded with the standard WHM method
-            call whm_getacch_tp(tp, cb, pl, config, t, xh)
+            call whm_getacch_tp(tp, cb, pl, param, t, xh)
          end if
 
       end associate

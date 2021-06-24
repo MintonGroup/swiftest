@@ -72,7 +72,7 @@ implicit none
       end if
    end do
 
-   if (config%loblatecb) then
+   if (param%loblatecb) then
       if (lmalloc) then
          allocate(xh(npl, NDIM), aobl(npl, NDIM), irh(npl))
          lmalloc = .false.
@@ -82,7 +82,7 @@ implicit none
          r2 = dot_product(symba_plA%xh(:,i), symba_plA%xh(:,i))
          irh(i) = 1.0_DP/sqrt(r2)
       end do
-      call obl_acc(symba_plA, config%j2rp2, config%j4rp4, symba_plA%xh(:,:), irh, aobl)
+      call obl_acc(symba_plA, param%j2rp2, param%j4rp4, symba_plA%xh(:,:), irh, aobl)
       do i = 2, npl
          symba_plA%ah(:,i) = symba_plA%ah(:,i) + aobl(:, i) - aobl(:, 1)
       end do

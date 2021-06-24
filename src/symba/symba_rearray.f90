@@ -20,7 +20,7 @@ contains
       nsppl = count(discard_l_pl)
       nkpl = npl - nsppl
       frag_l_add = [(.false.,i=1,npl)]
-      if (config%lfragmentation) then
+      if (param%lfragmentation) then
         do i = 1, npl
           if (mergeadd_list%status(i) == DISRUPTION) then
             frag_l_add(i) = .true.
@@ -54,7 +54,7 @@ contains
       discard_plA%vb(1:nsppl, 1) = pack(symba_plA%vb(1:npl, 1), discard_l_pl)
       discard_plA%vb(1:nsppl, 2) = pack(symba_plA%vb(1:npl, 2), discard_l_pl)
       discard_plA%vb(1:nsppl, 3) = pack(symba_plA%vb(1:npl, 3), discard_l_pl)
-      if (config%lfragmentation .and. (nkpl + nfrag > npl)) then 
+      if (param%lfragmentation .and. (nkpl + nfrag > npl)) then 
         symba_plA%name(1:nkpl) = pack(symba_plA%name(1:npl), .not. discard_l_pl)
         symba_plA%status(1:nkpl) = pack(symba_plA%status(1:npl), .not. discard_l_pl)
         symba_plA%mass(1:nkpl) = pack(symba_plA%mass(1:npl), .not. discard_l_pl)

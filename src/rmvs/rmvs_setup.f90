@@ -13,7 +13,7 @@ contains
       integer(I4B),                  intent(in)    :: n    !! Number of test particles to allocate
       ! Internals
       integer(I4B)                                 :: i,j
-      !type(swiftest_configuration)                 :: encounter_config
+      !type(swiftest_parameters)                 :: encounter_param
 
       !> Call allocation method for parent class
       associate(pl => self)
@@ -73,7 +73,7 @@ contains
       return
    end subroutine rmvs_setup_tp
 
-   module subroutine rmvs_setup_system(self, config)
+   module subroutine rmvs_setup_system(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files.
@@ -86,12 +86,12 @@ contains
       implicit none
       ! Arguments
       class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
-      class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(inout) :: param  !! Input collection of  parameters parameters 
       ! Internals
       integer(I4B) :: i, j
 
       ! Call parent method
-      call whm_setup_system(self, config)
+      call whm_setup_system(self, param)
 
       ! Set up the pl-tp planetocentric encounter structures for pl and cb. The planetocentric tp structures are 
       ! generated as necessary during close encounter steps.

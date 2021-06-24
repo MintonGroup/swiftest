@@ -55,23 +55,23 @@ implicit none
       end if
    end do
    ! $omp end parallel do
-   if (config%loblatecb) then
+   if (param%loblatecb) then
       if (lmalloc) then
-         allocate(aobl(NDIM, config%nplmax), irh(config%nplmax), xht(NDIM, config%ntpmax), aoblt(NDIM, config%ntpmax), irht(config%ntpmax))
+         allocate(aobl(NDIM, param%nplmax), irh(param%nplmax), xht(NDIM, param%ntpmax), aoblt(NDIM, param%ntpmax), irht(param%ntpmax))
          lmalloc = .false.
       end if
       do i = 2, npl
          r2 = dot_product(xh(:, i), xh(:, i))
          irh(i) = 1.0_DP/sqrt(r2)
       end do
-      call obl_acc(symba_plA, config%j2rp2, config%j4rp4, symba_plA%xh(:,:), irh, aobl)
+      call obl_acc(symba_plA, param%j2rp2, param%j4rp4, symba_plA%xh(:,:), irh, aobl)
       mu = symba_plA%mass(1)
       do i = 1, ntp
          xht(:, i) = symba_tpA%xh(:,i) !optimize
          r2 = dot_product(xht(:, i), xht(:, i))
          irht(i) = 1.0_DP/sqrt(r2)
       end do
-      call obl_acc_tp(ntp, xht, config%j2rp2, config%j4rp4, irht, aoblt, mu)
+      call obl_acc_tp(ntp, xht, param%j2rp2, param%j4rp4, irht, aoblt, mu)
       do i = 1, ntp
          if (symba_tpA%status(i) == ACTIVE) &
          symba_tpA%ah(:,i) = symba_tpA%ah(:,i) + aoblt(:, i) - aobl(:, 1)

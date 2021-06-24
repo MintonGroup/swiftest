@@ -23,9 +23,9 @@ implicit none
       end do
       call symba_helio_getacch_int(npl, nplm, helio_plA) 
    end if
-   if (config%loblatecb) then
+   if (param%loblatecb) then
       if (lmalloc) then
-         allocate(xh(NDIM, config%nplmax), aobl(NDIM, config%nplmax), irh(config%nplmax))
+         allocate(xh(NDIM, param%nplmax), aobl(NDIM, param%nplmax), irh(param%nplmax))
          lmalloc = .false.
       end if
       do i = 2, npl
@@ -33,7 +33,7 @@ implicit none
          r2 = dot_product(xh(:, i), xh(:, i))
          irh(i) = 1.0_DP/sqrt(r2)
       end do
-      call obl_acc(helio_plA, config%j2rp2, config%j4rp4, xh, irh, aobl) 
+      call obl_acc(helio_plA, param%j2rp2, param%j4rp4, xh, irh, aobl) 
       do i = 2, npl
          helio_plA%ah(:,i) = helio_plA%ahi(:,i) + aobl(:, i) - aobl(:, 1)
       end do

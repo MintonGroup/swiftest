@@ -1,7 +1,7 @@
 submodule (helio_classes) s_helio_getacch
    use swiftest
 contains
-   module subroutine helio_getacch_pl(self, cb, config, t)
+   module subroutine helio_getacch_pl(self, cb, param, t)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of massive bodies
@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(helio_pl),               intent(inout) :: self     !! Helio massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb       !! Swiftest central body particle data structure
-      class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param   !! Input collection of 
       real(DP),                      intent(in)    :: t        !! Current time
       ! Internals
       logical, save                    :: lmalloc = .true.
@@ -26,17 +26,17 @@ contains
             self%ahi(:,2:npl) = 0.0_DP
             call helio_getacch_int_pl(self, t)
          !end if
-         !if (config%loblatecb) call self%obl_acc(cb) TODO: Fix this
+         !if (param%loblatecb) call self%obl_acc(cb) TODO: Fix this
          !else
          self%ah(:,:) = self%ahi(:,:)
          !end if
-         if (config%lextra_force) call self%user_getacch(cb, config, t)
+         if (param%lextra_force) call self%user_getacch(cb, param, t)
       end associate
 
       return
       end subroutine helio_getacch_pl
 
-      module subroutine helio_getacch_tp(self, cb, pl, config, t, xh)
+      module subroutine helio_getacch_tp(self, cb, pl, param, t, xh)
          !! author: David A. Minton
          !!
          !! Compute heliocentric accelerations of test particles
@@ -48,7 +48,7 @@ contains
          class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
          class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree 
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
-         class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+         class(swiftest_parameters), intent(in)    :: param !! Input collection of 
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
          ! Internals
@@ -64,10 +64,10 @@ contains
                self%ahi(:,:) = 0.0_DP
                call helio_getacch_int_tp(self, pl, t, xh)
             !end if
-            !if (config%loblatecb) call self%obl_acc(cb) TODO: Fix this
+            !if (param%loblatecb) call self%obl_acc(cb) TODO: Fix this
             self%ah(:,:) = self%ahi(:,:)
-            if (config%lextra_force) call self%user_getacch(cb, config, t)
-            if (config%lgr) call self%gr_getacch(cb, config)
+            if (param%lextra_force) call self%user_getacch(cb, param, t)
+            if (param%lgr) call self%gr_getacch(cb, param)
          end associate
          return
       end subroutine helio_getacch_tp

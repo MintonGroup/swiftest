@@ -1,7 +1,7 @@
 submodule (swiftest_classes) s_io
    use swiftest
 contains
-   module subroutine io_config_reader(self, unit, iotype, v_list, iostat, iomsg) 
+   module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read in parameters for the integration
@@ -9,11 +9,11 @@ contains
       !!    e.g. read(unit,'(DT)') param 
       !! as the newline characters are ignored in the input file when compiled in ifort.
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine io_init_config.f90
-      !! Adapted from Martin Duncan's Swift routine io_init_config.f
+      !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
+      !! Adapted from Martin Duncan's Swift routine io_init_param.f
       implicit none
       ! Arguments
-      class(swiftest_configuration), intent(inout) :: self       !! Collection of  configuration parameters
+      class(swiftest_parameters), intent(inout) :: self       !! Collection of  parameters parameters
       integer, intent(in)                          :: unit       !! File unit number
       character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                  !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
@@ -27,7 +27,7 @@ contains
       logical                        :: mtiny_set = .false.     !! Is the mtiny value set?
       integer(I4B)                   :: ilength, ifirst, ilast  !! Variables used to parse input file
       character(STRMAX)              :: line                    !! Line of the input file
-      character (len=:), allocatable :: line_trim,config_name, config_value !! Strings used to parse the config file
+      character (len=:), allocatable :: line_trim,param_name, param_value !! Strings used to parse the param file
       character(*),parameter         :: linefmt = '(A)'         !! Format code for simple text string
       integer(I4B)                   :: integrator              !! Symbolic name of integrator being used
 
@@ -40,108 +40,108 @@ contains
          if ((ilength /= 0)) then 
             ifirst = 1
             ! Read the pair of tokens. The first one is the parameter name, the second is the value.
-            config_name = io_get_token(line_trim, ifirst, ilast, iostat)
-            if (config_name == '') cycle ! No parameter name (usually because this line is commented out)
-            call util_toupper(config_name)
+            param_name = io_get_token(line_trim, ifirst, ilast, iostat)
+            if (param_name == '') cycle ! No parameter name (usually because this line is commented out)
+            call util_toupper(param_name)
             ifirst = ilast + 1
-            config_value = io_get_token(line_trim, ifirst, ilast, iostat)
-            select case (config_name)
+            param_value = io_get_token(line_trim, ifirst, ilast, iostat)
+            select case (param_name)
             case ("NPLMAX")
-               read(config_value, *) self%nplmax
+               read(param_value, *) self%nplmax
             case ("NTPMAX")
-               read(config_value, *) self%ntpmax
+               read(param_value, *) self%ntpmax
             case ("T0")
-               read(config_value, *) self%t0
+               read(param_value, *) self%t0
                t0_set = .true.
             case ("TSTOP")
-               read(config_value, *) self%tstop
+               read(param_value, *) self%tstop
                tstop_set = .true.
             case ("DT")
-               read(config_value, *) self%dt
+               read(param_value, *) self%dt
                dt_set = .true.
             case ("CB_IN")
-               self%incbfile = config_value
+               self%incbfile = param_value
             case ("PL_IN")
-               self%inplfile = config_value
+               self%inplfile = param_value
             case ("TP_IN")
-               self%intpfile = config_value
+               self%intpfile = param_value
             case ("IN_TYPE")
-               call util_toupper(config_value)
-               self%in_type = config_value
+               call util_toupper(param_value)
+               self%in_type = param_value
             case ("ISTEP_OUT")
-               read(config_value, *) self%istep_out
+               read(param_value, *) self%istep_out
             case ("BIN_OUT")
-               self%outfile = config_value
+               self%outfile = param_value
             case ("OUT_TYPE")
-               call util_toupper(config_value)
-               self%out_type = config_value
+               call util_toupper(param_value)
+               self%out_type = param_value
             case ("OUT_FORM")
-               call util_toupper(config_value)
-               self%out_form = config_value
+               call util_toupper(param_value)
+               self%out_form = param_value
             case ("OUT_STAT")
-               call util_toupper(config_value)
-               self%out_stat = config_value
+               call util_toupper(param_value)
+               self%out_stat = param_value
             case ("ISTEP_DUMP")
-               read(config_value, *) self%istep_dump
+               read(param_value, *) self%istep_dump
             case ("CHK_CLOSE")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%lclose = .true.
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%lclose = .true.
             case ("CHK_RMIN")
-               read(config_value, *) self%rmin
+               read(param_value, *) self%rmin
             case ("CHK_RMAX")
-               read(config_value, *) self%rmax
+               read(param_value, *) self%rmax
             case ("CHK_EJECT")
-               read(config_value, *) self%rmaxu
+               read(param_value, *) self%rmaxu
             case ("CHK_QMIN")
-               read(config_value, *) self%qmin
+               read(param_value, *) self%qmin
             case ("CHK_QMIN_COORD")
-               call util_toupper(config_value)
-               self%qmin_coord = config_value
+               call util_toupper(param_value)
+               self%qmin_coord = param_value
             case ("CHK_QMIN_RANGE")
-               read(config_value, *) self%qmin_alo
+               read(param_value, *) self%qmin_alo
                ifirst = ilast + 1
-               config_value = io_get_token(line, ifirst, ilast, iostat)
-               read(config_value, *) self%qmin_ahi
+               param_value = io_get_token(line, ifirst, ilast, iostat)
+               read(param_value, *) self%qmin_ahi
             case ("ENC_OUT")
-               self%encounter_file = config_value
+               self%encounter_file = param_value
             case ("EXTRA_FORCE")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%lextra_force = .true.
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%lextra_force = .true.
             case ("BIG_DISCARD")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T' ) self%lbig_discard = .true.
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T' ) self%lbig_discard = .true.
             case ("FRAGMENTATION")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == "T") self%lfragmentation = .true.
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
             case ("MU2KG")
-               read(config_value, *) self%MU2KG
+               read(param_value, *) self%MU2KG
             case ("TU2S")
-               read(config_value, *) self%TU2S
+               read(param_value, *) self%TU2S
             case ("DU2M")
-               read(config_value, *) self%DU2M
+               read(param_value, *) self%DU2M
             case ("MTINY")
-               read(config_value, *) self%mtiny
+               read(param_value, *) self%mtiny
                mtiny_set = .true.
             case ("ENERGY")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%lenergy = .true.
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%lenergy = .true.
             case ("ROTATION")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%lrotation = .true. 
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%lrotation = .true. 
             case ("TIDES")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%ltides = .true. 
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%ltides = .true. 
             case ("GR")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%lgr = .true. 
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%lgr = .true. 
             case ("YARKOVSKY")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%lyarkovsky = .true. 
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%lyarkovsky = .true. 
             case ("YORP")
-               call util_toupper(config_value)
-               if (config_value == "YES" .or. config_value == 'T') self%lyorp = .true. 
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%lyorp = .true. 
             case default
-               write(iomsg,*) "Unknown parameter -> ",config_name
+               write(iomsg,*) "Unknown parameter -> ",param_name
                iostat = -1
                return
             end select
@@ -305,18 +305,18 @@ contains
       iostat = 0
 
       return 
-   end subroutine io_config_reader
+   end subroutine io_param_reader
 
-   module subroutine io_config_writer(self, unit, iotype, v_list, iostat, iomsg) 
+   module subroutine io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: David A. Minton
       !!
       !! Dump integration parameters to file
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine io_dump_config.f90
-      !! Adapted from Martin Duncan's Swift routine io_dump_config.f
+      !! Adapted from David E. Kaufmann's Swifter routine io_dump_param.f90
+      !! Adapted from Martin Duncan's Swift routine io_dump_param.f
       implicit none
       ! Arguments
-      class(swiftest_configuration),intent(in)     :: self         !! Collection of  configuration parameters
+      class(swiftest_parameters),intent(in)     :: self         !! Collection of  parameters parameters
       integer, intent(in)                          :: unit       !! File unit number
       character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
@@ -394,19 +394,19 @@ contains
       !write(unit, Lfmt) "YORP", self%lyorp
 
       return
-   end subroutine io_config_writer
+   end subroutine io_param_writer
 
-   module subroutine io_dump_config(self, config_file_name, t, dt)
+   module subroutine io_dump_param(self, param_file_name, t, dt)
       !! author: David A. Minton
       !!
       !! Dump integration parameters to file
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine io_dump_config.f90
-      !! Adapted from Martin Duncan's Swift routine io_dump_config.f
+      !! Adapted from David E. Kaufmann's Swifter routine io_dump_param.f90
+      !! Adapted from Martin Duncan's Swift routine io_dump_param.f
       implicit none
       ! Arguments
-      class(swiftest_configuration),intent(in) :: self    !! Output collection of  parameters
-      character(len=*), intent(in)             :: config_file_name !! Parameter input file name (i.e. param.in)
+      class(swiftest_parameters),intent(in) :: self    !! Output collection of  parameters
+      character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
       real(DP),intent(in)                      :: t       !! Current simulation time
       real(DP),intent(in)                      :: dt      !! Step size
       ! Internals
@@ -414,16 +414,16 @@ contains
       integer(I4B)                 :: ierr          !! Error code
       character(STRMAX)            :: error_message !! Error message in UDIO procedure
 
-      open(unit = LUN, file = config_file_name, status='replace', form = 'FORMATTED', iostat =ierr)
+      open(unit = LUN, file = param_file_name, status='replace', form = 'FORMATTED', iostat =ierr)
       if (ierr /=0) then
          write(*,*) 'Swiftest error.'
-         write(*,*) '   Could not open dump file: ',trim(adjustl(config_file_name))
+         write(*,*) '   Could not open dump file: ',trim(adjustl(param_file_name))
          call util_exit(FAILURE)
       end if
       
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    due to compiler incompatabilities
-      !write(LUN,'(DT)') config
+      !write(LUN,'(DT)') param
       call self%writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = error_message)
       if (ierr /= 0) then
          write(*,*) trim(adjustl(error_message))
@@ -432,9 +432,9 @@ contains
       close(LUN)
 
       return
-   end subroutine io_dump_config
+   end subroutine io_dump_param
 
-   module subroutine io_dump_swiftest(self, config, t, dt, msg) 
+   module subroutine io_dump_swiftest(self, param, t, dt, msg) 
       !! author: David A. Minton
       !!
       !! Dump massive body data to files
@@ -444,7 +444,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_base),          intent(inout) :: self   !! Swiftest base object
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Stepsize
       character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
@@ -456,11 +456,11 @@ contains
 
       select type(self)
       class is(swiftest_cb)
-         dump_file_name = trim(adjustl(config%incbfile)) 
+         dump_file_name = trim(adjustl(param%incbfile)) 
       class is (swiftest_pl)
-         dump_file_name = trim(adjustl(config%inplfile)) 
+         dump_file_name = trim(adjustl(param%inplfile)) 
       class is (swiftest_tp)
-         dump_file_name = trim(adjustl(config%intpfile)) 
+         dump_file_name = trim(adjustl(param%intpfile)) 
       end select
       open(unit = iu, file = dump_file_name, form = "UNFORMATTED", status = 'replace', iostat = ierr)
       if (ierr /= 0) then
@@ -468,13 +468,13 @@ contains
          write(*, *) "   Unable to open binary dump file " // dump_file_name
          call util_exit(FAILURE)
       end if
-      call self%write_frame(iu, config, t, dt)
+      call self%write_frame(iu, param, t, dt)
       close(LUN)
 
       return
    end subroutine io_dump_swiftest
 
-   module subroutine io_dump_system(self, config, t, dt, msg)
+   module subroutine io_dump_system(self, param, t, dt, msg)
       !! author: David A. Minton
       !!
       !! Dumps the state of the system to files in case the simulation is interrupted.
@@ -483,50 +483,50 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_configuration), intent(in)    :: config  !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(in)    :: param  !! Input collection of  parameters parameters 
       real(DP),                      intent(in)    :: t       !! Current simulation time
       real(DP),                      intent(in)    :: dt      !! Stepsize
       character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       ! Internals
-      class(swiftest_configuration), allocatable :: dump_config   !! Local configuration variable used to configuration change input file names 
+      class(swiftest_parameters), allocatable :: dump_param   !! Local parameters variable used to parameters change input file names 
                                                     !!    to dump file-specific values without changing the user-defined values
       integer(I4B), save           :: idx = 1       !! Index of current dump file. Output flips between 2 files for extra security
                                                     !!    in case the program halts during writing
-      character(len=:), allocatable :: config_file_name
+      character(len=:), allocatable :: param_file_name
       real(DP) :: tfrac
      
 
-      allocate(dump_config, source=config)
-      config_file_name = trim(adjustl(DUMP_CONFIG_FILE(idx)))
-      dump_config%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-      dump_config%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-      dump_config%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-      dump_config%out_form = XV
-      dump_config%out_stat = 'APPEND'
-      call dump_config%dump(config_file_name,t,dt)
+      allocate(dump_param, source=param)
+      param_file_name = trim(adjustl(DUMP_param_FILE(idx)))
+      dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
+      dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
+      dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
+      dump_param%out_form = XV
+      dump_param%out_stat = 'APPEND'
+      call dump_param%dump(param_file_name,t,dt)
 
-      call self%cb%dump(dump_config, t, dt)
-      if (self%pl%nbody > 0) call self%pl%dump(dump_config, t, dt)
-      if (self%tp%nbody > 0) call self%tp%dump(dump_config, t, dt)
+      call self%cb%dump(dump_param, t, dt)
+      if (self%pl%nbody > 0) call self%pl%dump(dump_param, t, dt)
+      if (self%tp%nbody > 0) call self%tp%dump(dump_param, t, dt)
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
 
       ! Print the status message (format code passed in from main driver)
-      tfrac = (t - config%t0) / (config%tstop - config%t0)
+      tfrac = (t - param%t0) / (param%tstop - param%t0)
       write(*,msg) t, tfrac, self%pl%nbody, self%tp%nbody
 
       return
    end subroutine io_dump_system
 
-   module function io_get_args(integrator, config_file_name) result(ierr)
+   module function io_get_args(integrator, param_file_name) result(ierr)
       !! author: David A. Minton
       !!
-      !! Reads in the name of the configuration file. 
+      !! Reads in the name of the parameters file. 
       implicit none
       ! Arguments
       integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
-      character(len=:), allocatable :: config_file_name !! Name of the input configuration file
+      character(len=:), allocatable :: param_file_name !! Name of the input parameters file
       ! Result
       integer(I4B)                  :: ierr             !! I/O error cod
       ! Internals
@@ -564,7 +564,7 @@ contains
                write(*,*) trim(adjustl(arg1)) // ' is not a valid integrator.'
                ierr = -1
             end select
-            config_file_name = trim(adjustl(arg2))
+            param_file_name = trim(adjustl(arg2))
          end if
       else 
          call get_command_argument(1, arg1, status = ierr_arg1)
@@ -626,7 +626,7 @@ contains
       return
    end function io_get_token
 
-   module subroutine io_read_body_in(self, config) 
+   module subroutine io_read_body_in(self, param) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read in either test particle or massive body data 
@@ -636,7 +636,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_configuration), intent(inout) :: config !! Input collection of  configuration parameters
+      class(swiftest_parameters), intent(inout) :: param !! Input collection of  parameters parameters
       ! Internals
       integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
       integer(I4B)                  :: iu = LUN
@@ -649,16 +649,16 @@ contains
       ! Select the appropriate polymorphic class (test particle or massive body)
       select type(self)
       class is (swiftest_pl)
-         infile = config%inplfile
+         infile = param%inplfile
          is_pl = .true.
       class is (swiftest_tp)
-         infile = config%intpfile
+         infile = param%intpfile
          is_pl = .false.
       end select
 
       ierr = 0
-      is_ascii = (config%in_type == 'ASCII') 
-      select case(config%in_type)
+      is_ascii = (param%in_type == 'ASCII') 
+      select case(param%in_type)
       case(ASCII_TYPE)
          open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', iostat = ierr)
          read(iu, *, iostat = ierr) nbody
@@ -668,19 +668,19 @@ contains
                select type(self)
                class is (swiftest_pl)
                   read(iu, *, iostat = ierr) self%name(i), val 
-                  self%mass(i) = real(val / config%GU, kind=DP)
+                  self%mass(i) = real(val / param%GU, kind=DP)
                   self%Gmass(i) = real(val, kind=DP)
-                  if (config%lclose) then
+                  if (param%lclose) then
                      read(iu, *, iostat = ierr) self%radius(i)
                      if (ierr /= 0 ) exit
                   else
                      self%radius(i) = 0.0_DP
                   end if
-                  if (config%lrotation) then
+                  if (param%lrotation) then
                      read(iu, iostat = ierr) self%Ip(:, i)
                      read(iu, iostat = ierr) self%rot(:, i)
                   end if
-                  if (config%ltides) then
+                  if (param%ltides) then
                      read(iu, iostat = ierr) self%k2(i)
                      read(iu, iostat = ierr) self%Q(i)
                   end if
@@ -699,11 +699,11 @@ contains
          read(iu, iostat = ierr) nbody
          call self%setup(nbody)
          if (nbody > 0) then
-            call self%read_frame(iu, config, XV, t, ierr)
+            call self%read_frame(iu, param, XV, t, ierr)
             self%status(:) = ACTIVE
          end if
       case default
-         write(*,*) trim(adjustl(config%in_type)) // ' is an unrecognized file type'
+         write(*,*) trim(adjustl(param%in_type)) // ' is an unrecognized file type'
          ierr = -1
       end select
       close(iu)
@@ -715,7 +715,7 @@ contains
       return
    end subroutine io_read_body_in
 
-   module subroutine io_read_cb_in(self, config) 
+   module subroutine io_read_cb_in(self, param) 
       !! author: David A. Minton
       !!
       !! Reads in central body data 
@@ -725,7 +725,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_cb),            intent(inout) :: self
-      class(swiftest_configuration), intent(inout) :: config
+      class(swiftest_parameters), intent(inout) :: param
       ! Internals
       integer(I4B), parameter :: LUN = 7              !! Unit number of input file
       integer(I4B)            :: iu = LUN
@@ -735,78 +735,78 @@ contains
       real(QP)                :: val
 
       ierr = 0
-      is_ascii = (config%in_type == 'ASCII') 
+      is_ascii = (param%in_type == 'ASCII') 
       if (is_ascii) then
-         open(unit = iu, file = config%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
+         open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
          read(iu, *, iostat = ierr) val 
          self%Gmass = real(val, kind=DP)
-         self%mass = real(val / config%GU, kind=DP)
+         self%mass = real(val / param%GU, kind=DP)
          read(iu, *, iostat = ierr) self%radius
          read(iu, *, iostat = ierr) self%j2rp2
          read(iu, *, iostat = ierr) self%j4rp4
-         if (config%lrotation) then
+         if (param%lrotation) then
             read(iu, *, iostat = ierr) self%Ip(:)
             read(iu, *, iostat = ierr) self%rot(:)
          end if
-         if (config%ltides) then
+         if (param%ltides) then
             read(iu, *, iostat = ierr) self%k2
             read(iu, *, iostat = ierr) self%Q
          end if
             
       else
-         open(unit = iu, file = config%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
-         call self%read_frame(iu, config, XV, t, ierr)
+         open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
+         call self%read_frame(iu, param, XV, t, ierr)
       end if
       close(iu)
       if (ierr /=  0) then
-         write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(config%incbfile))
+         write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(param%incbfile))
          call util_exit(FAILURE)
       end if
-      if (self%j2rp2 /= 0.0_DP) config%loblatecb = .true.
+      if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
 
       return
    end subroutine io_read_cb_in
 
-   module subroutine io_read_config_in(self, config_file_name) 
+   module subroutine io_read_param_in(self, param_file_name) 
       !! author: David A. Minton
       !!
       !! Read in parameters for the integration
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine io_init_config.f90
-      !! Adapted from Martin Duncan's Swift routine io_init_config.f
+      !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
+      !! Adapted from Martin Duncan's Swift routine io_init_param.f
       implicit none
       ! Arguments
-      class(swiftest_configuration),intent(out) :: self             !! Input collection of  configuration parameters
-      character(len=*), intent(in)              :: config_file_name !! Parameter input file name (i.e. param.in)
+      class(swiftest_parameters),intent(out) :: self             !! Input collection of  parameters parameters
+      character(len=*), intent(in)              :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
       integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
       integer(I4B)            :: ierr = 0                !! Input error code
       character(STRMAX)       :: error_message           !! Error message in UDIO procedure
 
       ! Read in name of parameter file
-      write(*, *) 'Configuration data file is ', trim(adjustl(config_file_name))
+      write(*, *) 'parameters data file is ', trim(adjustl(param_file_name))
       write(*, *) ' '
       100 format(A)
-      open(unit = LUN, file = config_file_name, status = 'old', iostat = ierr)
+      open(unit = LUN, file = param_file_name, status = 'old', iostat = ierr)
       if (ierr /= 0) then
          write(*,*) 'Swiftest error: ', ierr
-         write(*,*) '   Unable to open file ',trim(adjustl(config_file_name))
+         write(*,*) '   Unable to open file ',trim(adjustl(param_file_name))
          call util_exit(FAILURE)
       end if
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    as the newline characters are ignored in the input file when compiled in ifort.
 
-      !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) config
+      !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) param
       call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = error_message)
       if (ierr /= 0) then
-         write(*,*) 'Swiftest error reading ', trim(adjustl(config_file_name))
+         write(*,*) 'Swiftest error reading ', trim(adjustl(param_file_name))
          write(*,*) ierr,trim(adjustl(error_message))
          call util_exit(FAILURE)
       end if
 
       return 
-   end subroutine io_read_config_in
+   end subroutine io_read_param_in
 
    module function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
          xh1, xh2, vh1, vh2, encounter_file, out_type) result(ierr)
@@ -858,7 +858,7 @@ contains
       return
    end function io_read_encounter
 
-   module subroutine io_read_frame_body(self, iu, config, form, t, ierr)
+   module subroutine io_read_frame_body(self, iu, param, form, t, ierr)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of either test particle or massive body data to the binary output file
@@ -870,7 +870,7 @@ contains
       ! Arguments
       class(swiftest_body),          intent(inout) :: self    !! Swiftest particle object
       integer(I4B),                  intent(inout) :: iu      !! Unit number for the output file to write frame to
-      class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(inout) :: param  !! Input collection of  parameters parameters 
       character(*),                  intent(in)    :: form    !! Input format code ("XV" or "EL")
       real(DP),                      intent(out)   :: t       !! Simulation time
       integer(I4B),                  intent(out)   :: ierr    !! Error code
@@ -896,9 +896,9 @@ contains
          select type(self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             read(iu, iostat = ierr) self%Gmass(1:n)
-            self%mass(1:n) = self%Gmass / config%GU 
+            self%mass(1:n) = self%Gmass / param%GU 
             read(iu, iostat = ierr) self%radius(1:n)
-            if (config%lrotation) then
+            if (param%lrotation) then
                read(iu, iostat = ierr) self%Ip(1, 1:n)
                read(iu, iostat = ierr) self%Ip(2, 1:n)
                read(iu, iostat = ierr) self%Ip(3, 1:n)
@@ -906,7 +906,7 @@ contains
                read(iu, iostat = ierr) self%rot(2, 1:n)
                read(iu, iostat = ierr) self%rot(3, 1:n)
             end if
-            if (config%ltides) then
+            if (param%ltides) then
                read(iu, iostat = ierr) self%k2(1:n)
                read(iu, iostat = ierr) self%Q(1:n)
             end if
@@ -921,7 +921,7 @@ contains
       return
    end subroutine io_read_frame_body
 
-   module subroutine io_read_frame_cb(self, iu, config, form, t, ierr)
+   module subroutine io_read_frame_cb(self, iu, param, form, t, ierr)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of central body data to the binary output file
@@ -932,21 +932,21 @@ contains
       ! Arguments
       class(swiftest_cb),            intent(inout) :: self     !! Swiftest central body object
       integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
-      class(swiftest_configuration), intent(inout) :: config   !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(inout) :: param   !! Input collection of  parameters parameters 
       character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
       real(DP),                      intent(out)   :: t        !! Simulation time
       integer(I4B),                  intent(out)   :: ierr     !! Error cod
 
       read(iu, iostat = ierr) self%Gmass
-      self%mass = self%Gmass / config%GU
+      self%mass = self%Gmass / param%GU
       read(iu, iostat = ierr) self%radius
       read(iu, iostat = ierr) self%j2rp2 
       read(iu, iostat = ierr) self%j4rp4 
-      if (config%lrotation) then
+      if (param%lrotation) then
          read(iu, iostat = ierr) self%Ip(:)
          read(iu, iostat = ierr) self%rot(:)
       end if
-      if (config%ltides) then
+      if (param%ltides) then
          read(iu, iostat = ierr) self%k2
          read(iu, iostat = ierr) self%Q
       end if
@@ -958,7 +958,7 @@ contains
       return
    end subroutine io_read_frame_cb
  
-   module subroutine io_read_frame_system(self, iu, config, form, t, ierr)
+   module subroutine io_read_frame_system(self, iu, param, form, t, ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
@@ -966,7 +966,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
       integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_configuration), intent(inout) :: config !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(inout) :: param !! Input collection of  parameters parameters 
       character(*),                  intent(in)    :: form   !! Input format code ("XV" or "EL")
       real(DP),                      intent(out)   :: t      !! Current simulation time
       integer(I4B),                  intent(out)   :: ierr   !! Error code
@@ -975,7 +975,7 @@ contains
 
       iu = BINUNIT
       if (lfirst) then
-         open(unit = iu, file = config%outfile, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+         open(unit = iu, file = param%outfile, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
          lfirst = .false.
          if (ierr /= 0) then
             write(*, *) "Swiftest error:"
@@ -983,17 +983,17 @@ contains
             return
          end if
       end if
-      ierr =  io_read_hdr(iu, t, self%pl%nbody, self%tp%nbody, config%out_form, config%out_type)
+      ierr =  io_read_hdr(iu, t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
          write(*, *) "   Binary output file already exists or cannot be accessed"
          return
       end if
-      call self%cb%read_frame(iu, config, form, t, ierr)
+      call self%cb%read_frame(iu, param, form, t, ierr)
       if (ierr /= 0) return
-      call self%pl%read_frame(iu, config, form, t, ierr)
+      call self%pl%read_frame(iu, param, form, t, ierr)
       if (ierr /= 0) return
-      call self%tp%read_frame(iu, config, form, t, ierr)
+      call self%tp%read_frame(iu, param, form, t, ierr)
       return
    end subroutine io_read_frame_system
 
@@ -1034,7 +1034,7 @@ contains
       return
    end function io_read_hdr
 
-   module subroutine io_read_initialize_system(self, config)
+   module subroutine io_read_initialize_system(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
@@ -1042,18 +1042,18 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_configuration), intent(inout) :: config  !! Input collection of  configuration parameters
+      class(swiftest_parameters), intent(inout) :: param  !! Input collection of  parameters parameters
   
-      call self%cb%initialize(config)
-      call self%pl%initialize(config)
-      call self%tp%initialize(config)
+      call self%cb%initialize(param)
+      call self%pl%initialize(param)
+      call self%tp%initialize(param)
       call self%set_msys()
       call self%pl%set_mu(self%cb) 
       call self%tp%set_mu(self%cb) 
    
    end subroutine io_read_initialize_system
 
-   module subroutine io_write_discard(self, config, discards)
+   module subroutine io_write_discard(self, param, discards)
       !! author: David A. Minton
       !!
       !! Write out information about discarded test particle
@@ -1063,7 +1063,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
-      class(swiftest_configuration), intent(in)    :: config   !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(in)    :: param   !! Input collection of  parameters parameters 
       class(swiftest_body),          intent(inout) :: discards !! Swiftest discard object 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
@@ -1077,41 +1077,41 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
-      associate(t => config%t, config => config, nsp => discards%nbody, dxh => discards%xh, dvh => discards%vh, &
+      associate(t => param%t, param => param, nsp => discards%nbody, dxh => discards%xh, dvh => discards%vh, &
                 dname => discards%name, dstatus => discards%status) 
          
-         if (config%out_stat == 'APPEND' .or. (.not.lfirst)) then
+         if (param%out_stat == 'APPEND' .or. (.not.lfirst)) then
             open(unit = LUN, file = DISCARD_FILE, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
-         else if (config%out_stat == 'NEW') then
+         else if (param%out_stat == 'NEW') then
             open(unit = LUN, file = DISCARD_FILE, status = 'NEW', form = 'FORMATTED', iostat = ierr)
-         else if (config%out_stat == 'REPLACE') then
+         else if (param%out_stat == 'REPLACE') then
             open(unit = LUN, file = DISCARD_FILE, status = 'REPLACE', form = 'FORMATTED', iostat = ierr)
          else
-            write(*,*) 'Invalid status code',trim(adjustl(config%out_stat))
+            write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
          end if
          lfirst = .false.
-         if (config%lgr) then
+         if (param%lgr) then
             select type(discards)
             class is (whm_tp)
-               call discards%gr_pv2vh(config)
+               call discards%gr_pv2vh(param)
             end select
          end if
-         write(LUN, HDRFMT) t, nsp, config%lbig_discard
+         write(LUN, HDRFMT) t, nsp, param%lbig_discard
          do i = 1, nsp
             write(LUN, NAMEFMT) sub, dname(i), dstatus(i)
             write(LUN, VECFMT) dxh(1, i), dxh(2, i), dxh(3, i)
             write(LUN, VECFMT) dvh(1, i), dvh(2, i), dvh(3, i)
          end do
-         if (config%lbig_discard) then
+         if (param%lbig_discard) then
             associate(npl => self%pl%nbody, pl => self%pl, GMpl => self%pl%Gmass, &
                      Rpl => self%pl%radius, name => self%pl%name, xh => self%pl%xh)
 
-               if (config%lgr) then
+               if (param%lgr) then
                   allocate(pltemp, source = pl)
                   select type(pltemp)
                   class is (whm_pl)
-                     call pltemp%gr_pv2vh(config)
+                     call pltemp%gr_pv2vh(param)
                      allocate(vh, source = pltemp%vh)
                   end select
                   deallocate(pltemp)
@@ -1185,7 +1185,7 @@ contains
 
    end subroutine io_write_encounter
 
-   module subroutine io_write_frame_body(self, iu, config, t, dt)
+   module subroutine io_write_frame_body(self, iu, param, t, dt)
       !! author: David A. Minton
       !!
       !! Write a frame of output of either test particle or massive body data to the binary output file
@@ -1197,14 +1197,14 @@ contains
       ! Arguments
       class(swiftest_body),          intent(in)    :: self   !! Swiftest particle object
       integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Step size
 
       associate(n => self%nbody)
          if (n == 0) return
          write(iu) self%name(1:n)
-         select case (config%out_form)
+         select case (param%out_form)
          case (EL) 
             write(iu) self%a(1:n)
             write(iu) self%e(1:n)
@@ -1224,7 +1224,7 @@ contains
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu) self%Gmass(1:n)
             write(iu) self%radius(1:n)
-            if (config%lrotation) then
+            if (param%lrotation) then
                write(iu) self%Ip(1, 1:n)
                write(iu) self%Ip(2, 1:n)
                write(iu) self%Ip(3, 1:n)
@@ -1232,7 +1232,7 @@ contains
                write(iu) self%rot(2, 1:n)
                write(iu) self%rot(3, 1:n)
             end if
-            if (config%ltides) then
+            if (param%ltides) then
                write(iu) self%k2(1:n)
                write(iu) self%Q(1:n)
             end if
@@ -1242,7 +1242,7 @@ contains
       return
    end subroutine io_write_frame_body
 
-   module subroutine io_write_frame_cb(self, iu, config, t, dt)
+   module subroutine io_write_frame_cb(self, iu, param, t, dt)
       !! author: David A. Minton
       !!
       !! Write a frame of output of central body data to the binary output file
@@ -1253,7 +1253,7 @@ contains
       ! Arguments
       class(swiftest_cb),            intent(in)    :: self   !! Swiftest central body object 
       integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Step size
 
@@ -1261,7 +1261,7 @@ contains
       write(iu) self%radius
       write(iu) self%j2rp2 
       write(iu) self%j4rp4 
-      if (config%lrotation) then
+      if (param%lrotation) then
          write(iu) self%Ip(1)
          write(iu) self%Ip(2)
          write(iu) self%Ip(3)
@@ -1269,7 +1269,7 @@ contains
          write(iu) self%rot(2)
          write(iu) self%rot(3)
       end if
-      if (config%ltides) then
+      if (param%ltides) then
          write(iu) self%k2
          write(iu) self%Q
       end if
@@ -1277,7 +1277,7 @@ contains
       return
    end subroutine io_write_frame_cb
 
-   module subroutine io_write_frame_system(self, iu, config, t, dt)
+   module subroutine io_write_frame_system(self, iu, param, t, dt)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Write a frame (header plus records for each massive body and active test particle) to output binary file
@@ -1289,7 +1289,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system),  intent(in)    :: self   !! Swiftest system object
       integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Step size
       ! Internals
@@ -1306,56 +1306,56 @@ contains
       iu = BINUNIT
 
       if (lfirst) then
-         select case(config%out_stat)
+         select case(param%out_stat)
          case('APPEND')
-            open(unit = iu, file = config%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+            open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
          case('NEW')
-            open(unit = iu, file = config%outfile, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
+            open(unit = iu, file = param%outfile, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
          case ('REPLACE')
-            open(unit = iu, file = config%outfile, status = 'REPLACE', form = 'UNFORMATTED', iostat = ierr)
+            open(unit = iu, file = param%outfile, status = 'REPLACE', form = 'UNFORMATTED', iostat = ierr)
          case default
-            write(*,*) 'Invalid status code',trim(adjustl(config%out_stat))
+            write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
          end select
          if (ierr /= 0) then
             write(*, *) "Swiftest error: io_write_frame_system - first", ierr
-            write(*, *) "   Binary output file " // trim(adjustl(config%outfile)) // " already exists or cannot be accessed"
-            write(*, *) "   out_stat: " // trim(adjustl(config%out_stat))
+            write(*, *) "   Binary output file " // trim(adjustl(param%outfile)) // " already exists or cannot be accessed"
+            write(*, *) "   out_stat: " // trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
          end if
          lfirst = .false.
       else
-         open(unit = iu, file = config%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
+         open(unit = iu, file = param%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
          if (ierr /= 0) then
             write(*, *) "Swiftest error: io_write_frame_system"
             write(*, *) "   Unable to open binary output file for APPEND"
             call util_exit(FAILURE)
          end if
       end if
-      call io_write_hdr(iu, t, pl%nbody, tp%nbody, config%out_form, config%out_type)
+      call io_write_hdr(iu, t, pl%nbody, tp%nbody, param%out_form, param%out_type)
 
-      if (config%lgr) then
+      if (param%lgr) then
          associate(vh => pl%vh, vht => tp%vh)
             select type(pl)
             class is (whm_pl)
-               call pl%gr_pv2vh(config)
+               call pl%gr_pv2vh(param)
             end select
             select type(tp) 
             class is (whm_tp)
-               call tp%gr_pv2vh(config)
+               call tp%gr_pv2vh(param)
             end select
          end associate
       end if
 
-      if (config%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
+      if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
          call pl%xv2el(cb)
          call tp%xv2el(cb)
       end if
       
       ! Write out each data type frame
-      call cb%write_frame(iu, config, t, dt)
-      call pl%write_frame(iu, config, t, dt)
-      call tp%write_frame(iu, config, t, dt)
+      call cb%write_frame(iu, param, t, dt)
+      call pl%write_frame(iu, param, t, dt)
+      call tp%write_frame(iu, param, t, dt)
 
       deallocate(cb, pl, tp)
 

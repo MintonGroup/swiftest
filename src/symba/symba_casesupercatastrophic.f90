@@ -128,7 +128,7 @@ implicit none
         do i = 1, nfrag
          frags_added = frags_added + 1
          nmergeadd = nmergeadd + 1
-         mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+         mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
          mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
          mergeadd_list%ncomp(nmergeadd) = 2
          mergeadd_list%mass(nmergeadd) = m1m2_10
@@ -143,7 +143,7 @@ implicit none
        if ((mres(1) > m1m2_10)) then
         frags_added = frags_added + 1
         nmergeadd = nmergeadd + 1
-        mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+        mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
         mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
         mergeadd_list%ncomp(nmergeadd) = 2
         mergeadd_list%mass(nmergeadd) = mres(1)
@@ -152,7 +152,7 @@ implicit none
         do i = 2, nfrag
          frags_added = frags_added + 1
          nmergeadd = nmergeadd + 1
-         mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+         mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
          mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
          mergeadd_list%ncomp(nmergeadd) = 2
          mergeadd_list%mass(nmergeadd) = (m1 + m2 - mres(1)) / (nfrag - 1.0_DP)
@@ -175,7 +175,7 @@ implicit none
          ! if yes, add a fragment using durda et al 2007 figure 2 supercatastrophic: n = (1.5e5)e(-1.3*d) for the mass
        !    frags_added = frags_added + 1
        !    nmergeadd = nmergeadd + 1
-       !    mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+       !    mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
        !    mergeadd_list%status(nmergeadd) = SUPERCATASTROPHIC
        !    mergeadd_list%ncomp(nmergeadd) = 2
        !    mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 

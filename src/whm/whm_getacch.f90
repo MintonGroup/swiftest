@@ -1,7 +1,7 @@
 submodule(whm_classes) s_whm_getacch
    use swiftest
 contains
-   module subroutine whm_getacch_pl(self, cb, config, t)
+   module subroutine whm_getacch_pl(self, cb, param, t)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of planets
@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb  !! Swiftest central body particle data structure
-      class(swiftest_configuration), intent(in)    :: config   !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param   !! Input collection of 
       real(DP),                      intent(in)    :: t        !! Current time
       ! Internals
       integer(I4B)                                 :: i
@@ -31,15 +31,15 @@ contains
          call whm_getacch_ah2(cb, pl) 
          call whm_getacch_ah3(pl)
 
-         if (config%loblatecb) call pl%obl_acc(cb)
-         if (config%lextra_force) call pl%user_getacch(cb, config, t)
-         if (config%lgr) call pl%gr_getacch(cb, config) 
+         if (param%loblatecb) call pl%obl_acc(cb)
+         if (param%lextra_force) call pl%user_getacch(cb, param, t)
+         if (param%lgr) call pl%gr_getacch(cb, param) 
 
       end associate
       return
    end subroutine whm_getacch_pl
 
-   module subroutine whm_getacch_tp(self, cb, pl, config, t, xh)
+   module subroutine whm_getacch_tp(self, cb, pl, param, t, xh)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -51,7 +51,7 @@ contains
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Generic Swiftest central body particle data structuree 
       class(whm_pl),                 intent(inout) :: pl     !! Generic Swiftest massive body particle data structure. 
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
       ! Internals
@@ -67,9 +67,9 @@ contains
             tp%ah(:, i) = ah0(:)
          end do
          call whm_getacch_ah3_tp(cb, pl, tp, xh)
-         if (config%loblatecb) call tp%obl_acc(cb)
-         if (config%lextra_force) call tp%user_getacch(cb, config, t)
-         if (config%lgr) call tp%gr_getacch(cb, config) 
+         if (param%loblatecb) call tp%obl_acc(cb)
+         if (param%lextra_force) call tp%user_getacch(cb, param, t)
+         if (param%lgr) call tp%gr_getacch(cb, param) 
       end associate
       return
    end subroutine whm_getacch_tp

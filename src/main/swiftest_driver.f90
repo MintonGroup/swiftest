@@ -10,9 +10,9 @@ program swiftest_driver
    implicit none
 
    class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
-   type(swiftest_configuration)               :: config
+   type(swiftest_parameters)               :: param
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable               :: config_file_name !! Name of the file containing user-defined configuration parameters
+   character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters parameters
    integer(I4B)                               :: ierr             !! I/O error code 
    logical                                    :: lfirst           !! Flag indicating that this is the first time through the main loop
    integer(I8B)                               :: iloop            !! Loop counter
@@ -26,29 +26,29 @@ program swiftest_driver
    character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
                                              'Number of active pl, tp = ", I5, ", ", I5)'
 
-   ierr = io_get_args(integrator, config_file_name)
+   ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
       write(*,*) 'Error reading in arguments from the command line'
       call util_exit(FAILURE)
    end if
    !$ start_wall_time = omp_get_wtime()
-   !> Read in the user-defined configuration file and the initial conditions of the system
-   config%integrator = integrator
-   call setup_construct_system(nbody_system, config)
-   call config%read_from_file(config_file_name)
-   associate(t          => config%t, &
-             t0         => config%t0, &
-             dt         => config%dt, &
-             tstop      => config%tstop, &
-             istep_out  => config%istep_out, &
-             istep_dump => config%istep_dump)  
-      call nbody_system%initialize(config)
+   !> Read in the user-defined parameters file and the initial conditions of the system
+   param%integrator = integrator
+   call setup_construct_system(nbody_system, param)
+   call param%read_from_file(param_file_name)
+   associate(t          => param%t, &
+             t0         => param%t0, &
+             dt         => param%dt, &
+             tstop      => param%tstop, &
+             istep_out  => param%istep_out, &
+             istep_dump => param%istep_dump)  
+      call nbody_system%initialize(param)
       lfirst = .true.
       t = t0
       iloop = 0
       iout = istep_out
       idump = istep_dump
-      if (istep_out > 0) call nbody_system%write_frame(iu, config, t, dt)
+      if (istep_out > 0) call nbody_system%write_frame(iu, param, t, dt)
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
       !$ nthreads = omp_get_max_threads() ! In the *parallel* case
@@ -60,19 +60,19 @@ program swiftest_driver
          ntp = nbody_system%tp%nbody
          npl = nbody_system%pl%nbody
          !> Step the system forward in time
-         call nbody_system%step(config)
+         call nbody_system%step(param)
 
          t = t0 + iloop * dt
          if (t > tstop) exit 
 
          !> Evaluate any discards or mergers
-         call nbody_system%discard(config)
+         call nbody_system%discard(param)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
-               call nbody_system%write_frame(iu, config, t, dt)
+               call nbody_system%write_frame(iu, param, t, dt)
                iout = istep_out
             end if
          end if
@@ -81,14 +81,14 @@ program swiftest_driver
          if (istep_dump > 0) then
             idump = idump - 1
             if (idump == 0) then
-               call nbody_system%dump(config, t, dt, statusfmt)
+               call nbody_system%dump(param, t, dt, statusfmt)
                idump = istep_dump
             end if
          end if
       end do
 
       !> Dump the final state of the system to file
-      !call nbody_system%dump(config, t, dt, statusfmt)
+      !call nbody_system%dump(param, t, dt, statusfmt)
       !$ finish_wall_time = omp_get_wtime()
       !$ write(*,*) 'Time: ', finish_wall_time - start_wall_time
    end associate

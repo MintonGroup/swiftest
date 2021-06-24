@@ -1,7 +1,7 @@
 submodule (helio_classes) s_helio_drift
    use swiftest
 contains
-   module subroutine helio_drift_pl(self, cb, config, dt)
+   module subroutine helio_drift_pl(self, cb, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through massive bodies and call Danby drift routine
@@ -13,7 +13,7 @@ contains
       ! Arguments
       class(helio_pl),               intent(inout) :: self   !! Helio test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Helio central body particle data structuree
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B) :: i !! Loop counter
@@ -33,12 +33,12 @@ contains
          iflag(:) = 0
          allocate(dtp(npl))
 
-         if (config%lgr) then
+         if (param%lgr) then
             do i = 1,npl
                rmag = norm2(xh(:, i))
                vmag2 = dot_product(vb(:, i),  vb(:, i))
                energy = 0.5_DP * vmag2 - mu(i) / rmag
-               dtp(i) = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+               dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
             end do
          else
             dtp(:) = dt
@@ -95,7 +95,7 @@ contains
    
    end subroutine helio_drift_linear_pl
 
-   module subroutine helio_drift_tp(self, cb, config, dt)
+   module subroutine helio_drift_tp(self, cb, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through test particles and call Danby drift routine
@@ -106,7 +106,7 @@ contains
       ! Arguments
       class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Helio central body particle data structuree
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B) :: i !! Loop counter
@@ -127,12 +127,12 @@ contains
          iflag(:) = 0
          allocate(dtp(ntp))
 
-         if (config%lgr) then
+         if (param%lgr) then
             do i = 1,ntp
                rmag = norm2(xh(:, i))
                vmag2 = dot_product(vh(:, i),  vh(:, i))
                energy = 0.5_DP * vmag2 - mu(i) / rmag
-               dtp(i) = dt * (1.0_DP + 3 * config%inv_c2 * energy)
+               dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
             end do
          else
             dtp(:) = dt

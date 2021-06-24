@@ -141,13 +141,13 @@ implicit none
    lencounter = ((nplplenc > 0) .or. (npltpenc > 0))
 
    if (lencounter) then ! if there was an encounter, we need to enter symba_step_interp to see if we need recursion
-      call symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, config%j2rp2, config%j4rp4,&
+      call symba_step_interp_eucl(lextra_force, lclose, t, npl, nplm, param%nplmax, ntp, param%ntpmax, symba_plA, symba_tpA, param%j2rp2, param%j4rp4,&
          dt, eoffset, mtiny, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, nmergesub, mergeadd_list,&
          mergesub_list, encounter_file, out_type, num_plpl_comparisons, k_plpl, num_pltp_comparisons, k_pltp)
       lfirst = .true.
    else ! otherwise we can just advance the particles
-      call symba_step_helio(lfirst, lextra_force, t, npl, nplm, config%nplmax, ntp, config%ntpmax, symba_plA, symba_tpA, &
-         config%j2rp2, config%j4rp4, dt)
+      call symba_step_helio(lfirst, lextra_force, t, npl, nplm, param%nplmax, ntp, param%ntpmax, symba_plA, symba_tpA, &
+         param%j2rp2, param%j4rp4, dt)
    end if
 
    return

@@ -139,7 +139,7 @@ if __name__ == '__main__':
    swifter_bin    = "bin.swifter.dat"
    swifter_enc    = "enc.swifter.dat"
 
-   swiftest_input = "config.swiftest.in"
+   swiftest_input = "param.swiftest.in"
    swiftest_pl    = "pl.swiftest.in"
    swiftest_tp    = "tp.swiftest.in"
    swiftest_cb    = "cb.swiftest.in"

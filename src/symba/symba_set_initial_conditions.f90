@@ -9,12 +9,12 @@ contains
       implicit none
 
       ! read in the total number of bodies from the input files
-      call symba_plA%read_from_file(config)
-      call symba_tpA%read_from_file(config)
+      call symba_plA%read_from_file(param)
+      call symba_tpA%read_from_file(param)
 
       ! Save central body mass in vector form so that elemental functions can be evaluated with it
-      call symba_tpA%set_vec(symba_plA%mass(1),config%dt)
-      call symba_plA%set_vec(symba_plA%mass(1),config%dt)
+      call symba_tpA%set_vec(symba_plA%mass(1),param%dt)
+      call symba_plA%set_vec(symba_plA%mass(1),param%dt)
 
       ! Save system mass to both objects
       call symba_plA%set_msys(symba_plA)

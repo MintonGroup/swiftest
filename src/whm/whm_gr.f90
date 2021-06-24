@@ -1,7 +1,7 @@
 submodule(whm_classes) s_whm_gr
    use swiftest
 contains
-   module subroutine whm_gr_getacch_pl(self, cb, config)
+   module subroutine whm_gr_getacch_pl(self, cb, param)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
@@ -12,14 +12,14 @@ contains
       ! Arguments
       class(whm_pl),       intent(inout)           :: self   !! WHM massive body particle data structure
       class(swiftest_cb),  intent(inout)           :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: suma
       real(DP), dimension(:, :), allocatable       :: aj
       real(DP)                                     :: beta, rjmag4
       
-      associate(n => self%nbody, msun => cb%Gmass, mu => self%muj, c2 => config%inv_c2, &
+      associate(n => self%nbody, msun => cb%Gmass, mu => self%muj, c2 => param%inv_c2, &
          ah => self%ah, xj => self%xj, GMpl => self%Gmass, eta => self%eta)
          if (n == 0) return
          allocate(aj, mold = ah)
@@ -39,7 +39,7 @@ contains
       return
    end subroutine whm_gr_getacch_pl
 
-   module subroutine whm_gr_getacch_tp(self, cb, config)
+   module subroutine whm_gr_getacch_tp(self, cb, param)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of test particles
@@ -50,13 +50,13 @@ contains
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       ! Internals
       integer(I4B)                                 :: i
       real(DP)                                     :: rjmag4, beta
       
       associate(n => self%nbody, msun => cb%Gmass, mu => self%mu,& 
-         c2 => config%inv_c2, ah => self%ah, xh => self%xh, status => self%status)
+         c2 => param%inv_c2, ah => self%ah, xh => self%xh, status => self%status)
          if (n == 0) return
          !do concurrent (i = 1:n, status(i) == active)
          do i = 1, n
@@ -68,7 +68,7 @@ contains
       return
    end subroutine whm_gr_getacch_tp
 
-   module pure subroutine whm_gr_p4_pl(self, config, dt)
+   module pure subroutine whm_gr_p4_pl(self, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to massive bodies due to p**4 term in the post-Newtonian correction
@@ -78,12 +78,12 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
       real(DP),                      intent(in)    :: dt     !! Step size
       ! Internals
       integer(I4B)                                 :: i
 
-      associate(n => self%nbody, xj => self%xj, vj => self%vj, status => self%status, c2 => config%inv_c2)
+      associate(n => self%nbody, xj => self%xj, vj => self%vj, status => self%status, c2 => param%inv_c2)
          if (n == 0) return
          !do concurrent (i = 1:n, status(i) == ACTIVE)
          do i = 1,n
@@ -94,7 +94,7 @@ contains
      return
    end subroutine whm_gr_p4_pl
 
-   module pure subroutine whm_gr_p4_tp(self, config, dt)
+   module pure subroutine whm_gr_p4_tp(self, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to test particles due to p**4 term in the post-Newtonian correction
@@ -104,12 +104,12 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
       real(DP),                      intent(in)    :: dt     !! Step size
       ! Internals
       integer(I4B)                                 :: i
 
-      associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, c2 => config%inv_c2)
+      associate(n => self%nbody, xh => self%xh, vh => self%vh, status => self%status, c2 => param%inv_c2)
          if (n == 0) return
          !do concurrent (i = 1:n, status(i) == ACTIVE)
          do i = 1, n
@@ -120,7 +120,7 @@ contains
      return
    end subroutine whm_gr_p4_tp
 
-   module pure subroutine whm_gr_pv2vh_pl(self, config)
+   module pure subroutine whm_gr_pv2vh_pl(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from pseudovelocity to heliocentric velocity for massive bodies
@@ -128,7 +128,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
@@ -138,7 +138,7 @@ contains
          allocate(vh, mold = pv)
          !do concurrent(i = 1:n, status(i) == ACTIVE)
          do i = 1, n
-            call gr_pseudovel2vel(config, mu(i), xh(:, i), pv(:, i), vh(:, i))
+            call gr_pseudovel2vel(param, mu(i), xh(:, i), pv(:, i), vh(:, i))
             pv(:, i) = vh(:, i)
          end do
          deallocate(vh)
@@ -146,7 +146,7 @@ contains
       return
    end subroutine whm_gr_pv2vh_pl
 
-   module pure subroutine whm_gr_pv2vh_tp(self, config)
+   module pure subroutine whm_gr_pv2vh_tp(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from pseudovelocity to heliocentric velocity for test particles bodies
@@ -154,7 +154,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
@@ -164,7 +164,7 @@ contains
          allocate(vh, mold = pv)
          !do concurrent(i = 1:n, status(i) == ACTIVE)
          do i = 1, n
-            call gr_pseudovel2vel(config, mu(i), xh(:, i), pv(:, i), vh(:, i))
+            call gr_pseudovel2vel(param, mu(i), xh(:, i), pv(:, i), vh(:, i))
             pv(:, i) = vh(:, i)
          end do
          deallocate(vh)
@@ -172,7 +172,7 @@ contains
       return
    end subroutine whm_gr_pv2vh_tp
 
-   module pure subroutine whm_gr_vh2pv_pl(self, config)
+   module pure subroutine whm_gr_vh2pv_pl(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for massive bodies
@@ -180,7 +180,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -190,7 +190,7 @@ contains
          allocate(pv, mold = vh)
          !do concurrent(i = 1:n, status(i) == ACTIVE)
          do i = 1, n
-            call gr_vel2pseudovel(config, mu(i), xh(:, i), vh(:, i), pv(:, i))
+            call gr_vel2pseudovel(param, mu(i), xh(:, i), vh(:, i), pv(:, i))
             vh(:, i) = pv(:, i)
          end do
          deallocate(pv)
@@ -198,7 +198,7 @@ contains
       return
    end subroutine whm_gr_vh2pv_pl
 
-   module pure subroutine whm_gr_vh2pv_tp(self, config)
+   module pure subroutine whm_gr_vh2pv_tp(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for teset particles
@@ -206,7 +206,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -216,7 +216,7 @@ contains
          allocate(pv, mold = vh)
          !do concurrent(i = 1:n, status(i) == ACTIVE)
          do i = 1, n
-            call gr_vel2pseudovel(config, mu(i), xh(:, i), vh(:, i), pv(:, i))
+            call gr_vel2pseudovel(param, mu(i), xh(:, i), vh(:, i), pv(:, i))
             vh(:, i) = pv(:, i)
          end do
          deallocate(pv)
@@ -224,7 +224,7 @@ contains
       return
    end subroutine whm_gr_vh2pv_tp
 
-   pure subroutine gr_vel2pseudovel(config, mu, xh, vh, pv)
+   pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
       !! author: David A. Minton
       !!
       !! Converts the heliocentric velocity into a pseudovelocity with relativistic corrections. 
@@ -234,7 +234,7 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_vel2pseudovel.f90
       implicit none
 
-      class(swiftest_configuration), intent(in)  :: config !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(in)  :: param !! Input collection of  parameters parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
       real(DP), dimension(:),        intent(in)  :: vh     !! Heliocentric velocity vector 
@@ -247,7 +247,7 @@ contains
       integer(I4B), parameter        :: MAXITER = 50
       real(DP),parameter             :: TOL = 1.0e-12_DP
 
-      associate (c2 => config%inv_c2)
+      associate (c2 => param%inv_c2)
          pv(1:NDIM) = vh(1:NDIM) ! Initial guess
          rterm = 3 * mu / norm2(xh(:))
          v2 = dot_product(vh(:), vh(:))
@@ -298,7 +298,7 @@ contains
       return
    end subroutine gr_vel2pseudovel
 
-   pure subroutine gr_pseudovel2vel(config, mu, xh, pv, vh) 
+   pure subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
       !! author: David A. Minton
       !!
       !! Converts the relativistic pseudovelocity back into a veliocentric velocity
@@ -306,7 +306,7 @@ contains
       !!
       !! Adapted from David A. Minton's Swifter routine gr_pseudovel2vel.f90 
       implicit none
-      class(swiftest_configuration), intent(in)  :: config !! Input collection of  configuration parameters 
+      class(swiftest_parameters), intent(in)  :: param !! Input collection of  parameters parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
       real(DP), dimension(:),        intent(in)  :: pv     !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
@@ -314,7 +314,7 @@ contains
 
       real(DP) :: vmag2, rmag, grterm
    
-      associate(c2 => config%inv_c2)
+      associate(c2 => param%inv_c2)
          vmag2 = dot_product(pv(:), pv(:))
          rmag  = norm2(xh(:))
          grterm = 1.0_DP - c2 * (0.5_DP * vmag2 + 3 * mu / rmag)

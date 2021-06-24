@@ -3,7 +3,7 @@ submodule(whm_classes) s_whm_step
 contains
 
 
-   module subroutine whm_step_system(self, config)
+   module subroutine whm_step_system(self, param)
       !! author: David A. Minton
       !!
       !! Step massive bodies and and active test particles ahead in heliocentric coordinates
@@ -13,7 +13,7 @@ contains
       implicit none
       ! Arguments
       class(whm_nbody_system),      intent(inout) :: self    !! WHM nbody system object
-      class(swiftest_configuration), intent(in)    :: config  !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param  !! Input collection of on parameters 
 
       select type(cb => self%cb)
       class is (whm_cb)
@@ -21,13 +21,13 @@ contains
       class is (whm_pl)
       select type(tp => self%tp)
       class is (whm_tp)
-      associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt)
+      associate(ntp => tp%nbody, npl => pl%nbody, t => param%t, dt => param%dt)
          call pl%set_rhill(cb)
          call tp%set_beg_end(xbeg = pl%xh)
-         call pl%step(cb, config, t, dt)
+         call pl%step(cb, param, t, dt)
          if (ntp > 0) then
             call tp%set_beg_end(xend = pl%xh)
-            call tp%step(cb, pl, config, t, dt)
+            call tp%step(cb, pl, param, t, dt)
          end if
       end associate
       end select
@@ -36,7 +36,7 @@ contains
       return
    end subroutine whm_step_system 
 
-   module subroutine whm_step_pl(self, cb, config, t, dt)
+   module subroutine whm_step_pl(self, cb, param, t, dt)
       !! author: David A. Minton
       !!
       !! Step planets ahead using kick-drift-kick algorithm
@@ -48,7 +48,7 @@ contains
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
@@ -59,24 +59,24 @@ contains
          dth = 0.5_DP * dt
          if (pl%lfirst) then
             call pl%h2j(cb)
-            call pl%getacch(cb, config, t)
+            call pl%getacch(cb, param, t)
             pl%lfirst = .false.
          end if
 
          call pl%kickvh(dth)
          call pl%vh2vj(cb) 
          !If GR enabled, calculate the p4 term before and after each drift
-         if (config%lgr) call pl%gr_p4(config, dth)
-         call pl%drift(cb, config, dt)
-         if (config%lgr) call pl%gr_p4(config, dth)
+         if (param%lgr) call pl%gr_p4(param, dth)
+         call pl%drift(cb, param, dt)
+         if (param%lgr) call pl%gr_p4(param, dth)
          call pl%j2h(cb)
-         call pl%getacch(cb, config, t + dt)
+         call pl%getacch(cb, param, t + dt)
          call pl%kickvh(dth)
       end associate
       return
    end subroutine whm_step_pl
 
-   module subroutine whm_step_tp(self, cb, pl, config, t, dt)
+   module subroutine whm_step_tp(self, cb, pl, param, t, dt)
       !! author: David A. Minton
       !!
       !! Step active test particles ahead using kick-drift-kick algorithm
@@ -88,7 +88,7 @@ contains
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
       class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
@@ -98,15 +98,15 @@ contains
          xbeg => self%xbeg, xend => self%xend)
          dth = 0.5_DP * dt
          if (tp%lfirst) then
-            call tp%getacch(cb, pl, config, t, xbeg)
+            call tp%getacch(cb, pl, param, t, xbeg)
             tp%lfirst = .false.
          end if
          call tp%kickvh(dth)
          !If GR enabled, calculate the p4 term before and after each drift
-         if (config%lgr) call tp%gr_p4(config, dth)
-         call tp%drift(cb, config, dt)
-         if (config%lgr) call tp%gr_p4(config, dth)
-         call tp%getacch(cb, pl, config, t + dt, xend)
+         if (param%lgr) call tp%gr_p4(param, dth)
+         call tp%drift(cb, param, dt)
+         if (param%lgr) call tp%gr_p4(param, dth)
+         call tp%getacch(cb, pl, param, t + dt, xend)
          call tp%kickvh(dth)
       end associate
       return

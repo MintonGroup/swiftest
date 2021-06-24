@@ -13,12 +13,12 @@ implicit none
 
       case (COLLRESOLVE_REGIME_DISRUPTION)
          call symba_casedisruption (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
-         symba_plA, nplplenc, plplenc_list, config%nplmax, config%ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         symba_plA, nplplenc, plplenc_list, param%nplmax, param%ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
       case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
          call symba_casesupercatastrophic (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, &
          eoffset, vbs, symba_plA, nplplenc, &
-         plplenc_list, config%nplmax, config%ntpmax, fragmax, mres, rres, m1, m2, rad1, &
+         plplenc_list, param%nplmax, param%ntpmax, fragmax, mres, rres, m1, m2, rad1, &
          rad2, x1, x2, v1, v2)
 
       case (COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
@@ -29,7 +29,7 @@ implicit none
       case (COLLRESOLVE_REGIME_HIT_AND_RUN)
          call symba_casehitandrun (t, dt, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 
          symba_plA, nplplenc, plplenc_list, &
-         config%nplmax, config%ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
+         param%nplmax, param%ntpmax, fragmax, mres, rres, m1, m2, rad1, rad2, x1, x2, v1, v2)
 
       case (COLLRESOLVE_REGIME_MERGE)
          call symba_casemerge (t, index_enc, nmergeadd, nmergesub, mergeadd_list, mergesub_list, eoffset, vbs, & 

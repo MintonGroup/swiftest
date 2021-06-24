@@ -36,7 +36,7 @@ implicit none
 
    nplplenc = 0
    npltpenc = 0
-   if (symba_plA%mass(1) < config%mtiny) then
+   if (symba_plA%mass(1) < param%mtiny) then
       nplm = 0
    else
       nplm = 1
@@ -46,7 +46,7 @@ implicit none
 ! all this needs to be changed to the tree search function for encounters
 
    do i = 2, npl
-      if (symba_plA%mass(i) < config%mtiny) exit
+      if (symba_plA%mass(i) < param%mtiny) exit
       nplm = nplm + 1
       do j = i + 1, npl
          xr(:) = symba_plA%xh(:,j) - symba_plA%xh(:,i)
@@ -109,16 +109,16 @@ implicit none
 
    lencounter = ((nplplenc > 0) .or. (npltpenc > 0))
    if (lencounter) then
-      call symba_step_interp(config%lextra_force, config%lclose, t, npl, nplm, config%nplmax, &
-         ntp, config%ntpmax, symba_plA, symba_tpA, config%j2rp2, config%j4rp4,   &
+      call symba_step_interp(param%lextra_force, param%lclose, t, npl, nplm, param%nplmax, &
+         ntp, param%ntpmax, symba_plA, symba_tpA, param%j2rp2, param%j4rp4,   &
          dt, eoffset, nplplenc, npltpenc, plplenc_list, pltpenc_list, nmergeadd, &
-         nmergesub, mergeadd_list, mergesub_list, config%encounter_file, config%out_type, &
+         nmergesub, mergeadd_list, mergesub_list, param%encounter_file, param%out_type, &
          fragmax, param)
       lfirst = .true.
    else
-      call symba_step_helio(lfirst, config%lextra_force, t, npl, nplm, config%nplmax, ntp,&
-         config%ntpmax, symba_plA, symba_tpA, &
-         config%j2rp2, config%j4rp4, dt)
+      call symba_step_helio(lfirst, param%lextra_force, t, npl, nplm, param%nplmax, ntp,&
+         param%ntpmax, symba_plA, symba_tpA, &
+         param%j2rp2, param%j4rp4, dt)
    end if
 
    return

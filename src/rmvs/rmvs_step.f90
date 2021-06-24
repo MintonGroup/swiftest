@@ -1,7 +1,7 @@
 submodule(rmvs_classes) s_rmvs_step
    use swiftest
 contains
-   module subroutine rmvs_step_system(self, config)
+   module subroutine rmvs_step_system(self, param)
       !! author: David A. Minton
       !!
       !! Step massive bodies and and active test particles ahead in heliocentric coordinates
@@ -11,7 +11,7 @@ contains
       implicit none
       ! Arguments
       class(rmvs_nbody_system),          intent(inout)  :: self    !! RMVS nbody system object
-      class(swiftest_configuration),     intent(in)     :: config  !! Input collection of  configuration parameters 
+      class(swiftest_parameters),     intent(in)     :: param  !! Input collection of  parameters parameters 
       ! Internals
       logical :: lencounter, lfirstpl, lfirsttp 
       real(DP) :: rts
@@ -24,7 +24,7 @@ contains
       class is (rmvs_pl)
       select type(tp => self%tp)
       class is (rmvs_tp)
-      associate(ntp => tp%nbody, npl => pl%nbody, t => config%t, dt => config%dt, &
+      associate(ntp => tp%nbody, npl => pl%nbody, t => param%t, dt => param%dt, &
          xhpl => pl%xh, vhpl => pl%vh, xjpl => pl%xj, vjpl => pl%vj, &
          xhtp => tp%xh, vhtp => tp%vh)
          allocate(xbeg, source=pl%xh)
@@ -39,21 +39,21 @@ contains
             lfirsttp = tp%lfirst
             pl%outer(0)%x(:,:) = xbeg(:,:)
             pl%outer(0)%v(:,:) = vbeg(:,:)
-            call pl%step(cb, config, t, dt) 
+            call pl%step(cb, param, t, dt) 
             pl%outer(NTENC)%x(:,:) = pl%xh(:,:)
             pl%outer(NTENC)%v(:,:) = pl%vh(:,:)
             call tp%set_beg_end(xend = pl%xh)
-            call rmvs_interp_out(pl,cb, dt, config)
-            call rmvs_step_out(pl, cb, tp, dt, config)
+            call rmvs_interp_out(pl,cb, dt, param)
+            call rmvs_step_out(pl, cb, tp, dt, param)
             call tp%reverse_status()
             call tp%set_beg_end(xbeg = xbeg, xend = xend)
             tp%lfirst = .true.
-            call tp%step(cb, pl, config, t, dt)
+            call tp%step(cb, pl, param, t, dt)
             where (tp%status(:) == INACTIVE) tp%status(:) = ACTIVE
             pl%lfirst = lfirstpl
             tp%lfirst = lfirsttp
          else
-            call whm_step_system(self, config)
+            call whm_step_system(self, param)
          end if
       end associate
       end select
@@ -63,7 +63,7 @@ contains
 
    end subroutine rmvs_step_system 
 
-   subroutine rmvs_step_out(pl, cb, tp, dt, config)
+   subroutine rmvs_step_out(pl, cb, tp, dt, param)
       !! author: David A. Minton
       !!
       !! Step ACTIVE test particles ahead in the outer encounter region, setting up and calling the inner region
@@ -77,13 +77,13 @@ contains
       class(rmvs_cb),                    intent(inout)  :: cb   !! RMVS central body object
       class(rmvs_tp),                    intent(inout)  :: tp   !! RMVS test particle object
       real(DP),                          intent(in)     :: dt   !! Step size
-      class(swiftest_configuration),     intent(in)     :: config  !! Input collection of  configuration parameters
+      class(swiftest_parameters),     intent(in)     :: param  !! Input collection of  parameters parameters
       ! Internals
       integer(I4B)                                      :: outer_index, j, k
       real(DP)                                          :: dto, outer_time, rts
       logical                                           :: lencounter, lfirsttp
 
-      associate(npl => pl%nbody, ntp => tp%nbody, t => config%t)
+      associate(npl => pl%nbody, ntp => tp%nbody, t => param%t)
          dto = dt / NTENC
          where(tp%plencP(:) == 0)
             tp%status(:) = INACTIVE
@@ -99,15 +99,15 @@ contains
             lencounter = tp%encounter_check(cb, pl, dt, rts) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region
-               call rmvs_interp_in(pl, cb, dto, outer_index, config)
+               call rmvs_interp_in(pl, cb, dto, outer_index, param)
                ! Step through the inner region
-               call rmvs_step_in(pl, cb, tp, config, outer_time, dto)
+               call rmvs_step_in(pl, cb, tp, param, outer_time, dto)
                lfirsttp = tp%lfirst
                tp%lfirst = .true.
-               call tp%step(cb, pl, config, outer_time, dto)
+               call tp%step(cb, pl, param, outer_time, dto)
                tp%lfirst = lfirsttp
             else
-               call tp%step(cb, pl, config, outer_time, dto)
+               call tp%step(cb, pl, param, outer_time, dto)
             end if
             do j = 1, npl
                if (pl%nenc(j) == 0) cycle
@@ -119,7 +119,7 @@ contains
 
    end subroutine rmvs_step_out
 
-   subroutine rmvs_step_in(pl, cb, tp, config, outer_time, dto)
+   subroutine rmvs_step_in(pl, cb, tp, param, outer_time, dto)
       !! author: David A. Minton
       !!
       !! Step active test particles ahead in the inner encounter region
@@ -131,7 +131,7 @@ contains
       class(rmvs_pl),                intent(inout)  :: pl   !! RMVS massive body object
       class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
       class(rmvs_tp),                intent(inout)  :: tp   !! RMVS test particle object
-      class(swiftest_configuration), intent(in)     :: config  !! Input collection of configuration parameters 
+      class(swiftest_parameters), intent(in)     :: param  !! Input collection of parameters parameters 
       real(DP),                      intent(in)     :: outer_time    !! Current time
       real(DP),                      intent(in)     :: dto   !! Step size
       ! Internals
@@ -145,8 +145,8 @@ contains
          allocate(xbeg, mold=pl%xh)
          allocate(xend, mold=pl%xh)
          allocate(vbeg, mold=pl%vh)
-         if (config%loblatecb) call pl%obl_acc(cb)
-         call rmvs_make_planetocentric(pl, cb, tp, config)
+         if (param%loblatecb) call pl%obl_acc(cb)
+         call rmvs_make_planetocentric(pl, cb, tp, param)
          do i = 1, npl
             if (nenc(i) == 0) cycle
             associate(cbenci => pl%planetocentric(i)%cb, plenci => pl%planetocentric(i)%pl, &
@@ -155,19 +155,19 @@ contains
                   ! There are inner encounters with this planet...switch to planetocentric coordinates to proceed
                   tpenci%lfirst = .true.
                   inner_time = outer_time
-                  call rmvs_peri_tp(tpenci, pl, inner_time, dti, .true., 0, i, config) 
+                  call rmvs_peri_tp(tpenci, pl, inner_time, dti, .true., 0, i, param) 
                   ! now step the encountering test particles fully through the inner encounter
                   lfirsttp = .true.
                   do inner_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
                      plenci%xh(:,:) = plenci%inner(inner_index - 1)%x(:,:)
                      call tpenci%set_beg_end(xbeg = plenci%inner(inner_index - 1)%x, &
                                              xend = plenci%inner(inner_index)%x)
-                     call tpenci%step(cbenci, plenci, config, inner_time, dti)
+                     call tpenci%step(cbenci, plenci, param, inner_time, dti)
                      do j = 1, nenc(i)
                         tpenci%xheliocentric(:, j) = tpenci%xh(:, j) + pl%inner(inner_index)%x(:,i)
                      end do
                      inner_time = outer_time + j * dti
-                     call rmvs_peri_tp(tpenci, pl, inner_time, dti, .false., inner_index, i, config) 
+                     call rmvs_peri_tp(tpenci, pl, inner_time, dti, .false., inner_index, i, param) 
                   end do
                   where(tpenci%status(:) == ACTIVE) tpenci%status(:) = INACTIVE
                end associate
@@ -178,7 +178,7 @@ contains
       return
    end subroutine rmvs_step_in
 
-   subroutine rmvs_interp_in(pl, cb, dt, outer_index, config)
+   subroutine rmvs_interp_in(pl, cb, dt, outer_index, param)
       !! author: David A. Minton
       !!
       !! Interpolate planet positions between two Keplerian orbits in inner encounter regio
@@ -192,7 +192,7 @@ contains
       class(rmvs_cb),                intent(inout) :: cb     !! RMVS central body particle type
       real(DP),                      intent(in)    :: dt     !! Step size
       integer(I4B),                  intent(in)    :: outer_index !! Outer substep number within current se
-      class(swiftest_configuration), intent(in)    :: config !! Swiftest configuration file
+      class(swiftest_parameters), intent(in)    :: param !! Swiftest parameters file
       ! Internals
       integer(I4B)                    :: i, inner_index
       real(DP)                        :: frac, dntphenc
@@ -218,7 +218,7 @@ contains
          msun(:) = cb%Gmass
          xtmp(:, :) = pl%inner(0)%x(:, :)
          vtmp(:, :) = pl%inner(0)%v(:, :)
-         if (config%loblatecb) then
+         if (param%loblatecb) then
             allocate(xh_original,source=pl%xh)
             pl%xh(:, :) = xtmp(:, :) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
             call pl%obl_acc(cb)
@@ -269,13 +269,13 @@ contains
             pl%inner(inner_index)%x(:, :) = pl%inner(inner_index)%x(:, :) + frac * xtmp(:, :)
             pl%inner(inner_index)%v(:, :) = pl%inner(inner_index)%v(:, :) + frac * vtmp(:, :)
 
-            if (config%loblatecb) then
+            if (param%loblatecb) then
                pl%xh(:,:) = pl%inner(inner_index)%x(:, :)
                call pl%obl_acc(cb)
                pl%inner(inner_index)%aobl(:, :) = pl%aobl(:, :) 
             end if
          end do
-         if (config%loblatecb) then
+         if (param%loblatecb) then
             ! Calculate the final value of oblateness accelerations at the final inner substep
             pl%xh(:,:) = pl%inner(NTPHENC)%x(:, :)
             call pl%obl_acc(cb)
@@ -288,7 +288,7 @@ contains
 
    end subroutine rmvs_interp_in
 
-   subroutine rmvs_interp_out(pl, cb, dt, config)
+   subroutine rmvs_interp_out(pl, cb, dt, param)
       !! author: David A. Minton
       !!
       !! Interpolate planet positions between two Keplerian orbits in outer encounter region
@@ -301,7 +301,7 @@ contains
       class(rmvs_pl), intent(inout)   :: pl !! RMVS test particle object
       class(rmvs_cb), intent(inout)   :: cb   !! RMVS central body particle type
       real(DP), intent(in)            :: dt   !! Step size
-      class(swiftest_configuration), intent(in)    :: config !! Swiftest configuration file
+      class(swiftest_parameters), intent(in)    :: param !! Swiftest parameters file
       ! Internals
       integer(I4B)                    :: i, outer_index
       real(DP)                        :: frac, dntenc
@@ -370,7 +370,7 @@ contains
 
    end subroutine rmvs_interp_out   
 
-   subroutine rmvs_peri_tp(tp, pl, t, dt, lfirst, inner_index, ipleP, config)
+   subroutine rmvs_peri_tp(tp, pl, t, dt, lfirst, inner_index, ipleP, param)
       !! author: David A. Minton
       !!
       !! Determine planetocentric pericenter passages for test particles in close encounters with a planet
@@ -386,7 +386,7 @@ contains
       logical,                       intent(in)    :: lfirst    !! Logical flag indicating whether current invocation is the first
       integer(I4B),                  intent(in)    :: inner_index !! Outer substep number within current set
       integer(I4B),                  intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
-      class(swiftest_configuration), intent(in)    :: config    !! Input collection of  configuration parameters
+      class(swiftest_parameters), intent(in)    :: param    !! Input collection of  parameters parameters
       ! Internals
       integer(I4B)                                 :: i, id1, id2
       real(DP)                                     :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
@@ -416,7 +416,7 @@ contains
                         call orbel_xv2aqt(mu, xpc(:, i), vpc(:, i), a, peri, capm, tperi)
                         r2 = dot_product(xpc(:, i), xpc(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)
-                        if (config%encounter_file /= "") then
+                        if (param%encounter_file /= "") then
                            id1 = pl%name(ipleP)
                            rpl = pl%radius(ipleP)
                            xh1(:) = pl%inner(inner_index)%x(:, ipleP)
@@ -425,7 +425,7 @@ contains
                            xh2(:) = xpc(:, i) + xh1(:)
                            vh2(:) = xpc(:, i) + vh1(:)
                            call io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),  &
-                              config%encounter_file, config%out_type)
+                              param%encounter_file, param%out_type)
                         end if
                         if (tp%lperi(i)) then
                            if (peri < tp%peri(i)) then
@@ -453,7 +453,7 @@ contains
 
    end subroutine rmvs_peri_tp
 
-   subroutine rmvs_make_planetocentric(pl, cb, tp, config)
+   subroutine rmvs_make_planetocentric(pl, cb, tp, param)
       !! author: David A. Minton
       !!
       !! When encounters are detected, this method will call the interpolation methods for the planets and 
@@ -465,7 +465,7 @@ contains
       class(rmvs_pl),                 intent(inout)  :: pl !! RMVS test particle object
       class(rmvs_cb),                 intent(inout)  :: cb   !! RMVS central body particle type
       class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
-      class(swiftest_configuration),  intent(in)     :: config !! Input collection of configuration parameters 
+      class(swiftest_parameters),  intent(in)     :: param !! Input collection of parameters parameters 
       ! Internals
       integer(I4B)                                   :: i, j, inner_index, ipc2hc
       logical, dimension(:), allocatable             :: encmask

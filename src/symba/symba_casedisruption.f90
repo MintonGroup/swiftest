@@ -127,7 +127,7 @@ implicit none
        nmergeadd = nmergeadd + 1
        mergeadd_list%status(nmergeadd) = DISRUPTION
        mergeadd_list%ncomp(nmergeadd) = 2
-       mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+       mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
        mergeadd_list%mass(nmergeadd) = mres(1)
        mergeadd_list%radius(nmergeadd) = rres(1)
        mtot = mtot + mergeadd_list%mass(nmergeadd)                   
@@ -142,7 +142,7 @@ implicit none
        nmergeadd = nmergeadd + 1
        mergeadd_list%status(nmergeadd) = DISRUPTION
        mergeadd_list%ncomp(nmergeadd) = 2
-       mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+       mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
        mergeadd_list%mass(nmergeadd) = mres(2)
        mergeadd_list%radius(nmergeadd) = rres(2)
        mtot = mtot + mergeadd_list%mass(nmergeadd)
@@ -152,7 +152,7 @@ implicit none
         nmergeadd = nmergeadd + 1
         mergeadd_list%status(nmergeadd) = DISRUPTION
         mergeadd_list%ncomp(nmergeadd) = 2
-        mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+        mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
         m_rem = (m1 + m2) - (mres(1) + mres(2))
         mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
         mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * pi * avg_d))  & 
@@ -168,7 +168,7 @@ implicit none
         m_rem = (m1 + m2) - mres(1)
         frags_added = frags_added + 1
         nmergeadd = nmergeadd + 1
-        mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+        mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
         mergeadd_list%status(nmergeadd) = DISRUPTION
         mergeadd_list%ncomp(nmergeadd) = 2
         mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
@@ -187,7 +187,7 @@ implicit none
        !nmergeadd = nmergeadd + 1
        !mergeadd_list%status(nmergeadd) = DISRUPTION
        !mergeadd_list%ncomp(nmergeadd) = 2
-       !mergeadd_list%name(nmergeadd) = config%nplmax + config%ntpmax + fragmax + i
+       !mergeadd_list%name(nmergeadd) = param%nplmax + param%ntpmax + fragmax + i
        !m_rem = (m1 + m2) - (mres(1) + mres(2))
        !mergeadd_list%mass(nmergeadd) = m_rem / (nfrag - 1) 
        !mergeadd_list%radius(nmergeadd) = ((3.0_DP * mergeadd_list%mass(nmergeadd)) / (4.0_DP * pi * avg_d))  & 

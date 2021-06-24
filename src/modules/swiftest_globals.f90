@@ -64,7 +64,7 @@ module swiftest_globals
 
    character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
    character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
-   character(*), parameter :: USAGE_MSG = '("Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] <configfile>")'
+   character(*), parameter :: USAGE_MSG = '("Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] <paramfile>")'
    character(*), parameter :: HELP_MSG  = USAGE_MSG
 
    integer(I4B), parameter :: ELLIPSE   = -1 !! Symbolic names for orbit types - ellipse
@@ -103,9 +103,9 @@ module swiftest_globals
    character(*), dimension(2), parameter :: DUMP_CB_FILE     = (/ 'dump_cb1.bin',     'dump_cb2.bin'    /)
    character(*), dimension(2), parameter :: DUMP_PL_FILE     = (/ 'dump_pl1.bin',     'dump_pl2.bin'    /)
    character(*), dimension(2), parameter :: DUMP_TP_FILE     = (/ 'dump_tp1.bin',     'dump_tp2.bin'    /)
-   character(*), dimension(2), parameter :: DUMP_CONFIG_FILE = (/ 'dump_config1.dat', 'dump_config2.dat' /) 
+   character(*), dimension(2), parameter :: DUMP_param_FILE = (/ 'dump_param1.dat', 'dump_param2.dat' /) 
 
-   !> Default file names that can be changed by the user in the configuration file
+   !> Default file names that can be changed by the user in the parameters file
    character(*), parameter :: ENC_OUTFILE  = 'encounter.out'
    character(*), parameter :: DISCARD_FILE = 'discard.out'
    character(*), parameter :: ENERGY_FILE  = 'energy.out'

@@ -8,7 +8,7 @@ import astropy.constants as const
 import sys
 import xarray as xr
 
-# Swiftest configuration file
+# Swiftest paramuration file
 # Both codes use the same tp input file
 tpin = "tp.in"
 
@@ -17,7 +17,7 @@ swifter_pl     = "pl.swifter.in"
 swifter_bin    = "bin.swifter.dat"
 swifter_enc    = "enc.swifter.dat"
 
-swiftest_input = "config.swiftest.in"
+swiftest_input = "param.swiftest.in"
 swiftest_pl    = "pl.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
 swiftest_bin   = "bin.swiftest.dat"
@@ -83,14 +83,14 @@ print(f'MU2KG          {MU2KG}')
 print(f'DU2M           {DU2M}')
 print(f'TU2S           {TU2S}')
 sys.stdout = sys.__stdout__
-config = swio.read_swiftest_config(swiftest_input)
-ds = swio.solar_system_pl(config, tstart)
+param = swio.read_swiftest_param(swiftest_input)
+ds = swio.solar_system_pl(param, tstart)
 
 ntp = 18
 dims = ['time', 'id', 'vec']
 tp = []
 t = np.array([0.0])
-clab, plab, tlab = swio.make_swiftest_labels(config)
+clab, plab, tlab = swio.make_swiftest_labels(param)
 
 # For each planet, we will initialize a pair of test particles. One on its way in, and one on its way out. We will also initialize two additional particles that don't encounter anything
 tpnames = np.arange(101, 101 + ntp)
@@ -142,7 +142,7 @@ tpda = xr.concat(tp,dim='time')
 tpds = tpda.to_dataset(dim = 'vec')
 
 ds = xr.combine_by_coords([ds, tpds])
-swio.swiftest_xr2_infile(ds, config)
+swio.swiftest_xr2_infile(ds, param)
 
 
 

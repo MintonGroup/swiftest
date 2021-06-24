@@ -14,7 +14,7 @@ contains
       real(DP)                  :: rmag, rdotv, vmag2
       integer(I4B)              :: i
 
-      associate(n => self%nbody, msun => cb%Gmass, vbsun => cb%vb, xbsun => cb%xb, mu => self%mu, c2 => config%inv_c2, &
+      associate(n => self%nbody, msun => cb%Gmass, vbsun => cb%vb, xbsun => cb%xb, mu => self%mu, c2 => param%inv_c2, &
                 xb => self%xb, vb => self%vb)
          if (n == 0) return
          do i = 1, n

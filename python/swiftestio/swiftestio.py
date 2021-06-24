@@ -109,22 +109,22 @@ def read_swifter_param(inparfile):
 
     return param
 
-def read_swiftest_config(config_file_name):
+def read_swiftest_param(param_file_name):
     """
-    Reads in a Swiftest config.in file and saves it as a dictionary
+    Reads in a Swiftest param.in file and saves it as a dictionary
 
     Parameters
     ----------
-    config_file_name : string
+    param_file_name : string
         File name of the input parameter file
 
     Returns
     -------
-    config : dict
+    param : dict
         A dictionary containing the entries in the user parameter file
     """
-    config = {
-    'CONFIG_FILE_NAME' : config_file_name,
+    param = {
+    'param_FILE_NAME' : param_file_name,
     'NPLMAX'         : -1,
     'NTPMAX'         : -1,
     'T0'             : 0.0,
@@ -170,55 +170,55 @@ def read_swiftest_config(config_file_name):
     'YORP'           : 'NO',
     }
 
-    # Read config.in file
-    print(f'Reading Swiftest file {config_file_name}' )
-    f = open(config_file_name, 'r')
+    # Read param.in file
+    print(f'Reading Swiftest file {param_file_name}' )
+    f = open(param_file_name, 'r')
     swiftestlines = f.readlines()
     f.close()
     for line in swiftestlines:
         fields = line.split()
         if len(fields) > 0:
-            for key in config:
-                if (key == fields[0].upper()): config[key] = fields[1]
+            for key in param:
+                if (key == fields[0].upper()): param[key] = fields[1]
             #Special case of CHK_QMIN_RANGE requires a second input
-            if (config['CHK_QMIN_RANGE'] == fields[0].upper()):
-                config['QMIN_ALO'] = fields[1]
-                config['QMIN_AHI'] = fields[2]
+            if (param['CHK_QMIN_RANGE'] == fields[0].upper()):
+                param['QMIN_ALO'] = fields[1]
+                param['QMIN_AHI'] = fields[2]
 
-    config['NPLMAX']     = int(config['NPLMAX'])
-    config['NTPMAX']     = int(config['NTPMAX'])
-    config['ISTEP_OUT']  = int(config['ISTEP_OUT'])
-    config['ISTEP_DUMP'] = int(config['ISTEP_DUMP'])
-    config['T0']         = float(config['T0'])
-    config['TSTOP']      = float(config['TSTOP'])
-    config['DT']         = float(config['DT'])
-    config['J2']         = float(config['J2'])
-    config['J4']         = float(config['J4'])
-    config['CHK_RMIN']   = float(config['CHK_RMIN'])
-    config['CHK_RMAX']   = float(config['CHK_RMAX'])
-    config['CHK_EJECT']  = float(config['CHK_EJECT'])
-    config['CHK_QMIN']   = float(config['CHK_QMIN'])
-    config['QMIN_ALO']   = float(config['QMIN_ALO'])
-    config['QMIN_AHI']   = float(config['QMIN_AHI'])
-    config['MTINY']      = float(config['MTINY'])
-    config['DU2M']       = float(config['DU2M'])
-    config['MU2KG']      = float(config['MU2KG'])
-    config['TU2S']       = float(config['TU2S'])
-    config['INV_C2']     = float(config['INV_C2'])
-    config['EXTRA_FORCE'] = config['EXTRA_FORCE'].upper()
-    config['BIG_DISCARD'] = config['BIG_DISCARD'].upper()
-    config['CHK_CLOSE']   = config['CHK_CLOSE'].upper()
-    config['FRAGMENTATION'] = config['FRAGMENTATION'].upper()
-    config['ROTATION']    = config['ROTATION'].upper()
-    config['TIDES']       = config['TIDES'].upper()
-    config['ENERGY']      = config['ENERGY'].upper()
-    config['GR']          = config['GR'].upper()
-    config['YORP']        = config['YORP'].upper()
+    param['NPLMAX']     = int(param['NPLMAX'])
+    param['NTPMAX']     = int(param['NTPMAX'])
+    param['ISTEP_OUT']  = int(param['ISTEP_OUT'])
+    param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
+    param['T0']         = float(param['T0'])
+    param['TSTOP']      = float(param['TSTOP'])
+    param['DT']         = float(param['DT'])
+    param['J2']         = float(param['J2'])
+    param['J4']         = float(param['J4'])
+    param['CHK_RMIN']   = float(param['CHK_RMIN'])
+    param['CHK_RMAX']   = float(param['CHK_RMAX'])
+    param['CHK_EJECT']  = float(param['CHK_EJECT'])
+    param['CHK_QMIN']   = float(param['CHK_QMIN'])
+    param['QMIN_ALO']   = float(param['QMIN_ALO'])
+    param['QMIN_AHI']   = float(param['QMIN_AHI'])
+    param['MTINY']      = float(param['MTINY'])
+    param['DU2M']       = float(param['DU2M'])
+    param['MU2KG']      = float(param['MU2KG'])
+    param['TU2S']       = float(param['TU2S'])
+    param['INV_C2']     = float(param['INV_C2'])
+    param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
+    param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
+    param['CHK_CLOSE']   = param['CHK_CLOSE'].upper()
+    param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
+    param['ROTATION']    = param['ROTATION'].upper()
+    param['TIDES']       = param['TIDES'].upper()
+    param['ENERGY']      = param['ENERGY'].upper()
+    param['GR']          = param['GR'].upper()
+    param['YORP']        = param['YORP'].upper()
 
-    config['GU']         = GC / (config['DU2M']**3 / (config['MU2KG'] * config['TU2S']**2))
-    config['INV_C2']     = einsteinC * config['TU2S'] / config['DU2M']
-    config['INV_C2']     = config['INV_C2']**(-2)
-    return config
+    param['GU']         = GC / (param['DU2M']**3 / (param['MU2KG'] * param['TU2S']**2))
+    param['INV_C2']     = einsteinC * param['TU2S'] / param['DU2M']
+    param['INV_C2']     = param['INV_C2']**(-2)
+    return param
 
 def swifter_stream(f, param):
     """
@@ -304,16 +304,16 @@ def swifter_stream(f, param):
               ntp, tpid, tvec.T, tlab
 
 
-def make_swiftest_labels(config):
+def make_swiftest_labels(param):
     tlab = []
-    if config['OUT_FORM'] == 'XV':
+    if param['OUT_FORM'] == 'XV':
         tlab.append('px')
         tlab.append('py')
         tlab.append('pz')
         tlab.append('vx')
         tlab.append('vy')
         tlab.append('vz')
-    elif config['OUT_FORM'] == 'EL':
+    elif param['OUT_FORM'] == 'EL':
         tlab.append('a')
         tlab.append('e')
         tlab.append('inc')
@@ -324,7 +324,7 @@ def make_swiftest_labels(config):
     plab.append('Mass')
     plab.append('Radius')
     clab = ['Mass', 'Radius', 'J_2', 'J_4']
-    if config['ROTATION'] == 'YES':
+    if param['ROTATION'] == 'YES':
         clab.append('Ip_x')
         clab.append('Ip_y')
         clab.append('Ip_z')
@@ -337,14 +337,14 @@ def make_swiftest_labels(config):
         plab.append('rot_x')
         plab.append('rot_y')
         plab.append('rot_z')
-    if config['TIDES'] == 'YES':
+    if param['TIDES'] == 'YES':
         clab.append('k2')
         clab.append('Q')
         plab.append('k2')
         plab.append('Q')
     return clab, plab, tlab
 
-def swiftest_stream(f, config):
+def swiftest_stream(f, param):
     """
     Reads in a Swifter bin.dat file and returns a single frame of data as a datastream
 
@@ -391,14 +391,14 @@ def swiftest_stream(f, config):
         Rcb = f.read_reals(np.float64)
         J2cb = f.read_reals(np.float64)
         J4cb = f.read_reals(np.float64)
-        if config['ROTATION'] == 'YES':
+        if param['ROTATION'] == 'YES':
             Ipcbx  = f.read_reals(np.float64)
             Ipcby  = f.read_reals(np.float64)
             Ipcbz  = f.read_reals(np.float64)
             rotcbx = f.read_reals(np.float64)
             rotcby = f.read_reals(np.float64)
             rotcbz = f.read_reals(np.float64)
-        if config['TIDES'] == 'YES':
+        if param['TIDES'] == 'YES':
             k2cb = f.read_reals(np.float64)
             Qcb = f.read_reals(np.float64)
         if npl[0] > 0:
@@ -411,14 +411,14 @@ def swiftest_stream(f, config):
             p6 = f.read_reals(np.float64)
             Mpl = f.read_reals(np.float64)
             Rpl = f.read_reals(np.float64)
-            if config['ROTATION'] == 'YES':
+            if param['ROTATION'] == 'YES':
                 Ipplx = f.read_reals(np.float64)
                 Ipply = f.read_reals(np.float64)
                 Ipplz = f.read_reals(np.float64)
                 rotplx = f.read_reals(np.float64)
                 rotply = f.read_reals(np.float64)
                 rotplz = f.read_reals(np.float64)
-            if config['TIDES'] == 'YES':
+            if param['TIDES'] == 'YES':
                 k2pl = f.read_reals(np.float64)
                 Qpl = f.read_reals(np.float64)
         if ntp[0] > 0:
@@ -431,7 +431,7 @@ def swiftest_stream(f, config):
             t6 = f.read_reals(np.float64)
         cbid = np.array([0])
 
-        clab, plab, tlab = make_swiftest_labels(config)
+        clab, plab, tlab = make_swiftest_labels(param)
 
         if npl > 0:
             pvec = np.vstack([p1,p2,p3,p4,p5,p6,Mpl,Rpl])
@@ -444,11 +444,11 @@ def swiftest_stream(f, config):
             tvec = np.empty((6,0))
             tpid = np.empty(0)
         cvec = np.array([Mcb,Rcb,J2cb,J4cb])
-        if config['ROTATION'] == 'YES':
+        if param['ROTATION'] == 'YES':
             cvec = np.vstack([cvec, Ipcbx, Ipcby, Ipcbz, rotcbx, rotcby, rotcbz])
             if npl > 0:
                 pvec = np.vstack([pvec, Ipplx, Ipply, Ipplz, rotplx, rotply, rotplz])
-        if config['TIDES'] == 'YES':
+        if param['TIDES'] == 'YES':
             cvec = np.vstack([cvec,k2cb,Qcb])
             if npl > 0:
                 pvec = np.vstack([pvec,k2pl,Qpl])
@@ -483,14 +483,14 @@ def swifter2xr(param):
         ds = xr.combine_by_coords([plds, tpds])
     return ds
 
-def swiftest2xr(config):
+def swiftest2xr(param):
     """
     Converts a Swiftest binary data file into an xarray DataSet.
 
     Parameters
     ----------
-    config : dict
-        Swiftest Configuration parameters
+    param : dict
+        Swiftest paramuration parameters
 
     Returns
     -------
@@ -501,10 +501,10 @@ def swiftest2xr(config):
     cb = []
     pl = []
     tp = []
-    with FortranFile(config['BIN_OUT'], 'r') as f:
+    with FortranFile(param['BIN_OUT'], 'r') as f:
         for t, cbid, cvec, clab, \
               npl, plid, pvec, plab, \
-              ntp, tpid, tvec, tlab in swiftest_stream(f, config):
+              ntp, tpid, tvec, tlab in swiftest_stream(f, param):
 
             #Prepare frames by adding an extra axis for the time coordinate
             cbframe = np.expand_dims(cvec, axis=0)
@@ -530,14 +530,14 @@ def swiftest2xr(config):
     ds = xr.combine_by_coords([cbds, plds, tpds])
     return ds
 
-def solar_system_pl(config, ephemerides_start_date):
+def solar_system_pl(param, ephemerides_start_date):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
 
     Parameters
     ----------
-    config : dict
-        Swiftest Configuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the config file
+    param : dict
+        Swiftest paramuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the param file
     ephemerides_start_date : string
         Date to use when obtaining the ephemerides in the format YYYY-MM-DD
 
@@ -585,15 +585,15 @@ def solar_system_pl(config, ephemerides_start_date):
     }
 
     # Unit conversion factors
-    DCONV = AU2M / config['DU2M']
-    VCONV = (AU2M / JD2S) / (config['DU2M'] / config['TU2S'])
+    DCONV = AU2M / param['DU2M']
+    VCONV = (AU2M / JD2S) / (param['DU2M'] / param['TU2S'])
     THIRDLONG = np.longdouble(1.0) / np.longdouble(3.0)
 
     # Central body value vectors
-    GMcb = np.array([GMSunSI * config['TU2S']**2 / config['DU2M']**3])
-    Rcb = np.array([RSun / config['DU2M']])
-    J2RP2 = np.array([J2Sun * (RSun / config['DU2M'])**2])
-    J4RP4 = np.array([J4Sun * (RSun / config['DU2M'])**4])
+    GMcb = np.array([GMSunSI * param['TU2S']**2 / param['DU2M']**3])
+    Rcb = np.array([RSun / param['DU2M']])
+    J2RP2 = np.array([J2Sun * (RSun / param['DU2M'])**2])
+    J4RP4 = np.array([J4Sun * (RSun / param['DU2M'])**4])
     cbid = np.array([0])
     cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4])
 
@@ -620,14 +620,14 @@ def solar_system_pl(config, ephemerides_start_date):
         pldata[key] = Horizons(id=val, id_type='majorbody', location='@sun',
                                epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
                                        'step': ephemerides_step})
-        if config['OUT_FORM'] == 'XV':
+        if param['OUT_FORM'] == 'XV':
             p1.append(pldata[key].vectors()['x'][0] * DCONV)
             p2.append(pldata[key].vectors()['y'][0] * DCONV)
             p3.append(pldata[key].vectors()['z'][0] * DCONV)
             p4.append(pldata[key].vectors()['vx'][0] * VCONV)
             p5.append(pldata[key].vectors()['vy'][0] * VCONV)
             p6.append(pldata[key].vectors()['vz'][0] * VCONV)
-        elif config['OUT_FORM'] == 'EL':
+        elif param['OUT_FORM'] == 'EL':
             p1.append(pldata[key].elements()['a'][0] * DCONV)
             p2.append(pldata[key].elements()['e'][0])
             p3.append(pldata[key].elements()['inc'][0] * np.pi / 180.0)
@@ -647,7 +647,7 @@ def solar_system_pl(config, ephemerides_start_date):
     tp = []
     t = np.array([0.0])
 
-    clab, plab, tlab = make_swiftest_labels(config)
+    clab, plab, tlab = make_swiftest_labels(param)
 
     #Prepare frames by adding an extra axis for the time coordinate
     cbframe = np.expand_dims(cvec.T, axis=0)
@@ -668,7 +668,7 @@ def solar_system_pl(config, ephemerides_start_date):
     ds = xr.combine_by_coords([cbds, plds])
     return ds
 
-def swiftest_xr2_infile(ds, config, framenum=-1):
+def swiftest_xr2_infile(ds, param, framenum=-1):
     """
     Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
 
@@ -678,8 +678,8 @@ def swiftest_xr2_infile(ds, config, framenum=-1):
         Dataset containing Swiftest n-body data in XV format
     framenum : int
         Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
-    config : dict
-        Swiftest Configuration parameters. This method uses the names of the cb, pl, and tp files from the configuration
+    param : dict
+        Swiftest paramuration parameters. This method uses the names of the cb, pl, and tp files from the paramuration
 
     Returns
     -------
@@ -696,16 +696,16 @@ def swiftest_xr2_infile(ds, config, framenum=-1):
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
 
-    if config['IN_TYPE'] == 'ASCII':
+    if param['IN_TYPE'] == 'ASCII':
         # Swiftest Central body file
-        cbfile = open(config['CB_IN'], 'w')
+        cbfile = open(param['CB_IN'], 'w')
         print(GMSun, file=cbfile)
         print(RSun, file=cbfile)
         print(J2, file=cbfile)
         print(J4, file=cbfile)
         cbfile.close()
 
-        plfile = open(config['PL_IN'], 'w')
+        plfile = open(param['PL_IN'], 'w')
         print(pl.id.count().values, file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
@@ -716,7 +716,7 @@ def swiftest_xr2_infile(ds, config, framenum=-1):
         plfile.close()
 
         # TP file
-        tpfile = open(config['TP_IN'], 'w')
+        tpfile = open(param['TP_IN'], 'w')
         print(tp.id.count().values, file=tpfile)
         for i in tp.id:
             tpi = tp.sel(id=i)
@@ -724,7 +724,7 @@ def swiftest_xr2_infile(ds, config, framenum=-1):
             print(tpi['px'].values, tpi['py'].values, tpi['pz'].values, file=tpfile)
             print(tpi['vx'].values, tpi['vy'].values, tpi['vz'].values, file=tpfile)
         tpfile.close()
-    elif config['IN_TYPE'] == 'REAL8':
+    elif param['IN_TYPE'] == 'REAL8':
         # Now make Swiftest files
         cbfile = FortranFile(swiftest_cb, 'w')
         Msun = np.double(1.0)
@@ -758,7 +758,7 @@ def swiftest_xr2_infile(ds, config, framenum=-1):
         tpfile.write_record(v_tp[1])
         tpfile.write_record(v_tp[2])
     else:
-        print(f"{config['IN_TYPE']} is an unknown file type")
+        print(f"{param['IN_TYPE']} is an unknown file type")
 if __name__ == '__main__':
 
     workingdir = '/Users/daminton/git/swiftest/examples/rmvs_swifter_comparison/9pl_18tp_encounters/'
@@ -766,17 +766,17 @@ if __name__ == '__main__':
     #param = read_swifter_param(inparfile)
     #param['BIN_OUT'] = workingdir + param['BIN_OUT']
 
-    config_file_name = workingdir + 'config.swiftest.in'
-    config = read_swiftest_config(config_file_name)
-    config['BIN_OUT'] = workingdir + config['BIN_OUT']
-    ds = solar_system_pl(config, '2020-06-17')
+    param_file_name = workingdir + 'param.swiftest.in'
+    param = read_swiftest_param(param_file_name)
+    param['BIN_OUT'] = workingdir + param['BIN_OUT']
+    ds = solar_system_pl(param, '2020-06-17')
     ds
 
-    #swiftestdat = swiftest2xr(config)
-    config['CB_IN'] = workingdir + 'cb_test.in'
-    config['PL_IN'] = workingdir + 'pl_test.in'
-    config['TP_IN'] = workingdir + 'tp_test.in'
-    swiftest_xr2_infile(ds, config)
+    #swiftestdat = swiftest2xr(param)
+    param['CB_IN'] = workingdir + 'cb_test.in'
+    param['PL_IN'] = workingdir + 'pl_test.in'
+    param['TP_IN'] = workingdir + 'tp_test.in'
+    swiftest_xr2_infile(ds, param)
     #swifterdat = swifter2xr(param)
     #print(swiftestdat['a'])
     #print(swiftestdf.head())

@@ -12,7 +12,7 @@ implicit none
    integer(I4B)          :: i
 
 ! executable code
-   call discard_tpt, dt, npl, ntp, symba_plA, symba_tpA, rmin, rmax, config%rmaxu, qmin, &
+   call discard_tpt, dt, npl, ntp, symba_plA, symba_tpA, rmin, rmax, param%rmaxu, qmin, &
       qmin_alo, qmin_ahi, qmin_coord, lclosel,  &
       lrhill_present)
    return

@@ -1,7 +1,7 @@
 submodule(swiftest_classes) s_user_getacch
    use swiftest
 contains
-   module subroutine user_getacch_body(self, cb, config, t)
+   module subroutine user_getacch_body(self, cb, param, t)
       !! author: David A. Minton
       !!
       !! Add user-supplied heliocentric accelerations to planets
@@ -11,7 +11,7 @@ contains
       ! Arguments
       class(swiftest_body),          intent(inout) :: self   !! Swiftest massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_configuration), intent(in)    :: config !! Input collection of user configuration parameters
+      class(swiftest_parameters), intent(in)    :: param !! Input collection of user parameters parameters
       real(DP),                      intent(in)    :: t      !! Current time
 
       return

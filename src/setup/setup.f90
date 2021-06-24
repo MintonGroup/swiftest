@@ -1,7 +1,7 @@
 submodule (swiftest_classes) s_setup
    use swiftest
 contains
-   module subroutine setup_construct_system(system, config)
+   module subroutine setup_construct_system(system, param)
       !! author: David A. Minton
       !!
       !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
@@ -9,9 +9,9 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-      type(swiftest_configuration),                intent(in)    :: config     !! Swiftest configuration parameters
+      type(swiftest_parameters),                intent(in)    :: param     !! Swiftest parameters parameters
 
-      select case(config%integrator)
+      select case(param%integrator)
       case (BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
       case (HELIO)
@@ -51,7 +51,7 @@ contains
       case (RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
       case default
-         write(*,*) 'Unkown integrator',config%integrator
+         write(*,*) 'Unkown integrator',param%integrator
          call util_exit(FAILURE)
       end select
 
