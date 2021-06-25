@@ -36,8 +36,6 @@ def read_swifter_param(inparfile):
     """
     param = {
     'INPARFILE'      : inparfile,
-    'NPLMAX'         : -1,
-    'NTPMAX'         : -1,
     'T0'             : 0.0,
     'TSTOP'          : 0.0,
     'DT'             : 0.0,
@@ -80,12 +78,11 @@ def read_swifter_param(inparfile):
             for key in param:
                 if (key == fields[0].upper()): param[key] = fields[1]
             #Special case of CHK_QMIN_RANGE requires a second input
-            if (param['CHK_QMIN_RANGE'] == fields[0].upper()):
+            if fields[0].upper() == 'CHK_QMIN_RANGE':
                 param['QMIN_ALO'] = fields[1]
                 param['QMIN_AHI'] = fields[2]
+                param['CHK_QMIN_RANGE'] = f"{fields[1]} {fields[2]}"
 
-    param['NPLMAX']     = int(param['NPLMAX'])
-    param['NTPMAX']     = int(param['NTPMAX'])
     param['ISTEP_OUT']  = int(param['ISTEP_OUT'])
     param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
     param['T0']         = float(param['T0'])
@@ -125,8 +122,6 @@ def read_swiftest_param(param_file_name):
     """
     param = {
     'param_FILE_NAME' : param_file_name,
-    'NPLMAX'         : -1,
-    'NTPMAX'         : -1,
     'T0'             : 0.0,
     'TSTOP'          : 0.0,
     'DT'             : 0.0,
@@ -180,12 +175,11 @@ def read_swiftest_param(param_file_name):
             for key in param:
                 if (key == fields[0].upper()): param[key] = fields[1]
             #Special case of CHK_QMIN_RANGE requires a second input
-            if (param['CHK_QMIN_RANGE'] == fields[0].upper()):
+            if fields[0].upper() == 'CHK_QMIN_RANGE':
                 param['QMIN_ALO'] = fields[1]
                 param['QMIN_AHI'] = fields[2]
+                param['CHK_QMIN_RANGE'] = f"{fields[1]} {fields[2]}"
 
-    param['NPLMAX']     = int(param['NPLMAX'])
-    param['NTPMAX']     = int(param['NTPMAX'])
     param['ISTEP_OUT']  = int(param['ISTEP_OUT'])
     param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
     param['T0']         = float(param['T0'])
@@ -758,75 +752,15 @@ def swiftest_xr2_infile(ds, param, framenum=-1):
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
 
-def swifter2swiftest(inparam,outparam):
-    print(f"Swifter parameter is {inparam}")
-    print(f"Swiftest parameter file is {outparam}")
-    swifter_param = read_swifter_param(inparam)
+def swifter2swiftest(swifter_param, outparam):
     swiftest_param = swifter_param.copy()
-    print("Select the unit system to use:")
-    print("1) MSun-AU-year")
-    print("2) MSun-AU-day")
-    print("3) SI: kg-m-s")
-    print("4) CGS: g-cm-s")
-    print("5) Set units manually")
-    inval = input("> ")
-    try:
-        unit_type = int(inval)
-    except ValueError:
-        goodval = False
-    else:
-        goodval = (unit_type > 0 and unit_type < 6)
-    if not goodval:
-        print(f"{inval} is not a valid menu option")
-        sys.exit(-1)
-    if unit_type == 1:
-        print("Unit system is MSun-AU-year")
-        swiftest_param['MU2KG'] = MSun
-        swiftest_param['DU2M'] = AU2M
-        swiftest_param['TU2S'] = YR2S
-    elif unit_type == 2: # MSun-AU-day
-        print("Unit system is MSun-AU-day")
-        swiftest_param['MU2KG'] = MSun
-        swiftest_param['DU2M'] = AU2M
-        swiftest_param['TU2S'] = JD2S
-    elif unit_type == 3: # SI: kg-m-s
-        print("Unit system is SI: kg-m-s")
-        swiftest_param['MU2KG'] = 1.0
-        swiftest_param['DU2M'] = 1.0
-        swiftest_param['TU2S'] = 1.0
-    elif unit_type == 4:  # CGS: g-cm-s
-        print("Unit system is CGS: g-cm-s")
-        swiftest_param['MU2KG'] = 1e-3
-        swiftest_param['DU2M'] = 1.0e-2
-        swiftest_param['TU2S'] = 1.0
-    elif unit_type == 5:
-        print("User-defined units.")
-        print("Define each unit (mass, distance, and time) by its corresponding SI value.")
-        swiftest_param['MU2KG'] = input("Mass value in kilograms: ")
-        swiftest_param['DU2M'] = input("Distance value in meters: ")
-        swiftest_param['TU2S'] = input("Time unit in seconds: ")
-
-    print("Set central body radius:")
-    print(f"1) Use Swifter parameter value of CHK_RMIN = {swifter_param['CHK_RMIN']}")
-    print(f"2) Set value manually")
-    inval = input("> ")
-    try:
-        cbrad_type = int(inval)
-    except ValueError:
-        goodval = False
-    else:
-        goodval = (cbrad_type > 0 and cbrad_type < 3)
-    if not goodval:
-        print(f"{inval} is not a valid menu option")
-        sys.exit(-1)
-    if cbrad_type == 1:
-        cbrad = swifter_param['CHK_RMIN']
-    elif cbrad_type == 2:
-        cbrad = input("Enter radius of central body in simulation Distance Units: ")
-
     swiftest_param['PL_IN'] = 'pl.swiftest.in'
     swiftest_param['TP_IN'] = 'tp.swiftest.in'
     swiftest_param['CB_IN'] = 'cb.swiftest.in'
+    print(f"Swiftest parameter file    : {outparam}")
+    print(f"Swiftest massive body file : {swiftest_param['PL_IN']}")
+    print(f"Swiftest test particle file: {swiftest_param['TP_IN']}")
+    print(f"Swiftest central body file : {swiftest_param['CB_IN']}")
 
     plnew = open(swiftest_param['PL_IN'], 'w')
 
@@ -898,6 +832,70 @@ def swifter2swiftest(inparam,outparam):
     tpold.close()
     tpnew.close()
 
+    print(f"\nCentral body G*M = {GMcb}\n")
+    print("Select the unit system to use:")
+    print("1) MSun-AU-year")
+    print("2) MSun-AU-day")
+    print("3) SI: kg-m-s")
+    print("4) CGS: g-cm-s")
+    print("5) Set units manually")
+    inval = input("> ")
+    try:
+        unit_type = int(inval)
+    except ValueError:
+        goodval = False
+    else:
+        goodval = (unit_type > 0 and unit_type < 6)
+    if not goodval:
+        print(f"{inval} is not a valid menu option")
+        sys.exit(-1)
+    if unit_type == 1:
+        print("Unit system is MSun-AU-year")
+        swiftest_param['MU2KG'] = MSun
+        swiftest_param['DU2M'] = AU2M
+        swiftest_param['TU2S'] = YR2S
+    elif unit_type == 2: # MSun-AU-day
+        print("Unit system is MSun-AU-day")
+        swiftest_param['MU2KG'] = MSun
+        swiftest_param['DU2M'] = AU2M
+        swiftest_param['TU2S'] = JD2S
+    elif unit_type == 3: # SI: kg-m-s
+        print("Unit system is SI: kg-m-s")
+        swiftest_param['MU2KG'] = 1.0
+        swiftest_param['DU2M'] = 1.0
+        swiftest_param['TU2S'] = 1.0
+    elif unit_type == 4:  # CGS: g-cm-s
+        print("Unit system is CGS: g-cm-s")
+        swiftest_param['MU2KG'] = 1e-3
+        swiftest_param['DU2M'] = 1.0e-2
+        swiftest_param['TU2S'] = 1.0
+    elif unit_type == 5:
+        print("User-defined units.")
+        print("Define each unit (mass, distance, and time) by its corresponding SI value.")
+        swiftest_param['MU2KG'] = input("Mass value in kilograms: ")
+        swiftest_param['DU2M'] = input("Distance value in meters: ")
+        swiftest_param['TU2S'] = input("Time unit in seconds: ")
+    GU = GC / (swiftest_param['DU2M'] ** 3 / (swiftest_param['MU2KG'] * swiftest_param['TU2S'] ** 2))
+    print(f"Central body mass: {GMcb / GU} MU ({(GMcb / GU) * swiftest_param['MU2KG']} kg)")
+
+    print("Set central body radius:")
+    print(f"1) Use Swifter parameter value of CHK_RMIN = {swifter_param['CHK_RMIN']}")
+    print(f"2) Set value manually")
+    inval = input("> ")
+    try:
+        cbrad_type = int(inval)
+    except ValueError:
+        goodval = False
+    else:
+        goodval = (cbrad_type > 0 and cbrad_type < 3)
+    if not goodval:
+        print(f"{inval} is not a valid menu option")
+        sys.exit(-1)
+    if cbrad_type == 1:
+        cbrad = swifter_param['CHK_RMIN']
+    elif cbrad_type == 2:
+        cbrad = input("Enter radius of central body in simulation Distance Units: ")
+
     print(f'Writing out new CB file: {swiftest_param["CB_IN"]}')
     # Write out new central body file
     cbnew = open(swiftest_param['CB_IN'], 'w')
@@ -908,14 +906,24 @@ def swifter2swiftest(inparam,outparam):
     print(swifter_param['J4'], file=cbnew)
 
     cbnew.close()
-    return
+
+    # Remove the unneeded parameters
+    swiftest_param.pop('INV_C2', None)
+    swiftest_param.pop('C2', None)
+    swiftest_param.pop('QMIN_ALO', None)
+    swiftest_param.pop('QMIN_AHI', None)
+    swiftest_param.pop('INPARFILE', None)
+    swiftest_param.pop('J2', None)
+    swiftest_param.pop('J4', None)
+    swiftest_param.pop('RHILL_PRESENT', None)
+    return swiftest_param
 
 if __name__ == '__main__':
 
     workingdir = '/Users/daminton/git/swiftest/examples/rmvs_swifter_comparison/9pl_18tp_encounters/'
-    #inparfile = workingdir + 'param.swifter.in'
-    #param = read_swifter_param(inparfile)
-    #param['BIN_OUT'] = workingdir + param['BIN_OUT']
+    inparfile = workingdir + 'param.swifter.in'
+    param = read_swifter_param(inparfile)
+    param['BIN_OUT'] = workingdir + param['BIN_OUT']
 
     param_file_name = workingdir + 'param.swiftest.in'
     param = read_swiftest_param(param_file_name)
