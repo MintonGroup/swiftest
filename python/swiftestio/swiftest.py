@@ -168,6 +168,7 @@ def read_swifter_param(param_file_name):
         'GR'             : 'NO',
         'C2'             : "-1.0",
     }
+    
 
     # Read param.in file
     print(f'Reading Swifter file {param_file_name}')
@@ -276,6 +277,22 @@ def read_swift_param(param_file_name):
         param['STATUS_FLAG_FOR_OPEN_STATEMENTS'] = f.readline().strip().upper()
 
     return param
+
+def write_param(param, param_file_name):
+    outfile = open(param_file_name, 'w')
+    codename = param['VERSION'].split()[1]
+    if codename == "Swifter" or codename == "Swiftest":
+        for key,val in param.items():
+            print(f"{key:<16} {val}",file=outfile)
+    elif codename == "Swift":
+        print(param['T0'],param['TSTOP'],param['DT'], file=outfile)
+        print(param['DTOUT'], param['DTDUMP'], file=outfile)
+        print(param['L1'],param['L2'],param['L3'],param['L4'],param['L5'],param['L6'], file=outfile)
+        print(param['RMIN'],param['RMAX'],param['RMAXU'],param['QMIN'],param['LCLOSE'], file=outfile)
+        print(param['BINARY_OUTPUTFILE'], file=outfile)
+        print(param['STATUS_FLAG_FOR_OPEN_STATEMENTS'], file=outfile)
+    outfile.close()
+    return
 
 def swifter_stream(f, param):
     """
@@ -987,4 +1004,4 @@ if __name__ == '__main__':
     workingdir = '/Users/daminton/git/swiftest/examples/swift_conversion/'
     param_file_name = workingdir + 'param.in'
     param = read_swift_param(param_file_name)
-    param['BIN_OUT'] = workingdir + param['BIN_OUT']
+    write_param(param,"test.in")
