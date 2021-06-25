@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-setup(name='swiftestio',
-      version='0.1',
+setup(name='swiftest',
+      version='0.2',
       author='David A. Minton',
       packages=find_packages())
