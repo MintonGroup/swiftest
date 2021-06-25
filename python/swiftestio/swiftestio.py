@@ -18,94 +18,6 @@ einsteinC = np.longdouble(299792458.0)
 J2Sun = np.longdouble(2.198e-7)
 J4Sun = np.longdouble(-4.805e-9)
 
-
-#I/O Routines for reading in Swifter and Swiftest parameter and binary data files
-def read_swifter_param(inparfile):
-    """
-    Reads in a Swifter param.in file and saves it as a dictionary
-
-    Parameters
-    ----------
-    inparfile : string
-        File name of the input parameter file
-
-    Returns
-    -------
-    param
-        A dictionary containing the entries in the user parameter file
-    """
-    param = {
-    'INPARFILE'      : inparfile,
-    'T0'             : 0.0,
-    'TSTOP'          : 0.0,
-    'DT'             : 0.0,
-    'PL_IN'          : "",
-    'TP_IN'          : "",
-    'IN_TYPE'        : "ASCII",
-    'ISTEP_OUT'      : -1,
-    'BIN_OUT'        : "",
-    'OUT_TYPE'       : 'REAL8',
-    'OUT_FORM'       : "XV",
-    'OUT_STAT'       : "NEW",
-    'ISTEP_DUMP'     : -1,
-    'J2'             : 0.0,
-    'J4'             : 0.0,
-    'CHK_CLOSE'      : 'NO',
-    'CHK_RMIN'       : -1.0,
-    'CHK_RMAX'       : -1.0,
-    'CHK_EJECT'      : -1.0,
-    'CHK_QMIN'       : -1.0,
-    'CHK_QMIN_COORD' : "HELIO",
-    'CHK_QMIN_RANGE' : "",
-    'QMIN_ALO'       : -1.0,
-    'QMIN_AHI'       : -1.0,
-    'ENC_OUT'        : "",
-    'EXTRA_FORCE'    : 'NO',
-    'BIG_DISCARD'    : 'NO',
-    'RHILL_PRESENT'  : 'NO',
-    'GR'             : 'NO',
-    'C2'             : -1.0,
-             }
-
-    # Read param.in file
-    print(f'Reading Swifter file {inparfile}')
-    f = open(inparfile, 'r')
-    swifterlines = f.readlines()
-    f.close()
-    for line in swifterlines:
-        fields = line.split()
-        if len(fields) > 0:
-            for key in param:
-                if (key == fields[0].upper()): param[key] = fields[1]
-            #Special case of CHK_QMIN_RANGE requires a second input
-            if fields[0].upper() == 'CHK_QMIN_RANGE':
-                param['QMIN_ALO'] = fields[1]
-                param['QMIN_AHI'] = fields[2]
-                param['CHK_QMIN_RANGE'] = f"{fields[1]} {fields[2]}"
-
-    param['ISTEP_OUT']  = int(param['ISTEP_OUT'])
-    param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
-    param['T0']         = float(param['T0'])
-    param['TSTOP']      = float(param['TSTOP'])
-    param['DT']         = float(param['DT'])
-    param['J2']         = float(param['J2'])
-    param['J4']         = float(param['J4'])
-    param['CHK_RMIN']   = float(param['CHK_RMIN'])
-    param['CHK_RMAX']   = float(param['CHK_RMAX'])
-    param['CHK_EJECT']  = float(param['CHK_EJECT'])
-    param['CHK_QMIN']   = float(param['CHK_QMIN'])
-    param['QMIN_ALO']   = float(param['QMIN_ALO'])
-    param['QMIN_AHI']   = float(param['QMIN_AHI'])
-    param['C2']         = float(param['C2'])
-    param['INV_C2']     = param['C2']
-    param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
-    param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
-    param['CHK_CLOSE']  = param['CHK_CLOSE'].upper()
-    param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
-    param['GR']         = param['GR'].upper()
-
-    return param
-
 def read_swiftest_param(param_file_name):
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
@@ -121,82 +33,80 @@ def read_swiftest_param(param_file_name):
         A dictionary containing the entries in the user parameter file
     """
     param = {
-    'param_FILE_NAME' : param_file_name,
-    'T0'             : 0.0,
-    'TSTOP'          : 0.0,
-    'DT'             : 0.0,
-    'PL_IN'          : "",
-    'TP_IN'          : "",
-    'CB_IN'          : "",
-    'IN_TYPE'        : "ASCII",
-    'ISTEP_OUT'      : -1,
-    'BIN_OUT'        : "",
-    'OUT_TYPE'       : 'REAL8',
-    'OUT_FORM'       : "XV",
-    'OUT_STAT'       : "NEW",
-    'ISTEP_DUMP'     : -1,
-    'J2'             : 0.0,
-    'J4'             : 0.0,
-    'CHK_RMIN'       : -1.0,
-    'CHK_RMAX'       : -1.0,
-    'CHK_EJECT'      : -1.0,
-    'CHK_QMIN'       : -1.0,
-    'CHK_QMIN_COORD' : "HELIO",
-    'CHK_QMIN_RANGE' : "",
-    'QMIN_ALO'       : -1.0,
-    'QMIN_AHI'       : -1.0,
-    'ENC_OUT'        : "",
-    'MTINY'          : -1.0,
-    'MU2KG'          : -1.0,
-    'TU2S'           : -1.0,
-    'DU2M'           : -1.0,
-    'GU'             : -1.0,
-    'EXTRA_FORCE'    : 'NO',
-    'BIG_DISCARD'    : 'NO',
-    'CHK_CLOSE'      : 'NO',
-    'FRAGMENTATION'  : 'NO',
-    'MTINY_SET'      : 'NO',
-    'ROTATION'       : 'NO',
-    'TIDES'          : 'NO',
-    'ENERGY'         : 'NO',
-    'GR'             : 'NO',
-    'YARKOVSKY'      : 'NO',
-    'YORP'           : 'NO',
+        'VERSION': "! Swiftest parameter input file",
+        'T0'             : "0.0",
+        'TSTOP'          : "0.0",
+        'DT'             : "0.0",
+        'PL_IN'          : "",
+        'TP_IN'          : "",
+        'CB_IN'          : "",
+        'IN_TYPE'        : "ASCII",
+        'ISTEP_OUT'      : "-1",
+        'BIN_OUT'        : "bin.dat",
+        'OUT_TYPE'       : 'REAL8',
+        'OUT_FORM'       : "XV",
+        'OUT_STAT'       : "NEW",
+        'ISTEP_DUMP'     : "-1",
+        'J2'             : "0.0",
+        'J4'             : "0.0",
+        'CHK_RMIN'       : "-1.0",
+        'CHK_RMAX'       : "-1.0",
+        'CHK_EJECT'      : "-1.0",
+        'CHK_QMIN'       : "-1.0",
+        'CHK_QMIN_COORD' : "HELIO",
+        'CHK_QMIN_RANGE' : "",
+        'QMIN_ALO'       : "-1.0",
+        'QMIN_AHI'       : "-1.0",
+        'ENC_OUT'        : "",
+        'MTINY'          : "-1.0",
+        'MU2KG'          : "-1.0",
+        'TU2S'           : "-1.0",
+        'DU2M'           : "-1.0",
+        'GU'             : "-1.0",
+        'EXTRA_FORCE'    : "NO",
+        'BIG_DISCARD'    : "NO",
+        'CHK_CLOSE'      : "NO",
+        'FRAGMENTATION'  : "NO",
+        'MTINY_SET'      : "NO",
+        'ROTATION'       : "NO",
+        'TIDES'          : "NO",
+        'ENERGY'         : "NO",
+        'GR'             : "NO",
+        'YARKOVSKY'      : "NO",
+        'YORP'           : "NO",
     }
 
     # Read param.in file
     print(f'Reading Swiftest file {param_file_name}' )
-    f = open(param_file_name, 'r')
-    swiftestlines = f.readlines()
-    f.close()
-    for line in swiftestlines:
-        fields = line.split()
-        if len(fields) > 0:
-            for key in param:
-                if (key == fields[0].upper()): param[key] = fields[1]
-            #Special case of CHK_QMIN_RANGE requires a second input
-            if fields[0].upper() == 'CHK_QMIN_RANGE':
-                param['QMIN_ALO'] = fields[1]
-                param['QMIN_AHI'] = fields[2]
-                param['CHK_QMIN_RANGE'] = f"{fields[1]} {fields[2]}"
+    with open(param_file_name, 'r') as f:
+        for line in f.readlines():
+            fields = line.split()
+            if len(fields) > 0:
+                for key in param:
+                    if (key == fields[0].upper()): param[key] = fields[1]
+                #Special case of CHK_QMIN_RANGE requires a second input
+                if fields[0].upper() == 'CHK_QMIN_RANGE':
+                    param['QMIN_ALO'] = fields[1]
+                    param['QMIN_AHI'] = fields[2]
+                    param['CHK_QMIN_RANGE'] = f"{fields[1]} {fields[2]}"
 
     param['ISTEP_OUT']  = int(param['ISTEP_OUT'])
     param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
-    param['T0']         = float(param['T0'])
-    param['TSTOP']      = float(param['TSTOP'])
-    param['DT']         = float(param['DT'])
-    param['J2']         = float(param['J2'])
-    param['J4']         = float(param['J4'])
-    param['CHK_RMIN']   = float(param['CHK_RMIN'])
-    param['CHK_RMAX']   = float(param['CHK_RMAX'])
-    param['CHK_EJECT']  = float(param['CHK_EJECT'])
-    param['CHK_QMIN']   = float(param['CHK_QMIN'])
-    param['QMIN_ALO']   = float(param['QMIN_ALO'])
-    param['QMIN_AHI']   = float(param['QMIN_AHI'])
-    param['MTINY']      = float(param['MTINY'])
-    param['DU2M']       = float(param['DU2M'])
-    param['MU2KG']      = float(param['MU2KG'])
-    param['TU2S']       = float(param['TU2S'])
+    param['T0']         = float(param['T0'].replace('d','E').replace('D','E'))
+    param['TSTOP']      = float(param['TSTOP'].replace('d','E').replace('D','E'))
+    param['DT']         = float(param['DT'].replace('d','E').replace('D','E'))
+    param['J2']         = float(param['J2'].replace('d','E').replace('D','E'))
+    param['J4']         = float(param['J4'].replace('d','E').replace('D','E'))
+    param['CHK_RMIN']   = float(param['CHK_RMIN'].replace('d','E').replace('D','E'))
+    param['CHK_RMAX']   = float(param['CHK_RMAX'].replace('d','E').replace('D','E'))
+    param['CHK_EJECT']  = float(param['CHK_EJECT'].replace('d','E').replace('D','E'))
+    param['CHK_QMIN']   = float(param['CHK_QMIN'].replace('d','E').replace('D','E'))
+    param['QMIN_ALO']   = float(param['QMIN_ALO'].replace('d','E').replace('D','E'))
+    param['QMIN_AHI']   = float(param['QMIN_AHI'].replace('d','E').replace('D','E'))
+    param['MTINY']      = float(param['MTINY'].replace('d','E').replace('D','E'))
+    param['DU2M']       = float(param['DU2M'].replace('d','E').replace('D','E'))
+    param['MU2KG']      = float(param['MU2KG'].replace('d','E').replace('D','E'))
+    param['TU2S']       = float(param['TU2S'].replace('d','E').replace('D','E'))
     param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
     param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
     param['CHK_CLOSE']   = param['CHK_CLOSE'].upper()
@@ -210,6 +120,161 @@ def read_swiftest_param(param_file_name):
     param['GU']         = GC / (param['DU2M']**3 / (param['MU2KG'] * param['TU2S']**2))
     param['INV_C2']     = einsteinC * param['TU2S'] / param['DU2M']
     param['INV_C2']     = param['INV_C2']**(-2)
+    return param
+
+def read_swifter_param(param_file_name):
+    """
+    Reads in a Swifter param.in file and saves it as a dictionary
+
+    Parameters
+    ----------
+    param_file_name : string
+        File name of the input parameter file
+
+    Returns
+    -------
+    param
+        A dictionary containing the entries in the user parameter file
+    """
+    param = {
+        'VERSION': "! Swifter parameter input file",
+        'T0'             : "0.0",
+        'TSTOP'          : "0.0",
+        'DT'             : "0.0",
+        'PL_IN'          : "",
+        'TP_IN'          : "",
+        'IN_TYPE'        : "ASCII",
+        'ISTEP_OUT'      : "-1",
+        'BIN_OUT'        : "bin.dat",
+        'OUT_TYPE'       : "REAL8",
+        'OUT_FORM'       : "XV",
+        'OUT_STAT'       : "NEW",
+        'ISTEP_DUMP'     : "-1",
+        'J2'             : "0.0",
+        'J4'             : "0.0",
+        'CHK_CLOSE'      : 'NO',
+        'CHK_RMIN'       : "-1.0",
+        'CHK_RMAX'       : "-1.0",
+        'CHK_EJECT'      : "-1.0",
+        'CHK_QMIN'       : "-1.0",
+        'CHK_QMIN_COORD' : "HELIO",
+        'CHK_QMIN_RANGE' : "",
+        'QMIN_ALO'       : "-1.0",
+        'QMIN_AHI'       : "-1.0",
+        'ENC_OUT'        : "",
+        'EXTRA_FORCE'    : 'NO',
+        'BIG_DISCARD'    : 'NO',
+        'RHILL_PRESENT'  : 'NO',
+        'GR'             : 'NO',
+        'C2'             : "-1.0",
+    }
+
+    # Read param.in file
+    print(f'Reading Swifter file {param_file_name}')
+    with open(param_file_name, 'r') as f:
+        for line in f.readlines():
+            fields = line.split()
+            if len(fields) > 0:
+                for key in param:
+                    if (key == fields[0].upper()): param[key] = fields[1]
+                #Special case of CHK_QMIN_RANGE requires a second input
+                if fields[0].upper() == 'CHK_QMIN_RANGE':
+                    param['QMIN_ALO'] = fields[1]
+                    param['QMIN_AHI'] = fields[2]
+                    param['CHK_QMIN_RANGE'] = f"{fields[1]} {fields[2]}"
+
+    param['ISTEP_OUT']  = int(param['ISTEP_OUT'])
+    param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
+    param['T0']         = float(param['T0'].replace('d','E').replace('D','E'))
+    param['TSTOP']      = float(param['TSTOP'].replace('d','E').replace('D','E'))
+    param['DT']         = float(param['DT'].replace('d','E').replace('D','E'))
+    param['J2']         = float(param['J2'].replace('d','E').replace('D','E'))
+    param['J4']         = float(param['J4'].replace('d','E').replace('D','E'))
+    param['CHK_RMIN']   = float(param['CHK_RMIN'].replace('d','E').replace('D','E'))
+    param['CHK_RMAX']   = float(param['CHK_RMAX'].replace('d','E').replace('D','E'))
+    param['CHK_EJECT']  = float(param['CHK_EJECT'].replace('d','E').replace('D','E'))
+    param['CHK_QMIN']   = float(param['CHK_QMIN'].replace('d','E').replace('D','E'))
+    param['QMIN_ALO']   = float(param['QMIN_ALO'].replace('d','E').replace('D','E'))
+    param['QMIN_AHI']   = float(param['QMIN_AHI'].replace('d','E').replace('D','E'))
+    param['C2']         = float(param['C2'].replace('d','E').replace('D','E'))
+    param['INV_C2']     = param['C2']
+    param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
+    param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
+    param['CHK_CLOSE']  = param['CHK_CLOSE'].upper()
+    param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
+    param['GR']         = param['GR'].upper()
+
+    return param
+
+def read_swift_param(param_file_name):
+    """
+    Reads in a Swift param.in file and saves it as a dictionary
+
+    Parameters
+    ----------
+    param_file_name : string
+        File name of the input parameter file
+
+    Returns
+    -------
+    param : dict
+        A dictionary containing the entries in the user parameter file
+    """
+    param = {
+        'VERSION': "! Swift parameter input file",
+        'T0': 0.0,
+        'TSTOP': 0.0,
+        'DT': 0.0,
+        'DTOUT': 0.0,
+        'DTDUMP': 0.0,
+        'L1': "F",
+        'L1': "F",
+        'L2': "F",
+        'L3': "F",
+        'L4': "F",
+        'L5': "F",
+        'L6': "F",
+        'RMIN': 0.0,
+        'RMAX': 0.0,
+        'RMAXU': 0.0,
+        'QMIN': 0.0,
+        'LCLOSE': "F",
+        'BINARY_OUTPUTFILE': "bin.dat",
+        'STATUS_FLAG_FOR_OPEN_STATEMENTS': "NEW",
+    }
+    
+    # Read param.in file
+    print(f'Reading Swift file {param_file_name}')
+    with open(param_file_name, 'r') as f:
+        line = f.readline().split()
+        for i, l in enumerate(line):
+            line[i] = l.replace('d','E').replace('D','E')
+        param['T0'] = float(line[0])
+        param['TSTOP'] = float(line[1])
+        param['DT'] = float(line[2])
+        line = f.readline().split()
+        for i, l in enumerate(line):
+            line[i] = l.replace('d','E').replace('D','E')
+        param['DTOUT'] = float(line[0])
+        param['DTDUMP'] = float(line[1])
+        line = f.readline().split()
+        param['L1'] = line[0].upper()
+        param['L2'] = line[1].upper()
+        param['L3'] = line[2].upper()
+        param['L4'] = line[3].upper()
+        param['L5'] = line[4].upper()
+        param['L6'] = line[5].upper()
+        line = f.readline().split()
+        for i, l in enumerate(line):
+            line[i] = l.replace('d','E').replace('D','E')
+        param['RMIN'] = float(line[0])
+        param['RMAX'] = float(line[1])
+        param['RMAXU'] = float(line[2])
+        param['QMIN'] = float(line[3])
+        param['LCLOSE'] = line[4].upper()
+        param['BINARY_OUTPUTFILE'] = f.readline().strip()
+        param['STATUS_FLAG_FOR_OPEN_STATEMENTS'] = f.readline().strip().upper()
+
     return param
 
 def swifter_stream(f, param):
@@ -912,7 +977,6 @@ def swifter2swiftest(swifter_param, outparam):
     swiftest_param.pop('C2', None)
     swiftest_param.pop('QMIN_ALO', None)
     swiftest_param.pop('QMIN_AHI', None)
-    swiftest_param.pop('INPARFILE', None)
     swiftest_param.pop('J2', None)
     swiftest_param.pop('J4', None)
     swiftest_param.pop('RHILL_PRESENT', None)
@@ -920,24 +984,7 @@ def swifter2swiftest(swifter_param, outparam):
 
 if __name__ == '__main__':
 
-    workingdir = '/Users/daminton/git/swiftest/examples/rmvs_swifter_comparison/9pl_18tp_encounters/'
-    inparfile = workingdir + 'param.swifter.in'
-    param = read_swifter_param(inparfile)
+    workingdir = '/Users/daminton/git/swiftest/examples/swift_conversion/'
+    param_file_name = workingdir + 'param.in'
+    param = read_swift_param(param_file_name)
     param['BIN_OUT'] = workingdir + param['BIN_OUT']
-
-    param_file_name = workingdir + 'param.swiftest.in'
-    param = read_swiftest_param(param_file_name)
-    param['BIN_OUT'] = workingdir + param['BIN_OUT']
-    ds = solar_system_pl(param, '2020-06-17')
-    ds
-
-    #swiftestdat = swiftest2xr(param)
-    param['CB_IN'] = workingdir + 'cb_test.in'
-    param['PL_IN'] = workingdir + 'pl_test.in'
-    param['TP_IN'] = workingdir + 'tp_test.in'
-    swiftest_xr2_infile(ds, param)
-    #swifterdat = swifter2xr(param)
-    #print(swiftestdat['a'])
-    #print(swiftestdf.head())
-
-    #swifterdf.plot(y='px')
