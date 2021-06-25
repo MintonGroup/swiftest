@@ -24,7 +24,7 @@ class Simulation:
     
     def write_param(self, param_file_name):
         # Check to see if the parameter type matches the output type. If not, we need to convert
-        codename = self.param['VERSION'].split()[1]
+        codename = self.param['! VERSION'].split()[0]
         if codename == "Swifter" or codename == "Swiftest":
             swiftestio.write_labeled_param(self.param, param_file_name)
         elif codename == "Swift":
@@ -32,6 +32,23 @@ class Simulation:
         else:
             print('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
         return
+    
+    def convert(self, param_file_name, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in", cbname="cb.swiftest.in"):
+        """
+        Converts simulation input files from one code type to another (Swift, Swifter, or Swiftest). Returns the old parameter configuration.
+        """
+        oldparam = self.param
+        if self.codename == newcodename:
+            print(f"This parameter configuration is already in {newcodename} format")
+            return oldparam
+        if newcodename != "Swift" and newcodename != "Swifter" and newcodename != "Swiftest":
+            print(f'{newcodename} is an invalid code type. Valid options are "Swiftest", "Swifter", or "Swift".')
+            return oldparam
+        if self.codename == "Swifter":
+            if newcodename == "Swiftest":
+                self.param = swiftestio.swifter2swiftest(self.param, plname, tpname, cbname)
+        self.write_param(param_file_name)
+        return oldparam
     
     def bin2xr(self):
         if self.codename == "Swiftest":

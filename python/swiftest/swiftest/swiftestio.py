@@ -1,8 +1,10 @@
+import swiftest
 import numpy as np
 from scipy.io import FortranFile
 import xarray as xr
 from astroquery.jplhorizons import Horizons
 import datetime
+import sys
 
 def read_swiftest_param(param_file_name):
     """
@@ -19,7 +21,7 @@ def read_swiftest_param(param_file_name):
         A dictionary containing the entries in the user parameter file
     """
     param = {
-        'VERSION': "! Swiftest parameter input file",
+        '! VERSION': f"Swiftest parameter input from file {param_file_name}",
         'T0': "0.0",
         'TSTOP': "0.0",
         'DT': "0.0",
@@ -41,8 +43,6 @@ def read_swiftest_param(param_file_name):
         'CHK_QMIN': "-1.0",
         'CHK_QMIN_COORD': "HELIO",
         'CHK_QMIN_RANGE': "",
-        'QMIN_ALO': "-1.0",
-        'QMIN_AHI': "-1.0",
         'ENC_OUT': "",
         'MTINY': "-1.0",
         'MU2KG': "-1.0",
@@ -64,50 +64,46 @@ def read_swiftest_param(param_file_name):
     
     # Read param.in file
     print(f'Reading Swiftest file {param_file_name}')
-    with open(param_file_name, 'r') as f:
-        for line in f.readlines():
-            fields = line.split()
-            if len(fields) > 0:
-                for key in param:
-                    if (key == fields[0].upper()): param[key] = fields[1]
-                # Special case of CHK_QMIN_RANGE requires a second input
-                if fields[0].upper() == 'CHK_QMIN_RANGE':
-                    param['QMIN_ALO'] = fields[1]
-                    param['QMIN_AHI'] = fields[2]
-                    param['CHK_QMIN_RANGE'] = f"{fields[1]} {fields[2]}"
-    
-    param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
-    param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
-    param['T0'] = float(param['T0'].replace('d', 'E').replace('D', 'E'))
-    param['TSTOP'] = float(param['TSTOP'].replace('d', 'E').replace('D', 'E'))
-    param['DT'] = float(param['DT'].replace('d', 'E').replace('D', 'E'))
-    param['J2'] = float(param['J2'].replace('d', 'E').replace('D', 'E'))
-    param['J4'] = float(param['J4'].replace('d', 'E').replace('D', 'E'))
-    param['CHK_RMIN'] = float(param['CHK_RMIN'].replace('d', 'E').replace('D', 'E'))
-    param['CHK_RMAX'] = float(param['CHK_RMAX'].replace('d', 'E').replace('D', 'E'))
-    param['CHK_EJECT'] = float(param['CHK_EJECT'].replace('d', 'E').replace('D', 'E'))
-    param['CHK_QMIN'] = float(param['CHK_QMIN'].replace('d', 'E').replace('D', 'E'))
-    param['QMIN_ALO'] = float(param['QMIN_ALO'].replace('d', 'E').replace('D', 'E'))
-    param['QMIN_AHI'] = float(param['QMIN_AHI'].replace('d', 'E').replace('D', 'E'))
-    param['MTINY'] = float(param['MTINY'].replace('d', 'E').replace('D', 'E'))
-    param['DU2M'] = float(param['DU2M'].replace('d', 'E').replace('D', 'E'))
-    param['MU2KG'] = float(param['MU2KG'].replace('d', 'E').replace('D', 'E'))
-    param['TU2S'] = float(param['TU2S'].replace('d', 'E').replace('D', 'E'))
-    param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
-    param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
-    param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
-    param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
-    param['ROTATION'] = param['ROTATION'].upper()
-    param['TIDES'] = param['TIDES'].upper()
-    param['ENERGY'] = param['ENERGY'].upper()
-    param['GR'] = param['GR'].upper()
-    param['YORP'] = param['YORP'].upper()
-    
-    param['GU'] = GC / (param['DU2M'] ** 3 / (param['MU2KG'] * param['TU2S'] ** 2))
-    param['INV_C2'] = einsteinC * param['TU2S'] / param['DU2M']
-    param['INV_C2'] = param['INV_C2'] ** (-2)
+    try:
+        with open(param_file_name, 'r') as f:
+            for line in f.readlines():
+                fields = line.split()
+                if len(fields) > 0:
+                    for key in param:
+                        if (key == fields[0].upper()): param[key] = fields[1]
+                    # Special case of CHK_QMIN_RANGE requires a second input
+                    if fields[0].upper() == 'CHK_QMIN_RANGE':
+                        alo = float(fields[1].replace('d', 'E').replace('D', 'E'))
+                        ahi = float(fields[2].replace('d', 'E').replace('D', 'E'))
+                        param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
+        
+        param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
+        param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
+        param['T0'] = float(param['T0'].replace('d', 'E').replace('D', 'E'))
+        param['TSTOP'] = float(param['TSTOP'].replace('d', 'E').replace('D', 'E'))
+        param['DT'] = float(param['DT'].replace('d', 'E').replace('D', 'E'))
+        param['J2'] = float(param['J2'].replace('d', 'E').replace('D', 'E'))
+        param['J4'] = float(param['J4'].replace('d', 'E').replace('D', 'E'))
+        param['CHK_RMIN'] = float(param['CHK_RMIN'].replace('d', 'E').replace('D', 'E'))
+        param['CHK_RMAX'] = float(param['CHK_RMAX'].replace('d', 'E').replace('D', 'E'))
+        param['CHK_EJECT'] = float(param['CHK_EJECT'].replace('d', 'E').replace('D', 'E'))
+        param['CHK_QMIN'] = float(param['CHK_QMIN'].replace('d', 'E').replace('D', 'E'))
+        param['MTINY'] = float(param['MTINY'].replace('d', 'E').replace('D', 'E'))
+        param['DU2M'] = float(param['DU2M'].replace('d', 'E').replace('D', 'E'))
+        param['MU2KG'] = float(param['MU2KG'].replace('d', 'E').replace('D', 'E'))
+        param['TU2S'] = float(param['TU2S'].replace('d', 'E').replace('D', 'E'))
+        param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
+        param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
+        param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
+        param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
+        param['ROTATION'] = param['ROTATION'].upper()
+        param['TIDES'] = param['TIDES'].upper()
+        param['ENERGY'] = param['ENERGY'].upper()
+        param['GR'] = param['GR'].upper()
+        param['YORP'] = param['YORP'].upper()
+    except IOError:
+        print(f"{param_file_name} not found.")
     return param
-
 
 def read_swifter_param(param_file_name):
     """
@@ -124,7 +120,7 @@ def read_swifter_param(param_file_name):
         A dictionary containing the entries in the user parameter file
     """
     param = {
-        'VERSION': "! Swifter parameter input file",
+        '! VERSION': f"Swifter parameter input from file {param_file_name}",
         'T0': "0.0",
         'TSTOP': "0.0",
         'DT': "0.0",
@@ -146,53 +142,51 @@ def read_swifter_param(param_file_name):
         'CHK_QMIN': "-1.0",
         'CHK_QMIN_COORD': "HELIO",
         'CHK_QMIN_RANGE': "",
-        'QMIN_ALO': "-1.0",
-        'QMIN_AHI': "-1.0",
         'ENC_OUT': "",
         'EXTRA_FORCE': 'NO',
         'BIG_DISCARD': 'NO',
         'RHILL_PRESENT': 'NO',
-        'GR': 'NO',
-        'C2': "-1.0",
+        'C': "-1.0",
     }
     
     # Read param.in file
     print(f'Reading Swifter file {param_file_name}')
-    with open(param_file_name, 'r') as f:
-        for line in f.readlines():
-            fields = line.split()
-            if len(fields) > 0:
-                for key in param:
-                    if (key == fields[0].upper()): param[key] = fields[1]
-                # Special case of CHK_QMIN_RANGE requires a second input
-                if fields[0].upper() == 'CHK_QMIN_RANGE':
-                    param['QMIN_ALO'] = fields[1]
-                    param['QMIN_AHI'] = fields[2]
-                    param['CHK_QMIN_RANGE'] = f"{fields[1]} {fields[2]}"
+    try:
+        with open(param_file_name, 'r') as f:
+            for line in f.readlines():
+                fields = line.split()
+                if len(fields) > 0:
+                    for key in param:
+                        if (key == fields[0].upper()): param[key] = fields[1]
+                    # Special case of CHK_QMIN_RANGE requires a second input
+                    if fields[0].upper() == 'CHK_QMIN_RANGE':
+                        alo = float(fields[1].replace('d', 'E').replace('D', 'E'))
+                        ahi = float(fields[2].replace('d', 'E').replace('D', 'E'))
+                        param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
     
-    param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
-    param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
-    param['T0'] = float(param['T0'].replace('d', 'E').replace('D', 'E'))
-    param['TSTOP'] = float(param['TSTOP'].replace('d', 'E').replace('D', 'E'))
-    param['DT'] = float(param['DT'].replace('d', 'E').replace('D', 'E'))
-    param['J2'] = float(param['J2'].replace('d', 'E').replace('D', 'E'))
-    param['J4'] = float(param['J4'].replace('d', 'E').replace('D', 'E'))
-    param['CHK_RMIN'] = float(param['CHK_RMIN'].replace('d', 'E').replace('D', 'E'))
-    param['CHK_RMAX'] = float(param['CHK_RMAX'].replace('d', 'E').replace('D', 'E'))
-    param['CHK_EJECT'] = float(param['CHK_EJECT'].replace('d', 'E').replace('D', 'E'))
-    param['CHK_QMIN'] = float(param['CHK_QMIN'].replace('d', 'E').replace('D', 'E'))
-    param['QMIN_ALO'] = float(param['QMIN_ALO'].replace('d', 'E').replace('D', 'E'))
-    param['QMIN_AHI'] = float(param['QMIN_AHI'].replace('d', 'E').replace('D', 'E'))
-    param['C2'] = float(param['C2'].replace('d', 'E').replace('D', 'E'))
-    param['INV_C2'] = param['C2']
-    param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
-    param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
-    param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
-    param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
-    param['GR'] = param['GR'].upper()
-    
-    return param
+        param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
+        param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
+        param['T0'] = float(param['T0'].replace('d', 'E').replace('D', 'E'))
+        param['TSTOP'] = float(param['TSTOP'].replace('d', 'E').replace('D', 'E'))
+        param['DT'] = float(param['DT'].replace('d', 'E').replace('D', 'E'))
+        param['J2'] = float(param['J2'].replace('d', 'E').replace('D', 'E'))
+        param['J4'] = float(param['J4'].replace('d', 'E').replace('D', 'E'))
+        param['CHK_RMIN'] = float(param['CHK_RMIN'].replace('d', 'E').replace('D', 'E'))
+        param['CHK_RMAX'] = float(param['CHK_RMAX'].replace('d', 'E').replace('D', 'E'))
+        param['CHK_EJECT'] = float(param['CHK_EJECT'].replace('d', 'E').replace('D', 'E'))
+        param['CHK_QMIN'] = float(param['CHK_QMIN'].replace('d', 'E').replace('D', 'E'))
+        param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
+        param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
+        param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
+        param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
+        if param['C'] != '-1.0':
+            param['C'] = float(param['C'].replace('d', 'E').replace('D', 'E'))
+        else:
+            param.pop('C', None)
+    except IOError:
+        print(f"{param_file_name} not found.")
 
+    return param
 
 def read_swift_param(param_file_name):
     """
@@ -209,7 +203,7 @@ def read_swift_param(param_file_name):
         A dictionary containing the entries in the user parameter file
     """
     param = {
-        'VERSION': "! Swift parameter input file",
+        '! VERSION': f"Swift parameter input from file {param_file_name}",
         'T0': 0.0,
         'TSTOP': 0.0,
         'DT': 0.0,
@@ -665,15 +659,15 @@ def solar_system_pl(param, ephemerides_start_date):
     }
     
     # Unit conversion factors
-    DCONV = AU2M / param['DU2M']
-    VCONV = (AU2M / JD2S) / (param['DU2M'] / param['TU2S'])
+    DCONV = swiftest.AU2M / param['DU2M']
+    VCONV = (swiftest.AU2M / swiftest.JD2S) / (param['DU2M'] / param['TU2S'])
     THIRDLONG = np.longdouble(1.0) / np.longdouble(3.0)
     
     # Central body value vectors
-    GMcb = np.array([GMSunSI * param['TU2S'] ** 2 / param['DU2M'] ** 3])
-    Rcb = np.array([RSun / param['DU2M']])
-    J2RP2 = np.array([J2Sun * (RSun / param['DU2M']) ** 2])
-    J4RP4 = np.array([J4Sun * (RSun / param['DU2M']) ** 4])
+    GMcb = np.array([swiftest.GMSunSI * param['TU2S'] ** 2 / param['DU2M'] ** 3])
+    Rcb = np.array([swiftest.RSun / param['DU2M']])
+    J2RP2 = np.array([swiftest.J2Sun * (swiftest.RSun / param['DU2M']) ** 2])
+    J4RP4 = np.array([swiftest.J4Sun * (swiftest.RSun / param['DU2M']) ** 4])
     cbid = np.array([0])
     cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4])
     
@@ -724,7 +718,6 @@ def solar_system_pl(param, ephemerides_start_date):
     dims = ['time', 'id', 'vec']
     cb = []
     pl = []
-    tp = []
     t = np.array([0.0])
     
     clab, plab, tlab = make_swiftest_labels(param)
@@ -841,86 +834,99 @@ def swiftest_xr2_infile(ds, param, framenum=-1):
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
 
-
-def swifter2swiftest(swifter_param, outparam):
+def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest.in", cbname="cb.swiftest.in"):
     swiftest_param = swifter_param.copy()
-    swiftest_param['PL_IN'] = 'pl.swiftest.in'
-    swiftest_param['TP_IN'] = 'tp.swiftest.in'
-    swiftest_param['CB_IN'] = 'cb.swiftest.in'
-    print(f"Swiftest parameter file    : {outparam}")
+    swiftest_param['PL_IN'] = plname
+    swiftest_param['TP_IN'] = tpname
+    swiftest_param['CB_IN'] = cbname
     print(f"Swiftest massive body file : {swiftest_param['PL_IN']}")
     print(f"Swiftest test particle file: {swiftest_param['TP_IN']}")
     print(f"Swiftest central body file : {swiftest_param['CB_IN']}")
-    
-    plnew = open(swiftest_param['PL_IN'], 'w')
-    
-    print(f'Writing out new PL file: {swiftest_param["PL_IN"]}')
-    with open(swifter_param['PL_IN'], 'r') as plold:
-        line = plold.readline()
-        line = line.split("!")[0]  # Ignore comments
-        i_list = [i for i in line.split(" ") if i.strip()]
-        npl = int(i_list[0])
-        print(npl - 1, file=plnew)
-        line = plold.readline()
-        i_list = [i for i in line.split(" ") if i.strip()]
-        GMcb = float(i_list[1])  # Store central body GM for later
-        line = plold.readline()  # Ignore the two zero vector lines
-        line = plold.readline()
-        for n in range(1, npl):  # Loop over planets
+   
+    try:
+        plnew = open(swiftest_param['PL_IN'], 'w')
+    except IOError:
+        print(f"Cannot write to file {swiftest_param['PL_IN']}")
+        return swifter_param
+
+    print(f"Converting PL file: {swifter_param['PL_IN']} -> {swiftest_param['PL_IN']}")
+    try:
+        with open(swifter_param['PL_IN'], 'r') as plold:
+            line = plold.readline()
+            line = line.split("!")[0]  # Ignore comments
+            i_list = [i for i in line.split(" ") if i.strip()]
+            npl = int(i_list[0])
+            print(npl - 1, file=plnew)
             line = plold.readline()
             i_list = [i for i in line.split(" ") if i.strip()]
-            name = int(i_list[0])
-            GMpl = float(i_list[1])
-            print(name, GMpl, file=plnew)
-            if swifter_param['CHK_CLOSE'] == 'YES':
+            GMcb = float(i_list[1])  # Store central body GM for later
+            line = plold.readline()  # Ignore the two zero vector lines
+            line = plold.readline()
+            for n in range(1, npl):  # Loop over planets
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                plrad = float(i_list[0])
-                print(plrad, file=plnew)
-            line = plold.readline()
-            i_list = [i for i in line.split(" ") if i.strip()]
-            xh = float(i_list[0])
-            yh = float(i_list[1])
-            zh = float(i_list[2])
-            print(xh, yh, zh, file=plnew)
-            line = plold.readline()
-            i_list = [i for i in line.split(" ") if i.strip()]
-            vx = float(i_list[0])
-            vy = float(i_list[1])
-            vz = float(i_list[2])
-            print(vx, vy, vz, file=plnew)
+                name = int(i_list[0])
+                GMpl = float(i_list[1])
+                print(name, GMpl, file=plnew)
+                if swifter_param['CHK_CLOSE'] == 'YES':
+                    line = plold.readline()
+                    i_list = [i for i in line.split(" ") if i.strip()]
+                    plrad = float(i_list[0])
+                    print(plrad, file=plnew)
+                line = plold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                xh = float(i_list[0])
+                yh = float(i_list[1])
+                zh = float(i_list[2])
+                print(xh, yh, zh, file=plnew)
+                line = plold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                vx = float(i_list[0])
+                vy = float(i_list[1])
+                vz = float(i_list[2])
+                print(vx, vy, vz, file=plnew)
     
-    plold.close()
-    plnew.close()
-    tpnew = open(swiftest_param['TP_IN'], 'w')
-    
-    print(f'Writing out new TP file: {swiftest_param["TP_IN"]}')
-    with open(swifter_param['TP_IN'], 'r') as tpold:
-        line = tpold.readline()
-        line = line.split("!")[0]  # Ignore comments
-        i_list = [i for i in line.split(" ") if i.strip()]
-        ntp = int(i_list[0])
-        print(ntp, file=tpnew)
-        for n in range(0, ntp):  # Loop over test particles
+        plnew.close()
+        plold.close()
+    except IOError:
+        print(f"Error converting PL file")
+
+    try:
+        tpnew = open(swiftest_param['TP_IN'], 'w')
+    except IOError:
+        print(f"Cannot write to file {swiftest_param['TP_IN']}")
+  
+    print(f"Converting TP file: {swifter_param['TP_IN']} -> {swiftest_param['TP_IN']}")
+    try:
+        print(f'Writing out new TP file: {swiftest_param["TP_IN"]}')
+        with open(swifter_param['TP_IN'], 'r') as tpold:
             line = tpold.readline()
+            line = line.split("!")[0]  # Ignore comments
             i_list = [i for i in line.split(" ") if i.strip()]
-            name = int(i_list[0])
-            print(name, file=tpnew)
-            line = tpold.readline()
-            i_list = [i for i in line.split(" ") if i.strip()]
-            xh = float(i_list[0])
-            yh = float(i_list[1])
-            zh = float(i_list[2])
-            print(xh, yh, zh, file=tpnew)
-            line = tpold.readline()
-            i_list = [i for i in line.split(" ") if i.strip()]
-            vx = float(i_list[0])
-            vy = float(i_list[1])
-            vz = float(i_list[2])
-            print(vx, vy, vz, file=tpnew)
-    
-    tpold.close()
-    tpnew.close()
+            ntp = int(i_list[0])
+            print(ntp, file=tpnew)
+            for n in range(0, ntp):  # Loop over test particles
+                line = tpold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                name = int(i_list[0])
+                print(name, file=tpnew)
+                line = tpold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                xh = float(i_list[0])
+                yh = float(i_list[1])
+                zh = float(i_list[2])
+                print(xh, yh, zh, file=tpnew)
+                line = tpold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                vx = float(i_list[0])
+                vy = float(i_list[1])
+                vz = float(i_list[2])
+                print(vx, vy, vz, file=tpnew)
+        
+        tpold.close()
+        tpnew.close()
+    except IOError:
+        print(f"Error converting TP file")
     
     print(f"\nCentral body G*M = {GMcb}\n")
     print("Select the unit system to use:")
@@ -941,14 +947,14 @@ def swifter2swiftest(swifter_param, outparam):
         sys.exit(-1)
     if unit_type == 1:
         print("Unit system is MSun-AU-year")
-        swiftest_param['MU2KG'] = MSun
-        swiftest_param['DU2M'] = AU2M
-        swiftest_param['TU2S'] = YR2S
+        swiftest_param['MU2KG'] = swiftest.MSun
+        swiftest_param['DU2M'] = swiftest.AU2M
+        swiftest_param['TU2S'] = swiftest.YR2S
     elif unit_type == 2:  # MSun-AU-day
         print("Unit system is MSun-AU-day")
-        swiftest_param['MU2KG'] = MSun
-        swiftest_param['DU2M'] = AU2M
-        swiftest_param['TU2S'] = JD2S
+        swiftest_param['MU2KG'] = swiftest.MSun
+        swiftest_param['DU2M'] = swiftest.AU2M
+        swiftest_param['TU2S'] = swiftest.JD2S
     elif unit_type == 3:  # SI: kg-m-s
         print("Unit system is SI: kg-m-s")
         swiftest_param['MU2KG'] = 1.0
@@ -965,7 +971,7 @@ def swifter2swiftest(swifter_param, outparam):
         swiftest_param['MU2KG'] = input("Mass value in kilograms: ")
         swiftest_param['DU2M'] = input("Distance value in meters: ")
         swiftest_param['TU2S'] = input("Time unit in seconds: ")
-    GU = GC / (swiftest_param['DU2M'] ** 3 / (swiftest_param['MU2KG'] * swiftest_param['TU2S'] ** 2))
+    GU = swiftest.GC / (swiftest_param['DU2M'] ** 3 / (swiftest_param['MU2KG'] * swiftest_param['TU2S'] ** 2))
     print(f"Central body mass: {GMcb / GU} MU ({(GMcb / GU) * swiftest_param['MU2KG']} kg)")
     
     print("Set central body radius:")
@@ -988,21 +994,26 @@ def swifter2swiftest(swifter_param, outparam):
     
     print(f'Writing out new CB file: {swiftest_param["CB_IN"]}')
     # Write out new central body file
-    cbnew = open(swiftest_param['CB_IN'], 'w')
+    try:
+        cbnew = open(swiftest_param['CB_IN'], 'w')
+        print(GMcb, file=cbnew)
+        print(cbrad, file=cbnew)
+        print(swifter_param['J2'], file=cbnew)
+        print(swifter_param['J4'], file=cbnew)
+        cbnew.close()
+    except IOError:
+        print(f"Cannot write to file {swiftest_param['CB_IN']}")
     
-    print(GMcb, file=cbnew)
-    print(cbrad, file=cbnew)
-    print(swifter_param['J2'], file=cbnew)
-    print(swifter_param['J4'], file=cbnew)
-    
-    cbnew.close()
-    
+    MTINY = input(f"Value of MTINY if this is a SyMBA simulation (enter nothing if this is not a SyMBA parameter file)> ")
+    if MTINY != '':
+        swiftest_param['MTINY'] = float(MTINY.strip().replace('d', 'E').replace('D', 'E'))
+        
     # Remove the unneeded parameters
-    swiftest_param.pop('INV_C2', None)
-    swiftest_param.pop('C2', None)
-    swiftest_param.pop('QMIN_ALO', None)
-    swiftest_param.pop('QMIN_AHI', None)
+    if 'C' in swiftest_param:
+        swiftest_param['GR'] = 'YES'
+        swiftest_param.pop('C', None)
     swiftest_param.pop('J2', None)
     swiftest_param.pop('J4', None)
     swiftest_param.pop('RHILL_PRESENT', None)
+    swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swifter"
     return swiftest_param
