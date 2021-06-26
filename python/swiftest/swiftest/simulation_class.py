@@ -1,10 +1,55 @@
 from swiftest import swiftestio
+
+
 class Simulation:
     """
     This is a class that define the basic Swift/Swifter/Swiftest simulation object
     """
-    def __init__(self, param_file_name, codename="Swiftest"):
-        self.read_param(param_file_name, codename)
+    def __init__(self, codename="Swiftest", source=""):
+        if source == "":
+            self.param = {
+                '! VERSION': f"Swiftest parameter input",
+                'T0': "0.0",
+                'TSTOP': "0.0",
+                'DT': "0.0",
+                'PL_IN': "",
+                'TP_IN': "",
+                'CB_IN': "",
+                'IN_TYPE': "REAL8",
+                'ISTEP_OUT': "1",
+                'ISTEP_DUMP': "1",
+                'BIN_OUT': "bin.dat",
+                'OUT_TYPE': 'REAL8',
+                'OUT_FORM': "XV",
+                'OUT_STAT': "REPLACE",
+                'J2': "0.0",
+                'J4': "0.0",
+                'CHK_RMIN': "-1.0",
+                'CHK_RMAX': "-1.0",
+                'CHK_EJECT': "-1.0",
+                'CHK_QMIN': "-1.0",
+                'CHK_QMIN_COORD': "HELIO",
+                'CHK_QMIN_RANGE': "",
+                'ENC_OUT': "",
+                'MTINY': "-1.0",
+                'MU2KG': "-1.0",
+                'TU2S': "-1.0",
+                'DU2M': "-1.0",
+                'GU': "-1.0",
+                'EXTRA_FORCE': "NO",
+                'BIG_DISCARD': "NO",
+                'CHK_CLOSE': "NO",
+                'FRAGMENTATION': "NO",
+                'MTINY_SET': "NO",
+                'ROTATION': "NO",
+                'TIDES': "NO",
+                'ENERGY': "NO",
+                'GR': "NO",
+                'YARKOVSKY': "NO",
+                'YORP': "NO",
+            }
+        else:
+            self.read_param(source, codename)
         return
     
     def read_param(self, param_file_name, codename="Swiftest"):
