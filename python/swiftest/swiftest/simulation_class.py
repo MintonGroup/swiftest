@@ -89,10 +89,24 @@ class Simulation:
         if newcodename != "Swift" and newcodename != "Swifter" and newcodename != "Swiftest":
             print(f'{newcodename} is an invalid code type. Valid options are "Swiftest", "Swifter", or "Swift".')
             return oldparam
+        goodconversion = True
         if self.codename == "Swifter":
             if newcodename == "Swiftest":
                 self.param = swiftestio.swifter2swiftest(self.param, plname, tpname, cbname)
-        self.write_param(param_file_name)
+            else:
+                goodconversion = False
+        elif self.codename == "Swift":
+            if newcodename == "Swifter":
+                self.param = swiftestio.swift2swifter(self.param, plname, tpname)
+            elif newcodename == "Swiftest":
+                self.param = swiftestio.swift2swiftest(self.param, plname, tpname, cbname)
+            else:
+                goodconversion = False
+
+        if goodconversion:
+            self.write_param(param_file_name)
+        else:
+            print(f"Conversion from {self.codename} to {newcodename} is not supported.")
         return oldparam
     
     def bin2xr(self):

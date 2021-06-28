@@ -56,3 +56,21 @@ docs/
 #!docs/*/*
 #!docs/*/*/*
 
+
+python/swiftest/tests/convert_code_type/swift2swifter/pl.swift2swifter.in
+
+python/swiftest/tests/convert_code_type/swift2swifter/tp.swift2swifter.in
+
+python/swiftest/tests/convert_code_type/swift2swiftest/cb.swift2swiftest.in
+
+python/swiftest/tests/convert_code_type/swift2swiftest/pl.swift2swiftest.in
+
+python/swiftest/tests/convert_code_type/swift2swiftest/tp.swift2swiftest.in
+
+python/swiftest/tests/convert_code_type/swifter2swiftest/cb.swifter2swiftest.in
+
+python/swiftest/tests/convert_code_type/cb.swifter2swiftest.in
+
+python/swiftest/tests/convert_code_type/swifter2swiftest/pl.swifter2swiftest.in
+
+python/swiftest/tests/convert_code_type/swifter2swiftest/tp.swifter2swiftest.in

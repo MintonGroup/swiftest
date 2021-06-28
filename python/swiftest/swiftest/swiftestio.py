@@ -5,6 +5,7 @@ import xarray as xr
 from astroquery.jplhorizons import Horizons
 import datetime
 import sys
+import tempfile
 
 def real2float(realstr):
     """
@@ -46,12 +47,12 @@ def read_swiftest_param(param_file_name):
         'TP_IN': "",
         'CB_IN': "",
         'IN_TYPE': "ASCII",
-        'ISTEP_OUT': "-1",
         'BIN_OUT': "bin.dat",
+        'ISTEP_OUT': "-1",
+        'ISTEP_DUMP': "-1",
         'OUT_TYPE': 'REAL8',
         'OUT_FORM': "XV",
         'OUT_STAT': "NEW",
-        'ISTEP_DUMP': "-1",
         'J2': "0.0",
         'J4': "0.0",
         'CHK_RMIN': "-1.0",
@@ -145,11 +146,11 @@ def read_swifter_param(param_file_name):
         'TP_IN': "",
         'IN_TYPE': "ASCII",
         'ISTEP_OUT': "-1",
+        'ISTEP_DUMP': "-1",
         'BIN_OUT': "bin.dat",
         'OUT_TYPE': "REAL8",
         'OUT_FORM': "XV",
         'OUT_STAT': "NEW",
-        'ISTEP_DUMP': "-1",
         'J2': "0.0",
         'J4': "0.0",
         'CHK_CLOSE': 'NO',
@@ -205,7 +206,7 @@ def read_swifter_param(param_file_name):
 
     return param
 
-def read_swift_param(param_file_name):
+def read_swift_param(param_file_name, startfile="swift.in"):
     """
     Reads in a Swift param.in file and saves it as a dictionary
 
@@ -233,17 +234,26 @@ def read_swift_param(param_file_name):
         'L4': "F",
         'L5': "F",
         'L6': "F",
-        'RMIN': 0.0,
-        'RMAX': 0.0,
-        'RMAXU': 0.0,
-        'QMIN': 0.0,
+        'RMIN': -1,
+        'RMAX': -1,
+        'RMAXU': -1,
+        'QMIN': -1,
         'LCLOSE': "F",
         'BINARY_OUTPUTFILE': "bin.dat",
         'STATUS_FLAG_FOR_OPEN_STATEMENTS': "NEW",
-        'PL_IN' : "pl.in",
-        'TP_IN' : "tp.in"
     }
     
+    try:
+        with open(startfile, 'r') as f:
+            line = f.readline()
+            plname = f.readline().split()[0]
+            tpname = f.readline().split()[0]
+    except:
+        plname = "pl.in"
+        tpname = "tp.in"
+    param['PL_IN'] = plname
+    param['TP_IN'] = tpname
+
     # Read param.in file
     print(f'Reading Swift file {param_file_name}')
     try:
@@ -854,22 +864,98 @@ def swiftest_xr2_infile(ds, param, framenum=-1):
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
 
-def swift2swifter(swift_param, plname="pl.swifter.in", tpname="tp.swiftest.in", cbname="cb.swiftest.in"):
+def swift2swifter(swift_param, plname="", tpname=""):
     swifter_param = {}
-    swifter_param['PL_IN'] = plname
-    swifter_param['TP_IN'] = tpname
-    print(f"Swifter massive body file : {swifter_param['PL_IN']}")
-    print(f"Swifter test particle file: {swifter_param['TP_IN']}")
+    intxt = input("Is this a SyMBA input file with RHILL values in pl.in? (y/N)> ")
+    if intxt.upper() == 'Y':
+        isSyMBA = True
+        swifter_param['RHILL_PRESENT'] = 'YES'
+    else:
+        isSyMBA = False
+        swifter_param['RHILL_PRESENT'] = 'NO'
+        
+    intxt = input("OUT_FORM: Output in cartesian (XV) or orbital elements (EL)? [XV]> ")
+    if intxt.upper() == 'EL':
+        swifter_param['OUT_FORM'] = 'EL'
+    else:
+        swifter_param['OUT_FORM'] = 'XV'
+
+    print("Use single precision or double precision for real outputs?")
+    print(" 1) Single (real*4)")
+    print("*2) Double (real*8)")
+    intxt = input("> ")
+    if intxt == '1':
+        isDouble = False
+    else:
+        isDouble = True
+
     # Convert the parameter file values
     swifter_param['T0'] = swift_param['T0']
     swifter_param['TSTOP'] = swift_param['TSTOP']
     swifter_param['DT'] = swift_param['DT']
+    swifter_param['ISTEP_OUT'] = int(swift_param['DTOUT'] / swift_param['DT'])
+    swifter_param['ISTEP_DUMP'] = int(swift_param['DTDUMP'] / swift_param['DT'])
+    swifter_param['BIN_OUT'] = swift_param['BINARY_OUTPUTFILE']
+    swifter_param['OUT_STAT'] = swift_param['STATUS_FLAG_FOR_OPEN_STATEMENTS']
     
     if swift_param['LCLOSE'] == "T":
         swifter_param['CHK_CLOSE'] = "YES"
     else:
         swifter_param['CHK_CLOSE'] = "NO"
+        
+    if swift_param['L6'] == "T":
+        print("Warning: Use of XDR is discouraged. Consider changing this to F")
+        if isDouble:
+            swifter_param['OUT_TYPE'] = 'XDR8'
+        else:
+            swifter_param['OUT_TYPE'] = 'XDR4'
+    else:
+        if isDouble:
+            swifter_param['OUT_TYPE'] = 'REAL8'
+        else:
+            swifter_param['OUT_TYPE'] = 'REAL4'
+    swifter_param['CHK_RMIN'] = swift_param['RMIN']
+    swifter_param['CHK_RMAX'] = swift_param['RMAX']
+    swifter_param['CHK_QMIN'] = swift_param['QMIN']
+    if swift_param['QMIN'] != '-1':
+        print("CHK_QMIN_COORD value:")
+        print("*1) HELIO")
+        print(" 2) BARY")
+        intxt = input("> ")
+        if intxt == '2':
+            swifter_param['CHK_QMIN_COORD'] = 'BARY'
+        else:
+            swifter_param['CHK_QMIN_COORD'] = 'HELIO'
+        alo = input(f"Lower bound on CHK_QMIN_RANGE [{swift_param['RMIN']}]: ")
+        if alo == '':
+            alo = swift_param['RMIN']
+        ahi = input(f"Upper bound on CHK_QMIN_RANGE: [{swift_param['RMAXU']}]: ")
+        if ahi == '':
+            ahi = swift_param['RMAXU']
+        swifter_param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
 
+    swifter_param['ENC_OUT'] = input("ENC_OUT: Encounter file name: [enc.dat]> ")
+    if swifter_param['ENC_OUT'] == '':
+        swifter_param['ENC_OUT'] = "enc.dat"
+     
+    intxt = input("EXTRA_FORCE: Use additional user-specified force routines? (y/N)> ")
+    if intxt.upper() == 'Y':
+        swifter_param['EXTRA_FORCE'] = 'YES'
+    else:
+        swifter_param['EXTRA_FORCE'] = 'NO'
+        
+    intxt = input("BIG_DISCARD: include data for all bodies > MTINY for each discard record? (y/N)> ")
+    if intxt.upper() == 'Y':
+        swifter_param['BIG_DISCARD'] = 'YES'
+    else:
+        swifter_param['BIG_DISCARD'] = 'NO'
+    
+    # Convert the PL file
+    if plname == '':
+        plname = input("PL_IN: Name of new planet input file: [pl.swifter.in]> ")
+        if plname == '':
+            plname = "pl.swifter.in"
+    swifter_param['PL_IN'] = plname
     try:
         plnew = open(swifter_param['PL_IN'], 'w')
     except IOError:
@@ -901,13 +987,18 @@ def swift2swifter(swift_param, plname="pl.swifter.in", tpname="tp.swiftest.in", 
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
                 GMpl = real2float(i_list[0])
-                if swift_param['LCLOSE'] == "T"
-                    Rpl = real2float(i_list[1])
-                print(name, GMpl, file=plnew)
+                if isSyMBA:
+                    Rhill = real2float(i_list[1])
+                    if swift_param['LCLOSE'] == "T":
+                        plrad = real2float(i_list[2])
+                else:
+                    if swift_param['LCLOSE'] == "T":
+                        plrad = real2float(i_list[1])
+                if swifter_param['RHILL_PRESENT'] == 'YES':
+                    print(n + 1, GMpl, Rhill, file=plnew)
+                else:
+                    print(n + 1, GMpl, file=plnew)
                 if swifter_param['CHK_CLOSE'] == 'YES':
-                    line = plold.readline()
-                    i_list = [i for i in line.split(" ") if i.strip()]
-                    plrad = real2float(i_list[0])
                     print(plrad, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
@@ -925,15 +1016,59 @@ def swift2swifter(swift_param, plname="pl.swifter.in", tpname="tp.swiftest.in", 
         plold.close()
     except IOError:
         print(f"Error converting PL file")
+        
+    # Convert the TP file
+    if tpname == '':
+        tpname = input("TP_IN: Name of new test particle input file: [tp.swifter.in]> ")
+        if tpname == '':
+            tpname = "tp.swifter.in"
+    swifter_param['TP_IN'] = tpname
 
-def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest.in", cbname="cb.swiftest.in"):
+    try:
+        tpnew = open(swifter_param['TP_IN'], 'w')
+    except IOError:
+        print(f"Cannot write to file {swifter_param['TP_IN']}")
+
+    print(f"Converting TP file: {swift_param['TP_IN']} -> {swifter_param['TP_IN']}")
+    try:
+        print(f'Writing out new TP file: {swifter_param["TP_IN"]}')
+        with open(swift_param['TP_IN'], 'r') as tpold:
+            line = tpold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            ntp = int(i_list[0])
+            print(ntp, file=tpnew)
+            for n in range(0, ntp):  # Loop over test particles
+                print(npl + n + 1, file=tpnew)
+                line = tpold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                xh = real2float(i_list[0])
+                yh = real2float(i_list[1])
+                zh = real2float(i_list[2])
+                print(xh, yh, zh, file=tpnew)
+                line = tpold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                vx = real2float(i_list[0])
+                vy = real2float(i_list[1])
+                vz = real2float(i_list[2])
+                print(vx, vy, vz, file=tpnew)
+                # Ignore STAT lines
+                line = tpold.readline()
+                line = tpold.readline()
+    except IOError:
+        print(f"Error converting TP file")
+    swifter_param['! VERSION'] = "Swifter parameter file converted from Swift"
+    
+    return swifter_param
+
+def swifter2swiftest(swifter_param, plname="", tpname="", cbname=""):
     swiftest_param = swifter_param.copy()
+    
+    # Convert the PL file
+    if plname == '':
+        plname = input("PL_IN: Name of new planet input file: [pl.swiftest.in]> ")
+        if plname == '':
+            plname = "pl.swiftest.in"
     swiftest_param['PL_IN'] = plname
-    swiftest_param['TP_IN'] = tpname
-    swiftest_param['CB_IN'] = cbname
-    print(f"Swiftest massive body file : {swiftest_param['PL_IN']}")
-    print(f"Swiftest test particle file: {swiftest_param['TP_IN']}")
-    print(f"Swiftest central body file : {swiftest_param['CB_IN']}")
    
     try:
         plnew = open(swiftest_param['PL_IN'], 'w')
@@ -981,6 +1116,13 @@ def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest
         plold.close()
     except IOError:
         print(f"Error converting PL file")
+        
+    # Convert the TP file
+    if tpname == '':
+        tpname = input("TP_IN: Name of new planet input file: [tp.swiftest.in]> ")
+        if tpname == '':
+            tpname = "tp.swiftest.in"
+    swiftest_param['TP_IN'] = tpname
 
     try:
         tpnew = open(swiftest_param['TP_IN'], 'w')
@@ -1018,6 +1160,13 @@ def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest
         tpnew.close()
     except IOError:
         print(f"Error converting TP file")
+        
+    # Create the CB file
+    if cbname == '':
+        cbname = input("CB_IN: Name of new planet input file: [cb.swiftest.in]> ")
+        if cbname == '':
+            cbname = "cb.swiftest.in"
+    swiftest_param['CB_IN'] = cbname
     
     print(f"\nCentral body G*M = {GMcb}\n")
     print("Select the unit system to use:")
@@ -1082,6 +1231,7 @@ def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest
         cbrad = swifter_param['CHK_RMIN']
     elif cbrad_type == 2:
         cbrad = input("Enter radius of central body in simulation Distance Units: ")
+        cbrad = real2float(cbrad.strip())
     
     print(f'Writing out new CB file: {swiftest_param["CB_IN"]}')
     # Write out new central body file
@@ -1108,3 +1258,29 @@ def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest
     swiftest_param.pop('RHILL_PRESENT', None)
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swifter"
     return swiftest_param
+
+def swift2swiftest(swift_param, plname="", tpname="", cbname=""):
+    if plname == '':
+        plname = input("PL_IN: Name of new planet input file: [pl.swiftest.in]> ")
+        if plname == '':
+            plname = "pl.swiftest.in"
+    pltmp = tempfile.NamedTemporaryFile()
+    pltmpname = pltmp.name
+
+    if tpname == '':
+        tpname = input("TP_IN: Name of new planet input file: [tp.swiftest.in]> ")
+        if tpname == '':
+            tpname = "tp.swiftest.in"
+    tptmp = tempfile.NamedTemporaryFile()
+    tptmpname = tptmp.name
+
+    # Create the CB file
+    if cbname == '':
+        cbname = input("CB_IN: Name of new planet input file: [cb.swiftest.in]> ")
+        if cbname == '':
+            cbname = "cb.swiftest.in"
+    swifter_param = swift2swifter(swift_param, pltmpname, tptmpname)
+    swiftest_param = swifter2swiftest(swifter_param, plname, tpname, cbname)
+    swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swift"
+    return swiftest_param
+    
