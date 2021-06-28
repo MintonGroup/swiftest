@@ -6,6 +6,23 @@ from astroquery.jplhorizons import Horizons
 import datetime
 import sys
 
+def real2float(realstr):
+    """
+    Converts a Fortran-generated ASCII string of a real value into a numpy float type. Handles cases where double precision
+    numbers in exponential notation use 'd' or 'D' instead of 'e' or 'E'
+    
+    Parameters
+    ----------
+    realstr : string
+        Fortran-generated ASCII string of a real value.
+
+    Returns
+    -------
+     : float
+        The converted floating point value of the input string
+    """
+    return float(realstr.replace('d', 'E').replace('D', 'E'))
+
 def read_swiftest_param(param_file_name):
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
@@ -73,25 +90,25 @@ def read_swiftest_param(param_file_name):
                         if (key == fields[0].upper()): param[key] = fields[1]
                     # Special case of CHK_QMIN_RANGE requires a second input
                     if fields[0].upper() == 'CHK_QMIN_RANGE':
-                        alo = float(fields[1].replace('d', 'E').replace('D', 'E'))
-                        ahi = float(fields[2].replace('d', 'E').replace('D', 'E'))
+                        alo = real2float(fields[1])
+                        ahi = real2float(fields[2])
                         param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
         
         param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
         param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
-        param['T0'] = float(param['T0'].replace('d', 'E').replace('D', 'E'))
-        param['TSTOP'] = float(param['TSTOP'].replace('d', 'E').replace('D', 'E'))
-        param['DT'] = float(param['DT'].replace('d', 'E').replace('D', 'E'))
-        param['J2'] = float(param['J2'].replace('d', 'E').replace('D', 'E'))
-        param['J4'] = float(param['J4'].replace('d', 'E').replace('D', 'E'))
-        param['CHK_RMIN'] = float(param['CHK_RMIN'].replace('d', 'E').replace('D', 'E'))
-        param['CHK_RMAX'] = float(param['CHK_RMAX'].replace('d', 'E').replace('D', 'E'))
-        param['CHK_EJECT'] = float(param['CHK_EJECT'].replace('d', 'E').replace('D', 'E'))
-        param['CHK_QMIN'] = float(param['CHK_QMIN'].replace('d', 'E').replace('D', 'E'))
-        param['MTINY'] = float(param['MTINY'].replace('d', 'E').replace('D', 'E'))
-        param['DU2M'] = float(param['DU2M'].replace('d', 'E').replace('D', 'E'))
-        param['MU2KG'] = float(param['MU2KG'].replace('d', 'E').replace('D', 'E'))
-        param['TU2S'] = float(param['TU2S'].replace('d', 'E').replace('D', 'E'))
+        param['T0'] = real2float(param['T0'])
+        param['TSTOP'] = real2float(param['TSTOP'])
+        param['DT'] = real2float(param['DT'])
+        param['J2'] = real2float(param['J2'])
+        param['J4'] = real2float(param['J4'])
+        param['CHK_RMIN'] = real2float(param['CHK_RMIN'])
+        param['CHK_RMAX'] = real2float(param['CHK_RMAX'])
+        param['CHK_EJECT'] = real2float(param['CHK_EJECT'])
+        param['CHK_QMIN'] = real2float(param['CHK_QMIN'])
+        param['MTINY'] = real2float(param['MTINY'])
+        param['DU2M'] = real2float(param['DU2M'])
+        param['MU2KG'] = real2float(param['MU2KG'])
+        param['TU2S'] = real2float(param['TU2S'])
         param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
         param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
         param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
@@ -160,27 +177,27 @@ def read_swifter_param(param_file_name):
                         if (key == fields[0].upper()): param[key] = fields[1]
                     # Special case of CHK_QMIN_RANGE requires a second input
                     if fields[0].upper() == 'CHK_QMIN_RANGE':
-                        alo = float(fields[1].replace('d', 'E').replace('D', 'E'))
-                        ahi = float(fields[2].replace('d', 'E').replace('D', 'E'))
+                        alo = real2float(fields[1])
+                        ahi = real2float(fields[2])
                         param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
     
         param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
         param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
-        param['T0'] = float(param['T0'].replace('d', 'E').replace('D', 'E'))
-        param['TSTOP'] = float(param['TSTOP'].replace('d', 'E').replace('D', 'E'))
-        param['DT'] = float(param['DT'].replace('d', 'E').replace('D', 'E'))
-        param['J2'] = float(param['J2'].replace('d', 'E').replace('D', 'E'))
-        param['J4'] = float(param['J4'].replace('d', 'E').replace('D', 'E'))
-        param['CHK_RMIN'] = float(param['CHK_RMIN'].replace('d', 'E').replace('D', 'E'))
-        param['CHK_RMAX'] = float(param['CHK_RMAX'].replace('d', 'E').replace('D', 'E'))
-        param['CHK_EJECT'] = float(param['CHK_EJECT'].replace('d', 'E').replace('D', 'E'))
-        param['CHK_QMIN'] = float(param['CHK_QMIN'].replace('d', 'E').replace('D', 'E'))
+        param['T0'] = real2float(param['T0'])
+        param['TSTOP'] = real2float(param['TSTOP'])
+        param['DT'] = real2float(param['DT'])
+        param['J2'] = real2float(param['J2'])
+        param['J4'] = real2float(param['J4'])
+        param['CHK_RMIN'] = real2float(param['CHK_RMIN'])
+        param['CHK_RMAX'] = real2float(param['CHK_RMAX'])
+        param['CHK_EJECT'] = real2float(param['CHK_EJECT'])
+        param['CHK_QMIN'] = real2float(param['CHK_QMIN'])
         param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
         param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
         param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
         param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
         if param['C'] != '-1.0':
-            param['C'] = float(param['C'].replace('d', 'E').replace('D', 'E'))
+            param['C'] = real2float(param['C'])
         else:
             param.pop('C', None)
     except IOError:
@@ -223,6 +240,8 @@ def read_swift_param(param_file_name):
         'LCLOSE': "F",
         'BINARY_OUTPUTFILE': "bin.dat",
         'STATUS_FLAG_FOR_OPEN_STATEMENTS': "NEW",
+        'PL_IN' : "pl.in",
+        'TP_IN' : "tp.in"
     }
     
     # Read param.in file
@@ -231,15 +250,15 @@ def read_swift_param(param_file_name):
         with open(param_file_name, 'r') as f:
             line = f.readline().split()
             for i, l in enumerate(line):
-                line[i] = l.replace('d', 'E').replace('D', 'E')
-            param['T0'] = float(line[0])
-            param['TSTOP'] = float(line[1])
-            param['DT'] = float(line[2])
+                line[i] = l
+            param['T0'] = real2float(line[0])
+            param['TSTOP'] = real2float(line[1])
+            param['DT'] = real2float(line[2])
             line = f.readline().split()
             for i, l in enumerate(line):
-                line[i] = l.replace('d', 'E').replace('D', 'E')
-            param['DTOUT'] = float(line[0])
-            param['DTDUMP'] = float(line[1])
+                line[i] = l
+            param['DTOUT'] = real2float(line[0])
+            param['DTDUMP'] = real2float(line[1])
             line = f.readline().split()
             param['L1'] = line[0].upper()
             param['L2'] = line[1].upper()
@@ -247,14 +266,15 @@ def read_swift_param(param_file_name):
             param['L4'] = line[3].upper()
             param['L5'] = line[4].upper()
             param['L6'] = line[5].upper()
-            line = f.readline().split()
-            for i, l in enumerate(line):
-                line[i] = l.replace('d', 'E').replace('D', 'E')
-            param['RMIN'] = float(line[0])
-            param['RMAX'] = float(line[1])
-            param['RMAXU'] = float(line[2])
-            param['QMIN'] = float(line[3])
-            param['LCLOSE'] = line[4].upper()
+            if param['L2'] == "T":
+                line = f.readline().split()
+                for i, l in enumerate(line):
+                    line[i] = l
+                param['RMIN'] = real2float(line[0])
+                param['RMAX'] = real2float(line[1])
+                param['RMAXU'] = real2float(line[2])
+                param['QMIN'] = real2float(line[3])
+                param['LCLOSE'] = line[4].upper()
             param['BINARY_OUTPUTFILE'] = f.readline().strip()
             param['STATUS_FLAG_FOR_OPEN_STATEMENTS'] = f.readline().strip().upper()
     except IOError:
@@ -834,6 +854,78 @@ def swiftest_xr2_infile(ds, param, framenum=-1):
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
 
+def swift2swifter(swift_param, plname="pl.swifter.in", tpname="tp.swiftest.in", cbname="cb.swiftest.in"):
+    swifter_param = {}
+    swifter_param['PL_IN'] = plname
+    swifter_param['TP_IN'] = tpname
+    print(f"Swifter massive body file : {swifter_param['PL_IN']}")
+    print(f"Swifter test particle file: {swifter_param['TP_IN']}")
+    # Convert the parameter file values
+    swifter_param['T0'] = swift_param['T0']
+    swifter_param['TSTOP'] = swift_param['TSTOP']
+    swifter_param['DT'] = swift_param['DT']
+    
+    if swift_param['LCLOSE'] == "T":
+        swifter_param['CHK_CLOSE'] = "YES"
+    else:
+        swifter_param['CHK_CLOSE'] = "NO"
+
+    try:
+        plnew = open(swifter_param['PL_IN'], 'w')
+    except IOError:
+        print(f"Cannot write to file {swifter_param['PL_IN']}")
+        return swift_param
+    
+    print(f"Converting PL file: {swift_param['PL_IN']} -> {swifter_param['PL_IN']}")
+    try:
+        with open(swift_param['PL_IN'], 'r') as plold:
+            line = plold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            npl = int(i_list[0])
+            print(npl, file=plnew)
+            line = plold.readline()
+            i_list = [i for i in line.split(" ") if i.strip()]
+            GMcb = real2float(i_list[0])
+            if swift_param['L1'] == "T":
+                swifter_param['J2'] = real2float(i_list[1])
+                swifter_param['J4'] = real2float(i_list[2])
+            else:
+                swifter_param['J2'] = 0.0
+                swifter_param['J4'] = 0.0
+            print(1, GMcb, file=plnew)
+            print(0.0, 0.0, 0.0, file=plnew)
+            print(0.0, 0.0, 0.0, file=plnew)
+            line = plold.readline()  # Ignore the two zero vector lines
+            line = plold.readline()
+            for n in range(1, npl):  # Loop over planets
+                line = plold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                GMpl = real2float(i_list[0])
+                if swift_param['LCLOSE'] == "T"
+                    Rpl = real2float(i_list[1])
+                print(name, GMpl, file=plnew)
+                if swifter_param['CHK_CLOSE'] == 'YES':
+                    line = plold.readline()
+                    i_list = [i for i in line.split(" ") if i.strip()]
+                    plrad = real2float(i_list[0])
+                    print(plrad, file=plnew)
+                line = plold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                xh = real2float(i_list[0])
+                yh = real2float(i_list[1])
+                zh = real2float(i_list[2])
+                print(xh, yh, zh, file=plnew)
+                line = plold.readline()
+                i_list = [i for i in line.split(" ") if i.strip()]
+                vx = real2float(i_list[0])
+                vy = real2float(i_list[1])
+                vz = real2float(i_list[2])
+                print(vx, vy, vz, file=plnew)
+        plnew.close()
+        plold.close()
+    except IOError:
+        print(f"Error converting PL file")
+
 def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest.in", cbname="cb.swiftest.in"):
     swiftest_param = swifter_param.copy()
     swiftest_param['PL_IN'] = plname
@@ -859,33 +951,32 @@ def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest
             print(npl - 1, file=plnew)
             line = plold.readline()
             i_list = [i for i in line.split(" ") if i.strip()]
-            GMcb = float(i_list[1])  # Store central body GM for later
+            GMcb = real2float(i_list[1])  # Store central body GM for later
             line = plold.readline()  # Ignore the two zero vector lines
             line = plold.readline()
             for n in range(1, npl):  # Loop over planets
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
                 name = int(i_list[0])
-                GMpl = float(i_list[1])
+                GMpl = real2float(i_list[1])
                 print(name, GMpl, file=plnew)
                 if swifter_param['CHK_CLOSE'] == 'YES':
                     line = plold.readline()
                     i_list = [i for i in line.split(" ") if i.strip()]
-                    plrad = float(i_list[0])
+                    plrad = real2float(i_list[0])
                     print(plrad, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                xh = float(i_list[0])
-                yh = float(i_list[1])
-                zh = float(i_list[2])
+                xh = real2float(i_list[0])
+                yh = real2float(i_list[1])
+                zh = real2float(i_list[2])
                 print(xh, yh, zh, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                vx = float(i_list[0])
-                vy = float(i_list[1])
-                vz = float(i_list[2])
+                vx = real2float(i_list[0])
+                vy = real2float(i_list[1])
+                vz = real2float(i_list[2])
                 print(vx, vy, vz, file=plnew)
-    
         plnew.close()
         plold.close()
     except IOError:
@@ -912,15 +1003,15 @@ def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest
                 print(name, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                xh = float(i_list[0])
-                yh = float(i_list[1])
-                zh = float(i_list[2])
+                xh = real2float(i_list[0])
+                yh = real2float(i_list[1])
+                zh = real2float(i_list[2])
                 print(xh, yh, zh, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                vx = float(i_list[0])
-                vy = float(i_list[1])
-                vz = float(i_list[2])
+                vx = real2float(i_list[0])
+                vy = real2float(i_list[1])
+                vz = real2float(i_list[2])
                 print(vx, vy, vz, file=tpnew)
         
         tpold.close()
@@ -1006,7 +1097,7 @@ def swifter2swiftest(swifter_param, plname="pl.swiftest.in", tpname="tp.swiftest
     
     MTINY = input(f"Value of MTINY if this is a SyMBA simulation (enter nothing if this is not a SyMBA parameter file)> ")
     if MTINY != '':
-        swiftest_param['MTINY'] = float(MTINY.strip().replace('d', 'E').replace('D', 'E'))
+        swiftest_param['MTINY'] = real2float(MTINY.strip())
         
     # Remove the unneeded parameters
     if 'C' in swiftest_param:
