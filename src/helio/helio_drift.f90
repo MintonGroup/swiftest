@@ -44,7 +44,6 @@ contains
             dtp(:) = dt
          end if 
 
-         !!$omp simd
          call drift_one(mu(1:npl), xh(1,1:npl), xh(2,1:npl), xh(3,1:npl), &
                                    vb(1,1:npl), vb(2,1:npl), vb(3,1:npl), &
                                    dtp(1:npl), iflag(1:npl))

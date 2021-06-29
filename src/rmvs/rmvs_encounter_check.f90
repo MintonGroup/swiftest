@@ -28,7 +28,6 @@ contains
          r2crit(:) = (rts * rhill(:))**2
          plencP(:) = 0
          do j = 1, npl
-            !$omp simd private(xr,vr,r2,v2,vdotr,lflag) 
             do i = 1, ntp
                if ((status(i) /= ACTIVE).or.(plencP(i) /= 0)) cycle
                xr(:) = xht(:, i) - xbeg(:, j)

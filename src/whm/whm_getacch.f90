@@ -220,7 +220,6 @@ contains
          if (ntp == 0) return
          do i = 1, ntp
             acc(:) = 0.0_DP
-            !!$omp simd private(dx,rji2,irij3,fac) reduction(-:acc)
             do j = 1, npl
                dx(:) = xht(:, i) - xh(:, j)
                rji2 = dot_product(dx(:), dx(:))

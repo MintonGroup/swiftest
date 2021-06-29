@@ -53,7 +53,7 @@ VTUNE_FLAGS = -g -O2 -vec -simd -shared-intel -qopenmp -debug inline-debug-info 
 
 IDEBUG = -O0 -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin -init=snan,arrays 
 
-STRICTREAL = -mp1 -fp-model strict -prec-div -prec-sqrt -assume protect-parens 
+STRICTREAL = -fp-model strict -fp-model no-except -prec-div -prec-sqrt -assume protect-parens 
 SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -prec-div -prec-sqrt -assume protect-parens
 PAR = -parallel -qopenmp 
 HEAPARR = -heap-arrays 1048576 
@@ -68,8 +68,8 @@ GPAR = -fopenmp -ftree-parallelize-loops=4
 GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 
-FFLAGS  = $(IDEBUG) $(HEAPARR)
-#FFLAGS  = -init=snan,arrays -no-wrap-margin -fp-model strict -fp-model no-except -traceback -g $(OPTIMIZE) -O3  $(SIMDVEC) $(PAR) $(HEAPARR) 
+#FFLAGS  = $(IDEBUG) $(HEAPARR)
+FFLAGS  = -init=snan,arrays -no-wrap-margin -O3 $(STRICTREAL) $(SIMDVEC) $(PAR) 
 FORTRAN = ifort
 #AR     = xiar
 

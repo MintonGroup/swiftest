@@ -599,7 +599,6 @@ module swiftest_classes
       end subroutine orbel_el2xv_vec
 
       module pure subroutine orbel_scget(angle, sx, cx)
-         !$omp declare simd(orbel_scget)
          implicit none
          real(DP), intent(in)  :: angle
          real(DP), intent(out) :: sx, cx

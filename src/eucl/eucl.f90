@@ -62,7 +62,6 @@ contains
       real(DP) :: rji2
 
       associate(k_eucl => self%k_eucl, xh => self%xh, irij3 => self%irij3, nk => self%num_comparisons)
-         !$omp simd
          do k = 1, nk
             i = k_eucl(1, k)
             j = k_eucl(2, k)

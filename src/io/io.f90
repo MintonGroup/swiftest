@@ -983,7 +983,7 @@ contains
             return
          end if
       end if
-      ierr =  io_read_hdr(iu, t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
+      ierr = io_read_hdr(iu, t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
          write(*, *) "   Binary output file already exists or cannot be accessed"
