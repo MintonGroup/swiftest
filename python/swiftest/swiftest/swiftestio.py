@@ -715,6 +715,12 @@ def solar_system_pl(param, ephemerides_start_date):
     p4 = []
     p5 = []
     p6 = []
+    p7 = []
+    p8 = []
+    p9 = []
+    p10 = []
+    p11 = []
+    p12 = []
     Rhill = []
     Rpl = []
     GMpl = []
@@ -731,19 +737,31 @@ def solar_system_pl(param, ephemerides_start_date):
             p4.append(pldata[key].vectors()['vx'][0] * VCONV)
             p5.append(pldata[key].vectors()['vy'][0] * VCONV)
             p6.append(pldata[key].vectors()['vz'][0] * VCONV)
+            p7.append(pldata[key].elements()['a'][0] * DCONV)
+            p8.append(pldata[key].elements()['e'][0])
+            p9.append(pldata[key].elements()['incl'][0] * np.pi / 180.0)
+            p10.append(pldata[key].elements()['Omega'][0] * np.pi / 180.0)
+            p11.append(pldata[key].elements()['w'][0] * np.pi / 180.0)
+            p12.append(pldata[key].elements()['M'][0] * np.pi / 180.0)
         elif param['OUT_FORM'] == 'EL':
             p1.append(pldata[key].elements()['a'][0] * DCONV)
             p2.append(pldata[key].elements()['e'][0])
-            p3.append(pldata[key].elements()['inc'][0] * np.pi / 180.0)
+            p3.append(pldata[key].elements()['incl'][0] * np.pi / 180.0)
             p4.append(pldata[key].elements()['Omega'][0] * np.pi / 180.0)
             p5.append(pldata[key].elements()['w'][0] * np.pi / 180.0)
             p6.append(pldata[key].elements()['M'][0] * np.pi / 180.0)
+            p7.append(pldata[key].vectors()['x'][0] * DCONV)
+            p8.append(pldata[key].vectors()['y'][0] * DCONV)
+            p9.append(pldata[key].vectors()['z'][0] * DCONV)
+            p10.append(pldata[key].vectors()['vx'][0] * VCONV)
+            p11.append(pldata[key].vectors()['vy'][0] * VCONV)
+            p12.append(pldata[key].vectors()['vz'][0] * VCONV)
         Rhill.append(pldata[key].elements()['a'][0] * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
         Rpl.append(planetradius[key] * DCONV)
         GMpl.append(GMcb[0] / MSun_over_Mpl[key])
     # Generate planet value vectors
     plid = np.fromiter(planetid.values(), dtype=int)
-    pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl])
+    pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, p7, p8, p9, p10, p11, p12, Rhill])
     
     dims = ['time', 'id', 'vec']
     cb = []
@@ -751,7 +769,22 @@ def solar_system_pl(param, ephemerides_start_date):
     t = np.array([0.0])
     
     clab, plab, tlab = make_swiftest_labels(param)
-
+    if param['OUT_FORM'] == 'XV':
+        plab.append('a')
+        plab.append('e')
+        plab.append('inc')
+        plab.append('capom')
+        plab.append('omega')
+        plab.append('capm')
+    elif param['OUT_FORM'] == 'EL':
+        plab.append('px')
+        plab.append('py')
+        plab.append('pz')
+        plab.append('vx')
+        plab.append('vy')
+        plab.append('vz')
+    plab.append('Rhill')
+    
     # Prepare frames by adding an extra axis for the time coordinate
     cbframe = np.expand_dims(cvec.T, axis=0)
     plframe = np.expand_dims(pvec.T, axis=0)

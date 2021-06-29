@@ -1,14 +1,9 @@
-"""
-For testing RMVS, the code generates clones of test particles based on one that is fated to impact Mercury.
-To use the script, modify the variables just after the  "if __name__ == '__main__':" line
-"""
 import numpy as np
-import swiftestio as swio
+import swiftest.swiftestio as swio
 import astropy.constants as const
 import sys
 import xarray as xr
 
-# Swiftest paramuration file
 # Both codes use the same tp input file
 tpin = "tp.in"
 
@@ -47,11 +42,6 @@ iout = int(np.ceil(t_print / deltaT))
 rmin = Rsun / DU2M
 rmax = 1000.0
 
-# Dates to fetch planet ephemerides from JPL Horizons
-tstart = '2021-06-15'
-tend = '2021-06-16'
-tstep = '1d'
-
 sys.stdout = open(swiftest_input, "w")
 print(f'! Swiftest input file generated using init_cond.py')
 print(f'T0             {t_0} ')
@@ -84,7 +74,13 @@ print(f'DU2M           {DU2M}')
 print(f'TU2S           {TU2S}')
 sys.stdout = sys.__stdout__
 param = swio.read_swiftest_param(swiftest_input)
+
+# Dates to fetch planet ephemerides from JPL Horizons
+tstart = '2021-06-15'
 ds = swio.solar_system_pl(param, tstart)
+cb = ds.sel(id=0)
+pl = ds.where(ds.id > 0, drop=True)
+npl = pl.id.size
 
 ntp = 18
 dims = ['time', 'id', 'vec']
@@ -96,8 +92,6 @@ clab, plab, tlab = swio.make_swiftest_labels(param)
 tpnames = np.arange(101, 101 + ntp)
 tpxv1 = np.empty((6))
 tpxv2 = np.empty((6))
-cb = ds.sel(id=0)
-pl = ds.where(ds.id > 0, drop=True)
 
 p1 = []
 p2 = []
@@ -144,8 +138,47 @@ tpds = tpda.to_dataset(dim = 'vec')
 ds = xr.combine_by_coords([ds, tpds])
 swio.swiftest_xr2_infile(ds, param)
 
+# Swifter PL file
+plfile = open(swifter_pl, 'w')
+print(npl + 1, file=plfile)
+print(0,GMSun,file=plfile)
+print('0.0 0.0 0.0',file=plfile)
+print('0.0 0.0 0.0',file=plfile)
+for i in pl.id:
+    pli = pl.sel(id=i)
+    print(f"{int(i)} {pli['Mass'].values[0]} {pli['Rhill'].values[0]}", file=plfile)
+    print(f"{pli['Radius'].values[0]}", file=plfile)
+    print(f"{pli['px'].values[0]} {pli['py'].values[0]} {pli['pz'].values[0]}", file=plfile)
+    print(f"{pli['vx'].values[0]} {pli['vy'].values[0]} {pli['vz'].values[0]}", file=plfile)
+plfile.close()
 
-
-
-
+# Swifter parameter file
+sys.stdout = open(swifter_input, "w")
+print(f"! Swifter input file generated using init_cond.py")
+print(f"T0            {t_0} ")
+print(f"TSTOP         {end_sim}")
+print(f"DT            {deltaT}")
+print(f"PL_IN         {swifter_pl}")
+print(f"TP_IN         {tpin}")
+print(f"IN_TYPE       ASCII")
+print(f"ISTEP_OUT     {iout:d}")
+print(f"ISTEP_DUMP    {iout:d}")
+print(f"BIN_OUT       {swifter_bin}")
+print(f"OUT_TYPE      REAL8")
+print(f"OUT_FORM      XV")
+print(f"OUT_STAT      UNKNOWN")
+print(f"J2            {param['J2']}")
+print(f"J4            {param['J4']}")
+print(f"CHK_CLOSE     yes")
+print(f"CHK_RMIN      {rmin}")
+print(f"CHK_RMAX      {rmax}")
+print(f"CHK_EJECT     {rmax}")
+print(f"CHK_QMIN      {rmin}")
+print(f"CHK_QMIN_COORD HELIO")
+print(f"CHK_QMIN_RANGE {rmin} {rmax}")
+print(f"ENC_OUT        {swifter_enc}")
+print(f"EXTRA_FORCE    no")
+print(f"BIG_DISCARD    no")
+print(f"RHILL_PRESENT  yes")
+sys.stdout = sys.__stdout__
 
