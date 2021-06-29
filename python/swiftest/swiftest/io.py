@@ -71,7 +71,6 @@ def read_swiftest_param(param_file_name):
         'BIG_DISCARD': "NO",
         'CHK_CLOSE': "NO",
         'FRAGMENTATION': "NO",
-        'MTINY_SET': "NO",
         'ROTATION': "NO",
         'TIDES': "NO",
         'ENERGY': "NO",
@@ -305,7 +304,7 @@ def write_swift_param(param, param_file_name):
 
 def write_labeled_param(param, param_file_name):
     outfile = open(param_file_name, 'w')
-    for key, val in param.items():
+    for key, val in sorted(param.items()):
         print(f"{key:<16} {val}", file=outfile)
     outfile.close()
     return
@@ -897,9 +896,11 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
 
-def swift2swifter(swift_param, plname="", tpname=""):
+def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     swifter_param = {}
-    intxt = input("Is this a SyMBA input file with RHILL values in pl.in? (y/N)> ")
+    intxt = conversion_questions.get('RHILL', None)
+    if not intxt:
+        intxt = input("Is this a SyMBA input file with RHILL values in pl.in? (y/N)> ")
     if intxt.upper() == 'Y':
         isSyMBA = True
         swifter_param['RHILL_PRESENT'] = 'YES'
@@ -907,21 +908,17 @@ def swift2swifter(swift_param, plname="", tpname=""):
         isSyMBA = False
         swifter_param['RHILL_PRESENT'] = 'NO'
         
-    intxt = input("OUT_FORM: Output in cartesian (XV) or orbital elements (EL)? [XV]> ")
-    if intxt.upper() == 'EL':
-        swifter_param['OUT_FORM'] = 'EL'
-    else:
-        swifter_param['OUT_FORM'] = 'XV'
-
-    print("Use single precision or double precision for real outputs?")
-    print(" 1) Single (real*4)")
-    print("*2) Double (real*8)")
-    intxt = input("> ")
-    if intxt == '1':
-        isDouble = False
-    else:
-        isDouble = True
-
+    isDouble = conversion_questions.get('DOUBLE', None)
+    if not isDouble:
+        print("Use single precision or double precision for real outputs?")
+        print(" 1) Single (real*4)")
+        print("*2) Double (real*8)")
+        intxt = input("> ")
+        if intxt == '1':
+            isDouble = False
+        else:
+            isDouble = True
+        
     # Convert the parameter file values
     swifter_param['T0'] = swift_param['T0']
     swifter_param['TSTOP'] = swift_param['TSTOP']
@@ -931,53 +928,60 @@ def swift2swifter(swift_param, plname="", tpname=""):
     swifter_param['BIN_OUT'] = swift_param['BINARY_OUTPUTFILE']
     swifter_param['OUT_STAT'] = swift_param['STATUS_FLAG_FOR_OPEN_STATEMENTS']
     
+    if swift_param['L5'] == "T":
+        swifter_param['OUT_FORM'] = 'EL'
+    else:
+        swifter_param['OUT_FORM'] = 'XV'
+    
     if swift_param['LCLOSE'] == "T":
         swifter_param['CHK_CLOSE'] = "YES"
     else:
         swifter_param['CHK_CLOSE'] = "NO"
         
-    if swift_param['L6'] == "T":
-        print("Warning: Use of XDR is discouraged. Consider changing this to F")
-        if isDouble:
-            swifter_param['OUT_TYPE'] = 'XDR8'
-        else:
-            swifter_param['OUT_TYPE'] = 'XDR4'
-    else:
-        if isDouble:
-            swifter_param['OUT_TYPE'] = 'REAL8'
-        else:
-            swifter_param['OUT_TYPE'] = 'REAL4'
     swifter_param['CHK_RMIN'] = swift_param['RMIN']
     swifter_param['CHK_RMAX'] = swift_param['RMAX']
     swifter_param['CHK_QMIN'] = swift_param['QMIN']
     if swift_param['QMIN'] != '-1':
-        print("CHK_QMIN_COORD value:")
-        print("*1) HELIO")
-        print(" 2) BARY")
-        intxt = input("> ")
-        if intxt == '2':
-            swifter_param['CHK_QMIN_COORD'] = 'BARY'
-        else:
-            swifter_param['CHK_QMIN_COORD'] = 'HELIO'
-        alo = input(f"Lower bound on CHK_QMIN_RANGE [{swift_param['RMIN']}]: ")
-        if alo == '':
-            alo = swift_param['RMIN']
-        ahi = input(f"Upper bound on CHK_QMIN_RANGE: [{swift_param['RMAXU']}]: ")
-        if ahi == '':
-            ahi = swift_param['RMAXU']
-        swifter_param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
+        
+        swifter_param['CHK_QMIN_COORD'] = conversion_questions.get('CHK_QMIN_COORD', None)
+        if not swifter_param['CHK_QMIN_COORD']:
+            print("CHK_QMIN_COORD value:")
+            print("*1) HELIO")
+            print(" 2) BARY")
+            intxt = input("> ")
+            if intxt == '2':
+                swifter_param['CHK_QMIN_COORD'] = "BARY"
+            else:
+                swifter_param['CHK_QMIN_COORD'] = "HELIO"
 
-    swifter_param['ENC_OUT'] = input("ENC_OUT: Encounter file name: [enc.dat]> ")
-    if swifter_param['ENC_OUT'] == '':
-        swifter_param['ENC_OUT'] = "enc.dat"
-     
-    intxt = input("EXTRA_FORCE: Use additional user-specified force routines? (y/N)> ")
+        swifter_param['CHK_QMIN_RANGE'] = conversion_questions.get('CHK_QMIN_RANGE', None)
+        if not swifter_param['CHK_QMIN_RANGE']:
+            alo = input(f"Lower bound on CHK_QMIN_RANGE [{swift_param['RMIN']}]: ")
+            if alo == '':
+                alo = swift_param['RMIN']
+            ahi = input(f"Upper bound on CHK_QMIN_RANGE: [{swift_param['RMAXU']}]: ")
+            if ahi == '':
+                ahi = swift_param['RMAXU']
+            swifter_param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
+
+    
+    swifter_param['ENC_OUT'] = conversion_questions.get('ENC_OUT', None)
+    if not swifter_param['ENC_OUT']:
+        swifter_param['ENC_OUT'] = input("ENC_OUT: Encounter file name: [enc.dat]> ")
+        if swifter_param['ENC_OUT'] == '':
+            swifter_param['ENC_OUT'] = "enc.dat"
+        
+    intxt = conversion_questions.get('EXTRA_FORCE', None)
+    if not intxt:
+        intxt = input("EXTRA_FORCE: Use additional user-specified force routines? (y/N)> ")
     if intxt.upper() == 'Y':
         swifter_param['EXTRA_FORCE'] = 'YES'
     else:
         swifter_param['EXTRA_FORCE'] = 'NO'
-        
-    intxt = input("BIG_DISCARD: include data for all bodies > MTINY for each discard record? (y/N)> ")
+
+    intxt = conversion_questions.get('BIG_DISCARD', None)
+    if not intxt:
+        intxt = input("BIG_DISCARD: include data for all bodies > MTINY for each discard record? (y/N)> ")
     if intxt.upper() == 'Y':
         swifter_param['BIG_DISCARD'] = 'YES'
     else:
@@ -1093,9 +1097,12 @@ def swift2swifter(swift_param, plname="", tpname=""):
     
     return swifter_param
 
-def swifter2swiftest(swifter_param, plname="", tpname="", cbname=""):
+def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_questions={}):
     swiftest_param = swifter_param.copy()
-    
+    # Pull additional feature status from the conversion_questions dictionary
+    featurelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP" )
+    for key in featurelist:
+        swiftest_param[key] = conversion_questions.get(key, "NO")
     # Convert the PL file
     if plname == '':
         plname = input("PL_IN: Name of new planet input file: [pl.swiftest.in]> ")
@@ -1200,40 +1207,43 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname=""):
         if cbname == '':
             cbname = "cb.swiftest.in"
     swiftest_param['CB_IN'] = cbname
-    
-    print(f"\nCentral body G*M = {GMcb}\n")
-    print("Select the unit system to use:")
-    print("1) MSun-AU-year")
-    print("2) MSun-AU-day")
-    print("3) SI: kg-m-s")
-    print("4) CGS: g-cm-s")
-    print("5) Set units manually")
-    inval = input("> ")
-    try:
-        unit_type = int(inval)
-    except ValueError:
-        goodval = False
-    else:
-        goodval = (unit_type > 0 and unit_type < 6)
-    if not goodval:
-        print(f"{inval} is not a valid menu option")
-        sys.exit(-1)
-    if unit_type == 1:
+   
+    unit_system = conversion_questions.get('UNITS', None)
+    unit_type = 5
+    if not unit_system:
+        print(f"\nCentral body G*M = {GMcb}\n")
+        print("Select the unit system to use:")
+        print("1) MSun-AU-year")
+        print("2) MSun-AU-day")
+        print("3) SI: kg-m-s")
+        print("4) CGS: g-cm-s")
+        print("5) Set units manually")
+        inval = input("> ")
+        try:
+            unit_type = int(inval)
+        except ValueError:
+            goodval = False
+        else:
+            goodval = (unit_type > 0 and unit_type < 6)
+        if not goodval:
+            print(f"{inval} is not a valid menu option")
+            sys.exit(-1)
+    if unit_type == 1 or unit_system.upper() == 'MSUN-AU-YEAR':
         print("Unit system is MSun-AU-year")
         swiftest_param['MU2KG'] = swiftest.MSun
         swiftest_param['DU2M'] = swiftest.AU2M
         swiftest_param['TU2S'] = swiftest.YR2S
-    elif unit_type == 2:  # MSun-AU-day
+    elif unit_type == 2 or unit_system.upper() == 'MSUN-AU-DAY':
         print("Unit system is MSun-AU-day")
         swiftest_param['MU2KG'] = swiftest.MSun
         swiftest_param['DU2M'] = swiftest.AU2M
         swiftest_param['TU2S'] = swiftest.JD2S
-    elif unit_type == 3:  # SI: kg-m-s
+    elif unit_type == 3 or unit_system.upper() == 'SI':
         print("Unit system is SI: kg-m-s")
         swiftest_param['MU2KG'] = 1.0
         swiftest_param['DU2M'] = 1.0
         swiftest_param['TU2S'] = 1.0
-    elif unit_type == 4:  # CGS: g-cm-s
+    elif unit_type == 4 or unit_system.upper() == 'CGS':
         print("Unit system is CGS: g-cm-s")
         swiftest_param['MU2KG'] = 1e-3
         swiftest_param['DU2M'] = 1.0e-2
@@ -1246,25 +1256,27 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname=""):
         swiftest_param['TU2S'] = input("Time unit in seconds: ")
     GU = swiftest.GC / (swiftest_param['DU2M'] ** 3 / (swiftest_param['MU2KG'] * swiftest_param['TU2S'] ** 2))
     print(f"Central body mass: {GMcb / GU} MU ({(GMcb / GU) * swiftest_param['MU2KG']} kg)")
-    
-    print("Set central body radius:")
-    print(f"1) Use Swifter parameter value of CHK_RMIN = {swifter_param['CHK_RMIN']}")
-    print(f"2) Set value manually")
-    inval = input("> ")
-    try:
-        cbrad_type = int(inval)
-    except ValueError:
-        goodval = False
-    else:
-        goodval = (cbrad_type > 0 and cbrad_type < 3)
-    if not goodval:
-        print(f"{inval} is not a valid menu option")
-        sys.exit(-1)
-    if cbrad_type == 1:
-        cbrad = swifter_param['CHK_RMIN']
-    elif cbrad_type == 2:
-        cbrad = input("Enter radius of central body in simulation Distance Units: ")
-        cbrad = real2float(cbrad.strip())
+   
+    cbrad = conversion_questions.get('CBRAD', None)
+    if not cbrad:
+        print("Set central body radius:")
+        print(f"1) Use Swifter parameter value of CHK_RMIN = {swifter_param['CHK_RMIN']}")
+        print(f"2) Set value manually")
+        inval = input("> ")
+        try:
+            cbrad_type = int(inval)
+        except ValueError:
+            goodval = False
+        else:
+            goodval = (cbrad_type > 0 and cbrad_type < 3)
+        if not goodval:
+            print(f"{inval} is not a valid menu option")
+            sys.exit(-1)
+        if cbrad_type == 1:
+            cbrad = swifter_param['CHK_RMIN']
+        elif cbrad_type == 2:
+            cbrad = input("Enter radius of central body in simulation Distance Units: ")
+            cbrad = real2float(cbrad.strip())
     
     print(f'Writing out new CB file: {swiftest_param["CB_IN"]}')
     # Write out new central body file
@@ -1277,9 +1289,11 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname=""):
         cbnew.close()
     except IOError:
         print(f"Cannot write to file {swiftest_param['CB_IN']}")
-    
-    MTINY = input(f"Value of MTINY if this is a SyMBA simulation (enter nothing if this is not a SyMBA parameter file)> ")
-    if MTINY != '':
+   
+    MTINY = conversion_questions.get('MTINY', None)
+    if not MTINY:
+        MTINY = input(f"Value of MTINY if this is a SyMBA simulation (enter nothing if this is not a SyMBA parameter file)> ")
+    if MTINY != '' and real2float(MTINY.strip()) > 0:
         swiftest_param['MTINY'] = real2float(MTINY.strip())
         
     # Remove the unneeded parameters
@@ -1292,7 +1306,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname=""):
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swifter"
     return swiftest_param
 
-def swift2swiftest(swift_param, plname="", tpname="", cbname=""):
+def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_questions={}):
     if plname == '':
         plname = input("PL_IN: Name of new planet input file: [pl.swiftest.in]> ")
         if plname == '':
@@ -1312,8 +1326,8 @@ def swift2swiftest(swift_param, plname="", tpname="", cbname=""):
         cbname = input("CB_IN: Name of new planet input file: [cb.swiftest.in]> ")
         if cbname == '':
             cbname = "cb.swiftest.in"
-    swifter_param = swift2swifter(swift_param, pltmpname, tptmpname)
-    swiftest_param = swifter2swiftest(swifter_param, plname, tpname, cbname)
+    swifter_param = swift2swifter(swift_param, pltmpname, tptmpname, conversion_questions)
+    swiftest_param = swifter2swiftest(swifter_param, plname, tpname, cbname, conversion_questions)
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swift"
     return swiftest_param
     
