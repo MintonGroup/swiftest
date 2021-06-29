@@ -1,4 +1,4 @@
-! Swiftest input file generated using init_cond.py
+! VERSION      Swiftest input file generated using init_cond.py
 T0             0 
 TSTOP          365.25
 DT             1.0

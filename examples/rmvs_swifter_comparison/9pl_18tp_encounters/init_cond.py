@@ -1,5 +1,5 @@
 import numpy as np
-import swiftest.swiftestio as swio
+import swiftest.io as swio
 import astropy.constants as const
 import sys
 import xarray as xr
@@ -43,7 +43,7 @@ rmin = Rsun / DU2M
 rmax = 1000.0
 
 sys.stdout = open(swiftest_input, "w")
-print(f'! Swiftest input file generated using init_cond.py')
+print(f'! VERSION      Swiftest input file generated using init_cond.py')
 print(f'T0             {t_0} ')
 print(f'TSTOP          {end_sim}')
 print(f'DT             {deltaT}')
@@ -136,7 +136,7 @@ tpda = xr.concat(tp,dim='time')
 tpds = tpda.to_dataset(dim = 'vec')
 
 ds = xr.combine_by_coords([ds, tpds])
-swio.swiftest_xr2_infile(ds, param)
+swio.swiftest_xr2infile(ds, param)
 
 # Swifter PL file
 plfile = open(swifter_pl, 'w')
@@ -154,7 +154,7 @@ plfile.close()
 
 # Swifter parameter file
 sys.stdout = open(swifter_input, "w")
-print(f"! Swifter input file generated using init_cond.py")
+print(f"! VERSION     Swifter input file generated using init_cond.py")
 print(f"T0            {t_0} ")
 print(f"TSTOP         {end_sim}")
 print(f"DT            {deltaT}")

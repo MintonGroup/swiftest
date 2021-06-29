@@ -1,4 +1,4 @@
-from swiftest import swiftestio
+from swiftest import io
 
 
 class Simulation:
@@ -54,13 +54,13 @@ class Simulation:
     
     def read_param(self, param_file_name, codename="Swiftest"):
         if codename == "Swiftest":
-            self.param = swiftestio.read_swiftest_param(param_file_name)
+            self.param = io.read_swiftest_param(param_file_name)
             self.codename = "Swiftest"
         elif codename == "Swifter":
-            self.param = swiftestio.read_swifter_param(param_file_name)
+            self.param = io.read_swifter_param(param_file_name)
             self.codename = "Swifter"
         elif codename == "Swift":
-            self.param = swiftestio.read_swift_param(param_file_name)
+            self.param = io.read_swift_param(param_file_name)
             self.codename = "Swift"
         else:
             print(f'{codename} is not a recognized code name. Valid options are "Swiftest", "Swifter", or "Swift".')
@@ -71,9 +71,9 @@ class Simulation:
         # Check to see if the parameter type matches the output type. If not, we need to convert
         codename = self.param['! VERSION'].split()[0]
         if codename == "Swifter" or codename == "Swiftest":
-            swiftestio.write_labeled_param(self.param, param_file_name)
+            io.write_labeled_param(self.param, param_file_name)
         elif codename == "Swift":
-            swiftestio.write_swift_param(self.param, param_file_name)
+            io.write_swift_param(self.param, param_file_name)
         else:
             print('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
         return
@@ -92,14 +92,14 @@ class Simulation:
         goodconversion = True
         if self.codename == "Swifter":
             if newcodename == "Swiftest":
-                self.param = swiftestio.swifter2swiftest(self.param, plname, tpname, cbname)
+                self.param = io.swifter2swiftest(self.param, plname, tpname, cbname)
             else:
                 goodconversion = False
         elif self.codename == "Swift":
             if newcodename == "Swifter":
-                self.param = swiftestio.swift2swifter(self.param, plname, tpname)
+                self.param = io.swift2swifter(self.param, plname, tpname)
             elif newcodename == "Swiftest":
-                self.param = swiftestio.swift2swiftest(self.param, plname, tpname, cbname)
+                self.param = io.swift2swiftest(self.param, plname, tpname, cbname)
             else:
                 goodconversion = False
 
@@ -111,9 +111,11 @@ class Simulation:
     
     def bin2xr(self):
         if self.codename == "Swiftest":
-            self.ds = swiftestio.swiftest2xr(self.param)
+            self.ds = io.swiftest2xr(self.param)
+            print('Swiftest simulation data stored as xarray DataSet .ds')
         elif self.codename == "Swifter":
-            self.ds = swiftestio.swifter2xr(self.param)
+            self.ds = io.swifter2xr(self.param)
+            print('Swifter simulation data stored as xarray DataSet .ds')
         elif self.codename == "Swift":
             print("Reading Swift simulation data is not implemented yet")
         else:
