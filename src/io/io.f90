@@ -1080,16 +1080,15 @@ contains
       associate(t => param%t, param => param, nsp => discards%nbody, dxh => discards%xh, dvh => discards%vh, &
                 dname => discards%name, dstatus => discards%status) 
          
-         if (param%out_stat == 'APPEND' .or. (.not.lfirst)) then
-            open(unit = LUN, file = DISCARD_FILE, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
-         else if (param%out_stat == 'NEW') then
-            open(unit = LUN, file = DISCARD_FILE, status = 'NEW', form = 'FORMATTED', iostat = ierr)
-         else if (param%out_stat == 'REPLACE') then
-            open(unit = LUN, file = DISCARD_FILE, status = 'REPLACE', form = 'FORMATTED', iostat = ierr)
-         else
-            write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
+         select case(param%out_stat)
+         case('APPEND')
+            open(unit = LUN, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+         case('NEW', 'REPLACE', 'UNKNOWN')
+            open(unit = LUN, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
+         case default
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
-         end if
+         end select
          lfirst = .false.
          if (param%lgr) then
             select type(discards)
@@ -1309,18 +1308,16 @@ contains
          select case(param%out_stat)
          case('APPEND')
             open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
-         case('NEW')
-            open(unit = iu, file = param%outfile, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
-         case ('REPLACE')
-            open(unit = iu, file = param%outfile, status = 'REPLACE', form = 'UNFORMATTED', iostat = ierr)
+         case('NEW', 'REPLACE', 'UNKNOWN')
+            open(unit = iu, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
          case default
-            write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
          end select
          if (ierr /= 0) then
             write(*, *) "Swiftest error: io_write_frame_system - first", ierr
             write(*, *) "   Binary output file " // trim(adjustl(param%outfile)) // " already exists or cannot be accessed"
-            write(*, *) "   out_stat: " // trim(adjustl(param%out_stat))
+            write(*, *) "   OUT_STAT: " // trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
          end if
          lfirst = .false.
