@@ -193,7 +193,7 @@ contains
             iostat = -1
             return
          end if
-         if ((self%out_stat /= "NEW") .and. (self%out_stat /= "REPLACE") .and. (self%out_stat /= "APPEND")) then
+         if ((self%out_stat /= "NEW") .and. (self%out_stat /= "REPLACE") .and. (self%out_stat /= "APPEND")  .and. (self%out_stat /= "UNKNOWN")) then
             write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(self%out_stat))
             iostat = -1
             return
@@ -784,7 +784,7 @@ contains
       character(STRMAX)       :: error_message           !! Error message in UDIO procedure
 
       ! Read in name of parameter file
-      write(*, *) 'parameters data file is ', trim(adjustl(param_file_name))
+      write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
       write(*, *) ' '
       100 format(A)
       open(unit = LUN, file = param_file_name, status = 'old', iostat = ierr)
