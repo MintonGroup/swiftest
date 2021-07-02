@@ -97,7 +97,7 @@ module helio_classes
          implicit none
          class(helio_pl),               intent(inout) :: self   !! Helio massive body object
          class(swiftest_cb),            intent(inout) :: cb     !! Helio central body object
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of parameters parameters
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of parameters
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine helio_drift_pl
 
@@ -106,7 +106,7 @@ module helio_classes
          implicit none
          class(helio_tp),               intent(inout) :: self   !! Helio test particle object
          class(swiftest_cb),            intent(inout) :: cb     !! Helio central body object
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of parameters parameters
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of parameters
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine helio_drift_tp
    
@@ -131,7 +131,7 @@ module helio_classes
          implicit none
          class(helio_pl),               intent(inout) :: self     !! Helio massive body particle data structure
          class(swiftest_cb),            intent(inout) :: cb       !! Swiftest central body particle data structure
-         class(swiftest_parameters), intent(in)    :: param   !! Input collection of parameters parameters
+         class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters of parameters
          real(DP),                      intent(in)    :: t        !! Current time
       end subroutine helio_getacch_pl
 
@@ -142,7 +142,7 @@ module helio_classes
          class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
          class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree 
          class(whm_pl),                 intent(inout) :: pl     !! Swiftest massive body particle data structure. 
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of parameters parameters
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of parameters
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
       end subroutine helio_getacch_tp
@@ -178,7 +178,7 @@ module helio_classes
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(helio_nbody_system),     intent(inout) :: self    !! Helio nbody system object
-         class(swiftest_parameters), intent(in)    :: param  !! Input collection of  parameters parameters 
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of parameters 
       end subroutine helio_step_system
 
       module subroutine helio_step_pl(self, cb, param, t, dt)
@@ -186,7 +186,7 @@ module helio_classes
          implicit none
          class(helio_pl),               intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine helio_step_pl
@@ -198,7 +198,7 @@ module helio_classes
          class(helio_tp),               intent(inout) :: self !! Helio test particle data structure
          class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine helio_step_tp

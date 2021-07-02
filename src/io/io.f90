@@ -13,7 +13,7 @@ contains
       !! Adapted from Martin Duncan's Swift routine io_init_param.f
       implicit none
       ! Arguments
-      class(swiftest_parameters), intent(inout) :: self       !! Collection of  parameters parameters
+      class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
       integer, intent(in)                          :: unit       !! File unit number
       character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                  !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
@@ -316,7 +316,7 @@ contains
       !! Adapted from Martin Duncan's Swift routine io_dump_param.f
       implicit none
       ! Arguments
-      class(swiftest_parameters),intent(in)     :: self         !! Collection of  parameters parameters
+      class(swiftest_parameters),intent(in)     :: self         !! Collection of parameters
       integer, intent(in)                          :: unit       !! File unit number
       character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
@@ -405,7 +405,7 @@ contains
       !! Adapted from Martin Duncan's Swift routine io_dump_param.f
       implicit none
       ! Arguments
-      class(swiftest_parameters),intent(in) :: self    !! Output collection of  parameters
+      class(swiftest_parameters),intent(in) :: self    !! Output collection of parameters
       character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
       real(DP),intent(in)                      :: t       !! Current simulation time
       real(DP),intent(in)                      :: dt      !! Step size
@@ -444,7 +444,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_base),          intent(inout) :: self   !! Swiftest base object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of parameters 
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Stepsize
       character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
@@ -483,7 +483,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters), intent(in)    :: param  !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of parameters 
       real(DP),                      intent(in)    :: t       !! Current simulation time
       real(DP),                      intent(in)    :: dt      !! Stepsize
       character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
@@ -636,7 +636,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(inout) :: param !! Input collection of  parameters parameters
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters of parameters
       ! Internals
       integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
       integer(I4B)                  :: iu = LUN
@@ -776,7 +776,7 @@ contains
       !! Adapted from Martin Duncan's Swift routine io_init_param.f
       implicit none
       ! Arguments
-      class(swiftest_parameters),intent(out) :: self             !! Input collection of  parameters parameters
+      class(swiftest_parameters),intent(out) :: self             !! Current run configuration parameters of parameters
       character(len=*), intent(in)              :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
       integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
@@ -870,7 +870,7 @@ contains
       ! Arguments
       class(swiftest_body),          intent(inout) :: self    !! Swiftest particle object
       integer(I4B),                  intent(inout) :: iu      !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(inout) :: param  !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of parameters 
       character(*),                  intent(in)    :: form    !! Input format code ("XV" or "EL")
       real(DP),                      intent(out)   :: t       !! Simulation time
       integer(I4B),                  intent(out)   :: ierr    !! Error code
@@ -932,7 +932,7 @@ contains
       ! Arguments
       class(swiftest_cb),            intent(inout) :: self     !! Swiftest central body object
       integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(inout) :: param   !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters of parameters 
       character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
       real(DP),                      intent(out)   :: t        !! Simulation time
       integer(I4B),                  intent(out)   :: ierr     !! Error cod
@@ -966,7 +966,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
       integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(inout) :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters of parameters 
       character(*),                  intent(in)    :: form   !! Input format code ("XV" or "EL")
       real(DP),                      intent(out)   :: t      !! Current simulation time
       integer(I4B),                  intent(out)   :: ierr   !! Error code
@@ -1042,7 +1042,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters), intent(inout) :: param  !! Input collection of  parameters parameters
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of parameters
   
       call self%cb%initialize(param)
       call self%pl%initialize(param)
@@ -1063,7 +1063,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
-      class(swiftest_parameters), intent(in)    :: param   !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters of parameters 
       class(swiftest_body),          intent(inout) :: discards !! Swiftest discard object 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
@@ -1196,7 +1196,7 @@ contains
       ! Arguments
       class(swiftest_body),          intent(in)    :: self   !! Swiftest particle object
       integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of parameters 
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Step size
 
@@ -1252,7 +1252,7 @@ contains
       ! Arguments
       class(swiftest_cb),            intent(in)    :: self   !! Swiftest central body object 
       integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of parameters 
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Step size
 
@@ -1288,7 +1288,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system),  intent(in)    :: self   !! Swiftest system object
       integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of parameters 
       real(DP),                      intent(in)    :: t      !! Current simulation time
       real(DP),                      intent(in)    :: dt     !! Step size
       ! Internals

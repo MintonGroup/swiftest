@@ -13,7 +13,7 @@ contains
       ! Arguments
       class(helio_pl),               intent(inout) :: self   !! Helio test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Helio central body particle data structuree
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B) :: i !! Loop counter
@@ -105,7 +105,7 @@ contains
       ! Arguments
       class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Helio central body particle data structuree
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B) :: i !! Loop counter

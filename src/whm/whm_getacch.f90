@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb  !! Swiftest central body particle data structure
-      class(swiftest_parameters), intent(in)    :: param   !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters of 
       real(DP),                      intent(in)    :: t        !! Current time
       ! Internals
       integer(I4B)                                 :: i
@@ -51,7 +51,7 @@ contains
       class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Generic Swiftest central body particle data structuree 
       class(whm_pl),                 intent(inout) :: pl     !! Generic Swiftest massive body particle data structure. 
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
       ! Internals

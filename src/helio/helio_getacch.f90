@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(helio_pl),               intent(inout) :: self     !! Helio massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb       !! Swiftest central body particle data structure
-      class(swiftest_parameters), intent(in)    :: param   !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters of 
       real(DP),                      intent(in)    :: t        !! Current time
       ! Internals
       logical, save                    :: lmalloc = .true.
@@ -48,7 +48,7 @@ contains
          class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
          class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree 
          class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
          real(DP),                      intent(in)    :: t      !! Current time
          real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
          ! Internals

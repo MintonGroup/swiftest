@@ -11,7 +11,7 @@ contains
       implicit none
       ! Arguments
       class(rmvs_nbody_system),          intent(inout)  :: self    !! RMVS nbody system object
-      class(swiftest_parameters),     intent(in)     :: param  !! Input collection of  parameters parameters 
+      class(swiftest_parameters),     intent(in)     :: param  !! Current run configuration parameters of parameters 
       ! Internals
       logical :: lencounter, lfirstpl, lfirsttp 
       real(DP) :: rts
@@ -77,7 +77,7 @@ contains
       class(rmvs_cb),                    intent(inout)  :: cb   !! RMVS central body object
       class(rmvs_tp),                    intent(inout)  :: tp   !! RMVS test particle object
       real(DP),                          intent(in)     :: dt   !! Step size
-      class(swiftest_parameters),     intent(in)     :: param  !! Input collection of  parameters parameters
+      class(swiftest_parameters),     intent(in)     :: param  !! Current run configuration parameters of parameters
       ! Internals
       integer(I4B)                                      :: outer_index, j, k
       real(DP)                                          :: dto, outer_time, rts
@@ -131,7 +131,7 @@ contains
       class(rmvs_pl),                intent(inout)  :: pl   !! RMVS massive body object
       class(rmvs_cb),                intent(inout)  :: cb   !! RMVS central body object
       class(rmvs_tp),                intent(inout)  :: tp   !! RMVS test particle object
-      class(swiftest_parameters), intent(in)     :: param  !! Input collection of parameters parameters 
+      class(swiftest_parameters), intent(in)     :: param  !! Current run configuration parameters of parameters 
       real(DP),                      intent(in)     :: outer_time    !! Current time
       real(DP),                      intent(in)     :: dto   !! Step size
       ! Internals
@@ -386,7 +386,7 @@ contains
       logical,                       intent(in)    :: lfirst    !! Logical flag indicating whether current invocation is the first
       integer(I4B),                  intent(in)    :: inner_index !! Outer substep number within current set
       integer(I4B),                  intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
-      class(swiftest_parameters), intent(in)    :: param    !! Input collection of  parameters parameters
+      class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters of parameters
       ! Internals
       integer(I4B)                                 :: i, id1, id2
       real(DP)                                     :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
@@ -465,7 +465,7 @@ contains
       class(rmvs_pl),                 intent(inout)  :: pl !! RMVS test particle object
       class(rmvs_cb),                 intent(inout)  :: cb   !! RMVS central body particle type
       class(rmvs_tp),                 intent(inout)  :: tp   !! RMVS test particle object
-      class(swiftest_parameters),  intent(in)     :: param !! Input collection of parameters parameters 
+      class(swiftest_parameters),  intent(in)     :: param !! Current run configuration parameters of parameters 
       ! Internals
       integer(I4B)                                   :: i, j, inner_index, ipc2hc
       logical, dimension(:), allocatable             :: encmask

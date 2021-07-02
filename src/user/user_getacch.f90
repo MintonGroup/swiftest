@@ -11,7 +11,7 @@ contains
       ! Arguments
       class(swiftest_body),          intent(inout) :: self   !! Swiftest massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of user parameters parameters
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of user parameters
       real(DP),                      intent(in)    :: t      !! Current time
 
       return

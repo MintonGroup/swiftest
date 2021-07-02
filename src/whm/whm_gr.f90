@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(whm_pl),       intent(inout)           :: self   !! WHM massive body particle data structure
       class(swiftest_cb),  intent(inout)           :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: suma
@@ -50,7 +50,7 @@ contains
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
       ! Internals
       integer(I4B)                                 :: i
       real(DP)                                     :: rjmag4, beta
@@ -78,7 +78,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       real(DP),                      intent(in)    :: dt     !! Step size
       ! Internals
       integer(I4B)                                 :: i
@@ -104,7 +104,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       real(DP),                      intent(in)    :: dt     !! Step size
       ! Internals
       integer(I4B)                                 :: i
@@ -128,7 +128,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
@@ -154,7 +154,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
@@ -180,7 +180,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -206,7 +206,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -234,7 +234,7 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_vel2pseudovel.f90
       implicit none
 
-      class(swiftest_parameters), intent(in)  :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters of parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
       real(DP), dimension(:),        intent(in)  :: vh     !! Heliocentric velocity vector 
@@ -306,7 +306,7 @@ contains
       !!
       !! Adapted from David A. Minton's Swifter routine gr_pseudovel2vel.f90 
       implicit none
-      class(swiftest_parameters), intent(in)  :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters of parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
       real(DP), dimension(:),        intent(in)  :: pv     !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)

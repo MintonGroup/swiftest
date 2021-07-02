@@ -12,7 +12,7 @@ program swiftest_driver
    class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
    type(swiftest_parameters)               :: param
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters parameters
+   character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters
    integer(I4B)                               :: ierr             !! I/O error code 
    logical                                    :: lfirst           !! Flag indicating that this is the first time through the main loop
    integer(I8B)                               :: iloop            !! Loop counter

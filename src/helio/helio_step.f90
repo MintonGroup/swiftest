@@ -11,7 +11,7 @@ contains
       implicit none
       ! Arguments
       class(helio_nbody_system),     intent(inout) :: self    !! Helio nbody system object
-      class(swiftest_parameters), intent(in)    :: param  !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of on parameters 
 
       select type(cb => self%cb)
       class is (helio_cb)
@@ -45,7 +45,7 @@ contains
       ! Arguments
       class(helio_pl),               intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Helio central body particle data structure
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals 
@@ -63,6 +63,7 @@ contains
       call self%lindrift(cb, dth, ptbeg)
       call self%getacch(cb, param, t)
       call self%kickvb(dth)
+
       call self%drift(cb, param, dt)
       call self%getacch(cb, param, t + dt)
       call self%kickvb(dth)
@@ -85,7 +86,7 @@ contains
       class(helio_tp),                 intent(inout) :: self !! Helio test particle data structure
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
       class(whm_pl),                 intent(inout) :: pl     !! WHM massive body data structure
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
       real(DP),                      intent(in)    :: t      !! Current time
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals

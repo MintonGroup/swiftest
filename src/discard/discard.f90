@@ -10,7 +10,7 @@ contains
       !! Adapted from Hal Levison's Swift routine discard.f
       implicit none
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters), intent(in)    :: param  !! Input collection of  parameters parameters
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of parameters
 
       if (self%tp%nbody == 0) return 
       select type(self)
@@ -51,7 +51,7 @@ contains
       ! Arguments
       class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
-      class(swiftest_parameters), intent(in)    :: param !!  parameters parameters
+      class(swiftest_parameters), intent(in)    :: param !! parameters
       real(DP),                      intent(in)    :: t      !! Current simulation tim
       real(DP),                      intent(in)    :: msys   !! Total system mass
       ! Internals
@@ -102,7 +102,7 @@ contains
       class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
       class(swiftest_pl),            intent(inout) :: pl     !! Swiftest massive body object
-      class(swiftest_parameters), intent(in)    :: param !!  parameters parameters
+      class(swiftest_parameters), intent(in)    :: param !! parameters
       real(DP),                      intent(in)    :: t      !! Current simulation tim
       real(DP),                      intent(in)    :: msys   !! Total system mass 
       ! Internals
