@@ -1,7 +1,7 @@
 submodule(rmvs_classes) s_rmvs_step
    use swiftest
 contains
-   module subroutine rmvs_step_system(self, param)
+   module subroutine rmvs_step_system(self, param, dt)
       !! author: David A. Minton
       !!
       !! Step massive bodies and and active test particles ahead in heliocentric coordinates
@@ -10,23 +10,24 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_step.f90
       implicit none
       ! Arguments
-      class(rmvs_nbody_system),          intent(inout)  :: self    !! RMVS nbody system object
-      class(swiftest_parameters),     intent(in)     :: param  !! Current run configuration parameters of parameters 
+      class(rmvs_nbody_system),   intent(inout)  :: self   !! RMVS nbody system object
+      class(swiftest_parameters), intent(inout)  :: param  !! Current run configuration parameters of parameters 
+      integer(I4B),               intent(in)     :: dt     !! Current stepsize
       ! Internals
       logical :: lencounter, lfirstpl, lfirsttp 
       real(DP) :: rts
       real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
       integer(I4B) :: i
- 
+
+      select type(system => self)
+      class is (rmvs_nbody_system)
       select type(cb => self%cb)
       class is (rmvs_cb)
       select type(pl => self%pl)
       class is (rmvs_pl)
       select type(tp => self%tp)
       class is (rmvs_tp)
-      associate(ntp => tp%nbody, npl => pl%nbody, t => param%t, dt => param%dt, &
-         xhpl => pl%xh, vhpl => pl%vh, xjpl => pl%xj, vjpl => pl%vj, &
-         xhtp => tp%xh, vhtp => tp%vh)
+      associate(ntp => tp%nbody, npl => pl%nbody, t => param%t)
          allocate(xbeg, source=pl%xh)
          allocate(vbeg, source=pl%vh)
          call pl%set_rhill(cb)
@@ -39,16 +40,16 @@ contains
             lfirsttp = tp%lfirst
             pl%outer(0)%x(:,:) = xbeg(:,:)
             pl%outer(0)%v(:,:) = vbeg(:,:)
-            call pl%step(cb, param, t, dt) 
+            call pl%step(system, param, dt) 
             pl%outer(NTENC)%x(:,:) = pl%xh(:,:)
             pl%outer(NTENC)%v(:,:) = pl%vh(:,:)
             call tp%set_beg_end(xend = pl%xh)
-            call rmvs_interp_out(pl,cb, dt, param)
-            call rmvs_step_out(pl, cb, tp, dt, param)
+            call rmvs_interp_out(system, param, dt)
+            call rmvs_step_out(system, param, dt) 
             call tp%reverse_status()
             call tp%set_beg_end(xbeg = xbeg, xend = xend)
             tp%lfirst = .true.
-            call tp%step(cb, pl, param, t, dt)
+            call tp%step(system, param, dt)
             where (tp%status(:) == INACTIVE) tp%status(:) = ACTIVE
             pl%lfirst = lfirstpl
             tp%lfirst = lfirsttp
@@ -59,11 +60,12 @@ contains
       end select
       end select
       end select
+      end select
       return
 
    end subroutine rmvs_step_system 
 
-   subroutine rmvs_step_out(pl, cb, tp, dt, param)
+   subroutine rmvs_step_out(system, param, dt)
       !! author: David A. Minton
       !!
       !! Step ACTIVE test particles ahead in the outer encounter region, setting up and calling the inner region
@@ -73,17 +75,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routines rmvs_step_out.f90 and rmvs_step_out2.f90
       implicit none
       ! Arguments
-      class(rmvs_pl),                    intent(inout)  :: pl !! RMVS massive body object
-      class(rmvs_cb),                    intent(inout)  :: cb   !! RMVS central body object
-      class(rmvs_tp),                    intent(inout)  :: tp   !! RMVS test particle object
-      real(DP),                          intent(in)     :: dt   !! Step size
-      class(swiftest_parameters),     intent(in)     :: param  !! Current run configuration parameters of parameters
+      class(rmvs_nbody_system),   intent(inout) :: system !! Swiftest system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of parameters 
+      integer(I4B),               intent(in)    :: dt     !! Current stepsize
       ! Internals
-      integer(I4B)                                      :: outer_index, j, k
-      real(DP)                                          :: dto, outer_time, rts
-      logical                                           :: lencounter, lfirsttp
+      integer(I4B)                              :: outer_index, j, k
+      real(DP)                                  :: dto, outer_time, rts
+      logical                                   :: lencounter, lfirsttp
 
-      associate(npl => pl%nbody, ntp => tp%nbody, t => param%t)
+      associate(cb => system%cb, pl => system%pl, npl => system%pl%nbody, tp => system%tp, ntp => system%tp%nbody, t => param%t)
          dto = dt / NTENC
          where(tp%plencP(:) == 0)
             tp%status(:) = INACTIVE
@@ -99,9 +99,9 @@ contains
             lencounter = tp%encounter_check(cb, pl, dt, rts) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region
-               call rmvs_interp_in(pl, cb, dto, outer_index, param)
+               call rmvs_interp_in(system, param, dto, outer_index) 
                ! Step through the inner region
-               call rmvs_step_in(pl, cb, tp, param, outer_time, dto)
+               call rmvs_step_in(system, param, outer_time, dto)
                lfirsttp = tp%lfirst
                tp%lfirst = .true.
                call tp%step(cb, pl, param, outer_time, dto)

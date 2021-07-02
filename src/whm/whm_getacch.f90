@@ -1,7 +1,7 @@
 submodule(whm_classes) s_whm_getacch
    use swiftest
 contains
-   module subroutine whm_getacch_pl(self, cb, param, t)
+   module subroutine whm_getacch_pl(self, system, param, t)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of planets
@@ -10,16 +10,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
-      class(swiftest_cb),            intent(inout) :: cb  !! Swiftest central body particle data structure
-      class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters of 
-      real(DP),                      intent(in)    :: t        !! Current time
+      class(whm_pl),              intent(inout) :: self   !! WHM massive body particle data structure
+      class(whm_nbody_system),    intent(inout) :: system !! Swiftest central body particle data structure
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of 
+      real(DP),                   intent(in)    :: t       !! Current time
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: ah0
 
-      associate(pl => self, npl => self%nbody, j2rp2 => cb%j2rp2, &
-         ah => self%ah, xh => self%xh, xj => self%xj, vh => self%vh, vj => self%vj)
+      associate(pl => self, cb => system%cb, npl => self%nbody)
          if (npl == 0) return
          call pl%set_ir3()
 
@@ -33,13 +32,13 @@ contains
 
          if (param%loblatecb) call pl%obl_acc(cb)
          if (param%lextra_force) call pl%user_getacch(cb, param, t)
-         if (param%lgr) call pl%gr_getacch(cb, param) 
+         if (param%lgr) call pl%gr_getacch(param) 
 
       end associate
       return
    end subroutine whm_getacch_pl
 
-   module subroutine whm_getacch_tp(self, cb, pl, param, t, xh)
+   module subroutine whm_getacch_tp(self, system, param, t, xh)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -48,28 +47,27 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
       implicit none
       ! Arguments
-      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! Generic Swiftest central body particle data structuree 
-      class(whm_pl),                 intent(inout) :: pl     !! Generic Swiftest massive body particle data structure. 
+      class(whm_tp),              intent(inout) :: self   !! WHM test particle data structure
+      class(whm_nbody_system),    intent(inout) :: system !! Swiftest central body particle data structure
+      class(whm_pl),              intent(inout) :: pl     !! Generic Swiftest massive body particle data structure. 
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
-      real(DP),                      intent(in)    :: t      !! Current time
-      real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+      real(DP),                   intent(in)    :: t      !! Current time
+      real(DP), dimension(:,:),   intent(in)    :: xh     !! Heliocentric positions of planets
       ! Internals
-      integer(I4B)                                 :: i
-      real(DP), dimension(NDIM)                    :: ah0
+      integer(I4B)                              :: i
+      real(DP), dimension(NDIM)                 :: ah0
    
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody, j2rp2 => cb%j2rp2, aht => self%ah, &
-               ir3h => pl%ir3h, GMpl => pl%Gmass)
+      associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
          if (ntp == 0 .or. npl == 0) return
 
          ah0 = whm_getacch_ah0(pl%Gmass(:), xh(:,:), npl)
          do i = 1, ntp
             tp%ah(:, i) = ah0(:)
          end do
-         call whm_getacch_ah3_tp(cb, pl, tp, xh)
+         call whm_getacch_ah3_tp(system, xh)
          if (param%loblatecb) call tp%obl_acc(cb)
          if (param%lextra_force) call tp%user_getacch(cb, param, t)
-         if (param%lgr) call tp%gr_getacch(cb, param) 
+         if (param%lgr) call tp%gr_getacch(param) 
       end associate
       return
    end subroutine whm_getacch_tp
@@ -198,7 +196,7 @@ contains
       return
    end subroutine whm_getacch_ah3
 
-   pure subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
+   pure subroutine whm_getacch_ah3_tp(system, xh) 
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles
@@ -207,16 +205,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
       implicit none
       ! Arguments
-      class(swiftest_cb), intent(in)               :: cb  !! Swiftest central body object
-      class(whm_pl), intent(in)                    :: pl  !! WHM massive body object
-      class(whm_tp), intent(inout)                 :: tp  !! WHM test particle object
+      class(whm_nbody_system)                      :: system !! WHM nbody system object
       real(DP), dimension(:,:), intent(in)         :: xh  !! Position vector of massive bodies at required point in step
       ! Internals
       integer(I4B)                                 :: i, j
       real(DP)                                     :: rji2, irij3, fac
       real(DP), dimension(NDIM)                    :: dx, acc
 
-      associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  GMpl => pl%Gmass, xht => tp%xh, aht => tp%ah)
+      associate(ntp => system%tp%nbody, npl => system%pl%nbody, msun => system%cb%Gmass,  GMpl => system%pl%Gmass, xht => system%tp%xh, aht => system%tp%ah)
          if (ntp == 0) return
          do i = 1, ntp
             acc(:) = 0.0_DP

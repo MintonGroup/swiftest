@@ -117,16 +117,15 @@ module rmvs_classes
          real(DP),                      intent(in)    :: dt     !! Stepsize
       end subroutine rmvs_discard_pl_tp
 
-      module subroutine rmvs_getacch_tp(self, cb, pl, param, t, xh)
+      module subroutine rmvs_getacch_tp(self, system, param, t, xh)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
-         use whm_classes, only : whm_pl
+         use whm_classes, only : whm_nbody_system
          implicit none
-         class(rmvs_tp),                intent(inout) :: self   !! RMVS test particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree 
-         class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
+         class(rmvs_tp),             intent(inout) :: self   !! RMVS test particle data structure
+         class(whm_nbody_system),    intent(inout) :: system     !! Swiftest central body particle data structuree 
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of  parameter
-         real(DP),                      intent(in)    :: t      !! Current time
-         real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+         real(DP),                   intent(in)    :: t      !! Current time
+         real(DP), dimension(:,:),   intent(in)    :: xh     !! Heliocentric positions of planets
       end subroutine rmvs_getacch_tp
 
       module subroutine rmvs_setup_system(self, param)
@@ -148,11 +147,13 @@ module rmvs_classes
          real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend, vbeg
       end subroutine rmvs_setup_set_beg_end
 
-      module subroutine rmvs_step_system(self, param)
+      module subroutine rmvs_step_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS nbody system object
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of parameters 
+         class(rmvs_nbody_system),   intent(inout) :: self    !! RMVS nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of parameters 
+         real(DP),                   intent(in)    :: t      !! Simulation time
+         real(DP),                   intent(in)    :: dt     !! Current stepsize
       end subroutine rmvs_step_system
 
       module subroutine rmvs_setup_tp(self,n)

@@ -1,7 +1,7 @@
 submodule(whm_classes) whm_drift
    use swiftest
 contains
-   module subroutine whm_drift_pl(self, cb, param, dt)
+   module subroutine whm_drift_pl(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through planets and call Danby drift routine
@@ -10,15 +10,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift.f90
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structur
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
-      real(DP),                      intent(in)    :: dt     !! Stepsize
+      class(whm_pl),              intent(inout) :: self   !! WHM massive body particle data structure
+      class(whm_nbody_system),    intent(inout) :: system !! WHM nbody system object
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of 
+      real(DP),                   intent(in)    :: dt     !! Stepsize
       ! Internals
-      integer(I4B)                                 :: i
-      real(DP)                                     :: energy, vmag2, rmag  !! Variables used in GR calculation
-      integer(I4B), dimension(:), allocatable      :: iflag
-      real(DP), dimension(:), allocatable          :: dtp
+      integer(I4B)                              :: i
+      real(DP)                                  :: energy, vmag2, rmag  !! Variables used in GR calculation
+      integer(I4B), dimension(:), allocatable   :: iflag
+      real(DP), dimension(:), allocatable       :: dtp
 
       associate(npl    => self%nbody, &
          xj     => self%xj, &
@@ -63,7 +63,7 @@ contains
 
    end subroutine whm_drift_pl
 
-   module subroutine whm_drift_tp(self, cb, param, dt)
+   module subroutine whm_drift_tp(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through test particles and call Danby drift routine
@@ -73,22 +73,22 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
       implicit none
       ! Arguments
-      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
+      class(whm_tp),              intent(inout) :: self   !! WHM test particle data structure
+      class(whm_nbody_system),    intent(inout) :: system !! WHM nbody system object
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
-      real(DP),                      intent(in)    :: dt     !! Stepsize
+      real(DP),                   intent(in)    :: dt     !! Stepsize
       ! Internals
-      integer(I4B)                                 :: i   
-      real(DP)                                     :: energy, vmag2, rmag  !! Variables used in GR calculation
-      integer(I4B), dimension(:), allocatable      :: iflag
-      real(DP), dimension(:), allocatable          :: dtp
+      integer(I4B)                              :: i   
+      real(DP)                                  :: energy, vmag2, rmag  !! Variables used in GR calculation
+      integer(I4B), dimension(:), allocatable   :: iflag
+      real(DP), dimension(:), allocatable       :: dtp
 
 
       associate(ntp    => self%nbody, &
          xh     => self%xh, &
          vh     => self%vh, &
          status => self%status,&
-         mu     => self%mu)
+         mu     => self%mu, GMcb => system%cb%Gmass)
          
          if (ntp == 0) return
          allocate(iflag(ntp))
@@ -98,7 +98,7 @@ contains
             do i = 1,ntp
                rmag = norm2(xh(:, i))
                vmag2 = dot_product(vh(:, i), vh(:, i))
-               energy = 0.5_DP * vmag2 - cb%Gmass / rmag
+               energy = 0.5_DP * vmag2 - GMcb / rmag
                dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
             end do
          else
