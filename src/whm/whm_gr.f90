@@ -228,7 +228,7 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_vel2pseudovel.f90
       implicit none
 
-      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters of parameters 
+      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
       real(DP), dimension(:),        intent(in)  :: vh     !! Heliocentric velocity vector 
@@ -300,7 +300,7 @@ contains
       !!
       !! Adapted from David A. Minton's Swifter routine gr_pseudovel2vel.f90 
       implicit none
-      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters of parameters 
+      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
       real(DP), dimension(:),        intent(in)  :: pv     !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)

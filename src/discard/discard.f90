@@ -10,7 +10,7 @@ contains
       !! Adapted from Hal Levison's Swift routine discard.f
       implicit none
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of parameters
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
 
       if (self%tp%nbody == 0) return 
       select type(self)

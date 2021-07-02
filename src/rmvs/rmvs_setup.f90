@@ -86,7 +86,7 @@ contains
       implicit none
       ! Arguments
       class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of parameters 
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i, j
 

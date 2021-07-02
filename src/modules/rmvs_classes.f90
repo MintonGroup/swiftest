@@ -132,7 +132,7 @@ module rmvs_classes
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of parameters 
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine rmvs_setup_system
 
       module subroutine rmvs_setup_pl(self,n)
@@ -151,7 +151,7 @@ module rmvs_classes
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(rmvs_nbody_system),   intent(inout) :: self    !! RMVS nbody system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of parameters 
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t      !! Simulation time
          real(DP),                   intent(in)    :: dt     !! Current stepsize
       end subroutine rmvs_step_system

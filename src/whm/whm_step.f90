@@ -51,7 +51,7 @@ contains
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters of parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       integer(I4B),                 intent(in)    :: dt     !! Current stepsize
       ! Internals
       real(DP)                                     :: dth
@@ -88,7 +88,7 @@ contains
       ! Arguments
       class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters of parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       integer(I4B),                 intent(in)    :: dt     !! Current stepsize
       ! Internals
       real(DP)                                     :: dth

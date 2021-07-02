@@ -112,7 +112,7 @@ module whm_classes
          implicit none
          class(whm_pl),                intent(inout) :: self   !! WHM massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters of parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t       !! Simulation time
          real(DP),                     intent(in)    :: dt     !! Current stepsize
       end subroutine whm_step_pl
@@ -294,7 +294,7 @@ module whm_classes
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(whm_nbody_system),    intent(inout) :: self    !! WHM system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of parameters 
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t      !! Simulation time
          real(DP),                   intent(in)    :: dt     !! Current stepsize
       end subroutine whm_step_system
