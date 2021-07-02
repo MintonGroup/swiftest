@@ -63,9 +63,7 @@ module helio_classes
       procedure, public :: step        => helio_step_tp             !! Steps the body forward one stepsize
    end type helio_tp
 
-
    interface
-
       module subroutine helio_coord_vb2vh_pl(self, cb)
          use swiftest_classes, only : swiftest_cb
          implicit none
@@ -92,22 +90,24 @@ module helio_classes
          real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
       end subroutine helio_coord_vh2vb_tp
    
-      module subroutine helio_drift_pl(self, cb, param, dt)
-         use swiftest_classes, only : swiftest_cb, swiftest_parameters
+      module subroutine helio_drift_pl(self, system, param, dt)
+         use swiftest_classes, only : swiftest_parameters
+         use whm_classes, only : whm_nbody_system
          implicit none
-         class(helio_pl),               intent(inout) :: self   !! Helio massive body object
-         class(swiftest_cb),            intent(inout) :: cb     !! Helio central body object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-         real(DP),                      intent(in)    :: dt     !! Stepsize
+         class(helio_pl),            intent(inout) :: self   !! Helio massive body object
+         class(whm_nbody_system),    intent(inout) :: system !! WHM nbody system object
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of 
+         real(DP),                   intent(in)    :: dt     !! Stepsize
       end subroutine helio_drift_pl
 
-      module subroutine helio_drift_tp(self, cb, param, dt)
-         use swiftest_classes, only : swiftest_cb, swiftest_parameters
+      module subroutine helio_drift_tp(self, system, param, dt)
+         use swiftest_classes, only : swiftest_parameters
+         use whm_classes, only : whm_nbody_system
          implicit none
-         class(helio_tp),               intent(inout) :: self   !! Helio test particle object
-         class(swiftest_cb),            intent(inout) :: cb     !! Helio central body object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-         real(DP),                      intent(in)    :: dt     !! Stepsize
+         class(helio_tp),            intent(inout) :: self   !! Helio test particle object
+         class(whm_nbody_system),    intent(inout) :: system !! WHM nbody system object
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of 
+         real(DP),                   intent(in)    :: dt     !! Stepsiz
       end subroutine helio_drift_tp
    
       module subroutine helio_drift_linear_pl(self, cb, dt, pt)
@@ -126,25 +126,25 @@ module helio_classes
          real(DP), dimension(:),      intent(in)    :: pt     !! negative barycentric velocity of the Sun
       end subroutine helio_drift_linear_tp
 
-      module subroutine helio_getacch_pl(self, cb, param, t)
-         use swiftest_classes, only : swiftest_cb, swiftest_parameters
+      module subroutine helio_getacch_pl(self, system, param, t)
+         use swiftest_classes, only : swiftest_parameters
+         use whm_classes, only : whm_nbody_system
          implicit none
-         class(helio_pl),               intent(inout) :: self     !! Helio massive body particle data structure
-         class(swiftest_cb),            intent(inout) :: cb       !! Swiftest central body particle data structure
-         class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters
-         real(DP),                      intent(in)    :: t        !! Current time
+         class(helio_pl),            intent(inout) :: self   !! Helio massive body particle data structure
+         class(whm_nbody_system),    intent(inout) :: system !! WHM nbody system object
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters of 
+         real(DP),                   intent(in)    :: t      !! Current simulation time
       end subroutine helio_getacch_pl
 
-      module subroutine helio_getacch_tp(self, cb, pl, param, t, xh)
-         use swiftest_classes, only : swiftest_cb, swiftest_parameters
-         use whm_classes, only : whm_pl
+      module subroutine helio_getacch_tp(self, system, param, t, xh)
+         use swiftest_classes, only : swiftest_parameters
+         use whm_classes, only : whm_nbody_system
          implicit none
-         class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree 
-         class(whm_pl),                 intent(inout) :: pl     !! Swiftest massive body particle data structure. 
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-         real(DP),                      intent(in)    :: t      !! Current time
-         real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+         class(helio_tp),            intent(inout) :: self   !! Helio test particle data structure
+         class(whm_nbody_system),    intent(inout) :: system !! WHM nbody system object
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+         real(DP),                   intent(in)    :: t      !! Current time
+         real(DP), dimension(:,:),   intent(in)    :: xh     !! Heliocentric positions of planets
       end subroutine helio_getacch_tp
 
       module subroutine helio_getacch_int_pl(self, t)
@@ -156,9 +156,9 @@ module helio_classes
       module subroutine helio_getacch_int_tp(self, pl, t, xh)
          use whm_classes, only : whm_pl
          implicit none
-         class(helio_tp),               intent(inout) :: self     !! Helio test particle data structure
+         class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
          class(whm_pl),               intent(inout) :: pl       !! WhM massive body particle data structure
-         real(DP),                      intent(in)    :: t        !! Current time
+         real(DP),                      intent(in)    :: t      !! Current time
          real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planet
       end subroutine helio_getacch_int_tp
 
@@ -174,7 +174,7 @@ module helio_classes
          integer,         intent(in)    :: n    !! Number of test particles to allocate
       end subroutine helio_setup_tp
 
-      module subroutine helio_step_system(self, param)
+      module subroutine helio_step_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
@@ -186,7 +186,7 @@ module helio_classes
       module subroutine helio_step_pl(self, system, param, t, dt)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(helio_pl),              intent(inout) :: self   !! WHM massive body particle data structure
+         class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nboody system
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
