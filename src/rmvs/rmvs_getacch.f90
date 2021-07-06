@@ -31,7 +31,7 @@ contains
                class is (rmvs_pl)
                select type (cb => system%cb)
                class is (rmvs_cb)
-                  associate(xpc => pl%xh, xpct => self%xh)
+                  associate(xpc => pl%xh, xpct => self%xh, apct => self%ah)
                      allocate(xh_original, source=tp%xh)
                      param_planetocen = param
                      ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter
@@ -39,7 +39,7 @@ contains
                      param_planetocen%lextra_force = .false.
                      param_planetocen%lgr = .false.
                      ! Now compute the planetocentric values of acceleration
-                     call whm_getacch_tp(tp, system, param, t, xhp)
+                     call whm_getacch_tp(tp, system, param_planetocen, t, xhp)
 
                      ! Now compute any heliocentric values of acceleration 
                      if (tp%lfirst) then

@@ -17,7 +17,7 @@ contains
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
 
-      associate(n => self%nbody)
+      associate(n => self%nbody, xh => self%xh, vh => self%vh, ah => self%ah)
          do i = 1, n 
             r2 = dot_product(self%xh(:, i), self%xh(:, i))
             irh = 1.0_DP / sqrt(r2)
@@ -26,8 +26,8 @@ contains
             t1 = 1.5_DP * cb%j2rp2
             t2 = self%xh(3, i) * self%xh(3, i) * rinv2
             t3 = 1.875_DP * cb%j4rp4 * rinv2
-            fac1 = t0 * (t1 - t3 - (5.0_DP * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
-            fac2 = 2.0_DP * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
+            fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
+            fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
             self%aobl(:, i) = fac1 * self%xh(:, i)
             self%aobl(3, i) = fac2 * self%xh(3, i) + self%aobl(3, i)
          end do
