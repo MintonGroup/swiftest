@@ -24,7 +24,7 @@ contains
          allocate(pl%inner(0:NTPHENC))
          if (.not.pl%lplanetocentric) then
             allocate(pl%nenc(n))
-            pl%nenc(:)         = 0
+            pl%nenc(:) = 0
 
             ! Set up inner and outer planet interpolation vector storage containers
             do i = 0, NTENC
@@ -108,14 +108,14 @@ contains
                associate(npl => pl%nbody)
                   allocate(pl%planetocentric(npl))
                   do i = 1, npl
-                     pl%planetocentric(i)%lplanetocentric = .true.
                      allocate(pl%planetocentric(i)%cb, source=cb)
-                     allocate(rmvs_cb :: pl%planetocentric(i)%cb)
                      allocate(rmvs_pl :: pl%planetocentric(i)%pl)
                      select type(cbenci => pl%planetocentric(i)%cb)
                      class is (rmvs_cb)
                         select type(plenci => pl%planetocentric(i)%pl)
                         class is (rmvs_pl)
+                           cbenci%lplanetocentric = .true.
+                           plenci%lplanetocentric = .true.
                            call plenci%setup(npl)
                            plenci%status(:) = ACTIVE
                            ! plind stores the heliocentric index value of a planetocentric planet
