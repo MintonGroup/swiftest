@@ -85,10 +85,10 @@ contains
 
       select type(system)
       class is (whm_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl)
+         associate(tp => self, cb => system%cb, pl => system%pl, xbeg => system%xbeg, xend => system%xend)
             dth = 0.5_DP * dt
             if (tp%lfirst) then
-               call tp%getacch(system, param, t, system%xbeg)
+               call tp%getacch(system, param, t, xbeg)
                tp%lfirst = .false.
             end if
             call tp%kickvh(dth)
@@ -96,7 +96,7 @@ contains
             if (param%lgr) call tp%gr_p4(param, dth)
             call tp%drift(system, param, dt)
             if (param%lgr) call tp%gr_p4(param, dth)
-            call tp%getacch(system, param, t + dt, system%xend)
+            call tp%getacch(system, param, t + dt, xend)
             call tp%kickvh(dth)
          end associate
       end select

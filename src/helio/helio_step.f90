@@ -17,22 +17,22 @@ contains
 
       select type(system => self)
       class is (helio_nbody_system)
-      select type(cb => self%cb)
-      class is (helio_cb)
-      select type(pl => self%pl)
-      class is (helio_pl)
-      select type(tp => self%tp)
-      class is (helio_tp)
-         call pl%set_rhill(cb)
-         call tp%set_beg_end(xbeg = pl%xh)
-         call pl%step(system, param, t, dt)
-         if (ntp > 0) then
-            call tp%set_beg_end(xend = pl%xh)
-            call tp%step(system, param, t, dt)
-         end if
-      end select
-      end select
-      end select
+         select type(cb => self%cb)
+         class is (helio_cb)
+            select type(pl => self%pl)
+            class is (helio_pl)
+               select type(tp => self%tp)
+               class is (helio_tp)
+                  call pl%set_rhill(cb)
+                  call system%set_beg_end(xbeg = pl%xh)
+                  call pl%step(system, param, t, dt)
+                  if (tp%nbody > 0) then
+                     call system%set_beg_end(xend = pl%xh)
+                     call tp%step(system, param, t, dt)
+                  end if
+               end select
+            end select
+         end select
       end select
       return
    end subroutine helio_step_system 
@@ -57,21 +57,21 @@ contains
       real(DP), dimension(NDIM) :: ptbeg, ptend !! TODO: Incorporate these into the tp structure
       logical, save :: lfirst = .true.
   
-      associate(cb => system%cb)
+      associate(pl => self, cb => system%cb)
          dth = 0.5_DP * dt
          if (lfirst) then
-            call self%vh2vb(cb)
+            call pl%vh2vb(cb)
             lfirst = .false.
          end if
-         call self%lindrift(cb, dth, ptbeg)
-         call self%getacch(system, param, t)
-         call self%kickvb(dth)
+         call pl%lindrift(cb, dth, ptbeg)
+         call pl%getacch(system, param, t)
+         call pl%kickvb(dth)
 
-         call self%drift(system, param, dt)
-         call self%getacch(system, param, t + dt)
-         call self%kickvb(dth)
-         call self%lindrift(cb, dth, ptend)
-         call self%vb2vh(cb)
+         call pl%drift(system, param, dt)
+         call pl%getacch(system, param, t + dt)
+         call pl%kickvb(dth)
+         call pl%lindrift(cb, dth, ptend)
+         call pl%vb2vh(cb)
       end associate
    
       return
@@ -79,6 +79,7 @@ contains
    end subroutine helio_step_pl
 
    module subroutine helio_step_tp(self, system, param, t, dt)
+
       !! author: David A. Minton
       !!
       !! Step active test particles ahead using Democratic Heliocentric method
@@ -96,22 +97,24 @@ contains
       logical, save  :: lfirst = .true. !! Flag to indicate that this is the first call
       real(DP) :: dth   !! Half step size
    
-   ! executable code
-      associate(cb => system%cb, pl => system%pl)
-         dth = 0.5_DP * dt
-         if (lfirst) then
-            call self%vh2vb(vbcb = -self%ptbeg)
-            lfirst = .false.
-         end if
-         call self%lindrift(dth, self%ptbeg)
-         call self%getacch(system, param, t, self%xbeg)
-         call self%kickvb(dth)
-         call self%drift(system, param, dt)
-         call self%getacch(system, param, t + dt, self%xend)
-         call self%kickvb(dth)
-         call self%lindrift(dth, self%ptend)
-         call self%vb2vh(vbcb = -self%ptend)
-      end associate
+      select type(system)
+      class is (helio_nbody_system)
+         associate(tp => self, cb => system%cb, pl => system%pl, xbeg => system%xbeg, xend => system%xend)
+            dth = 0.5_DP * dt
+            if (lfirst) then
+               call tp%vh2vb(vbcb = -tp%ptbeg)
+               lfirst = .false.
+            end if
+            call tp%lindrift(dth, tp%ptbeg)
+            call tp%getacch(system, param, t, xbeg)
+            call tp%kickvb(dth)
+            call tp%drift(system, param, dt)
+            call tp%getacch(system, param, t + dt, xend)
+            call tp%kickvb(dth)
+            call tp%lindrift(dth, tp%ptend)
+            call tp%vb2vh(vbcb = -tp%ptend)
+         end associate
+      end select
    
       return
    

@@ -5,7 +5,22 @@ module swiftest_classes
    !! Adapted from David E. Kaufmann's Swifter routine: module_swifter.f90
    use swiftest_globals
    implicit none
-   public
+   private
+   public :: discard_pl_tp, discard_sun_tp, discard_system
+   public :: drift_one
+   public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
+   public :: kick_vb_body, kick_vh_body
+   public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_param_reader, io_param_writer, io_read_body_in, &
+             io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, io_read_initialize_system, &
+             io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
+   public :: obl_acc_body
+   public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
+   public :: setup_body, setup_construct_system, setup_pl, setup_set_ir3h, setup_set_msys, setup_set_mu_pl, setup_set_mu_tp, &
+             setup_set_rhill, setup_tp
+   public :: user_getacch_body
+   public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_copy_body, util_copy_cb, util_copy_pl, &
+             util_copy_tp, util_copy_system, util_fill_body, util_fill_pl, util_fill_tp, util_reverse_status, util_spill_body, &
+             util_spill_pl, util_spill_tp
 
    !********************************************************************************************************************************
    ! swiftest_parameters class definitions 
@@ -62,10 +77,11 @@ module swiftest_classes
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
    contains
-      procedure :: reader         => io_param_reader
-      procedure :: writer         => io_param_writer
-      procedure :: dump           => io_dump_param
-      procedure :: read_from_file => io_read_param_in
+      private
+      procedure, public :: reader         => io_param_reader
+      procedure, public :: writer         => io_param_writer
+      procedure, public :: dump           => io_dump_param
+      procedure, public :: read_from_file => io_read_param_in
       !TODO: Figure out if user-defined derived-type io can be made to work properly
       !generic   :: read(FORMATTED) => param_reader
       !generic   :: write(FORMATTED) => param_writer
@@ -379,28 +395,6 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize
       end subroutine kick_vh_body
 
-      module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
-         implicit none
-         class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
-         integer(I4B),               intent(in)    :: unit       !! File unit number
-         character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                                 !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer(I4B),               intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
-         integer(I4B),               intent(out)   :: iostat     !! IO status code
-         character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
-      end subroutine io_param_reader
-
-      module subroutine io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
-         implicit none
-         class(swiftest_parameters), intent(in)    :: self         !! Collection of parameters
-         integer(I4B),               intent(in)    :: unit       !! File unit number
-         character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                                 !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer(I4B),               intent(in)    :: v_list(:)  !! Not used in this procedure
-         integer(I4B),               intent(out)   :: iostat     !! IO status code
-         character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
-      end subroutine io_param_writer
-
       module subroutine io_dump_param(self, param_file_name)
          implicit none
          class(swiftest_parameters),intent(in)    :: self    !! Output collection of parameters
@@ -425,16 +419,30 @@ module swiftest_classes
          implicit none
          integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-         integer(I4B)                  :: ierr             !! I/O error code
+         integer(I4B)                  :: ierr             !! I/O error code 
       end function io_get_args
 
-      module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
-         character(len=*), intent(in)     :: buffer         !! Input string buffer
-         integer(I4B), intent(inout)      :: ifirst         !! Index of the buffer at which to start the search for a token
-         integer(I4B), intent(out)        :: ilast          !! Index of the buffer at the end of the returned token
-         integer(I4B), intent(out)        :: ierr           !! Error code
-         character(len=:),allocatable     :: token          !! Returned token string
-      end function io_get_token
+      module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
+         implicit none
+         class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
+         integer(I4B),               intent(in)    :: unit       !! File unit number
+         character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+                                                                 !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+         integer(I4B),               intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
+         integer(I4B),               intent(out)   :: iostat     !! IO status code
+         character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
+      end subroutine io_param_reader
+
+      module subroutine io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
+         implicit none
+         class(swiftest_parameters), intent(in)    :: self         !! Collection of parameters
+         integer(I4B),               intent(in)    :: unit       !! File unit number
+         character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+                                                                 !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+         integer(I4B),               intent(in)    :: v_list(:)  !! Not used in this procedure
+         integer(I4B),               intent(out)   :: iostat     !! IO status code
+         character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
+      end subroutine io_param_writer
 
       module subroutine io_read_body_in(self, param) 
          implicit none
@@ -493,6 +501,15 @@ module swiftest_classes
          class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
          class(swiftest_body),          intent(inout) :: discards !! Swiftest discard object 
       end subroutine io_write_discard
+
+      module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+                                           xh1, xh2, vh1, vh2, encounter_file, out_type)
+         implicit none
+         integer(I4B),           intent(in) :: name1, name2
+         real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
+         real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
+         character(*),           intent(in) :: encounter_file, out_type
+      end subroutine io_write_encounter
 
       module subroutine io_write_frame_body(self, iu, param)
          implicit none
@@ -650,7 +667,6 @@ module swiftest_classes
          class(swiftest_base),       intent(in)    :: src
          logical, dimension(:),      intent(in)    :: mask
       end subroutine util_copy_cb
-
 
       module subroutine util_copy_pl(self, src, mask)
          implicit none

@@ -21,16 +21,13 @@ contains
       real(DP), dimension(:), allocatable, save    :: irh
       real(DP), dimension(:, :), allocatable, save :: xh_loc, aobl
 
-      associate(pl => self, npl => self%nbody)
-         !if (lflag) then
-            pl%ahi(:,2:npl) = 0.0_DP
-            call helio_getacch_int_pl(pl, t)
-         !end if
-         !if (param%loblatecb) call self%obl_acc(cb) TODO: Fix this
-         !else
+      associate(cb => system%cb, pl => self, npl => self%nbody)
+         pl%ahi(:,2:npl) = 0.0_DP
+         call helio_getacch_int_pl(pl, t)
          pl%ah(:,:) = pl%ahi(:,:)
-         !end if
+         if (param%loblatecb) call pl%obl_acc(cb)
          if (param%lextra_force) call pl%user_getacch(system, param, t)
+         if (param%lgr) call pl%gr_getacch(param)
       end associate
 
       return
@@ -56,18 +53,15 @@ contains
          real(DP)                                     :: r2, mu
          real(DP), dimension(:), allocatable, save    :: irh, irht
       
-      ! executable code
-         associate(tp => self, ntp => self%nbody, npl => system%pl%nbody)
+         associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
             select type(pl => system%pl)
-            class is (rmvs_pl)
-               !if (lflag) then
-                  self%ahi(:,:) = 0.0_DP
-                  call helio_getacch_int_tp(tp, pl, t, xhp)
-               !end if
-               !if (param%loblatecb) call self%obl_acc(cb) TODO: Fix this
+            class is (helio_pl)
+               self%ahi(:,:) = 0.0_DP
+               call helio_getacch_int_tp(tp, pl, t, xhp)
                tp%ah(:,:) = tp%ahi(:,:)
+               if (param%loblatecb) call tp%obl_acc(cb) 
                if (param%lextra_force) call tp%user_getacch(system, param, t)
-               if (param%lgr) call tp%gr_getacch(system, param)
+               if (param%lgr) call tp%gr_getacch(param)
             end select
          end associate
          return
@@ -95,10 +89,10 @@ contains
                   dx(:) = pl%xh(:,j) - pl%xh(:,i)
                   rji2 = dot_product(dx(:), dx(:))
                   irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                  faci = self%Gmass(i) * irij3
-                  facj = self%Gmass(j) * irij3
-                  self%ahi(:,i) = self%ahi(:,i) + facj * dx(:)
-                  self%ahi(:,i) = self%ahi(:,j) - faci * dx(:)
+                  faci = pl%Gmass(i) * irij3
+                  facj = pl%Gmass(j) * irij3
+                  pl%ahi(:,i) = pl%ahi(:,i) + facj * dx(:)
+                  pl%ahi(:,i) = pl%ahi(:,j) - faci * dx(:)
                end do
             end do
          end associate
@@ -115,10 +109,10 @@ contains
          !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
          implicit none
          ! Arguments
-         class(helio_tp),               intent(inout) :: tp     !! Helio test particle data structure
-         class(helio_pl),               intent(inout) :: pl       !! Helio massive body particle data structure
-         real(DP),                      intent(in)    :: t        !! Current time
-         real(DP), dimension(:,:),      intent(in)    :: xhp     !! Heliocentric positions of planets
+         class(helio_tp),          intent(inout) :: tp     !! Helio test particle data structure
+         class(swiftest_pl),       intent(inout) :: pl       !! Helio massive body particle data structure
+         real(DP),                 intent(in)    :: t        !! Current time
+         real(DP), dimension(:,:), intent(in)    :: xhp     !! Heliocentric positions of planets
          ! Internals
          integer(I4B)              :: i, j
          real(DP)                  :: r2, fac

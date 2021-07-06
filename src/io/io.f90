@@ -517,13 +517,13 @@ contains
    module function io_get_args(integrator, param_file_name) result(ierr)
       !! author: David A. Minton
       !!
-      !! Reads in the name of the parameters file. 
+      !! Reads in the name of the parameter file from command line arguments. 
       implicit none
       ! Arguments
       integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), allocatable :: param_file_name !! Name of the input parameters file
       ! Result
-      integer(I4B)                  :: ierr             !! I/O error cod
+      integer(I4B)                  :: ierr             !! I/O error code
       ! Internals
       character(len=STRMAX) :: arg1, arg2
       integer :: narg,ierr_arg1, ierr_arg2
@@ -574,7 +574,7 @@ contains
       if (ierr /= 0) call util_exit(USAGE) 
    end function io_get_args
 
-   module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
+   function io_get_token(buffer, ifirst, ilast, ierr) result(token)
       !! author: David A. Minton
       !!
       !! Retrieves a character token from an input string. Here a token is defined as any set of contiguous non-blank characters not 
@@ -1126,7 +1126,7 @@ contains
    
    end subroutine io_write_discard
 
-   subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+   module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
                                  xh1, xh2, vh1, vh2, encounter_file, out_type)
       !! author: David A. Minton
       !!

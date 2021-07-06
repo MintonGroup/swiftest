@@ -18,7 +18,7 @@ contains
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
 
-      associate(pl => self, npl => self%nbody)
+      associate(cb => system%cb, pl => self, npl => self%nbody)
          if (npl == 0) return
          call pl%set_ir3()
 
@@ -26,17 +26,14 @@ contains
          do i = 1, npl
             pl%ah(:, i) = ah0(:)
          end do
-         select type(cb => system%cb)
-         class is (whm_cb)
 
-            call whm_getacch_ah1(cb, pl) 
-            call whm_getacch_ah2(cb, pl) 
-            call whm_getacch_ah3(pl)
+         call whm_getacch_ah1(cb, pl) 
+         call whm_getacch_ah2(cb, pl) 
+         call whm_getacch_ah3(pl)
 
-            if (param%loblatecb) call pl%obl_acc(cb)
-            if (param%lextra_force) call pl%user_getacch(system, param, t)
-            if (param%lgr) call pl%gr_getacch(param) 
-         end select
+         if (param%loblatecb) call pl%obl_acc(cb)
+         if (param%lextra_force) call pl%user_getacch(system, param, t)
+         if (param%lgr) call pl%gr_getacch(param) 
 
       end associate
       return
@@ -63,7 +60,7 @@ contains
       associate(tp => self, ntp => self%nbody, pl => system%pl, cb => system%cb, npl => system%pl%nbody)
          if (ntp == 0 .or. npl == 0) return
 
-         ah0 = whm_getacch_ah0(pl%Gmass(:), xhp(:,:), npl)
+         ah0(:) = whm_getacch_ah0(pl%Gmass(:), xhp(:,:), npl)
          do i = 1, ntp
             tp%ah(:, i) = ah0(:)
          end do
@@ -110,8 +107,8 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
       implicit none
       ! Arguments
-      class(whm_cb), intent(in)    :: cb !! WHM central body object
-      class(whm_pl), intent(inout) :: pl !! WHM massive body object
+      class(swiftest_cb), intent(in)    :: cb !! WHM central body object
+      class(whm_pl),      intent(inout) :: pl !! WHM massive body object
       ! Internals
       integer(I4B)                 :: i
       real(DP), dimension(NDIM)    :: ah1h, ah1j
@@ -137,8 +134,8 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
       implicit none
       ! Arguments
-      class(whm_cb), intent(in)    :: cb !! Swiftest central body object
-      class(whm_pl), intent(inout) :: pl !! WHM massive body object
+      class(swiftest_cb), intent(in)    :: cb !! Swiftest central body object
+      class(whm_pl),      intent(inout) :: pl !! WHM massive body object
       ! Internals
       integer(I4B)                 :: i
       real(DP)                     :: etaj, fac
@@ -169,15 +166,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
       implicit none
 
-      class(whm_pl),           intent(inout)       :: pl
-      integer(I4B)                                 :: i, j
-      real(DP)                                     :: rji2, irij3, faci, facj
-      real(DP), dimension(NDIM)                    :: dx
-      real(DP), dimension(:,:), allocatable        :: ah3
+      class(whm_pl),           intent(inout) :: pl
+      integer(I4B)                           :: i, j
+      real(DP)                               :: rji2, irij3, faci, facj
+      real(DP), dimension(NDIM)              :: dx
+      real(DP), dimension(:,:), allocatable  :: ah3
    
       associate(npl => pl%nbody)
          allocate(ah3, mold=pl%ah)
-         ah3(:, 1:npl) = 0.0_DP
+         ah3(:, :) = 0.0_DP
 
          do i = 1, npl - 1
             do j = i + 1, npl
