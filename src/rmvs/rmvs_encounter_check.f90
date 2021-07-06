@@ -1,7 +1,7 @@
 submodule (rmvs_classes) s_rmvs_chk
    use swiftest
 contains
-   module function rmvs_encounter_check_tp(self, cb, pl, dt, rts) result(lencounter)
+   module function rmvs_encounter_check_tp(self, system, dt) result(lencounter)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -10,38 +10,39 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_chk.f
       implicit none
       ! Arguments
-      class(rmvs_tp),            intent(inout) :: self        !! RMVS test particle object  
-      class(rmvs_cb),            intent(inout) :: cb          !! RMVS central body object  
-      class(rmvs_pl),       intent(inout) :: pl          !! RMVS massive body object  
-      real(DP),                  intent(in)    :: dt          !! step size
-      real(DP),                  intent(in)    :: rts         !! fraction of Hill's sphere radius to use as radius of encounter regio
-      logical                                  :: lencounter  !! Returns true if there is at least one close encounter
+      class(rmvs_tp),           intent(inout) :: self   !! RMVS test particle object  
+      class(rmvs_nbody_system), intent(inout) :: system !! RMVS nbody system object
+      real(DP),                 intent(in)    :: dt     !! step size
+      ! Result
+      logical                                 :: lencounter  !! Returns true if there is at least one close encounter
       ! Internals
-      integer(I4B)                             :: i, j
-      real(DP)                                 :: r2, v2, vdotr
-      real(DP), dimension(NDIM)                :: xr, vr
-      real(DP), dimension(pl%nbody)            :: r2crit
-      logical                                  :: lflag
+      integer(I4B)                            :: i, j
+      real(DP)                                :: r2, v2, vdotr
+      real(DP), dimension(NDIM)               :: xr, vr
+      real(DP), dimension(system%pl%nbody)    :: r2crit
+      logical                                 :: lflag
 
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody, rhill => pl%rhill, xht => self%xh, vht => self%vh, &
-                 xbeg => self%xbeg, vbeg => self%vbeg, status => self%status, plencP => self%plencP, nenc => pl%nenc)
-         r2crit(:) = (rts * rhill(:))**2
-         plencP(:) = 0
-         do j = 1, npl
-            do i = 1, ntp
-               if ((status(i) /= ACTIVE).or.(plencP(i) /= 0)) cycle
-               xr(:) = xht(:, i) - xbeg(:, j)
-               vr(:) = vht(:, i) - vbeg(:, j)
-               r2 = dot_product(xr(:), xr(:))
-               v2 = dot_product(vr(:), vr(:))
-               vdotr = dot_product(vr(:), xr(:))
-               lflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit(j))
-               if (lflag) plencP(i) = j
+      select type(pl => system%pl)
+      class is (rmvs_pl)
+         associate(tp => self, ntp => self%nbody, npl => pl%nbody, xbeg => system%xbeg, vbeg => system%vbeg, rts => system%rts)
+            r2crit(:) = (rts * pl%rhill(:))**2
+            tp%plencP(:) = 0
+            do j = 1, npl
+               do i = 1, ntp
+                  if ((tp%status(i) /= ACTIVE).or.(tp%plencP(i) /= 0)) cycle
+                  xr(:) = tp%xh(:, i) - xbeg(:, j)
+                  vr(:) = tp%vh(:, i) - vbeg(:, j)
+                  r2 = dot_product(xr(:), xr(:))
+                  v2 = dot_product(vr(:), vr(:))
+                  vdotr = dot_product(vr(:), xr(:))
+                  lflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit(j))
+                  if (lflag) tp%plencP(i) = j
+               end do
+               pl%nenc(j) = count(tp%plencP(:) == j)
             end do
-            nenc(j) = count(plencP(:) == j)
-         end do
-         lencounter = any(nenc(:) > 0)
-      end associate
+            lencounter = any(pl%nenc(:) > 0)
+         end associate
+      end select
       return
    end function rmvs_encounter_check_tp
 

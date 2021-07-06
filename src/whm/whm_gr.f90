@@ -1,8 +1,7 @@
 submodule(whm_classes) s_whm_gr
    use swiftest
 contains
-   module subroutine whm_gr_getacch_pl(self, cb, param)
-      !! author: David A. Minton
+   module subroutine whm_gr_getacch_pl(self, param) !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
       !!    Based on Saha & Tremaine (1994) Eq. 28
@@ -10,20 +9,18 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
       implicit none
       ! Arguments
-      class(whm_pl),       intent(inout)           :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),  intent(inout)           :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(whm_pl),              intent(inout) :: self   !! WHM massive body particle data structure
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: suma
       real(DP), dimension(:, :), allocatable       :: aj
       real(DP)                                     :: beta, rjmag4
       
-      associate(n => self%nbody, msun => cb%Gmass, mu => self%muj, c2 => param%inv_c2, &
+      associate(n => self%nbody, mu => self%muj, c2 => param%inv_c2, &
          ah => self%ah, xj => self%xj, GMpl => self%Gmass, eta => self%eta)
          if (n == 0) return
          allocate(aj, mold = ah)
-         !do concurrent(i = 1:n)
          do i = 1, n
             rjmag4 = (dot_product(xj(:, i), xj(:, i)))**2
             beta   = - mu(i)**2 * c2 
@@ -39,7 +36,7 @@ contains
       return
    end subroutine whm_gr_getacch_pl
 
-   module subroutine whm_gr_getacch_tp(self, cb, param)
+   module subroutine whm_gr_getacch_tp(self, param)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of test particles
@@ -48,17 +45,15 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
       implicit none
       ! Arguments
-      class(whm_tp),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
+      class(whm_tp),              intent(inout) :: self   !! WHM massive body particle data structure
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP)                                     :: rjmag4, beta
       
-      associate(n => self%nbody, msun => cb%Gmass, mu => self%mu,& 
+      associate(n => self%nbody, mu => self%mu,& 
          c2 => param%inv_c2, ah => self%ah, xh => self%xh, status => self%status)
          if (n == 0) return
-         !do concurrent (i = 1:n, status(i) == active)
          do i = 1, n
             rjmag4 = (dot_product(xh(:, i), xh(:, i)))**2
             beta = - mu(i)**2 * c2 
@@ -77,15 +72,14 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_p4.f90
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
-      real(DP),                      intent(in)    :: dt     !! Step size
+      class(whm_pl),              intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      real(DP),                   intent(in)    :: dt     !! Step size
       ! Internals
       integer(I4B)                                 :: i
 
       associate(n => self%nbody, xj => self%xj, vj => self%vj, status => self%status, c2 => param%inv_c2)
          if (n == 0) return
-         !do concurrent (i = 1:n, status(i) == ACTIVE)
          do i = 1,n
             call p4_func(xj(:, i), vj(:, i), dt, c2)
          end do
@@ -104,7 +98,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       real(DP),                      intent(in)    :: dt     !! Step size
       ! Internals
       integer(I4B)                                 :: i
@@ -128,7 +122,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
@@ -154,7 +148,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: vh !! Temporary holder of pseudovelocity for in-place conversion
@@ -180,7 +174,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -206,7 +200,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                 intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -234,7 +228,7 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_vel2pseudovel.f90
       implicit none
 
-      class(swiftest_parameters), intent(in)  :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
       real(DP), dimension(:),        intent(in)  :: vh     !! Heliocentric velocity vector 
@@ -306,7 +300,7 @@ contains
       !!
       !! Adapted from David A. Minton's Swifter routine gr_pseudovel2vel.f90 
       implicit none
-      class(swiftest_parameters), intent(in)  :: param !! Input collection of  parameters parameters 
+      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
       real(DP),                      intent(in)  :: mu     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
       real(DP), dimension(:),        intent(in)  :: xh     !! Heliocentric position vector 
       real(DP), dimension(:),        intent(in)  :: pv     !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)

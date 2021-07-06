@@ -9,7 +9,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-      type(swiftest_parameters),                intent(in)    :: param     !! Swiftest parameters parameters
+      type(swiftest_parameters),                   intent(in)    :: param     !! Swiftest parameters
 
       select case(param%integrator)
       case (BS)
@@ -58,13 +58,15 @@ contains
       return
    end subroutine setup_construct_system
 
-   module procedure setup_body
+   module subroutine setup_body(self,n)
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
       !! initializes all components with a value.
       !! Note: Timing tests indicate that (NDIM, n) is more efficient than (NDIM, n) 
       implicit none
+      class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
+      integer,                      intent(in)    :: n    !! Number of particles to allocate space for
 
       self%nbody = n
       if (n <= 0) return
@@ -108,14 +110,16 @@ contains
       self%mu(:)     = 0.0_DP
 
       return
-   end procedure setup_body
+   end subroutine setup_body
 
-   module procedure setup_pl
+   module subroutine setup_pl(self,n)
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest massive body class. Allocates space for all particles and
       !! initializes all components with a value. 
       implicit none
+      class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
+      integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
 
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
@@ -143,14 +147,16 @@ contains
       self%Q(:) = 0.0_DP
       self%num_comparisons = 0   
       return
-   end procedure setup_pl
+   end subroutine setup_pl
 
-   module procedure setup_tp
+   module subroutine setup_tp(self, n)
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest test particle particle class. Allocates space for 
       !! all particles and initializes all components with a value. 
       implicit none
+      class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
+      integer,                      intent(in)    :: n    !! Number of bodies to allocate space for
 
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
@@ -166,45 +172,52 @@ contains
       self%atp(:)    = 0.0_DP
 
       return
-   end procedure setup_tp
+   end subroutine setup_tp
 
-   module procedure setup_set_msys
+   module subroutine setup_set_msys(self)
       !! author: David A. Minton
       !!
       !! Sets the value of msys and the vector mass quantities based on the total mass of the system
+      implicit none
+      class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system objec
       self%msys = self%cb%mass + sum(self%pl%mass(1:self%pl%nbody))
 
       return
-   end procedure setup_set_msys
+   end subroutine setup_set_msys
 
-   module procedure setup_set_mu_pl
+   module subroutine setup_set_mu_pl(self, cb)
       !! author: David A. Minton
       !!
       !! Computes G * (M + m) for each massive body
       implicit none
+      class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
+      class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
       if (self%nbody > 0) self%mu(:) = cb%Gmass + self%Gmass(:)
 
       return
-   end procedure setup_set_mu_pl
+   end subroutine setup_set_mu_pl
 
-   module procedure setup_set_mu_tp
+   module subroutine setup_set_mu_tp(self, cb)
       !! author: David A. Minton
       !!
       !! Converts certain scalar values to arrays so that they can be used in elemental functions
       implicit none
+      class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
+      class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
       if (self%nbody > 0) self%mu(:) = cb%Gmass
 
       return
-   end procedure setup_set_mu_tp
+   end subroutine setup_set_mu_tp
 
-   module procedure setup_set_rhill
+   module subroutine setup_set_rhill(self,cb)
       !! author: David A. Minton
       !!
       !! Sets the value of the Hill's radius
       implicit none
-
+      class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
+      class(swiftest_cb),           intent(inout) :: cb   !! Swiftest massive body object
 
       if (self%nbody > 0) then
          call self%xv2el(cb) 
@@ -212,13 +225,14 @@ contains
       end if
 
       return
-   end procedure setup_set_rhill
+   end subroutine setup_set_rhill
 
-   module procedure setup_set_ir3h  
+   module subroutine setup_set_ir3h(self)
       !! author: David A. Minton
       !!
       !! Sets the inverse heliocentric radius term (1/rh**3) for all bodies in a structure
       implicit none
+      class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
 
       integer(I4B) :: i
       real(DP) :: r2, irh
@@ -233,6 +247,6 @@ contains
       end if
 
       return
-   end procedure setup_set_ir3h
+   end subroutine setup_set_ir3h
 
 end submodule s_setup

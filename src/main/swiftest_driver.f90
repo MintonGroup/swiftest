@@ -12,7 +12,7 @@ program swiftest_driver
    class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
    type(swiftest_parameters)               :: param
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters parameters
+   character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters
    integer(I4B)                               :: ierr             !! I/O error code 
    logical                                    :: lfirst           !! Flag indicating that this is the first time through the main loop
    integer(I8B)                               :: iloop            !! Loop counter
@@ -48,7 +48,7 @@ program swiftest_driver
       iloop = 0
       iout = istep_out
       idump = istep_dump
-      if (istep_out > 0) call nbody_system%write_frame(iu, param, t, dt)
+      if (istep_out > 0) call nbody_system%write_frame(iu, param)
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
       !$ nthreads = omp_get_max_threads() ! In the *parallel* case
@@ -60,10 +60,9 @@ program swiftest_driver
          ntp = nbody_system%tp%nbody
          npl = nbody_system%pl%nbody
          !> Step the system forward in time
-         call nbody_system%step(param)
+         call nbody_system%step(param, t, dt)
 
          t = t0 + iloop * dt
-         if (t > tstop) exit 
 
          !> Evaluate any discards or mergers
          call nbody_system%discard(param)
@@ -72,7 +71,7 @@ program swiftest_driver
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
-               call nbody_system%write_frame(iu, param, t, dt)
+               call nbody_system%write_frame(iu, param)
                iout = istep_out
             end if
          end if
@@ -81,10 +80,11 @@ program swiftest_driver
          if (istep_dump > 0) then
             idump = idump - 1
             if (idump == 0) then
-               call nbody_system%dump(param, t, dt, statusfmt)
+               call nbody_system%dump(param, statusfmt)
                idump = istep_dump
             end if
          end if
+         if (t > tstop) exit 
       end do
 
       !> Dump the final state of the system to file

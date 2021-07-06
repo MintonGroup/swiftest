@@ -5,13 +5,28 @@ module swiftest_classes
    !! Adapted from David E. Kaufmann's Swifter routine: module_swifter.f90
    use swiftest_globals
    implicit none
-   public
+   private
+   public :: discard_pl_tp, discard_sun_tp, discard_system
+   public :: drift_one
+   public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
+   public :: kick_vb_body, kick_vh_body
+   public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_param_reader, io_param_writer, io_read_body_in, &
+             io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, io_read_initialize_system, &
+             io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
+   public :: obl_acc_body
+   public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
+   public :: setup_body, setup_construct_system, setup_pl, setup_set_ir3h, setup_set_msys, setup_set_mu_pl, setup_set_mu_tp, &
+             setup_set_rhill, setup_tp
+   public :: user_getacch_body
+   public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_copy_body, util_copy_cb, util_copy_pl, &
+             util_copy_tp, util_copy_system, util_fill_body, util_fill_pl, util_fill_tp, util_reverse_status, util_spill_body, &
+             util_spill_pl, util_spill_tp
 
    !********************************************************************************************************************************
    ! swiftest_parameters class definitions 
    !********************************************************************************************************************************
 
-   !> User defined parameters parameters that are read in from the parameters input file. 
+   !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type, public :: swiftest_parameters
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
@@ -62,10 +77,11 @@ module swiftest_classes
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
    contains
-      procedure :: reader         => io_param_reader
-      procedure :: writer         => io_param_writer
-      procedure :: dump           => io_dump_param
-      procedure :: read_from_file => io_read_param_in
+      private
+      procedure, public :: reader         => io_param_reader
+      procedure, public :: writer         => io_param_writer
+      procedure, public :: dump           => io_dump_param
+      procedure, public :: read_from_file => io_read_param_in
       !TODO: Figure out if user-defined derived-type io can be made to work properly
       !generic   :: read(FORMATTED) => param_reader
       !generic   :: write(FORMATTED) => param_writer
@@ -141,10 +157,9 @@ module swiftest_classes
       !!    component list, such as setup_body and util_spill
    contains
       private
-      procedure(abstract_set_mu),  public, deferred :: set_mu
-      procedure(abstract_gr_getacch), public, deferred :: gr_getacch
+      procedure(abstract_set_mu),     public, deferred :: set_mu
+      procedure(abstract_step_body),  public, deferred :: step
       ! These are concrete because the implementation is the same for all types of particles
-      procedure, public :: gr_getaccb     => gr_getaccb_ns_body  !! Add relativistic correction acceleration for non-symplectic integrators
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: write_frame    => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
@@ -268,92 +283,80 @@ module swiftest_classes
          logical, dimension(:),        intent(in)    :: mask
       end subroutine abstract_copy 
 
-      subroutine abstract_gr_getacch(self, cb, param)
-         import swiftest_body, swiftest_cb, swiftest_parameters
-         class(swiftest_body),          intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameter
-      end subroutine abstract_gr_getacch
-
       subroutine abstract_initialize(self, param) 
          import swiftest_base, swiftest_parameters
          class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
-         class(swiftest_parameters), intent(inout) :: param   !! Input collection of  parameters parameters 
+         class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
       end subroutine abstract_initialize
 
-      subroutine abstract_read_frame(self, iu, param, form, t, ierr)
+      subroutine abstract_read_frame(self, iu, param, form, ierr)
          import DP, I4B, swiftest_base, swiftest_parameters
          class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
          integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param   !! Input collection of  parameters parameters 
+         class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
          character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
-         real(DP),                      intent(out)   :: t        !! Simulation time
          integer(I4B),                  intent(out)   :: ierr     !! Error code
       end subroutine abstract_read_frame
 
       subroutine abstract_set_mu(self, cb) 
          import swiftest_body, swiftest_cb
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objectt
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine abstract_set_mu
 
-      subroutine abstract_step_system(self, param)
-         import swiftest_nbody_system, swiftest_parameters
+      subroutine abstract_step_body(self, system, param, t, dt)
+         import DP, swiftest_body, swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_parameters), intent(in)    :: param  !! Input collection of  parameters parameters 
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t       !! Simulation time
+         real(DP),                     intent(in)    :: dt     !! Current stepsize
+      end subroutine abstract_step_body
+
+      subroutine abstract_step_system(self, param, t, dt)
+         import DP, swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Simulation time
+         real(DP),                     intent(in)    :: dt     !! Current stepsize
       end subroutine abstract_step_system
 
-      subroutine abstract_write_frame(self, iu, param, t, dt)
+      subroutine abstract_write_frame(self, iu, param)
          import DP, I4B, swiftest_base, swiftest_parameters
-         class(swiftest_base),          intent(in)    :: self     !! Swiftest base object
-         integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param   !! Input collection of  parameters parameters 
-         real(DP),                      intent(in)    :: t        !! Current simulation time
-         real(DP),                      intent(in)    :: dt       !! Step size
+         class(swiftest_base),       intent(in)    :: self     !! Swiftest base object
+         integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
       end subroutine abstract_write_frame
    end interface
 
    interface
-      module subroutine discard_peri_tp(self, cb, pl, param, t, msys)
+      module subroutine discard_peri_tp(self, system, param)
          implicit none
-         class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
-         class(swiftest_pl),            intent(inout) :: pl     !! Swiftest massive body object
-         class(swiftest_parameters), intent(in)    :: param !!  parameters parameters
-         real(DP),                      intent(in)    :: t      !! Current simulation tim
-         real(DP),                      intent(in)    :: msys   !! Total system mass
+         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
       end subroutine discard_peri_tp
 
-      module subroutine discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
+      module subroutine discard_pl_tp(self, system, param)
          implicit none
-         real(DP), dimension(:), intent(in)    :: dx, dv
-         real(DP), intent(in)                  :: dt, r2crit
-         integer(I4B), intent(out)             :: iflag
-         real(DP), intent(out)                 :: r2min
-      end subroutine discard_pl_close
-
-      module subroutine discard_pl_tp(self, pl, t, dt)
-         implicit none
-         class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_pl),            intent(inout) :: pl     !! Swiftest massive body object
-         real(DP),                      intent(in)    :: t      !! Current simulation tim
-         real(DP),                      intent(in)    :: dt     !! Stepsize
+         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
       end subroutine discard_pl_tp
 
-      module subroutine discard_sun_tp(self, cb, param, t, msys)
+      module subroutine discard_sun_tp(self, system, param)
          implicit none
-         class(swiftest_tp),            intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body object
-         class(swiftest_parameters), intent(in)    :: param !!  parameters parameters
-         real(DP),                      intent(in)    :: t      !! Current simulation tim
-         real(DP),                      intent(in)    :: msys   !! Total system mass
+         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine discard_sun_tp
 
       module subroutine discard_system(self, param)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_parameters), intent(in)    :: param  !! Input collection of  parameters parameters 
+         class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine discard_system
 
       module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
@@ -366,33 +369,24 @@ module swiftest_classes
 
       module subroutine eucl_dist_index_plpl(self)
          implicit none
-         class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
       end subroutine
 
       module subroutine eucl_dist_index_pltp(self, pl)
          implicit none
-         class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
-         class(swiftest_pl),             intent(inout) :: pl    !! Swiftest massive body object
+         class(swiftest_tp), intent(inout) :: self  !! Swiftest test particle object
+         class(swiftest_pl), intent(inout) :: pl    !! Swiftest massive body object
       end subroutine
 
       module subroutine eucl_irij3_plpl(self)
          implicit none
-         class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
       end subroutine eucl_irij3_plpl
-
-      module subroutine gr_getaccb_ns_body(self, cb, param, agr, agr0) 
-         implicit none
-         class(swiftest_body),          intent(inout) :: self
-         class(swiftest_cb),            intent(inout) :: cb
-         class(swiftest_parameters), intent(in)    :: param
-         real(DP), dimension(:, :),     intent(inout) :: agr
-         real(DP), dimension(NDIM),     intent(out)   :: agr0
-      end subroutine gr_getaccb_ns_body
 
       module subroutine kick_vb_body(self, dt)
          implicit none
-         class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-         real(DP),                     intent(in)    :: dt   !! Stepsize
+         class(swiftest_body), intent(inout) :: self !! Swiftest generic body object
+         real(DP),             intent(in)    :: dt   !! Stepsize
       end subroutine kick_vb_body
 
       module subroutine kick_vh_body(self, dt)
@@ -401,48 +395,23 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize
       end subroutine kick_vh_body
 
-      module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
-         class(swiftest_parameters), intent(inout) :: self       !! Collection of  parameters parameters
-         integer, intent(in)                          :: unit       !! File unit number
-         character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                                  !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer, intent(in)                          :: v_list(:)  !! The first element passes the integrator code to the reader
-         integer, intent(out)                         :: iostat     !! IO status code
-         character(len=*), intent(inout)              :: iomsg      !! Message to pass if iostat /= 0
-      end subroutine io_param_reader
-
-      module subroutine io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
-         class(swiftest_parameters),intent(in)     :: self         !! Collection of  parameters parameters
-         integer, intent(in)                          :: unit       !! File unit number
-         character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                                  !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer, intent(in)                          :: v_list(:)  !! Not used in this procedure
-         integer, intent(out)                         :: iostat     !! IO status code
-         character(len=*), intent(inout)              :: iomsg      !! Message to pass if iostat /= 0
-      end subroutine io_param_writer
-
-      module subroutine io_dump_param(self, param_file_name, t, dt)
-         class(swiftest_parameters),intent(in) :: self    !! Output collection of  parameters
-         character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
-         real(DP),intent(in)                      :: t       !! Current simulation time
-         real(DP),intent(in)                      :: dt      !! Step size
+      module subroutine io_dump_param(self, param_file_name)
+         implicit none
+         class(swiftest_parameters),intent(in)    :: self    !! Output collection of parameters
+         character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_dump_param
 
-      module subroutine io_dump_swiftest(self, param, t, dt, msg) 
+      module subroutine io_dump_swiftest(self, param, msg) 
          implicit none
          class(swiftest_base),          intent(inout) :: self   !! Swiftest base object
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
-         real(DP),                      intent(in)    :: t      !! Current simulation time
-         real(DP),                      intent(in)    :: dt     !! Stepsize
+         class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
          character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       end subroutine io_dump_swiftest
 
-      module subroutine io_dump_system(self, param, t, dt, msg)
+      module subroutine io_dump_system(self, param, msg)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_parameters), intent(in)    :: param  !! Input collection of  parameters parameters 
-         real(DP),                      intent(in)    :: t       !! Current simulation time
-         real(DP),                      intent(in)    :: dt      !! Stepsize
+         class(swiftest_parameters),    intent(in)    :: param  !! Current run configuration parameters 
          character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       end subroutine io_dump_system
 
@@ -450,141 +419,118 @@ module swiftest_classes
          implicit none
          integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-         integer(I4B)                  :: ierr             !! I/O error code
+         integer(I4B)                  :: ierr             !! I/O error code 
       end function io_get_args
 
-      module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
-         character(len=*), intent(in)     :: buffer         !! Input string buffer
-         integer(I4B), intent(inout)      :: ifirst         !! Index of the buffer at which to start the search for a token
-         integer(I4B), intent(out)        :: ilast          !! Index of the buffer at the end of the returned token
-         integer(I4B), intent(out)        :: ierr           !! Error code
-         character(len=:),allocatable     :: token          !! Returned token string
-      end function io_get_token
+      module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
+         implicit none
+         class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
+         integer(I4B),               intent(in)    :: unit       !! File unit number
+         character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+                                                                 !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+         integer(I4B),               intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
+         integer(I4B),               intent(out)   :: iostat     !! IO status code
+         character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
+      end subroutine io_param_reader
+
+      module subroutine io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
+         implicit none
+         class(swiftest_parameters), intent(in)    :: self         !! Collection of parameters
+         integer(I4B),               intent(in)    :: unit       !! File unit number
+         character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+                                                                 !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+         integer(I4B),               intent(in)    :: v_list(:)  !! Not used in this procedure
+         integer(I4B),               intent(out)   :: iostat     !! IO status code
+         character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
+      end subroutine io_param_writer
 
       module subroutine io_read_body_in(self, param) 
          implicit none
-         class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_parameters), intent(inout) :: param !! Input collection of  parameters parameters
+         class(swiftest_body),       intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine io_read_body_in
 
       module subroutine io_read_cb_in(self, param) 
          implicit none
-         class(swiftest_cb),            intent(inout) :: self
+         class(swiftest_cb),         intent(inout) :: self
          class(swiftest_parameters), intent(inout) :: param
       end subroutine io_read_cb_in
 
       module subroutine io_read_param_in(self, param_file_name) 
-         class(swiftest_parameters),intent(out) :: self             !! Input collection of  parameters parameters
-         character(len=*), intent(in)              :: param_file_name !! Parameter input file name (i.e. param.in)
+         implicit none
+         class(swiftest_parameters), intent(out) :: self             !! Current run configuration parameters
+         character(len=*),           intent(in)  :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_read_param_in
 
-      module function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                           xh1, xh2, vh1, vh2, encounter_file, out_type) result(ierr)
+      module subroutine io_read_frame_body(self, iu, param, form, ierr)
          implicit none
-         integer(I4B)         :: ierr
-         integer(I4B), intent(out)     :: name1, name2
-         real(DP), intent(out)      :: t, mass1, mass2, radius1, radius2
-         real(DP), dimension(NDIM), intent(out) :: xh1, xh2, vh1, vh2
-         character(*), intent(in)      :: encounter_file,out_type
-      end function io_read_encounter
-
-      module subroutine io_read_frame_body(self, iu, param, form, t, ierr)
-         implicit none
-         class(swiftest_body),          intent(inout) :: self    !! Swiftest particle object
-         integer(I4B),                  intent(inout) :: iu      !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param  !! Input collection of  parameters parameters 
-         character(*),                  intent(in)    :: form    !! Input format code ("XV" or "EL")
-         real(DP),                      intent(out)   :: t       !! Simulation time
-         integer(I4B),                  intent(out)   :: ierr    !! Error code
+         class(swiftest_body),       intent(inout) :: self    !! Swiftest particle object
+         integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+         character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
+         integer(I4B),               intent(out)   :: ierr    !! Error code
       end subroutine io_read_frame_body
 
-      module subroutine io_read_frame_cb(self, iu, param, form, t, ierr)
+      module subroutine io_read_frame_cb(self, iu, param, form, ierr)
          implicit none
-         class(swiftest_cb),            intent(inout) :: self     !! Swiftest central body object
-         integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param   !! Input collection of  parameters parameters 
-         character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
-         real(DP),                      intent(out)   :: t        !! Simulation time
-         integer(I4B),                  intent(out)   :: ierr     !! Error code
+         class(swiftest_cb),         intent(inout) :: self     !! Swiftest central body object
+         integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
+         character(*),               intent(in)    :: form     !! Input format code ("XV" or "EL")
+         integer(I4B),               intent(out)   :: ierr     !! Error code
       end subroutine io_read_frame_cb
 
-      module subroutine io_read_frame_system(self, iu, param, form, t, ierr)
+      module subroutine io_read_frame_system(self, iu, param, form, ierr)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
-         integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param !! Input collection of  parameters parameters 
-         character(*),                  intent(in)    :: form   !! Input format code ("XV" or "EL")
-         real(DP),                      intent(out)   :: t      !! Current simulation time
-         integer(I4B),                  intent(out)   :: ierr   !! Error code
+         class(swiftest_nbody_system),intent(inout) :: self   !! Swiftest system object
+         integer(I4B),                intent(inout) :: iu     !! Unit number for the output file to write frame to
+         class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
+         character(*),                intent(in)    :: form   !! Input format code ("XV" or "EL")
+         integer(I4B),                intent(out)   :: ierr   !! Error code
       end subroutine io_read_frame_system
-
-      module function io_read_hdr(iu, t, npl, ntp, out_form, out_type) result(ierr)
-         implicit none
-         integer(I4B)      :: ierr
-         integer(I4B), intent(in)   :: iu
-         integer(I4B), intent(out)  :: npl, ntp
-         character(*), intent(out)  ::  out_form
-         real(DP), intent(out)   :: t
-         character(*), intent(in)   :: out_type
-      end function io_read_hdr
 
       module subroutine io_read_initialize_system(self, param)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_parameters), intent(inout) :: param  !! Input collection of  parameters parameters 
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_read_initialize_system
 
       module subroutine io_write_discard(self, param, discards)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
-         class(swiftest_parameters), intent(in)    :: param   !! Input collection of  parameters parameters 
+         class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
          class(swiftest_body),          intent(inout) :: discards !! Swiftest discard object 
       end subroutine io_write_discard
 
       module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                             xh1, xh2, vh1, vh2, encounter_file, out_type)
+                                           xh1, xh2, vh1, vh2, encounter_file, out_type)
          implicit none
-         integer(I4B), intent(in)     :: name1, name2
-         real(DP), intent(in)      :: t, mass1, mass2, radius1, radius2
-         real(DP), dimension(NDIM), intent(in) :: xh1, xh2, vh1, vh2
-         character(*), intent(in)     :: encounter_file, out_type
+         integer(I4B),           intent(in) :: name1, name2
+         real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
+         real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
+         character(*),           intent(in) :: encounter_file, out_type
       end subroutine io_write_encounter
 
-      module subroutine io_write_frame_body(self, iu, param, t, dt)
+      module subroutine io_write_frame_body(self, iu, param)
          implicit none
-         class(swiftest_body),          intent(in)    :: self   !! Swiftest particle object
-         integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
-         real(DP),                      intent(in)    :: t      !! Current simulation time
-         real(DP),                      intent(in)    :: dt     !! Step size
+         class(swiftest_body),       intent(in)    :: self   !! Swiftest particle object
+         integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_body
 
-      module subroutine io_write_frame_cb(self, iu, param, t, dt)
+      module subroutine io_write_frame_cb(self, iu, param)
          implicit none
-         class(swiftest_cb),            intent(in)    :: self   !! Swiftest central body object 
-         integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
-         real(DP),                      intent(in)    :: t      !! Current simulation time
-         real(DP),                      intent(in)    :: dt     !! Step size
+         class(swiftest_cb),         intent(in)    :: self   !! Swiftest central body object 
+         integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_cb
 
-      module subroutine io_write_frame_system(self, iu, param, t, dt)
+      module subroutine io_write_frame_system(self, iu, param)
          implicit none
          class(swiftest_nbody_system),  intent(in)    :: self   !! Swiftest system object
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of  parameters parameters 
-         real(DP),                      intent(in)    :: t      !! Current simulation time
-         real(DP),                      intent(in)    :: dt     !! Step size
+         class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_system
-
-      module subroutine io_write_hdr(iu, t, npl, ntp, out_form, out_type)
-         integer(I4B), intent(in) :: iu       !! Output file unit number
-         real(DP),     intent(in) :: t        !! Current time of simulation
-         integer(I4B), intent(in) :: npl      !! Number of massive bodies
-         integer(I4B), intent(in) :: ntp      !! Number of test particles
-         character(*), intent(in) :: out_form !! Output format type ("EL" or  "XV")
-         character(*), intent(in) :: out_type !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
-      end subroutine io_write_hdr
 
       module subroutine obl_acc_body(self, cb)
          implicit none
@@ -633,7 +579,7 @@ module swiftest_classes
       module subroutine setup_construct_system(system, param)
          implicit none
          class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-         type(swiftest_parameters),                intent(in)    :: param     !! Swiftest parameters parameters
+         type(swiftest_parameters),                intent(in)    :: param     !! Swiftest parameters
       end subroutine setup_construct_system
 
       module subroutine setup_pl(self,n)
@@ -655,13 +601,13 @@ module swiftest_classes
       module subroutine setup_set_mu_pl(self, cb)
          implicit none
          class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objectt
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine setup_set_mu_pl
 
       module subroutine setup_set_mu_tp(self, cb)
          implicit none
          class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objectt
+         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine setup_set_mu_tp
 
       module subroutine setup_set_rhill(self,cb)
@@ -676,12 +622,12 @@ module swiftest_classes
          integer,                      intent(in)    :: n    !! Number of bodies to allocate space for
       end subroutine setup_tp
 
-      module subroutine user_getacch_body(self, cb, param, t)
+      module subroutine user_getacch_body(self, system, param, t)
          implicit none
-         class(swiftest_body),          intent(inout) :: self   !! Swiftest massive body particle data structure
-         class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structuree
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of 
-         real(DP),                      intent(in)    :: t      !! Current time
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nobody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+         real(DP),                     intent(in)    :: t      !! Current time
       end subroutine user_getacch_body
 
       module subroutine util_coord_b2h_pl(self, cb)
@@ -710,7 +656,7 @@ module swiftest_classes
 
       module subroutine util_copy_body(self, src, mask)
          implicit none
-         class(swiftest_body),         intent(inout) :: self
+         class(swiftest_body),       intent(inout) :: self
          class(swiftest_base),       intent(in)    :: src
          logical, dimension(:),      intent(in)    :: mask
       end subroutine util_copy_body
@@ -721,7 +667,6 @@ module swiftest_classes
          class(swiftest_base),       intent(in)    :: src
          logical, dimension(:),      intent(in)    :: mask
       end subroutine util_copy_cb
-
 
       module subroutine util_copy_pl(self, src, mask)
          implicit none
@@ -746,8 +691,8 @@ module swiftest_classes
 
       module subroutine util_fill_body(self, inserts, lfill_list)
          implicit none
-         class(swiftest_body), intent(inout) :: self       !! Swiftest generic body object
-         class(swiftest_body), intent(inout) :: inserts     !! Insertted object 
+         class(swiftest_body),  intent(inout) :: self       !! Swiftest generic body object
+         class(swiftest_body),  intent(inout) :: inserts     !! Insertted object 
          logical, dimension(:), intent(in)   :: lfill_list  !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_body
 

@@ -1,7 +1,7 @@
 submodule(whm_classes) s_whm_getacch
    use swiftest
 contains
-   module subroutine whm_getacch_pl(self, cb, param, t)
+   module subroutine whm_getacch_pl(self, system, param, t)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of planets
@@ -10,16 +10,15 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self     !! WHM massive body particle data structure
-      class(swiftest_cb),            intent(inout) :: cb  !! Swiftest central body particle data structure
-      class(swiftest_parameters), intent(in)    :: param   !! Input collection of 
-      real(DP),                      intent(in)    :: t        !! Current time
+      class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+      real(DP),                     intent(in)    :: t       !! Current time
       ! Internals
-      integer(I4B)                                 :: i
-      real(DP), dimension(NDIM)                    :: ah0
+      integer(I4B)                                :: i
+      real(DP), dimension(NDIM)                   :: ah0
 
-      associate(pl => self, npl => self%nbody, j2rp2 => cb%j2rp2, &
-         ah => self%ah, xh => self%xh, xj => self%xj, vh => self%vh, vj => self%vj)
+      associate(cb => system%cb, pl => self, npl => self%nbody)
          if (npl == 0) return
          call pl%set_ir3()
 
@@ -27,19 +26,20 @@ contains
          do i = 1, npl
             pl%ah(:, i) = ah0(:)
          end do
+
          call whm_getacch_ah1(cb, pl) 
          call whm_getacch_ah2(cb, pl) 
          call whm_getacch_ah3(pl)
 
          if (param%loblatecb) call pl%obl_acc(cb)
-         if (param%lextra_force) call pl%user_getacch(cb, param, t)
-         if (param%lgr) call pl%gr_getacch(cb, param) 
+         if (param%lextra_force) call pl%user_getacch(system, param, t)
+         if (param%lgr) call pl%gr_getacch(param) 
 
       end associate
       return
    end subroutine whm_getacch_pl
 
-   module subroutine whm_getacch_tp(self, cb, pl, param, t, xh)
+   module subroutine whm_getacch_tp(self, system, param, t, xhp)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -48,40 +48,38 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
       implicit none
       ! Arguments
-      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      class(swiftest_cb),            intent(inout) :: cb     !! Generic Swiftest central body particle data structuree 
-      class(whm_pl),                 intent(inout) :: pl     !! Generic Swiftest massive body particle data structure. 
-      class(swiftest_parameters), intent(in)    :: param !! Input collection of 
-      real(DP),                      intent(in)    :: t      !! Current time
-      real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+      class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+      real(DP),                     intent(in)    :: t      !! Current time
+      real(DP), dimension(:,:),     intent(in)    :: xhp    !! Heliocentric positions of planets at the current substep
       ! Internals
-      integer(I4B)                                 :: i
-      real(DP), dimension(NDIM)                    :: ah0
+      integer(I4B)                                :: i
+      real(DP), dimension(NDIM)                   :: ah0
    
-      associate(tp => self, ntp => self%nbody, npl => pl%nbody, j2rp2 => cb%j2rp2, aht => self%ah, &
-               ir3h => pl%ir3h, GMpl => pl%Gmass)
+      associate(tp => self, ntp => self%nbody, pl => system%pl, cb => system%cb, npl => system%pl%nbody)
          if (ntp == 0 .or. npl == 0) return
 
-         ah0 = whm_getacch_ah0(pl%Gmass(:), xh(:,:), npl)
+         ah0(:) = whm_getacch_ah0(pl%Gmass(:), xhp(:,:), npl)
          do i = 1, ntp
             tp%ah(:, i) = ah0(:)
          end do
-         call whm_getacch_ah3_tp(cb, pl, tp, xh)
+         call whm_getacch_ah3_tp(system, xhp)
          if (param%loblatecb) call tp%obl_acc(cb)
-         if (param%lextra_force) call tp%user_getacch(cb, param, t)
-         if (param%lgr) call tp%gr_getacch(cb, param) 
+         if (param%lextra_force) call tp%user_getacch(system, param, t)
+         if (param%lgr) call tp%gr_getacch(param) 
       end associate
       return
    end subroutine whm_getacch_tp
 
-   function whm_getacch_ah0(mu, xh, n) result(ah0)
+   function whm_getacch_ah0(mu, xhp, n) result(ah0)
       !! author: David A. Minton
       !!
       !! Compute zeroth term heliocentric accelerations of planets 
       implicit none
       ! Arguments
       real(DP), dimension(:),   intent(in)         :: mu
-      real(DP), dimension(:,:), intent(in)         :: xh
+      real(DP), dimension(:,:), intent(in)         :: xhp
       integer(I4B),             intent(in)         :: n
       ! Result
       real(DP), dimension(NDIM)                    :: ah0
@@ -91,10 +89,10 @@ contains
 
       ah0(:) = 0.0_DP
       do i = 1, n
-         r2 = dot_product(xh(:, i), xh(:, i))
+         r2 = dot_product(xhp(:, i), xhp(:, i))
          ir3h = 1.0_DP / (r2 * sqrt(r2))
          fac = mu(i) * ir3h 
-         ah0(:) = ah0(:) - fac * xh(:, i)
+         ah0(:) = ah0(:) - fac * xhp(:, i)
       end do
 
       return
@@ -109,17 +107,17 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
       implicit none
       ! Arguments
-      class(swiftest_cb), intent(in)  :: cb !! Swiftest central body object
-      class(whm_pl), intent(inout)    :: pl !! WHM massive body object
+      class(swiftest_cb), intent(in)    :: cb !! WHM central body object
+      class(whm_pl),      intent(inout) :: pl !! WHM massive body object
       ! Internals
-      integer(I4B)                    :: i
-      real(DP), dimension(NDIM)       :: ah1h, ah1j
+      integer(I4B)                 :: i
+      real(DP), dimension(NDIM)    :: ah1h, ah1j
 
-      associate(npl => pl%nbody, msun => cb%Gmass, xh => pl%xh, xj => pl%xj, ir3j => pl%ir3j, ir3h => pl%ir3h )
+      associate(npl => pl%nbody)
          do i = 2, npl
-            ah1j(:) = xj(:, i) * ir3j(i)
-            ah1h(:) = xh(:, i) * ir3h(i)
-            pl%ah(:, i) = pl%ah(:, i) + msun * (ah1j(:) - ah1h(:))
+            ah1j(:) = pl%xj(:, i) * pl%ir3j(i)
+            ah1h(:) = pl%xh(:, i) * pl%ir3h(i)
+            pl%ah(:, i) = pl%ah(:, i) + cb%Gmass * (ah1j(:) - ah1h(:))
          end do
       end associate
    
@@ -136,21 +134,21 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
       implicit none
       ! Arguments
-      class(swiftest_cb), intent(in)     :: cb !! Swiftest central body object
-      class(whm_pl),      intent(inout)  :: pl !! WHM massive body object
+      class(swiftest_cb), intent(in)    :: cb !! Swiftest central body object
+      class(whm_pl),      intent(inout) :: pl !! WHM massive body object
       ! Internals
-      integer(I4B)                                 :: i
-      real(DP)                                     :: etaj, fac
-      real(DP), dimension(NDIM)                    :: ah2, ah2o
+      integer(I4B)                 :: i
+      real(DP)                     :: etaj, fac
+      real(DP), dimension(NDIM)    :: ah2, ah2o
    
-      associate(npl => pl%nbody, Gmsun => cb%Gmass, xh => pl%xh, xj => pl%xj, Gmpl => pl%Gmass, ir3j => pl%ir3j)
+      associate(npl => pl%nbody)
          ah2(:) = 0.0_DP
          ah2o(:) = 0.0_DP
-         etaj = Gmsun
+         etaj = cb%Gmass
          do i = 2, npl
-            etaj = etaj + Gmpl(i - 1)
-            fac = Gmpl(i) * Gmsun * ir3j(i) / etaj
-            ah2(:) = ah2o + fac * xj(:, i)
+            etaj = etaj + pl%Gmass(i - 1)
+            fac = pl%Gmass(i) * cb%Gmass * pl%ir3j(i) / etaj
+            ah2(:) = ah2o + fac * pl%xj(:, i)
             pl%ah(:,i) = pl%ah(:, i) + ah2(:)
             ah2o(:) = ah2(:)
          end do
@@ -168,23 +166,23 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
       implicit none
 
-      class(whm_pl),           intent(inout)       :: pl
-      integer(I4B)                                 :: i, j
-      real(DP)                                     :: rji2, irij3, faci, facj
-      real(DP), dimension(NDIM)                    :: dx
-      real(DP), dimension(:,:), allocatable        :: ah3
+      class(whm_pl),           intent(inout) :: pl
+      integer(I4B)                           :: i, j
+      real(DP)                               :: rji2, irij3, faci, facj
+      real(DP), dimension(NDIM)              :: dx
+      real(DP), dimension(:,:), allocatable  :: ah3
    
-      associate(npl => pl%nbody, xh => pl%xh, Gmpl => pl%Gmass) 
+      associate(npl => pl%nbody)
          allocate(ah3, mold=pl%ah)
-         ah3(:, 1:npl) = 0.0_DP
+         ah3(:, :) = 0.0_DP
 
          do i = 1, npl - 1
             do j = i + 1, npl
-               dx(:) = xh(:, j) - xh(:, i)
+               dx(:) = pl%xh(:, j) - pl%xh(:, i)
                rji2  = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               faci = Gmpl(i) * irij3
-               facj = Gmpl(j) * irij3
+               faci = pl%Gmass(i) * irij3
+               facj = pl%Gmass(j) * irij3
                ah3(:, i) = ah3(:, i) + facj * dx(:)
                ah3(:, j) = ah3(:, j) - faci * dx(:)
             end do
@@ -198,7 +196,7 @@ contains
       return
    end subroutine whm_getacch_ah3
 
-   pure subroutine whm_getacch_ah3_tp(cb, pl, tp, xh) 
+   pure subroutine whm_getacch_ah3_tp(system, xhp) 
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles
@@ -207,27 +205,25 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
       implicit none
       ! Arguments
-      class(swiftest_cb), intent(in)               :: cb  !! Swiftest central body object
-      class(whm_pl), intent(in)                    :: pl  !! WHM massive body object
-      class(whm_tp), intent(inout)                 :: tp  !! WHM test particle object
-      real(DP), dimension(:,:), intent(in)         :: xh  !! Position vector of massive bodies at required point in step
+      class(swiftest_nbody_system),  intent(inout) :: system !! WHM nbody system object
+      real(DP), dimension(:,:),      intent(in)    :: xhp    !! Heliocentric positions of planets at the current substep
       ! Internals
-      integer(I4B)                                 :: i, j
-      real(DP)                                     :: rji2, irij3, fac
-      real(DP), dimension(NDIM)                    :: dx, acc
+      integer(I4B)                         :: i, j
+      real(DP)                             :: rji2, irij3, fac
+      real(DP), dimension(NDIM)            :: dx, acc
 
-      associate(ntp => tp%nbody, npl => pl%nbody, msun => cb%Gmass,  GMpl => pl%Gmass, xht => tp%xh, aht => tp%ah)
+      associate(ntp => system%tp%nbody, npl => system%pl%nbody, tp => system%tp, pl => system%pl) 
          if (ntp == 0) return
          do i = 1, ntp
             acc(:) = 0.0_DP
             do j = 1, npl
-               dx(:) = xht(:, i) - xh(:, j)
+               dx(:) = tp%xh(:, i) - xhp(:, j)
                rji2 = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = GMpl(j) * irij3
+               fac = pl%Gmass(j) * irij3
                acc(:) = acc(:) - fac * dx(:)
             end do
-            aht(:, i) = aht(:, i) + acc(:)
+            tp%ah(:, i) = tp%ah(:, i) + acc(:)
          end do
       end associate
       return

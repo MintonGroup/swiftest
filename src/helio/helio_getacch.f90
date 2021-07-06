@@ -1,7 +1,7 @@
 submodule (helio_classes) s_helio_getacch
    use swiftest
 contains
-   module subroutine helio_getacch_pl(self, cb, param, t)
+   module subroutine helio_getacch_pl(self, system, param, t)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of massive bodies
@@ -10,10 +10,10 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_getacch.f
       implicit none
       ! Arguments
-      class(helio_pl),               intent(inout) :: self     !! Helio massive body particle data structure
-      class(swiftest_cb),            intent(inout) :: cb       !! Swiftest central body particle data structure
-      class(swiftest_parameters), intent(in)    :: param   !! Input collection of 
-      real(DP),                      intent(in)    :: t        !! Current time
+      class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+      real(DP),                     intent(in)    :: t      !! Current simulation time
       ! Internals
       logical, save                    :: lmalloc = .true.
       integer(I4B)                     :: i
@@ -21,22 +21,19 @@ contains
       real(DP), dimension(:), allocatable, save    :: irh
       real(DP), dimension(:, :), allocatable, save :: xh_loc, aobl
 
-      associate(npl => self%nbody)
-         !if (lflag) then
-            self%ahi(:,2:npl) = 0.0_DP
-            call helio_getacch_int_pl(self, t)
-         !end if
-         !if (param%loblatecb) call self%obl_acc(cb) TODO: Fix this
-         !else
-         self%ah(:,:) = self%ahi(:,:)
-         !end if
-         if (param%lextra_force) call self%user_getacch(cb, param, t)
+      associate(cb => system%cb, pl => self, npl => self%nbody)
+         pl%ahi(:,2:npl) = 0.0_DP
+         call helio_getacch_int_pl(pl, t)
+         pl%ah(:,:) = pl%ahi(:,:)
+         if (param%loblatecb) call pl%obl_acc(cb)
+         if (param%lextra_force) call pl%user_getacch(system, param, t)
+         if (param%lgr) call pl%gr_getacch(param)
       end associate
 
       return
       end subroutine helio_getacch_pl
 
-      module subroutine helio_getacch_tp(self, cb, pl, param, t, xh)
+      module subroutine helio_getacch_tp(self, system, param, t, xhp)
          !! author: David A. Minton
          !!
          !! Compute heliocentric accelerations of test particles
@@ -45,34 +42,32 @@ contains
          !! Adapted from Hal Levison's Swift routine helio_getacch_tp.f
          implicit none
          ! Arguments
-         class(helio_tp),               intent(inout) :: self   !! Helio test particle data structure
-         class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree 
-         class(whm_pl),                 intent(inout) :: pl     !! WHM massive body particle data structure. 
-         class(swiftest_parameters), intent(in)    :: param !! Input collection of 
-         real(DP),                      intent(in)    :: t      !! Current time
-         real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+         class(helio_tp),              intent(inout) :: self   !! WHM test particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+         real(DP),                     intent(in)    :: t      !! Current time
+         real(DP), dimension(:,:),     intent(in)    :: xhp    !! Heliocentric positions of planets at the current substep
          ! Internals
          logical, save                                :: lmalloc = .true.
          integer(I4B)                                 :: i
          real(DP)                                     :: r2, mu
          real(DP), dimension(:), allocatable, save    :: irh, irht
-         real(DP), dimension(:, :), allocatable, save :: aobl, xht, aoblt
       
-      ! executable code
-         associate(ntp => self%nbody, npl => pl%nbody)
-            !if (lflag) then
+         associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
+            select type(pl => system%pl)
+            class is (helio_pl)
                self%ahi(:,:) = 0.0_DP
-               call helio_getacch_int_tp(self, pl, t, xh)
-            !end if
-            !if (param%loblatecb) call self%obl_acc(cb) TODO: Fix this
-            self%ah(:,:) = self%ahi(:,:)
-            if (param%lextra_force) call self%user_getacch(cb, param, t)
-            if (param%lgr) call self%gr_getacch(cb, param)
+               call helio_getacch_int_tp(tp, pl, t, xhp)
+               tp%ah(:,:) = tp%ahi(:,:)
+               if (param%loblatecb) call tp%obl_acc(cb) 
+               if (param%lextra_force) call tp%user_getacch(system, param, t)
+               if (param%lgr) call tp%gr_getacch(param)
+            end select
          end associate
          return
       end subroutine helio_getacch_tp
 
-      module subroutine helio_getacch_int_pl(self, t)
+      subroutine helio_getacch_int_pl(pl, t)
          !! author: David A. Minton
          !!
          !! Compute direct cross term heliocentric accelerations of massive bodiese
@@ -81,23 +76,23 @@ contains
          !! Adapted from Hal Levison's Swift routine getacch_ah3.f
          implicit none
          ! Arguments
-         class(helio_pl),               intent(inout) :: self     !! Helio massive body particle data structure
-         real(DP),                      intent(in)    :: t        !! Current time
+         class(helio_pl), intent(inout) :: pl     !! Helio massive body particle data structure
+         real(DP),        intent(in)    :: t        !! Current time
          ! Internals
          integer(I4B)              :: i, j
          real(DP)                  :: rji2, irij3, faci, facj
          real(DP), dimension(NDIM) :: dx
       
-         associate(npl => self%nbody)
+         associate(npl => pl%nbody)
             do i = 2, npl - 1
                do j = i + 1, npl
-                  dx(:) = self%xh(:,j) - self%xh(:,i)
+                  dx(:) = pl%xh(:,j) - pl%xh(:,i)
                   rji2 = dot_product(dx(:), dx(:))
                   irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                  faci = self%Gmass(i) * irij3
-                  facj = self%Gmass(j) * irij3
-                  self%ahi(:,i) = self%ahi(:,i) + facj * dx(:)
-                  self%ahi(:,i) = self%ahi(:,j) - faci * dx(:)
+                  faci = pl%Gmass(i) * irij3
+                  facj = pl%Gmass(j) * irij3
+                  pl%ahi(:,i) = pl%ahi(:,i) + facj * dx(:)
+                  pl%ahi(:,i) = pl%ahi(:,j) - faci * dx(:)
                end do
             end do
          end associate
@@ -105,7 +100,7 @@ contains
          return
       end subroutine helio_getacch_int_pl
 
-      module subroutine helio_getacch_int_tp(self, pl, t, xh)
+      subroutine helio_getacch_int_tp(tp, pl, t, xhp)
          !! author: David A. Minton
          !!
          !! Compute direct cross term heliocentric accelerations of test particles
@@ -114,23 +109,23 @@ contains
          !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
          implicit none
          ! Arguments
-         class(helio_tp),               intent(inout) :: self     !! Helio test particle data structure
-         class(whm_pl),               intent(inout) :: pl       !! Helio massive body particle data structure
-         real(DP),                      intent(in)    :: t        !! Current time
-         real(DP), dimension(:,:),      intent(in)    :: xh     !! Heliocentric positions of planets
+         class(helio_tp),          intent(inout) :: tp     !! Helio test particle data structure
+         class(swiftest_pl),       intent(inout) :: pl       !! Helio massive body particle data structure
+         real(DP),                 intent(in)    :: t        !! Current time
+         real(DP), dimension(:,:), intent(in)    :: xhp     !! Heliocentric positions of planets
          ! Internals
          integer(I4B)              :: i, j
          real(DP)                  :: r2, fac
          real(DP), dimension(NDIM) :: dx
       
-         associate(ntp => self%nbody, npl => pl%nbody)
+         associate(ntp => tp%nbody, npl => pl%nbody)
             do i = 1, ntp
-            if (self%status(i) == ACTIVE) then
+            if (tp%status(i) == ACTIVE) then
                do j = 2, npl
-                  dx(:) = self%xh(:,i) - xh(:,j)
+                  dx(:) = tp%xh(:,i) - xhp(:,j)
                   r2 = dot_product(dx(:), dx(:))
                   fac = pl%Gmass(j) / (r2 * sqrt(r2))
-                  self%ahi(:,i) = self%ahi(:,i) - fac * dx(:)
+                  tp%ahi(:,i) = tp%ahi(:,i) - fac * dx(:)
                end do
             end if
             end do
