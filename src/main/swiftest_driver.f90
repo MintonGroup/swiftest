@@ -63,7 +63,6 @@ program swiftest_driver
          call nbody_system%step(param, t, dt)
 
          t = t0 + iloop * dt
-         if (t > tstop) exit 
 
          !> Evaluate any discards or mergers
          call nbody_system%discard(param)
@@ -85,6 +84,7 @@ program swiftest_driver
                idump = istep_dump
             end if
          end if
+         if (t > tstop) exit 
       end do
 
       !> Dump the final state of the system to file

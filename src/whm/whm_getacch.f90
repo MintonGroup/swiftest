@@ -64,7 +64,7 @@ contains
          do i = 1, ntp
             tp%ah(:, i) = ah0(:)
          end do
-         call whm_getacch_ah3_tp(system)
+         call whm_getacch_ah3_tp(system, xhp)
          if (param%loblatecb) call tp%obl_acc(cb)
          if (param%lextra_force) call tp%user_getacch(system, param, t)
          if (param%lgr) call tp%gr_getacch(param) 
@@ -141,13 +141,13 @@ contains
       real(DP)                     :: etaj, fac
       real(DP), dimension(NDIM)    :: ah2, ah2o
    
-      associate(npl => pl%nbody, GMcb => cb%Gmass)
+      associate(npl => pl%nbody)
          ah2(:) = 0.0_DP
          ah2o(:) = 0.0_DP
-         etaj = GMcb
+         etaj = cb%Gmass
          do i = 2, npl
             etaj = etaj + pl%Gmass(i - 1)
-            fac = pl%Gmass(i) * GMcb * pl%ir3j(i) / etaj
+            fac = pl%Gmass(i) * cb%Gmass * pl%ir3j(i) / etaj
             ah2(:) = ah2o + fac * pl%xj(:, i)
             pl%ah(:,i) = pl%ah(:, i) + ah2(:)
             ah2o(:) = ah2(:)
@@ -196,7 +196,7 @@ contains
       return
    end subroutine whm_getacch_ah3
 
-   pure subroutine whm_getacch_ah3_tp(system) 
+   pure subroutine whm_getacch_ah3_tp(system, xhp) 
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles
@@ -206,6 +206,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: system !! WHM nbody system object
+      real(DP), dimension(:,:),      intent(in)    :: xhp    !! Heliocentric positions of planets at the current substep
       ! Internals
       integer(I4B)                         :: i, j
       real(DP)                             :: rji2, irij3, fac
@@ -216,7 +217,7 @@ contains
          do i = 1, ntp
             acc(:) = 0.0_DP
             do j = 1, npl
-               dx(:) = tp%xh(:, i) - pl%xh(:, j)
+               dx(:) = tp%xh(:, i) - xhp(:, j)
                rji2 = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
                fac = pl%Gmass(j) * irij3
