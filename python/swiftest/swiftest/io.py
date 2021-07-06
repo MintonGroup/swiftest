@@ -1044,7 +1044,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
             cbname = "cb.swiftest.in"
     swiftest_param['CB_IN'] = cbname
    
-    unit_system = conversion_questions.get('UNITS', None)
+    unit_system = conversion_questions.get('UNITS', '')
     unit_type = 5
     if not unit_system:
         print(f"\nCentral body G*M = {GMcb}\n")
