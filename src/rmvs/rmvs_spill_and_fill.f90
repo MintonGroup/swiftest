@@ -9,9 +9,9 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine discard_discard_spill.f90
       implicit none
       ! Arguments
-      class(rmvs_base_pl),                   intent(inout) :: self      !! Swiftest massive body body object
-      class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      class(rmvs_pl),        intent(inout) :: self      !! Swiftest massive body body object
+      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
       ! Internals
       integer(I4B)                                         :: i
 
@@ -41,7 +41,7 @@ contains
          !! 
          implicit none
          ! Arguments
-         class(rmvs_base_pl),   intent(inout) :: self       !! RMVS massive body object
+         class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
          class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
          ! Internals

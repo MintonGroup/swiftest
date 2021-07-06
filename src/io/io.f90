@@ -392,11 +392,13 @@ contains
       write(unit, Lfmt) "ENERGY",                   self%lenergy
       !write(unit, Lfmt) "YARKOVSKY", self%lyarkovsky
       !write(unit, Lfmt) "YORP", self%lyorp
+      iostat = 0
+      iomsg = "UDIO not implemented"
 
       return
    end subroutine io_param_writer
 
-   module subroutine io_dump_param(self, param_file_name, t, dt)
+   module subroutine io_dump_param(self, param_file_name)
       !! author: David A. Minton
       !!
       !! Dump integration parameters to file
@@ -406,13 +408,11 @@ contains
       implicit none
       ! Arguments
       class(swiftest_parameters),intent(in) :: self    !! Output collection of parameters
-      character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
-      real(DP),intent(in)                      :: t       !! Current simulation time
-      real(DP),intent(in)                      :: dt      !! Step size
+      character(len=*),          intent(in) :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
-      integer(I4B), parameter      :: LUN = 7       !! Unit number of output file
-      integer(I4B)                 :: ierr          !! Error code
-      character(STRMAX)            :: error_message !! Error message in UDIO procedure
+      integer(I4B), parameter  :: LUN = 7       !! Unit number of output file
+      integer(I4B)             :: ierr          !! Error code
+      character(STRMAX)        :: error_message !! Error message in UDIO procedure
 
       open(unit = LUN, file = param_file_name, status='replace', form = 'FORMATTED', iostat =ierr)
       if (ierr /=0) then
@@ -434,7 +434,7 @@ contains
       return
    end subroutine io_dump_param
 
-   module subroutine io_dump_swiftest(self, param, t, dt, msg) 
+   module subroutine io_dump_swiftest(self, param, msg) 
       !! author: David A. Minton
       !!
       !! Dump massive body data to files
@@ -443,11 +443,9 @@ contains
       !! Adapted from Hal Levison's Swift routine io_dump_pl.f and io_dump_tp.f
       implicit none
       ! Arguments
-      class(swiftest_base),          intent(inout) :: self   !! Swiftest base object
+      class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      real(DP),                      intent(in)    :: t      !! Current simulation time
-      real(DP),                      intent(in)    :: dt     !! Stepsize
-      character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
+      character(*), optional,     intent(in)    :: msg  !! Message to display with dump operation
       ! Internals
       integer(I4B)                   :: ierr    !! Error code
       integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
@@ -468,13 +466,13 @@ contains
          write(*, *) "   Unable to open binary dump file " // dump_file_name
          call util_exit(FAILURE)
       end if
-      call self%write_frame(iu, param, t, dt)
+      call self%write_frame(iu, param)
       close(LUN)
 
       return
    end subroutine io_dump_swiftest
 
-   module subroutine io_dump_system(self, param, t, dt, msg)
+   module subroutine io_dump_system(self, param, msg)
       !! author: David A. Minton
       !!
       !! Dumps the state of the system to files in case the simulation is interrupted.
@@ -482,11 +480,9 @@ contains
       !! so that if a dump file gets corrupted during writing, the user can restart from the older one.
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                      intent(in)    :: t       !! Current simulation time
-      real(DP),                      intent(in)    :: dt      !! Stepsize
-      character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
+      class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      character(*), optional,       intent(in)    :: msg  !! Message to display with dump operation
       ! Internals
       class(swiftest_parameters), allocatable :: dump_param   !! Local parameters variable used to parameters change input file names 
                                                     !!    to dump file-specific values without changing the user-defined values
@@ -495,26 +491,25 @@ contains
       character(len=:), allocatable :: param_file_name
       real(DP) :: tfrac
      
-
       allocate(dump_param, source=param)
-      param_file_name = trim(adjustl(DUMP_PARAM_FILE(idx)))
+      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
       dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
       dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
       dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
       dump_param%out_form = XV
       dump_param%out_stat = 'APPEND'
-      call dump_param%dump(param_file_name,t,dt)
+      call dump_param%dump(param_file_name)
 
-      call self%cb%dump(dump_param, t, dt)
-      if (self%pl%nbody > 0) call self%pl%dump(dump_param, t, dt)
-      if (self%tp%nbody > 0) call self%tp%dump(dump_param, t, dt)
+      call self%cb%dump(dump_param)
+      if (self%pl%nbody > 0) call self%pl%dump(dump_param)
+      if (self%tp%nbody > 0) call self%tp%dump(dump_param)
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
 
       ! Print the status message (format code passed in from main driver)
-      tfrac = (t - param%t0) / (param%tstop - param%t0)
-      write(*,msg) t, tfrac, self%pl%nbody, self%tp%nbody
+      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+      write(*,msg) param%t, tfrac, self%pl%nbody, self%tp%nbody
 
       return
    end subroutine io_dump_system
@@ -588,12 +583,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine io_get_token.f90
       implicit none
       ! Arguments
-      character(len=*), intent(in)     :: buffer         !! Input string buffer
-      integer(I4B), intent(inout)      :: ifirst         !! Index of the buffer at which to start the search for a token
-      integer(I4B), intent(out)        :: ilast          !! Index of the buffer at the end of the returned token
-      integer(I4B), intent(out)        :: ierr           !! Error code
+      character(len=*), intent(in)    :: buffer         !! Input string buffer
+      integer(I4B),     intent(inout) :: ifirst         !! Index of the buffer at which to start the search for a token
+      integer(I4B),     intent(out)   :: ilast          !! Index of the buffer at the end of the returned token
+      integer(I4B),     intent(out)   :: ierr           !! Error code
       ! Result
-      character(len=:),allocatable     :: token          !! Returned token string
+      character(len=:), allocatable   :: token          !! Returned token string
       ! Internals
       integer(I4B) :: i,ilength
    
@@ -635,7 +630,7 @@ contains
       !! Adapted from Martin Duncan's Swift routine swiftest_init_pl.f and swiftest_init_tp.f
       implicit none
       ! Arguments
-      class(swiftest_body),          intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_body),       intent(inout) :: self   !! Swiftest particle object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
@@ -699,7 +694,7 @@ contains
          read(iu, iostat = ierr) nbody
          call self%setup(nbody)
          if (nbody > 0) then
-            call self%read_frame(iu, param, XV, t, ierr)
+            call self%read_frame(iu, param, XV, ierr)
             self%status(:) = ACTIVE
          end if
       case default
@@ -724,7 +719,7 @@ contains
       !! Adapted from Martin Duncan's Swift routine swiftest_init_pl.f
       implicit none
       ! Arguments
-      class(swiftest_cb),            intent(inout) :: self
+      class(swiftest_cb),         intent(inout) :: self
       class(swiftest_parameters), intent(inout) :: param
       ! Internals
       integer(I4B), parameter :: LUN = 7              !! Unit number of input file
@@ -755,7 +750,7 @@ contains
             
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
-         call self%read_frame(iu, param, XV, t, ierr)
+         call self%read_frame(iu, param, XV, ierr)
       end if
       close(iu)
       if (ierr /=  0) then
@@ -808,7 +803,7 @@ contains
       return 
    end subroutine io_read_param_in
 
-   module function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+   function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
          xh1, xh2, vh1, vh2, encounter_file, out_type) result(ierr)
       !! author: David A. Minton
       !!
@@ -818,10 +813,10 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine: io_read_encounter.f90
       implicit none
       ! Arguments
-      integer(I4B), intent(out)     :: name1, name2
-      real(DP), intent(out)      :: t, mass1, mass2, radius1, radius2
-      real(DP), dimension(NDIM), intent(out) :: xh1, xh2, vh1, vh2
-      character(*), intent(in)      :: encounter_file, out_type
+      integer(I4B),           intent(out) :: name1, name2
+      real(DP),               intent(out) :: t, mass1, mass2, radius1, radius2
+      real(DP), dimension(:), intent(out) :: xh1, xh2, vh1, vh2
+      character(*),           intent(in)  :: encounter_file, out_type
       ! Result
       integer(I4B)         :: ierr
       ! Internals
@@ -858,7 +853,7 @@ contains
       return
    end function io_read_encounter
 
-   module subroutine io_read_frame_body(self, iu, param, form, t, ierr)
+   module subroutine io_read_frame_body(self, iu, param, form, ierr)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of either test particle or massive body data to the binary output file
@@ -868,12 +863,11 @@ contains
       !! Adapted from Hal Levison's Swift routine io_read_frame.F
       implicit none
       ! Arguments
-      class(swiftest_body),          intent(inout) :: self    !! Swiftest particle object
-      integer(I4B),                  intent(inout) :: iu      !! Unit number for the output file to write frame to
+      class(swiftest_body),       intent(inout) :: self    !! Swiftest particle object
+      integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      character(*),                  intent(in)    :: form    !! Input format code ("XV" or "EL")
-      real(DP),                      intent(out)   :: t       !! Simulation time
-      integer(I4B),                  intent(out)   :: ierr    !! Error code
+      character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
+      integer(I4B),               intent(out)   :: ierr    !! Error code
 
       associate(n => self%nbody)
          read(iu, iostat = ierr) self%name(1:n)
@@ -921,7 +915,7 @@ contains
       return
    end subroutine io_read_frame_body
 
-   module subroutine io_read_frame_cb(self, iu, param, form, t, ierr)
+   module subroutine io_read_frame_cb(self, iu, param, form, ierr)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of central body data to the binary output file
@@ -930,12 +924,11 @@ contains
       !! Adapted from Hal Levison's Swift routine io_read_frame.F
       implicit none
       ! Arguments
-      class(swiftest_cb),            intent(inout) :: self     !! Swiftest central body object
-      integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
+      class(swiftest_cb),         intent(inout) :: self     !! Swiftest central body object
+      integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-      character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
-      real(DP),                      intent(out)   :: t        !! Simulation time
-      integer(I4B),                  intent(out)   :: ierr     !! Error cod
+      character(*),               intent(in)    :: form     !! Input format code ("XV" or "EL")
+      integer(I4B),               intent(out)   :: ierr     !! Error cod
 
       read(iu, iostat = ierr) self%Gmass
       self%mass = self%Gmass / param%GU
@@ -958,18 +951,17 @@ contains
       return
    end subroutine io_read_frame_cb
  
-   module subroutine io_read_frame_system(self, iu, param, form, t, ierr)
+   module subroutine io_read_frame_system(self, iu, param, form, ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
-      integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      character(*),                  intent(in)    :: form   !! Input format code ("XV" or "EL")
-      real(DP),                      intent(out)   :: t      !! Current simulation time
-      integer(I4B),                  intent(out)   :: ierr   !! Error code
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+      integer(I4B),                 intent(inout) :: iu     !! Unit number for the output file to write frame to
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      character(*),                 intent(in)    :: form   !! Input format code ("XV" or "EL")
+      integer(I4B),                 intent(out)   :: ierr   !! Error code
       ! Internals
       logical, save             :: lfirst = .true.
 
@@ -983,21 +975,21 @@ contains
             return
          end if
       end if
-      ierr = io_read_hdr(iu, t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
+      ierr = io_read_hdr(iu, param%t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
          write(*, *) "   Binary output file already exists or cannot be accessed"
          return
       end if
-      call self%cb%read_frame(iu, param, form, t, ierr)
+      call self%cb%read_frame(iu, param, form, ierr)
       if (ierr /= 0) return
-      call self%pl%read_frame(iu, param, form, t, ierr)
+      call self%pl%read_frame(iu, param, form, ierr)
       if (ierr /= 0) return
-      call self%tp%read_frame(iu, param, form, t, ierr)
+      call self%tp%read_frame(iu, param, form, ierr)
       return
    end subroutine io_read_frame_system
 
-   module function io_read_hdr(iu, t, npl, ntp, out_form, out_type) result(ierr)
+   function io_read_hdr(iu, t, npl, ntp, out_form, out_type) result(ierr)
       !! author: David A. Minton
       !!
       !! Read frame header from input binary files
@@ -1009,7 +1001,7 @@ contains
       integer(I4B), intent(in)   :: iu
       integer(I4B), intent(out)  :: npl, ntp
       character(*), intent(out)  ::  out_form
-      real(DP), intent(out)   :: t
+      real(DP),     intent(out)  :: t
       character(*), intent(in)   :: out_type
       ! Result
       integer(I4B)      :: ierr
@@ -1041,8 +1033,8 @@ contains
       !!
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
+      class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
   
       call self%cb%initialize(param)
       call self%pl%initialize(param)
@@ -1062,9 +1054,9 @@ contains
       !! Adapted from Hal Levison's Swift routine io_discard_write.f
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
-      class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
-      class(swiftest_body),          intent(inout) :: discards !! Swiftest discard object 
+      class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest system object
+      class(swiftest_parameters),   intent(in)    :: param   !! Current run configuration parameters 
+      class(swiftest_body),         intent(inout) :: discards !! Swiftest discard object 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: i, ierr
@@ -1134,8 +1126,8 @@ contains
    
    end subroutine io_write_discard
 
-   module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                          xh1, xh2, vh1, vh2, encounter_file, out_type)
+   subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+                                 xh1, xh2, vh1, vh2, encounter_file, out_type)
       !! author: David A. Minton
       !!
       !! Write close encounter data to output binary files
@@ -1145,10 +1137,10 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_encounter.f
       implicit none
       ! Arguments
-      integer(I4B), intent(in)     :: name1, name2
-      real(DP), intent(in)      :: t, mass1, mass2, radius1, radius2
-      real(DP), dimension(NDIM), intent(in) :: xh1, xh2, vh1, vh2
-      character(*), intent(in)     :: encounter_file, out_type
+      integer(I4B),           intent(in) :: name1, name2
+      real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
+      real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
+      character(*),           intent(in) :: encounter_file, out_type
       ! Internals
       logical , save    :: lfirst = .true.
       integer(I4B), parameter :: lun = 30
@@ -1184,7 +1176,7 @@ contains
 
    end subroutine io_write_encounter
 
-   module subroutine io_write_frame_body(self, iu, param, t, dt)
+   module subroutine io_write_frame_body(self, iu, param)
       !! author: David A. Minton
       !!
       !! Write a frame of output of either test particle or massive body data to the binary output file
@@ -1194,11 +1186,9 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
       implicit none
       ! Arguments
-      class(swiftest_body),          intent(in)    :: self   !! Swiftest particle object
-      integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
+      class(swiftest_body),       intent(in)    :: self   !! Swiftest particle object
+      integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      real(DP),                      intent(in)    :: t      !! Current simulation time
-      real(DP),                      intent(in)    :: dt     !! Step size
 
       associate(n => self%nbody)
          if (n == 0) return
@@ -1241,7 +1231,7 @@ contains
       return
    end subroutine io_write_frame_body
 
-   module subroutine io_write_frame_cb(self, iu, param, t, dt)
+   module subroutine io_write_frame_cb(self, iu, param)
       !! author: David A. Minton
       !!
       !! Write a frame of output of central body data to the binary output file
@@ -1250,11 +1240,9 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
       implicit none
       ! Arguments
-      class(swiftest_cb),            intent(in)    :: self   !! Swiftest central body object 
-      integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
+      class(swiftest_cb),         intent(in)    :: self   !! Swiftest central body object 
+      integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      real(DP),                      intent(in)    :: t      !! Current simulation time
-      real(DP),                      intent(in)    :: dt     !! Step size
 
       write(iu) self%Gmass
       write(iu) self%radius
@@ -1276,7 +1264,7 @@ contains
       return
    end subroutine io_write_frame_cb
 
-   module subroutine io_write_frame_system(self, iu, param, t, dt)
+   module subroutine io_write_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Write a frame (header plus records for each massive body and active test particle) to output binary file
@@ -1286,18 +1274,16 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),  intent(in)    :: self   !! Swiftest system object
-      integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      real(DP),                      intent(in)    :: t      !! Current simulation time
-      real(DP),                      intent(in)    :: dt     !! Step size
+      class(swiftest_nbody_system), intent(in)    :: self   !! Swiftest system object
+      integer(I4B),                 intent(inout) :: iu     !! Unit number for the output file to write frame to
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       ! Internals
-      logical, save                         :: lfirst = .true. !! Flag to determine if this is the first call of this method
-      integer(I4B)                          :: ierr            !! I/O error code
+      logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
+      integer(I4B)                     :: ierr            !! I/O error code
 
-      class(swiftest_cb), allocatable       :: cb         !! Temporary local version of pl structure used for non-destructive conversions
-      class(swiftest_pl), allocatable       :: pl              !! Temporary local version of pl structure used for non-destructive conversions
-      class(swiftest_tp), allocatable       :: tp              !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_cb), allocatable  :: cb         !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_pl), allocatable  :: pl         !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_tp), allocatable  :: tp          !! Temporary local version of pl structure used for non-destructive conversions
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)
@@ -1329,7 +1315,7 @@ contains
             call util_exit(FAILURE)
          end if
       end if
-      call io_write_hdr(iu, t, pl%nbody, tp%nbody, param%out_form, param%out_type)
+      call io_write_hdr(iu, param%t, pl%nbody, tp%nbody, param%out_form, param%out_type)
 
       if (param%lgr) then
          associate(vh => pl%vh, vht => tp%vh)
@@ -1350,9 +1336,9 @@ contains
       end if
       
       ! Write out each data type frame
-      call cb%write_frame(iu, param, t, dt)
-      call pl%write_frame(iu, param, t, dt)
-      call tp%write_frame(iu, param, t, dt)
+      call cb%write_frame(iu, param)
+      call pl%write_frame(iu, param)
+      call tp%write_frame(iu, param)
 
       deallocate(cb, pl, tp)
 
@@ -1361,7 +1347,7 @@ contains
       return
    end subroutine io_write_frame_system
 
-   module subroutine io_write_hdr(iu, t, npl, ntp, out_form, out_type)
+   subroutine io_write_hdr(iu, t, npl, ntp, out_form, out_type)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Write frame header to output binary file

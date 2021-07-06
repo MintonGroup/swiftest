@@ -1,7 +1,8 @@
 submodule(swiftest_classes) s_gr
    use swiftest
 contains
-   module procedure gr_getaccb_ns_body
+   subroutine gr_getaccb_ns_body(self, cb, param, agr, agr0) 
+
       !! author: David A. Minton
       !!
       !! Add relativistic correction acceleration for non-symplectic integrators
@@ -9,7 +10,13 @@ contains
       !!
       !! Adapted from David A. Minton's Swifter routine routine gr_getaccb_ns.f90
       implicit none
-
+      ! Arguments
+      class(swiftest_body),          intent(inout) :: self
+      class(swiftest_cb),            intent(inout) :: cb
+      class(swiftest_parameters), intent(in)    :: param
+      real(DP), dimension(:, :),     intent(inout) :: agr
+      real(DP), dimension(NDIM),     intent(out)   :: agr0
+      ! Internals
       real(DP), dimension(NDIM) :: xh, vh
       real(DP)                  :: rmag, rdotv, vmag2
       integer(I4B)              :: i
@@ -29,7 +36,6 @@ contains
          agr0 =  0.0_DP
          select type(self)
          class is (swiftest_pl)
-            !do concurrent(i = 1:NDIM)
             do i = 1, NDIM
                agr0(i) = -sum(self%Gmass(1:n) * agr(1:n, i) / msun)
             end do
@@ -39,6 +45,6 @@ contains
 
       return
 
-   end procedure gr_getaccb_ns_body
+      end subroutine gr_getaccb_ns_body
 
 end submodule s_gr

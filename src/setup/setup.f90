@@ -9,7 +9,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-      type(swiftest_parameters),                intent(in)    :: param     !! Swiftest parameters
+      type(swiftest_parameters),                   intent(in)    :: param     !! Swiftest parameters
 
       select case(param%integrator)
       case (BS)

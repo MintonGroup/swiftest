@@ -9,7 +9,7 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_setup.f90
       implicit none
       ! Arguments
-      class(rmvs_base_pl),           intent(inout) :: self !! RMVS test particle object
+      class(rmvs_pl),           intent(inout) :: self !! RMVS test particle object
       integer(I4B),                  intent(in)    :: n    !! Number of test particles to allocate
       ! Internals
       integer(I4B)                                 :: i,j
@@ -97,46 +97,49 @@ contains
       ! generated as necessary during close encounter steps.
       select type(pl => self%pl)
       class is(rmvs_pl)
-      select type(cb => self%cb)
-      class is (rmvs_cb)
-      select type (tp => self%tp)
-      class is (rmvs_tp)
-         tp%cb_heliocentric = cb
-         pl%lplanetocentric = .false.
-         tp%lplanetocentric = .false.
-         cb%lplanetocentric = .false.
-         associate(npl => pl%nbody)
-            allocate(pl%planetocentric(npl))
-            do i = 1, npl
-               allocate(pl%planetocentric(i)%cb, source=cb)
-               allocate(rmvs_pl :: pl%planetocentric(i)%pl)
-               associate(plenci => pl%planetocentric(i)%pl, cbenci => pl%planetocentric(i)%cb)
-                  cbenci%lplanetocentric = .true.
-                  plenci%lplanetocentric = .true.
-                  call plenci%setup(npl)
-                  plenci%status(:) = ACTIVE
-
-                  ! plind stores the heliocentric index value of a planetocentric planet
-                  ! e.g. Consider an encounter with planet 3.  
-                  ! Then the following will be the values of plind:
-                  ! pl%planetocentric(3)%pl%plind(1) = 0 (central body - never used)  
-                  ! pl%planetocentric(3)%pl%plind(2) = 1  
-                  ! pl%planetocentric(3)%pl%plind(3) = 2
-                  ! pl%planetocentric(3)%pl%plind(4) = 4
-                  ! pl%planetocentric(3)%pl%plind(5) = 5
-                  ! etc.  
-                  allocate(plenci%plind(npl))
-                  plenci%plind(1:npl) = [(j,j=1,npl)] 
-                  plenci%plind(2:npl) = pack(plenci%plind(1:npl), plenci%plind(1:npl) /= i)
-                  plenci%plind(1)     = 0
-                  plenci%Gmass(1)     = cb%Gmass
-                  plenci%Gmass(2:npl) = pl%Gmass(plenci%plind(2:npl))
-                  cbenci%Gmass        = pl%Gmass(i)
+         select type(cb => self%cb)
+         class is (rmvs_cb)
+            select type (tp => self%tp)
+            class is (rmvs_tp)
+               tp%cb_heliocentric = cb
+               pl%lplanetocentric = .false.
+               tp%lplanetocentric = .false.
+               cb%lplanetocentric = .false.
+               associate(npl => pl%nbody)
+                  allocate(pl%planetocentric(npl))
+                  do i = 1, npl
+                     pl%planetocentric(i)%lplanetocentric = .true.
+                     allocate(pl%planetocentric(i)%cb, source=cb)
+                     allocate(rmvs_cb :: pl%planetocentric(i)%cb)
+                     allocate(rmvs_pl :: pl%planetocentric(i)%pl)
+                     select type(cbenci => pl%planetocentric(i)%cb)
+                     class is (rmvs_cb)
+                        select type(plenci => pl%planetocentric(i)%pl)
+                        class is (rmvs_pl)
+                           call plenci%setup(npl)
+                           plenci%status(:) = ACTIVE
+                           ! plind stores the heliocentric index value of a planetocentric planet
+                           ! e.g. Consider an encounter with planet 3.  
+                           ! Then the following will be the values of plind:
+                           ! pl%planetocentric(3)%pl%plind(1) = 0 (central body - never used)  
+                           ! pl%planetocentric(3)%pl%plind(2) = 1  
+                           ! pl%planetocentric(3)%pl%plind(3) = 2
+                           ! pl%planetocentric(3)%pl%plind(4) = 4
+                           ! pl%planetocentric(3)%pl%plind(5) = 5
+                           ! etc.  
+                           allocate(plenci%plind(npl))
+                           plenci%plind(1:npl) = [(j,j=1,npl)] 
+                           plenci%plind(2:npl) = pack(plenci%plind(1:npl), plenci%plind(1:npl) /= i)
+                           plenci%plind(1)     = 0
+                           plenci%Gmass(1)     = cb%Gmass
+                           plenci%Gmass(2:npl) = pl%Gmass(plenci%plind(2:npl))
+                           cbenci%Gmass        = pl%Gmass(i)
+                        end select
+                     end select
+                  end do
                end associate
-            end do
-         end associate
-      end select
-      end select
+            end select
+         end select
       end select
    
    end subroutine rmvs_setup_system
@@ -147,7 +150,7 @@ contains
       !! Sets one or more of the values of xbeg, xend, and vbeg
       implicit none
       ! Arguments
-      class(rmvs_tp),           intent(inout)          :: self !! RMVS test particle object
+      class(rmvs_nbody_system), intent(inout)          :: self !! RMVS test particle object
       real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend, vbeg
 
       if (present(xbeg)) then
