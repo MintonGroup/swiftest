@@ -107,6 +107,7 @@ contains
                cb%lplanetocentric = .false.
                associate(npl => pl%nbody)
                   allocate(pl%planetocentric(npl))
+                  pl%planetocentric(:)%lplanetocentric = .true.
                   do i = 1, npl
                      allocate(pl%planetocentric(i)%cb, source=cb)
                      allocate(rmvs_pl :: pl%planetocentric(i)%pl)
