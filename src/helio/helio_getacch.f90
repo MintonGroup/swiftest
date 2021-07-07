@@ -86,7 +86,7 @@ contains
                   faci = pl%Gmass(i) * irij3
                   facj = pl%Gmass(j) * irij3
                   pl%ahi(:,i) = pl%ahi(:,i) + facj * dx(:)
-                  pl%ahi(:,i) = pl%ahi(:,j) - faci * dx(:)
+                  pl%ahi(:,j) = pl%ahi(:,j) - faci * dx(:)
                end do
             end do
          end associate
