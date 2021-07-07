@@ -249,15 +249,16 @@ module swiftest_classes
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract, public, extends(swiftest_base) :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
-      class(swiftest_cb),            allocatable :: cb            !! Central body data structure
-      class(swiftest_pl),            allocatable :: pl            !! Massive body data structure
-      class(swiftest_tp),            allocatable :: tp            !! Test particle data structure
-      class(swiftest_tp),            allocatable :: tp_discards   !! Discarded test particle data structure
-      real(DP)                                   :: msys = 0.0_DP !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                                   :: ke = 0.0_DP   !! System kinetic energy
-      real(DP)                                   :: pe = 0.0_DP   !! System potential energy
-      real(DP)                                   :: te = 0.0_DP   !! System total energy
-      real(DP), dimension(NDIM)                  :: htot = 0.0_DP !! System angular momentum vector
+      class(swiftest_cb),            allocatable :: cb              !! Central body data structure
+      class(swiftest_pl),            allocatable :: pl              !! Massive body data structure
+      class(swiftest_tp),            allocatable :: tp              !! Test particle data structure
+      class(swiftest_tp),            allocatable :: tp_discards     !! Discarded test particle data structure
+      real(DP)                                   :: msys = 0.0_DP   !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                                   :: ke = 0.0_DP     !! System kinetic energy
+      real(DP)                                   :: pe = 0.0_DP     !! System potential energy
+      real(DP)                                   :: te = 0.0_DP     !! System total energy
+      real(DP), dimension(NDIM)                  :: htot = 0.0_DP   !! System angular momentum vector
+      logical                                    :: lfirst = .true. !! Run the current step as a first
    contains
       private
       !> Each integrator will have its own version of the step
