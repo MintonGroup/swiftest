@@ -46,6 +46,7 @@ class Simulation:
             'GR': "NO",
             'YARKOVSKY': "NO",
             'YORP': "NO",
+            'MTINY' : "0.0"
         }
         if param_file != "" :
             self.read_param(param_file, codename)
