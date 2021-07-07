@@ -115,9 +115,6 @@ contains
          allocate(dtp(ntp))
          iflag(:) = 0
 
-         iflag(:) = 0
-         allocate(dtp(ntp))
-
          if (param%lgr) then
             do i = 1,ntp
                rmag = norm2(tp%xh(:, i))
@@ -158,9 +155,9 @@ contains
   
       associate(ntp => self%nbody, xh => self%xh, status => self%status)
          where (status(1:ntp) == ACTIVE)
-            xh(1:ntp, 1) = xh(1:ntp, 1) + pt(1) * dt
-            xh(1:ntp, 2) = xh(1:ntp, 2) + pt(2) * dt
-            xh(1:ntp, 3) = xh(1:ntp, 3) + pt(3) * dt
+            xh(1, 1:ntp) = xh(1, 1:ntp) + pt(1) * dt
+            xh(2, 1:ntp) = xh(2, 1:ntp) + pt(2) * dt
+            xh(3, 1:ntp) = xh(3, 1:ntp) + pt(3) * dt
          end where
       end associate
    

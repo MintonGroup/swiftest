@@ -22,7 +22,6 @@ program swiftest_driver
    real(DP)                                   :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                   :: finish_wall_time !! Wall clock time when execution has finished
    integer(I4B)                               :: iu               !! Unit number of binary file
-   integer(I4B)                               :: ntp, npl
    character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
                                              'Number of active pl, tp = ", I5, ", ", I5)'
 
@@ -57,8 +56,6 @@ program swiftest_driver
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, LOOPMAX 
-         ntp = nbody_system%tp%nbody
-         npl = nbody_system%pl%nbody
          !> Step the system forward in time
          call nbody_system%step(param, t, dt)
 
