@@ -69,7 +69,7 @@ class Simulation:
     
     def read_param(self, param_file, codename="Swiftest"):
         if codename == "Swiftest":
-            self.param = io.read_swiftest_param(param_file)
+            self.param = io.read_swiftest_param(param_file, self.param)
             self.codename = "Swiftest"
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file)

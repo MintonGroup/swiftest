@@ -22,7 +22,7 @@ def real2float(realstr):
     """
     return float(realstr.replace('d', 'E').replace('D', 'E'))
 
-def read_swiftest_param(param_file_name):
+def read_swiftest_param(param_file_name, param):
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
 
@@ -36,7 +36,7 @@ def read_swiftest_param(param_file_name):
     param : dict
         A dictionary containing the entries in the user parameter file
     """
-    param = {'! VERSION': f"Swiftest parameter input from file {param_file_name}"}
+    param['! VERSION'] = f"Swiftest parameter input from file {param_file_name}"
     
     # Read param.in file
     print(f'Reading Swiftest file {param_file_name}')
