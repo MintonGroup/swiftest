@@ -15,7 +15,6 @@ contains
       case (BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
       case (HELIO)
-         write(*,*) 'Democratic Heliocentric integrator not yet enabled'
          allocate(helio_nbody_system :: system)
          select type(system)
          class is (helio_nbody_system)

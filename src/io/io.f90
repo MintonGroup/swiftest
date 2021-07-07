@@ -264,20 +264,17 @@ contains
          end if
       else
          if (self%lfragmentation) then
-            write(iomsg,*) 'This integrator does not support fragmentation.'
-            iostat = -1
-            return
+            write(iomsg,*) 'This integrator does not support fragmentation. This parameter will be ignored.'
          end if
          if (mtiny_set) then
-            write(iomsg,*) 'This integrator does not support MTINY'
-            iostat = -1
+            write(iomsg,*) 'This integrator does not support MTINY. This parameter will be ignored.'
             return
          end if
       end if
 
       if ((integrator == SYMBA) .or. (integrator == RINGMOONS) .or. (integrator == RMVS)) then
          if (.not.self%lclose) then
-            write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled'
+            write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
             iostat = -1
             return
          end if
@@ -295,11 +292,10 @@ contains
 
       ! Determine if the GR flag is set correctly for this integrator
       select case(integrator)
-      case(WHM)
+      case(WHM, RMVS)
          write(*,*) "GR             = ", self%lgr
       case default   
-         write(iomsg, *) 'GR is implemented compatible with this integrator'
-         iostat = -1
+         write(iomsg, *) 'GR is implemented compatible with this integrator. This parameter will be ignored.'
       end select
 
       iostat = 0
