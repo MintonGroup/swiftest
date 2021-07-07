@@ -48,7 +48,6 @@ def follow_swift(ds, ifol=None, nskp=None):
         intxt = input('Input the print frequency\n')
         nskp = int(intxt)
         
-        
     dr = 180.0 / np.pi
     fol['obar'] = fol['capom'] + fol['omega']
     fol['obar'] = fol['obar'].fillna(0)
@@ -61,12 +60,12 @@ def follow_swift(ds, ifol=None, nskp=None):
     fol['peri'] = fol['a'] * (1.0 - fol['e'])
     fol['apo']  = fol['a'] * (1.0 + fol['e'])
 
-    print('1 2 3  4    5     6    7    8    9   10')
-    print('t,a,e,inc,capom,omega,capm,peri,apo,obar')
     
     tslice = slice(None, None, nskp)
     try:
         with open('follow.out', 'w') as f:
+            print('# 1 2 3  4    5     6    7    8    9   10', file=f)
+            print('# t,a,e,inc,capom,omega,capm,peri,apo,obar', file=f)
             for t in fol.isel(time=tslice).time:
                 a = fol['a'].sel(time=t).values
                 e = fol['e'].sel(time=t).values
@@ -77,7 +76,7 @@ def follow_swift(ds, ifol=None, nskp=None):
                 peri = fol['peri'].sel(time=t).values
                 apo = fol['apo'].sel(time=t).values
                 obar = fol['obar'].sel(time=t).values
-                print(f"{t.values:15.7e} {a:10.4f} {e:7.5f} {inc:9.4f} {capom:9.4f} {omega:9.4f} {capm:9.4f} {peri:10.4f} {apo:10.4f} {obar:9.4f}", file=f)
+                print(f"{t.values:15.7e} {a:22.16f} {e:22.16f} {inc:22.16f} {capom:22.16f} {omega:22.16f} {capm:22.16f} {peri:22.16f} {apo:10.4f} {obar:22.16f}", file=f)
                 
     except IOError:
         print(f"Error writing to follow.out")
