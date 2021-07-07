@@ -22,7 +22,7 @@ def real2float(realstr):
     """
     return float(realstr.replace('d', 'E').replace('D', 'E'))
 
-def read_swiftest_param(param_file_name):
+def read_swiftest_param(param_file_name, param):
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
 
@@ -36,7 +36,7 @@ def read_swiftest_param(param_file_name):
     param : dict
         A dictionary containing the entries in the user parameter file
     """
-    param = {'! VERSION': f"Swiftest parameter input from file {param_file_name}"}
+    param['! VERSION'] = f"Swiftest parameter input from file {param_file_name}"
     
     # Read param.in file
     print(f'Reading Swiftest file {param_file_name}')
@@ -58,8 +58,6 @@ def read_swiftest_param(param_file_name):
         param['T0'] = real2float(param['T0'])
         param['TSTOP'] = real2float(param['TSTOP'])
         param['DT'] = real2float(param['DT'])
-        param['J2'] = real2float(param['J2'])
-        param['J4'] = real2float(param['J4'])
         param['CHK_RMIN'] = real2float(param['CHK_RMIN'])
         param['CHK_RMAX'] = real2float(param['CHK_RMAX'])
         param['CHK_EJECT'] = real2float(param['CHK_EJECT'])
@@ -263,7 +261,37 @@ def write_swift_param(param, param_file_name):
 
 def write_labeled_param(param, param_file_name):
     outfile = open(param_file_name, 'w')
-    for key, val in sorted(param.items()):
+    keylist = ['! VERSION',
+               'T0',
+               'TSTOP',
+               'DT',
+               'ISTEP_OUT',
+               'ISTEP_DUMP',
+               'OUT_FORM',
+               'OUT_TYPE',
+               'OUT_STAT',
+               'IN_TYPE',
+               'PL_IN',
+               'TP_IN',
+               'CB_IN',
+               'BIN_OUT',
+               'ENC_OUT',
+               'CHK_QMIN',
+               'CHK_RMIN',
+               'CHK_RMAX',
+               'CHK_EJECT',
+               'CHK_QMIN_COORD',
+               'CHK_QMIN_RANGE',
+               'MU2KG',
+               'TU2S',
+               'DU2M' ]
+    ptmp = param.copy()
+    # Print the list of key/value pairs in the preferred order
+    for key in keylist:
+        val = ptmp.pop(key)
+        print(f"{key:<16} {val}", file=outfile)
+    # Print the remaining key/value pairs in whatever order
+    for key, val in ptmp.items():
         print(f"{key:<16} {val}", file=outfile)
     outfile.close()
     return

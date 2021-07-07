@@ -28,6 +28,7 @@ class Simulation:
             'OUT_STAT': "REPLACE",
             'CHK_RMAX': "1000.0",
             'CHK_EJECT': "1000.0",
+            'CHK_RMIN': constants.RSun / constants.AU2M,
             'CHK_QMIN': constants.RSun / constants.AU2M,
             'CHK_QMIN_COORD': "HELIO",
             'CHK_QMIN_RANGE': f"{constants.RSun / constants.AU2M} 1000.0",
@@ -45,6 +46,7 @@ class Simulation:
             'GR': "NO",
             'YARKOVSKY': "NO",
             'YORP': "NO",
+            'MTINY' : "0.0"
         }
         if param_file != "" :
             self.read_param(param_file, codename)
@@ -69,7 +71,7 @@ class Simulation:
     
     def read_param(self, param_file, codename="Swiftest"):
         if codename == "Swiftest":
-            self.param = io.read_swiftest_param(param_file)
+            self.param = io.read_swiftest_param(param_file, self.param)
             self.codename = "Swiftest"
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file)
