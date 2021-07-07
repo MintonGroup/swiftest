@@ -6,7 +6,7 @@ module swiftest_classes
    use swiftest_globals
    implicit none
    private
-   public :: discard_pl_tp, discard_sun_tp, discard_system
+   public :: discard_pl, discard_system, discard_tp 
    public :: drift_one
    public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
    public :: kick_vb_body, kick_vh_body
@@ -184,32 +184,32 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest massive bodies
    type, abstract, public, extends(swiftest_body) :: swiftest_pl
       !! Superclass that defines the generic elements of a Swiftest particle 
-      real(DP),     dimension(:),   allocatable :: mass                   !! Body mass (units MU)
-      real(DP),     dimension(:),   allocatable :: Gmass                  !! Mass gravitational term G * mass (units GU * MU)
-      real(DP),     dimension(:),   allocatable :: rhill                  !! Body mass (units MU)
-      real(DP),     dimension(:),   allocatable :: radius                 !! Body radius (units DU)
-      real(DP),     dimension(:),   allocatable :: density                !! Body mass density - calculated internally (units MU / DU**3)
-      real(DP),     dimension(:,:), allocatable :: Ip                     !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). 
-                                                                          !!     Principal axis rotation assumed. 
-      real(DP),     dimension(:,:), allocatable :: rot                    !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP),     dimension(:),   allocatable :: k2                     !! Tidal Love number
-      real(DP),     dimension(:),   allocatable :: Q                      !! Tidal quality factor
-      integer(I4B)                              :: num_comparisons        !! Number of pl-pl Euclidean distance comparisons
-      integer(I4B), dimension(:,:), allocatable :: k_eucl     !! Index array that converts i, j array indices into k index for use in 
-                                                              !!  the Euclidean distance matrix
-      real(DP),     dimension(:),   allocatable :: irij3      !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
+      real(DP),     dimension(:),   allocatable :: mass            !! Body mass (units MU)
+      real(DP),     dimension(:),   allocatable :: Gmass           !! Mass gravitational term G * mass (units GU * MU)
+      real(DP),     dimension(:),   allocatable :: rhill           !! Body mass (units MU)
+      real(DP),     dimension(:),   allocatable :: radius          !! Body radius (units DU)
+      real(DP),     dimension(:),   allocatable :: density         !! Body mass density - calculated internally (units MU / DU**3)
+      real(DP),     dimension(:,:), allocatable :: Ip              !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). 
+                                                                   !!     Principal axis rotation assumed. 
+      real(DP),     dimension(:,:), allocatable :: rot             !! Body rotation vector in inertial coordinate frame (units rad / TU)
+      real(DP),     dimension(:),   allocatable :: k2              !! Tidal Love number
+      real(DP),     dimension(:),   allocatable :: Q               !! Tidal quality factor
+      integer(I4B)                              :: num_comparisons !! Number of pl-pl Euclidean distance comparisons
+      integer(I4B), dimension(:,:), allocatable :: k_eucl          !! Index array that converts i, j array indices into k index for use in 
+                                                                   !!  the Euclidean distance matrix
+      real(DP),     dimension(:),   allocatable :: irij3           !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and util_spill_pl
    contains
       private
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-
+      procedure, public :: discard    => discard_pl           !! Placeholder method for discarding massive bodies 
       procedure, public :: eucl_index => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure, public :: eucl_irij3 => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
       procedure, public :: setup      => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_mu     => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: set_rhill  => setup_set_rhill
+      procedure, public :: set_rhill  => setup_set_rhill      !! Calculates the Hill's radii for each body
       procedure, public :: h2b        => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure, public :: b2h        => util_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure, public :: copy       => util_copy_pl         !! Copies elements of one object to another.
@@ -233,17 +233,15 @@ module swiftest_classes
       private
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: discard_sun  => discard_sun_tp       !! Check to see if test particles should be discarded based on their positions relative to the Sun
-      procedure, public :: discard_peri => discard_peri_tp      !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
-      procedure, public :: discard_pl   => discard_pl_tp        !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
-      procedure, public :: eucl_index   => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: setup        => setup_tp             !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_mu       => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: h2b          => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
-      procedure, public :: b2h          => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
-      procedure, public :: copy         => util_copy_tp       !! Copies elements of one object to another.
-      procedure, public :: fill         => util_fill_tp     !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: spill        => util_spill_tp   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: discard     => discard_tp           !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      procedure, public :: eucl_index  => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: setup       => setup_tp             !! A base constructor that sets the number of bodies and 
+      procedure, public :: set_mu      => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: h2b         => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
+      procedure, public :: b2h         => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
+      procedure, public :: copy        => util_copy_tp         !! Copies elements of one object to another.
+      procedure, public :: fill        => util_fill_tp         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: spill       => util_spill_tp        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_tp
 
    !********************************************************************************************************************************
@@ -255,6 +253,7 @@ module swiftest_classes
       class(swiftest_cb),            allocatable :: cb            !! Central body data structure
       class(swiftest_pl),            allocatable :: pl            !! Massive body data structure
       class(swiftest_tp),            allocatable :: tp            !! Test particle data structure
+      class(swiftest_tp),            allocatable :: tp_discards   !! Discarded test particle data structure
       real(DP)                                   :: msys = 0.0_DP !! Total system mass - used for barycentric coordinate conversion
       real(DP)                                   :: ke = 0.0_DP   !! System kinetic energy
       real(DP)                                   :: pe = 0.0_DP   !! System potential energy
@@ -284,10 +283,11 @@ module swiftest_classes
          logical, dimension(:),        intent(in)    :: mask
       end subroutine abstract_copy 
 
-      subroutine abstract_discard_body(self, param) 
-         import swiftest_body, swiftest_parameters
-         class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      subroutine abstract_discard_body(self, system, param) 
+         import swiftest_body, swiftest_nbody_system, swiftest_parameters
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine abstract_discard_body
 
       subroutine abstract_initialize(self, param) 
@@ -332,39 +332,32 @@ module swiftest_classes
 
       subroutine abstract_write_frame(self, iu, param)
          import DP, I4B, swiftest_base, swiftest_parameters
-         class(swiftest_base),       intent(in)    :: self     !! Swiftest base object
-         integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
+         class(swiftest_base),       intent(in)    :: self    !! Swiftest base object
+         integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
       end subroutine abstract_write_frame
    end interface
 
    interface
-      module subroutine discard_peri_tp(self, system, param)
+      module subroutine discard_pl(self, system, param)
          implicit none
-         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
-      end subroutine discard_peri_tp
-
-      module subroutine discard_pl_tp(self, system, param)
-         implicit none
-         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
-      end subroutine discard_pl_tp
-
-      module subroutine discard_sun_tp(self, system, param)
-         implicit none
-         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
-      end subroutine discard_sun_tp
+      end subroutine discard_pl
 
       module subroutine discard_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine discard_system
+
+      module subroutine discard_tp(self, system, param)
+         implicit none
+         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      end subroutine discard_tp
 
       module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
          implicit none
@@ -502,11 +495,11 @@ module swiftest_classes
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_read_initialize_system
 
-      module subroutine io_write_discard(self, param, discards)
+      module subroutine io_write_discard(self, param)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self     !! Swiftest system object
-         class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
-         class(swiftest_body),          intent(inout) :: discards !! Swiftest discard object 
+         class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest system object
+         class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters 
+         !class(swiftest_body),         intent(inout) :: discards !! Swiftest discard object 
       end subroutine io_write_discard
 
       module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &

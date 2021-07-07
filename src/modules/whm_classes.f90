@@ -77,7 +77,6 @@ module whm_classes
    !> An abstract class for the WHM integrator nbody system 
    type, public, extends(swiftest_nbody_system) :: whm_nbody_system
       !> In the WHM integrator, only test particles are discarded
-      class(whm_tp),            allocatable :: tp_discards   !! WHM test particle object that 
       real(DP), dimension(:,:), allocatable :: xbeg, xend    !! Positions of massive bodies at beginning and end of a step. Required in order to separate the test particle step from the massive body step
    contains
       private

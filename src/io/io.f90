@@ -1045,7 +1045,7 @@ contains
    
    end subroutine io_read_initialize_system
 
-   module subroutine io_write_discard(self, param, discards)
+   module subroutine io_write_discard(self, param)
       !! author: David A. Minton
       !!
       !! Write out information about discarded test particle
@@ -1056,7 +1056,6 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest system object
       class(swiftest_parameters),   intent(in)    :: param   !! Current run configuration parameters 
-      class(swiftest_body),         intent(inout) :: discards !! Swiftest discard object 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: i, ierr
@@ -1069,8 +1068,8 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
-      associate(t => param%t, param => param, nsp => discards%nbody, dxh => discards%xh, dvh => discards%vh, &
-                dname => discards%name, dstatus => discards%status) 
+      associate(t => param%t, discards => self%tp_discards, nsp => self%tp_discards%nbody, dxh => self%tp_discards%xh, dvh => self%tp_discards%vh, &
+                dname => self%tp_discards%name, dstatus => self%tp_discards%status) 
          
          select case(param%out_stat)
          case('APPEND')
