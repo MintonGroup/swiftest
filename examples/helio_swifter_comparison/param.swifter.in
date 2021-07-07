@@ -4,14 +4,14 @@ TSTOP            1.0
 DT               0.0006844626967830253
 ISTEP_OUT        1
 ISTEP_DUMP       1
-OUT_FORM         EL
+OUT_FORM         XV
 OUT_TYPE         REAL8
 OUT_STAT         UNKNOWN
 IN_TYPE          ASCII
 PL_IN            pl.swifter.in
 TP_IN            tp.swifter.in
-BIN_OUT          bin.swiftest.dat
-ENC_OUT          enc.swiftest.dat
+BIN_OUT          bin.swifter.dat
+ENC_OUT          enc.swifter.dat
 CHK_QMIN         0.004650467260962157
 CHK_RMIN         0.004650467260962157
 CHK_RMAX         1000.0

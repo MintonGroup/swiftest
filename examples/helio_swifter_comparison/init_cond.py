@@ -21,7 +21,8 @@ sim.param['CHK_RMAX'] = 1000.0
 sim.param['CHK_EJECT'] = 1000.0
 sim.param['ISTEP_OUT']  = 1
 sim.param['ISTEP_DUMP'] = 1
-
+sim.param['OUT_FORM'] = "XV"
+sim.param['OUT_STAT'] = "UNKNOWN"
 sim.param['GR'] = 'NO'
 
 bodyid = {

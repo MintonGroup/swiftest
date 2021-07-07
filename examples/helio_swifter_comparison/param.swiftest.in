@@ -4,9 +4,9 @@ TSTOP            1.0
 DT               0.0006844626967830253
 ISTEP_OUT        1
 ISTEP_DUMP       1
-OUT_FORM         EL
+OUT_FORM         XV
 OUT_TYPE         REAL8
-OUT_STAT         REPLACE
+OUT_STAT         UNKNOWN
 IN_TYPE          ASCII
 PL_IN            pl.swiftest.in
 TP_IN            tp.swiftest.in
