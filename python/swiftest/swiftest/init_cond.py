@@ -2,9 +2,10 @@ import swiftest
 import numpy as np
 from astroquery.jplhorizons import Horizons
 import datetime
+from datetime import date
 import xarray as xr
 
-def solar_system_pl(param, ephemerides_start_date):
+def solar_system_horizons(plname, param, ephemerides_start_date, ds):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
 
@@ -13,7 +14,9 @@ def solar_system_pl(param, ephemerides_start_date):
     param : dict
         Swiftest paramuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the param file
     ephemerides_start_date : string
-        Date to use when obtaining the ephemerides in the format YYYY-MM-DD
+        Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
+    ds : xarray Dataset
+        Dataset to append
 
     Returns
     -------
@@ -21,41 +24,49 @@ def solar_system_pl(param, ephemerides_start_date):
     """
     # Planet ids
     planetid = {
-        'mercury': '1',
-        'venus': '2',
-        'earthmoon': '3',
-        'mars': '4',
-        'jupiter': '5',
-        'saturn': '6',
-        'uranus': '7',
-        'neptune': '8',
-        'plutocharon': '9'
+        'Sun': '0',
+        'Mercury': '1',
+        'Venus': '2',
+        'Earth': '3',
+        'Mars': '4',
+        'Jupiter': '5',
+        'Saturn': '6',
+        'Uranus': '7',
+        'Neptune': '8',
+        'Pluto': '9'
     }
+    
+    if plname not in planetid:
+        print(f"{plname} not found or not yet supported")
+        print("Valid inputs are: ".join(f"{key}" for key, value in planetid.items()))
+        return
     
     # Planet MSun/M ratio
     MSun_over_Mpl = {
-        'mercury': np.longdouble(6023600.0),
-        'venus': np.longdouble(408523.71),
-        'earthmoon': np.longdouble(328900.56),
-        'mars': np.longdouble(3098708.),
-        'jupiter': np.longdouble(1047.3486),
-        'saturn': np.longdouble(3497.898),
-        'uranus': np.longdouble(22902.98),
-        'neptune': np.longdouble(19412.24),
-        'plutocharon': np.longdouble(1.35e8)
+        'Sun'    : np.longdouble(1.0),
+        'Mercury': np.longdouble(6023600.0),
+        'Venus': np.longdouble(408523.71),
+        'Earth': np.longdouble(328900.56),
+        'Mars': np.longdouble(3098708.),
+        'Jupiter': np.longdouble(1047.3486),
+        'Saturn': np.longdouble(3497.898),
+        'Uranus': np.longdouble(22902.98),
+        'Neptune': np.longdouble(19412.24),
+        'Pluto': np.longdouble(1.35e8)
     }
     
     # Planet radii in AU
     planetradius = {
-        'mercury': np.longdouble(2439.4e3) / swiftest.AU2M,
-        'venus': np.longdouble(6051.8e3) / swiftest.AU2M,
-        'earthmoon': np.longdouble(6371.0084e3) / swiftest.AU2M,  # Earth only for radius
-        'mars': np.longdouble(3389.50e3) / swiftest.AU2M,
-        'jupiter': np.longdouble(69911e3) / swiftest.AU2M,
-        'saturn': np.longdouble(58232.0e3) / swiftest.AU2M,
-        'uranus': np.longdouble(25362.e3) / swiftest.AU2M,
-        'neptune': np.longdouble(24622.e3) / swiftest.AU2M,
-        'plutocharon': np.longdouble(1188.3e3 / swiftest.AU2M)
+        'Sun' : swiftest.RSun / swiftest.AU2M,
+        'Mercury': np.longdouble(2439.4e3) / swiftest.AU2M,
+        'Venus': np.longdouble(6051.8e3) / swiftest.AU2M,
+        'Earth': np.longdouble(6371.0084e3) / swiftest.AU2M,  # Earth only for radius
+        'Mars': np.longdouble(3389.50e3) / swiftest.AU2M,
+        'Jupiter': np.longdouble(69911e3) / swiftest.AU2M,
+        'Saturn': np.longdouble(58232.0e3) / swiftest.AU2M,
+        'Uranus': np.longdouble(25362.e3) / swiftest.AU2M,
+        'Neptune': np.longdouble(24622.e3) / swiftest.AU2M,
+        'Pluto': np.longdouble(1188.3e3 / swiftest.AU2M)
     }
     
     # Unit conversion factors
@@ -78,25 +89,53 @@ def solar_system_pl(param, ephemerides_start_date):
     ephemerides_end_date = tend.isoformat()
     ephemerides_step = '1d'
     
-    pldata = {}
-    p1 = []
-    p2 = []
-    p3 = []
-    p4 = []
-    p5 = []
-    p6 = []
-    p7 = []
-    p8 = []
-    p9 = []
-    p10 = []
-    p11 = []
-    p12 = []
-    Rhill = []
-    Rpl = []
-    GMpl = []
-    
-    # Fetch solar system ephemerides from Horizons
-    for key, val in planetid.items():
+    clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
+    if param['OUT_FORM'] == 'XV':
+        plab.append('a')
+        plab.append('e')
+        plab.append('inc')
+        plab.append('capom')
+        plab.append('omega')
+        plab.append('capm')
+    elif param['OUT_FORM'] == 'EL':
+        plab.append('px')
+        plab.append('py')
+        plab.append('pz')
+        plab.append('vx')
+        plab.append('vy')
+        plab.append('vz')
+    plab.append('Rhill')
+
+    dims = ['time', 'id', 'vec']
+    t = np.array([0.0])
+
+    key = plname
+    val = planetid[key]
+    if key == "Sun" : # Create central body
+        cb = []
+        cbframe = np.expand_dims(cvec.T, axis=0)
+        cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
+        cbds = cbxr.to_dataset(dim='vec')
+        ds = xr.combine_by_coords([ds, cbds])
+    else: # Fetch solar system ephemerides from Horizons
+        pl = []
+        p1 = []
+        p2 = []
+        p3 = []
+        p4 = []
+        p5 = []
+        p6 = []
+        p7 = []
+        p8 = []
+        p9 = []
+        p10 = []
+        p11 = []
+        p12 = []
+        Rhill = []
+        Rpl = []
+        GMpl = []
+
+        pldata = {}
         pldata[key] = Horizons(id=val, id_type='majorbody', location='@sun',
                                epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
                                        'step': ephemerides_step})
@@ -129,47 +168,14 @@ def solar_system_pl(param, ephemerides_start_date):
         Rhill.append(pldata[key].elements()['a'][0] * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
         Rpl.append(planetradius[key] * DCONV)
         GMpl.append(GMcb[0] / MSun_over_Mpl[key])
-    # Generate planet value vectors
-    plid = np.fromiter(planetid.values(), dtype=int)
-    pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, p7, p8, p9, p10, p11, p12, Rhill])
-    
-    dims = ['time', 'id', 'vec']
-    cb = []
-    pl = []
-    t = np.array([0.0])
-    
-    clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
-    if param['OUT_FORM'] == 'XV':
-        plab.append('a')
-        plab.append('e')
-        plab.append('inc')
-        plab.append('capom')
-        plab.append('omega')
-        plab.append('capm')
-    elif param['OUT_FORM'] == 'EL':
-        plab.append('px')
-        plab.append('py')
-        plab.append('pz')
-        plab.append('vx')
-        plab.append('vy')
-        plab.append('vz')
-    plab.append('Rhill')
-    
-    # Prepare frames by adding an extra axis for the time coordinate
-    cbframe = np.expand_dims(cvec.T, axis=0)
-    plframe = np.expand_dims(pvec.T, axis=0)
-    
-    # Create xarray DataArrays out of each body type
-    cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
-    plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
-    
-    cb.append(cbxr)
-    pl.append(plxr)
-    
-    cbda = xr.concat(cb, dim='time')
-    plda = xr.concat(pl, dim='time')
-    
-    cbds = cbda.to_dataset(dim='vec')
-    plds = plda.to_dataset(dim='vec')
-    ds = xr.combine_by_coords([cbds, plds])
+        # Generate planet value vectors
+        plid = np.array([planetid[key]], dtype=int)
+        pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, p7, p8, p9, p10, p11, p12, Rhill])
+
+        # Prepare frames by adding an extra axis for the time coordinate
+        plframe = np.expand_dims(pvec.T, axis=0)
+        plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
+        plds = plxr.to_dataset(dim='vec')
+        ds = xr.combine_by_coords([ds, plds])
+
     return ds
