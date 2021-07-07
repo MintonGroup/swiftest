@@ -263,7 +263,36 @@ def write_swift_param(param, param_file_name):
 
 def write_labeled_param(param, param_file_name):
     outfile = open(param_file_name, 'w')
-    for key, val in sorted(param.items()):
+    keylist = ['! VERSION',
+               'T0',
+               'TSTOP',
+               'DT',
+               'ISTEP_OUT',
+               'ISTEP_DUMP',
+               'OUT_FORM',
+               'OUT_TYPE',
+               'OUT_STAT',
+               'IN_TYPE',
+               'PL_IN',
+               'TP_IN',
+               'CB_IN',
+               'BIN_OUT',
+               'ENC_OUT',
+               'CHK_QMIN',
+               'CHK_RMAX',
+               'CHK_EJECT',
+               'CHK_QMIN_COORD',
+               'CHK_QMIN_RANGE',
+               'MU2KG',
+               'TU2S',
+               'DU2M' ]
+    ptmp = param.copy()
+    # Print the list of key/value pairs in the preferred order
+    for key in keylist:
+        val = ptmp.pop(key)
+        print(f"{key:<16} {val}", file=outfile)
+    # Print the remaining key/value pairs in whatever order
+    for key, val in ptmp.items():
         print(f"{key:<16} {val}", file=outfile)
     outfile.close()
     return
