@@ -277,6 +277,7 @@ def write_labeled_param(param, param_file_name):
                'BIN_OUT',
                'ENC_OUT',
                'CHK_QMIN',
+               'CHK_RMIN',
                'CHK_RMAX',
                'CHK_EJECT',
                'CHK_QMIN_COORD',

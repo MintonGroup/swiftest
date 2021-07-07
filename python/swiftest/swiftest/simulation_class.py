@@ -28,6 +28,7 @@ class Simulation:
             'OUT_STAT': "REPLACE",
             'CHK_RMAX': "1000.0",
             'CHK_EJECT': "1000.0",
+            'CHK_RMIN': constants.RSun / constants.AU2M,
             'CHK_QMIN': constants.RSun / constants.AU2M,
             'CHK_QMIN_COORD': "HELIO",
             'CHK_QMIN_RANGE': f"{constants.RSun / constants.AU2M} 1000.0",
