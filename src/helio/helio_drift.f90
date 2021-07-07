@@ -20,14 +20,16 @@ contains
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
-      real(DP), dimension(:), allocatable          :: dtp
+      real(DP), dimension(:), allocatable          :: dtp, mu
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self, npl => self%nbody, cb => system%cb)
          if (npl == 0) return
 
          allocate(iflag(npl))
          iflag(:) = 0
          allocate(dtp(npl))
+         allocate(mu(npl))
+         mu =  cb%Gmass
 
          if (param%lgr) then
             do i = 1,npl
@@ -40,7 +42,7 @@ contains
             dtp(:) = dt
          end if 
 
-         call drift_one(pl%mu(1:npl), pl%xh(1,1:npl), pl%xh(2,1:npl), pl%xh(3,1:npl), &
+         call drift_one(mu(1:npl), pl%xh(1,1:npl), pl%xh(2,1:npl), pl%xh(3,1:npl), &
                                       pl%vb(1,1:npl), pl%vb(2,1:npl), pl%vb(3,1:npl), &
                                       dtp(1:npl), iflag(1:npl))
          if (any(iflag(1:npl) /= 0)) then
@@ -99,14 +101,16 @@ contains
       ! Internals
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
-      real(DP), dimension(:), allocatable    :: dtp
+      real(DP), dimension(:), allocatable    :: dtp, mu
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
    
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self, ntp => self%nbody, cb => system%cb)
          if (ntp == 0) return
          allocate(iflag(ntp))
          allocate(dtp(ntp))
          iflag(:) = 0
+         allocate(mu(ntp))
+         mu =  cb%Gmass
 
          if (param%lgr) then
             do i = 1,ntp
@@ -118,7 +122,7 @@ contains
          else
             dtp(:) = dt
          end if 
-         call drift_one(tp%mu(1:ntp), tp%xh(1,1:ntp), tp%xh(2,1:ntp), tp%xh(3,1:ntp), &
+         call drift_one(mu(1:ntp), tp%xh(1,1:ntp), tp%xh(2,1:ntp), tp%xh(3,1:ntp), &
                                       tp%vh(1,1:ntp), tp%vh(2,1:ntp), tp%vh(3,1:ntp), &
                                       dtp(1:ntp), iflag(1:ntp))
          if (any(iflag(1:ntp) /= 0)) then
