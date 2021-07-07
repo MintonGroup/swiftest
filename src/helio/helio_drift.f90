@@ -56,7 +56,7 @@ contains
       return
    end subroutine helio_drift_pl
    
-   module subroutine helio_drift_linear_pl(self, cb, dt, pt)
+   module subroutine helio_drift_linear_pl(self, system, dt, pt)
       !! author: David A. Minton
       !!
       !! Perform linear drift of massive bodies due to barycentric momentum of Sun
@@ -65,23 +65,23 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_lindrift.f
       implicit none
       ! Arguments
-      class(helio_pl),         intent(inout) :: self !! Helio massive body object
-      class(swiftest_cb),      intent(in)    :: cb   !! Helio central body object
-      real(DP),                intent(in)    :: dt   !! Stepsize
-      real(DP), dimension(:),  intent(out)   :: pt   !! negative barycentric velocity of the central body
+      class(helio_pl),           intent(inout) :: self   !! Helio massive body object
+      class(helio_nbody_system), intent(in)    :: system !! Swiftest nbody system object
+      real(DP),                  intent(in)    :: dt     !! Stepsize
+      real(DP), dimension(:),    intent(out)   :: pt     !! negative barycentric velocity of the central body
       ! Internals
       integer(I4B)          :: i
       real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't play nicely 
                                         !with openmp's reduction for some reason
   
-      associate(npl => self%nbody, xh => self%xh, vb => self%vb, GMpl => self%Gmass, GMcb => cb%Gmass)
+      associate(pl => self, npl => self%nbody, cb => system%cb)
          pttmp(:) = 0.0_DP
          do i = 2, npl
-            pttmp(:) = pttmp(:) + GMpl(i) * vb(:,i)
+            pttmp(:) = pttmp(:) + pl%Gmass(i) * pl%vb(:,i)
          end do
-         pttmp(:) = pttmp(:) / GMcb
+         pttmp(:) = pttmp(:) / cb%Gmass
          do i = 2, npl
-            xh(:,i) = xh(:,i) + pttmp(:) * dt
+            pl%xh(:,i) = pl%xh(:,i) + pttmp(:) * dt
          end do
          pt(:) = pttmp(:)
       end associate
@@ -100,13 +100,13 @@ contains
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self   !! Helio test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
-      real(DP),                     intent(in)    :: dt     !! Stepsiz
+      real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
-      real(DP), dimension(:), allocatable          :: dtp
+      real(DP), dimension(:), allocatable    :: dtp
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
    
       associate(tp => self, ntp => self%nbody)
@@ -139,7 +139,7 @@ contains
       return
    end subroutine helio_drift_tp
 
-   module subroutine helio_drift_linear_tp(self, dt, pt)
+   module subroutine helio_drift_linear_tp(self, system, dt, pt)
       !! author: David A. Minton
       !!
       !! Perform linear drift of test particles due to barycentric momentum of Sun
@@ -149,15 +149,16 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_lindrift_tp.f
       implicit none
       ! Arguments
-      class(helio_tp),             intent(inout) :: self   !! Helio test particle data structure
-      real(DP),                    intent(in)    :: dt     !! Stepsize
-      real(DP), dimension(:),      intent(in)    :: pt     !! negative barycentric velocity of the Sun
+      class(helio_tp),           intent(inout) :: self   !! Helio test particleb object
+      class(helio_nbody_system), intent(in)    :: system !! Swiftest nbody system object
+      real(DP),                  intent(in)    :: dt     !! Stepsize
+      real(DP), dimension(:),    intent(in)    :: pt     !! negative barycentric velocity of the central body
   
-      associate(ntp => self%nbody, xh => self%xh, status => self%status)
-         where (status(1:ntp) == ACTIVE)
-            xh(1, 1:ntp) = xh(1, 1:ntp) + pt(1) * dt
-            xh(2, 1:ntp) = xh(2, 1:ntp) + pt(2) * dt
-            xh(3, 1:ntp) = xh(3, 1:ntp) + pt(3) * dt
+      associate(tp => self, ntp => self%nbody)
+         where (tp%status(1:ntp) == ACTIVE)
+            tp%xh(1, 1:ntp) = tp%xh(1, 1:ntp) + pt(1) * dt
+            tp%xh(2, 1:ntp) = tp%xh(2, 1:ntp) + pt(2) * dt
+            tp%xh(3, 1:ntp) = tp%xh(3, 1:ntp) + pt(3) * dt
          end where
       end associate
    

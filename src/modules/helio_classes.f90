@@ -13,6 +13,8 @@ module helio_classes
    !  helio_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, public, extends(whm_nbody_system) :: helio_nbody_system
+      real(DP), dimension(NDIM)  :: ptb !! negative barycentric velocity of the central body at the beginning of time step
+      real(DP), dimension(NDIM)  :: pte !! negative barycentric velocity of the central body at the end of time step
    contains
       private
       procedure, public :: initialize    => helio_setup_system  !! Performs Helio-specific initilization steps,
@@ -110,20 +112,20 @@ module helio_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine helio_drift_tp
    
-      module subroutine helio_drift_linear_pl(self, cb, dt, pt)
-         use swiftest_classes, only : swiftest_cb
+      module subroutine helio_drift_linear_pl(self, system, dt, pt)
          implicit none
-         class(helio_pl),             intent(inout) :: self !! Helio test particle object
-         class(swiftest_cb),          intent(in)    :: cb   !! Helio central body object
-         real(DP),                    intent(in)    :: dt   !! Stepsize
-         real(DP), dimension(:),      intent(out)   :: pt   !! negative barycentric velocity of the central body
+         class(helio_pl),           intent(inout) :: self   !! Helio massive body object
+         class(helio_nbody_system), intent(in)    :: system !! Helio nbody system object
+         real(DP),                  intent(in)    :: dt     !! Stepsize
+         real(DP), dimension(:),    intent(out)   :: pt     !! negative barycentric velocity of the central body
       end subroutine helio_drift_linear_pl 
 
-      module subroutine helio_drift_linear_tp(self, dt, pt)
+      module subroutine helio_drift_linear_tp(self, system, dt, pt)
          implicit none
-         class(helio_tp),             intent(inout) :: self   !! Helio test particle object
-         real(DP),                    intent(in)    :: dt     !! Stepsize
-         real(DP), dimension(:),      intent(in)    :: pt     !! negative barycentric velocity of the Sun
+         class(helio_tp),           intent(inout) :: self   !! Helio test particle object
+         class(helio_nbody_system), intent(in)    :: system !! Helio nbody system object
+         real(DP),                  intent(in)    :: dt     !! Stepsize
+         real(DP), dimension(:),    intent(in)    :: pt     !! negative barycentric velocity of the Sun
       end subroutine helio_drift_linear_tp
 
       module subroutine helio_getacch_pl(self, system, param, t)

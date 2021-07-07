@@ -50,26 +50,29 @@ contains
       ! Internals 
       integer(I4B)     :: i
       real(DP)         :: dth, msys
-      real(DP), dimension(NDIM) :: ptbeg, ptend !! TODO: Incorporate these into the tp structure
+      !real(DP), dimension(NDIM) :: ptbeg, ptend !! TODO: Incorporate these into the tp structure
       logical, save :: lfirst = .true.
-  
-      associate(pl => self, cb => system%cb)
-         dth = 0.5_DP * dt
-         if (lfirst) then
-            call pl%vh2vb(cb)
-            lfirst = .false.
-         end if
-         call pl%lindrift(cb, dth, ptbeg)
-         call pl%get_accel(system, param, t)
-         call pl%kick(dth)
-         call system%set_beg_end(xbeg = pl%xh)
-         call pl%drift(system, param, dt)
-         call system%set_beg_end(xend = pl%xh)
-         call pl%get_accel(system, param, t + dt)
-         call pl%kick(dth)
-         call pl%lindrift(cb, dth, ptend)
-         call pl%vb2vh(cb)
-      end associate
+ 
+      select type(system)
+      class is (helio_nbody_system)
+         associate(pl => self, cb => system%cb, ptb => system%ptb, pte => system%pte)
+            dth = 0.5_DP * dt
+            if (lfirst) then
+               call pl%vh2vb(cb)
+               lfirst = .false.
+            end if
+            call pl%lindrift(system, dth, ptb)
+            call pl%get_accel(system, param, t)
+            call pl%kick(dth)
+            call system%set_beg_end(xbeg = pl%xh)
+            call pl%drift(system, param, dt)
+            call system%set_beg_end(xend = pl%xh)
+            call pl%get_accel(system, param, t + dt)
+            call pl%kick(dth)
+            call pl%lindrift(system, dth, pte)
+            call pl%vb2vh(cb)
+         end associate
+      end select
    
       return
    
@@ -96,20 +99,20 @@ contains
    
       select type(system)
       class is (helio_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl, xbeg => system%xbeg, xend => system%xend)
+         associate(tp => self, cb => system%cb, pl => system%pl, xbeg => system%xbeg, xend => system%xend, ptb => system%ptb, pte => system%pte)
             dth = 0.5_DP * dt
             if (lfirst) then
-               call tp%vh2vb(vbcb = -tp%ptbeg)
+               call tp%vh2vb(vbcb = -ptb)
                lfirst = .false.
             end if
-            call tp%lindrift(dth, tp%ptbeg)
+            call tp%lindrift(system, dth, ptb)
             call tp%get_accel(system, param, t, xbeg)
             call tp%kick(dth)
             call tp%drift(system, param, dt)
             call tp%get_accel(system, param, t + dt, xend)
             call tp%kick(dth)
-            call tp%lindrift(dth, tp%ptend)
-            call tp%vb2vh(vbcb = -tp%ptend)
+            call tp%lindrift(system, dth, pte)
+            call tp%vb2vh(vbcb = -pte)
          end associate
       end select
    
