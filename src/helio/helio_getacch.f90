@@ -22,7 +22,7 @@ contains
       real(DP), dimension(:, :), allocatable, save :: xh_loc, aobl
 
       associate(cb => system%cb, pl => self, npl => self%nbody)
-         pl%ahi(:,2:npl) = 0.0_DP
+         pl%ahi(:,:) = 0.0_DP
          call helio_getacch_int_pl(pl, t)
          pl%ah(:,:) = pl%ahi(:,:)
          if (param%loblatecb) call pl%obl_acc(cb)
@@ -84,7 +84,7 @@ contains
          real(DP), dimension(NDIM) :: dx
       
          associate(npl => pl%nbody)
-            do i = 2, npl - 1
+            do i = 1, npl - 1
                do j = i + 1, npl
                   dx(:) = pl%xh(:,j) - pl%xh(:,i)
                   rji2 = dot_product(dx(:), dx(:))

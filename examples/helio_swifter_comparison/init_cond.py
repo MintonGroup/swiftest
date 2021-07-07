@@ -201,17 +201,17 @@ if __name__ == '__main__':
 
    sys.stdout = sys.__stdout__
    #Now make Swiftest files
-   #cbfile = open(swiftest_cb, 'w')
-   cbfile = FortranFile(swiftest_cb, 'w')
-   #print(1.0,file=cbfile)
-   #print(rmin,file=cbfile)
-   #print(J2,file=cbfile)
-   #print(J4,file=cbfile)
+   cbfile = open(swiftest_cb, 'w')
+   #cbfile = FortranFile(swiftest_cb, 'w')
+   print(1.0,file=cbfile)
+   print(rmin,file=cbfile)
+   print(J2,file=cbfile)
+   print(J4,file=cbfile)
    Msun = np.double(1.0)
-   cbfile.write_record(np.double(GMSun))
-   cbfile.write_record(np.double(rmin))
-   cbfile.write_record(np.double(J2))
-   cbfile.write_record(np.double(J4))
+   #cbfile.write_record(np.double(GMSun))
+   #cbfile.write_record(np.double(rmin))
+   #cbfile.write_record(np.double(J2))
+   #cbfile.write_record(np.double(J4))
    cbfile.close()
 
    #plfile = open(swiftest_pl, 'w')

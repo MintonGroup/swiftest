@@ -69,25 +69,18 @@ contains
       class(helio_nbody_system), intent(in)    :: system !! Swiftest nbody system object
       real(DP),                  intent(in)    :: dt     !! Stepsize
       real(DP), dimension(:),    intent(out)   :: pt     !! negative barycentric velocity of the central body
-      ! Internals
-      integer(I4B)          :: i
-      real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't play nicely 
-                                        !with openmp's reduction for some reason
   
       associate(pl => self, npl => self%nbody, cb => system%cb)
-         pttmp(:) = 0.0_DP
-         do i = 2, npl
-            pttmp(:) = pttmp(:) + pl%Gmass(i) * pl%vb(:,i)
-         end do
-         pttmp(:) = pttmp(:) / cb%Gmass
-         do i = 2, npl
-            pl%xh(:,i) = pl%xh(:,i) + pttmp(:) * dt
-         end do
-         pt(:) = pttmp(:)
+         pt(1) = sum(pl%Gmass(1:npl) * pl%vb(1,1:npl))
+         pt(2) = sum(pl%Gmass(1:npl) * pl%vb(2,1:npl))
+         pt(3) = sum(pl%Gmass(1:npl) * pl%vb(3,1:npl))
+         pt(:) = pt(:) / cb%Gmass
+         pl%xh(1,1:npl) = pl%xh(1,1:npl) + pt(1) * dt
+         pl%xh(2,1:npl) = pl%xh(2,1:npl) + pt(2) * dt
+         pl%xh(3,1:npl) = pl%xh(3,1:npl) + pt(3) * dt
       end associate
    
       return
-   
    end subroutine helio_drift_linear_pl
 
    module subroutine helio_drift_tp(self, system, param, dt)
