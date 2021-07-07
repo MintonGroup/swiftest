@@ -46,9 +46,13 @@ for name, id in bodyid.items():
 sim.param['PL_IN'] = "pl.swiftest.in"
 sim.param['TP_IN'] = "tp.swiftest.in"
 sim.param['CB_IN'] = "cb.swiftest.in"
+sim.param['BIN_OUT'] = "bin.swiftest.dat"
+sim.param['ENC_OUT'] = "enc.swiftest.dat"
 sim.save("param.swiftest.in")
 sim.param['PL_IN'] = "pl.swifter.in"
 sim.param['TP_IN'] = "tp.swifter.in"
 sim.save("param.swifter.in", codename="Swifter")
+sim.param['BIN_OUT'] = "bin.swifter.dat"
+sim.param['ENC_OUT'] = "enc.swifter.dat"
 
 
