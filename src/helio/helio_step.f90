@@ -24,12 +24,8 @@ contains
                select type(tp => self%tp)
                class is (helio_tp)
                   call pl%set_rhill(cb)
-                  call system%set_beg_end(xbeg = pl%xh)
                   call pl%step(system, param, t, dt)
-                  if (tp%nbody > 0) then
-                     call system%set_beg_end(xend = pl%xh)
-                     call tp%step(system, param, t, dt)
-                  end if
+                  call tp%step(system, param, t, dt)
                end select
             end select
          end select
@@ -66,8 +62,9 @@ contains
          call pl%lindrift(cb, dth, ptbeg)
          call pl%get_accel(system, param, t)
          call pl%kick(dth)
-
+         call system%set_beg_end(xbeg = pl%xh)
          call pl%drift(system, param, dt)
+         call system%set_beg_end(xend = pl%xh)
          call pl%get_accel(system, param, t + dt)
          call pl%kick(dth)
          call pl%lindrift(cb, dth, ptend)

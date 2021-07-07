@@ -10,7 +10,7 @@ ISTEP_DUMP     1
 BIN_OUT        bin.swifter.dat
 OUT_TYPE      REAL8
 OUT_FORM      XV
-OUT_STAT      NEW
+OUT_STAT      UNKNOWN
 J2             0.0
 J4             0.0
 CHK_CLOSE     yes

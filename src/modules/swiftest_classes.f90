@@ -262,6 +262,7 @@ module swiftest_classes
       private
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), public, deferred :: step
+      procedure(abstract_setup_set_beg_end), public, deferred :: set_beg_end !! Sets the beginning and ending positions of planets.
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure, public :: discard        => discard_system               !! Perform a discard step on the system
@@ -309,6 +310,13 @@ module swiftest_classes
          class(swiftest_body),         intent(inout) :: self !! Swiftest particle object
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine abstract_set_mu
+
+      subroutine abstract_setup_set_beg_end(self, xbeg, xend, vbeg)
+         import swiftest_nbody_system, DP
+         class(swiftest_nbody_system),  intent(inout)     :: self !! WHM nbody system object
+         real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend
+         real(DP), dimension(:,:), intent(in),   optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
+      end subroutine abstract_setup_set_beg_end
 
       subroutine abstract_step_body(self, system, param, t, dt)
          import DP, swiftest_body, swiftest_nbody_system, swiftest_parameters
