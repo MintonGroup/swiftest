@@ -65,8 +65,8 @@ GPAR = -fopenmp -ftree-parallelize-loops=4
 GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 
-#FFLAGS  = $(IDEBUG) $(HEAPARR)
-FFLAGS  = -init=snan,arrays -no-wrap-margin -O3 $(STRICTREAL) $(SIMDVEC) $(PAR) 
+FFLAGS  = $(IDEBUG) $(HEAPARR)
+#FFLAGS  = -init=snan,arrays -no-wrap-margin -O3 $(STRICTREAL) $(SIMDVEC) $(PAR) 
 FORTRAN = ifort
 #AR     = xiar
 

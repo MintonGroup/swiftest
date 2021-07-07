@@ -157,8 +157,9 @@ module swiftest_classes
       !!    component list, such as setup_body and util_spill
    contains
       private
-      procedure(abstract_set_mu),     public, deferred :: set_mu
-      procedure(abstract_step_body),  public, deferred :: step
+      procedure(abstract_discard_body), public, deferred :: discard
+      procedure(abstract_set_mu),       public, deferred :: set_mu
+      procedure(abstract_step_body),    public, deferred :: step
       ! These are concrete because the implementation is the same for all types of particles
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
@@ -283,19 +284,25 @@ module swiftest_classes
          logical, dimension(:),        intent(in)    :: mask
       end subroutine abstract_copy 
 
+      subroutine abstract_discard_body(self, param) 
+         import swiftest_body, swiftest_parameters
+         class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine abstract_discard_body
+
       subroutine abstract_initialize(self, param) 
          import swiftest_base, swiftest_parameters
-         class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
-         class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
+         class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine abstract_initialize
 
       subroutine abstract_read_frame(self, iu, param, form, ierr)
          import DP, I4B, swiftest_base, swiftest_parameters
-         class(swiftest_base),          intent(inout) :: self     !! Swiftest base object
-         integer(I4B),                  intent(inout) :: iu       !! Unit number for the output file to write frame to
+         class(swiftest_base),       intent(inout) :: self    !! Swiftest base object
+         integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-         character(*),                  intent(in)    :: form     !! Input format code ("XV" or "EL")
-         integer(I4B),                  intent(out)   :: ierr     !! Error code
+         character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
+         integer(I4B),               intent(out)   :: ierr    !! Error code
       end subroutine abstract_read_frame
 
       subroutine abstract_set_mu(self, cb) 

@@ -12,28 +12,32 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
 
-      if (self%tp%nbody == 0) return 
-      select type(system => self)
-      class is (whm_nbody_system)
-         associate(cb => system%cb, pl => system%pl, npl => system%pl%nbody, tp => system%tp, ntp => system%tp%nbody)
-            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
-               (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
-                  if (npl > 0) call pl%h2b(cb) 
-                  if (ntp > 0) call tp%h2b(cb) 
-            end if
-            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-               if (ntp > 0) call tp%discard_sun(system, param)
-            end if
-            if (param%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(system, param)
-            if (param%lclose .and. ntp > 0) call tp%discard_pl(system, param)
+      associate(tp => self%tp)
+         call tp%discard(self, param)
+         if (any(tp%ldiscard(1:ntp))) then
+            ! Spill the discards to the spill list
+            call tp%spill(system%tp_discards, tp%ldiscard)
+            call self%write_discard(param, system%tp_discards)
+         end if
+      end associate
+
+      !if (self%tp%nbody == 0) return 
+      !select type(system => self)
+      !class is (whm_nbody_system)
+      !   associate(cb => system%cb, pl => system%pl, npl => system%pl%nbody, tp => system%tp, ntp => system%tp%nbody)
+      !      if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
+      !         (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
+      !            if (npl > 0) call pl%h2b(cb) 
+      !            if (ntp > 0) call tp%h2b(cb) 
+      !      end if
+      !      if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
+      !         if (ntp > 0) call tp%discard_sun(system, param)
+      !      end if
+      !      if (param%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(system, param)
+      !      if (param%lclose .and. ntp > 0) call tp%discard_pl(system, param)
           
-            if (any(tp%ldiscard(1:ntp))) then
-               ! Spill the discards to the spill list
-               call tp%spill(system%tp_discards, tp%ldiscard)
-               call self%write_discard(param, system%tp_discards)
-            end if
+
          end associate  
-         end select
       return
    end subroutine discard_system
 
