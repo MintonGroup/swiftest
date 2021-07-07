@@ -64,7 +64,7 @@ contains
                      end if
 
                      if (param%lextra_force) call tp%user_getacch(system, param, t)
-                     if (param%lgr) call tp%gr_getacch(param)
+                     if (param%lgr) call tp%gr_get_accel(param)
                      
                      tp%xh(:,:) = xh_original(:,:)
                   end associate

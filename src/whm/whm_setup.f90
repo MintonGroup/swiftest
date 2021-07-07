@@ -75,7 +75,7 @@ contains
    module subroutine whm_setup_system(self, param)
       !! author: David A. Minton
       !!
-      !! Wrapper method to initialize a basic Swiftest nbody system from files
+      !! Initialize a WHM nbody system from files
       !!
       implicit none
       ! Arguments

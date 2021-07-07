@@ -64,12 +64,12 @@ contains
             lfirst = .false.
          end if
          call pl%lindrift(cb, dth, ptbeg)
-         call pl%getacch(system, param, t)
-         call pl%kickvb(dth)
+         call pl%get_accel(system, param, t)
+         call pl%kick(dth)
 
          call pl%drift(system, param, dt)
-         call pl%getacch(system, param, t + dt)
-         call pl%kickvb(dth)
+         call pl%get_accel(system, param, t + dt)
+         call pl%kick(dth)
          call pl%lindrift(cb, dth, ptend)
          call pl%vb2vh(cb)
       end associate
@@ -106,11 +106,11 @@ contains
                lfirst = .false.
             end if
             call tp%lindrift(dth, tp%ptbeg)
-            call tp%getacch(system, param, t, xbeg)
-            call tp%kickvb(dth)
+            call tp%get_accel(system, param, t, xbeg)
+            call tp%kick(dth)
             call tp%drift(system, param, dt)
-            call tp%getacch(system, param, t + dt, xend)
-            call tp%kickvb(dth)
+            call tp%get_accel(system, param, t + dt, xend)
+            call tp%kick(dth)
             call tp%lindrift(dth, tp%ptend)
             call tp%vb2vh(vbcb = -tp%ptend)
          end associate

@@ -9,10 +9,10 @@ module swiftest_classes
    public :: discard_pl, discard_system, discard_tp 
    public :: drift_one
    public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
-   public :: kick_vb_body, kick_vh_body
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_param_reader, io_param_writer, io_read_body_in, &
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, io_read_initialize_system, &
              io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
+   public :: kickvh_body
    public :: obl_acc_body
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_pl, setup_set_ir3h, setup_set_msys, setup_set_mu_pl, setup_set_mu_tp, &
@@ -164,8 +164,7 @@ module swiftest_classes
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: write_frame    => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure, public :: kickvb         => kick_vb_body        !! Kicks the barycentric velocities
-      procedure, public :: kickvh         => kick_vh_body        !! Kicks the heliocentric velocities
+      procedure, public :: kick           => kickvh_body         !! Kicks the heliocentric velocities
       procedure, public :: obl_acc        => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: el2xv          => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
       procedure, public :: xv2el          => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
@@ -383,18 +382,6 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
       end subroutine eucl_irij3_plpl
 
-      module subroutine kick_vb_body(self, dt)
-         implicit none
-         class(swiftest_body), intent(inout) :: self !! Swiftest generic body object
-         real(DP),             intent(in)    :: dt   !! Stepsize
-      end subroutine kick_vb_body
-
-      module subroutine kick_vh_body(self, dt)
-         implicit none
-         class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-         real(DP),                     intent(in)    :: dt   !! Stepsize
-      end subroutine kick_vh_body
-
       module subroutine io_dump_param(self, param_file_name)
          implicit none
          class(swiftest_parameters),intent(in)    :: self    !! Output collection of parameters
@@ -531,6 +518,12 @@ module swiftest_classes
          integer(I4B),                  intent(inout) :: iu     !! Unit number for the output file to write frame to
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_system
+
+      module subroutine kickvh_body(self, dt)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
+         real(DP),                     intent(in)    :: dt   !! Stepsize
+      end subroutine kickvh_body
 
       module subroutine obl_acc_body(self, cb)
          implicit none

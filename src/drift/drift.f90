@@ -18,10 +18,10 @@ contains
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_one.f
       implicit none
       ! Arguments
-      real(DP), intent(in)                   :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-      real(DP), intent(inout)  :: px, py, pz, vx, vy, vz !! Position and velocity of body to drift
-      real(DP), intent(in)                   :: dt    !! Step size
-      integer(I4B), intent(out)              :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
+      real(DP), intent(in)      :: mu                     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
+      real(DP), intent(inout)   :: px, py, pz, vx, vy, vz !! Position and velocity of body to drift
+      real(DP), intent(in)      :: dt                     !! Step size
+      integer(I4B), intent(out) :: iflag                  !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       ! Internals
       integer(I4B) :: i
       real(DP)   :: dttmp

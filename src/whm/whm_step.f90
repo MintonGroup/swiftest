@@ -50,18 +50,18 @@ contains
          dth = 0.5_DP * dt
          if (pl%lfirst) then
             call pl%h2j(cb)
-            call pl%getacch(system, param, t)
+            call pl%get_accel(system, param, t)
             pl%lfirst = .false.
          end if
-         call pl%kickvh(dth)
+         call pl%kick(dth)
          call pl%vh2vj(cb) 
          !If GR enabled, calculate the p4 term before and after each drift
          if (param%lgr) call pl%gr_p4(param, dth)
          call pl%drift(system, param, dt)
          if (param%lgr) call pl%gr_p4(param, dth)
          call pl%j2h(cb)
-         call pl%getacch(system, param, t + dt)
-         call pl%kickvh(dth)
+         call pl%get_accel(system, param, t + dt)
+         call pl%kick(dth)
       end associate
       return
    end subroutine whm_step_pl
@@ -88,16 +88,16 @@ contains
          associate(tp => self, cb => system%cb, pl => system%pl, xbeg => system%xbeg, xend => system%xend)
             dth = 0.5_DP * dt
             if (tp%lfirst) then
-               call tp%getacch(system, param, t, xbeg)
+               call tp%get_accel(system, param, t, xbeg)
                tp%lfirst = .false.
             end if
-            call tp%kickvh(dth)
+            call tp%kick(dth)
             !If GR enabled, calculate the p4 term before and after each drift
             if (param%lgr) call tp%gr_p4(param, dth)
             call tp%drift(system, param, dt)
             if (param%lgr) call tp%gr_p4(param, dth)
-            call tp%getacch(system, param, t + dt, xend)
-            call tp%kickvh(dth)
+            call tp%get_accel(system, param, t + dt, xend)
+            call tp%kick(dth)
          end associate
       end select
       return

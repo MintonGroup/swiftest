@@ -5,10 +5,8 @@ module whm_classes
    !! Partially adapted from David E. Kaufmann's Swifter module: module_whm.f90
    use swiftest_globals
    use swiftest_classes, only : swiftest_cb, swiftest_pl, swiftest_tp, swiftest_nbody_system
-
    implicit none
    public
-
 
    !********************************************************************************************************************************
    ! whm_cb class definitions and method interfaces
@@ -37,9 +35,9 @@ module whm_classes
       procedure, public :: j2h          => whm_coord_j2h_pl        !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
       procedure, public :: vh2vj        => whm_coord_vh2vj_pl      !! Convert velocity vectors from heliocentric to Jacobi coordinates 
       procedure, public :: drift        => whm_drift_pl            !! Loop through massive bodies and call Danby drift routine
-      procedure, public :: getacch      => whm_getacch_pl          !! Compute heliocentric accelerations of massive bodies
       procedure, public :: fill         => whm_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: gr_getacch   => whm_gr_getacch_pl       !! Acceleration term arising from the post-Newtonian correction
+      procedure, public :: get_accel    => whm_getacch_pl          !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: gr_get_accel => whm_gr_getacch_pl       !! Acceleration term arising from the post-Newtonian correction
       procedure, public :: gr_p4        => whm_gr_p4_pl            !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: gr_vh2pv     => whm_gr_vh2pv_pl         !! Converts from heliocentric velocity to psudeovelocity for GR calculations
       procedure, public :: gr_pv2vh     => whm_gr_pv2vh_pl         !! Converts from psudeovelocity to heliocentric velocity for GR calculations
@@ -62,8 +60,8 @@ module whm_classes
    contains
       private
       procedure, public :: drift        => whm_drift_tp        !! Loop through test particles and call Danby drift routine
-      procedure, public :: getacch      => whm_getacch_tp      !! Compute heliocentric accelerations of test particles
-      procedure, public :: gr_getacch   => whm_gr_getacch_tp   !! Acceleration term arising from the post-Newtonian correction
+      procedure, public :: get_accel    => whm_getacch_tp      !! Compute heliocentric accelerations of test particles
+      procedure, public :: gr_get_accel => whm_gr_getacch_tp   !! Acceleration term arising from the post-Newtonian correction
       procedure, public :: gr_p4        => whm_gr_p4_tp        !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: gr_vh2pv     => whm_gr_vh2pv_tp     !! Converts from heliocentric velocity to psudeovelocity for GR calculations
       procedure, public :: gr_pv2vh     => whm_gr_pv2vh_tp     !! Converts from psudeovelocity to heliocentric velocity for GR calculations
@@ -81,9 +79,9 @@ module whm_classes
    contains
       private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize   => whm_setup_system  !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
-      procedure, public :: step         => whm_step_system
-      procedure, public :: set_beg_end  => whm_setup_set_beg_end     !! Sets the beginning and ending positions of planets.
+      procedure, public :: initialize   => whm_setup_system      !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure, public :: step         => whm_step_system       !! Advance the WHM nbody system forward in time by one step
+      procedure, public :: set_beg_end  => whm_setup_set_beg_end !! Sets the beginning and ending positions of planets.
    end type whm_nbody_system
 
    interface
@@ -212,7 +210,6 @@ module whm_classes
          class(whm_tp),              intent(inout) :: self  !! WHM test particle object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
       end subroutine whm_gr_vh2pv_tp
-
 
       !> Reads WHM massive body object in from file
       module subroutine whm_setup_pl(self,n)

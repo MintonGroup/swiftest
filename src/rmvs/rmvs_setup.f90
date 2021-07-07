@@ -46,37 +46,10 @@ contains
       return
    end subroutine rmvs_setup_pl 
 
-   module subroutine rmvs_setup_tp(self,n)
-      !! author: David A. Minton
-      !!
-      !! Allocate WHM test particle structure
-      !!
-      !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
-      implicit none
-      ! Arguments
-      class(rmvs_tp),              intent(inout)   :: self !! RMVS test particle object
-      integer,                     intent(in)      :: n    !! Number of test particles to allocate
-
-      !> Call allocation method for parent class
-      call whm_setup_tp(self, n) 
-      if (n <= 0) return
-
-      allocate(self%lperi(n))
-      allocate(self%plperP(n))
-      allocate(self%plencP(n))
-      if (self%lplanetocentric) then
-         allocate(self%xheliocentric(NDIM, n))
-      end if
-
-      self%lperi(:)  = .false.
-
-      return
-   end subroutine rmvs_setup_tp
-
    module subroutine rmvs_setup_system(self, param)
       !! author: David A. Minton
       !!
-      !! Wrapper method to initialize a basic Swiftest nbody system from files.
+      !!  nitialize an RMVS nbody system from files and sets up the planetocentric structures.
       !! 
       !! We currently rearrange the pl order to keep it consistent with the way Swifter does it 
       !! In Swifter, the central body occupies the first position in the pl list, and during
@@ -144,6 +117,35 @@ contains
       end select
    
    end subroutine rmvs_setup_system
+
+   module subroutine rmvs_setup_tp(self,n)
+      !! author: David A. Minton
+      !!
+      !! Allocate WHM test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
+      implicit none
+      ! Arguments
+      class(rmvs_tp),              intent(inout)   :: self !! RMVS test particle object
+      integer,                     intent(in)      :: n    !! Number of test particles to allocate
+
+      !> Call allocation method for parent class
+      call whm_setup_tp(self, n) 
+      if (n <= 0) return
+
+      allocate(self%lperi(n))
+      allocate(self%plperP(n))
+      allocate(self%plencP(n))
+      if (self%lplanetocentric) then
+         allocate(self%xheliocentric(NDIM, n))
+      end if
+
+      self%lperi(:)  = .false.
+
+      return
+   end subroutine rmvs_setup_tp
+
+
    
    module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
       !! author: David A. Minton

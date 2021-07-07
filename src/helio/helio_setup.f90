@@ -1,6 +1,20 @@
 submodule(helio_classes) s_helio_setup
    use swiftest
 contains
+   module subroutine helio_setup_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Initialize a Helio nbody system from files 
+      implicit none
+      ! Arguments
+      class(helio_nbody_system),  intent(inout) :: self   !! Helio system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+
+      call io_read_initialize_system(self, param)
+      ! Make sure that the discard list gets allocated initially
+      call self%tp_discards%setup(self%tp%nbody)
+   end subroutine helio_setup_system
+
    module procedure helio_setup_pl
       !! author: David A. Minton & Carlisle A. Wishard
       !!

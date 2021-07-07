@@ -27,9 +27,9 @@ module rmvs_classes
    contains
       private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize    => rmvs_setup_system  !! Performs RMVS-specific initilization steps, like calculating the Jacobi masses
-      procedure, public :: step          => rmvs_step_system
-      procedure, public :: set_beg_end   => rmvs_setup_set_beg_end  !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS
+      procedure, public :: initialize    => rmvs_setup_system      !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
+      procedure, public :: step          => rmvs_step_system       !! Advance the RMVS nbody system forward in time by one step
+      procedure, public :: set_beg_end   => rmvs_setup_set_beg_end !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS.
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -71,7 +71,7 @@ module rmvs_classes
       procedure, public :: discard           => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
       procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: fill              => rmvs_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: getacch           => rmvs_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
+      procedure, public :: get_accel         => rmvs_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
                                                                         !! if the test particle is undergoing a close encounter or not
       procedure, public :: setup             => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
       procedure, public :: spill             => rmvs_spill_tp           !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)

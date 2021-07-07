@@ -27,7 +27,7 @@ contains
          pl%ah(:,:) = pl%ahi(:,:)
          if (param%loblatecb) call pl%obl_acc(cb)
          if (param%lextra_force) call pl%user_getacch(system, param, t)
-         if (param%lgr) call pl%gr_getacch(param)
+         !if (param%lgr) call pl%gr_get_accel(param)
       end associate
 
       return
@@ -61,7 +61,7 @@ contains
                tp%ah(:,:) = tp%ahi(:,:)
                if (param%loblatecb) call tp%obl_acc(cb) 
                if (param%lextra_force) call tp%user_getacch(system, param, t)
-               if (param%lgr) call tp%gr_getacch(param)
+               !if (param%lgr) call tp%gr_get_accel(param)
             end select
          end associate
          return
