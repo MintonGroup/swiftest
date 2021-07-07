@@ -15,21 +15,12 @@ contains
       real(DP),                   intent(in)    :: t      !! Simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsize
 
-      select type(system => self)
-      class is (helio_nbody_system)
-         select type(cb => self%cb)
-         class is (helio_cb)
-            select type(pl => self%pl)
-            class is (helio_pl)
-               select type(tp => self%tp)
-               class is (helio_tp)
-                  call pl%set_rhill(cb)
-                  call pl%step(system, param, t, dt)
-                  call tp%step(system, param, t, dt)
-               end select
-            end select
-         end select
-      end select
+      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+         call pl%set_rhill(cb)
+         tp%lfirst = pl%lfirst
+         call pl%step(system, param, t, dt)
+         call tp%step(system, param, t, dt)
+      end associate
       return
    end subroutine helio_step_system 
 
@@ -50,16 +41,14 @@ contains
       ! Internals 
       integer(I4B)     :: i
       real(DP)         :: dth, msys
-      !real(DP), dimension(NDIM) :: ptbeg, ptend !! TODO: Incorporate these into the tp structure
-      logical, save :: lfirst = .true.
  
       select type(system)
       class is (helio_nbody_system)
          associate(pl => self, cb => system%cb, ptb => system%ptb, pte => system%pte)
             dth = 0.5_DP * dt
-            if (lfirst) then
+            if (pl%lfirst) then
                call pl%vh2vb(cb)
-               lfirst = .false.
+               pl%lfirst = .false.
             end if
             call pl%lindrift(system, dth, ptb)
             call pl%get_accel(system, param, t)
@@ -94,16 +83,15 @@ contains
       real(DP),                     intent(in)    :: t      !! Current simulation time
       real(DP),                     intent(in)    :: dt     !! Stepsiz
       ! Internals
-      logical, save  :: lfirst = .true. !! Flag to indicate that this is the first call
       real(DP) :: dth   !! Half step size
    
       select type(system)
       class is (helio_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl, xbeg => system%xbeg, xend => system%xend, ptb => system%ptb, pte => system%pte)
             dth = 0.5_DP * dt
-            if (lfirst) then
+            if (tp%lfirst) then
                call tp%vh2vb(vbcb = -ptb)
-               lfirst = .false.
+               tp%lfirst = .false.
             end if
             call tp%lindrift(system, dth, ptb)
             call tp%get_accel(system, param, t, xbeg)

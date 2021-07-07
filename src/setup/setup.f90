@@ -69,6 +69,7 @@ contains
 
       self%nbody = n
       if (n <= 0) return
+      self%lfirst = .true.
 
       !write(*,*) 'Allocating the basic Swiftest particle'
       allocate(self%name(n))

@@ -14,7 +14,6 @@ program swiftest_driver
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters
    integer(I4B)                               :: ierr             !! I/O error code 
-   logical                                    :: lfirst           !! Flag indicating that this is the first time through the main loop
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
@@ -42,7 +41,6 @@ program swiftest_driver
              istep_out  => param%istep_out, &
              istep_dump => param%istep_dump)  
       call nbody_system%initialize(param)
-      lfirst = .true.
       t = t0
       iloop = 0
       iout = istep_out
