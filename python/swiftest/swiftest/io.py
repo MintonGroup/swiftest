@@ -5,6 +5,8 @@ import xarray as xr
 import sys
 import tempfile
 
+newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP" )
+
 def real2float(realstr):
     """
     Converts a Fortran-generated ASCII string of a real value into a numpy float type. Handles cases where double precision
@@ -289,7 +291,7 @@ def write_labeled_param(param, param_file_name):
     # Print the list of key/value pairs in the preferred order
     for key in keylist:
         val = ptmp.pop(key, None)
-        print(f"{key:<16} {val}", file=outfile)
+        if val is not None: print(f"{key:<16} {val}", file=outfile)
     # Print the remaining key/value pairs in whatever order
     for key, val in ptmp.items():
         print(f"{key:<16} {val}", file=outfile)
@@ -984,8 +986,8 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
 def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_questions={}):
     swiftest_param = swifter_param.copy()
     # Pull additional feature status from the conversion_questions dictionary
-    featurelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP" )
-    for key in featurelist:
+    
+    for key in newfeaturelist:
         swiftest_param[key] = conversion_questions.get(key, "NO")
     # Convert the PL file
     if plname == '':
@@ -1218,7 +1220,7 @@ def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_ques
     return swiftest_param
 
 def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
-    swifter_param = swiftest_param.copy()
+    swifter_param = swiftest_param
     CBIN = swifter_param.pop("CB_IN", None)
     MTINY = swifter_param.pop("MTINY", None)
     MU2KG = swifter_param.pop("MU2KG", 1.0)
@@ -1228,10 +1230,14 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     if GR is not None:
         if GR == 'YES':
            swifter_param['C'] =  swiftest.einsteinC * np.longdouble(TU2S) / np.longdouble(DU2M)
+    for key in newfeaturelist:
+       tmp = swifter_param.pop(key, None)
     swifter_param['J2'] = J2
     swifter_param['J4'] = J4
     swifter_param['RHILL_PRESENT'] = "YES"
     swifter_param['CHK_CLOSE'] = "YES"
+    if swifter_param['OUT_STAT'] == "REPLACE":
+        swifter_param['OUT_STAT'] = "UNKNOWN"
     swifter_param['! VERSION'] = "Swifter parameter file converted from Swiftest"
 
     return swifter_param
