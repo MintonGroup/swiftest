@@ -58,8 +58,6 @@ def read_swiftest_param(param_file_name, param):
         param['T0'] = real2float(param['T0'])
         param['TSTOP'] = real2float(param['TSTOP'])
         param['DT'] = real2float(param['DT'])
-        param['J2'] = real2float(param['J2'])
-        param['J4'] = real2float(param['J4'])
         param['CHK_RMIN'] = real2float(param['CHK_RMIN'])
         param['CHK_RMAX'] = real2float(param['CHK_RMAX'])
         param['CHK_EJECT'] = real2float(param['CHK_EJECT'])
