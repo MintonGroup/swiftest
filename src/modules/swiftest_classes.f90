@@ -135,6 +135,7 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest bodies
    type, abstract, public, extends(swiftest_base) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
+      logical                                   :: lfirst = .true. !! Run the current step as a first
       integer(I4B)                              :: nbody = 0  !! Number of bodies
       integer(I4B), dimension(:),   allocatable :: name       !! External identifier
       integer(I4B), dimension(:),   allocatable :: status     !! An integrator-specific status indicator 
@@ -258,7 +259,6 @@ module swiftest_classes
       real(DP)                                   :: pe = 0.0_DP     !! System potential energy
       real(DP)                                   :: te = 0.0_DP     !! System total energy
       real(DP), dimension(NDIM)                  :: htot = 0.0_DP   !! System angular momentum vector
-      logical                                    :: lfirst = .true. !! Run the current step as a first
    contains
       private
       !> Each integrator will have its own version of the step

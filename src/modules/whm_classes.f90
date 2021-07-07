@@ -29,7 +29,6 @@ module whm_classes
       real(DP), dimension(:),   allocatable :: ir3j    !! Third term of heliocentric acceleration
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_pl and whm_spill_pl
-      logical                               :: lfirst = .true.
    contains
       procedure, public :: h2j          => whm_coord_h2j_pl        !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
       procedure, public :: j2h          => whm_coord_j2h_pl        !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
@@ -56,7 +55,6 @@ module whm_classes
    type, public, extends(swiftest_tp) :: whm_tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_tp and whm_spill_tp
-      logical                               :: lfirst = .true.
    contains
       private
       procedure, public :: drift        => whm_drift_tp        !! Loop through test particles and call Danby drift routine
