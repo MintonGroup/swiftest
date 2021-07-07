@@ -509,13 +509,15 @@ contains
                               tpenci%cb_heliocentric = cb
                               tpenci%ipleP = i
                               tpenci%status(:) = ACTIVE
-                              tpenci%name(:) = pack(tp%name(:), encmask(:)) 
                               ! Grab all the encountering test particles and convert them to a planetocentric frame
+                              tpenci%name(:) = pack(tp%name(:), encmask(:)) 
                               do j = 1, NDIM 
                                  tpenci%xheliocentric(j, :) = pack(tp%xh(j,:), encmask(:)) 
                                  tpenci%xh(j, :) = tpenci%xheliocentric(j, :) - pl%inner(0)%x(j, i)
                                  tpenci%vh(j, :) = pack(tp%vh(j,:), encmask(:)) - pl%inner(0)%v(j, i)
                               end do
+                              tpenci%lperi(:) = pack(tp%lperi(:), encmask(:)) 
+                              tpenci%plperP(:) = pack(tp%plperP(:), encmask(:)) 
                               ! Make sure that the test particles get the planetocentric value of mu 
                               allocate(cbenci%inner(0:NTPHENC))
                               do inner_index = 0, NTPHENC 
@@ -590,6 +592,8 @@ contains
                                  tp%xh(j, tpind(1:pl%nenc(i))) = tpenci%xh(j,1:pl%nenc(i)) + pl%inner(NTPHENC)%x(j, i)
                                  tp%vh(j, tpind(1:pl%nenc(i))) = tpenci%vh(j,1:pl%nenc(i)) + pl%inner(NTPHENC)%v(j, i)
                               end do
+                              tp%lperi(tpind(1:pl%nenc(i))) = tpenci%lperi(tpind(1:pl%nenc(i)))
+                              tp%plperP(tpind(1:pl%nenc(i))) = tpenci%plperP(tpind(1:pl%nenc(i)))
                               deallocate(pl%planetocentric(i)%tp)
                               deallocate(cbenci%inner)
                               do inner_index = 0, NTPHENC 

@@ -68,7 +68,7 @@ module rmvs_classes
       integer(I4B)                              :: ipleP           !!  index value of encountering planet
       logical                                   :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
-      procedure, public :: discard_pl        => rmvs_discard_pl_tp
+      procedure, public :: discard           => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
       procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: fill              => rmvs_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: getacch           => rmvs_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
@@ -97,13 +97,13 @@ module rmvs_classes
    end type rmvs_pl
 
    interface
-      module subroutine rmvs_discard_pl_tp(self, system, param)
+      module subroutine rmvs_discard_tp(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      end subroutine rmvs_discard_pl_tp
+      end subroutine rmvs_discard_tp
 
       module function rmvs_encounter_check_tp(self, system, dt) result(lencounter)
          implicit none

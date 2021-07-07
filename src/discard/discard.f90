@@ -4,40 +4,65 @@ contains
    module subroutine discard_system(self, param)
       !! author: David A. Minton
       !!
-      !! Check to see if particles should be discarded based on their positions relative to the massive bodies
+      !! Calls the discard methods for each body class and then the write method if any discards were detected
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine: discard.f90
-      !! Adapted from Hal Levison's Swift routine discard.f
       implicit none
-      class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
 
-      if (self%tp%nbody == 0) return 
-      select type(system => self)
-      class is (whm_nbody_system)
-         associate(cb => system%cb, pl => system%pl, npl => system%pl%nbody, tp => system%tp, ntp => system%tp%nbody)
-            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
-               (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
-                  if (npl > 0) call pl%h2b(cb) 
-                  if (ntp > 0) call tp%h2b(cb) 
-            end if
-            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-               if (ntp > 0) call tp%discard_sun(system, param)
-            end if
-            if (param%qmin >= 0.0_DP .and. ntp > 0) call tp%discard_peri(system, param)
-            if (param%lclose .and. ntp > 0) call tp%discard_pl(system, param)
-          
-            if (any(tp%ldiscard(1:ntp))) then
-               ! Spill the discards to the spill list
-               call tp%spill(system%tp_discards, tp%ldiscard)
-               call self%write_discard(param, system%tp_discards)
-            end if
-         end associate  
-         end select
+      associate(system => self, tp => self%tp, pl => self%pl)
+         call tp%discard(system, param)
+         call pl%discard(system, param)
+         if (any(tp%ldiscard(:) .or. any(pl%ldiscard(:)))) call system%write_discard(param)
+      end associate
       return
    end subroutine discard_system
 
-   module subroutine discard_sun_tp(self, system, param)
+   module subroutine discard_pl(self, system, param)
+      !! author: David A. Minton
+      !!
+      !!  Placeholder method for discarding massive bodies. This method does nothing except to ensure that the discard flag is set to false. 
+      !!  This method is intended to be overridden by more advanced integrators.
+      implicit none
+      ! Arguments
+      class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+      self%ldiscard(:) = .false.
+      return
+   end subroutine discard_pl
+
+   module subroutine discard_tp(self, system, param)
+      !! author: David A. Minton
+      !!
+      !! Check to see if particles should be discarded based on their positions relative to the massive bodies
+      !! 
+      !! Adapted from David E. Kaufmann's Swifter routine: discard.f90
+      !! Adapted from Hal Levison's Swift routine discard.
+      implicit none
+      ! Arguments
+      class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+
+      associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
+         if (ntp == 0) return 
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
+             (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
+            if (npl > 0) call pl%h2b(cb) 
+            if (ntp > 0) call tp%h2b(cb) 
+         end if
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
+            if (ntp > 0) call discard_sun_tp(tp, system, param)
+         end if
+         if (param%qmin >= 0.0_DP .and. ntp > 0) call discard_peri_tp(tp, system, param)
+         if (param%lclose .and. ntp > 0) call discard_pl_tp(tp, system, param)
+         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard)
+      end associate
+      return
+   end subroutine discard_tp
+
+   subroutine discard_sun_tp(tp, system, param)
       !! author: David A. Minton
       !!
       !!  Check to see if test particles should be discarded based on their positions relative to the Sun
@@ -47,14 +72,14 @@ contains
       !! Adapted from Hal Levison's Swift routine discard_sun.f
       implicit none
       ! Arguments
-      class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_tp),           intent(inout) :: tp     !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
 
-      associate(tp => self, ntp => self%nbody, cb => system%cb, t => param%t, msys => system%msys)
+      associate(ntp => tp%nbody, cb => system%cb, t => param%t, msys => system%msys)
          rmin2 = max(param%rmin * param%rmin, cb%radius * cb%radius)
          rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
@@ -86,7 +111,7 @@ contains
       return
    end subroutine discard_sun_tp
 
-   module subroutine discard_peri_tp(self, system, param)
+   subroutine discard_peri_tp(tp, system, param)
       !! author: David A. Minton
       !!
       !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
@@ -95,7 +120,7 @@ contains
       !! Adapted from Hal Levison's Swift routine discard_peri.f
       implicit none
       ! Arguments
-      class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_tp),           intent(inout) :: tp   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameterss
       ! Internals
@@ -104,7 +129,7 @@ contains
       real(DP)                  :: r2
       real(DP), dimension(NDIM) :: dx
    
-      associate(cb => system%cb, tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody, qmin_coord => param%qmin_coord, t => param%t, msys => system%msys)
+      associate(cb => system%cb, ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, qmin_coord => param%qmin_coord, t => param%t, msys => system%msys)
          if (lfirst) then
             call util_hills(npl, pl)
             call util_peri(lfirst, ntp, tp, cb%Gmass, msys, param%qmin_coord)
@@ -138,7 +163,7 @@ contains
    
    end subroutine discard_peri_tp
 
-   module subroutine discard_pl_tp(self, system, param)
+   subroutine discard_pl_tp(tp, system, param)
       !! author: David A. Minton
       !!
       !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
@@ -147,7 +172,7 @@ contains
       !! Adapted from Hal Levison's Swift routine discard_pl.f
       implicit none
       ! Arguments
-      class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_tp),           intent(inout) :: tp     !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals 
@@ -155,7 +180,7 @@ contains
       real(DP)                  :: r2min, radius
       real(DP), dimension(NDIM) :: dx, dv
    
-      associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody, t => param%t, dt => param%dt)
+      associate(ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, t => param%t, dt => param%dt)
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                do j = 1, npl

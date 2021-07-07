@@ -1,11 +1,10 @@
 submodule(rmvs_classes) s_rmvs_discard
    use swiftest
 contains  
-   module subroutine rmvs_discard_pl_tp(self, system, param)
+   module subroutine rmvs_discard_tp(self, system, param)
       !! author: David A. Minton
       !!
-      !! Check to see if test particles should be discarded based on pericenter passage distances with respect to
-      !!  planets encountered
+      !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
       !!
       !! Adapted from Hal Levison's Swift routine discard_pl.f
       !! Adapted from Hal Levison's Swift routine rmvs_discard_pl.f90
@@ -29,8 +28,9 @@ contains
                end if
             end associate
          end do
-         call discard_pl_tp(tp, system, param)
+         ! Call the base method that this overrides
+         call discard_tp(tp, system, param)
       end associate
 
-   end subroutine rmvs_discard_pl_tp
+   end subroutine rmvs_discard_tp
 end submodule s_rmvs_discard
