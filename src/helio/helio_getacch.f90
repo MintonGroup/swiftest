@@ -15,14 +15,8 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       ! Internals
-      logical, save                    :: lmalloc = .true.
-      integer(I4B)                     :: i
-      real(DP)                       :: r2
-      real(DP), dimension(:), allocatable, save    :: irh
-      real(DP), dimension(:, :), allocatable, save :: xh_loc, aobl
 
       associate(cb => system%cb, pl => self, npl => self%nbody)
-         pl%ahi(:,:) = 0.0_DP
          call helio_getacch_int_pl(pl, t)
          pl%ah(:,:) = pl%ahi(:,:)
          if (param%loblatecb) call pl%obl_acc(cb)
@@ -53,10 +47,9 @@ contains
          real(DP)                                     :: r2, mu
          real(DP), dimension(:), allocatable, save    :: irh, irht
       
-         associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
+         associate(tp => self, ntp => self%nbody, cb => system%cb, npl => system%pl%nbody)
             select type(pl => system%pl)
             class is (helio_pl)
-               self%ahi(:,:) = 0.0_DP
                call helio_getacch_int_tp(tp, pl, t, xhp)
                tp%ah(:,:) = tp%ahi(:,:)
                if (param%loblatecb) call tp%obl_acc(cb) 
@@ -84,6 +77,7 @@ contains
          real(DP), dimension(NDIM) :: dx
       
          associate(npl => pl%nbody)
+            pl%ahi(:,:) = 0.0_DP
             do i = 1, npl - 1
                do j = i + 1, npl
                   dx(:) = pl%xh(:,j) - pl%xh(:,i)
@@ -119,9 +113,10 @@ contains
          real(DP), dimension(NDIM) :: dx
       
          associate(ntp => tp%nbody, npl => pl%nbody)
+            tp%ahi(:,:) = 0.0_DP
             do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
-               do j = 2, npl
+               do j = 1, npl
                   dx(:) = tp%xh(:,i) - xhp(:,j)
                   r2 = dot_product(dx(:), dx(:))
                   fac = pl%Gmass(j) / (r2 * sqrt(r2))

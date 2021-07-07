@@ -16,7 +16,7 @@ contains
       real(DP),                   intent(in)    :: t     !! Current simulation time
       real(DP),                   intent(in)    :: dt    !! Current stepsize
 
-      associate(system => self, cb => self%cb,  pl => self%pl, tp => self%tp, ntp => self%tp%nbody, npl => self%pl%nbody)
+      associate(system => self, cb => self%cb,  pl => self%pl, tp => self%tp, ntp => self%tp%nbody)
          call pl%set_rhill(cb)
          call self%set_beg_end(xbeg = pl%xh)
          call pl%step(system, param, t, dt)
