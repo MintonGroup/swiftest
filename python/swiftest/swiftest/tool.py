@@ -76,7 +76,7 @@ def follow_swift(ds, ifol=None, nskp=None):
                 peri = fol['peri'].sel(time=t).values
                 apo = fol['apo'].sel(time=t).values
                 obar = fol['obar'].sel(time=t).values
-                print(f"{t.values:15.7e} {a:22.16f} {e:22.16f} {inc:22.16f} {capom:22.16f} {omega:22.16f} {capm:22.16f} {peri:22.16f} {apo:10.4f} {obar:22.16f}", file=f)
+                print(f"{t.values:15.7e} {a:22.16f} {e:22.16f} {inc:22.16f} {capom:22.16f} {omega:22.16f} {capm:22.16f} {peri:22.16f} {apo:22.16f} {obar:22.16f}", file=f)
                 
     except IOError:
         print(f"Error writing to follow.out")
