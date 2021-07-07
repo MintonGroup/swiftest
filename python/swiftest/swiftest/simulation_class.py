@@ -1,46 +1,44 @@
 from swiftest import io
+from swiftest import init_cond
 from swiftest import tool
+from swiftest import constants
+from datetime import date
+import xarray as xr
 
 class Simulation:
     """
     This is a class that define the basic Swift/Swifter/Swiftest simulation object
     """
     def __init__(self, codename="Swiftest", param_file=""):
-        self.ds = None
+        self.ds = xr.Dataset()
         self.param = {
             '! VERSION': f"Swiftest parameter input",
             'T0': "0.0",
             'TSTOP': "0.0",
             'DT': "0.0",
-            'PL_IN': "",
-            'TP_IN': "",
-            'CB_IN': "",
-            'IN_TYPE': "REAL8",
+            'PL_IN': "pl.in",
+            'TP_IN': "tp.in",
+            'CB_IN': "cb.in",
+            'IN_TYPE': "ASCII",
             'ISTEP_OUT': "1",
             'ISTEP_DUMP': "1",
             'BIN_OUT': "bin.dat",
             'OUT_TYPE': 'REAL8',
-            'OUT_FORM': "XV",
+            'OUT_FORM': "EL",
             'OUT_STAT': "REPLACE",
-            'J2': "0.0",
-            'J4': "0.0",
-            'CHK_RMIN': "-1.0",
-            'CHK_RMAX': "-1.0",
-            'CHK_EJECT': "-1.0",
-            'CHK_QMIN': "-1.0",
+            'CHK_RMAX': "1000.0",
+            'CHK_EJECT': "1000.0",
+            'CHK_QMIN': constants.RSun / constants.AU2M,
             'CHK_QMIN_COORD': "HELIO",
-            'CHK_QMIN_RANGE': "",
-            'ENC_OUT': "",
-            'MTINY': "-1.0",
-            'MU2KG': "-1.0",
-            'TU2S': "-1.0",
-            'DU2M': "-1.0",
-            'GU': "-1.0",
+            'CHK_QMIN_RANGE': f"{constants.RSun / constants.AU2M} 1000.0",
+            'ENC_OUT': "enc.dat",
+            'MU2KG': constants.MSun,
+            'TU2S': constants.JD2S,
+            'DU2M': constants.AU2M,
             'EXTRA_FORCE': "NO",
             'BIG_DISCARD': "NO",
-            'CHK_CLOSE': "NO",
+            'CHK_CLOSE': "YES",
             'FRAGMENTATION': "NO",
-            'MTINY_SET': "NO",
             'ROTATION': "NO",
             'TIDES': "NO",
             'ENERGY': "NO",
@@ -50,6 +48,23 @@ class Simulation:
         }
         if param_file != "" :
             self.read_param(param_file, codename)
+        return
+    
+    def add(self, plname, date=date.today().isoformat()):
+        """
+        Adds a solar system body to an existing simulation DataSet.
+        
+        Parameters
+        ----------
+           plname : string
+                Name of planet to add (e.g. "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"
+           date : string
+                 Date to use when obtaining the ephemerides in the format YYYY-MM-DD. Defaults to "today"
+        Returns
+        -------
+        self.ds : xarray dataset
+        """
+        self.ds = init_cond.solar_system_horizons(plname, self.param, date, self.ds)
         return
     
     def read_param(self, param_file, codename="Swiftest"):
@@ -122,7 +137,6 @@ class Simulation:
             print('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
         return
     
-
     def follow(self, codestyle="Swifter"):
         if self.ds is None:
             self.bin2xr()
@@ -146,3 +160,8 @@ class Simulation:
         
         print('follow.out written')
         return fol
+    
+    def save(self, param_file, framenum=-1):
+        io.swiftest_xr2infile(self.ds, self.param, framenum)
+        self.write_param(param_file)
+        return

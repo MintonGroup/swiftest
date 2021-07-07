@@ -36,46 +36,7 @@ def read_swiftest_param(param_file_name):
     param : dict
         A dictionary containing the entries in the user parameter file
     """
-    param = {
-        '! VERSION': f"Swiftest parameter input from file {param_file_name}",
-        'T0': "0.0",
-        'TSTOP': "0.0",
-        'DT': "0.0",
-        'PL_IN': "",
-        'TP_IN': "",
-        'CB_IN': "",
-        'IN_TYPE': "ASCII",
-        'BIN_OUT': "bin.dat",
-        'ISTEP_OUT': "-1",
-        'ISTEP_DUMP': "-1",
-        'OUT_TYPE': 'REAL8',
-        'OUT_FORM': "XV",
-        'OUT_STAT': "NEW",
-        'J2': "0.0",
-        'J4': "0.0",
-        'CHK_RMIN': "-1.0",
-        'CHK_RMAX': "-1.0",
-        'CHK_EJECT': "-1.0",
-        'CHK_QMIN': "-1.0",
-        'CHK_QMIN_COORD': "HELIO",
-        'CHK_QMIN_RANGE': "",
-        'ENC_OUT': "",
-        'MTINY': "-1.0",
-        'MU2KG': "-1.0",
-        'TU2S': "-1.0",
-        'DU2M': "-1.0",
-        'GU': "-1.0",
-        'EXTRA_FORCE': "NO",
-        'BIG_DISCARD': "NO",
-        'CHK_CLOSE': "NO",
-        'FRAGMENTATION': "NO",
-        'ROTATION': "NO",
-        'TIDES': "NO",
-        'ENERGY': "NO",
-        'GR': "NO",
-        'YARKOVSKY': "NO",
-        'YORP': "NO",
-    }
+    param = {'! VERSION': f"Swiftest parameter input from file {param_file_name}"}
     
     # Read param.in file
     print(f'Reading Swiftest file {param_file_name}')
@@ -636,10 +597,6 @@ def swiftest2xr(param):
     print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
-
-
-
-
 def swiftest_xr2infile(ds, param, framenum=-1):
     """
     Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
@@ -698,7 +655,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         tpfile.close()
     elif param['IN_TYPE'] == 'REAL8':
         # Now make Swiftest files
-        cbfile = FortranFile(swiftest_cb, 'w')
+        cbfile = FortranFile(param['CB_IN'], 'w')
         MSun = np.double(1.0)
         cbfile.write_record(np.double(GMSun))
         cbfile.write_record(np.double(rmin))
@@ -706,7 +663,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         cbfile.write_record(np.double(J4))
         cbfile.close()
         
-        plfile = FortranFile(swiftest_pl, 'w')
+        plfile = FortranFile(param['PL_IN'], 'w')
         plfile.write_record(npl)
         
         plfile.write_record(plid)
@@ -719,7 +676,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         plfile.write_record(mass)
         plfile.write_record(radius)
         plfile.close()
-        tpfile = FortranFile(swiftest_tp, 'w')
+        tpfile = FortranFile(param['TP_IN'], 'w')
         ntp = 1
         tpfile.write_record(ntp)
         tpfile.write_record(tpid)
