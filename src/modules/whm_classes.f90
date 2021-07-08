@@ -72,14 +72,11 @@ module whm_classes
    !********************************************************************************************************************************
    !> An abstract class for the WHM integrator nbody system 
    type, public, extends(swiftest_nbody_system) :: whm_nbody_system
-      !> In the WHM integrator, only test particles are discarded
-      real(DP), dimension(:,:), allocatable :: xbeg, xend    !! Positions of massive bodies at beginning and end of a step. Required in order to separate the test particle step from the massive body step
    contains
       private
       !> Replace the abstract procedures with concrete ones
       procedure, public :: initialize   => whm_setup_system      !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
       procedure, public :: step         => whm_step_system       !! Advance the WHM nbody system forward in time by one step
-      procedure, public :: set_beg_end  => whm_setup_set_beg_end !! Sets the beginning and ending positions of planets.
    end type whm_nbody_system
 
    interface
@@ -215,13 +212,6 @@ module whm_classes
          class(whm_pl), intent(inout)    :: self !! Swiftest test particle object
          integer(I4B),  intent(in)       :: n    !! Number of test particles to allocate
       end subroutine whm_setup_pl
-
-      module subroutine whm_setup_set_beg_end(self, xbeg, xend, vbeg)
-         implicit none
-         class(whm_nbody_system),  intent(inout)          :: self !! WHM nbody system object
-         real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend
-         real(DP), dimension(:,:), intent(in),   optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
-      end subroutine whm_setup_set_beg_end
 
       module subroutine whm_setup_set_ir3j(self)
          implicit none

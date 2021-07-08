@@ -145,32 +145,4 @@ contains
       return
    end subroutine rmvs_setup_tp
 
-
-   
-   module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
-      !! author: David A. Minton
-      !! 
-      !! Sets one or more of the values of xbeg, xend, and vbeg
-      implicit none
-      ! Arguments
-      class(rmvs_nbody_system), intent(inout)          :: self !! RMVS test particle object
-      real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend, vbeg
-
-      if (present(xbeg)) then
-         if (allocated(self%xbeg)) deallocate(self%xbeg)
-         allocate(self%xbeg, source=xbeg)
-      end if
-      if (present(xend)) then
-         if (allocated(self%xend)) deallocate(self%xend)
-         allocate(self%xend, source=xend)
-      end if
-      if (present(vbeg)) then
-         if (allocated(self%vbeg)) deallocate(self%vbeg)
-         allocate(self%vbeg, source=vbeg)
-      end if
-
-      return
-
-   end subroutine rmvs_setup_set_beg_end
-
 end submodule s_rmvs_setup

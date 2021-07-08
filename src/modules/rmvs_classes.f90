@@ -29,7 +29,6 @@ module rmvs_classes
       !> Replace the abstract procedures with concrete ones
       procedure, public :: initialize    => rmvs_setup_system      !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
       procedure, public :: step          => rmvs_step_system       !! Advance the RMVS nbody system forward in time by one step
-      procedure, public :: set_beg_end   => rmvs_setup_set_beg_end !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS.
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -144,12 +143,6 @@ module rmvs_classes
          class(rmvs_pl), intent(inout) :: self !! RMVS test particle object
          integer,             intent(in)    :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_pl
-
-      module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
-         implicit none
-         class(rmvs_nbody_system), intent(inout)          :: self !! RMVS nbody system object
-         real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend, vbeg
-      end subroutine rmvs_setup_set_beg_end
 
       module subroutine rmvs_setup_system(self, param)
          use swiftest_classes, only : swiftest_parameters

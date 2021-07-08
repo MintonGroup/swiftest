@@ -19,8 +19,8 @@ module swiftest_classes
              setup_set_rhill, setup_tp
    public :: user_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_copy_body, util_copy_cb, util_copy_pl, &
-             util_copy_tp, util_copy_system, util_fill_body, util_fill_pl, util_fill_tp, util_reverse_status, util_spill_body, &
-             util_spill_pl, util_spill_tp
+             util_copy_tp, util_copy_system, util_fill_body, util_fill_pl, util_fill_tp, util_reverse_status, util_set_beg_end, & 
+             util_spill_body, util_spill_pl, util_spill_tp
 
    !********************************************************************************************************************************
    ! swiftest_parameters class definitions 
@@ -198,23 +198,27 @@ module swiftest_classes
       integer(I4B), dimension(:,:), allocatable :: k_eucl          !! Index array that converts i, j array indices into k index for use in 
                                                                    !!  the Euclidean distance matrix
       real(DP),     dimension(:),   allocatable :: irij3           !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
+      real(DP),     dimension(:,:), allocatable :: xbeg            !! Position at beginning of step
+      real(DP),     dimension(:,:), allocatable :: xend            !! Position at end of step
+      real(DP),     dimension(:,:), allocatable :: vbeg            !! Velocity at beginning of step
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and util_spill_pl
    contains
       private
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: discard    => discard_pl           !! Placeholder method for discarding massive bodies 
-      procedure, public :: eucl_index => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_irij3 => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
-      procedure, public :: setup      => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
-      procedure, public :: set_mu     => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: set_rhill  => setup_set_rhill      !! Calculates the Hill's radii for each body
-      procedure, public :: h2b        => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
-      procedure, public :: b2h        => util_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
-      procedure, public :: copy       => util_copy_pl         !! Copies elements of one object to another.
-      procedure, public :: fill       => util_fill_pl         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: spill      => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: discard     => discard_pl           !! Placeholder method for discarding massive bodies 
+      procedure, public :: eucl_index  => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: eucl_irij3  => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: setup       => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
+      procedure, public :: set_mu      => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: set_rhill   => setup_set_rhill      !! Calculates the Hill's radii for each body
+      procedure, public :: h2b         => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
+      procedure, public :: b2h         => util_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
+      procedure, public :: copy        => util_copy_pl         !! Copies elements of one object to another.
+      procedure, public :: fill        => util_fill_pl         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: set_beg_end => util_set_beg_end     !! Sets the beginning and ending positions of planets.
+      procedure, public :: spill       => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_pl
 
    !********************************************************************************************************************************
@@ -263,7 +267,6 @@ module swiftest_classes
       private
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), public, deferred :: step
-      procedure(abstract_setup_set_beg_end), public, deferred :: set_beg_end !! Sets the beginning and ending positions of planets.
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure, public :: discard        => discard_system               !! Perform a discard step on the system
@@ -312,20 +315,13 @@ module swiftest_classes
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine abstract_set_mu
 
-      subroutine abstract_setup_set_beg_end(self, xbeg, xend, vbeg)
-         import swiftest_nbody_system, DP
-         class(swiftest_nbody_system),  intent(inout)     :: self !! WHM nbody system object
-         real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend
-         real(DP), dimension(:,:), intent(in),   optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
-      end subroutine abstract_setup_set_beg_end
-
       subroutine abstract_step_body(self, system, param, t, dt)
          import DP, swiftest_body, swiftest_nbody_system, swiftest_parameters
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t       !! Simulation time
+         real(DP),                     intent(in)    :: t      !! Simulation time
          real(DP),                     intent(in)    :: dt     !! Current stepsize
       end subroutine abstract_step_body
 
@@ -700,7 +696,7 @@ module swiftest_classes
 
       module subroutine util_fill_pl(self, inserts, lfill_list)
          implicit none
-         class(swiftest_pl),    intent(inout) :: self        !! Swiftest massive body object
+         class(swiftest_pl),    intent(inout) :: self       !! Swiftest massive body object
          class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_pl
@@ -716,6 +712,13 @@ module swiftest_classes
          implicit none
          class(swiftest_body),         intent(inout) :: self
       end subroutine util_reverse_status
+
+      module subroutine util_set_beg_end(self, xbeg, xend, vbeg)
+         implicit none
+         class(swiftest_pl),       intent(inout) :: self       !! Swiftest massive body object
+         real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend !! Positions at beginning and end of step
+         real(DP), dimension(:,:), intent(in),   optional :: vbeg       !! vbeg is an unused variable to keep this method forward compatible with RMVS
+      end subroutine util_set_beg_end
 
       module subroutine util_spill_body(self, discards, lspill_list)
          implicit none

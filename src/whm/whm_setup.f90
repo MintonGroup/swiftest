@@ -127,27 +127,4 @@ contains
       end if
    end subroutine whm_setup_set_ir3j
 
-   module subroutine whm_setup_set_beg_end(self, xbeg, xend, vbeg)
-      !! author: David A. Minton
-      !! 
-      !! Sets one or more of the values of xbeg and xend
-      implicit none
-      ! Arguments
-      class(whm_nbody_system),  intent(inout)           :: self !! WHM nbody system object
-      real(DP), dimension(:,:), intent(in),    optional :: xbeg, xend
-      real(DP), dimension(:,:), intent(in),    optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
-
-      if (present(xbeg)) then
-         if (allocated(self%xbeg)) deallocate(self%xbeg)
-         allocate(self%xbeg, source=xbeg)
-      end if
-      if (present(xend)) then
-         if (allocated(self%xend)) deallocate(self%xend)
-         allocate(self%xend, source=xend)
-      end if
-
-      return
-
-   end subroutine whm_setup_set_beg_end
-
 end submodule s_whm_setup

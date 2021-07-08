@@ -30,7 +30,7 @@ contains
                   allocate(xbeg, source=pl%xh)
                   allocate(vbeg, source=pl%vh)
                   call pl%set_rhill(cb)
-                  call system%set_beg_end(xbeg = xbeg, vbeg = vbeg)
+                  call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
                   ! ****** Check for close encounters ***** !
                   system%rts = RHSCALE
                   lencounter = tp%encounter_check(system, dt)
@@ -42,11 +42,11 @@ contains
                      call pl%step(system, param, t, dt) 
                      pl%outer(NTENC)%x(:,:) = pl%xh(:,:)
                      pl%outer(NTENC)%v(:,:) = pl%vh(:,:)
-                     call system%set_beg_end(xend = pl%xh)
+                     call pl%set_beg_end(xend = pl%xh)
                      call rmvs_interp_out(system, param, dt)
                      call rmvs_step_out(system, param, t, dt) 
                      call tp%reverse_status()
-                     call system%set_beg_end(xbeg = xbeg, xend = xend)
+                     call pl%set_beg_end(xbeg = xbeg, xend = xend)
                      tp%lfirst = .true.
                      call tp%step(system, param, t, dt)
                      where (tp%status(:) == INACTIVE) tp%status(:) = ACTIVE
@@ -95,7 +95,7 @@ contains
                end where
                do outer_index = 1, NTENC
                   outer_time = t + (outer_index - 1) * dto
-                  call system%set_beg_end(xbeg = pl%outer(outer_index - 1)%x(:, :), &
+                  call pl%set_beg_end(xbeg = pl%outer(outer_index - 1)%x(:, :), &
                                           vbeg = pl%outer(outer_index - 1)%v(:, :), &
                                           xend = pl%outer(outer_index    )%x(:, :))
                   system%rts = RHPSCALE
@@ -167,8 +167,8 @@ contains
                               lfirsttp = .true.
                               do inner_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
                                  plenci%xh(:,:) = plenci%inner(inner_index - 1)%x(:,:)
-                                 call planetocen_system%set_beg_end(xbeg = plenci%inner(inner_index - 1)%x, &
-                                                                    xend = plenci%inner(inner_index)%x)
+                                 call plenci%set_beg_end(xbeg = plenci%inner(inner_index - 1)%x, &
+                                                         xend = plenci%inner(inner_index)%x)
                                  call tpenci%step(planetocen_system, param, inner_time, dti)
                                  do j = 1, pl%nenc(i)
                                     tpenci%xheliocentric(:, j) = tpenci%xh(:, j) + pl%inner(inner_index)%x(:,i)

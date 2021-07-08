@@ -18,10 +18,10 @@ contains
 
       associate(system => self, cb => self%cb,  pl => self%pl, tp => self%tp, ntp => self%tp%nbody)
          call pl%set_rhill(cb)
-         call self%set_beg_end(xbeg = pl%xh)
+         call pl%set_beg_end(xbeg = pl%xh)
          call pl%step(system, param, t, dt)
          if (ntp > 0) then
-            call self%set_beg_end(xend = pl%xh)
+            call pl%set_beg_end(xend = pl%xh)
             call tp%step(system, param, t, dt)
          end if
       end associate
@@ -85,18 +85,17 @@ contains
 
       select type(system)
       class is (whm_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl, xbeg => system%xbeg, xend => system%xend)
+         associate(tp => self, cb => system%cb, pl => system%pl)
             dth = 0.5_DP * dt
             if (tp%lfirst) then
-               call tp%get_accel(system, param, t, xbeg)
+               call tp%get_accel(system, param, t, pl%xbeg)
                tp%lfirst = .false.
             end if
             call tp%kick(dth)
-            !If GR enabled, calculate the p4 term before and after each drift
             if (param%lgr) call tp%gr_p4(param, dth)
             call tp%drift(system, param, dt)
             if (param%lgr) call tp%gr_p4(param, dth)
-            call tp%get_accel(system, param, t + dt, xend)
+            call tp%get_accel(system, param, t + dt, pl%xend)
             call tp%kick(dth)
          end associate
       end select

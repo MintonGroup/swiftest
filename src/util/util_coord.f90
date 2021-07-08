@@ -15,16 +15,22 @@ contains
       ! Internals
       integer(I4B)  :: i
       real(DP)      :: msys
+      real(DP), dimension(NDIM) :: xtmp, vtmp
 
-      associate(npl => self%nbody, xbcb => cb%xb, vbcb => cb%vb, Mcb => cb%Gmass, &
-         xb => self%xb, xh => self%xh, vb => self%vb, vh => self%vh, Mpl => self%Gmass)
-
-         msys = Mcb + sum(Mpl(1:npl))
-         do i = 1, NDIM
-            xbcb(i) = -sum(Mpl(1:npl) * xh(i, 1:npl)) / Mcb
-            vbcb(i) = -sum(Mpl(1:npl) * vh(i, 1:npl)) / Mcb
-            xb(i, 1:npl) = xh(i, 1:npl) + xbcb(i)
-            vb(i, 1:npl) = vh(i, 1:npl) + vbcb(i)
+      associate(pl => self, npl => self%nbody)
+         msys = cb%Gmass
+         xtmp(:) = 0.0_DP
+         vtmp(:) = 0.0_DP
+         do i = 1, npl
+            msys = msys + pl%Gmass(i)
+            xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%xh(:,i)
+            vtmp(:) = vtmp(:) + pl%Gmass(i) * pl%vh(:,i)
+         end do
+         cb%xb(:) = -xtmp(:) / msys
+         cb%vb(:) = -vtmp(:) / msys
+         do i = 1, npl
+            pl%xb(:,i) = pl%xh(:,i) + cb%xb(:)
+            pl%vb(:,i) = pl%vh(:,i) + cb%vb(:)
          end do
       end associate
 
