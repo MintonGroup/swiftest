@@ -264,20 +264,17 @@ contains
          end if
       else
          if (self%lfragmentation) then
-            write(iomsg,*) 'This integrator does not support fragmentation.'
-            iostat = -1
-            return
+            write(iomsg,*) 'This integrator does not support fragmentation. This parameter will be ignored.'
          end if
          if (mtiny_set) then
-            write(iomsg,*) 'This integrator does not support MTINY'
-            iostat = -1
+            write(iomsg,*) 'This integrator does not support MTINY. This parameter will be ignored.'
             return
          end if
       end if
 
       if ((integrator == SYMBA) .or. (integrator == RINGMOONS) .or. (integrator == RMVS)) then
          if (.not.self%lclose) then
-            write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled'
+            write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
             iostat = -1
             return
          end if
@@ -295,11 +292,10 @@ contains
 
       ! Determine if the GR flag is set correctly for this integrator
       select case(integrator)
-      case(WHM)
+      case(WHM, RMVS)
          write(*,*) "GR             = ", self%lgr
       case default   
-         write(iomsg, *) 'GR is implemented compatible with this integrator'
-         iostat = -1
+         write(iomsg, *) 'GR is implemented compatible with this integrator. This parameter will be ignored.'
       end select
 
       iostat = 0
@@ -1084,7 +1080,7 @@ contains
          if (param%lgr) then
             select type(discards)
             class is (whm_tp)
-               call discards%gr_pv2vh(param)
+               call discards%pv2vh(param)
             end select
          end if
          write(LUN, HDRFMT) t, nsp, param%lbig_discard
@@ -1101,7 +1097,7 @@ contains
                   allocate(pltemp, source = pl)
                   select type(pltemp)
                   class is (whm_pl)
-                     call pltemp%gr_pv2vh(param)
+                     call pltemp%pv2vh(param)
                      allocate(vh, source = pltemp%vh)
                   end select
                   deallocate(pltemp)
@@ -1320,11 +1316,11 @@ contains
          associate(vh => pl%vh, vht => tp%vh)
             select type(pl)
             class is (whm_pl)
-               call pl%gr_pv2vh(param)
+               call pl%pv2vh(param)
             end select
             select type(tp) 
             class is (whm_tp)
-               call tp%gr_pv2vh(param)
+               call tp%pv2vh(param)
             end select
          end associate
       end if

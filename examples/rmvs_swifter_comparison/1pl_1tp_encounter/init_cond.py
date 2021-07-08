@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 For testing RMVS, the code generates clones of test particles based on one that is fated to impact Mercury.
 To use the script, modify the variables just after the  "if __name__ == '__main__':" line
@@ -5,7 +6,7 @@ To use the script, modify the variables just after the  "if __name__ == '__main_
 import numpy as np
 from astroquery.jplhorizons import Horizons
 import astropy.constants as const 
-import swiftestio as swio
+import swiftest.io as swio
 from scipy.io import FortranFile
 import sys
 
@@ -140,7 +141,7 @@ print(f'ISTEP_DUMP    {iout:d}')
 print(f'BIN_OUT       {swifter_bin}')
 print(f'OUT_TYPE      REAL8')
 print(f'OUT_FORM      XV')
-print(f'OUT_STAT      NEW')
+print(f'OUT_STAT      UNKNOWN')
 print(f'J2            {J2}')
 print(f'J4            {J4}')
 print(f'CHK_CLOSE     yes')

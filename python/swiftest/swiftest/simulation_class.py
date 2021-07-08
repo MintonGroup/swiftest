@@ -48,11 +48,12 @@ class Simulation:
             'YORP': "NO",
             'MTINY' : "0.0"
         }
+        self.codename = codename
         if param_file != "" :
             self.read_param(param_file, codename)
         return
     
-    def add(self, plname, date=date.today().isoformat()):
+    def add(self, plname, date=date.today().isoformat(), idval=None):
         """
         Adds a solar system body to an existing simulation DataSet.
         
@@ -66,7 +67,7 @@ class Simulation:
         -------
         self.ds : xarray dataset
         """
-        self.ds = init_cond.solar_system_horizons(plname, self.param, date, self.ds)
+        self.ds = init_cond.solar_system_horizons(plname, idval, self.param, date, self.ds)
         return
     
     def read_param(self, param_file, codename="Swiftest"):
@@ -84,13 +85,15 @@ class Simulation:
             self.codename = "Unknown"
         return
     
-    def write_param(self, param_file):
+    def write_param(self, param_file, param=None):
+        if param is None:
+            param = self.param
         # Check to see if the parameter type matches the output type. If not, we need to convert
-        codename = self.param['! VERSION'].split()[0]
+        codename = param['! VERSION'].split()[0]
         if codename == "Swifter" or codename == "Swiftest":
-            io.write_labeled_param(self.param, param_file)
+            io.write_labeled_param(param, param_file)
         elif codename == "Swift":
-            io.write_swift_param(self.param, param_file)
+            io.write_swift_param(param, param_file)
         else:
             print('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
         return
@@ -119,7 +122,9 @@ class Simulation:
                 self.param = io.swift2swiftest(self.param, plname, tpname, cbname, conversion_questions)
             else:
                 goodconversion = False
-
+        else:
+            goodconversion = False
+            
         if goodconversion:
             self.write_param(param_file)
         else:
@@ -163,7 +168,18 @@ class Simulation:
         print('follow.out written')
         return fol
     
-    def save(self, param_file, framenum=-1):
-        io.swiftest_xr2infile(self.ds, self.param, framenum)
-        self.write_param(param_file)
+    def save(self, param_file, framenum=-1, codename="Swiftest"):
+        if codename == "Swiftest":
+            io.swiftest_xr2infile(self.ds, self.param, framenum)
+            self.write_param(param_file)
+        elif codename == "Swifter":
+            if self.codename == "Swiftest":
+                swifter_param = io.swiftest2swifter_param(self.param)
+            else:
+                swifter_param = self.param
+            io.swifter_xr2infile(self.ds, swifter_param, framenum)
+            self.write_param(param_file, param=swifter_param)
+        else:
+            print(f'Saving to {codename} not supported')
+
         return

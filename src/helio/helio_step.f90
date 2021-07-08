@@ -15,25 +15,12 @@ contains
       real(DP),                   intent(in)    :: t      !! Simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsize
 
-      select type(system => self)
-      class is (helio_nbody_system)
-         select type(cb => self%cb)
-         class is (helio_cb)
-            select type(pl => self%pl)
-            class is (helio_pl)
-               select type(tp => self%tp)
-               class is (helio_tp)
-                  call pl%set_rhill(cb)
-                  call system%set_beg_end(xbeg = pl%xh)
-                  call pl%step(system, param, t, dt)
-                  if (tp%nbody > 0) then
-                     call system%set_beg_end(xend = pl%xh)
-                     call tp%step(system, param, t, dt)
-                  end if
-               end select
-            end select
-         end select
-      end select
+      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+         tp%lfirst = pl%lfirst
+         call pl%set_rhill(cb)
+         call pl%step(system, param, t, dt)
+         call tp%step(system, param, t, dt)
+      end associate
       return
    end subroutine helio_step_system 
 
@@ -54,24 +41,27 @@ contains
       ! Internals 
       integer(I4B)     :: i
       real(DP)         :: dth, msys
-      real(DP), dimension(NDIM) :: ptbeg, ptend !! TODO: Incorporate these into the tp structure
-      logical, save :: lfirst = .true.
-  
-      associate(pl => self, cb => system%cb)
-         dth = 0.5_DP * dt
-         if (lfirst) then
-            call pl%vh2vb(cb)
-            lfirst = .false.
-         end if
-         call pl%lindrift(cb, dth, ptbeg)
-         call pl%getacch(system, param, t)
-         call pl%kickvb(dth)
 
-         call pl%drift(system, param, dt)
-         call pl%getacch(system, param, t + dt)
-         call pl%kickvb(dth)
-         call pl%lindrift(cb, dth, ptend)
-         call pl%vb2vh(cb)
+      if (self%nbody == 0) return
+      associate(pl => self)
+         select type(cb => system%cb)
+         class is (helio_cb)
+            dth = 0.5_DP * dt
+            if (pl%lfirst) then
+               call pl%vh2vb(cb)
+               pl%lfirst = .false.
+            end if
+            call pl%lindrift(cb, dth, lbeg=.true.)
+            call pl%accel(system, param, t)
+            call pl%kick(dth)
+            call pl%set_beg_end(xbeg = pl%xh)
+            call pl%drift(system, param, dt)
+            call pl%set_beg_end(xend = pl%xh)
+            call pl%accel(system, param, t + dt)
+            call pl%kick(dth)
+            call pl%lindrift(cb, dth, lbeg=.false.)
+            call pl%vb2vh(cb)
+         end select
       end associate
    
       return
@@ -94,27 +84,28 @@ contains
       real(DP),                     intent(in)    :: t      !! Current simulation time
       real(DP),                     intent(in)    :: dt     !! Stepsiz
       ! Internals
-      logical, save  :: lfirst = .true. !! Flag to indicate that this is the first call
       real(DP) :: dth   !! Half step size
    
-      select type(system)
-      class is (helio_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl, xbeg => system%xbeg, xend => system%xend)
+      if (self%nbody == 0) return
+
+      associate(tp => self)
+         select type(cb => system%cb)
+         class is (helio_cb)
             dth = 0.5_DP * dt
-            if (lfirst) then
-               call tp%vh2vb(vbcb = -tp%ptbeg)
-               lfirst = .false.
+            if (tp%lfirst) then
+               call tp%vh2vb(vbcb = -cb%ptbeg)
+               tp%lfirst = .false.
             end if
-            call tp%lindrift(dth, tp%ptbeg)
-            call tp%getacch(system, param, t, xbeg)
-            call tp%kickvb(dth)
+            call tp%lindrift(cb, dth, lbeg=.true.)
+            call tp%accel(system, param, t, lbeg=.true.)
+            call tp%kick(dth)
             call tp%drift(system, param, dt)
-            call tp%getacch(system, param, t + dt, xend)
-            call tp%kickvb(dth)
-            call tp%lindrift(dth, tp%ptend)
-            call tp%vb2vh(vbcb = -tp%ptend)
-         end associate
-      end select
+            call tp%accel(system, param, t + dt, lbeg=.false.)
+            call tp%kick(dth)
+            call tp%lindrift(cb, dth, lbeg=.false.)
+            call tp%vb2vh(vbcb = -cb%ptend)
+         end select
+      end associate
    
       return
    

@@ -20,14 +20,16 @@ contains
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
-      real(DP), dimension(:), allocatable          :: dtp
+      real(DP), dimension(:), allocatable    :: dtp, mu
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self, npl => self%nbody, cb => system%cb)
          if (npl == 0) return
 
          allocate(iflag(npl))
          iflag(:) = 0
          allocate(dtp(npl))
+         allocate(mu(npl))
+         mu =  cb%Gmass
 
          if (param%lgr) then
             do i = 1,npl
@@ -40,7 +42,7 @@ contains
             dtp(:) = dt
          end if 
 
-         call drift_one(pl%mu(1:npl), pl%xh(1,1:npl), pl%xh(2,1:npl), pl%xh(3,1:npl), &
+         call drift_one(mu(1:npl), pl%xh(1,1:npl), pl%xh(2,1:npl), pl%xh(3,1:npl), &
                                       pl%vb(1,1:npl), pl%vb(2,1:npl), pl%vb(3,1:npl), &
                                       dtp(1:npl), iflag(1:npl))
          if (any(iflag(1:npl) /= 0)) then
@@ -56,7 +58,7 @@ contains
       return
    end subroutine helio_drift_pl
    
-   module subroutine helio_drift_linear_pl(self, cb, dt, pt)
+   module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Perform linear drift of massive bodies due to barycentric momentum of Sun
@@ -65,29 +67,30 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_lindrift.f
       implicit none
       ! Arguments
-      class(helio_pl),         intent(inout) :: self !! Helio massive body object
-      class(swiftest_cb),      intent(in)    :: cb   !! Helio central body object
-      real(DP),                intent(in)    :: dt   !! Stepsize
-      real(DP), dimension(:),  intent(out)   :: pt   !! negative barycentric velocity of the central body
+      class(helio_pl), intent(inout) :: self   !! Helio massive body object
+      class(helio_cb), intent(inout) :: cb   !! Helio central bod
+      real(DP),        intent(in)    :: dt     !! Stepsize
+      logical,         intent(in)    :: lbeg   !! Argument that determines whether or not this is the beginning or end of the step
       ! Internals
-      integer(I4B)          :: i
-      real(DP),dimension(NDIM) :: pttmp !intent(out) variables don't play nicely 
-                                        !with openmp's reduction for some reason
-  
-      associate(npl => self%nbody, xh => self%xh, vb => self%vb, GMpl => self%Gmass, GMcb => cb%Gmass)
-         pttmp(:) = 0.0_DP
-         do i = 2, npl
-            pttmp(:) = pttmp(:) + GMpl(i) * vb(:,i)
-         end do
-         pttmp(:) = pttmp(:) / GMcb
-         do i = 2, npl
-            xh(:,i) = xh(:,i) + pttmp(:) * dt
-         end do
-         pt(:) = pttmp(:)
+      real(DP), dimension(NDIM)      :: pt     !! negative barycentric velocity of the central body
+
+      associate(pl => self, npl => self%nbody)
+         pt(1) = sum(pl%Gmass(1:npl) * pl%vb(1,1:npl))
+         pt(2) = sum(pl%Gmass(1:npl) * pl%vb(2,1:npl))
+         pt(3) = sum(pl%Gmass(1:npl) * pl%vb(3,1:npl))
+         pt(:) = pt(:) / cb%Gmass
+         pl%xh(1,1:npl) = pl%xh(1,1:npl) + pt(1) * dt
+         pl%xh(2,1:npl) = pl%xh(2,1:npl) + pt(2) * dt
+         pl%xh(3,1:npl) = pl%xh(3,1:npl) + pt(3) * dt
+
+         if (lbeg) then
+            cb%ptbeg = pt(:)
+         else
+            cb%ptend = pt(:) 
+         end if
       end associate
    
       return
-   
    end subroutine helio_drift_linear_pl
 
    module subroutine helio_drift_tp(self, system, param, dt)
@@ -100,23 +103,22 @@ contains
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self   !! Helio test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
-      real(DP),                     intent(in)    :: dt     !! Stepsiz
+      real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
-      real(DP), dimension(:), allocatable          :: dtp
+      real(DP), dimension(:), allocatable    :: dtp, mu
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
    
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self, ntp => self%nbody, cb => system%cb)
          if (ntp == 0) return
          allocate(iflag(ntp))
          allocate(dtp(ntp))
          iflag(:) = 0
-
-         iflag(:) = 0
-         allocate(dtp(ntp))
+         allocate(mu(ntp))
+         mu =  cb%Gmass
 
          if (param%lgr) then
             do i = 1,ntp
@@ -128,9 +130,9 @@ contains
          else
             dtp(:) = dt
          end if 
-         call drift_one(tp%mu(1:ntp), tp%xh(1,1:ntp), tp%xh(2,1:ntp), tp%xh(3,1:ntp), &
-                                      tp%vh(1,1:ntp), tp%vh(2,1:ntp), tp%vh(3,1:ntp), &
-                                      dtp(1:ntp), iflag(1:ntp))
+         call drift_one(mu(1:ntp), tp%xh(1,1:ntp), tp%xh(2,1:ntp), tp%xh(3,1:ntp), &
+                                   tp%vb(1,1:ntp), tp%vb(2,1:ntp), tp%vb(3,1:ntp), &
+                                   dtp(1:ntp), iflag(1:ntp))
          if (any(iflag(1:ntp) /= 0)) then
             tp%status = DISCARDED_DRIFTERR
             do i = 1, ntp
@@ -142,7 +144,7 @@ contains
       return
    end subroutine helio_drift_tp
 
-   module subroutine helio_drift_linear_tp(self, dt, pt)
+   module subroutine helio_drift_linear_tp(self, cb, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Perform linear drift of test particles due to barycentric momentum of Sun
@@ -152,15 +154,23 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_lindrift_tp.f
       implicit none
       ! Arguments
-      class(helio_tp),             intent(inout) :: self   !! Helio test particle data structure
-      real(DP),                    intent(in)    :: dt     !! Stepsize
-      real(DP), dimension(:),      intent(in)    :: pt     !! negative barycentric velocity of the Sun
-  
-      associate(ntp => self%nbody, xh => self%xh, status => self%status)
-         where (status(1:ntp) == ACTIVE)
-            xh(1:ntp, 1) = xh(1:ntp, 1) + pt(1) * dt
-            xh(1:ntp, 2) = xh(1:ntp, 2) + pt(2) * dt
-            xh(1:ntp, 3) = xh(1:ntp, 3) + pt(3) * dt
+      class(helio_tp), intent(inout) :: self !! Helio test particleb object
+      class(helio_cb), intent(in)    :: cb   !! Helio central body
+      real(DP),        intent(in)    :: dt   !! Stepsize
+      logical,         intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
+      ! Internals
+      real(DP), dimension(NDIM)      :: pt     !! negative barycentric velocity of the central body
+        
+      associate(tp => self, ntp => self%nbody)
+         if (lbeg) then
+            pt(:) = cb%ptbeg
+         else
+            pt(:) = cb%ptend
+         end if
+         where (tp%status(1:ntp) == ACTIVE)
+            tp%xh(1, 1:ntp) = tp%xh(1, 1:ntp) + pt(1) * dt
+            tp%xh(2, 1:ntp) = tp%xh(2, 1:ntp) + pt(2) * dt
+            tp%xh(3, 1:ntp) = tp%xh(3, 1:ntp) + pt(3) * dt
          end where
       end associate
    

@@ -24,14 +24,14 @@ contains
 
       select type(pl => system%pl)
       class is (rmvs_pl)
-         associate(tp => self, ntp => self%nbody, npl => pl%nbody, xbeg => system%xbeg, vbeg => system%vbeg, rts => system%rts)
+         associate(tp => self, ntp => self%nbody, npl => pl%nbody, rts => system%rts)
             r2crit(:) = (rts * pl%rhill(:))**2
             tp%plencP(:) = 0
             do j = 1, npl
                do i = 1, ntp
                   if ((tp%status(i) /= ACTIVE).or.(tp%plencP(i) /= 0)) cycle
-                  xr(:) = tp%xh(:, i) - xbeg(:, j)
-                  vr(:) = tp%vh(:, i) - vbeg(:, j)
+                  xr(:) = tp%xh(:, i) - pl%xbeg(:, j)
+                  vr(:) = tp%vh(:, i) - pl%vbeg(:, j)
                   r2 = dot_product(xr(:), xr(:))
                   v2 = dot_product(vr(:), vr(:))
                   vdotr = dot_product(vr(:), xr(:))

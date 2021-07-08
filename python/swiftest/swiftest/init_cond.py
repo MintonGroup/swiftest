@@ -5,7 +5,7 @@ import datetime
 from datetime import date
 import xarray as xr
 
-def solar_system_horizons(plname, param, ephemerides_start_date, ds):
+def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
 
@@ -36,10 +36,15 @@ def solar_system_horizons(plname, param, ephemerides_start_date, ds):
         'Pluto': '9'
     }
     
-    if plname not in planetid:
-        print(f"{plname} not found or not yet supported")
-        print("Valid inputs are: ".join(f"{key}" for key, value in planetid.items()))
-        return
+    if plname in planetid:
+        ispl = True
+    else:
+        ispl = False
+        print(f"\nMassive body {plname} not found or not yet supported")
+        print("This will be created as a massless test particle")
+        if idval is None:
+            print("ID value required for this input type")
+            return
     
     # Planet MSun/M ratio
     MSun_over_Mpl = {
@@ -97,6 +102,12 @@ def solar_system_horizons(plname, param, ephemerides_start_date, ds):
         plab.append('capom')
         plab.append('omega')
         plab.append('capm')
+        tlab.append('a')
+        tlab.append('e')
+        tlab.append('inc')
+        tlab.append('capom')
+        tlab.append('omega')
+        tlab.append('capm')
     elif param['OUT_FORM'] == 'EL':
         plab.append('px')
         plab.append('py')
@@ -104,20 +115,31 @@ def solar_system_horizons(plname, param, ephemerides_start_date, ds):
         plab.append('vx')
         plab.append('vy')
         plab.append('vz')
+        tlab.append('px')
+        tlab.append('py')
+        tlab.append('pz')
+        tlab.append('vx')
+        tlab.append('vy')
+        tlab.append('vz')
     plab.append('Rhill')
 
     dims = ['time', 'id', 'vec']
     t = np.array([0.0])
 
     key = plname
-    val = planetid[key]
+    if ispl:
+        val = planetid[key]
+    else:
+        val = -1
     if key == "Sun" : # Create central body
+        print("Creating the Sun as a central body")
         cb = []
         cbframe = np.expand_dims(cvec.T, axis=0)
         cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
         cbds = cbxr.to_dataset(dim='vec')
         ds = xr.combine_by_coords([ds, cbds])
     else: # Fetch solar system ephemerides from Horizons
+        print(f"Fetching ephemerides data for {key} from JPL/Horizons")
         pl = []
         p1 = []
         p2 = []
@@ -136,9 +158,14 @@ def solar_system_horizons(plname, param, ephemerides_start_date, ds):
         GMpl = []
 
         pldata = {}
-        pldata[key] = Horizons(id=val, id_type='majorbody', location='@sun',
-                               epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
-                                       'step': ephemerides_step})
+        if ispl:
+            pldata[key] = Horizons(id=val, id_type='majorbody', location='@sun',
+                                   epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                           'step': ephemerides_step})
+        else:
+            pldata[key] = Horizons(id=key, id_type='smallbody', location='@sun',
+                                   epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                           'step': ephemerides_step})
         if param['OUT_FORM'] == 'XV':
             p1.append(pldata[key].vectors()['x'][0] * DCONV)
             p2.append(pldata[key].vectors()['y'][0] * DCONV)
@@ -165,12 +192,20 @@ def solar_system_horizons(plname, param, ephemerides_start_date, ds):
             p10.append(pldata[key].vectors()['vx'][0] * VCONV)
             p11.append(pldata[key].vectors()['vy'][0] * VCONV)
             p12.append(pldata[key].vectors()['vz'][0] * VCONV)
-        Rhill.append(pldata[key].elements()['a'][0] * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
-        Rpl.append(planetradius[key] * DCONV)
-        GMpl.append(GMcb[0] / MSun_over_Mpl[key])
-        # Generate planet value vectors
-        plid = np.array([planetid[key]], dtype=int)
-        pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, p7, p8, p9, p10, p11, p12, Rhill])
+        if ispl:
+            Rhill.append(pldata[key].elements()['a'][0] * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
+            Rpl.append(planetradius[key] * DCONV)
+            GMpl.append(GMcb[0] / MSun_over_Mpl[key])
+            # Generate planet value vectors
+            pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, p7, p8, p9, p10, p11, p12, Rhill])
+        else:
+            pvec = np.vstack([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
+            plab = tlab.copy()
+            
+        if idval is None:
+            plid = np.array([planetid[key]], dtype=int)
+        else:
+            plid = np.array([idval], dtype=int)
 
         # Prepare frames by adding an extra axis for the time coordinate
         plframe = np.expand_dims(pvec.T, axis=0)

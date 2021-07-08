@@ -5,6 +5,8 @@ import xarray as xr
 import sys
 import tempfile
 
+newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP" )
+
 def real2float(realstr):
     """
     Converts a Fortran-generated ASCII string of a real value into a numpy float type. Handles cases where double precision
@@ -288,8 +290,8 @@ def write_labeled_param(param, param_file_name):
     ptmp = param.copy()
     # Print the list of key/value pairs in the preferred order
     for key in keylist:
-        val = ptmp.pop(key)
-        print(f"{key:<16} {val}", file=outfile)
+        val = ptmp.pop(key, None)
+        if val is not None: print(f"{key:<16} {val}", file=outfile)
     # Print the remaining key/value pairs in whatever order
     for key, val in ptmp.items():
         print(f"{key:<16} {val}", file=outfile)
@@ -636,7 +638,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     framenum : int
         Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
     param : dict
-        Swiftest paramuration parameters. This method uses the names of the cb, pl, and tp files from the paramuration
+        Swiftest input parameters. This method uses the names of the cb, pl, and tp files from the input
 
     Returns
     -------
@@ -716,6 +718,69 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         tpfile.write_record(v_tp[2])
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
+
+
+def swifter_xr2infile(ds, param, framenum=-1):
+    """
+    Writes a set of Swifter input files from a single frame of a Swiftest xarray dataset
+
+    Parameters
+    ----------
+    ds : xarray dataset
+        Dataset containing Swifter n-body data in XV format
+    framenum : int
+        Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+    param : dict
+        Swifter input parameters. This method uses the names of the pl and tp files from the input
+
+    Returns
+    -------
+    A set of input files for a Swifter run
+    """
+    frame = ds.isel(time=framenum)
+    cb = frame.where(frame.id == 0, drop=True)
+    pl = frame.where(frame.id > 0, drop=True)
+    pl = pl.where(np.invert(np.isnan(pl['Mass'])), drop=True).drop_vars(['J_2', 'J_4'])
+    tp = frame.where(np.isnan(frame['Mass']), drop=True).drop_vars(['Mass', 'Radius', 'J_2', 'J_4'])
+    
+    GMSun = np.double(cb['Mass'])
+    RSun = np.double(cb['Radius'])
+    param['J2'] = np.double(cb['J_2'])
+    param['J4'] = np.double(cb['J_4'])
+    param['RHILL_PRESENT'] = "YES"
+    
+    if param['IN_TYPE'] == 'ASCII':
+        # Swiftest Central body file
+        plfile = open(param['PL_IN'], 'w')
+        print(pl.id.count().values + 1, file=plfile)
+        print(cb.id.values[0], cb['Mass'].values[0], file=plfile)
+        print('0.0 0.0 0.0', file=plfile)
+        print('0.0 0.0 0.0', file=plfile)
+        for i in pl.id:
+            pli = pl.sel(id=i)
+            if param['RHILL_PRESENT'] == "YES":
+                print(i.values, pli['Mass'].values, pli['Rhill'].values, file=plfile)
+            else:
+                print(i.values, pli['Mass'].values, file=plfile)
+            if param['CHK_CLOSE'] == "YES":
+                print(pli['Radius'].values, file=plfile)
+            print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
+            print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
+        plfile.close()
+        
+        # TP file
+        tpfile = open(param['TP_IN'], 'w')
+        print(tp.id.count().values, file=tpfile)
+        for i in tp.id:
+            tpi = tp.sel(id=i)
+            print(i.values, file=tpfile)
+            print(tpi['px'].values, tpi['py'].values, tpi['pz'].values, file=tpfile)
+            print(tpi['vx'].values, tpi['vy'].values, tpi['vz'].values, file=tpfile)
+        tpfile.close()
+    else:
+        # Now make Swiftest files
+        print(f"{param['IN_TYPE']} is an unknown input file type")
+
 
 def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     swifter_param = {}
@@ -921,8 +986,8 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
 def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_questions={}):
     swiftest_param = swifter_param.copy()
     # Pull additional feature status from the conversion_questions dictionary
-    featurelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP" )
-    for key in featurelist:
+    
+    for key in newfeaturelist:
         swiftest_param[key] = conversion_questions.get(key, "NO")
     # Convert the PL file
     if plname == '':
@@ -989,6 +1054,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         tpnew = open(swiftest_param['TP_IN'], 'w')
     except IOError:
         print(f"Cannot write to file {swiftest_param['TP_IN']}")
+        return swifter_param
   
     print(f"Converting TP file: {swifter_param['TP_IN']} -> {swiftest_param['TP_IN']}")
     try:
@@ -1110,6 +1176,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         cbnew.close()
     except IOError:
         print(f"Cannot write to file {swiftest_param['CB_IN']}")
+        return swifter_param
    
     MTINY = conversion_questions.get('MTINY', None)
     if not MTINY:
@@ -1151,4 +1218,26 @@ def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_ques
     swiftest_param = swifter2swiftest(swifter_param, plname, tpname, cbname, conversion_questions)
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swift"
     return swiftest_param
-    
+
+def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
+    swifter_param = swiftest_param
+    CBIN = swifter_param.pop("CB_IN", None)
+    MTINY = swifter_param.pop("MTINY", None)
+    MU2KG = swifter_param.pop("MU2KG", 1.0)
+    DU2M = swifter_param.pop("DU2M", 1.0)
+    TU2S = swifter_param.pop("TU2S", 1.0)
+    GR = swifter_param.pop("GR", None)
+    if GR is not None:
+        if GR == 'YES':
+           swifter_param['C'] =  swiftest.einsteinC * np.longdouble(TU2S) / np.longdouble(DU2M)
+    for key in newfeaturelist:
+       tmp = swifter_param.pop(key, None)
+    swifter_param['J2'] = J2
+    swifter_param['J4'] = J4
+    swifter_param['RHILL_PRESENT'] = "YES"
+    swifter_param['CHK_CLOSE'] = "YES"
+    if swifter_param['OUT_STAT'] == "REPLACE":
+        swifter_param['OUT_STAT'] = "UNKNOWN"
+    swifter_param['! VERSION'] = "Swifter parameter file converted from Swiftest"
+
+    return swifter_param

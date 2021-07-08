@@ -527,14 +527,14 @@ interface
    end subroutine symba_step_helio
 
    module subroutine symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, param%nplmax, helio_plA, param%j2rp2, param%j4rp4, dt, xbeg, xend,   &
-      ptb, pte)
+      ptbeg, ptend)
       implicit none
       logical , intent(in)       :: lextra_force
       logical , intent(inout)      :: lfirst
       integer(I4B), intent(in)       :: npl, nplm, param%nplmax
       real(DP), intent(in)       :: t, param%j2rp2, param%j4rp4, dt
       real(DP), dimension(npl, NDIMm), intent(out) :: xbeg, xend
-      real(DP), dimension(NDIM), intent(out)   :: ptb, pte
+      real(DP), dimension(NDIM), intent(out)   :: ptbeg, ptend
       type(helio_pl), intent(inout)     :: helio_plA
    end subroutine symba_step_helio_pl
 

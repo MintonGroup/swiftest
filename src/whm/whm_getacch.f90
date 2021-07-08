@@ -1,7 +1,7 @@
 submodule(whm_classes) s_whm_getacch
    use swiftest
 contains
-   module subroutine whm_getacch_pl(self, system, param, t)
+   module subroutine whm_getacch_pl(self, system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of planets
@@ -14,6 +14,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
       real(DP),                     intent(in)    :: t       !! Current time
+      logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
@@ -31,15 +32,19 @@ contains
          call whm_getacch_ah2(cb, pl) 
          call whm_getacch_ah3(pl)
 
-         if (param%loblatecb) call pl%obl_acc(cb)
-         if (param%lextra_force) call pl%user_getacch(system, param, t)
-         if (param%lgr) call pl%gr_getacch(param) 
+         if (param%loblatecb) then 
+            cb%aoblbeg = cb%aobl
+            call pl%accel_obl(system)
+            cb%aoblend = cb%aobl
+         end if
+         if (param%lextra_force) call pl%accel_user(system, param, t)
+         if (param%lgr) call pl%accel_gr(param) 
 
       end associate
       return
    end subroutine whm_getacch_pl
 
-   module subroutine whm_getacch_tp(self, system, param, t, xhp)
+   module subroutine whm_getacch_tp(self, system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -52,22 +57,30 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
       real(DP),                     intent(in)    :: t      !! Current time
-      real(DP), dimension(:,:),     intent(in)    :: xhp    !! Heliocentric positions of planets at the current substep
+      logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
+      real(DP), dimension(:,:), allocatable       :: xhp
    
       associate(tp => self, ntp => self%nbody, pl => system%pl, cb => system%cb, npl => system%pl%nbody)
          if (ntp == 0 .or. npl == 0) return
+         if (present(lbeg)) system%lbeg = lbeg
+
+         if (system%lbeg) then
+            allocate(xhp, source=pl%xbeg)
+         else
+            allocate(xhp, source=pl%xend)
+         end if
 
          ah0(:) = whm_getacch_ah0(pl%Gmass(:), xhp(:,:), npl)
          do i = 1, ntp
             tp%ah(:, i) = ah0(:)
          end do
          call whm_getacch_ah3_tp(system, xhp)
-         if (param%loblatecb) call tp%obl_acc(cb)
-         if (param%lextra_force) call tp%user_getacch(system, param, t)
-         if (param%lgr) call tp%gr_getacch(param) 
+         if (param%loblatecb) call tp%accel_obl(system)
+         if (param%lextra_force) call tp%accel_user(system, param, t)
+         if (param%lgr) call tp%accel_gr(param) 
       end associate
       return
    end subroutine whm_getacch_tp

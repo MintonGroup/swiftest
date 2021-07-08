@@ -47,7 +47,7 @@ contains
       return
    end subroutine whm_setup_tp
 
-   module subroutine whm_setup_set_mu_eta_pl(self, cb)
+   module subroutine whm_util_set_mu_eta_pl(self, cb)
       !! author: David A. Minton
       !!
       !! Sets the Jacobi mass value eta for all massive bodies
@@ -61,7 +61,7 @@ contains
       associate(pl => self, npl => self%nbody,  GMpl => self%Gmass, muj => self%muj, &
                 eta => self%eta, GMcb => cb%Gmass)
          if (npl == 0) return
-         call setup_set_mu_pl(pl, cb)
+         call util_set_mu_pl(pl, cb)
          eta(1) = GMcb + GMpl(1)
          muj(1) = eta(1)
          do i = 2, npl
@@ -70,12 +70,12 @@ contains
          end do
       end associate
 
-   end subroutine whm_setup_set_mu_eta_pl
+   end subroutine whm_util_set_mu_eta_pl
 
    module subroutine whm_setup_system(self, param)
       !! author: David A. Minton
       !!
-      !! Wrapper method to initialize a basic Swiftest nbody system from files
+      !! Initialize a WHM nbody system from files
       !!
       implicit none
       ! Arguments
@@ -89,7 +89,7 @@ contains
          select type(pl => self%pl)
          class is (whm_pl)
             call pl%set_mu(self%cb)
-            if (param%lgr) call pl%gr_vh2pv(param)
+            if (param%lgr) call pl%vh2pv(param)
             !call pl%eucl_index()
          end select
       end if
@@ -98,7 +98,7 @@ contains
          select type(tp => self%tp)
          class is (whm_tp)
             call tp%set_mu(self%cb)
-            if (param%lgr) call tp%gr_vh2pv(param)
+            if (param%lgr) call tp%vh2pv(param)
          end select
       end if
 
@@ -126,28 +126,5 @@ contains
          end do
       end if
    end subroutine whm_setup_set_ir3j
-
-   module subroutine whm_setup_set_beg_end(self, xbeg, xend, vbeg)
-      !! author: David A. Minton
-      !! 
-      !! Sets one or more of the values of xbeg and xend
-      implicit none
-      ! Arguments
-      class(whm_nbody_system),  intent(inout)           :: self !! WHM nbody system object
-      real(DP), dimension(:,:), intent(in),    optional :: xbeg, xend
-      real(DP), dimension(:,:), intent(in),    optional :: vbeg ! vbeg is an unused variable to keep this method forward compatible with RMVS
-
-      if (present(xbeg)) then
-         if (allocated(self%xbeg)) deallocate(self%xbeg)
-         allocate(self%xbeg, source=xbeg)
-      end if
-      if (present(xend)) then
-         if (allocated(self%xend)) deallocate(self%xend)
-         allocate(self%xend, source=xend)
-      end if
-
-      return
-
-   end subroutine whm_setup_set_beg_end
 
 end submodule s_whm_setup

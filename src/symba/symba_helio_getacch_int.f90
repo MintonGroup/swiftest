@@ -21,8 +21,8 @@ implicit none
          irij3 = 1.0_DP/(rji2*sqrt(rji2))
          faci = helio_plA%swiftest%mass(i)*irij3
          facj = helio_plA%swiftest%mass(j)*irij3
-         helio_plA%ahi(:,i) = helio_plA%ahi(:,i) + facj*dx(:)
-         helio_plA%ahi(:,j) = helio_plA%ahi(:,j) - faci*dx(:)
+         helio_plA%ah(:,i) = helio_plA%ah(:,i) + facj*dx(:)
+         helio_plA%ah(:,j) = helio_plA%ah(:,j) - faci*dx(:)
       end do
    end do
    return

@@ -8,7 +8,6 @@ module rmvs_classes
    implicit none
 
    public
-
    integer(I4B), parameter :: NTENC = 10
    integer(I4B), parameter :: NTPHENC = 3
    integer(I4B), parameter :: NTPENC = NTENC * NTPHENC
@@ -27,9 +26,8 @@ module rmvs_classes
    contains
       private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize    => rmvs_setup_system  !! Performs RMVS-specific initilization steps, like calculating the Jacobi masses
-      procedure, public :: step          => rmvs_step_system
-      procedure, public :: set_beg_end   => rmvs_setup_set_beg_end  !! Sets the beginning and ending values of planet positions. Also adds the end velocity for RMVS
+      procedure, public :: initialize    => rmvs_setup_system      !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
+      procedure, public :: step          => rmvs_step_system       !! Advance the RMVS nbody system forward in time by one step
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -68,13 +66,13 @@ module rmvs_classes
       integer(I4B)                              :: ipleP           !!  index value of encountering planet
       logical                                   :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
-      procedure, public :: discard           => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
-      procedure, public :: encounter_check   => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
-      procedure, public :: fill              => rmvs_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: getacch           => rmvs_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
+      procedure, public :: discard         => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
+      procedure, public :: encounter_check => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
+      procedure, public :: fill            => rmvs_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: accel           => rmvs_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
                                                                         !! if the test particle is undergoing a close encounter or not
-      procedure, public :: setup             => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
-      procedure, public :: spill             => rmvs_spill_tp           !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: setup           => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
+      procedure, public :: spill           => rmvs_spill_tp           !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_tp
 
    !********************************************************************************************************************************
@@ -83,11 +81,11 @@ module rmvs_classes
  
    !> RMVS massive body particle class
    type, private, extends(whm_pl) :: rmvs_pl
-      integer(I4B),            dimension(:), allocatable :: nenc    !! number of test particles encountering planet this full rmvs time step
-      integer(I4B),            dimension(:), allocatable :: tpenc1P !! index of first test particle encountering planet
-      integer(I4B),            dimension(:), allocatable :: plind ! Connects the planetocentric indices back to the heliocentric planet list
-      type(rmvs_interp),       dimension(:), allocatable :: outer !! interpolated heliocentric central body position for outer encounters
-      type(rmvs_interp),       dimension(:), allocatable :: inner !! interpolated heliocentric central body position for inner encounters
+      integer(I4B),             dimension(:), allocatable :: nenc    !! number of test particles encountering planet this full rmvs time step
+      integer(I4B),             dimension(:), allocatable :: tpenc1P !! index of first test particle encountering planet
+      integer(I4B),             dimension(:), allocatable :: plind ! Connects the planetocentric indices back to the heliocentric planet list
+      type(rmvs_interp),        dimension(:), allocatable :: outer !! interpolated heliocentric central body position for outer encounters
+      type(rmvs_interp),        dimension(:), allocatable :: inner !! interpolated heliocentric central body position for inner encounters
       class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric
       logical                                            :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
@@ -129,14 +127,14 @@ module rmvs_classes
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine rmvs_fill_tp
 
-      module subroutine rmvs_getacch_tp(self, system, param, t, xhp)
+      module subroutine rmvs_getacch_tp(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structuree 
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
-         real(DP), dimension(:,:),     intent(in)    :: xhp    !! Heliocentric positions of planets at current substep
+         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine rmvs_getacch_tp
 
       module subroutine rmvs_setup_pl(self,n)
@@ -144,12 +142,6 @@ module rmvs_classes
          class(rmvs_pl), intent(inout) :: self !! RMVS test particle object
          integer,             intent(in)    :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_pl
-
-      module subroutine rmvs_setup_set_beg_end(self, xbeg, xend, vbeg)
-         implicit none
-         class(rmvs_nbody_system), intent(inout)          :: self !! RMVS nbody system object
-         real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend, vbeg
-      end subroutine rmvs_setup_set_beg_end
 
       module subroutine rmvs_setup_system(self, param)
          use swiftest_classes, only : swiftest_parameters

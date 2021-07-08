@@ -11,11 +11,11 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_getaccb_ns.f90
       implicit none
       ! Arguments
-      class(swiftest_body),          intent(inout) :: self
-      class(swiftest_cb),            intent(inout) :: cb
+      class(swiftest_body),       intent(inout) :: self
+      class(swiftest_cb),         intent(inout) :: cb
       class(swiftest_parameters), intent(in)    :: param
-      real(DP), dimension(:, :),     intent(inout) :: agr
-      real(DP), dimension(NDIM),     intent(out)   :: agr0
+      real(DP), dimension(:, :),  intent(inout) :: agr
+      real(DP), dimension(NDIM),  intent(out)   :: agr0
       ! Internals
       real(DP), dimension(NDIM) :: xh, vh
       real(DP)                  :: rmag, rdotv, vmag2

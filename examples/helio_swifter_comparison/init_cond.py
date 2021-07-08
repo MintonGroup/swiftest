@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import swiftest
 import numpy as np
 import sys
@@ -56,4 +55,5 @@ sim.param['TP_IN'] = "tp.swifter.in"
 sim.param['BIN_OUT'] = "bin.swifter.dat"
 sim.param['ENC_OUT'] = "enc.swifter.dat"
 sim.save("param.swifter.in", codename="Swifter")
+
 

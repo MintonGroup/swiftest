@@ -14,7 +14,6 @@ program swiftest_driver
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters
    integer(I4B)                               :: ierr             !! I/O error code 
-   logical                                    :: lfirst           !! Flag indicating that this is the first time through the main loop
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
@@ -22,7 +21,6 @@ program swiftest_driver
    real(DP)                                   :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                   :: finish_wall_time !! Wall clock time when execution has finished
    integer(I4B)                               :: iu               !! Unit number of binary file
-   integer(I4B)                               :: ntp, npl
    character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
                                              'Number of active pl, tp = ", I5, ", ", I5)'
 
@@ -43,7 +41,6 @@ program swiftest_driver
              istep_out  => param%istep_out, &
              istep_dump => param%istep_dump)  
       call nbody_system%initialize(param)
-      lfirst = .true.
       t = t0
       iloop = 0
       iout = istep_out
@@ -57,8 +54,6 @@ program swiftest_driver
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, LOOPMAX 
-         ntp = nbody_system%tp%nbody
-         npl = nbody_system%pl%nbody
          !> Step the system forward in time
          call nbody_system%step(param, t, dt)
 
