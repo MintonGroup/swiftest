@@ -54,7 +54,6 @@ contains
          call pl%set_beg_end(xbeg = pl%xh)
          call pl%kick(dth)
          call pl%vh2vj(cb) 
-         !If GR enabled, calculate the p4 term before and after each drift
          if (param%lgr) call pl%p4(param, dth)
          call pl%drift(system, param, dt)
          if (param%lgr) call pl%p4(param, dth)

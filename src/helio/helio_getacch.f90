@@ -18,7 +18,11 @@ contains
 
       associate(cb => system%cb, pl => self, npl => self%nbody)
          call helio_getacch_int_pl(pl, t)
-         if (param%loblatecb) call pl%accel_obl(system)
+         if (param%loblatecb) then 
+            cb%aoblbeg = cb%aobl
+            call pl%accel_obl(system)
+            cb%aoblend = cb%aobl
+         end if
          if (param%lextra_force) call pl%accel_user(system, param, t)
          !if (param%lgr) call pl%gr_accel(param)
       end associate
@@ -99,8 +103,8 @@ contains
          !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
          implicit none
          ! Arguments
-         class(helio_tp),              intent(inout) :: tp     !! WHM test particle data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+         class(helio_tp),              intent(inout) :: tp     !! Helio test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
          real(DP),                     intent(in)    :: t      !! Current times
          ! Internals
@@ -109,8 +113,8 @@ contains
          real(DP), dimension(NDIM)                   :: dx
          real(DP), dimension(:, :), allocatable      :: xhp
 
-         associate(ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody)
-            if (system%lbeg) then
+         associate(ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, lbeg => system%lbeg)
+            if (lbeg) then
                allocate(xhp, source=pl%xbeg)
             else
                allocate(xhp, source=pl%xend)

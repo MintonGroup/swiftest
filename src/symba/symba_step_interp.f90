@@ -13,7 +13,7 @@ contains
    logical , save                 :: lmalloc = .true.
    integer( I4B)                     :: i, irec
    real(DP)                       :: dth, msys
-   real(DP), dimension(NDIM)            :: ptb, pte
+   real(DP), dimension(NDIM)            :: ptbeg, ptend
    real(DP), dimension(:, :), allocatable, save :: xbeg, xend
 
 ! executable code
@@ -26,10 +26,10 @@ contains
 
    call coord_vh2vb(npl, symba_plA, msys)
 
-   call helio_lindrift(npl, symba_plA, dth, ptb)
+   call helio_lindrift(npl, symba_plA, dth, ptbeg)
    if (ntp > 0) then
-      call coord_vh2vb_tp(ntp, symba_tpA, -ptb)
-      call helio_lindrift_tp(ntp, symba_tpA, dth, ptb) 
+      call coord_vh2vb_tp(ntp, symba_tpA, -ptbeg)
+      call helio_lindrift_tp(ntp, symba_tpA, dth, ptbeg) 
       do i = 2, npl
          xbeg(:, i) = symba_plA%xh(:,i)
       end do
@@ -61,10 +61,10 @@ contains
    call helio_kickvb(npl, symba_plA, dth)
    if (ntp > 0) call helio_kickvb_tp(ntp, symba_tpA, dth)
    call coord_vb2vh(npl, symba_plA)
-   call helio_lindrift(npl, symba_plA, dth, pte)
+   call helio_lindrift(npl, symba_plA, dth, ptend)
    if (ntp > 0) then
-      call coord_vb2vh_tp(ntp, symba_tpA, -pte)
-      call helio_lindrift_tp(ntp, symba_tpA, dth, pte)
+      call coord_vb2vh_tp(ntp, symba_tpA, -ptend)
+      call helio_lindrift_tp(ntp, symba_tpA, dth, ptend)
    end if
    return
 

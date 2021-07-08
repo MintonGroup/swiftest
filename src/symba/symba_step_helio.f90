@@ -9,14 +9,14 @@ contains
    use swiftest
    implicit none
    logical                      :: lfirsttp
-   real(DP), dimension(NDIM)              :: ptb, pte
+   real(DP), dimension(NDIM)              :: ptbeg, ptend
    real(DP), dimension(npl, NDIMm)          :: xbeg, xend
 
 ! executable code
    lfirsttp = lfirst
-   call symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, param%nplmax, helio_plA, param%j2rp2, param%j4rp4, dt, xbeg, xend, ptb, pte)
+   call symba_step_helio_pl(lfirst, lextra_force, t, npl, nplm, param%nplmax, helio_plA, param%j2rp2, param%j4rp4, dt, xbeg, xend, ptbeg, ptend)
    if (ntp > 0) call helio_step_tp(lfirsttp, lextra_force, t, nplm, param%nplmax, ntp, param%ntpmax, helio_plA, helio_tpA, param%j2rp2, param%j4rp4,  &
-      dt, xbeg, xend, ptb, pte)
+      dt, xbeg, xend, ptbeg, ptend)
 
    return
 

@@ -20,7 +20,7 @@ contains
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
-      real(DP), dimension(:), allocatable          :: dtp, mu
+      real(DP), dimension(:), allocatable    :: dtp, mu
 
       associate(pl => self, npl => self%nbody, cb => system%cb)
          if (npl == 0) return
@@ -58,7 +58,7 @@ contains
       return
    end subroutine helio_drift_pl
    
-   module subroutine helio_drift_linear_pl(self, system, dt, pt)
+   module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Perform linear drift of massive bodies due to barycentric momentum of Sun
@@ -67,12 +67,19 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_lindrift.f
       implicit none
       ! Arguments
-      class(helio_pl),           intent(inout) :: self   !! Helio massive body object
-      class(helio_nbody_system), intent(in)    :: system !! Swiftest nbody system object
-      real(DP),                  intent(in)    :: dt     !! Stepsize
-      real(DP), dimension(:),    intent(out)   :: pt     !! negative barycentric velocity of the central body
-  
-      associate(pl => self, npl => self%nbody, cb => system%cb)
+      class(helio_pl), intent(inout) :: self   !! Helio massive body object
+      class(helio_cb), intent(in)    :: cb   !! Helio central bod
+      real(DP),        intent(in)    :: dt     !! Stepsize
+      logical,         intent(in)    :: lbeg   !! Argument that determines whether or not this is the beginning or end of the step
+      ! Internals
+      real(DP), dimension(NDIM)      :: pt     !! negative barycentric velocity of the central body
+
+      associate(pl => self, npl => self%nbody)
+         if (lbeg) then
+            pt(:) = cb%ptbeg
+         else
+            pt(:) = cb%ptend
+         end if
          pt(1) = sum(pl%Gmass(1:npl) * pl%vb(1,1:npl))
          pt(2) = sum(pl%Gmass(1:npl) * pl%vb(2,1:npl))
          pt(3) = sum(pl%Gmass(1:npl) * pl%vb(3,1:npl))
@@ -136,7 +143,7 @@ contains
       return
    end subroutine helio_drift_tp
 
-   module subroutine helio_drift_linear_tp(self, system, dt, pt)
+   module subroutine helio_drift_linear_tp(self, cb, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Perform linear drift of test particles due to barycentric momentum of Sun
@@ -146,12 +153,19 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_lindrift_tp.f
       implicit none
       ! Arguments
-      class(helio_tp),           intent(inout) :: self   !! Helio test particleb object
-      class(helio_nbody_system), intent(in)    :: system !! Swiftest nbody system object
-      real(DP),                  intent(in)    :: dt     !! Stepsize
-      real(DP), dimension(:),    intent(in)    :: pt     !! negative barycentric velocity of the central body
-  
+      class(helio_tp), intent(inout) :: self !! Helio test particleb object
+      class(helio_cb), intent(in)    :: cb   !! Helio central body
+      real(DP),        intent(in)    :: dt   !! Stepsize
+      logical,         intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
+      ! Internals
+      real(DP), dimension(NDIM)      :: pt     !! negative barycentric velocity of the central body
+        
       associate(tp => self, ntp => self%nbody)
+         if (lbeg) then
+            pt(:) = cb%ptbeg
+         else
+            pt(:) = cb%ptend
+         end if
          where (tp%status(1:ntp) == ACTIVE)
             tp%xh(1, 1:ntp) = tp%xh(1, 1:ntp) + pt(1) * dt
             tp%xh(2, 1:ntp) = tp%xh(2, 1:ntp) + pt(2) * dt

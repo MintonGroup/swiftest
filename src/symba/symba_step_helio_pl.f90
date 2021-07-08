@@ -23,7 +23,7 @@ implicit none
       lfirst = .false.
    end if
    
-   call helio_lindrift(npl, helio_plA%swiftest, dth, ptb)
+   call helio_lindrift(npl, helio_plA%swiftest, dth, ptbeg)
 
    call symba_helio_getacch(lflag, lextra_force, t, npl, nplm, param%nplmax, helio_plA, param%j2rp2, param%j4rp4) 
    lflag = .true.
@@ -42,7 +42,7 @@ implicit none
 
    call helio_kickvb(npl, helio_plA, dth)
 
-   call helio_lindrift(npl, helio_plA%swiftest, dth, pte)
+   call helio_lindrift(npl, helio_plA%swiftest, dth, ptend)
 
    call coord_vb2vh(npl, helio_plA%swiftest)
 

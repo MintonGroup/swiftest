@@ -33,9 +33,9 @@ contains
          call whm_getacch_ah3(pl)
 
          if (param%loblatecb) then 
-            call cb%set_beg_end(aoblbeg = cb%aobl)
+            cb%aoblbeg = cb%aobl
             call pl%accel_obl(system)
-            call cb%set_beg_end(aoblend = cb%aobl)
+            cb%aoblend = cb%aobl
          end if
          if (param%lextra_force) call pl%accel_user(system, param, t)
          if (param%lgr) call pl%accel_gr(param) 

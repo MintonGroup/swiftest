@@ -43,15 +43,15 @@ contains
       real(DP)         :: dth, msys
 
       if (self%nbody == 0) return
-      select type(system)
-      class is (helio_nbody_system)
-         associate(pl => self, cb => system%cb, ptb => system%ptb, pte => system%pte)
+      associate(pl => self)
+         select type(cb => system%cb)
+         class is (helio_cb)
             dth = 0.5_DP * dt
             if (pl%lfirst) then
                call pl%vh2vb(cb)
                pl%lfirst = .false.
             end if
-            call pl%lindrift(system, dth, ptb)
+            call pl%lindrift(cb, dth, lbeg=.true.)
             call pl%accel(system, param, t)
             call pl%kick(dth)
             call pl%set_beg_end(xbeg = pl%xh)
@@ -59,10 +59,10 @@ contains
             call pl%set_beg_end(xend = pl%xh)
             call pl%accel(system, param, t + dt)
             call pl%kick(dth)
-            call pl%lindrift(system, dth, pte)
+            call pl%lindrift(cb, dth, lbeg=.false.)
             call pl%vb2vh(cb)
-         end associate
-      end select
+         end select
+      end associate
    
       return
    
@@ -88,24 +88,24 @@ contains
    
       if (self%nbody == 0) return
 
-      select type(system)
-      class is (helio_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl, ptb => system%ptb, pte => system%pte)
+      associate(tp => self)
+         select type(cb => system%cb)
+         class is (helio_cb)
             dth = 0.5_DP * dt
             if (tp%lfirst) then
-               call tp%vh2vb(vbcb = -ptb)
+               call tp%vh2vb(vbcb = -cb%ptbeg)
                tp%lfirst = .false.
             end if
-            call tp%lindrift(system, dth, ptb)
+            call tp%lindrift(cb, dth, lbeg=.true.)
             call tp%accel(system, param, t, lbeg=.true.)
             call tp%kick(dth)
             call tp%drift(system, param, dt)
             call tp%accel(system, param, t + dt, lbeg=.false.)
             call tp%kick(dth)
-            call tp%lindrift(system, dth, pte)
-            call tp%vb2vh(vbcb = -pte)
-         end associate
-      end select
+            call tp%lindrift(cb, dth, lbeg=.false.)
+            call tp%vb2vh(vbcb = -cb%ptend)
+         end select
+      end associate
    
       return
    
