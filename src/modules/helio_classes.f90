@@ -37,14 +37,14 @@ module helio_classes
    type, public, extends(swiftest_pl) :: helio_pl
       real(DP),     dimension(:,:), allocatable :: ahi         !!  heliocentric acceleration due to interactions
    contains
-      procedure, public :: vh2vb       => helio_coord_vh2vb_pl  !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
-      procedure, public :: vb2vh       => helio_coord_vb2vh_pl  !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
-      procedure, public :: drift       => helio_drift_pl        !! Method for Danby drift in Democratic Heliocentric coordinates 
-      procedure, public :: lindrift    => helio_drift_linear_pl !! Method for linear drift of massive bodies due to barycentric momentum of Sun
-      procedure, public :: get_accel   => helio_getacch_pl      !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: kick        => helio_kickvb_pl       !! Kicks the barycentric velocities
-      procedure, public :: setup       => helio_setup_pl        !! Constructor method - Allocates space for number of particles
-      procedure, public :: step        => helio_step_pl         !! Steps the body forward one stepsize
+      procedure, public :: vh2vb    => helio_coord_vh2vb_pl  !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
+      procedure, public :: vb2vh    => helio_coord_vb2vh_pl  !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
+      procedure, public :: drift    => helio_drift_pl        !! Method for Danby drift in Democratic Heliocentric coordinates 
+      procedure, public :: lindrift => helio_drift_linear_pl !! Method for linear drift of massive bodies due to barycentric momentum of Sun
+      procedure, public :: accel    => helio_getacch_pl      !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: kick     => helio_kickvb_pl       !! Kicks the barycentric velocities
+      procedure, public :: setup    => helio_setup_pl        !! Constructor method - Allocates space for number of particles
+      procedure, public :: step     => helio_step_pl         !! Steps the body forward one stepsize
    end type helio_pl
 
    !********************************************************************************************************************************
@@ -53,18 +53,17 @@ module helio_classes
 
    !! Helio test particle class
    type, public, extends(swiftest_tp) :: helio_tp
-      real(DP),     dimension(:,:), allocatable :: ahi     !!  heliocentric acceleration due to interactions
       real(DP),     dimension(NDIM) :: ptbeg   !! negative barycentric velocity of the Sun at beginning of time step
       real(DP),     dimension(NDIM) :: ptend   !! negative barycentric velocity of the Sun at beginning of time step
    contains
-      procedure, public :: vh2vb       => helio_coord_vh2vb_tp  !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure, public :: vb2vh       => helio_coord_vb2vh_tp  !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
-      procedure, public :: drift       => helio_drift_tp        !! Method for Danby drift in Democratic Heliocentric coordinates 
-      procedure, public :: lindrift    => helio_drift_linear_tp !! Method for linear drift of massive bodies due to barycentric momentum of Sun
-      procedure, public :: get_accel   => helio_getacch_tp      !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: kick        => helio_kickvb_tp       !! Kicks the barycentric velocities
-      procedure, public :: setup       => helio_setup_tp        !! Constructor method - Allocates space for number of particles
-      procedure, public :: step        => helio_step_tp         !! Steps the body forward one stepsize
+      procedure, public :: vh2vb    => helio_coord_vh2vb_tp  !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
+      procedure, public :: vb2vh    => helio_coord_vb2vh_tp  !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
+      procedure, public :: drift    => helio_drift_tp        !! Method for Danby drift in Democratic Heliocentric coordinates 
+      procedure, public :: lindrift => helio_drift_linear_tp !! Method for linear drift of massive bodies due to barycentric momentum of Sun
+      procedure, public :: accel    => helio_getacch_tp      !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: kick     => helio_kickvb_tp       !! Kicks the barycentric velocities
+      procedure, public :: setup    => helio_setup_tp        !! Constructor method - Allocates space for number of particles
+      procedure, public :: step     => helio_step_tp         !! Steps the body forward one stepsize
    end type helio_tp
 
    interface
@@ -128,23 +127,24 @@ module helio_classes
          real(DP), dimension(:),    intent(in)    :: pt     !! negative barycentric velocity of the Sun
       end subroutine helio_drift_linear_tp
 
-      module subroutine helio_getacch_pl(self, system, param, t)
+      module subroutine helio_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
          real(DP),                     intent(in)    :: t      !! Current simulation time
+         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_getacch_pl
 
-      module subroutine helio_getacch_tp(self, system, param, t, xhp)
+      module subroutine helio_getacch_tp(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
          class(helio_tp),              intent(inout) :: self   !! Helio test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
-         real(DP), dimension(:,:),     intent(in)    :: xhp    !! Heliocentric positions of planets
+         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_getacch_tp
 
       module subroutine helio_kickvb_pl(self, dt)

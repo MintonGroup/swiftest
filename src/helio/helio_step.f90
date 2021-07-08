@@ -16,8 +16,8 @@ contains
       real(DP),                   intent(in)    :: dt     !! Current stepsize
 
       associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
-         call pl%set_rhill(cb)
          tp%lfirst = pl%lfirst
+         call pl%set_rhill(cb)
          call pl%step(system, param, t, dt)
          call tp%step(system, param, t, dt)
       end associate
@@ -41,7 +41,8 @@ contains
       ! Internals 
       integer(I4B)     :: i
       real(DP)         :: dth, msys
- 
+
+      if (self%nbody == 0) return
       select type(system)
       class is (helio_nbody_system)
          associate(pl => self, cb => system%cb, ptb => system%ptb, pte => system%pte)
@@ -51,12 +52,12 @@ contains
                pl%lfirst = .false.
             end if
             call pl%lindrift(system, dth, ptb)
-            call pl%get_accel(system, param, t)
+            call pl%accel(system, param, t)
             call pl%kick(dth)
             call pl%set_beg_end(xbeg = pl%xh)
             call pl%drift(system, param, dt)
             call pl%set_beg_end(xend = pl%xh)
-            call pl%get_accel(system, param, t + dt)
+            call pl%accel(system, param, t + dt)
             call pl%kick(dth)
             call pl%lindrift(system, dth, pte)
             call pl%vb2vh(cb)
@@ -85,6 +86,8 @@ contains
       ! Internals
       real(DP) :: dth   !! Half step size
    
+      if (self%nbody == 0) return
+
       select type(system)
       class is (helio_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl, ptb => system%ptb, pte => system%pte)
@@ -94,10 +97,10 @@ contains
                tp%lfirst = .false.
             end if
             call tp%lindrift(system, dth, ptb)
-            call tp%get_accel(system, param, t, pl%xbeg)
+            call tp%accel(system, param, t, lbeg=.true.)
             call tp%kick(dth)
             call tp%drift(system, param, dt)
-            call tp%get_accel(system, param, t + dt, pl%xend)
+            call tp%accel(system, param, t + dt, lbeg=.false.)
             call tp%kick(dth)
             call tp%lindrift(system, dth, pte)
             call tp%vb2vh(vbcb = -pte)

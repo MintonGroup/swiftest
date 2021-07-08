@@ -13,12 +13,13 @@ module swiftest_classes
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, io_read_initialize_system, &
              io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
    public :: kickvh_body
-   public :: obl_acc_body
+   public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
-   public :: setup_body, setup_construct_system, setup_pl, setup_set_ir3h, setup_set_msys, setup_set_mu_pl, setup_set_mu_tp, &
-             setup_set_rhill, setup_tp
+   public :: setup_body, setup_construct_system, setup_pl, setup_tp
+   public :: user_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_copy_body, util_copy_cb, util_copy_pl, &
-             util_copy_tp, util_copy_system, util_fill_body, util_fill_pl, util_fill_tp, util_reverse_status, util_set_beg_end, & 
+             util_copy_tp, util_copy_system, util_fill_body, util_fill_pl, util_fill_tp, util_reverse_status, util_set_beg_end_cb, & 
+             util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, util_set_mu_tp, util_set_rhill, &
              util_spill_body, util_spill_pl, util_spill_tp
 
    !********************************************************************************************************************************
@@ -114,6 +115,8 @@ module swiftest_classes
       real(DP)                  :: j2rp2   = 0.0_DP !! J2*R^2 term for central body
       real(DP)                  :: j4rp4   = 0.0_DP !! J4*R^2 term for central body
       real(DP), dimension(NDIM) :: aobl    = 0.0_DP !! Barycentric acceleration due to central body oblatenes
+      real(DP), dimension(NDIM) :: aoblbeg = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
+      real(DP), dimension(NDIM) :: aoblend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
       real(DP), dimension(NDIM) :: xb      = 0.0_DP !! Barycentric position (units DU)
       real(DP), dimension(NDIM) :: vb      = 0.0_DP !! Barycentric velocity (units DU / TU)
       real(DP), dimension(NDIM) :: Ip      = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
@@ -122,10 +125,11 @@ module swiftest_classes
       real(DP)                  :: Q       = 0.0_DP !! Tidal quality factor
    contains
       private
-      procedure, public         :: initialize  => io_read_cb_in      !! I/O routine for reading in central body data
-      procedure, public         :: write_frame => io_write_frame_cb  !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure, public         :: read_frame  => io_read_frame_cb   !! I/O routine for reading out a single frame of time-series data for the central body
-      procedure, public         :: copy        => util_copy_cb       !! Copies elements of one object to another.
+      procedure, public         :: initialize  => io_read_cb_in        !! I/O routine for reading in central body data
+      procedure, public         :: write_frame => io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure, public         :: read_frame  => io_read_frame_cb     !! I/O routine for reading out a single frame of time-series data for the central body
+      procedure, public         :: copy        => util_copy_cb         !! Copies elements of one object to another.
+      procedure, public         :: set_beg_end => util_set_beg_end_cb  !! Sets the beginning and ending oblateness acceleration term
    end type swiftest_cb
 
    !********************************************************************************************************************************
@@ -160,17 +164,18 @@ module swiftest_classes
       procedure(abstract_discard_body), public, deferred :: discard
       procedure(abstract_set_mu),       public, deferred :: set_mu
       procedure(abstract_step_body),    public, deferred :: step
-      procedure(abstract_get_accel),    public, deferred :: get_accel
+      procedure(abstract_accel),        public, deferred :: accel
       ! These are concrete because the implementation is the same for all types of particles
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: write_frame    => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: kick           => kickvh_body         !! Kicks the heliocentric velocities
-      procedure, public :: obl_acc        => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure, public :: accel_obl      => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: el2xv          => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
       procedure, public :: xv2el          => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
-      procedure, public :: set_ir3        => setup_set_ir3h      !! Sets the inverse heliocentric radius term (1/rh**3)
+      procedure, public :: set_ir3        => util_set_ir3h      !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure, public :: setup          => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure, public :: accel_user     => user_getacch_body   !! Add user-supplied heliocentric accelerations to planets
       procedure, public :: copy           => util_copy_body      !! Copies elements of one object to another.
       procedure, public :: fill           => util_fill_body      !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: spill          => util_spill_body     !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
@@ -206,18 +211,19 @@ module swiftest_classes
       private
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: discard     => discard_pl           !! Placeholder method for discarding massive bodies 
-      procedure, public :: eucl_index  => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_irij3  => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
-      procedure, public :: setup       => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
-      procedure, public :: set_mu      => setup_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: set_rhill   => setup_set_rhill      !! Calculates the Hill's radii for each body
-      procedure, public :: h2b         => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
-      procedure, public :: b2h         => util_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
-      procedure, public :: copy        => util_copy_pl         !! Copies elements of one object to another.
-      procedure, public :: fill        => util_fill_pl         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: set_beg_end => util_set_beg_end     !! Sets the beginning and ending positions of planets.
-      procedure, public :: spill       => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: discard      => discard_pl           !! Placeholder method for discarding massive bodies 
+      procedure, public :: eucl_index   => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: eucl_irij3   => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: accel_obl    => obl_acc_pl           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure, public :: setup        => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
+      procedure, public :: set_mu       => util_set_mu_pl      !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: set_rhill    => util_set_rhill      !! Calculates the Hill's radii for each body
+      procedure, public :: h2b          => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
+      procedure, public :: b2h          => util_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
+      procedure, public :: copy         => util_copy_pl         !! Copies elements of one object to another.
+      procedure, public :: fill         => util_fill_pl         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: set_beg_end  => util_set_beg_end_pl  !! Sets the beginning and ending positions and velocities of planets.
+      procedure, public :: spill        => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_pl
 
    !********************************************************************************************************************************
@@ -236,15 +242,16 @@ module swiftest_classes
       private
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: discard     => discard_tp           !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
-      procedure, public :: eucl_index  => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: setup       => setup_tp             !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_mu      => setup_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: h2b         => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
-      procedure, public :: b2h         => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
-      procedure, public :: copy        => util_copy_tp         !! Copies elements of one object to another.
-      procedure, public :: fill        => util_fill_tp         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: spill       => util_spill_tp        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: discard       => discard_tp           !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      procedure, public :: eucl_index    => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: accel_obl => obl_acc_tp           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure, public :: setup         => setup_tp             !! A base constructor that sets the number of bodies and 
+      procedure, public :: set_mu        => util_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: h2b           => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
+      procedure, public :: b2h           => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
+      procedure, public :: copy          => util_copy_tp         !! Copies elements of one object to another.
+      procedure, public :: fill          => util_fill_tp         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: spill         => util_spill_tp        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_tp
 
    !********************************************************************************************************************************
@@ -262,6 +269,9 @@ module swiftest_classes
       real(DP)                                   :: pe = 0.0_DP     !! System potential energy
       real(DP)                                   :: te = 0.0_DP     !! System total energy
       real(DP), dimension(NDIM)                  :: htot = 0.0_DP   !! System angular momentum vector
+      logical                                    :: lbeg            !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
+                                                                    !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
+                                                                    !!    the test particles
    contains
       private
       !> Each integrator will have its own version of the step
@@ -272,7 +282,7 @@ module swiftest_classes
       procedure, public :: dump           => io_dump_system               !! Dump the state of the system to a file
       procedure, public :: initialize     => io_read_initialize_system    !! Initialize the system from an input file
       procedure, public :: read_frame     => io_read_frame_system         !! Append a frame of output data to file
-      procedure, public :: set_msys       => setup_set_msys               !! Sets the value of msys from the masses of system bodies.
+      procedure, public :: set_msys       => util_set_msys               !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard  => io_write_discard             !! Append a frame of output data to file
       procedure, public :: write_frame    => io_write_frame_system        !! Append a frame of output data to file
       procedure, public :: copy           => util_copy_system   !! Copies elements of one object to another.
@@ -293,14 +303,14 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine abstract_discard_body
 
-      subroutine abstract_get_accel(self, system, param, t)
-         use swiftest_classes, only : swiftest_body, swifest_nbody_system, swiftest_parameters
-         implicit none
+      subroutine abstract_accel(self, system, param, t, lbeg)
+         import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
          real(DP),                     intent(in)    :: t      !! Current simulation time
-      end subroutine abstract_get_accel
+         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      end subroutine abstract_accel
 
       subroutine abstract_initialize(self, param) 
          import swiftest_base, swiftest_parameters
@@ -537,13 +547,23 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt   !! Stepsize
       end subroutine kickvh_body
 
-      module subroutine obl_acc_body(self, system, param, t)
+      module subroutine obl_acc_body(self, system)
          implicit none
-         class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body data structure
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest body object 
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
-         real(DP),                     intent(in)    :: t      !! Current simulation time
       end subroutine obl_acc_body
+
+      module subroutine obl_acc_pl(self, system)
+         implicit none
+         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      end subroutine obl_acc_pl
+
+      module subroutine obl_acc_tp(self, system)
+         implicit none
+         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      end subroutine obl_acc_tp
 
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
@@ -595,39 +615,48 @@ module swiftest_classes
          integer,            intent(in)    :: n    !! Number of massive bodies to allocate space for
       end subroutine setup_pl
 
-      module subroutine setup_set_ir3h(self)
+      module subroutine util_set_ir3h(self)
          implicit none
          class(swiftest_body), intent(inout) :: self !! Swiftest body object
-      end subroutine setup_set_ir3h
+      end subroutine util_set_ir3h
 
-      module subroutine setup_set_msys(self)
+      module subroutine util_set_msys(self)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
-      end subroutine setup_set_msys
+      end subroutine util_set_msys
 
-      module subroutine setup_set_mu_pl(self, cb)
+      module subroutine util_set_mu_pl(self, cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine setup_set_mu_pl
+      end subroutine util_set_mu_pl
 
-      module subroutine setup_set_mu_tp(self, cb)
+      module subroutine util_set_mu_tp(self, cb)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine setup_set_mu_tp
+      end subroutine util_set_mu_tp
 
-      module subroutine setup_set_rhill(self,cb)
+      module subroutine util_set_rhill(self,cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest massive body object
-      end subroutine setup_set_rhill
+      end subroutine util_set_rhill
 
       module subroutine setup_tp(self, n)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          integer,            intent(in)    :: n    !! Number of bodies to allocate space for
       end subroutine setup_tp
+
+      module subroutine user_getacch_body(self, system, param, t, lbeg)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody_system_object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of user parameters
+         real(DP),                     intent(in)    :: t      !! Current time
+         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      end subroutine user_getacch_body
 
       module subroutine util_coord_b2h_pl(self, cb)
          implicit none
@@ -714,12 +743,20 @@ module swiftest_classes
          class(swiftest_body), intent(inout) :: self !! Swiftest body object
       end subroutine util_reverse_status
 
-      module subroutine util_set_beg_end(self, xbeg, xend, vbeg)
+      module subroutine util_set_beg_end_cb(self, aoblbeg, aoblend)
          implicit none
-         class(swiftest_pl),       intent(inout)          :: self       !! Swiftest massive body object
-         real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend !! Positions at beginning and end of step
-         real(DP), dimension(:,:), intent(in),   optional :: vbeg       !! vbeg is an unused variable to keep this method forward compatible with RMVS
-      end subroutine util_set_beg_end
+         class(swiftest_cb),     intent(inout)          :: self    !! Swiftest central body object
+         real(DP), dimension(:), intent(in),   optional :: aoblbeg !! Oblateness acceleration term at beginning of step
+         real(DP), dimension(:), intent(in),   optional :: aoblend !! Oblateness acceleration term at end of step
+      end subroutine util_set_beg_end_cb
+
+      module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
+         implicit none
+         class(swiftest_pl),       intent(inout)          :: self !! Swiftest massive body object
+         real(DP), dimension(:,:), intent(in),   optional :: xbeg !! Position vectors at beginning of step
+         real(DP), dimension(:,:), intent(in),   optional :: xend !! Positions vectors at end of step
+         real(DP), dimension(:,:), intent(in),   optional :: vbeg !! vbeg is an unused variable to keep this method forward compatible with RMVS
+      end subroutine util_set_beg_end_pl
 
       module subroutine util_spill_body(self, discards, lspill_list)
          implicit none

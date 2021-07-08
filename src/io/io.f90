@@ -1080,7 +1080,7 @@ contains
          if (param%lgr) then
             select type(discards)
             class is (whm_tp)
-               call discards%gr_pv2vh(param)
+               call discards%pv2vh(param)
             end select
          end if
          write(LUN, HDRFMT) t, nsp, param%lbig_discard
@@ -1097,7 +1097,7 @@ contains
                   allocate(pltemp, source = pl)
                   select type(pltemp)
                   class is (whm_pl)
-                     call pltemp%gr_pv2vh(param)
+                     call pltemp%pv2vh(param)
                      allocate(vh, source = pltemp%vh)
                   end select
                   deallocate(pltemp)
@@ -1316,11 +1316,11 @@ contains
          associate(vh => pl%vh, vht => tp%vh)
             select type(pl)
             class is (whm_pl)
-               call pl%gr_pv2vh(param)
+               call pl%pv2vh(param)
             end select
             select type(tp) 
             class is (whm_tp)
-               call tp%gr_pv2vh(param)
+               call tp%pv2vh(param)
             end select
          end associate
       end if

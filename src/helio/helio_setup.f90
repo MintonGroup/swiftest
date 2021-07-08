@@ -27,8 +27,8 @@ contains
       call setup_pl(self, n) 
       if (n <= 0) return
 
-      allocate(self%ahi(NDIM, n))
-      self%ahi(:,:) = 0.0_DP
+      allocate(self%ah(NDIM, n))
+      self%ah(:,:) = 0.0_DP
       return
    end procedure helio_setup_pl 
 
@@ -44,8 +44,8 @@ contains
       call setup_tp(self, n) 
       if (n <= 0) return
 
-      allocate(self%ahi(NDIM, n))
-      self%ahi(:,:) = 0.0_DP
+      allocate(self%ah(NDIM, n))
+      self%ah(:,:) = 0.0_DP
 
       return
    end procedure helio_setup_tp

@@ -19,7 +19,7 @@ implicit none
 ! executable code
    if (lflag) then
       do i = 2, npl
-         helio_plA%ahi(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
+         helio_plA%ah(:,i) = (/ 0.0_DP, 0.0_DP, 0.0_DP /)
       end do
       call symba_helio_getacch_int(npl, nplm, helio_plA) 
    end if
@@ -35,11 +35,11 @@ implicit none
       end do
       call obl_acc(helio_plA, param%j2rp2, param%j4rp4, xh, irh, aobl) 
       do i = 2, npl
-         helio_plA%ah(:,i) = helio_plA%ahi(:,i) + aobl(:, i) - aobl(:, 1)
+         helio_plA%ah(:,i) = helio_plA%ah(:,i) + aobl(:, i) - aobl(:, 1)
       end do
    else
       do i = 2, npl
-         helio_plA%ah(:,i) = helio_plA%ahi(:,i)
+         helio_plA%ah(:,i) = helio_plA%ah(:,i)
       end do
    end if
    if (lextra_force) call helio_user_getacch(t, npl, helio_plA) 

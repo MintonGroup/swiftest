@@ -18,12 +18,8 @@ contains
 
       associate(system => self, cb => self%cb,  pl => self%pl, tp => self%tp, ntp => self%tp%nbody)
          call pl%set_rhill(cb)
-         call pl%set_beg_end(xbeg = pl%xh)
          call pl%step(system, param, t, dt)
-         if (ntp > 0) then
-            call pl%set_beg_end(xend = pl%xh)
-            call tp%step(system, param, t, dt)
-         end if
+         call tp%step(system, param, t, dt)
       end associate
       return
    end subroutine whm_step_system 
@@ -46,22 +42,26 @@ contains
       ! Internals
       real(DP)                                    :: dth
       
+      if (self%nbody == 0) return
+
       associate(pl => self, cb => system%cb)
          dth = 0.5_DP * dt
          if (pl%lfirst) then
             call pl%h2j(cb)
-            call pl%get_accel(system, param, t)
+            call pl%accel(system, param, t)
             pl%lfirst = .false.
          end if
+         call pl%set_beg_end(xbeg = pl%xh)
          call pl%kick(dth)
          call pl%vh2vj(cb) 
          !If GR enabled, calculate the p4 term before and after each drift
-         if (param%lgr) call pl%gr_p4(param, dth)
+         if (param%lgr) call pl%p4(param, dth)
          call pl%drift(system, param, dt)
-         if (param%lgr) call pl%gr_p4(param, dth)
+         if (param%lgr) call pl%p4(param, dth)
          call pl%j2h(cb)
-         call pl%get_accel(system, param, t + dt)
+         call pl%accel(system, param, t + dt)
          call pl%kick(dth)
+         call pl%set_beg_end(xend = pl%xh)
       end associate
       return
    end subroutine whm_step_pl
@@ -83,19 +83,21 @@ contains
       ! Internals
       real(DP)                                    :: dth
 
+      if (self%nbody == 0) return
+
       select type(system)
       class is (whm_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl)
             dth = 0.5_DP * dt
             if (tp%lfirst) then
-               call tp%get_accel(system, param, t, pl%xbeg)
+               call tp%accel(system, param, t, lbeg=.true.)
                tp%lfirst = .false.
             end if
             call tp%kick(dth)
-            if (param%lgr) call tp%gr_p4(param, dth)
+            if (param%lgr) call tp%p4(param, dth)
             call tp%drift(system, param, dt)
-            if (param%lgr) call tp%gr_p4(param, dth)
-            call tp%get_accel(system, param, t + dt, pl%xend)
+            if (param%lgr) call tp%p4(param, dth)
+            call tp%accel(system, param, t + dt, lbeg=.false.)
             call tp%kick(dth)
          end associate
       end select
