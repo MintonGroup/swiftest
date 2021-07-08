@@ -90,7 +90,7 @@ module helio_classes
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine helio_drift_pl
@@ -99,7 +99,7 @@ module helio_classes
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(helio_tp),              intent(inout) :: self   !! Helio test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine helio_drift_tp
@@ -107,7 +107,7 @@ module helio_classes
       module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
          implicit none
          class(helio_pl), intent(inout) :: self  !! Helio massive body object
-         class(helio_cb), intent(in)    :: cb    !! Helio central body object
+         class(helio_cb), intent(inout) :: cb    !! Helio central body object
          real(DP),        intent(in)    :: dt    !! Stepsize
          logical,         intent(in)    :: lbeg  !! Argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_drift_linear_pl 
@@ -124,7 +124,7 @@ module helio_classes
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
@@ -134,7 +134,7 @@ module helio_classes
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
          class(helio_tp),              intent(inout) :: self   !! Helio test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step

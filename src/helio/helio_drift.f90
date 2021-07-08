@@ -68,18 +68,13 @@ contains
       implicit none
       ! Arguments
       class(helio_pl), intent(inout) :: self   !! Helio massive body object
-      class(helio_cb), intent(in)    :: cb   !! Helio central bod
+      class(helio_cb), intent(inout) :: cb   !! Helio central bod
       real(DP),        intent(in)    :: dt     !! Stepsize
       logical,         intent(in)    :: lbeg   !! Argument that determines whether or not this is the beginning or end of the step
       ! Internals
       real(DP), dimension(NDIM)      :: pt     !! negative barycentric velocity of the central body
 
       associate(pl => self, npl => self%nbody)
-         if (lbeg) then
-            pt(:) = cb%ptbeg
-         else
-            pt(:) = cb%ptend
-         end if
          pt(1) = sum(pl%Gmass(1:npl) * pl%vb(1,1:npl))
          pt(2) = sum(pl%Gmass(1:npl) * pl%vb(2,1:npl))
          pt(3) = sum(pl%Gmass(1:npl) * pl%vb(3,1:npl))
@@ -87,6 +82,12 @@ contains
          pl%xh(1,1:npl) = pl%xh(1,1:npl) + pt(1) * dt
          pl%xh(2,1:npl) = pl%xh(2,1:npl) + pt(2) * dt
          pl%xh(3,1:npl) = pl%xh(3,1:npl) + pt(3) * dt
+
+         if (lbeg) then
+            cb%ptbeg = pt(:)
+         else
+            cb%ptend = pt(:) 
+         end if
       end associate
    
       return
@@ -130,8 +131,8 @@ contains
             dtp(:) = dt
          end if 
          call drift_one(mu(1:ntp), tp%xh(1,1:ntp), tp%xh(2,1:ntp), tp%xh(3,1:ntp), &
-                                      tp%vh(1,1:ntp), tp%vh(2,1:ntp), tp%vh(3,1:ntp), &
-                                      dtp(1:ntp), iflag(1:ntp))
+                                   tp%vb(1,1:ntp), tp%vb(2,1:ntp), tp%vb(3,1:ntp), &
+                                   dtp(1:ntp), iflag(1:ntp))
          if (any(iflag(1:ntp) /= 0)) then
             tp%status = DISCARDED_DRIFTERR
             do i = 1, ntp
