@@ -18,6 +18,7 @@ contains
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
 
       associate(n => self%nbody, cb => system%cb)
+         self%aobl(:,:) = 0.0_DP
          do i = 1, n 
             r2 = dot_product(self%xh(:, i), self%xh(:, i))
             irh = 1.0_DP / sqrt(r2)
