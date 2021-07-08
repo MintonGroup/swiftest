@@ -9,7 +9,7 @@ module swiftest
    use whm_classes
    use rmvs_classes
    use helio_classes
-   !use symba_classes
+   use symba_classes
    use util
    use module_nrutil
    !use advisor_annotate

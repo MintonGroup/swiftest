@@ -50,6 +50,7 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
                      whm_classes.f90 \
                      rmvs_classes.f90 \
                      helio_classes.f90 \
+                     symba_classes.f90 \
                      util.f90 \
                      module_nrutil.f90 \
                      swiftest.f90 
