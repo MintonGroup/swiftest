@@ -592,8 +592,8 @@ contains
                                  tp%xh(j, tpind(1:pl%nenc(i))) = tpenci%xh(j,1:pl%nenc(i)) + pl%inner(NTPHENC)%x(j, i)
                                  tp%vh(j, tpind(1:pl%nenc(i))) = tpenci%vh(j,1:pl%nenc(i)) + pl%inner(NTPHENC)%v(j, i)
                               end do
-                              tp%lperi(tpind(1:pl%nenc(i))) = tpenci%lperi(tpind(1:pl%nenc(i)))
-                              tp%plperP(tpind(1:pl%nenc(i))) = tpenci%plperP(tpind(1:pl%nenc(i)))
+                              tp%lperi(tpind(1:pl%nenc(i))) = tpenci%lperi(1:pl%nenc(i))
+                              tp%plperP(tpind(1:pl%nenc(i))) = tpenci%plperP(1:pl%nenc(i))
                               deallocate(pl%planetocentric(i)%tp)
                               deallocate(cbenci%inner)
                               do inner_index = 0, NTPHENC 
