@@ -19,6 +19,7 @@ contains
       ! Internals
       type(swiftest_parameters)                 :: param_planetocen
       real(DP), dimension(:, :), allocatable    :: xh_original
+      real(DP)                                  :: GMcb_original
       integer(I4B)                              :: i
       real(DP), dimension(:, :), allocatable    :: xhp
 
@@ -60,12 +61,15 @@ contains
                               tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(inner_index    )%x(:,1)
                            end do
                         end if
-                        ! Swap the planetocentric and heliocentric position vectors
+                        ! Swap the planetocentric and heliocentric position vectors and central body masses
                         tp%xh(:,:) = tp%xheliocentric(:,:)
+                        GMcb_original = cb%Gmass
+                        cb%Gmass = tp%cb_heliocentric%Gmass
                         if (param%loblatecb) call tp%accel_obl(system_planetocen)
                         if (param%lextra_force) call tp%accel_user(system_planetocen, param, t)
                         if (param%lgr) call tp%accel_gr(param)
                         tp%xh(:,:) = xh_original(:,:)
+                        cb%Gmass = GMcb_original
                      end associate
                   end select
                end select
