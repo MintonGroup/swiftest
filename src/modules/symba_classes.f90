@@ -13,6 +13,9 @@ module symba_classes
    !********************************************************************************************************************************
    type, public, extends(helio_nbody_system) :: symba_nbody_system
    contains
+      private
+      procedure, public :: step          => symba_step_system         !! Advance the SyMBA nbody system forward in time by one step
+      procedure, public :: interp        => symba_step_interp_system  !! Perform an interpolation step on the SymBA nbody system 
    end type symba_nbody_system
 
    !********************************************************************************************************************************
@@ -40,4 +43,24 @@ module symba_classes
    type, public, extends(helio_tp) :: symba_tp
    contains
    end type symba_tp
+
+   interface
+      module subroutine symba_step_system(self, param, t, dt)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self    !! RMVS nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t      !! Simulation time
+         real(DP),                   intent(in)    :: dt     !! Current stepsize
+      end subroutine symba_step_system
+
+      module subroutine symba_step_interp_system(self, param, t, dt)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self    !! RMVS nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t      !! Simulation time
+         real(DP),                   intent(in)    :: dt     !! Current stepsize
+      end subroutine symba_step_interp_system
+   end interface
 end module symba_classes
