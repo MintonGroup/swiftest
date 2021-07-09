@@ -272,7 +272,7 @@ contains
       return
    end subroutine symba_io_read_frame_pl
 
-   subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
+   module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
       !! author: David A. Minton
       !!
       !! Reads a single frame of a particle info data from a file.
@@ -282,6 +282,8 @@ contains
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
       integer(I4B),               intent(out)   :: ierr  !! Error code
+
+      ierr = 0
    end subroutine symba_io_read_frame_info
 
    module subroutine symba_io_read_cb_in(self, param) 
@@ -410,7 +412,7 @@ contains
       return
    end subroutine symba_io_read_pl_in
 
-   subroutine symba_io_write_frame_cb(self, iu, param)
+   module subroutine symba_io_write_frame_cb(self, iu, param)
       !! author: David A. Minton
       !!
       !! Writes a single frame of a SyMBA pl file 
@@ -437,7 +439,7 @@ contains
       end select
    end subroutine symba_io_write_frame_cb
 
-   subroutine symba_io_write_frame_pl(self, iu, param)
+   module subroutine symba_io_write_frame_pl(self, iu, param)
       !! author: David A. Minton
       !!
       !! Writes a single frame of a SyMBA pl file 
