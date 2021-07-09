@@ -9,7 +9,7 @@ module swiftest_classes
    public :: discard_pl, discard_system, discard_tp 
    public :: drift_one
    public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
-   public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_param_reader, io_param_writer, io_read_body_in, &
+   public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, io_read_initialize_system, &
              io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
    public :: kickvh_body
@@ -17,10 +17,9 @@ module swiftest_classes
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_pl, setup_tp
    public :: user_getacch_body
-   public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_copy_body, util_copy_cb, util_copy_pl, &
-             util_copy_tp, util_copy_system, util_fill_body, util_fill_pl, util_fill_tp, util_reverse_status, util_set_beg_end_cb, & 
-             util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, util_set_mu_tp, util_set_rhill, &
-             util_spill_body, util_spill_pl, util_spill_tp
+   public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_fill_body, util_fill_pl, util_fill_tp, &
+             util_reverse_status, util_set_beg_end_cb, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
+             util_set_mu_tp, util_set_rhill, util_spill_body, util_spill_pl, util_spill_tp
 
    !********************************************************************************************************************************
    ! swiftest_parameters class definitions 
@@ -54,7 +53,6 @@ module swiftest_classes
       real(DP)             :: qmin_alo       = -1.0_DP            !! Minimum semimajor axis for qmin
       real(DP)             :: qmin_ahi       = -1.0_DP            !! Maximum semimajor axis for qmin
       character(STRMAX)    :: encounter_file = ENC_OUTFILE        !! Name of output file for encounters
-      real(DP)             :: MTINY          = -1.0_DP            !! Smallest mass that is fully gravitating
       real(QP)             :: MU2KG          = -1.0_QP            !! Converts mass units to grams
       real(QP)             :: TU2S           = -1.0_QP            !! Converts time units to seconds
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
@@ -65,10 +63,6 @@ module swiftest_classes
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
       logical :: lclose         = .false. !! Turn on close encounters
-      logical :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
-      logical :: lmtiny         = .false. !! Use the MTINY variable (Automatically set if running SyMBA)
-      logical :: lrotation      = .false. !! Include rotation states of big bodies
-      logical :: ltides         = .false. !! Include tidal dissipation 
       logical :: lenergy        = .false. !! Track the total energy of the system
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
 
@@ -96,11 +90,10 @@ module swiftest_classes
    contains
       !! The minimal methods that all systems must have
       private
-      procedure :: dump => io_dump_swiftest 
+      procedure                                         :: dump => io_dump_swiftest 
       procedure(abstract_initialize),  public, deferred :: initialize
-      procedure(abstract_write_frame), public, deferred :: write_frame
       procedure(abstract_read_frame),  public, deferred :: read_frame
-      procedure(abstract_copy),        public, deferred :: copy
+      procedure(abstract_write_frame), public, deferred :: write_frame
    end type swiftest_base
 
    !********************************************************************************************************************************
@@ -108,6 +101,8 @@ module swiftest_classes
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, abstract, public, extends(swiftest_base) :: swiftest_cb           
+      character(len=STRMAX)     :: name            !! Non-unique name
+      integer(I4B)              :: id              !! External identifier (unique)
       real(DP)                  :: mass    = 0.0_DP !! Central body mass (units MU)
       real(DP)                  :: Gmass   = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
       real(DP)                  :: radius  = 0.0_DP !! Central body radius (units DU)
@@ -119,16 +114,11 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: aoblend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
       real(DP), dimension(NDIM) :: xb      = 0.0_DP !! Barycentric position (units DU)
       real(DP), dimension(NDIM) :: vb      = 0.0_DP !! Barycentric velocity (units DU / TU)
-      real(DP), dimension(NDIM) :: Ip      = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
-      real(DP), dimension(NDIM) :: rot     = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP)                  :: k2      = 0.0_DP !! Tidal Love number
-      real(DP)                  :: Q       = 0.0_DP !! Tidal quality factor
    contains
       private
       procedure, public         :: initialize  => io_read_cb_in        !! I/O routine for reading in central body data
       procedure, public         :: write_frame => io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public         :: read_frame  => io_read_frame_cb     !! I/O routine for reading out a single frame of time-series data for the central body
-      procedure, public         :: copy        => util_copy_cb         !! Copies elements of one object to another.
       procedure, public         :: set_beg_end => util_set_beg_end_cb  !! Sets the beginning and ending oblateness acceleration term
    end type swiftest_cb
 
@@ -138,25 +128,28 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest bodies
    type, abstract, public, extends(swiftest_base) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
-      logical                                   :: lfirst = .true. !! Run the current step as a first
-      integer(I4B)                              :: nbody = 0  !! Number of bodies
-      integer(I4B), dimension(:),   allocatable :: name       !! External identifier
-      integer(I4B), dimension(:),   allocatable :: status     !! An integrator-specific status indicator 
-      logical,      dimension(:),   allocatable :: ldiscard   !! Body should be discarded
-      real(DP),     dimension(:,:), allocatable :: xh         !! Heliocentric position
-      real(DP),     dimension(:,:), allocatable :: vh         !! Heliocentric velocity
-      real(DP),     dimension(:,:), allocatable :: xb         !! Barycentric position
-      real(DP),     dimension(:,:), allocatable :: vb         !! Barycentric velocity
-      real(DP),     dimension(:,:), allocatable :: ah         !! Total heliocentric acceleration
-      real(DP),     dimension(:,:), allocatable :: aobl       !! Barycentric accelerations of bodies due to central body oblatenes
-      real(DP),     dimension(:),   allocatable :: ir3h       !! Inverse heliocentric radius term (1/rh**3)
-      real(DP),     dimension(:),   allocatable :: a          !! Semimajor axis (pericentric distance for a parabolic orbit)
-      real(DP),     dimension(:),   allocatable :: e          !! Eccentricity
-      real(DP),     dimension(:),   allocatable :: inc        !! Inclination
-      real(DP),     dimension(:),   allocatable :: capom      !! Longitude of ascending node
-      real(DP),     dimension(:),   allocatable :: omega      !! Argument of pericenter
-      real(DP),     dimension(:),   allocatable :: capm       !! Mean anomaly
-      real(DP),     dimension(:),   allocatable :: mu         !! G * (Mcb + [m])
+      logical                                            :: lfirst = .true. !! Run the current step as a first
+      integer(I4B)                                       :: nbody = 0       !! Number of bodies
+      character(len=STRMAX), dimension(:),   allocatable :: name            !! Non-unique name
+      integer(I4B),          dimension(:),   allocatable :: id              !! External identifier (unique)
+      integer(I4B),          dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
+      logical,               dimension(:),   allocatable :: ldiscard        !! Body should be discarded
+      real(DP),              dimension(:,:), allocatable :: xh              !! Heliocentric position
+      real(DP),              dimension(:,:), allocatable :: vh              !! Heliocentric velocity
+      real(DP),              dimension(:,:), allocatable :: xb              !! Barycentric position
+      real(DP),              dimension(:,:), allocatable :: vb              !! Barycentric velocity
+      real(DP),              dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
+      real(DP),              dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
+      real(DP),              dimension(:),   allocatable :: ir3h            !! Inverse heliocentric radius term (1/rh**3)
+      real(DP),              dimension(:),   allocatable :: a               !! Semimajor axis (pericentric distance for a parabolic orbit)
+      real(DP),              dimension(:),   allocatable :: e               !! Eccentricity
+      real(DP),              dimension(:),   allocatable :: inc             !! Inclination
+      real(DP),              dimension(:),   allocatable :: capom           !! Longitude of ascending node
+      real(DP),              dimension(:),   allocatable :: omega           !! Argument of pericenter
+      real(DP),              dimension(:),   allocatable :: capm            !! Mean anomaly
+      real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
+      integer(I4B),          dimension(:,:), allocatable :: k_eucl          !! Index array used to convert flattened the body-body comparison upper triangular matrix
+      integer(I8B)                                       :: num_comparisons !! Number of body-body comparisons in the flattened upper triangular matrix
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and util_spill
    contains
@@ -176,7 +169,6 @@ module swiftest_classes
       procedure, public :: set_ir3        => util_set_ir3h      !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure, public :: setup          => setup_body          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure, public :: accel_user     => user_getacch_body   !! Add user-supplied heliocentric accelerations to planets
-      procedure, public :: copy           => util_copy_body      !! Copies elements of one object to another.
       procedure, public :: fill           => util_fill_body      !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: spill          => util_spill_body     !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure, public :: reverse_status => util_reverse_status !! Reverses the active/inactive status of all particles in a structure
@@ -192,19 +184,11 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: Gmass           !! Mass gravitational term G * mass (units GU * MU)
       real(DP),     dimension(:),   allocatable :: rhill           !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: radius          !! Body radius (units DU)
-      real(DP),     dimension(:),   allocatable :: density         !! Body mass density - calculated internally (units MU / DU**3)
-      real(DP),     dimension(:,:), allocatable :: Ip              !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). 
-                                                                   !!     Principal axis rotation assumed. 
-      real(DP),     dimension(:,:), allocatable :: rot             !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP),     dimension(:),   allocatable :: k2              !! Tidal Love number
-      real(DP),     dimension(:),   allocatable :: Q               !! Tidal quality factor
-      integer(I4B)                              :: num_comparisons !! Number of pl-pl Euclidean distance comparisons
-      integer(I4B), dimension(:,:), allocatable :: k_eucl          !! Index array that converts i, j array indices into k index for use in 
-                                                                   !!  the Euclidean distance matrix
       real(DP),     dimension(:),   allocatable :: irij3           !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
       real(DP),     dimension(:,:), allocatable :: xbeg            !! Position at beginning of step
       real(DP),     dimension(:,:), allocatable :: xend            !! Position at end of step
       real(DP),     dimension(:,:), allocatable :: vbeg            !! Velocity at beginning of step
+      real(DP),     dimension(:),   allocatable :: density    !! Body mass density - calculated internally (units MU / DU**3)
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and util_spill_pl
    contains
@@ -220,7 +204,6 @@ module swiftest_classes
       procedure, public :: set_rhill    => util_set_rhill      !! Calculates the Hill's radii for each body
       procedure, public :: h2b          => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure, public :: b2h          => util_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
-      procedure, public :: copy         => util_copy_pl         !! Copies elements of one object to another.
       procedure, public :: fill         => util_fill_pl         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: set_beg_end  => util_set_beg_end_pl  !! Sets the beginning and ending positions and velocities of planets.
       procedure, public :: spill        => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
@@ -249,7 +232,6 @@ module swiftest_classes
       procedure, public :: set_mu        => util_set_mu_tp      !! Method used to construct the vectorized form of the central body mass
       procedure, public :: h2b           => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
       procedure, public :: b2h           => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
-      procedure, public :: copy          => util_copy_tp         !! Copies elements of one object to another.
       procedure, public :: fill          => util_fill_tp         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: spill         => util_spill_tp        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_tp
@@ -260,18 +242,22 @@ module swiftest_classes
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract, public, extends(swiftest_base) :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
-      class(swiftest_cb),            allocatable :: cb              !! Central body data structure
-      class(swiftest_pl),            allocatable :: pl              !! Massive body data structure
-      class(swiftest_tp),            allocatable :: tp              !! Test particle data structure
-      class(swiftest_tp),            allocatable :: tp_discards     !! Discarded test particle data structure
-      real(DP)                                   :: msys = 0.0_DP   !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                                   :: ke = 0.0_DP     !! System kinetic energy
-      real(DP)                                   :: pe = 0.0_DP     !! System potential energy
-      real(DP)                                   :: te = 0.0_DP     !! System total energy
-      real(DP), dimension(NDIM)                  :: htot = 0.0_DP   !! System angular momentum vector
-      logical                                    :: lbeg            !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
-                                                                    !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
-                                                                    !!    the test particles
+      class(swiftest_cb),            allocatable :: cb                   !! Central body data structure
+      class(swiftest_pl),            allocatable :: pl                   !! Massive body data structure
+      class(swiftest_tp),            allocatable :: tp                   !! Test particle data structure
+      class(swiftest_tp),            allocatable :: tp_discards          !! Discarded test particle data structure
+      real(DP)                                   :: msys = 0.0_DP        !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                                   :: ke = 0.0_DP          !! System kinetic energy
+      real(DP)                                   :: pe = 0.0_DP          !! System potential energy
+      real(DP)                                   :: te = 0.0_DP          !! System total energy
+      real(DP), dimension(NDIM)                  :: Ltot = 0.0_DP        !! System angular momentum vector
+      real(DP), dimension(NDIM)                  :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                                   :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                                   :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
+      real(DP)                                   :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+      logical                                    :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
+                                                                         !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
+                                                                         !!    the test particles
    contains
       private
       !> Each integrator will have its own version of the step
@@ -285,17 +271,9 @@ module swiftest_classes
       procedure, public :: set_msys       => util_set_msys               !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard  => io_write_discard             !! Append a frame of output data to file
       procedure, public :: write_frame    => io_write_frame_system        !! Append a frame of output data to file
-      procedure, public :: copy           => util_copy_system   !! Copies elements of one object to another.
    end type swiftest_nbody_system
 
    abstract interface
-      subroutine abstract_copy(self, src, mask)
-         import swiftest_base
-         class(swiftest_base),         intent(inout) :: self
-         class(swiftest_base),         intent(in)    :: src
-         logical, dimension(:),        intent(in)    :: mask
-      end subroutine abstract_copy 
-
       subroutine abstract_discard_body(self, system, param) 
          import swiftest_body, swiftest_nbody_system, swiftest_parameters
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
@@ -431,6 +409,15 @@ module swiftest_classes
          character(len=:), allocatable :: param_file_name !! Name of the input parameters file
          integer(I4B)                  :: ierr             !! I/O error code 
       end function io_get_args
+
+      module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
+         implicit none
+         character(len=*), intent(in)    :: buffer         !! Input string buffer
+         integer(I4B),     intent(inout) :: ifirst         !! Index of the buffer at which to start the search for a token
+         integer(I4B),     intent(out)   :: ilast          !! Index of the buffer at the end of the returned token
+         integer(I4B),     intent(out)   :: ierr           !! Error code
+         character(len=:), allocatable   :: token          !! Returned token string
+      end function io_get_token
 
       module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -681,41 +668,6 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
-
-      module subroutine util_copy_body(self, src, mask)
-         implicit none
-         class(swiftest_body),  intent(inout) :: self !! Swiftest body object to copy into
-         class(swiftest_base),  intent(in)    :: src  !! Swiftest base object to copy from
-         logical, dimension(:), intent(in)    :: mask !! Mask of elements in src object to copy into self
-      end subroutine util_copy_body
-
-      module subroutine util_copy_cb(self, src, mask)
-         implicit none
-         class(swiftest_cb),    intent(inout) :: self !! Swiftest central body object to copy into
-         class(swiftest_base),  intent(in)    :: src  !! Swiftest base object to copy from
-         logical, dimension(:), intent(in)    :: mask !! Mask of elements in src object to copy into selfk
-      end subroutine util_copy_cb
-
-      module subroutine util_copy_pl(self, src, mask)
-         implicit none
-         class(swiftest_pl),    intent(inout) :: self !! Swiftest massive body object to copy into
-         class(swiftest_base),  intent(in)    :: src  !! Swiftest base object to copy from
-         logical, dimension(:), intent(in)    :: mask !! Mask of elements in src object to copy into self
-      end subroutine util_copy_pl
-
-      module subroutine util_copy_tp(self, src, mask)
-         implicit none
-         class(swiftest_tp),    intent(inout) :: self !! Swiftest test particle object to copy into
-         class(swiftest_base),  intent(in)    :: src  !! Swiftest base object to copy from
-         logical, dimension(:), intent(in)    :: mask !! Mask of elements in src object to copy into self
-      end subroutine util_copy_tp
-
-      module subroutine util_copy_system(self, src, mask)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest nbody system object to copy into
-         class(swiftest_base),         intent(in)    :: src  !! Swiftest base object to copy from
-         logical, dimension(:),        intent(in)    :: mask !! Mask of elements in src object to copy into self
-      end subroutine util_copy_system
 
       module subroutine util_fill_body(self, inserts, lfill_list)
          implicit none

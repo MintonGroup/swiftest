@@ -15,10 +15,10 @@ contains
    associate(npl => pl%nbody, ntp => tp%nbody)
       allocate(idarr(npl+ntp))
       do i = 1, npl
-         idarr(i) = pl%name(i)
+         idarr(i) = pl%id(i)
       end do
       do i = 1, ntp
-         idarr(npl+i) = tp%name(i)
+         idarr(npl+i) = tp%id(i)
       end do
       call util_sort(idarr)
       do i = 1, npl + ntp - 1

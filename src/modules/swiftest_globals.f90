@@ -109,9 +109,9 @@ module swiftest_globals
    character(*), parameter :: ENC_OUTFILE  = 'encounter.out'
    character(*), parameter :: DISCARD_FILE = 'discard.out'
    character(*), parameter :: ENERGY_FILE  = 'energy.out'
-   character(*), parameter :: CB_INFILE    = 'cb_out.dat'
-   character(*), parameter :: PL_INFILE    = 'pl_out.dat'
-   character(*), parameter :: TP_INFILE    = 'tp_out.dat'
+   character(*), parameter :: CB_INFILE    = 'cb.in'
+   character(*), parameter :: PL_INFILE    = 'pl.in'
+   character(*), parameter :: TP_INFILE    = 'tp.in'
    character(*), parameter :: BIN_OUTFILE  = 'bin.dat'
    integer(I4B), parameter :: BINUNIT      = 20 !! File unit number for the binary output file
 

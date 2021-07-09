@@ -100,7 +100,7 @@ contains
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /= 0) then
-                     write(*, *) " Planet ", pl%name(i), " is lost!!!!!!!!!!"
+                     write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!"
                      write(*, *) GMcb(i), dto(i)
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
@@ -122,7 +122,7 @@ contains
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /= 0) then
-                     write(*, *) " Planet ", pl%name(i), " is lost!!!!!!!!!!"
+                     write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!"
                      write(*, *) GMcb(i), -dto(i)
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
@@ -254,7 +254,7 @@ contains
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /=0) then
-                     write(*, *) " Planet ", pl%name(i), " is lost!!!!!!!!!!"
+                     write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!"
                      write(*, *) GMcb(i), dti(i)
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
@@ -278,7 +278,7 @@ contains
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /=0) then
-                     write(*, *) " Planet ", pl%name(i), " is lost!!!!!!!!!!"
+                     write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!"
                      write(*, *) GMcb(i), -dti(i)
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
@@ -413,7 +413,7 @@ contains
                      tpenci%ipleP = i
                      tpenci%status(:) = ACTIVE
                      ! Grab all the encountering test particles and convert them to a planetocentric frame
-                     tpenci%name(:) = pack(tp%name(:), encmask(:)) 
+                     tpenci%id(:) = pack(tp%id(:), encmask(:)) 
                      do j = 1, NDIM 
                         tpenci%xheliocentric(j, :) = pack(tp%xh(j,:), encmask(:)) 
                         tpenci%xh(j, :) = tpenci%xheliocentric(j, :) - pl%inner(0)%x(j, i)
@@ -498,11 +498,11 @@ contains
                         r2 = dot_product(xpc(:, i), xpc(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)
                         if (param%encounter_file /= "") then
-                           id1 = pl%name(ipleP)
+                           id1 = pl%id(ipleP)
                            rpl = pl%radius(ipleP)
                            xh1(:) = pl%inner(inner_index)%x(:, ipleP)
                            vh1(:) = pl%inner(inner_index)%v(:, ipleP)
-                           id2 = tp%name(i)
+                           id2 = tp%id(i)
                            xh2(:) = xpc(:, i) + xh1(:)
                            vh2(:) = xpc(:, i) + vh1(:)
                            call io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),  &

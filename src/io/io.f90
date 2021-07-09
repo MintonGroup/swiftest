@@ -14,12 +14,12 @@ contains
       implicit none
       ! Arguments
       class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
-      integer, intent(in)                          :: unit       !! File unit number
-      character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+      integer, intent(in)                       :: unit       !! File unit number
+      character(len=*), intent(in)              :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                  !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-      integer, intent(in)                          :: v_list(:)  !! The first element passes the integrator code to the reader
-      integer, intent(out)                         :: iostat     !! IO status code
-      character(len=*), intent(inout)              :: iomsg      !! Message to pass if iostat /= 0
+      integer, intent(in)                       :: v_list(:)  !! The first element passes the integrator code to the reader
+      integer, intent(out)                      :: iostat     !! IO status code
+      character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
       logical                        :: t0_set = .false.        !! Is the initial time set in the input file?
       logical                        :: tstop_set = .false.     !! Is the final time set in the input file?
@@ -46,10 +46,6 @@ contains
             ifirst = ilast + 1
             param_value = io_get_token(line_trim, ifirst, ilast, iostat)
             select case (param_name)
-            case ("NPLMAX")
-               read(param_value, *) self%nplmax
-            case ("NTPMAX")
-               read(param_value, *) self%ntpmax
             case ("T0")
                read(param_value, *) self%t0
                t0_set = .true.
@@ -110,36 +106,19 @@ contains
             case ("BIG_DISCARD")
                call util_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T' ) self%lbig_discard = .true.
-            case ("FRAGMENTATION")
-               call util_toupper(param_value)
-               if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
             case ("MU2KG")
                read(param_value, *) self%MU2KG
             case ("TU2S")
                read(param_value, *) self%TU2S
             case ("DU2M")
                read(param_value, *) self%DU2M
-            case ("MTINY")
-               read(param_value, *) self%mtiny
-               mtiny_set = .true.
             case ("ENERGY")
                call util_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T') self%lenergy = .true.
-            case ("ROTATION")
-               call util_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%lrotation = .true. 
-            case ("TIDES")
-               call util_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%ltides = .true. 
             case ("GR")
                call util_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T') self%lgr = .true. 
-            case ("YARKOVSKY")
-               call util_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%lyarkovsky = .true. 
-            case ("YORP")
-               call util_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%lyorp = .true. 
+            case ("NPLMAX", "NTPMAX", "MTINY", "PARTICLE_FILE", "ROTATION", "TIDES", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
             case default
                write(iomsg,*) "Unknown parameter -> ",param_name
                iostat = -1
@@ -212,8 +191,6 @@ contains
          end if
       end if
 
-      write(*,*) "NPLMAX         = ",self%nplmax
-      write(*,*) "NTPMAX         = ",self%ntpmax
       write(*,*) "T0             = ",self%t0
       write(*,*) "TSTOP          = ",self%tstop
       write(*,*) "DT             = ",self%dt
@@ -255,38 +232,11 @@ contains
       self%inv_c2 = einstinC * self%TU2S / self%DU2M
       self%inv_c2 = (self%inv_c2)**(-2)
 
-      ! The fragmentation model requires the user to set the unit system explicitly.
-      if ((integrator == SYMBA) .or. (integrator == RINGMOONS)) then 
-         write(*,*) "FRAGMENTATION  = ",self%lfragmentation
-         if (.not.mtiny_set) then
-            write(iomsg,*) 'SyMBA requres an MTINY value'
-            iostat = -1
-         end if
-      else
-         if (self%lfragmentation) then
-            write(iomsg,*) 'This integrator does not support fragmentation. This parameter will be ignored.'
-         end if
-         if (mtiny_set) then
-            write(iomsg,*) 'This integrator does not support MTINY. This parameter will be ignored.'
-            return
-         end if
-      end if
-
-      if ((integrator == SYMBA) .or. (integrator == RINGMOONS) .or. (integrator == RMVS)) then
+      if (integrator == RMVS) then
          if (.not.self%lclose) then
             write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
             iostat = -1
             return
-         end if
-      end if
-
-      if (mtiny_set) then
-         if (self%mtiny < 0.0_DP) then
-            write(iomsg,*) "Invalid MTINY: ", self%mtiny
-            iostat = -1
-            return
-         else
-            write(*,*) "MTINY          = ", self%mtiny   
          end if
       end if
 
@@ -295,7 +245,7 @@ contains
       case(WHM, RMVS)
          write(*,*) "GR             = ", self%lgr
       case default   
-         write(iomsg, *) 'GR is implemented compatible with this integrator. This parameter will be ignored.'
+         write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
       end select
 
       iostat = 0
@@ -313,83 +263,65 @@ contains
       implicit none
       ! Arguments
       class(swiftest_parameters),intent(in)     :: self         !! Collection of parameters
-      integer, intent(in)                          :: unit       !! File unit number
-      character(len=*), intent(in)                 :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+      integer, intent(in)                       :: unit       !! File unit number
+      character(len=*), intent(in)              :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-      integer, intent(in)                          :: v_list(:)  !! Not used in this procedure
-      integer, intent(out)                         :: iostat     !! IO status code
-      character(len=*), intent(inout)              :: iomsg      !! Message to pass if iostat /= 0
+      integer, intent(in)                       :: v_list(:)  !! Not used in this procedure
+      integer, intent(out)                      :: iostat     !! IO status code
+      character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
-                                                               !! In user-defined derived-type output, we need newline characters at the end of each format statement
-      !character(*),parameter :: Ifmt  = '(A20,1X,I0/)'         !! Format label for integer values
-      !character(*),parameter :: Rfmt  = '(A20,1X,ES25.17/)'    !! Format label for real values 
-      !character(*),parameter :: R2fmt = '(A20,2(1X,ES25.17)/)'  !! Format label for 2x real values 
-      !character(*),parameter :: Sfmt  = '(A20,1X,A/)'          !! Format label for string values 
-      !character(*),parameter :: Lfmt  = '(A20,1X,L1/)'         !! Format label for logical values 
-      !character(*),parameter :: Pfmt  = '(A20/)'               !! Format label for single parameter string
-      character(*),parameter :: Ifmt  = '(A20,1X,I0)'         !! Format label for integer values
-      character(*),parameter :: Rfmt  = '(A20,1X,ES25.17)'    !! Format label for real values 
-      character(*),parameter :: R2fmt = '(A20,2(1X,ES25.17))'  !! Format label for 2x real values 
-      character(*),parameter :: Sfmt  = '(A20,1X,A)'          !! Format label for string values 
-      character(*),parameter :: Lfmt  = '(A20,1X,L1)'         !! Format label for logical values 
-      character(*),parameter :: Pfmt  = '(A20)'               !! Format label for single parameter string
+      character(*),parameter :: Ifmt  = '(I0)'         !! Format label for integer values
+      character(*),parameter :: Rfmt  = '(ES25.17)'    !! Format label for real values 
+      character(*),parameter :: Rarrfmt  = '(3(ES25.17,1X))'    !! Format label for real values 
+      character(*),parameter :: Lfmt  = '(L1)'         !! Format label for logical values 
+      character(len=*), parameter :: Afmt = '(A25,1X,64(:,A25,1X))'
+      character(256)          :: param_name, param_value
+      type character_array
+         character(25) :: value
+      end type character_array
+      type(character_array), dimension(:), allocatable :: param_array
+      integer(I4B) :: i
 
-      write(unit, Ifmt) "NPLMAX",                   self%nplmax
-      write(unit, Ifmt) "NTPMAX",                   self%ntpmax
-      write(unit, Rfmt) "T0",                       self%t0
-      write(unit, Rfmt) "TSTOP",                    self%tstop
-      write(unit, Rfmt) "DT",                       self%dt
-      write(unit, Sfmt) "CB_IN",                    trim(adjustl(self%incbfile))
-      write(unit, Sfmt) "PL_IN",                    trim(adjustl(self%inplfile))
-      write(unit, Sfmt) "TP_IN",                    trim(adjustl(self%intpfile))
-      write(unit, Sfmt) "IN_TYPE",                  trim(adjustl(self%out_type))
-      if (self%istep_out > 0) then
-         write(unit, Ifmt) "ISTEP_OUT",             self%istep_out
-         write(unit, Sfmt) "BIN_OUT",               trim(adjustl(self%outfile))
-         write(unit, Sfmt) "OUT_TYPE",              trim(adjustl(self%out_type))
-         write(unit, Sfmt) "OUT_FORM",              trim(adjustl(self%out_form))
-         write(unit, Sfmt) "OUT_STAT",              "APPEND"
-      else
-         write(unit, Pfmt) "!ISTEP_OUT "
-         write(unit, Pfmt) "!BIN_OUT"
-         write(unit, Pfmt) "!OUT_TYPE"
-         write(unit, Pfmt) "!OUT_FORM"
-         write(unit, Pfmt) "!OUT_STAT"
-      end if
-      write(unit, Sfmt) "ENC_OUT",                  trim(adjustl(self%encounter_file))
-      if (self%istep_dump > 0) then
-         write(unit, Ifmt) "ISTEP_DUMP",            self%istep_dump
-      else
-         write(unit, Pfmt) "!ISTEP_DUMP" 
-      end if
-      write(unit, Rfmt) "CHK_RMIN",                 self%rmin
-      write(unit, Rfmt) "CHK_RMAX",                 self%rmax
-      write(unit, Rfmt) "CHK_EJECT",                self%rmaxu
-      write(unit, Rfmt) "CHK_QMIN",                 self%qmin
-      if (self%qmin >= 0.0_DP) then
-         write(unit, Sfmt) "CHK_QMIN_COORD",        trim(adjustl(self%qmin_coord))
-         write(unit, R2fmt) "CHK_QMIN_RANGE",       self%qmin_alo, self%qmin_ahi
-      else
-         write(unit, Pfmt) "!CHK_QMIN_COORD"
-         write(unit, Pfmt) "!CHK_QMIN_RANGE"
-      end if
-      if (self%lmtiny) write(unit, Rfmt) "MTINY",   self%mtiny
-      write(unit, Rfmt) "MU2KG",                    self%MU2KG
-      write(unit, Rfmt) "TU2S",                     self%TU2S 
-      write(unit, Rfmt) "DU2M",                     self%DU2M
-      
-      write(unit, Lfmt) "EXTRA_FORCE",              self%lextra_force
-      write(unit, Lfmt) "BIG_DISCARD",              self%lbig_discard
-      write(unit, Lfmt) "CHK_CLOSE",                self%lclose
-      write(unit, Lfmt) "FRAGMENTATION",            self%lfragmentation
-      write(unit, Lfmt) "ROTATION",                 self%lrotation
-      write(unit, Lfmt) "TIDES",                    self%ltides
-      write(unit, Lfmt) "GR",                       self%lgr
-      write(unit, Lfmt) "ENERGY",                   self%lenergy
-      !write(unit, Lfmt) "YARKOVSKY", self%lyarkovsky
-      !write(unit, Lfmt) "YORP", self%lyorp
-      iostat = 0
-      iomsg = "UDIO not implemented"
+      associate(param => self)
+         write(param_name, Afmt) "T0"; write(param_value,Rfmt) param%t0; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TSTOP"; write(param_value, Rfmt) param%tstop; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "DT"; write(param_value, Rfmt) param%dt; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "PL_IN"; write(param_value, Afmt) trim(adjustl(param%inplfile)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TP_in"; write(param_value, Afmt) trim(adjustl(param%intpfile)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "IN_TYPE"; write(param_value, Afmt) trim(adjustl(param%in_type)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         if (param%istep_out > 0) then
+            write(param_name, Afmt) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "BIN_OUT"; write(param_value, Afmt) trim(adjustl(param%outfile)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "OUT_TYPE"; write(param_value, Afmt) trim(adjustl(param%out_type)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "OUT_FORM"; write(param_value, Afmt) trim(adjustl(param%out_form)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "OUT_STAT"; write(param_value, Afmt) "APPEND"; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         end if
+         write(param_name, Afmt) "ENC_OUT"; write(param_value, Afmt) trim(adjustl(param%encounter_file)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         if (param%istep_dump > 0) then
+            write(param_name, Afmt) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         end if
+         write(param_name, Afmt) "CHK_RMIN"; write(param_value, Rfmt) param%rmin; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_RMAX"; write(param_value, Rfmt) param%rmax; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_EJECT"; write(param_value, Rfmt) param%rmaxu; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_QMIN"; write(param_value, Rfmt) param%qmin; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         if (param%qmin >= 0.0_DP) then
+            write(param_name, Afmt) "CHK_QMIN_COORD"; write(param_value, Afmt) trim(adjustl(param%qmin_coord)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            allocate(param_array(2))
+            write(param_array(1)%value, Rfmt) param%qmin_alo
+            write(param_array(2)%value, Rfmt) param%qmin_ahi
+            write(param_name, Afmt) "CHK_QMIN_RANGE"; write(unit, Afmt) adjustl(param_name), adjustl(param_array(1)%value), adjustl(param_array(2)%value)
+         end if
+         write(param_name, Afmt) "MU2KG"; write(param_value, Rfmt) param%MU2KG; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TU2S"; write(param_value, Rfmt) param%TU2S ; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "DU2M"; write(param_value, Rfmt) param%DU2M; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "EXTRA_FORCE"; write(param_value, Lfmt) param%lextra_force; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "BIG_DISCARD"; write(param_value, Lfmt) param%lbig_discard; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "ENERGY"; write(param_value, Lfmt)  param%lenergy; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         iostat = 0
+         iomsg = "UDIO not implemented"
+      end associate
 
       return
    end subroutine io_param_writer
@@ -570,7 +502,7 @@ contains
       if (ierr /= 0) call util_exit(USAGE) 
    end function io_get_args
 
-   function io_get_token(buffer, ifirst, ilast, ierr) result(token)
+   module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
       !! author: David A. Minton
       !!
       !! Retrieves a character token from an input string. Here a token is defined as any set of contiguous non-blank characters not 
@@ -658,7 +590,7 @@ contains
             do i = 1, nbody
                select type(self)
                class is (swiftest_pl)
-                  read(iu, *, iostat = ierr) self%name(i), val 
+                  read(iu, *, iostat = ierr) self%id(i), val 
                   self%mass(i) = real(val / param%GU, kind=DP)
                   self%Gmass(i) = real(val, kind=DP)
                   if (param%lclose) then
@@ -667,16 +599,8 @@ contains
                   else
                      self%radius(i) = 0.0_DP
                   end if
-                  if (param%lrotation) then
-                     read(iu, iostat = ierr) self%Ip(:, i)
-                     read(iu, iostat = ierr) self%rot(:, i)
-                  end if
-                  if (param%ltides) then
-                     read(iu, iostat = ierr) self%k2(i)
-                     read(iu, iostat = ierr) self%Q(i)
-                  end if
                class is (swiftest_tp)
-                  read(iu, *, iostat = ierr) self%name(i)
+                  read(iu, *, iostat = ierr) self%id(i)
                end select
                if (ierr /= 0 ) exit
                read(iu, *, iostat = ierr) self%xh(1, i), self%xh(2, i), self%xh(3, i)
@@ -735,15 +659,6 @@ contains
          read(iu, *, iostat = ierr) self%radius
          read(iu, *, iostat = ierr) self%j2rp2
          read(iu, *, iostat = ierr) self%j4rp4
-         if (param%lrotation) then
-            read(iu, *, iostat = ierr) self%Ip(:)
-            read(iu, *, iostat = ierr) self%rot(:)
-         end if
-         if (param%ltides) then
-            read(iu, *, iostat = ierr) self%k2
-            read(iu, *, iostat = ierr) self%Q
-         end if
-            
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
          call self%read_frame(iu, param, XV, ierr)
@@ -852,20 +767,20 @@ contains
    module subroutine io_read_frame_body(self, iu, param, form, ierr)
       !! author: David A. Minton
       !!
-      !! Reads a frame of output of either test particle or massive body data to the binary output file
-      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      !! Reads a frame of output of either test particle or massive body data from a binary output file
       !!
       !! Adapted from David E. Kaufmann's Swifter routine  io_read_frame.f90
       !! Adapted from Hal Levison's Swift routine io_read_frame.F
       implicit none
       ! Arguments
-      class(swiftest_body),       intent(inout) :: self    !! Swiftest particle object
-      integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
+      class(swiftest_body),       intent(inout) :: self   !! Swiftest particle object
+      integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
-      integer(I4B),               intent(out)   :: ierr    !! Error code
+      character(*),               intent(in)    :: form   !! Input format code ("XV" or "EL")
+      integer(I4B),               intent(out)   :: ierr   !! Error code
 
       associate(n => self%nbody)
+         read(iu, iostat = ierr) self%id(1:n)
          read(iu, iostat = ierr) self%name(1:n)
          select case (form)
          case (EL) 
@@ -888,18 +803,6 @@ contains
             read(iu, iostat = ierr) self%Gmass(1:n)
             self%mass(1:n) = self%Gmass / param%GU 
             read(iu, iostat = ierr) self%radius(1:n)
-            if (param%lrotation) then
-               read(iu, iostat = ierr) self%Ip(1, 1:n)
-               read(iu, iostat = ierr) self%Ip(2, 1:n)
-               read(iu, iostat = ierr) self%Ip(3, 1:n)
-               read(iu, iostat = ierr) self%rot(1, 1:n)
-               read(iu, iostat = ierr) self%rot(2, 1:n)
-               read(iu, iostat = ierr) self%rot(3, 1:n)
-            end if
-            if (param%ltides) then
-               read(iu, iostat = ierr) self%k2(1:n)
-               read(iu, iostat = ierr) self%Q(1:n)
-            end if
          end select
       end associate
 
@@ -926,19 +829,13 @@ contains
       character(*),               intent(in)    :: form     !! Input format code ("XV" or "EL")
       integer(I4B),               intent(out)   :: ierr     !! Error cod
 
+      read(iu, iostat = ierr) self%id
+      read(iu, iostat = ierr) self%name
       read(iu, iostat = ierr) self%Gmass
       self%mass = self%Gmass / param%GU
       read(iu, iostat = ierr) self%radius
       read(iu, iostat = ierr) self%j2rp2 
       read(iu, iostat = ierr) self%j4rp4 
-      if (param%lrotation) then
-         read(iu, iostat = ierr) self%Ip(:)
-         read(iu, iostat = ierr) self%rot(:)
-      end if
-      if (param%ltides) then
-         read(iu, iostat = ierr) self%k2
-         read(iu, iostat = ierr) self%Q
-      end if
       if (ierr /=0) then
          write(*,*) 'Error reading central body data'
          call util_exit(FAILURE)
@@ -1065,7 +962,7 @@ contains
       class(swiftest_body), allocatable :: pltemp
 
       associate(t => param%t, discards => self%tp_discards, nsp => self%tp_discards%nbody, dxh => self%tp_discards%xh, dvh => self%tp_discards%vh, &
-                dname => self%tp_discards%name, dstatus => self%tp_discards%status) 
+                dname => self%tp_discards%id, dstatus => self%tp_discards%status) 
          
          select case(param%out_stat)
          case('APPEND')
@@ -1091,7 +988,7 @@ contains
          end do
          if (param%lbig_discard) then
             associate(npl => self%pl%nbody, pl => self%pl, GMpl => self%pl%Gmass, &
-                     Rpl => self%pl%radius, name => self%pl%name, xh => self%pl%xh)
+                     Rpl => self%pl%radius, name => self%pl%id, xh => self%pl%xh)
 
                if (param%lgr) then
                   allocate(pltemp, source = pl)
@@ -1187,6 +1084,7 @@ contains
 
       associate(n => self%nbody)
          if (n == 0) return
+         write(iu) self%id(1:n)
          write(iu) self%name(1:n)
          select case (param%out_form)
          case (EL) 
@@ -1208,18 +1106,6 @@ contains
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu) self%Gmass(1:n)
             write(iu) self%radius(1:n)
-            if (param%lrotation) then
-               write(iu) self%Ip(1, 1:n)
-               write(iu) self%Ip(2, 1:n)
-               write(iu) self%Ip(3, 1:n)
-               write(iu) self%rot(1, 1:n)
-               write(iu) self%rot(2, 1:n)
-               write(iu) self%rot(3, 1:n)
-            end if
-            if (param%ltides) then
-               write(iu) self%k2(1:n)
-               write(iu) self%Q(1:n)
-            end if
          end select
       end associate
 
@@ -1239,23 +1125,12 @@ contains
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
 
+      write(iu) self%id
+      write(iu) self%name
       write(iu) self%Gmass
       write(iu) self%radius
       write(iu) self%j2rp2 
       write(iu) self%j4rp4 
-      if (param%lrotation) then
-         write(iu) self%Ip(1)
-         write(iu) self%Ip(2)
-         write(iu) self%Ip(3)
-         write(iu) self%rot(1)
-         write(iu) self%rot(2)
-         write(iu) self%rot(3)
-      end if
-      if (param%ltides) then
-         write(iu) self%k2
-         write(iu) self%Q
-      end if
-
       return
    end subroutine io_write_frame_cb
 

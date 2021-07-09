@@ -88,11 +88,11 @@ contains
                rh2 = dot_product(tp%xh(:, i), tp%xh(:, i))
                if ((param%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   tp%status(i) = DISCARDED_RMAX
-                  write(*, *) "Particle ", tp%name(i), " too far from sun at t = ", t
+                  write(*, *) "Particle ", tp%id(i), " too far from sun at t = ", t
                   tp%ldiscard(i) = .true.
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   tp%status(i) = DISCARDED_RMIN
-                  write(*, *) "Particle ", tp%name(i), " too close to sun at t = ", t
+                  write(*, *) "Particle ", tp%id(i), " too close to sun at t = ", t
                   tp%ldiscard(i) = .true.
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
@@ -100,7 +100,7 @@ contains
                   energy = 0.5_DP * vb2 - msys / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      tp%status(i) = DISCARDED_RMAXU
-                     write(*, *) "Particle ", tp%name(i), " is unbound and too far from barycenter at t = ", t
+                     write(*, *) "Particle ", tp%id(i), " is unbound and too far from barycenter at t = ", t
                      tp%ldiscard(i) = .true.
                   end if
                end if
@@ -150,7 +150,7 @@ contains
                            (tp%atp(i) <= param%qmin_ahi) .and.    &           
                            (tp%peri(i) <= param%qmin)) then
                            tp%status(i) = DISCARDED_PERI
-                           write(*, *) "Particle ", tp%name(i), " perihelion distance too small at t = ", t
+                           write(*, *) "Particle ", tp%id(i), " perihelion distance too small at t = ", t
                            tp%ldiscard(i) = .true.
                         end if
                      end if
@@ -191,7 +191,7 @@ contains
                   if (isp /= 0) then
                      tp%status(i) = DISCARDED_PLR
                      pl%ldiscard(j) = .true.
-                     write(*, *) "Particle ", tp%name(i), " too close to massive body ", pl%name(j), " at t = ", t
+                     write(*, *) "Particle ", tp%id(i), " too close to massive body ", pl%id(j), " at t = ", t
                      tp%ldiscard(i) = .true.
                      exit
                   end if

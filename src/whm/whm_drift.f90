@@ -45,7 +45,7 @@ contains
          if (any(iflag(1:npl) /= 0)) then
             do i = 1, npl
                if (iflag(i) /= 0) then
-                  write(*, *) " Planet ", self%name(i), " is lost!!!!!!!!!!"
+                  write(*, *) " Planet ", self%id(i), " is lost!!!!!!!!!!"
                   write(*, *) pl%xj(:,i)
                   write(*, *) pl%vj(:,i)
                   write(*, *) " stopping "
@@ -102,7 +102,7 @@ contains
          if (any(iflag(1:ntp) /= 0)) then
             where(iflag(1:ntp) /= 0) tp%status(1:ntp) = DISCARDED_DRIFTERR
             do i = 1, ntp
-               if (iflag(i) /= 0) write(*, *) "Particle ", self%name(i), " lost due to error in Danby drift"
+               if (iflag(i) /= 0) write(*, *) "Particle ", self%id(i), " lost due to error in Danby drift"
             end do
          end if
       end associate

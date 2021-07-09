@@ -72,7 +72,7 @@ contains
       self%lfirst = .true.
 
       !write(*,*) 'Allocating the basic Swiftest particle'
-      allocate(self%name(n))
+      allocate(self%id(n))
       allocate(self%status(n))
       allocate(self%ldiscard(n))
       allocate(self%xh(NDIM, n))
@@ -90,7 +90,7 @@ contains
       allocate(self%capm(n))
       allocate(self%mu(n))
 
-      self%name(:)   = 0
+      self%id(:)   = 0
       self%status(:) = INACTIVE
       self%ldiscard(:) = .false.
       self%xh(:,:)   = 0.0_DP
@@ -131,20 +131,12 @@ contains
       allocate(self%rhill(n))
       allocate(self%radius(n))
       allocate(self%density(n))
-      allocate(self%Ip(NDIM, n))
-      allocate(self%rot(NDIM, n))
-      allocate(self%k2(n))
-      allocate(self%Q(n))
 
       self%mass(:) = 0.0_DP
       self%Gmass(:) = 0.0_DP
       self%rhill(:) = 0.0_DP
       self%radius(:) = 0.0_DP
       self%density(:) = 0.0_DP
-      self%Ip(:,:) = 0.0_DP
-      self%rot(:,:) = 0.0_DP
-      self%k2(:) = 0.0_DP
-      self%Q(:) = 0.0_DP
       self%num_comparisons = 0   
       return
    end subroutine setup_pl

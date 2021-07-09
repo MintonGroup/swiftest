@@ -17,7 +17,7 @@ contains
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
       associate(keeps => self)
-         discards%name(:)     = pack(keeps%name(:),          lspill_list(:))
+         discards%id(:)     = pack(keeps%id(:),          lspill_list(:))
          discards%status(:)   = pack(keeps%status(:),        lspill_list(:))
          discards%a(:)        = pack(keeps%a(:),             lspill_list(:))
          discards%e(:)        = pack(keeps%e(:),             lspill_list(:))
@@ -34,7 +34,7 @@ contains
             discards%aobl(i, :) = pack(keeps%aobl(i, :),          lspill_list(:))
          end do
          if (count(.not.lspill_list(:))  > 0) then 
-            keeps%name(:)       = pack(keeps%name(:),     .not. lspill_list(:))
+            keeps%id(:)       = pack(keeps%id(:),     .not. lspill_list(:))
             keeps%status(:)     = pack(keeps%status(:),   .not. lspill_list(:))
             keeps%a(:)          = pack(keeps%a(:),        .not. lspill_list(:))
             keeps%e(:)          = pack(keeps%e(:),        .not. lspill_list(:))
@@ -82,10 +82,10 @@ contains
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
-      associate(keeps => self, insname => inserts%name, keepname => self%name)
+      associate(keeps => self, insname => inserts%id, keepname => self%id)
 
-         keeps%name(:)     = unpack(keeps%name(:), .not.lfill_list(:), keeps%name(:))
-         keeps%name(:)     = unpack(inserts%name(:), lfill_list(:), keeps%name(:))
+         keeps%id(:)     = unpack(keeps%id(:), .not.lfill_list(:), keeps%id(:))
+         keeps%id(:)     = unpack(inserts%id(:), lfill_list(:), keeps%id(:))
 
          keeps%status(:)   = unpack(keeps%status(:), .not.lfill_list(:), keeps%status(:))
          keeps%status(:)   = unpack(inserts%status(:), lfill_list(:), keeps%status(:))
@@ -137,7 +137,7 @@ contains
             
 
          ! This is the base class, so will be the last to be called in the cascade. 
-         keeps%nbody = size(keeps%name(:))
+         keeps%nbody = size(keeps%id(:))
       end associate
       
    end subroutine util_fill_body
@@ -161,24 +161,12 @@ contains
                discards%rhill(:)    = pack(keeps%rhill(:),         lspill_list(:))
                discards%radius(:)   = pack(keeps%radius(:),        lspill_list(:))
                discards%density(:)  = pack(keeps%density(:),       lspill_list(:))
-               discards%k2(:)       = pack(keeps%k2(:),            lspill_list(:))
-               discards%Q(:)        = pack(keeps%Q(:),              lspill_list(:))
-               do i = 1, NDIM
-                  discards%Ip(i, :)  = pack(keeps%Ip(i, :),          lspill_list(:))
-                  discards%rot(i, :) = pack(keeps%rot(i, :),         lspill_list(:))
-               end do
                if (count(.not.lspill_list(:))  > 0) then 
                   keeps%mass(:)        = pack(keeps%mass(:),    .not. lspill_list(:))
                   keeps%Gmass(:)       = pack(keeps%Gmass(:),   .not. lspill_list(:))
                   keeps%rhill(:)       = pack(keeps%rhill(:),   .not. lspill_list(:))
                   keeps%radius(:)      = pack(keeps%radius(:),  .not. lspill_list(:))
                   keeps%density(:)     = pack(keeps%density(:), .not. lspill_list(:))
-                  keeps%k2(:)          = pack(keeps%k2(:),      .not. lspill_list(:))
-                  keeps%Q(:)           = pack(keeps%Q(:),        .not. lspill_list(:))
-                  do i = 1, NDIM
-                     keeps%Ip(i, :)     = pack(keeps%Ip(i, :),    .not. lspill_list(:))
-                     keeps%rot(i, :)    = pack(keeps%rot(i, :),   .not. lspill_list(:))
-                  end do
                end if
 
                call util_spill_body(keeps, discards, lspill_list)
@@ -218,20 +206,6 @@ contains
             
                keeps%density(:)  = unpack(keeps%density(:),.not.lfill_list(:), keeps%density(:))
                keeps%density(:)  = unpack(inserts%density(:),lfill_list(:), keeps%density(:))
-            
-               do i = 1, NDIM
-                  keeps%Ip(i, :)   = unpack(keeps%Ip(i, :), .not.lfill_list(:), keeps%Ip(i, :))
-                  keeps%Ip(i, :)   = unpack(inserts%Ip(i, :), lfill_list(:), keeps%Ip(i, :))
-            
-                  keeps%rot(i, :)  = unpack(keeps%rot(i, :), .not.lfill_list(:), keeps%rot(i, :))
-                  keeps%rot(i, :)  = unpack(inserts%rot(i, :), lfill_list(:), keeps%rot(i, :))
-            
-               end do
-               keeps%k2(:)       = unpack(keeps%k2(:), .not.lfill_list(:), keeps%k2(:))
-               keeps%k2(:)       = unpack(inserts%k2(:), lfill_list(:), keeps%k2(:))
-            
-               keeps%Q(:)        = unpack(keeps%Q(:), .not.lfill_list(:), keeps%Q(:))
-               keeps%Q(:)        = unpack(inserts%Q(:), lfill_list(:), keeps%Q(:))
             
                call util_fill_body(keeps, inserts, lfill_list)
             class default
