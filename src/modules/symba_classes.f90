@@ -24,6 +24,7 @@ module symba_classes
    !> Helio central body particle class
    type, public, extends(helio_cb) :: symba_cb
    contains
+      private
    end type symba_cb
 
    !********************************************************************************************************************************
@@ -33,6 +34,9 @@ module symba_classes
    !! Helio massive body particle class
    type, public, extends(helio_pl) :: symba_pl
    contains
+      private
+      procedure, public :: discard         => symba_discard_pl         !! Process massive body discards
+      procedure, public :: encounter_check => symba_encounter_check_pl !! Checks if massive bodies are going through close encounters with each other
    end type symba_pl
 
    !********************************************************************************************************************************
@@ -42,9 +46,44 @@ module symba_classes
    !! Helio test particle class
    type, public, extends(helio_tp) :: symba_tp
    contains
+      private
+      procedure, public :: discard         => symba_discard_tp         !! process test particle discards
+      procedure, public :: encounter_check => symba_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
    end type symba_tp
 
    interface
+      module subroutine symba_discard_pl(self, system, param)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(symba_pl),              intent(inout) :: self   !! RMVS test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      end subroutine symba_discard_pl
+
+      module subroutine symba_discard_tp(self, system, param)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(symba_tp),              intent(inout) :: self   !! RMVS test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      end subroutine symba_discard_tp
+
+      module function symba_encounter_check_pl(self, system, dt) result(lencounter)
+         implicit none
+         class(symba_pl),           intent(inout) :: self       !! RMVS test particle object  
+         class(symba_nbody_system), intent(inout) :: system     !! RMVS nbody system object
+         real(DP),                  intent(in)    :: dt         !! step size
+         logical                                  :: lencounter !! Returns true if there is at least one close encounter      
+      end function symba_encounter_check_pl
+
+      module function symba_encounter_check_tp(self, system, dt) result(lencounter)
+         implicit none
+         class(symba_tp),           intent(inout) :: self       !! RMVS test particle object  
+         class(symba_nbody_system), intent(inout) :: system     !! RMVS nbody system object
+         real(DP),                  intent(in)    :: dt         !! step size
+         logical                                  :: lencounter !! Returns true if there is at least one close encounter      
+      end function symba_encounter_check_tp
+
       module subroutine symba_step_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none

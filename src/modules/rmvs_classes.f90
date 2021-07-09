@@ -66,6 +66,7 @@ module rmvs_classes
       integer(I4B)                              :: ipleP           !!  index value of encountering planet
       logical                                   :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
+      private
       procedure, public :: discard         => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
       procedure, public :: encounter_check => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: fill            => rmvs_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
@@ -89,6 +90,7 @@ module rmvs_classes
       class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric
       logical                                            :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
+      private
       procedure, public :: fill                => rmvs_fill_pl    !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: setup               => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
       procedure, public :: spill               => rmvs_spill_pl    !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)

@@ -22,9 +22,7 @@ contains
       class is (symba_pl)
          select type(tp => self%tp)
          class is (symba_tp)
-            lencounter_pl = pl%encounter_check(system, dt)
-            lencounter_tp = tp%encounter_check(system, dt)
-            lencounter = lencounter_pl .or. lencounter_tp
+            lencounter = pl%encounter_check(self, dt) .or. tp%encounter_check(self, dt)
             if (lencounter) then
                call self%interp(param, t, dt)
             else
