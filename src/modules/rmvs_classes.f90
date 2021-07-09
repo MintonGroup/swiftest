@@ -80,7 +80,7 @@ module rmvs_classes
    !*******************************************************************************************************************************
  
    !> RMVS massive body particle class
-   type, private, extends(whm_pl) :: rmvs_pl
+   type, public, extends(whm_pl) :: rmvs_pl
       integer(I4B),             dimension(:), allocatable :: nenc    !! number of test particles encountering planet this full rmvs time step
       integer(I4B),             dimension(:), allocatable :: tpenc1P !! index of first test particle encountering planet
       integer(I4B),             dimension(:), allocatable :: plind ! Connects the planetocentric indices back to the heliocentric planet list
