@@ -106,6 +106,7 @@ module symba_classes
       procedure, public :: read_frame      => symba_io_read_frame_pl   !! I/O routine for reading out a single frame of time-series data for a massive body
       procedure, public :: initialize      => symba_io_read_pl_in      !! I/O routine for reading in a massive body structure from file with SyMBA-specific parameters
       procedure, public :: write_frame     => symba_io_write_frame_pl  !! I/O routine for writing out a single frame of time-series data for a massive body
+      procedure, public :: setup           => symba_setup_pl           !! Constructor method - Allocates space for number of particle
    end type symba_pl
 
    !********************************************************************************************************************************
@@ -120,68 +121,48 @@ module symba_classes
       private
       procedure, public :: discard         => symba_discard_tp         !! process test particle discards
       procedure, public :: encounter_check => symba_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
+      procedure, public :: setup           => symba_setup_tp           !! Constructor method - Allocates space for number of particle
    end type symba_tp
-
-   !********************************************************************************************************************************
-   !                                    symba_plplenc class definitions and method interfaces
-   !*******************************************************************************************************************************
-   !> SyMBA class for tracking pl-pl close encounters in a step
-   type symba_plplenc
-      integer(I4B)                              :: nplplenc   !! Total number of pl-pl encounters
-      logical,      dimension(:),   allocatable :: lvdotr     !! relative vdotr flag
-      integer(I4B), dimension(:),   allocatable :: status     !! status of the interaction
-      integer(I4B), dimension(:),   allocatable :: level      !! encounter recursion level
-      integer(I4B), dimension(:),   allocatable :: index1     !! position of the first planet in encounter
-      integer(I4B), dimension(:),   allocatable :: index2     !! position of the second planet in encounter
-      integer(I4B), dimension(:),   allocatable :: enc_child  !! the child of the encounter
-      integer(I4B), dimension(:),   allocatable :: enc_parent !! the child of the encounter
-      real(DP),     dimension(:,:), allocatable :: xh1        !! the heliocentric position of parent 1 in encounter
-      real(DP),     dimension(:,:), allocatable :: xh2        !! the heliocentric position of parent 2 in encounter
-      real(DP),     dimension(:,:), allocatable :: vb1        !! the barycentric velocity of parent 1 in encounter
-      real(DP),     dimension(:,:), allocatable :: vb2        !! the barycentric velocity of parent 2 in encounter
-   end type symba_plplenc
 
    !********************************************************************************************************************************
    !                                    symba_pltpenc class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-tp close encounters in a step
-   type symba_pltpenc
-      integer(I4B)                              :: npltpenc !! Total number of pl-tp encounters
-      logical,      dimension(:),   allocatable :: lvdotr   !! relative vdotr flag
-      integer(I4B), dimension(:),   allocatable :: status   !! status of the interaction
-      integer(I4B), dimension(:),   allocatable :: level    !! encounter recursion level
-      integer(I4B), dimension(:),   allocatable :: indexpl  !! position of the planet in encounter
-      integer(I4B), dimension(:),   allocatable :: indextp  !! position of the test particle in encounter
+   type, public :: symba_pltpenc
+      integer(I4B)                              :: nenc   !! Total number of encounters
+      logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
+      integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
+      integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
+      integer(I4B), dimension(:),   allocatable :: index1 !! position of the planet in encounter
+      integer(I4B), dimension(:),   allocatable :: index2 !! position of the test particle in encounter
    end type symba_pltpenc
 
    !********************************************************************************************************************************
-   !                                    symba_merger class definitions and method interfaces
+   !                                    symba_plplenc class definitions and method interfaces
    !*******************************************************************************************************************************
-   !> SyMBA class for tracking pl-pl mergers in a step
-   type symba_merger
-      integer(I4B),              dimension(:),   allocatable :: id       !! identifier
-      integer(I4B),              dimension(:),   allocatable :: index_ps !! position of the particle
-      integer(I4B),              dimension(:),   allocatable :: status   !! status
-      integer(I4B),              dimension(:),   allocatable :: nadded   !! number of resultant bodies from this collisional event aka number of fragments
-      real(DP),                  dimension(:,:),   allocatable :: xb       !! barycentric position
-      real(DP),                  dimension(:,:),   allocatable :: vb       !! barycentric velocity
-      real(DP),                  dimension(:),     allocatable :: mass     !! mass
-      real(DP),                  dimension(:),     allocatable :: radius   ! radius
-      real(DP),                  dimension(:,:),   allocatable :: IP     ! moment of intertia
-      real(DP),                  dimension(:,:),   allocatable :: rot    ! rotation
-      type(symba_particle_info), dimension(:),     allocatable :: info
-   end type symba_merger 
+   !> SyMBA class for tracking pl-pl close encounters in a step
+   type, public, extends(symba_pltpenc) :: symba_plplenc
+      real(DP),     dimension(:,:), allocatable :: xh1 !! the heliocentric position of parent 1 in encounter
+      real(DP),     dimension(:,:), allocatable :: xh2 !! the heliocentric position of parent 2 in encounter
+      real(DP),     dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
+      real(DP),     dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
+   end type symba_plplenc
 
    !********************************************************************************************************************************
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, public, extends(helio_nbody_system) :: symba_nbody_system
+      class(symba_pl),      allocatable :: mergeadd_list !! List of added bodies in mergers or collisions
+      class(symba_pl),      allocatable :: mergesub_list !! List of subtracted bodies in mergers or collisions
+      class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
+      class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
+      class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
    contains
       private
-      procedure, public :: step          => symba_step_system         !! Advance the SyMBA nbody system forward in time by one step
-      procedure, public :: interp        => symba_step_interp_system  !! Perform an interpolation step on the SymBA nbody system 
+      procedure, public :: initialize => symba_setup_system        !! Performs SyMBA-specific initilization steps
+      procedure, public :: step       => symba_step_system         !! Advance the SyMBA nbody system forward in time by one step
+      procedure, public :: interp     => symba_step_interp_system  !! Perform an interpolation step on the SymBA nbody system 
    end type symba_nbody_system
-
 
    interface
       module subroutine symba_discard_pl(self, system, param)
@@ -322,6 +303,19 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine symba_io_write_frame_pl
 
+      module subroutine symba_setup_pl(self,n)
+         implicit none
+         class(symba_pl), intent(inout) :: self !! SyMBA test particle object
+         integer(I4B),    intent(in)    :: n    !! Number of massive bodies to allocate
+      end subroutine symba_setup_pl
+
+      module subroutine symba_setup_system(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self    !! SyMBA system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine symba_setup_system
+
       module subroutine symba_step_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -330,6 +324,12 @@ module symba_classes
          real(DP),                   intent(in)    :: t      !! Simulation time
          real(DP),                   intent(in)    :: dt     !! Current stepsize
       end subroutine symba_step_system
+
+      module subroutine symba_setup_tp(self,n)
+         implicit none
+         class(symba_tp), intent(inout) :: self !! SyMBA test particle object
+         integer(I4B),    intent(in)    :: n    !! Number of test particles to allocate
+      end subroutine symba_setup_tp
 
       module subroutine symba_step_interp_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
