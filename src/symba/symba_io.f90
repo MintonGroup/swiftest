@@ -439,6 +439,13 @@ contains
       end select
    end subroutine symba_io_write_frame_cb
 
+   module subroutine symba_io_write_frame_info(self, iu, param)
+      implicit none
+      class(symba_particle_info), intent(in)    :: self  !! SyMBA particle info object
+      integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
+      class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
+   end subroutine symba_io_write_frame_info 
+
    module subroutine symba_io_write_frame_pl(self, iu, param)
       !! author: David A. Minton
       !!

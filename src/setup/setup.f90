@@ -46,7 +46,19 @@ contains
             allocate(rmvs_tp :: system%tp_discards)
          end select
       case (SYMBA)
-         write(*,*) 'SyMBA integrator not yet enabled'
+         allocate(symba_nbody_system :: system)
+         select type(system)
+         class is (symba_nbody_system)
+            allocate(symba_cb :: system%cb)
+            allocate(symba_pl :: system%pl)
+            allocate(symba_tp :: system%tp)
+            allocate(symba_pl :: system%pl_discards)
+            allocate(symba_tp :: system%tp_discards)
+            allocate(symba_pl :: system%mergeadd_list)
+            allocate(symba_pl :: system%mergesub_list)
+            allocate(symba_plplenc :: system%plplenc_list)
+            allocate(symba_pltpenc :: system%pltpenc_list)
+         end select
       case (RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
       case default
@@ -73,6 +85,7 @@ contains
 
       !write(*,*) 'Allocating the basic Swiftest particle'
       allocate(self%id(n))
+      allocate(self%name(n))
       allocate(self%status(n))
       allocate(self%ldiscard(n))
       allocate(self%xh(NDIM, n))
@@ -81,6 +94,7 @@ contains
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%aobl(NDIM, n))
+      allocate(self%agr(NDIM, n))
       allocate(self%ir3h(n))
       allocate(self%a(n))
       allocate(self%e(n))
@@ -91,6 +105,7 @@ contains
       allocate(self%mu(n))
 
       self%id(:)   = 0
+      self%name(:) = "UNNAMED"
       self%status(:) = INACTIVE
       self%ldiscard(:) = .false.
       self%xh(:,:)   = 0.0_DP

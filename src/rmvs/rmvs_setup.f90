@@ -24,7 +24,6 @@ contains
          if (.not.pl%lplanetocentric) then
             allocate(pl%nenc(n))
             pl%nenc(:) = 0
-
             ! Set up inner and outer planet interpolation vector storage containers
             do i = 0, NTENC
                allocate(pl%outer(i)%x(NDIM, n))

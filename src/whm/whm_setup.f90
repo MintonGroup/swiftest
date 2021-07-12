@@ -84,21 +84,16 @@ contains
       call io_read_initialize_system(self, param)
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(self%tp%nbody)
-
-      if (self%pl%nbody > 0) then
+      call self%pl%set_mu(self%cb)
+      call self%tp%set_mu(self%cb)
+      if (param%lgr) then
          select type(pl => self%pl)
          class is (whm_pl)
-            call pl%set_mu(self%cb)
-            if (param%lgr) call pl%vh2pv(param)
-            !call pl%eucl_index()
+            call pl%vh2pv(param)
          end select
-      end if
-
-      if (self%tp%nbody > 0) then
          select type(tp => self%tp)
          class is (whm_tp)
-            call tp%set_mu(self%cb)
-            if (param%lgr) call tp%vh2pv(param)
+            call tp%vh2pv(param)
          end select
       end if
 

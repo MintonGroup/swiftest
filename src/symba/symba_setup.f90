@@ -15,10 +15,9 @@ contains
       integer(I4B)                   :: i,j
 
       !> Call allocation method for parent class
-      associate(pl => self)
-         call helio_setup_pl(pl, n) 
-         if (n <= 0) return
-      end associate
+      !call helio_setup_pl(self, n) 
+      call setup_pl(self, n) 
+      if (n <= 0) return
       return
    end subroutine symba_setup_pl 
 
@@ -35,10 +34,8 @@ contains
       integer(I4B) :: i, j
 
       ! Call parent method
-      call helio_setup_system(self, param)
+      call whm_setup_system(self, param)
 
-      ! Set up the pl-tp planetocentric encounter structures for pl and cb. The planetocentric tp structures are 
-      ! generated as necessary during close encounter steps.
       select type(pl => self%pl)
       class is(symba_pl)
          select type(cb => self%cb)
@@ -65,7 +62,8 @@ contains
       integer,         intent(in)    :: n    !! Number of test particles to allocate
 
       !> Call allocation method for parent class
-      call helio_setup_tp(self, n) 
+      !call helio_setup_tp(self, n) 
+      call setup_tp(self, n) 
       if (n <= 0) return
       return
    end subroutine symba_setup_tp

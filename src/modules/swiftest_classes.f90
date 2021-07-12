@@ -9,6 +9,7 @@ module swiftest_classes
    public :: discard_pl, discard_system, discard_tp 
    public :: drift_one
    public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
+   public :: gr_getaccb_ns_body, gr_p4_pos_kick, gr_pseudovel2vel, gr_vel2pseudovel
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, io_read_initialize_system, &
              io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
@@ -111,6 +112,7 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: aoblend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
       real(DP), dimension(NDIM) :: xb      = 0.0_DP !! Barycentric position (units DU)
       real(DP), dimension(NDIM) :: vb      = 0.0_DP !! Barycentric velocity (units DU / TU)
+      real(DP), dimension(NDIM) :: agr     = 0.0_DP !! Acceleration due to post-Newtonian correction
    contains
       private
       procedure, public         :: initialize  => io_read_cb_in        !! I/O routine for reading in central body data
@@ -137,6 +139,7 @@ module swiftest_classes
       real(DP),              dimension(:,:), allocatable :: vb              !! Barycentric velocity
       real(DP),              dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
       real(DP),              dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
+      real(DP),              dimension(:,:), allocatable :: agr             !! Acceleration due to post-Newtonian correction
       real(DP),              dimension(:),   allocatable :: ir3h            !! Inverse heliocentric radius term (1/rh**3)
       real(DP),              dimension(:),   allocatable :: a               !! Semimajor axis (pericentric distance for a parabolic orbit)
       real(DP),              dimension(:),   allocatable :: e               !! Eccentricity
@@ -379,6 +382,39 @@ module swiftest_classes
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       end subroutine eucl_irij3_plpl
+
+      module pure subroutine gr_getaccb_ns_body(self, system, param)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      end subroutine gr_getaccb_ns_body
+
+      module pure subroutine gr_p4_pos_kick(param, x, v, dt)
+         implicit none
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         real(DP), dimension(:),     intent(inout) :: x     !! Position vector
+         real(DP), dimension(:),     intent(in)    :: v     !! Velocity vector
+         real(DP),                   intent(in)    :: dt    !! Step size
+      end subroutine gr_p4_pos_kick
+
+      module pure subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
+         implicit none
+         class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
+         real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
+         real(DP), dimension(:),     intent(in)  :: xh    !! Heliocentric position vector 
+         real(DP), dimension(:),     intent(in)  :: pv    !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
+         real(DP), dimension(:),     intent(out) :: vh    !! Heliocentric velocity vector 
+      end subroutine gr_pseudovel2vel
+
+      module pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
+         implicit none
+         class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
+         real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
+         real(DP), dimension(:),     intent(in)  :: xh    !! Heliocentric position vector 
+         real(DP), dimension(:),     intent(in)  :: vh    !! Heliocentric velocity vector 
+         real(DP), dimension(:),     intent(out) :: pv    !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
+      end subroutine gr_vel2pseudovel
 
       module subroutine io_dump_param(self, param_file_name)
          implicit none

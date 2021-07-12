@@ -14,9 +14,6 @@ module swiftest
    use module_nrutil
    !use advisor_annotate
    !$ use omp_lib
-
-
-
    implicit none
    public
 

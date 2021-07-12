@@ -34,4 +34,14 @@ contains
       return
 
    end subroutine symba_step_system
+
+   module subroutine symba_step_interp_system(self, param, t, dt)
+      implicit none
+      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t      !! Simulation time
+      real(DP),                   intent(in)    :: dt     !! Current stepsize
+
+      return
+   end subroutine symba_step_interp_system
 end submodule s_symba_step

@@ -271,7 +271,6 @@ module symba_classes
          integer(I4B),               intent(out)   :: ierr    !! Error code
       end subroutine symba_io_read_frame_pl
 
-
       module subroutine symba_io_read_pl_in(self, param) 
          use swiftest_classes, only : swiftest_parameters
          implicit none

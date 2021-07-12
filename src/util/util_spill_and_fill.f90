@@ -17,39 +17,43 @@ contains
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
       associate(keeps => self)
-         discards%id(:)     = pack(keeps%id(:),          lspill_list(:))
-         discards%status(:)   = pack(keeps%status(:),        lspill_list(:))
-         discards%a(:)        = pack(keeps%a(:),             lspill_list(:))
-         discards%e(:)        = pack(keeps%e(:),             lspill_list(:))
-         discards%capom(:)    = pack(keeps%capom(:),         lspill_list(:))
-         discards%omega(:)    = pack(keeps%omega(:),         lspill_list(:))
-         discards%capm(:)     = pack(keeps%capm(:),          lspill_list(:))
-         discards%mu(:)       = pack(keeps%mu(:),            lspill_list(:))
+         discards%id(:)       = pack(keeps%id(:),     lspill_list(:))
+         discards%name(:)     = pack(keeps%name(:),   lspill_list(:))
+         discards%status(:)   = pack(keeps%status(:), lspill_list(:))
+         discards%a(:)        = pack(keeps%a(:),      lspill_list(:))
+         discards%e(:)        = pack(keeps%e(:),      lspill_list(:))
+         discards%capom(:)    = pack(keeps%capom(:),  lspill_list(:))
+         discards%omega(:)    = pack(keeps%omega(:),  lspill_list(:))
+         discards%capm(:)     = pack(keeps%capm(:),   lspill_list(:))
+         discards%mu(:)       = pack(keeps%mu(:),     lspill_list(:))
          do i = 1, NDIM
-            discards%xh(i, :) = pack(keeps%xh(i, :),          lspill_list(:))
-            discards%vh(i, :) = pack(keeps%vh(i, :),          lspill_list(:))
-            discards%xb(i, :) = pack(keeps%xb(i, :),          lspill_list(:))
-            discards%vb(i, :) = pack(keeps%vb(i, :),          lspill_list(:))
-            discards%ah(i, :) = pack(keeps%ah(i, :),          lspill_list(:))
-            discards%aobl(i, :) = pack(keeps%aobl(i, :),          lspill_list(:))
+            discards%xh(i, :) = pack(keeps%xh(i, :),     lspill_list(:))
+            discards%vh(i, :) = pack(keeps%vh(i, :),     lspill_list(:))
+            discards%xb(i, :) = pack(keeps%xb(i, :),     lspill_list(:))
+            discards%vb(i, :) = pack(keeps%vb(i, :),     lspill_list(:))
+            discards%ah(i, :) = pack(keeps%ah(i, :),     lspill_list(:))
+            discards%aobl(i, :) = pack(keeps%aobl(i, :), lspill_list(:))
+            discards%agr(i, :)   = pack(keeps%agr(i, :), lspill_list(:))
          end do
          if (count(.not.lspill_list(:))  > 0) then 
-            keeps%id(:)       = pack(keeps%id(:),     .not. lspill_list(:))
-            keeps%status(:)     = pack(keeps%status(:),   .not. lspill_list(:))
-            keeps%a(:)          = pack(keeps%a(:),        .not. lspill_list(:))
-            keeps%e(:)          = pack(keeps%e(:),        .not. lspill_list(:))
-            keeps%inc(:)        = pack(keeps%inc(:),      .not. lspill_list(:))
-            keeps%capom(:)      = pack(keeps%capom(:),    .not. lspill_list(:))
-            keeps%omega(:)      = pack(keeps%omega(:),    .not. lspill_list(:))
-            keeps%capm(:)       = pack(keeps%capm(:),     .not. lspill_list(:))
-            keeps%mu(:)         = pack(keeps%mu(:),       .not. lspill_list(:))
+            keeps%id(:)         = pack(keeps%id(:),     .not. lspill_list(:))
+            keeps%name(:)       = pack(keeps%name(:),   .not. lspill_list(:))
+            keeps%status(:)     = pack(keeps%status(:), .not. lspill_list(:))
+            keeps%a(:)          = pack(keeps%a(:),      .not. lspill_list(:))
+            keeps%e(:)          = pack(keeps%e(:),      .not. lspill_list(:))
+            keeps%inc(:)        = pack(keeps%inc(:),    .not. lspill_list(:))
+            keeps%capom(:)      = pack(keeps%capom(:),  .not. lspill_list(:))
+            keeps%omega(:)      = pack(keeps%omega(:),  .not. lspill_list(:))
+            keeps%capm(:)       = pack(keeps%capm(:),   .not. lspill_list(:))
+            keeps%mu(:)         = pack(keeps%mu(:),     .not. lspill_list(:))
             do i = 1, NDIM
-               keeps%xh(i, :)    = pack(keeps%xh(i, :),    .not. lspill_list(:))
-               keeps%vh(i, :)    = pack(keeps%vh(i, :),    .not. lspill_list(:))
-               keeps%xb(i, :)    = pack(keeps%xb(i, :),    .not. lspill_list(:))
-               keeps%vb(i, :)    = pack(keeps%vb(i, :),    .not. lspill_list(:))
-               keeps%ah(i, :)    = pack(keeps%ah(i, :),    .not. lspill_list(:))
-               keeps%aobl(i, :)    = pack(keeps%aobl(i, :),    .not. lspill_list(:))
+               keeps%xh(i, :)    = pack(keeps%xh(i, :),   .not. lspill_list(:))
+               keeps%vh(i, :)    = pack(keeps%vh(i, :),   .not. lspill_list(:))
+               keeps%xb(i, :)    = pack(keeps%xb(i, :),   .not. lspill_list(:))
+               keeps%vb(i, :)    = pack(keeps%vb(i, :),   .not. lspill_list(:))
+               keeps%ah(i, :)    = pack(keeps%ah(i, :),   .not. lspill_list(:))
+               keeps%aobl(i, :)  = pack(keeps%aobl(i, :), .not. lspill_list(:))
+               keeps%agr(i, :)   = pack(keeps%agr(i, :),  .not. lspill_list(:))
             end do
          end if
          ! This is the base class, so will be the last to be called in the cascade. 
@@ -82,10 +86,12 @@ contains
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
-      associate(keeps => self, insname => inserts%id, keepname => self%id)
-
+      associate(keeps => self)
          keeps%id(:)     = unpack(keeps%id(:), .not.lfill_list(:), keeps%id(:))
          keeps%id(:)     = unpack(inserts%id(:), lfill_list(:), keeps%id(:))
+
+         keeps%name(:)     = unpack(keeps%name(:), .not.lfill_list(:), keeps%name(:))
+         keeps%name(:)     = unpack(inserts%name(:), lfill_list(:), keeps%name(:))
 
          keeps%status(:)   = unpack(keeps%status(:), .not.lfill_list(:), keeps%status(:))
          keeps%status(:)   = unpack(inserts%status(:), lfill_list(:), keeps%status(:))
@@ -112,6 +118,8 @@ contains
             keeps%aobl(i, :)  = unpack(keeps%aobl(i, :), .not.lfill_list(:), keeps%aobl(i, :))
             keeps%aobl(i, :)  = unpack(inserts%aobl(i, :), lfill_list(:), keeps%aobl(i, :))
 
+            keeps%agr(i, :)  = unpack(keeps%agr(i, :), .not.lfill_list(:), keeps%agr(i, :))
+            keeps%agr(i, :)  = unpack(inserts%agr(i, :), lfill_list(:), keeps%agr(i, :))
          end do
          
          keeps%a(:)     = unpack(keeps%a(:),    .not.lfill_list(:), keeps%a(:))
