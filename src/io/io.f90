@@ -229,7 +229,7 @@ contains
       self%GU = GC / (self%DU2M**3 / (self%MU2KG * self%TU2S**2))
 
       ! Calculate the inverse speed of light in the system units
-      self%inv_c2 = einstinC * self%TU2S / self%DU2M
+      self%inv_c2 = einsteinC * self%TU2S / self%DU2M
       self%inv_c2 = (self%inv_c2)**(-2)
 
       if (integrator == RMVS) then

@@ -10,7 +10,7 @@ ISTEP_DUMP    1461
 BIN_OUT       bin.swifter.dat
 OUT_TYPE      REAL8
 OUT_FORM      EL
-OUT_STAT      NEW
+OUT_STAT      UNKNOWN
 J2            4.7535806948127355e-12
 J4            -2.2473967953572827e-18
 CHK_CLOSE     yes
