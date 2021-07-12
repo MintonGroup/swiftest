@@ -162,7 +162,7 @@ module whm_classes
       module pure subroutine whm_gr_p4_pl(self, param, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(whm_pl),              intent(inout) :: self  !! Swiftest particle object
+         class(whm_pl),              intent(inout) :: self  !! WHM massive body object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
          real(DP),                   intent(in)    :: dt    !! Step size
       end subroutine whm_gr_p4_pl
@@ -178,7 +178,7 @@ module whm_classes
       !> Reads WHM massive body object in from file
       module subroutine whm_setup_pl(self,n)
          implicit none
-         class(whm_pl), intent(inout)    :: self !! Swiftest test particle object
+         class(whm_pl), intent(inout)    :: self !! WHM massive body objectobject
          integer(I4B),  intent(in)       :: n    !! Number of test particles to allocate
       end subroutine whm_setup_pl
 

@@ -159,8 +159,8 @@ module swiftest_classes
       procedure(abstract_step_body),    public, deferred :: step
       procedure(abstract_accel),        public, deferred :: accel
       ! These are concrete because the implementation is the same for all types of particles
-      procedure, public :: vh2pv          => gr_vh2pv_body       !! Converts from heliocentric velocity to psudeovelocity for GR calculations
-      procedure, public :: pv2vh          => gr_pv2vh_body       !! Converts from psudeovelocity to heliocentric velocity for GR calculations
+      procedure, public :: v2pv           => gr_vh2pv_body       !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
+      procedure, public :: pv2v           => gr_pv2vh_body       !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: write_frame    => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body

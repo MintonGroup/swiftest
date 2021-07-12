@@ -975,12 +975,8 @@ contains
             call util_exit(FAILURE)
          end select
          lfirst = .false.
-         if (param%lgr) then
-            select type(discards)
-            class is (whm_tp)
-               call discards%pv2vh(param)
-            end select
-         end if
+         if (param%lgr) call discards%pv2v(param) 
+
          write(LUN, HDRFMT) t, nsp, param%lbig_discard
          do i = 1, nsp
             write(LUN, NAMEFMT) sub, dname(i), dstatus(i)
@@ -993,11 +989,8 @@ contains
 
                if (param%lgr) then
                   allocate(pltemp, source = pl)
-                  select type(pltemp)
-                  class is (whm_pl)
-                     call pltemp%pv2vh(param)
-                     allocate(vh, source = pltemp%vh)
-                  end select
+                  call pltemp%pv2v(param)
+                  allocate(vh, source = pltemp%vh)
                   deallocate(pltemp)
                else
                   allocate(vh, source = pl%vh)
@@ -1007,7 +1000,6 @@ contains
                do i = 1, npl
                   write(LUN, PLNAMEFMT) name(i), GMpl(i), Rpl(i)
                   write(LUN, VECFMT) xh(1, i), xh(2, i), xh(3, i)
-  
                   write(LUN, VECFMT) vh(1, i), vh(2, i), vh(3, i)
                end do
                deallocate(vh)
@@ -1189,16 +1181,8 @@ contains
       call io_write_hdr(iu, param%t, pl%nbody, tp%nbody, param%out_form, param%out_type)
 
       if (param%lgr) then
-         associate(vh => pl%vh, vht => tp%vh)
-            select type(pl)
-            class is (whm_pl)
-               call pl%pv2vh(param)
-            end select
-            select type(tp) 
-            class is (whm_tp)
-               call tp%pv2vh(param)
-            end select
-         end associate
+         call pl%pv2v(param)
+         call tp%pv2v(param)
       end if
 
       if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
