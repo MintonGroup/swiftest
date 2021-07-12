@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 import numpy as np
+import swiftest
 import swiftest.io as swio
 import astropy.constants as const
 import sys
@@ -68,21 +70,39 @@ print(f'ENC_OUT        {swiftest_enc}')
 print(f'EXTRA_FORCE    no')
 print(f'BIG_DISCARD    no')
 print(f'ROTATION       no')
+print(f'RHILL_PRESENT  no')
 print(f'GR             no')
 print(f'MU2KG          {MU2KG}')
 print(f'DU2M           {DU2M}')
 print(f'TU2S           {TU2S}')
 sys.stdout = sys.__stdout__
-param = swio.read_swiftest_param(swiftest_input)
+sim = swiftest.Simulation(param_file=swiftest_input)
+param = sim.param
 
 # Dates to fetch planet ephemerides from JPL Horizons
 tstart = '2021-06-15'
-ds = swio.solar_system_pl(param, tstart)
+
+bodyid = {
+   "Sun": 0,
+   "Mercury": 1,
+   "Venus": 2,
+   "Earth": 3,
+   "Mars": 4,
+   "Jupiter": 5,
+   "Saturn": 6,
+   "Uranus": 7,
+   "Neptune": 8,
+}
+
+for name, id in bodyid.items():
+   sim.add(name, idval=id)
+
+ds = sim.ds
 cb = ds.sel(id=0)
 pl = ds.where(ds.id > 0, drop=True)
 npl = pl.id.size
 
-ntp = 18
+ntp = 16
 dims = ['time', 'id', 'vec']
 tp = []
 t = np.array([0.0])
@@ -167,8 +187,8 @@ print(f"BIN_OUT       {swifter_bin}")
 print(f"OUT_TYPE      REAL8")
 print(f"OUT_FORM      XV")
 print(f"OUT_STAT      UNKNOWN")
-print(f"J2            {param['J2']}")
-print(f"J4            {param['J4']}")
+print(f"J2            {swiftest.J2Sun}")
+print(f"J4            {swiftest.J4Sun}")
 print(f"CHK_CLOSE     yes")
 print(f"CHK_RMIN      {rmin}")
 print(f"CHK_RMAX      {rmax}")

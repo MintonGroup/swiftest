@@ -105,6 +105,9 @@ contains
             case ("BIG_DISCARD")
                call util_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T' ) self%lbig_discard = .true.
+            case ("RHILL_PRESENT")
+               call util_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T' ) self%lrhill_present = .true.
             case ("MU2KG")
                read(param_value, *) self%MU2KG
             case ("TU2S")
@@ -213,6 +216,7 @@ contains
       write(*,*) "ENC_OUT        = ",trim(adjustl(self%encounter_file))
       write(*,*) "EXTRA_FORCE    = ",self%lextra_force
       write(*,*) "BIG_DISCARD    = ",self%lbig_discard
+      write(*,*) "RHILL_PRESENT  = ",self%lrhill_present
       write(*,*) "ENERGY         = ",self%lenergy
       write(*,*) "MU2KG          = ",self%MU2KG       
       write(*,*) "TU2S           = ",self%TU2S        
@@ -315,6 +319,7 @@ contains
          write(param_name, Afmt) "MU2KG"; write(param_value, Rfmt) param%MU2KG; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "TU2S"; write(param_value, Rfmt) param%TU2S ; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "DU2M"; write(param_value, Rfmt) param%DU2M; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "RHILL_PRESENT"; write(param_value, Lfmt) param%lrhill_present; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "EXTRA_FORCE"; write(param_value, Lfmt) param%lextra_force; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "BIG_DISCARD"; write(param_value, Lfmt) param%lbig_discard; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
@@ -592,10 +597,15 @@ contains
                select type(self)
                class is (swiftest_pl)
                   read(iu, *, iostat = ierr) self%id(i), val 
-                  self%mass(i) = real(val / param%GU, kind=DP)
                   self%Gmass(i) = real(val, kind=DP)
+                  self%mass(i) = real(val / param%GU, kind=DP)
+
                   if (param%lclose) then
-                     read(iu, *, iostat = ierr) self%radius(i)
+                     if (param%lrhill_present) then
+                        read(iu, *, iostat = ierr) self%radius(i), self%rhill(i)
+                     else
+                        read(iu, *, iostat = ierr) self%radius(i)
+                     end if
                      if (ierr /= 0 ) exit
                   else
                      self%radius(i) = 0.0_DP
@@ -623,6 +633,7 @@ contains
          ierr = -1
       end select
       close(iu)
+
       if (ierr /= 0 ) then
          write(*,*) 'Error reading in initial conditions from ',trim(adjustl(infile))
          call util_exit(FAILURE)
@@ -932,6 +943,7 @@ contains
   
       call self%cb%initialize(param)
       call self%pl%initialize(param)
+      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
       call self%tp%initialize(param)
       call self%set_msys()
       call self%pl%set_mu(self%cb) 

@@ -61,6 +61,7 @@ module swiftest_classes
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
 
       !Logical flags to turn on or off various features of the code
+      logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
       logical :: lclose         = .false. !! Turn on close encounters

@@ -659,6 +659,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         # Swiftest Central body file
         cbfile = open(param['CB_IN'], 'w')
         print(GMSun, file=cbfile)
+        print(GMSun, file=cbfile)
         print(RSun, file=cbfile)
         print(J2, file=cbfile)
         print(J4, file=cbfile)
@@ -687,6 +688,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         # Now make Swiftest files
         cbfile = FortranFile(param['CB_IN'], 'w')
         MSun = np.double(1.0)
+        cbid = 0
+        cbfile.write_record(cbid)
         cbfile.write_record(np.double(GMSun))
         cbfile.write_record(np.double(rmin))
         cbfile.write_record(np.double(J2))

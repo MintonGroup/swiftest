@@ -29,7 +29,6 @@ contains
                associate(system => self, ntp => tp%nbody, npl => pl%nbody)
                   allocate(xbeg, source=pl%xh)
                   allocate(vbeg, source=pl%vh)
-                  call pl%set_rhill(cb)
                   call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
                   ! ****** Check for close encounters ***** !
                   system%rts = RHSCALE

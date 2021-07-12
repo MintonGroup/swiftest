@@ -1,4 +1,4 @@
-! Swifter input file generated using init_cond.py
+! VERSION     Swifter input file generated using init_cond.py
 T0            0 
 TSTOP         365.25
 DT            1.0
@@ -11,8 +11,8 @@ BIN_OUT       bin.swifter.dat
 OUT_TYPE      REAL8
 OUT_FORM      XV
 OUT_STAT      UNKNOWN
-J2            4.7535806948127355e-12
-J4            -2.2473967953572827e-18
+J2            2.198e-07
+J4            -4.805e-09
 CHK_CLOSE     yes
 CHK_RMIN      0.004650467260962157
 CHK_RMAX      1000.0

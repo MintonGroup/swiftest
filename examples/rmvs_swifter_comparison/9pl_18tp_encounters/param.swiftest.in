@@ -23,6 +23,7 @@ ENC_OUT        enc.swiftest.dat
 EXTRA_FORCE    no
 BIG_DISCARD    no
 ROTATION       no
+RHILL_PRESENT  no
 GR             no
 MU2KG          1.988409870698051e+30
 DU2M           149597870700.0
