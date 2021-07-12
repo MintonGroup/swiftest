@@ -54,9 +54,9 @@ contains
          call pl%set_beg_end(xbeg = pl%xh)
          call pl%kick(dth)
          call pl%vh2vj(cb) 
-         if (param%lgr) call pl%p4(param, dth)
+         if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%drift(system, param, dt)
-         if (param%lgr) call pl%p4(param, dth)
+         if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%j2h(cb)
          call pl%accel(system, param, t + dt)
          call pl%kick(dth)
@@ -93,9 +93,9 @@ contains
                tp%lfirst = .false.
             end if
             call tp%kick(dth)
-            if (param%lgr) call tp%p4(param, dth)
+            if (param%lgr) call tp%gr_pos_kick(param, dth)
             call tp%drift(system, param, dt)
-            if (param%lgr) call tp%p4(param, dth)
+            if (param%lgr) call tp%gr_pos_kick(param, dth)
             call tp%accel(system, param, t + dt, lbeg=.false.)
             call tp%kick(dth)
          end associate

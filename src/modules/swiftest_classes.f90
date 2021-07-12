@@ -159,6 +159,8 @@ module swiftest_classes
       procedure(abstract_step_body),    public, deferred :: step
       procedure(abstract_accel),        public, deferred :: accel
       ! These are concrete because the implementation is the same for all types of particles
+      procedure, public :: vh2pv          => gr_vh2pv_body       !! Converts from heliocentric velocity to psudeovelocity for GR calculations
+      procedure, public :: pv2vh          => gr_pv2vh_body       !! Converts from psudeovelocity to heliocentric velocity for GR calculations
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: write_frame    => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
@@ -407,6 +409,12 @@ module swiftest_classes
          real(DP), dimension(:),     intent(out) :: vh    !! Heliocentric velocity vector 
       end subroutine gr_pseudovel2vel
 
+      module pure subroutine gr_pv2vh_body(self, param)
+         implicit none
+         class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      end subroutine gr_pv2vh_body
+
       module pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
@@ -415,6 +423,12 @@ module swiftest_classes
          real(DP), dimension(:),     intent(in)  :: vh    !! Heliocentric velocity vector 
          real(DP), dimension(:),     intent(out) :: pv    !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
       end subroutine gr_vel2pseudovel
+
+      module pure subroutine gr_vh2pv_body(self, param)
+         implicit none
+         class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters
+      end subroutine gr_vh2pv_body
 
       module subroutine io_dump_param(self, param_file_name)
          implicit none

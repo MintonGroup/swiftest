@@ -101,6 +101,29 @@ contains
       return
    end subroutine gr_pseudovel2vel
 
+   module pure subroutine gr_pv2vh_body(self, param)
+      !! author: David A. Minton
+      !!
+      !! Wrapper function that converts from pseudovelocity to heliocentric velocity for swiftest bodies
+      implicit none
+      ! Arguments
+      class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      ! Internals
+      integer(I4B)                              :: i
+      real(DP), dimension(:,:), allocatable     :: vh    !! Temporary holder of pseudovelocity for in-place conversion
+      
+      associate(n => self%nbody)
+         if (n == 0) return
+         allocate(vh, mold = self%vh)
+         do i = 1, n
+            call gr_pseudovel2vel(param, self%mu(i), self%xh(:, i), self%vh(:, i), vh(:, i))
+         end do
+         call move_alloc(vh, self%vh)
+      end associate
+      return
+   end subroutine gr_pv2vh_body
+
    module pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
       !! author: David A. Minton
       !!
@@ -176,5 +199,29 @@ contains
    
       return
    end subroutine gr_vel2pseudovel
+
+   module pure subroutine gr_vh2pv_body(self, param)
+      !! author: David A. Minton
+      !!
+      !! Wrapper function that converts from heliocentric velocity to pseudovelocity for Swiftest bodies
+      implicit none
+      ! Arguments
+      class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      ! Internals
+      integer(I4B)                                 :: i
+      real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
+      
+      associate(n => self%nbody)
+         if (n == 0) return
+         allocate(pv, mold = self%vh)
+         do i = 1, n
+            call gr_vel2pseudovel(param, self%mu(i), self%xh(:, i), self%vh(:, i), pv(:, i))
+         end do
+         call move_alloc(pv, self%vh)
+      end associate
+      return
+   end subroutine gr_vh2pv_body
+
 
 end submodule s_gr
