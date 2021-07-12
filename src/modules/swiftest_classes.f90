@@ -99,8 +99,8 @@ module swiftest_classes
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, abstract, public, extends(swiftest_base) :: swiftest_cb           
-      character(len=STRMAX)     :: name            !! Non-unique name
-      integer(I4B)              :: id              !! External identifier (unique)
+      character(len=STRMAX)     :: name             !! Non-unique name
+      integer(I4B)              :: id      = 0      !! External identifier (unique)
       real(DP)                  :: mass    = 0.0_DP !! Central body mass (units MU)
       real(DP)                  :: Gmass   = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
       real(DP)                  :: radius  = 0.0_DP !! Central body radius (units DU)

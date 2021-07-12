@@ -1,9 +1,5 @@
+#!/usr/bin/env python3
 import swiftest
-import numpy as np
-import sys
-from astroquery.jplhorizons import Horizons
-import astropy.constants as const 
-from scipy.io import FortranFile
 
 sim = swiftest.Simulation()
 
