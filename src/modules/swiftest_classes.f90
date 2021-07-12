@@ -488,8 +488,8 @@ module swiftest_classes
 
       module subroutine io_read_param_in(self, param_file_name) 
          implicit none
-         class(swiftest_parameters), intent(out) :: self            !! Current run configuration parameters
-         character(len=*),           intent(in)  :: param_file_name !! Parameter input file name (i.e. param.in)
+         class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
+         character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_read_param_in
 
       module subroutine io_read_frame_body(self, iu, param, form, ierr)

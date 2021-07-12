@@ -21,7 +21,7 @@ contains
       real(DP)                  :: rmag, rdotv, vmag2
       integer(I4B)              :: i
 
-      associate(n => self%nbody, cb => system%cb,  inv_c2 => param%inv_c2)
+      associate(n => self%nbody, cb => system%cb, inv_c2 => param%inv_c2)
          if (n == 0) return
          do i = 1, n
             rmag = norm2(self%xh(:,i))
@@ -92,10 +92,10 @@ contains
       ! Internals
       real(DP) :: vmag2, rmag, grterm
    
-      associate(c2 => param%inv_c2)
+      associate(inv_c2 => param%inv_c2)
          vmag2 = dot_product(pv(:), pv(:))
          rmag  = norm2(xh(:))
-         grterm = 1.0_DP - c2 * (0.5_DP * vmag2 + 3 * mu / rmag)
+         grterm = 1.0_DP - inv_c2 * (0.5_DP * vmag2 + 3 * mu / rmag)
          vh(:) = pv(:) * grterm
       end associate
       return
@@ -128,52 +128,52 @@ contains
       integer(I4B), parameter        :: MAXITER = 50
       real(DP),parameter             :: TOL = 1.0e-12_DP
 
-      associate (c2 => param%inv_c2)
+      associate(inv_c2 => param%inv_c2)
          pv(1:NDIM) = vh(1:NDIM) ! Initial guess
          rterm = 3 * mu / norm2(xh(:))
          v2 = dot_product(vh(:), vh(:))
          do n = 1, MAXITER
             pv2 = dot_product(pv(:), pv(:))
-            G = 1.0_DP - c2 * (0.5_DP * pv2 + rterm)
+            G = 1.0_DP - inv_c2 * (0.5_DP * pv2 + rterm)
             F(:) = pv(:) * G - vh(:)
             if (abs(sum(F) / v2 ) < TOL) exit ! Root found
-   
+
             ! Calculate the Jacobian
             do k = 1, NDIM
                do i = 1, NDIM
                   if (i == k) then
-                     J(i,k) = G - c2 * pv(k)
+                     J(i,k) = G - inv_c2 * pv(k)
                   else
-                     J(i,k) = - c2 * pv(k)
+                     J(i,k) = -inv_c2 * pv(k)
                   end if
                end do
             end do
-   
+
             ! Inverse of the Jacobian
             det = J(1,1) * (J(3,3) * J(2,2) - J(3,2) * J(2,3))
             det = det - J(2,1) * (J(3,3) * J(1,2)-J(3,2) * J(1,3))
             det = det + J(3,1) * (J(2,3) * J(1,2)-J(2,2) * J(1,3))
-   
+
             Jinv(1,1) =   J(3,3) * J(2,2) - J(3,2) * J(2,3)
             Jinv(1,2) = -(J(3,3) * J(1,2) - J(3,2) * J(1,3))
             Jinv(1,3) =   J(2,3) * J(1,2) - J(2,2) * J(1,3)
-   
+
             Jinv(2,1) = -(J(3,3) * J(2,1) - J(3,1) * J(2,3))
             Jinv(2,2) =   J(3,3) * J(1,1) - J(3,1) * J(1,3)
             Jinv(2,3) = -(J(2,3) * J(1,1) - J(2,1) * J(1,3))
-   
+
             Jinv(3,1) =   J(3,2) * J(2,1) - J(3,1) * J(2,2)
             Jinv(3,2) = -(J(3,2) * J(1,1) - J(3,1) * J(1,2))
             Jinv(3,3) =   J(2,2) * J(1,1) - J(2,1) * J(1,2)
-   
+
             Jinv = Jinv * det
-   
+
             do i = 1, NDIM
-               pv(i) = pv(i) - dot_product(Jinv(i,:) ,F(:))
+               pv(i) = pv(i) - dot_product(Jinv(i,:), F(:))
             end do
          end do 
-   
       end associate
+   
       return
    end subroutine gr_vel2pseudovel
 

@@ -29,10 +29,9 @@ contains
       character(STRMAX)              :: line                    !! Line of the input file
       character (len=:), allocatable :: line_trim,param_name, param_value !! Strings used to parse the param file
       character(*),parameter         :: linefmt = '(A)'         !! Format code for simple text string
-      integer(I4B)                   :: integrator              !! Symbolic name of integrator being used
 
-      integrator = v_list(1)
       ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
+      
       do
          read(unit = unit, fmt = linefmt, iostat = iostat, end = 1) line
          line_trim = trim(adjustl(line))
@@ -214,7 +213,7 @@ contains
       write(*,*) "ENC_OUT        = ",trim(adjustl(self%encounter_file))
       write(*,*) "EXTRA_FORCE    = ",self%lextra_force
       write(*,*) "BIG_DISCARD    = ",self%lbig_discard
-      if (self%lenergy) write(*,*) "ENERGY         = ",self%lenergy
+      write(*,*) "ENERGY         = ",self%lenergy
       write(*,*) "MU2KG          = ",self%MU2KG       
       write(*,*) "TU2S           = ",self%TU2S        
       write(*,*) "DU2M           = ",self%DU2M        
@@ -232,21 +231,23 @@ contains
       self%inv_c2 = einsteinC * self%TU2S / self%DU2M
       self%inv_c2 = (self%inv_c2)**(-2)
 
-      if (integrator == RMVS) then
-         if (.not.self%lclose) then
-            write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
-            iostat = -1
-            return
+      associate(integrator => v_list(1))
+         if (integrator == RMVS) then
+            if (.not.self%lclose) then
+               write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
+               iostat = -1
+               return
+            end if
          end if
-      end if
-
-      ! Determine if the GR flag is set correctly for this integrator
-      select case(integrator)
-      case(WHM, RMVS)
-         write(*,*) "GR             = ", self%lgr
-      case default   
-         write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
-      end select
+   
+         ! Determine if the GR flag is set correctly for this integrator
+         select case(integrator)
+         case(WHM, RMVS)
+            write(*,*) "GR             = ", self%lgr
+         case default   
+            write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
+         end select
+      end associate
 
       iostat = 0
 
@@ -682,8 +683,8 @@ contains
       !! Adapted from Martin Duncan's Swift routine io_init_param.f
       implicit none
       ! Arguments
-      class(swiftest_parameters),intent(out) :: self             !! Current run configuration parameters
-      character(len=*), intent(in)              :: param_file_name !! Parameter input file name (i.e. param.in)
+      class(swiftest_parameters),intent(inout) :: self             !! Current run configuration parameters
+      character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
       integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
       integer(I4B)            :: ierr = 0                !! Input error code
