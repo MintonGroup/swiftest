@@ -20,67 +20,27 @@ swiftest_cb    = "cb.swiftest.in"
 swiftest_bin   = "bin.swiftest.dat"
 swiftest_enc   = "enc.swiftest.dat"
 
-#Values from JPL Horizons
-AU2M = np.longdouble(const.au.value)
-GMSunSI = np.longdouble(const.GM_sun.value)
-Rsun = np.longdouble(const.R_sun.value)
-GC = np.longdouble(const.G.value)
-JD = 86400
-year = np.longdouble(365.25 * JD)
-c = np.longdouble(299792458.0)
+sim = swiftest.Simulation()
 
-MU2KG    = np.longdouble(GMSunSI / GC) #Conversion from mass unit to kg
-DU2M     = np.longdouble(AU2M)         #Conversion from radius unit to centimeters
-TU2S     = np.longdouble(JD)         #Conversion from time unit to seconds
-GU       = np.longdouble(GC / (DU2M**3 / (MU2KG * TU2S**2)))
-GMSun = np.longdouble(GMSunSI / (DU2M**3 / TU2S**2))
+sim.param['T0'] = 0.0
+sim.param['DT'] = 1.0 
+sim.param['TSTOP'] = 365.25
+sim.param['ISTEP_OUT']  = 11
+sim.param['ISTEP_DUMP'] = 1
+sim.param['CHK_QMIN_COORD'] = "HELIO"
+sim.param['CHK_QMIN'] = swiftest.RSun / swiftest.AU2M
+sim.param['CHK_QMIN_RANGE'] = f"{swiftest.RSun / swiftest.AU2M} 1000.0"
+sim.param['CHK_RMIN'] = swiftest.RSun / swiftest.AU2M
+sim.param['CHK_RMAX'] = 1000.0
+sim.param['CHK_EJECT'] = 1000.0
+sim.param['OUT_FORM'] = "XV"
+sim.param['OUT_STAT'] = "UNKNOWN"
+sim.param['GR'] = 'NO'
+sim.param['CHK_CLOSE'] = 'YES'
 
-t_0	  = 0 # simulation start time
-deltaT	= 1.00 * JD / TU2S   # simulation step size
-end_sim = year / TU2S # simulation end time
-t_print = deltaT  #output interval to print results
-
-iout = int(np.ceil(t_print / deltaT))
-rmin = Rsun / DU2M
-rmax = 1000.0
-
-sys.stdout = open(swiftest_input, "w")
-print(f'! VERSION      Swiftest input file generated using init_cond.py')
-print(f'T0             {t_0} ')
-print(f'TSTOP          {end_sim}')
-print(f'DT             {deltaT}')
-print(f'CB_IN          {swiftest_cb}')
-print(f'PL_IN          {swiftest_pl}')
-print(f'TP_IN          {tpin}')
-print(f'IN_TYPE        ASCII')
-print(f'ISTEP_OUT      {iout:d}')
-print(f'ISTEP_DUMP     {iout:d}')
-print(f'BIN_OUT        {swiftest_bin}')
-print(f'OUT_TYPE       REAL8')
-print(f'OUT_FORM       XV')
-print(f'OUT_STAT       REPLACE')
-print(f'CHK_CLOSE      yes')
-print(f'CHK_RMIN       {rmin}')
-print(f'CHK_RMAX       {rmax}')
-print(f'CHK_EJECT      {rmax}')
-print(f'CHK_QMIN       {rmin}')
-print(f'CHK_QMIN_COORD HELIO')
-print(f'CHK_QMIN_RANGE {rmin} {rmax}')
-print(f'ENC_OUT        {swiftest_enc}')
-print(f'EXTRA_FORCE    no')
-print(f'BIG_DISCARD    no')
-print(f'ROTATION       no')
-print(f'RHILL_PRESENT  no')
-print(f'GR             no')
-print(f'MU2KG          {MU2KG}')
-print(f'DU2M           {DU2M}')
-print(f'TU2S           {TU2S}')
-sys.stdout = sys.__stdout__
-sim = swiftest.Simulation(param_file=swiftest_input)
-param = sim.param
-
-# Dates to fetch planet ephemerides from JPL Horizons
-tstart = '2021-06-15'
+sim.param['MU2KG'] = swiftest.MSun
+sim.param['TU2S'] = swiftest.JD2S
+sim.param['DU2M'] = swiftest.AU2M
 
 bodyid = {
    "Sun": 0,
@@ -106,7 +66,7 @@ ntp = 16
 dims = ['time', 'id', 'vec']
 tp = []
 t = np.array([0.0])
-clab, plab, tlab = swio.make_swiftest_labels(param)
+clab, plab, tlab = swio.make_swiftest_labels(sim.param)
 
 # For each planet, we will initialize a pair of test particles. One on its way in, and one on its way out. We will also initialize two additional particles that don't encounter anything
 tpnames = np.arange(101, 101 + ntp)
@@ -155,50 +115,18 @@ tp = [tpxr]
 tpda = xr.concat(tp,dim='time')
 tpds = tpda.to_dataset(dim = 'vec')
 
-ds = xr.combine_by_coords([ds, tpds])
-swio.swiftest_xr2infile(ds, param)
+sim.ds = xr.combine_by_coords([sim.ds, tpds])
+swio.swiftest_xr2infile(sim.ds, sim.param)
 
-# Swifter PL file
-plfile = open(swifter_pl, 'w')
-print(npl + 1, file=plfile)
-print(0,GMSun,file=plfile)
-print('0.0 0.0 0.0',file=plfile)
-print('0.0 0.0 0.0',file=plfile)
-for i in pl.id:
-    pli = pl.sel(id=i)
-    print(f"{int(i)} {pli['Mass'].values[0]} {pli['Rhill'].values[0]}", file=plfile)
-    print(f"{pli['Radius'].values[0]}", file=plfile)
-    print(f"{pli['px'].values[0]} {pli['py'].values[0]} {pli['pz'].values[0]}", file=plfile)
-    print(f"{pli['vx'].values[0]} {pli['vy'].values[0]} {pli['vz'].values[0]}", file=plfile)
-plfile.close()
+sim.param['PL_IN'] = swiftest_pl
+sim.param['TP_IN'] = tpin
+sim.param['CB_IN'] = swiftest_cb
+sim.param['BIN_OUT'] = swiftest_bin
+sim.param['ENC_OUT'] = swiftest_enc
+sim.save(swiftest_input)
 
-# Swifter parameter file
-sys.stdout = open(swifter_input, "w")
-print(f"! VERSION     Swifter input file generated using init_cond.py")
-print(f"T0            {t_0} ")
-print(f"TSTOP         {end_sim}")
-print(f"DT            {deltaT}")
-print(f"PL_IN         {swifter_pl}")
-print(f"TP_IN         {tpin}")
-print(f"IN_TYPE       ASCII")
-print(f"ISTEP_OUT     {iout:d}")
-print(f"ISTEP_DUMP    {iout:d}")
-print(f"BIN_OUT       {swifter_bin}")
-print(f"OUT_TYPE      REAL8")
-print(f"OUT_FORM      XV")
-print(f"OUT_STAT      UNKNOWN")
-print(f"J2            {swiftest.J2Sun}")
-print(f"J4            {swiftest.J4Sun}")
-print(f"CHK_CLOSE     yes")
-print(f"CHK_RMIN      {rmin}")
-print(f"CHK_RMAX      {rmax}")
-print(f"CHK_EJECT     {rmax}")
-print(f"CHK_QMIN      {rmin}")
-print(f"CHK_QMIN_COORD HELIO")
-print(f"CHK_QMIN_RANGE {rmin} {rmax}")
-print(f"ENC_OUT        {swifter_enc}")
-print(f"EXTRA_FORCE    no")
-print(f"BIG_DISCARD    no")
-print(f"RHILL_PRESENT  yes")
-sys.stdout = sys.__stdout__
-
+sim.param['PL_IN'] = swifter_pl
+sim.param['TP_IN'] = tpin
+sim.param['BIN_OUT'] = swifter_bin
+sim.param['ENC_OUT'] = swifter_enc
+sim.save(swifter_input, codename="Swifter")

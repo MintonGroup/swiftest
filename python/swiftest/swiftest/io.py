@@ -654,11 +654,12 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     RSun = np.double(cb['Radius'])
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
+    cbid = int(0)
     
     if param['IN_TYPE'] == 'ASCII':
         # Swiftest Central body file
         cbfile = open(param['CB_IN'], 'w')
-        print(GMSun, file=cbfile)
+        print(0, file=cbfile)
         print(GMSun, file=cbfile)
         print(RSun, file=cbfile)
         print(J2, file=cbfile)
@@ -687,9 +688,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     elif param['IN_TYPE'] == 'REAL8':
         # Now make Swiftest files
         cbfile = FortranFile(param['CB_IN'], 'w')
-        MSun = np.double(1.0)
-        cbid = 0
         cbfile.write_record(cbid)
+        MSun = np.double(1.0)
         cbfile.write_record(np.double(GMSun))
         cbfile.write_record(np.double(rmin))
         cbfile.write_record(np.double(J2))
