@@ -466,6 +466,7 @@ def swiftest_stream(f, param):
         npl = f.read_ints()
         ntp = f.read_ints()
         iout_form = f.read_reals('c')
+        cbid = f.read_ints()
         Mcb = f.read_reals(np.float64)
         Rcb = f.read_reals(np.float64)
         J2cb = f.read_reals(np.float64)
@@ -508,7 +509,6 @@ def swiftest_stream(f, param):
             t4 = f.read_reals(np.float64)
             t5 = f.read_reals(np.float64)
             t6 = f.read_reals(np.float64)
-        cbid = np.array([0])
         
         clab, plab, tlab = make_swiftest_labels(param)
         

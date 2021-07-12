@@ -781,7 +781,7 @@ contains
 
       associate(n => self%nbody)
          read(iu, iostat = ierr) self%id(1:n)
-         read(iu, iostat = ierr) self%name(1:n)
+         !read(iu, iostat = ierr) self%name(1:n)
          select case (form)
          case (EL) 
             read(iu, iostat = ierr) self%a(1:n)
@@ -830,7 +830,7 @@ contains
       integer(I4B),               intent(out)   :: ierr     !! Error cod
 
       read(iu, iostat = ierr) self%id
-      read(iu, iostat = ierr) self%name
+      !read(iu, iostat = ierr) self%name
       read(iu, iostat = ierr) self%Gmass
       self%mass = self%Gmass / param%GU
       read(iu, iostat = ierr) self%radius
@@ -1085,7 +1085,7 @@ contains
       associate(n => self%nbody)
          if (n == 0) return
          write(iu) self%id(1:n)
-         write(iu) self%name(1:n)
+         !write(iu) self%name(1:n)
          select case (param%out_form)
          case (EL) 
             write(iu) self%a(1:n)
@@ -1126,7 +1126,7 @@ contains
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
 
       write(iu) self%id
-      write(iu) self%name
+      !write(iu) self%name
       write(iu) self%Gmass
       write(iu) self%radius
       write(iu) self%j2rp2 
