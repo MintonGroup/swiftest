@@ -58,15 +58,14 @@ contains
       ! Internals
       integer(I4B)                                 :: i
 
-      associate(pl => self, npl => self%nbody,  GMpl => self%Gmass, muj => self%muj, &
-                eta => self%eta, GMcb => cb%Gmass)
+      associate(pl => self, npl => self%nbody)
          if (npl == 0) return
          call util_set_mu_pl(pl, cb)
-         eta(1) = GMcb + GMpl(1)
-         muj(1) = eta(1)
+         pl%eta(1) = cb%Gmass + pl%Gmass(1)
+         pl%muj(1) = pl%eta(1)
          do i = 2, npl
-            eta(i) = eta(i - 1) + GMpl(i)
-            muj(i) = GMcb * eta(i) / eta(i - 1)
+            pl%eta(i) = pl%eta(i - 1) + pl%Gmass(i)
+            pl%muj(i) = cb%Gmass * pl%eta(i) / pl%eta(i - 1)
          end do
       end associate
 
@@ -79,27 +78,17 @@ contains
       !!
       implicit none
       ! Arguments
-      class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
+      class(whm_nbody_system),    intent(inout) :: self    !! Swiftest system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of on parameters 
+
       call io_read_initialize_system(self, param)
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(self%tp%nbody)
-
-      if (self%pl%nbody > 0) then
-         select type(pl => self%pl)
-         class is (whm_pl)
-            call pl%set_mu(self%cb)
-            if (param%lgr) call pl%vh2pv(param)
-            !call pl%eucl_index()
-         end select
-      end if
-
-      if (self%tp%nbody > 0) then
-         select type(tp => self%tp)
-         class is (whm_tp)
-            call tp%set_mu(self%cb)
-            if (param%lgr) call tp%vh2pv(param)
-         end select
+      call self%pl%set_mu(self%cb)
+      call self%tp%set_mu(self%cb)
+      if (param%lgr) then
+         call self%pl%v2pv(param)
+         call self%tp%v2pv(param)
       end if
 
    end subroutine whm_setup_system

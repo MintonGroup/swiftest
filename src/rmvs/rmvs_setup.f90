@@ -9,11 +9,10 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_setup.f90
       implicit none
       ! Arguments
-      class(rmvs_pl),           intent(inout) :: self !! RMVS test particle object
-      integer(I4B),                  intent(in)    :: n    !! Number of test particles to allocate
+      class(rmvs_pl), intent(inout) :: self !! RMVS test particle object
+      integer(I4B),   intent(in)    :: n    !! Number of massive bodies to allocate
       ! Internals
-      integer(I4B)                                 :: i,j
-      !type(swiftest_parameters)                 :: encounter_param
+      integer(I4B)                  :: i,j
 
       !> Call allocation method for parent class
       associate(pl => self)
@@ -25,7 +24,6 @@ contains
          if (.not.pl%lplanetocentric) then
             allocate(pl%nenc(n))
             pl%nenc(:) = 0
-
             ! Set up inner and outer planet interpolation vector storage containers
             do i = 0, NTENC
                allocate(pl%outer(i)%x(NDIM, n))
@@ -49,7 +47,7 @@ contains
    module subroutine rmvs_setup_system(self, param)
       !! author: David A. Minton
       !!
-      !!  nitialize an RMVS nbody system from files and sets up the planetocentric structures.
+      !! Initialize an RMVS nbody system from files and sets up the planetocentric structures.
       !! 
       !! We currently rearrange the pl order to keep it consistent with the way Swifter does it 
       !! In Swifter, the central body occupies the first position in the pl list, and during
@@ -58,7 +56,7 @@ contains
       !! to use during close encounters. 
       implicit none
       ! Arguments
-      class(rmvs_nbody_system),      intent(inout) :: self    !! RMVS system object
+      class(rmvs_nbody_system),   intent(inout) :: self    !! RMVS system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i, j
@@ -126,8 +124,8 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       implicit none
       ! Arguments
-      class(rmvs_tp),              intent(inout)   :: self !! RMVS test particle object
-      integer,                     intent(in)      :: n    !! Number of test particles to allocate
+      class(rmvs_tp), intent(inout) :: self !! RMVS test particle object
+      integer,        intent(in)    :: n    !! Number of test particles to allocate
 
       !> Call allocation method for parent class
       call whm_setup_tp(self, n) 

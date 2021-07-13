@@ -9,14 +9,10 @@ module swiftest
    use whm_classes
    use rmvs_classes
    use helio_classes
-   !use symba_classes
-   use util
+   use symba_classes
    use module_nrutil
    !use advisor_annotate
    !$ use omp_lib
-
-
-
    implicit none
    public
 

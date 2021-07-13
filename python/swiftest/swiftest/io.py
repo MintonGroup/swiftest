@@ -466,6 +466,7 @@ def swiftest_stream(f, param):
         npl = f.read_ints()
         ntp = f.read_ints()
         iout_form = f.read_reals('c')
+        cbid = f.read_ints()
         Mcb = f.read_reals(np.float64)
         Rcb = f.read_reals(np.float64)
         J2cb = f.read_reals(np.float64)
@@ -508,7 +509,6 @@ def swiftest_stream(f, param):
             t4 = f.read_reals(np.float64)
             t5 = f.read_reals(np.float64)
             t6 = f.read_reals(np.float64)
-        cbid = np.array([0])
         
         clab, plab, tlab = make_swiftest_labels(param)
         
@@ -654,10 +654,12 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     RSun = np.double(cb['Radius'])
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
+    cbid = int(0)
     
     if param['IN_TYPE'] == 'ASCII':
         # Swiftest Central body file
         cbfile = open(param['CB_IN'], 'w')
+        print(0, file=cbfile)
         print(GMSun, file=cbfile)
         print(RSun, file=cbfile)
         print(J2, file=cbfile)
@@ -686,6 +688,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     elif param['IN_TYPE'] == 'REAL8':
         # Now make Swiftest files
         cbfile = FortranFile(param['CB_IN'], 'w')
+        cbfile.write_record(cbid)
         MSun = np.double(1.0)
         cbfile.write_record(np.double(GMSun))
         cbfile.write_record(np.double(rmin))

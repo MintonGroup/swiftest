@@ -32,7 +32,6 @@ module helio_classes
 
    !! Helio massive body particle class
    type, public, extends(swiftest_pl) :: helio_pl
-      real(DP),     dimension(:,:), allocatable :: ahi         !!  heliocentric acceleration due to interactions
    contains
       procedure, public :: vh2vb    => helio_coord_vh2vb_pl  !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
       procedure, public :: vb2vh    => helio_coord_vb2vh_pl  !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
@@ -172,7 +171,7 @@ module helio_classes
       end subroutine helio_step_pl
 
       module subroutine helio_step_tp(self, system, param, t, dt)
-         use swiftest_classes, only : swiftest_cb, swiftest_parameters
+         use swiftest_classes, only : swiftest_cb, swiftest_parameters, swiftest_nbody_system
          implicit none
          class(helio_tp),              intent(inout) :: self   !! Helio test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object

@@ -4,67 +4,9 @@ For testing RMVS, the code generates clones of test particles based on one that 
 To use the script, modify the variables just after the  "if __name__ == '__main__':" line
 """
 import numpy as np
-from astroquery.jplhorizons import Horizons
-import astropy.constants as const 
-import swiftest.io as swio
+import swiftest 
 from scipy.io import FortranFile
 import sys
-
-#Values from JPL Horizons
-AU2M = np.longdouble(const.au.value)
-GMSunSI = np.longdouble(const.GM_sun.value)
-Rsun = np.longdouble(const.R_sun.value)
-GC = np.longdouble(const.G.value)
-JD = 86400
-year = np.longdouble(365.25 * JD)
-c = np.longdouble(299792458.0)
-MSun_over_Mpl = np.array([6023600.0,
-                 408523.71,
-                 328900.56,
-                 3098708.,
-                 1047.3486,
-                 3497.898,
-                 22902.98,
-                 19412.24,
-                 1.35e8], dtype=np.longdouble)
-
-MU2KG    = np.longdouble(GMSunSI / GC) #Conversion from mass unit to kg
-DU2M     = np.longdouble(AU2M)         #Conversion from radius unit to centimeters
-TU2S     = np.longdouble(year)         #Conversion from time unit to seconds
-GU       = np.longdouble(GC / (DU2M**3 / (MU2KG * TU2S**2)))
-GMSun = np.longdouble(GMSunSI / (DU2M**3 / TU2S**2))
-
-# Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
-J2 = np.longdouble(2.198e-7) * (Rsun / DU2M)**2
-J4 = np.longdouble(-4.805e-9) * (Rsun / DU2M)**4
-
-#Planet Msun/M ratio
-MSun_over_Mpl = {
-   'mercury'     : np.longdouble(6023600.0),
-   'venus'       : np.longdouble(408523.71),
-   'earthmoon'   : np.longdouble(328900.56),
-   'mars'        : np.longdouble(3098708.),
-   'jupiter'     : np.longdouble(1047.3486),
-   'saturn'      : np.longdouble(3497.898),
-   'uranus'      : np.longdouble(22902.98),
-   'neptune'     : np.longdouble(19412.24),
-   'plutocharon' : np.longdouble(1.35e8)
-}
-
-#Planet radii in meters
-Rpl = {
-   'mercury'     : np.longdouble(2439.4e3),
-   'venus'       : np.longdouble(6051.8e3),
-   'earthmoon'   : np.longdouble(6371.0084e3), # Earth only for radius
-   'mars'        : np.longdouble(3389.50e3),
-   'jupiter'     : np.longdouble(69911e3),
-   'saturn'      : np.longdouble(58232.0e3),
-   'uranus'      : np.longdouble(25362.e3),
-   'neptune'     : np.longdouble(24622.e3),
-   'plutocharon' : np.longdouble(1188.3e3)
-}
-
-THIRDLONG = np.longdouble(1.0) / np.longdouble(3.0)
 
 swifter_input  = "param.swifter.in"
 swifter_pl     = "pl.swifter.in"
@@ -79,23 +21,29 @@ swiftest_cb    = "cb.swiftest.in"
 swiftest_bin   = "bin.swiftest.dat"
 swiftest_enc   = "enc.swiftest.dat"
 
+MU2KG = swiftest.MSun
+TU2S = swiftest.YR2S
+DU2M = swiftest.AU2M
+
+GMSun = swiftest.GMSunSI * TU2S**2 / DU2M**3
+
 # Simple initial conditions of a circular planet with one test particle in a close encounter state
 # Simulation start, stop, and output cadence times
 t_0	  = 0 # simulation start time
-deltaT	= 0.25 * JD / TU2S   # simulation step size
-end_sim = year / TU2S #10 * JD / TU2S # simulation end time
+deltaT	= 0.25 * swiftest.JD2S / TU2S   # simulation step size
+end_sim = 0.15
 t_print = deltaT  #output interval to print results
 
 iout = int(np.ceil(t_print / deltaT))
-rmin = Rsun / DU2M
+rmin = swiftest.RSun / swiftest.AU2M
 rmax = 1000.0
 
 npl = 1
 plid = 2
 tpid = 100
 
-radius = np.double(Rpl['earthmoon'] / DU2M)
-mass = np.double(GMSun * MSun_over_Mpl['earthmoon']**-1)
+radius = np.double(4.25875607065041e-05)
+mass = np.double(0.00012002693582795244940133) 
 apl = np.longdouble(1.0)
 atp = np.longdouble(1.01)
 vpl = np.longdouble(2 * np.pi)
@@ -107,7 +55,7 @@ v_pl = np.array([0.0, vpl, 0.0], dtype=np.double)
 p_tp = np.array([atp, 0.0, 0.0], dtype=np.double)
 v_tp = np.array([0.0, vtp, 0.0], dtype=np.double)
 
-Rhill = apl * ((3 * MSun_over_Mpl['earthmoon'])**(-THIRDLONG))
+Rhill = apl * 0.0100447248332378922085
 
 #Make Swifter files
 plfile = open(swifter_pl, 'w')
@@ -142,8 +90,8 @@ print(f'BIN_OUT       {swifter_bin}')
 print(f'OUT_TYPE      REAL8')
 print(f'OUT_FORM      XV')
 print(f'OUT_STAT      UNKNOWN')
-print(f'J2            {J2}')
-print(f'J4            {J4}')
+print(f'J2            {swiftest.J2Sun}')
+print(f'J4            {swiftest.J4Sun}')
 print(f'CHK_CLOSE     yes')
 print(f'CHK_RMIN      {rmin}')
 print(f'CHK_RMAX      {rmax}')
@@ -160,10 +108,11 @@ sys.stdout = sys.__stdout__
 #Now make Swiftest files
 cbfile = FortranFile(swiftest_cb, 'w')
 Msun = np.double(1.0)
+cbfile.write_record(0)
 cbfile.write_record(np.double(GMSun))
 cbfile.write_record(np.double(rmin))
-cbfile.write_record(np.double(J2))
-cbfile.write_record(np.double(J4))
+cbfile.write_record(np.double(swiftest.J2Sun))
+cbfile.write_record(np.double(swiftest.J4Sun))
 cbfile.close()
 
 plfile = FortranFile(swiftest_pl, 'w')

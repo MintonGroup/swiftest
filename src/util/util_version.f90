@@ -1,7 +1,7 @@
-submodule (util) s_util_version
+submodule (swiftest_classes) s_util_version
    use swiftest
 contains
-   module procedure util_version
+   module subroutine util_version()
       !! author: David A. Minton
       !!
       !! Print program version information to terminale
@@ -47,6 +47,6 @@ contains
                   "************************************************", /)
 
       return
-   end procedure util_version
+   end subroutine util_version
 
 end submodule s_util_version

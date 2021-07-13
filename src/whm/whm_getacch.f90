@@ -32,7 +32,7 @@ contains
          call whm_getacch_ah2(cb, pl) 
          call whm_getacch_ah3(pl)
 
-         if (param%loblatecb) then 
+         if (param%loblatecb) then
             cb%aoblbeg = cb%aobl
             call pl%accel_obl(system)
             cb%aoblend = cb%aobl
@@ -97,13 +97,14 @@ contains
       ! Result
       real(DP), dimension(NDIM)                    :: ah0
       ! Internals
-      real(DP)                                     :: fac, r2, ir3h
+      real(DP)                                     :: fac, r2, ir3h, irh
       integer(I4B)                                 :: i
 
       ah0(:) = 0.0_DP
       do i = 1, n
          r2 = dot_product(xhp(:, i), xhp(:, i))
-         ir3h = 1.0_DP / (r2 * sqrt(r2))
+         irh = 1.0_DP / sqrt(r2)
+         ir3h = irh / r2
          fac = mu(i) * ir3h 
          ah0(:) = ah0(:) - fac * xhp(:, i)
       end do

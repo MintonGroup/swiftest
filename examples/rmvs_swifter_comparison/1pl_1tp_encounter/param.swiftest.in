@@ -1,6 +1,6 @@
 ! Swiftest input file generated using init_cond.py
 T0             0 
-TSTOP          1.0
+TSTOP          0.15
 DT             0.0006844626967830253
 CB_IN          cb.swiftest.in
 PL_IN          pl.swiftest.in

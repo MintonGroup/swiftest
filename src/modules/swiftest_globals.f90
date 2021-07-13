@@ -109,9 +109,9 @@ module swiftest_globals
    character(*), parameter :: ENC_OUTFILE  = 'encounter.out'
    character(*), parameter :: DISCARD_FILE = 'discard.out'
    character(*), parameter :: ENERGY_FILE  = 'energy.out'
-   character(*), parameter :: CB_INFILE    = 'cb_out.dat'
-   character(*), parameter :: PL_INFILE    = 'pl_out.dat'
-   character(*), parameter :: TP_INFILE    = 'tp_out.dat'
+   character(*), parameter :: CB_INFILE    = 'cb.in'
+   character(*), parameter :: PL_INFILE    = 'pl.in'
+   character(*), parameter :: TP_INFILE    = 'tp.in'
    character(*), parameter :: BIN_OUTFILE  = 'bin.dat'
    integer(I4B), parameter :: BINUNIT      = 20 !! File unit number for the binary output file
 
@@ -121,6 +121,6 @@ module swiftest_globals
    real(DP),     parameter :: VSMALL    = 4.0E-15_DP
 
    real(DP), parameter :: GC       = 6.6743E-11_DP   !! Universal gravitational constant in SI units
-   real(DP), parameter :: einstinC = 299792458.0_DP  !! Speed of light in SI units
+   real(DP), parameter :: einsteinC = 299792458.0_DP  !! Speed of light in SI units
 
 end module swiftest_globals
