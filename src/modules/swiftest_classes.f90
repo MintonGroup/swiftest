@@ -12,15 +12,15 @@ module swiftest_classes
    public :: gr_getaccb_ns_body, gr_p4_pos_kick, gr_pseudovel2vel, gr_vel2pseudovel
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, io_read_initialize_system, &
-             io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
+             io_toupper, io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
    public :: kickvh_body
    public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_pl, setup_tp
    public :: user_getacch_body
-   public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_fill_body, util_fill_pl, util_fill_tp, &
-             util_reverse_status, util_set_beg_end_cb, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
-             util_set_mu_tp, util_set_rhill, util_spill_body, util_spill_pl, util_spill_tp
+   public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_exit, util_fill_body, util_fill_pl, util_fill_tp, &
+             util_index, util_peri_tp, util_reverse_status, util_set_beg_end_cb, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
+             util_set_mu_tp, util_set_rhill, util_sort, util_spill_body, util_spill_pl, util_spill_tp, util_valid, util_version
 
    !********************************************************************************************************************************
    ! swiftest_parameters class definitions 
@@ -236,6 +236,7 @@ module swiftest_classes
       procedure, public :: h2b           => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
       procedure, public :: b2h           => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure, public :: fill          => util_fill_tp         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: get_peri      => util_peri_tp         !! Determine system pericenter passages for test particles 
       procedure, public :: spill         => util_spill_tp        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_tp
 
@@ -546,6 +547,11 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_discard
 
+      module subroutine io_toupper(string)
+         implicit none
+         character(*), intent(inout) :: string !! String to make upper case
+      end subroutine io_toupper
+
       module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
                                            xh1, xh2, vh1, vh2, encounter_file, out_type)
          implicit none
@@ -650,34 +656,6 @@ module swiftest_classes
          integer,            intent(in)    :: n    !! Number of massive bodies to allocate space for
       end subroutine setup_pl
 
-      module subroutine util_set_ir3h(self)
-         implicit none
-         class(swiftest_body), intent(inout) :: self !! Swiftest body object
-      end subroutine util_set_ir3h
-
-      module subroutine util_set_msys(self)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
-      end subroutine util_set_msys
-
-      module subroutine util_set_mu_pl(self, cb)
-         implicit none
-         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine util_set_mu_pl
-
-      module subroutine util_set_mu_tp(self, cb)
-         implicit none
-         class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine util_set_mu_tp
-
-      module subroutine util_set_rhill(self,cb)
-         implicit none
-         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest massive body object
-      end subroutine util_set_rhill
-
       module subroutine setup_tp(self, n)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
@@ -717,6 +695,11 @@ module swiftest_classes
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
 
+      module subroutine util_exit(code)
+         implicit none
+         integer(I4B), intent(in) :: code !! Failure exit code
+      end subroutine util_exit
+
       module subroutine util_fill_body(self, inserts, lfill_list)
          implicit none
          class(swiftest_body),  intent(inout) :: self       !! Swiftest body object
@@ -738,6 +721,19 @@ module swiftest_classes
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_tp
 
+      module subroutine util_index(arr, index)
+         implicit none
+         integer(I4B), dimension(:), intent(out) :: index
+         real(DP), dimension(:), intent(in)   :: arr
+      end subroutine util_index
+
+      module subroutine util_peri_tp(self, system, param) 
+         implicit none
+         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      end subroutine util_peri_tp
+
       module subroutine util_reverse_status(self)
          implicit none
          class(swiftest_body), intent(inout) :: self !! Swiftest body object
@@ -758,6 +754,53 @@ module swiftest_classes
          real(DP), dimension(:,:), intent(in),   optional :: vbeg !! vbeg is an unused variable to keep this method forward compatible with RMVS
       end subroutine util_set_beg_end_pl
 
+      module subroutine util_set_ir3h(self)
+         implicit none
+         class(swiftest_body), intent(inout) :: self !! Swiftest body object
+      end subroutine util_set_ir3h
+
+      module subroutine util_set_msys(self)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
+      end subroutine util_set_msys
+
+      module subroutine util_set_mu_pl(self, cb)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_set_mu_pl
+
+      module subroutine util_set_mu_tp(self, cb)
+         implicit none
+         class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_set_mu_tp
+
+      module subroutine util_set_rhill(self,cb)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest massive body object
+      end subroutine util_set_rhill
+   end interface
+
+   interface util_sort
+      module subroutine util_sort_i4b(arr)
+         implicit none
+         integer(I4B), dimension(:), intent(inout) :: arr
+      end subroutine util_sort_i4b
+
+      module subroutine util_sort_sp(arr)
+         implicit none
+         real(SP), dimension(:), intent(inout) :: arr
+      end subroutine util_sort_sp
+
+      module subroutine util_sort_dp(arr)
+         implicit none
+         real(DP), dimension(:), intent(inout) :: arr
+      end subroutine util_sort_dp
+   end interface
+
+   interface
       module subroutine util_spill_body(self, discards, lspill_list)
          implicit none
          class(swiftest_body), intent(inout) :: self        !! Swiftest body object
@@ -779,6 +822,15 @@ module swiftest_classes
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
       end subroutine util_spill_tp
 
+      module subroutine util_valid(pl, tp)
+         implicit none
+         class(swiftest_pl), intent(in) :: pl
+         class(swiftest_tp), intent(in) :: tp
+      end subroutine util_valid
+
+      module subroutine util_version()
+         implicit none
+      end subroutine util_version
    end interface
 
 end module swiftest_classes

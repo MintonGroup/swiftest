@@ -60,18 +60,18 @@ contains
                ! Read the pair of tokens. The first one is the parameter name, the second is the value.
                param_name = io_get_token(line_trim, ifirst, ilast, iostat)
                if (param_name == '') cycle ! No parameter name (usually because this line is commented out)
-               call util_toupper(param_name)
+               call io_toupper(param_name)
                ifirst = ilast + 1
                param_value = io_get_token(line_trim, ifirst, ilast, iostat)
                select case (param_name)
                case ("FRAGMENTATION")
-                  call util_toupper(param_value)
+                  call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
                case ("ROTATION")
-                  call util_toupper(param_value)
+                  call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') self%lrotation = .true. 
                case ("TIDES")
-                  call util_toupper(param_value)
+                  call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') self%ltides = .true. 
                case ("MTINY")
                   read(param_value, *) param%mtiny

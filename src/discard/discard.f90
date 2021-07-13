@@ -129,35 +129,29 @@ contains
       real(DP)                  :: r2
       real(DP), dimension(NDIM) :: dx
    
-      associate(cb => system%cb, ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, qmin_coord => param%qmin_coord, t => param%t, msys => system%msys)
-         if (lfirst) then
-            call util_hills(npl, pl)
-            call util_peri(lfirst, ntp, tp, cb%Gmass, msys, param%qmin_coord)
-            lfirst = .false.
-         else
-            call util_peri(lfirst, ntp, tp, cb%Gmass, msys, param%qmin_coord)
-            do i = 1, ntp
-               if (tp%status(i) == ACTIVE) then
-                  if (tp%isperi(i) == 0) then
-                     ih = 1
-                     do j = 1, npl
-                        dx(:) = tp%xh(:, i) - pl%xh(:, j)
-                        r2 = dot_product(dx(:), dx(:))
-                        if (r2 <= (pl%rhill(j))**2) ih = 0
-                     end do
-                     if (ih == 1) then
-                        if ((tp%atp(i) >= param%qmin_alo) .and.    &
-                           (tp%atp(i) <= param%qmin_ahi) .and.    &           
-                           (tp%peri(i) <= param%qmin)) then
-                           tp%status(i) = DISCARDED_PERI
-                           write(*, *) "Particle ", tp%id(i), " perihelion distance too small at t = ", t
-                           tp%ldiscard(i) = .true.
-                        end if
+      associate(cb => system%cb, ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, t => param%t)
+         call tp%get_peri(system, param)
+         do i = 1, ntp
+            if (tp%status(i) == ACTIVE) then
+               if (tp%isperi(i) == 0) then
+                  ih = 1
+                  do j = 1, npl
+                     dx(:) = tp%xh(:, i) - pl%xh(:, j)
+                     r2 = dot_product(dx(:), dx(:))
+                     if (r2 <= (pl%rhill(j))**2) ih = 0
+                  end do
+                  if (ih == 1) then
+                     if ((tp%atp(i) >= param%qmin_alo) .and.    &
+                        (tp%atp(i) <= param%qmin_ahi) .and.    &           
+                        (tp%peri(i) <= param%qmin)) then
+                        tp%status(i) = DISCARDED_PERI
+                        write(*, *) "Particle ", tp%id(i), " perihelion distance too small at t = ", t
+                        tp%ldiscard(i) = .true.
                      end if
                   end if
                end if
-            end do
-         end if
+            end if
+         end do
       end associate
       return
    

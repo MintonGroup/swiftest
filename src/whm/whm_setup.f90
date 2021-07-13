@@ -78,7 +78,7 @@ contains
       !!
       implicit none
       ! Arguments
-      class(whm_nbody_system),       intent(inout) :: self    !! Swiftest system object
+      class(whm_nbody_system),    intent(inout) :: self    !! Swiftest system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of on parameters 
 
       call io_read_initialize_system(self, param)

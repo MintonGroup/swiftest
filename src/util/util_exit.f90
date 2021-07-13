@@ -1,29 +1,33 @@
-submodule (util) s_util_exit
+submodule (swiftest_classes) s_util_exit
    use swiftest
 contains
-   module procedure util_exit
-   !! author: David A. Minton
-   !!
-   !! Print termination message and exit program
-   !!
-   !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90
-   !! Adapted from Hal Levison's Swift routine util_exit.f
-   character(*), parameter :: BAR = '("------------------------------------------------")'
+   module subroutine util_exit(code)
+      !! author: David A. Minton
+      !!
+      !! Print termination message and exit program
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90
+      !! Adapted from Hal Levison's Swift routine util_exit.f
+      implicit none
+      ! Arguments
+      integer(I4B), intent(in) :: code
+      ! Internals
+      character(*), parameter :: BAR = '("------------------------------------------------")'
 
-   select case(code)
-   case(SUCCESS)
-      write(*, SUCCESS_MSG) VERSION_NUMBER
-      write(*, BAR)
-   case(USAGE) 
-      write(*, USAGE_MSG)
-   case(HELP)
-      write(*, HELP_MSG)
-   case default
-      write(*, FAIL_MSG) VERSION_NUMBER
-      write(*, BAR)
-   end select
+      select case(code)
+      case(SUCCESS)
+         write(*, SUCCESS_MSG) VERSION_NUMBER
+         write(*, BAR)
+      case(USAGE) 
+         write(*, USAGE_MSG)
+      case(HELP)
+         write(*, HELP_MSG)
+      case default
+         write(*, FAIL_MSG) VERSION_NUMBER
+         write(*, BAR)
+      end select
 
-   stop
+      stop
 
-   end procedure util_exit
+   end subroutine util_exit
 end submodule s_util_exit

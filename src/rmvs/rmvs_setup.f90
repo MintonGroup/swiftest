@@ -12,7 +12,7 @@ contains
       class(rmvs_pl), intent(inout) :: self !! RMVS test particle object
       integer(I4B),   intent(in)    :: n    !! Number of massive bodies to allocate
       ! Internals
-      integer(I4B)                   :: i,j
+      integer(I4B)                  :: i,j
 
       !> Call allocation method for parent class
       associate(pl => self)

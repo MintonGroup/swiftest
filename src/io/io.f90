@@ -41,7 +41,7 @@ contains
             ! Read the pair of tokens. The first one is the parameter name, the second is the value.
             param_name = io_get_token(line_trim, ifirst, ilast, iostat)
             if (param_name == '') cycle ! No parameter name (usually because this line is commented out)
-            call util_toupper(param_name)
+            call io_toupper(param_name)
             ifirst = ilast + 1
             param_value = io_get_token(line_trim, ifirst, ilast, iostat)
             select case (param_name)
@@ -61,25 +61,25 @@ contains
             case ("TP_IN")
                self%intpfile = param_value
             case ("IN_TYPE")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                self%in_type = param_value
             case ("ISTEP_OUT")
                read(param_value, *) self%istep_out
             case ("BIN_OUT")
                self%outfile = param_value
             case ("OUT_TYPE")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                self%out_type = param_value
             case ("OUT_FORM")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                self%out_form = param_value
             case ("OUT_STAT")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                self%out_stat = param_value
             case ("ISTEP_DUMP")
                read(param_value, *) self%istep_dump
             case ("CHK_CLOSE")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T') self%lclose = .true.
             case ("CHK_RMIN")
                read(param_value, *) self%rmin
@@ -90,7 +90,7 @@ contains
             case ("CHK_QMIN")
                read(param_value, *) self%qmin
             case ("CHK_QMIN_COORD")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                self%qmin_coord = param_value
             case ("CHK_QMIN_RANGE")
                read(param_value, *) self%qmin_alo
@@ -100,13 +100,13 @@ contains
             case ("ENC_OUT")
                self%encounter_file = param_value
             case ("EXTRA_FORCE")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T') self%lextra_force = .true.
             case ("BIG_DISCARD")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T' ) self%lbig_discard = .true.
             case ("RHILL_PRESENT")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T' ) self%lrhill_present = .true.
             case ("MU2KG")
                read(param_value, *) self%MU2KG
@@ -115,10 +115,10 @@ contains
             case ("DU2M")
                read(param_value, *) self%DU2M
             case ("ENERGY")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T') self%lenergy = .true.
             case ("GR")
-               call util_toupper(param_value)
+               call io_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T') self%lgr = .true. 
             case ("NPLMAX", "NTPMAX", "MTINY", "PARTICLE_FILE", "ROTATION", "TIDES", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
             case default
@@ -470,7 +470,7 @@ contains
          call get_command_argument(2, arg2, status = ierr_arg2)
          if ((ierr_arg1 == 0) .and. (ierr_arg2 == 0)) then
             ierr = 0
-            call util_toupper(arg1)
+            call io_toupper(arg1)
             select case(arg1)
             case('BS')
                integrator = BS
@@ -951,6 +951,31 @@ contains
       call self%tp%set_mu(self%cb) 
    
    end subroutine io_read_initialize_system
+
+   module subroutine io_toupper(string)
+      !! author: David A. Minton
+      !!
+      !! Convert string to uppercase
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: util_toupper.f90
+      implicit none
+      ! Arguments
+      character(*), intent(inout) :: string !! String to make upper case
+      ! Internals
+      integer(I4B) :: i, length, idx
+   
+      length = len(string)
+      do i = 1, length
+         idx = iachar(string(i:i))
+         if ((idx >= lowercase_begin) .and. (idx <= lowercase_end)) then
+            idx = idx + uppercase_offset
+            string(i:i) = achar(idx)
+         end if
+      end do
+   
+      return
+   
+   end subroutine io_toupper
 
    module subroutine io_write_discard(self, param)
       !! author: David A. Minton

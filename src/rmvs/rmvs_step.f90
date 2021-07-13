@@ -449,7 +449,6 @@ contains
       return
    end subroutine rmvs_make_planetocentric
 
-
    subroutine rmvs_peri_tp(tp, pl, t, dt, lfirst, inner_index, ipleP, param)
       !! author: David A. Minton
       !!
