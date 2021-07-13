@@ -688,7 +688,7 @@ contains
       is_ascii = (param%in_type == 'ASCII') 
       if (is_ascii) then
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
-         read(iu, *, iostat = ierr) self%id
+         !read(iu, *, iostat = ierr) self%id
          read(iu, *, iostat = ierr) val 
          self%Gmass = real(val, kind=DP)
          self%mass = real(val / param%GU, kind=DP)
