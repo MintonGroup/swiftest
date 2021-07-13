@@ -17,6 +17,7 @@ module swiftest_classes
    public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_pl, setup_tp
+   public :: tides_getacch_pl
    public :: user_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_exit, util_fill_body, util_fill_pl, util_fill_tp, &
              util_index, util_peri_tp, util_reverse_status, util_set_beg_end_cb, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
@@ -214,6 +215,7 @@ module swiftest_classes
       procedure, public :: eucl_index   => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure, public :: eucl_irij3   => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
       procedure, public :: accel_obl    => obl_acc_pl           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure, public :: accel_tides  => tides_getacch_pl     !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure, public :: setup        => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_mu       => util_set_mu_pl       !! Method used to construct the vectorized form of the central body mass
       procedure, public :: set_rhill    => util_set_rhill       !! Calculates the Hill's radii for each body
@@ -673,6 +675,12 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          integer,            intent(in)    :: n    !! Number of bodies to allocate space for
       end subroutine setup_tp
+
+      module subroutine tides_getacch_pl(self, system)
+         implicit none
+         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      end subroutine tides_getacch_pl
 
       module subroutine user_getacch_body(self, system, param, t, lbeg)
          implicit none
