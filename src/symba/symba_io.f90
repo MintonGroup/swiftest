@@ -67,12 +67,6 @@ contains
                case ("FRAGMENTATION")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
-               case ("ROTATION")
-                  call io_toupper(param_value)
-                  if (param_value == "YES" .or. param_value == 'T') self%lrotation = .true. 
-               case ("TIDES")
-                  call io_toupper(param_value)
-                  if (param_value == "YES" .or. param_value == 'T') self%ltides = .true. 
                case ("MTINY")
                   read(param_value, *) param%mtiny
                case("SEED")
@@ -112,8 +106,6 @@ contains
             end if
             write(*,*) "SEED: N,VAL    = ",size(param%seed), param%seed(:)
          end if
-         write(*,*) "ROTATION      = ", param%lrotation
-         write(*,*) "TIDES         = ", param%ltides
 
          if (self%mtiny < 0.0_DP) then
             write(iomsg,*) "MTINY invalid or not set: ", self%mtiny
@@ -169,8 +161,6 @@ contains
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
          write(param_name, Afmt) "PARTICLE_FILE"; write(param_value, Afmt) trim(adjustl(param%particle_file)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "MTINY"; write(param_value, Rfmt) param%mtiny; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          if (param%lfragmentation) then
             write(param_name, Afmt) "SEED"
@@ -197,81 +187,6 @@ contains
 
    end subroutine symba_io_param_writer
 
-   module subroutine symba_io_read_frame_cb(self, iu, param, form, ierr)
-      !! author: David A. Minton
-      !!
-      !! Reads a frame of output of central body data to the binary output file
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_read_frame.f90
-      !! Adapted from Hal Levison's Swift routine io_read_frame.F
-      implicit none
-      ! Arguments
-      class(symba_cb),            intent(inout) :: self     !! Swiftest central body object
-      integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-      character(*),               intent(in)    :: form     !! Input format code ("XV" or "EL")
-      integer(I4B),               intent(out)   :: ierr     !! Error code
-
-      call io_read_frame_cb(self, iu, param, form, ierr)
-      select type(param)
-      class is (symba_parameters)
-         if (param%lrotation) then
-            read(iu, iostat = ierr) self%Ip(:)
-            read(iu, iostat = ierr) self%rot(:)
-         end if
-         if (param%ltides) then
-            read(iu, iostat = ierr) self%k2
-            read(iu, iostat = ierr) self%Q
-         end if
-      end select
-      if (ierr /=0) then
-         write(*,*) 'Error reading SyMBA central body data'
-         call util_exit(FAILURE)
-      end if
-      return
-   end subroutine symba_io_read_frame_cb
-
-   module subroutine symba_io_read_frame_pl(self, iu, param, form, ierr)
-      !! author: David A. Minton
-      !!
-      !! Reads a frame of output of a SyMBA massive body object 
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_read_frame.f90
-      !! Adapted from Hal Levison's Swift routine io_read_frame.F
-      implicit none
-      ! Arguments
-      class(symba_pl),            intent(inout) :: self    !! Swiftest particle object
-      integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
-      integer(I4B),               intent(out)   :: ierr    !! Error code
-
-      call io_read_frame_body(self, iu, param, form, ierr)
-      select type(param)
-      class is (symba_parameters)
-         associate(pl => self, npl => self%nbody)
-            if (param%lrotation) then
-               read(iu, iostat = ierr) pl%rot(1, 1:npl)
-               read(iu, iostat = ierr) pl%rot(2, 1:npl)
-               read(iu, iostat = ierr) pl%rot(3, 1:npl)
-               read(iu, iostat = ierr) pl%Ip(1, 1:npl)
-               read(iu, iostat = ierr) pl%Ip(2, 1:npl)
-               read(iu, iostat = ierr) pl%Ip(3, 1:npl)
-            end if
-            if (param%ltides) then
-               read(iu, iostat = ierr) pl%k2(1:npl)
-               read(iu, iostat = ierr) pl%Q(1:npl)
-            end if
-         end associate
-      end select
-
-      if (ierr /=0) then
-         write(*,*) 'Error reading SyMBA massive body body data'
-         call util_exit(FAILURE)
-      end if
-      return
-   end subroutine symba_io_read_frame_pl
-
    module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
       !! author: David A. Minton
       !!
@@ -286,159 +201,6 @@ contains
       ierr = 0
    end subroutine symba_io_read_frame_info
 
-   module subroutine symba_io_read_cb_in(self, param) 
-      !! author: David A. Minton
-      !!
-      !! Reads in central body data 
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine swiftest_init_pl.f90
-      !! Adapted from Martin Duncan's Swift routine swiftest_init_pl.f
-      implicit none
-      ! Arguments
-      class(symba_cb),            intent(inout) :: self
-      class(swiftest_parameters), intent(inout) :: param
-      ! Internals
-      integer(I4B), parameter :: LUN = 7              !! Unit number of input file
-      integer(I4B)            :: iu = LUN
-      integer(I4B)            :: ierr
-      logical                 :: is_ascii 
-      real(DP)                :: t
-      real(QP)                :: val
-
-      select type(param)
-      class is (symba_parameters)
-         ierr = 0
-         is_ascii = (param%in_type == 'ASCII') 
-         if (is_ascii) then
-            open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
-            read(iu, *, iostat = ierr) val 
-            self%Gmass = real(val, kind=DP)
-            self%mass = real(val / param%GU, kind=DP)
-            read(iu, *, iostat = ierr) self%radius
-            read(iu, *, iostat = ierr) self%j2rp2
-            read(iu, *, iostat = ierr) self%j4rp4
-            if (param%lrotation) then
-               read(iu, *, iostat = ierr) self%Ip(:)
-               read(iu, *, iostat = ierr) self%rot(:)
-            end if
-            if (param%ltides) then
-               read(iu, *, iostat = ierr) self%k2
-               read(iu, *, iostat = ierr) self%Q
-            end if
-         else
-            open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
-            call self%read_frame(iu, param, XV, ierr)
-         end if
-         close(iu)
-         if (ierr /=  0) then
-            write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(param%incbfile))
-            call util_exit(FAILURE)
-         end if
-         if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
-      end select
-
-      return
-   end subroutine symba_io_read_cb_in
-
-   module subroutine symba_io_read_pl_in(self, param) 
-      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
-      !!
-      !! Read in either test particle or massive body data 
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine swiftest_init_pl.f90 and swiftest_init_tp.f90
-      !! Adapted from Martin Duncan's Swift routine swiftest_init_pl.f and swiftest_init_tp.f
-      implicit none
-      ! Arguments
-      class(symba_pl),            intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      ! Internals
-      integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
-      integer(I4B)                  :: iu = LUN
-      integer(I4B)                  :: i, ierr, nbody
-      logical                       :: is_ascii
-      character(len=:), allocatable :: infile
-      real(DP)                      :: t
-      real(QP)                      :: val
-
-      select type(param)
-      class is (symba_parameters)
-         ierr = 0
-         is_ascii = (param%in_type == 'ASCII') 
-         select case(param%in_type)
-         case(ASCII_TYPE)
-            open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', iostat = ierr)
-            read(iu, *, iostat = ierr) nbody
-            call self%setup(nbody)
-            if (nbody > 0) then
-               do i = 1, nbody
-                  read(iu, *, iostat = ierr) self%id(i), val 
-                  self%mass(i) = real(val / param%GU, kind=DP)
-                  self%Gmass(i) = real(val, kind=DP)
-                  read(iu, *, iostat = ierr) self%radius(i)
-                  if (param%lrotation) then
-                     read(iu, iostat = ierr) self%Ip(:, i)
-                     read(iu, iostat = ierr) self%rot(:, i)
-                  end if
-                  if (param%ltides) then
-                     read(iu, iostat = ierr) self%k2(i)
-                     read(iu, iostat = ierr) self%Q(i)
-                  end if
-                  if (ierr /= 0 ) exit
-                  read(iu, *, iostat = ierr) self%xh(1, i), self%xh(2, i), self%xh(3, i)
-                  read(iu, *, iostat = ierr) self%vh(1, i), self%vh(2, i), self%vh(3, i)
-                  if (ierr /= 0 ) exit
-                  self%status(i) = ACTIVE
-               end do
-            end if
-         case (REAL4_TYPE, REAL8_TYPE)  
-            open(unit = iu, file = infile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
-            read(iu, iostat = ierr) nbody
-            call self%setup(nbody)
-            if (nbody > 0) then
-               call self%read_frame(iu, param, XV, ierr)
-               self%status(:) = ACTIVE
-            end if
-         case default
-            write(*,*) trim(adjustl(param%in_type)) // ' is an unrecognized file type'
-            ierr = -1
-         end select
-         close(iu)
-         if (ierr /= 0 ) then
-            write(*,*) 'Error reading in initial conditions from ',trim(adjustl(infile))
-            call util_exit(FAILURE)
-         end if
-      end select
-
-      return
-   end subroutine symba_io_read_pl_in
-
-   module subroutine symba_io_write_frame_cb(self, iu, param)
-      !! author: David A. Minton
-      !!
-      !! Writes a single frame of a SyMBA pl file 
-      implicit none
-      class(symba_cb),            intent(in)    :: self  !! SyMBA massive body object
-      integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-
-      call io_write_frame_cb(self, iu, param)
-      select type(param)
-      class is (symba_parameters)
-         if (param%lrotation) then
-            write(iu) self%rot(1)
-            write(iu) self%rot(2)
-            write(iu) self%rot(3)
-            write(iu) self%Ip(1)
-            write(iu) self%Ip(2)
-            write(iu) self%Ip(3)
-         end if
-         if (param%ltides) then
-            write(iu) self%k2
-            write(iu) self%Q
-         end if
-      end select
-   end subroutine symba_io_write_frame_cb
-
    module subroutine symba_io_write_frame_info(self, iu, param)
       implicit none
       class(symba_particle_info), intent(in)    :: self  !! SyMBA particle info object
@@ -446,34 +208,6 @@ contains
       class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
    end subroutine symba_io_write_frame_info 
 
-   module subroutine symba_io_write_frame_pl(self, iu, param)
-      !! author: David A. Minton
-      !!
-      !! Writes a single frame of a SyMBA pl file 
-      implicit none
-      class(symba_pl),            intent(in)    :: self  !! SyMBA massive body object
-      integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-
-      call io_write_frame_body(self, iu, param)
-      select type(param)
-      class is (symba_parameters)
-         associate(pl => self, npl => self%nbody)
-            if (param%lrotation) then
-               write(iu) pl%rot(1, 1:npl)
-               write(iu) pl%rot(2, 1:npl)
-               write(iu) pl%rot(3, 1:npl)
-               write(iu) pl%Ip(1, 1:npl)
-               write(iu) pl%Ip(2, 1:npl)
-               write(iu) pl%Ip(3, 1:npl)
-            end if
-            if (param%ltides) then
-               write(iu) pl%k2(1:npl)
-               write(iu) pl%Q(1:npl)
-            end if
-         end associate
-      end select
-   end subroutine symba_io_write_frame_pl
 
 end submodule s_symba_io
 

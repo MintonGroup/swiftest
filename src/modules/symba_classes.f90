@@ -20,8 +20,6 @@ module symba_classes
       real(DP)                                :: MTINY          = -1.0_DP            !! Smallest mass that is fully gravitating
       integer(I4B), dimension(:), allocatable :: seed  !! Random seeds
       logical                                 :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
-      logical                                 :: lrotation      = .false. !! Include rotation states of big bodies
-      logical                                 :: ltides         = .false. !! Include tidal dissipation 
    contains
       private
       procedure, public :: reader => symba_io_param_reader
@@ -33,21 +31,12 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA central body particle class
    type, public, extends(helio_cb) :: symba_cb
-      real(DP), dimension(NDIM) :: Ip  = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
-      real(DP), dimension(NDIM) :: rot = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP)                  :: k2  = 0.0_DP !! Tidal Love number
-      real(DP)                  :: Q   = 0.0_DP !! Tidal quality factor
-      real(DP), dimension(NDIM) :: L0  = 0.0_DP !! Initial angular momentum of the central body
-      real(DP), dimension(NDIM) :: dL  = 0.0_DP !! Change in angular momentum of the central body
       real(DP)                  :: M0  = 0.0_DP !! Initial mass of the central body
       real(DP)                  :: dM  = 0.0_DP !! Change in mass of the central body
       real(DP)                  :: R0  = 0.0_DP !! Initial radius of the central body
       real(DP)                  :: dR  = 0.0_DP !! Change in the radius of the central body
    contains
       private
-      procedure, public :: initialize  => symba_io_read_cb_in      !! I/O routine for reading in particle info data
-      procedure, public :: read_frame  => symba_io_read_frame_cb     !! I/O routine for reading out a single frame of time-series data for the central bod
-      procedure, public :: write_frame => symba_io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
    end type symba_cb
 
    !********************************************************************************************************************************
@@ -83,11 +72,6 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA massive body class
    type, public, extends(helio_pl) :: symba_pl
-      real(DP),                  dimension(:,:), allocatable :: Ip         !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). 
-                                                                           !!     Principal axis rotation assumed. 
-      real(DP),                  dimension(:,:), allocatable :: rot        !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP),                  dimension(:),   allocatable :: k2         !! Tidal Love number
-      real(DP),                  dimension(:),   allocatable :: Q          !! Tidal quality factor
       logical,                   dimension(:),   allocatable :: lcollision !! flag indicating whether body has merged with another this time step
       logical,                   dimension(:),   allocatable :: lencounter !! flag indicating whether body is part of an encounter this time step
       integer(I4B),              dimension(:),   allocatable :: nplenc     !! number of encounters with other planets this time step
@@ -103,9 +87,6 @@ module symba_classes
       private
       procedure, public :: discard         => symba_discard_pl         !! Process massive body discards
       procedure, public :: encounter_check => symba_encounter_check_pl !! Checks if massive bodies are going through close encounters with each other
-      procedure, public :: read_frame      => symba_io_read_frame_pl   !! I/O routine for reading out a single frame of time-series data for a massive body
-      procedure, public :: initialize      => symba_io_read_pl_in      !! I/O routine for reading in a massive body structure from file with SyMBA-specific parameters
-      procedure, public :: write_frame     => symba_io_write_frame_pl  !! I/O routine for writing out a single frame of time-series data for a massive body
       procedure, public :: setup           => symba_setup_pl           !! Constructor method - Allocates space for number of particle
    end type symba_pl
 
@@ -234,23 +215,6 @@ module symba_classes
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine symba_io_initialize_particle_info
 
-      module subroutine symba_io_read_cb_in(self, param) 
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_cb),            intent(inout) :: self
-         class(swiftest_parameters), intent(inout) :: param
-      end subroutine symba_io_read_cb_in
-
-      module subroutine symba_io_read_frame_cb(self, iu, param, form, ierr)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_cb),            intent(inout) :: self     !! Swiftest central body object
-         integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-         character(*),               intent(in)    :: form     !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr     !! Error code
-      end subroutine symba_io_read_frame_cb
-   
       module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -261,31 +225,6 @@ module symba_classes
          integer(I4B),               intent(out)   :: ierr  !! Error code
       end subroutine symba_io_read_frame_info
 
-      module subroutine symba_io_read_frame_pl(self, iu, param, form, ierr)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_pl),            intent(inout) :: self    !! Swiftest particle object
-         integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-         character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr    !! Error code
-      end subroutine symba_io_read_frame_pl
-
-      module subroutine symba_io_read_pl_in(self, param) 
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_pl),            intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine symba_io_read_pl_in
-
-      module subroutine symba_io_write_frame_cb(self, iu, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_cb),            intent(in)    :: self  !! SyMBA massive body object
-         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      end subroutine symba_io_write_frame_cb
-   
       module subroutine symba_io_write_frame_info(self, iu, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -293,14 +232,6 @@ module symba_classes
          integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
       end subroutine symba_io_write_frame_info 
-
-      module subroutine symba_io_write_frame_pl(self, iu, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_pl),            intent(in)    :: self  !! SyMBA massive body object
-         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      end subroutine symba_io_write_frame_pl
 
       module subroutine symba_setup_pl(self,n)
          implicit none

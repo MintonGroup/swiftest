@@ -67,6 +67,8 @@ module swiftest_classes
       logical :: lclose         = .false. !! Turn on close encounters
       logical :: lenergy        = .false. !! Track the total energy of the system
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
+      logical :: lrotation      = .false. !! Include rotation states of big bodies
+      logical :: ltides         = .false. !! Include tidal dissipation 
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
@@ -114,6 +116,12 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: xb      = 0.0_DP !! Barycentric position (units DU)
       real(DP), dimension(NDIM) :: vb      = 0.0_DP !! Barycentric velocity (units DU / TU)
       real(DP), dimension(NDIM) :: agr     = 0.0_DP !! Acceleration due to post-Newtonian correction
+      real(DP), dimension(NDIM) :: Ip      = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
+      real(DP), dimension(NDIM) :: rot     = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
+      real(DP)                  :: k2      = 0.0_DP !! Tidal Love number
+      real(DP)                  :: Q       = 0.0_DP !! Tidal quality factor
+      real(DP), dimension(NDIM) :: L0      = 0.0_DP !! Initial angular momentum of the central body
+      real(DP), dimension(NDIM) :: dL      = 0.0_DP !! Change in angular momentum of the central body
    contains
       private
       procedure, public         :: initialize  => io_read_cb_in        !! I/O routine for reading in central body data
@@ -192,6 +200,10 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: xend    !! Position at end of step
       real(DP),     dimension(:,:), allocatable :: vbeg    !! Velocity at beginning of step
       real(DP),     dimension(:),   allocatable :: density !! Body mass density - calculated internally (units MU / DU**3)
+      real(DP),     dimension(:,:), allocatable :: Ip      !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
+      real(DP),     dimension(:,:), allocatable :: rot     !! Body rotation vector in inertial coordinate frame (units rad / TU)
+      real(DP),     dimension(:),   allocatable :: k2      !! Tidal Love number
+      real(DP),     dimension(:),   allocatable :: Q       !! Tidal quality factor
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and util_spill_pl
    contains

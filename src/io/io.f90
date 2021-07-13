@@ -120,7 +120,13 @@ contains
             case ("GR")
                call io_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T') self%lgr = .true. 
-            case ("NPLMAX", "NTPMAX", "MTINY", "PARTICLE_FILE", "ROTATION", "TIDES", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+            case ("ROTATION")
+               call io_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%lrotation = .true. 
+            case ("TIDES")
+               call io_toupper(param_value)
+               if (param_value == "YES" .or. param_value == 'T') self%ltides = .true. 
+            case ("NPLMAX", "NTPMAX", "MTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
             case default
                write(iomsg,*) "Unknown parameter -> ",param_name
                iostat = -1
@@ -192,6 +198,11 @@ contains
             return
          end if
       end if
+      if (self%ltides .and. .not. self%lrotation) then
+         write(iomsg,*) 'Tides require rotation to be turned on'
+         iostat = -1
+         return
+      end if
 
       write(*,*) "T0             = ",self%t0
       write(*,*) "TSTOP          = ",self%tstop
@@ -217,6 +228,8 @@ contains
       write(*,*) "EXTRA_FORCE    = ",self%lextra_force
       write(*,*) "BIG_DISCARD    = ",self%lbig_discard
       write(*,*) "RHILL_PRESENT  = ",self%lrhill_present
+      write(*,*) "ROTATION      = ", self%lrotation
+      write(*,*) "TIDES         = ", self%ltides
       write(*,*) "ENERGY         = ",self%lenergy
       write(*,*) "MU2KG          = ",self%MU2KG       
       write(*,*) "TU2S           = ",self%TU2S        
@@ -325,6 +338,8 @@ contains
          write(param_name, Afmt) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "ENERGY"; write(param_value, Lfmt)  param%lenergy; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          iostat = 0
          iomsg = "UDIO not implemented"
       end associate
@@ -610,6 +625,14 @@ contains
                   else
                      self%radius(i) = 0.0_DP
                   end if
+                  if (param%lrotation) then
+                     read(iu, iostat = ierr) self%Ip(:, i)
+                     read(iu, iostat = ierr) self%rot(:, i)
+                  end if
+                  if (param%ltides) then
+                     read(iu, iostat = ierr) self%k2(i)
+                     read(iu, iostat = ierr) self%Q(i)
+                  end if
                class is (swiftest_tp)
                   read(iu, *, iostat = ierr) self%id(i)
                end select
@@ -811,11 +834,23 @@ contains
             read(iu, iostat = ierr) self%vh(2, 1:n)
             read(iu, iostat = ierr) self%vh(3, 1:n)
          end select
-         select type(self)  
+         select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            read(iu, iostat = ierr) self%Gmass(1:n)
-            self%mass(1:n) = self%Gmass / param%GU 
-            read(iu, iostat = ierr) self%radius(1:n)
+            read(iu, iostat = ierr) pl%Gmass(1:n)
+            pl%mass(1:n) = pl%Gmass / param%GU 
+            read(iu, iostat = ierr) pl%radius(1:n)
+            if (param%lrotation) then
+               read(iu, iostat = ierr) pl%rot(1, 1:n)
+               read(iu, iostat = ierr) pl%rot(2, 1:n)
+               read(iu, iostat = ierr) pl%rot(3, 1:n)
+               read(iu, iostat = ierr) pl%Ip(1, 1:n)
+               read(iu, iostat = ierr) pl%Ip(2, 1:n)
+               read(iu, iostat = ierr) pl%Ip(3, 1:n)
+            end if
+            if (param%ltides) then
+               read(iu, iostat = ierr) pl%k2(1:n)
+               read(iu, iostat = ierr) pl%Q(1:n)
+            end if
          end select
       end associate
 
@@ -849,6 +884,14 @@ contains
       read(iu, iostat = ierr) self%radius
       read(iu, iostat = ierr) self%j2rp2 
       read(iu, iostat = ierr) self%j4rp4 
+      if (param%lrotation) then
+         read(iu, iostat = ierr) self%Ip(:)
+         read(iu, iostat = ierr) self%rot(:)
+      end if
+      if (param%ltides) then
+         read(iu, iostat = ierr) self%k2
+         read(iu, iostat = ierr) self%Q
+      end if
       if (ierr /=0) then
          write(*,*) 'Error reading central body data'
          call util_exit(FAILURE)
@@ -1133,10 +1176,22 @@ contains
             write(iu) self%vh(2, 1:n)
             write(iu) self%vh(3, 1:n)
          end select
-         select type(self)  
+         select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            write(iu) self%Gmass(1:n)
-            write(iu) self%radius(1:n)
+            write(iu) pl%Gmass(1:n)
+            write(iu) pl%radius(1:n)
+            if (param%lrotation) then
+               write(iu) pl%rot(1, 1:n)
+               write(iu) pl%rot(2, 1:n)
+               write(iu) pl%rot(3, 1:n)
+               write(iu) pl%Ip(1, 1:n)
+               write(iu) pl%Ip(2, 1:n)
+               write(iu) pl%Ip(3, 1:n)
+            end if
+            if (param%ltides) then
+               write(iu) pl%k2(1:n)
+               write(iu) pl%Q(1:n)
+            end if
          end select
       end associate
 
@@ -1156,12 +1211,26 @@ contains
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
 
-      write(iu) self%id
-      !write(iu) self%name
-      write(iu) self%Gmass
-      write(iu) self%radius
-      write(iu) self%j2rp2 
-      write(iu) self%j4rp4 
+      associate(cb => self)
+         !write(iu) cb%name
+         write(iu) cb%id
+         write(iu) cb%Gmass
+         write(iu) cb%radius
+         write(iu) cb%j2rp2 
+         write(iu) cb%j4rp4 
+         if (param%lrotation) then
+            write(iu) cb%rot(1)
+            write(iu) cb%rot(2)
+            write(iu) cb%rot(3)
+            write(iu) cb%Ip(1)
+            write(iu) cb%Ip(2)
+            write(iu) cb%Ip(3)
+         end if
+         if (param%ltides) then
+            write(iu) cb%k2
+            write(iu) cb%Q
+         end if
+      end associate
       return
    end subroutine io_write_frame_cb
 
