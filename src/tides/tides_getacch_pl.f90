@@ -13,8 +13,8 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       ! Internals
       integer(I4B)                          :: i
-      real(DP)                              :: rmag
-      real(DP), dimension(NDIM)             :: ej, vj, F_central
+      real(DP)                              :: rmag, vmag
+      real(DP), dimension(NDIM)             :: r_unit, v_unit, h_unit, vj, F_central
       real(DP), dimension(:,:), allocatable :: F_tot
 
       associate(pl => self, npl => self%nbody, cb => system%cb)
@@ -25,9 +25,13 @@ contains
             F_tot(:,i) = 0.0_DP
             F_central(:) = 0.0_DP
             ! ***************************************
-            !rmag = norm2(pl%xh(:,i))
-            !ej = pl%xh(:,i) / rmag
-            !vj = pl%vh(:, i)
+            rmag = norm2(pl%xh(:,i))
+            vmag = norm2(pl%vh(:,i))
+            r_unit(:) = pl%xh(:,i) / rmag
+            v_unit(:) = pl%vh(:,i) / vmag
+            h_unit(:) = r_unit(:) .cross. v_unit(:)
+              
+             
             !Ftr = 
             !Pto = 
             !Pto_central =  !Eq 5 Bolmont et al. 2015 

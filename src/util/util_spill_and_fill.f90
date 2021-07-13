@@ -150,134 +150,173 @@ contains
       
    end subroutine util_fill_body
 
-   module procedure util_spill_pl
+   module subroutine util_spill_pl(self, discards, lspill_list)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) Swiftest massive body structure from active list to discard list
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
-
+      ! Arguments
+      class(swiftest_pl),    intent(inout) :: self        !! Swiftest massive body object
+      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discardse
+      ! Internals
       integer(I4B) :: i
 
       associate(keeps => self)
 
          select type (discards) ! The standard requires us to select the type of both arguments in order to access all the components
-            class is (swiftest_pl)
-            !> Spill components specific to the massive body class
-               discards%mass(:)     = pack(keeps%mass(:),          lspill_list(:))
-               discards%Gmass(:)    = pack(keeps%Gmass(:),         lspill_list(:))
-               discards%rhill(:)    = pack(keeps%rhill(:),         lspill_list(:))
-               discards%radius(:)   = pack(keeps%radius(:),        lspill_list(:))
-               discards%density(:)  = pack(keeps%density(:),       lspill_list(:))
-               if (count(.not.lspill_list(:))  > 0) then 
-                  keeps%mass(:)        = pack(keeps%mass(:),    .not. lspill_list(:))
-                  keeps%Gmass(:)       = pack(keeps%Gmass(:),   .not. lspill_list(:))
-                  keeps%rhill(:)       = pack(keeps%rhill(:),   .not. lspill_list(:))
-                  keeps%radius(:)      = pack(keeps%radius(:),  .not. lspill_list(:))
-                  keeps%density(:)     = pack(keeps%density(:), .not. lspill_list(:))
-               end if
+         class is (swiftest_pl)
+         !> Spill components specific to the massive body class
+            discards%mass(:)     = pack(keeps%mass(:),    lspill_list(:))
+            discards%Gmass(:)    = pack(keeps%Gmass(:),   lspill_list(:))
+            discards%rhill(:)    = pack(keeps%rhill(:),   lspill_list(:))
+            discards%radius(:)   = pack(keeps%radius(:),  lspill_list(:))
+            discards%density(:)  = pack(keeps%density(:), lspill_list(:))
+            discards%k2(:)       = pack(keeps%k2(:),       lspill_list(:))
+            discards%Q(:)        = pack(keeps%Q(:),        lspill_list(:))
+            discards%tlag(:)      = pack(keeps%tlag(:),      lspill_list(:))
+            do i = 1, NDIM
+               discards%Ip(i, :) = pack(keeps%Ip(i, :),     lspill_list(:))
+               discards%Ip(i, :)  = pack(keeps%Ip(i, :),     lspill_list(:))
+            end do
+            if (count(.not.lspill_list(:))  > 0) then 
+               keeps%mass(:)        = pack(keeps%mass(:),    .not. lspill_list(:))
+               keeps%Gmass(:)       = pack(keeps%Gmass(:),   .not. lspill_list(:))
+               keeps%rhill(:)       = pack(keeps%rhill(:),   .not. lspill_list(:))
+               keeps%radius(:)      = pack(keeps%radius(:),  .not. lspill_list(:))
+               keeps%density(:)     = pack(keeps%density(:), .not. lspill_list(:))
+            end if
 
-               call util_spill_body(keeps, discards, lspill_list)
-            class default
-               write(*,*) 'Error! spill method called for incompatible return type on swiftest_pl'
-            end select
-         end associate
-         return
-   
-   end procedure util_spill_pl
+            call util_spill_body(keeps, discards, lspill_list)
+         class default
+            write(*,*) 'Error! spill method called for incompatible return type on swiftest_pl'
+         end select
+      end associate
+      return
+   end subroutine util_spill_pl
 
-   module procedure util_fill_pl
+   module subroutine util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new Swiftest massive body structure into an old one. 
       !! This is the inverse of a fill operation.
       implicit none
-
+      ! Arguments
+      class(swiftest_pl),    intent(inout) :: self       !! Swiftest massive body object
+      class(swiftest_body),  intent(inout) :: inserts    !! Swiftest body object to be inserted
+      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      ! Internals
       integer(I4B) :: i
 
       associate(keeps => self)
 
-         select type (inserts) ! The standard requires us to select the type of both arguments in order to access all the components
-            class is (swiftest_pl)
-            !> Spill components specific to the massive body class
-               keeps%mass(:)     = unpack(keeps%mass(:),.not.lfill_list(:), keeps%mass(:))
-               keeps%mass(:)     = unpack(inserts%mass(:),lfill_list(:), keeps%mass(:))
-            
-               keeps%Gmass(:)    = unpack(keeps%Gmass(:),.not.lfill_list(:), keeps%Gmass(:))
-               keeps%Gmass(:)    = unpack(inserts%Gmass(:),lfill_list(:), keeps%Gmass(:))
-            
-               keeps%rhill(:)    = unpack(keeps%rhill(:),.not.lfill_list(:), keeps%rhill(:))
-               keeps%rhill(:)    = unpack(inserts%rhill(:),lfill_list(:), keeps%rhill(:))
-            
-               keeps%radius(:)   = unpack(keeps%radius(:),.not.lfill_list(:), keeps%radius(:))
-               keeps%radius(:)   = unpack(inserts%radius(:),lfill_list(:), keeps%radius(:))
-            
-               keeps%density(:)  = unpack(keeps%density(:),.not.lfill_list(:), keeps%density(:))
-               keeps%density(:)  = unpack(inserts%density(:),lfill_list(:), keeps%density(:))
-            
-               call util_fill_body(keeps, inserts, lfill_list)
-            class default
-               write(*,*) 'Error! fill method called for incompatible return type on swiftest_pl'
-            end select
-         end associate
-         return
-   
-   end procedure util_fill_pl
+      select type (inserts) ! The standard requires us to select the type of both arguments in order to access all the components
+         class is (swiftest_pl)
+         !> Spill components specific to the massive body class
+            keeps%mass(:)     = unpack(keeps%mass(:),.not.lfill_list(:), keeps%mass(:))
+            keeps%mass(:)     = unpack(inserts%mass(:),lfill_list(:), keeps%mass(:))
+         
+            keeps%Gmass(:)    = unpack(keeps%Gmass(:),.not.lfill_list(:), keeps%Gmass(:))
+            keeps%Gmass(:)    = unpack(inserts%Gmass(:),lfill_list(:), keeps%Gmass(:))
+         
+            keeps%rhill(:)    = unpack(keeps%rhill(:),.not.lfill_list(:), keeps%rhill(:))
+            keeps%rhill(:)    = unpack(inserts%rhill(:),lfill_list(:), keeps%rhill(:))
+         
+            keeps%radius(:)   = unpack(keeps%radius(:),.not.lfill_list(:), keeps%radius(:))
+            keeps%radius(:)   = unpack(inserts%radius(:),lfill_list(:), keeps%radius(:))
+         
+            keeps%density(:)  = unpack(keeps%density(:),.not.lfill_list(:), keeps%density(:))
+            keeps%density(:)  = unpack(inserts%density(:),lfill_list(:), keeps%density(:))
 
-   module procedure util_spill_tp
+            keeps%k2(:)  = unpack(keeps%k2(:),.not.lfill_list(:), keeps%k2(:))
+            keeps%k2(:)  = unpack(inserts%k2(:),lfill_list(:), keeps%k2(:))
+
+            keeps%Q(:)  = unpack(keeps%Q(:),.not.lfill_list(:), keeps%Q(:))
+            keeps%Q(:)  = unpack(inserts%Q(:),lfill_list(:), keeps%Q(:))
+
+            keeps%tlag(:)  = unpack(keeps%tlag(:),.not.lfill_list(:), keeps%tlag(:))
+            keeps%tlag(:)  = unpack(inserts%tlag(:),lfill_list(:), keeps%tlag(:))
+
+            do i = 1, NDIM
+               keeps%Ip(i, :)    = unpack(keeps%Ip(i, :), .not.lfill_list(:), keeps%Ip(i, :))
+               keeps%Ip(i, :)    = unpack(inserts%Ip(i, :), lfill_list(:), keeps%Ip(i, :))
+
+               keeps%Ip(i, :)    = unpack(keeps%Ip(i, :), .not.lfill_list(:), keeps%Ip(i, :))
+               keeps%rot(i, :)    = unpack(inserts%rot(i, :), lfill_list(:), keeps%rot(i, :))
+            end do
+            keeps%ldiscard(:) = unpack(inserts%ldiscard(:), lfill_list(:), keeps%ldiscard(:))
+         
+            call util_fill_body(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! fill method called for incompatible return type on swiftest_pl'
+         end select
+      end associate
+      return
+   end subroutine util_fill_pl
+
+   module subroutine util_spill_tp(self, discards, lspill_list)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) Swiftest test particle structure from active list to discard list
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
+      ! Arguments
+      class(swiftest_tp),    intent(inout) :: self        !! Swiftest test particle object
+      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discardse
 
       associate(keeps => self, ntp => self%nbody)
       select type(discards)
-         class is (swiftest_tp)
-         !> Spill components specific to the test particle class
-            discards%isperi(:) = pack(keeps%isperi(:),       lspill_list(:))
-            discards%peri(:)   = pack(keeps%peri(:),         lspill_list(:))
-            discards%atp(:)    = pack(keeps%atp(:),          lspill_list(:))
-            if (count(.not.lspill_list(:))  > 0) then 
-               keeps%atp(:)       = pack(keeps%atp(:),    .not. lspill_list(:))
-               keeps%peri(:)      = pack(keeps%peri(:),   .not. lspill_list(:))
-               keeps%isperi(:)    = pack(keeps%isperi(:), .not. lspill_list(:))
-            end if
-            call util_spill_body(keeps, discards, lspill_list)
-         class default
-            write(*,*) 'Error! spill method called for incompatible return type on swiftest_tp'
-         end select
+      class is (swiftest_tp)
+      !> Spill components specific to the test particle class
+         discards%isperi(:) = pack(keeps%isperi(:),       lspill_list(:))
+         discards%peri(:)   = pack(keeps%peri(:),         lspill_list(:))
+         discards%atp(:)    = pack(keeps%atp(:),          lspill_list(:))
+         if (count(.not.lspill_list(:))  > 0) then 
+            keeps%atp(:)       = pack(keeps%atp(:),    .not. lspill_list(:))
+            keeps%peri(:)      = pack(keeps%peri(:),   .not. lspill_list(:))
+            keeps%isperi(:)    = pack(keeps%isperi(:), .not. lspill_list(:))
+         end if
+         call util_spill_body(keeps, discards, lspill_list)
+      class default
+         write(*,*) 'Error! spill method called for incompatible return type on swiftest_tp'
+      end select
       end associate
       return
-      end procedure util_spill_tp
+   end subroutine util_spill_tp
 
-   module procedure util_fill_tp
+   module subroutine util_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new Swiftest test particle structure into an old one. 
       !! This is the inverse of a fill operation.
       implicit none
+      ! Arguments
+      class(swiftest_tp),    intent(inout) :: self       !! Swiftest test particle object
+      class(swiftest_body),  intent(inout) :: inserts    !! Swiftest body object to be inserted
+      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
       select type(inserts)
-         class is (swiftest_tp)
-         !> Spill components specific to the test particle class
-            keeps%isperi(:) = unpack(keeps%isperi(:), .not.lfill_list(:), keeps%isperi(:))
-            keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
-         
-            keeps%peri(:)   = unpack(keeps%peri(:),   .not.lfill_list(:), keeps%peri(:))
-            keeps%peri(:)   = unpack(inserts%peri(:),   lfill_list(:), keeps%peri(:))
-         
-            keeps%atp(:)    = unpack(keeps%atp(:),    .not.lfill_list(:), keeps%atp(:))
-            keeps%atp(:)    = unpack(inserts%atp(:),    lfill_list(:), keeps%atp(:))
-         
-            call util_fill_body(keeps, inserts, lfill_list)
-         class default
-            write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'
-         end select
+      class is (swiftest_tp)
+      !> Spill components specific to the test particle class
+         keeps%isperi(:) = unpack(keeps%isperi(:), .not.lfill_list(:), keeps%isperi(:))
+         keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
+      
+         keeps%peri(:)   = unpack(keeps%peri(:),   .not.lfill_list(:), keeps%peri(:))
+         keeps%peri(:)   = unpack(inserts%peri(:),   lfill_list(:), keeps%peri(:))
+      
+         keeps%atp(:)    = unpack(keeps%atp(:),    .not.lfill_list(:), keeps%atp(:))
+         keeps%atp(:)    = unpack(inserts%atp(:),    lfill_list(:), keeps%atp(:))
+      
+         call util_fill_body(keeps, inserts, lfill_list)
+      class default
+         write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'
+      end select
       end associate
       return
-   end procedure util_fill_tp
+   end subroutine util_fill_tp
 
 end submodule s_util_spill_and_fill
 

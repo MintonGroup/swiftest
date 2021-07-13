@@ -146,12 +146,22 @@ contains
       allocate(self%rhill(n))
       allocate(self%radius(n))
       allocate(self%density(n))
+      allocate(self%rot(NDIM, n))
+      allocate(self%Ip(NDIM, n))
+      allocate(self%k2(n))
+      allocate(self%Q(n))
+      allocate(self%tlag(n))
 
       self%mass(:) = 0.0_DP
       self%Gmass(:) = 0.0_DP
       self%rhill(:) = 0.0_DP
       self%radius(:) = 0.0_DP
       self%density(:) = 0.0_DP
+      self%rot(:,:) = 0.0_DP
+      self%Ip(:,:) = 0.0_DP
+      self%k2(:) = 0.0_DP
+      self%Q(:) = 0.0_DP
+      self%tlag(:) = 0.0_DP
       self%num_comparisons = 0   
       return
    end subroutine setup_pl
