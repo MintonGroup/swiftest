@@ -39,7 +39,7 @@ contains
          end if
          if (param%lextra_force) call pl%accel_user(system, param, t)
          if (param%lgr) call pl%accel_gr(param) 
-
+         if (param%ltides) call pl%accel_tides(system)
       end associate
       return
    end subroutine whm_getacch_pl

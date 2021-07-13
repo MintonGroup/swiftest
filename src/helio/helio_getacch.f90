@@ -24,6 +24,7 @@ contains
             cb%aoblend = cb%aobl
          end if
          if (param%lextra_force) call pl%accel_user(system, param, t)
+         if (param%ltides) call pl%accel_tides(system)
          !if (param%lgr) call pl%gr_accel(param)
       end associate
 
