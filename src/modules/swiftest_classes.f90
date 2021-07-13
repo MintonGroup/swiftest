@@ -121,7 +121,7 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: rot     = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
       real(DP)                  :: k2      = 0.0_DP !! Tidal Love number
       real(DP)                  :: Q       = 0.0_DP !! Tidal quality factor
-      real(DP)                  :: tlag     = 0.0_DP !! Tidal phase lag angle
+      real(DP)                  :: tlag    = 0.0_DP !! Tidal phase lag angle
       real(DP), dimension(NDIM) :: L0      = 0.0_DP !! Initial angular momentum of the central body
       real(DP), dimension(NDIM) :: dL      = 0.0_DP !! Change in angular momentum of the central body
    contains

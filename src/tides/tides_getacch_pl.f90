@@ -5,8 +5,15 @@ contains
       !! author: Jennifer L.L. Pouplin, Carlisle A. wishard, and David A. Minton
       !!
       !! Calculated tidal torques from central body to any planet and from any planet to central body
-      !! planet - planet interactions are considered negligeable
-      !! Adapted from Mercury-T code from Bolmont et al. 2015
+      !! planet - planet interactions are considered negligable.
+      !! This is a constant time lag model.
+      !! 
+      !! Adapted from Mercury-T code from Bolmont et al. (2015)
+      !!
+      !! Reference:
+      !!    Bolmont, E., Raymond, S.N., Leconte, J., Hersant, F., Correia, A.C.M., 2015. 
+      !!       Mercury-T : A new code to study tidally evolving multi-planet systems. 
+      !!       Applications to Kepler-62. A&A 583, A116. https://doi.org/10.1051/0004-6361/201525909
       implicit none
       ! Arguments
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
@@ -30,7 +37,7 @@ contains
             r_unit(:) = pl%xh(:,i) / rmag
             v_unit(:) = pl%vh(:,i) / vmag
             h_unit(:) = r_unit(:) .cross. v_unit(:)
-              
+
              
             !Ftr = 
             !Pto = 
