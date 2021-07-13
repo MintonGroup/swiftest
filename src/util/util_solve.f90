@@ -29,10 +29,10 @@ contains
       real(DP), dimension(RKS),  parameter   :: rkf5_coeff =  (/ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. /)
       real(DP), dimension(:, :), allocatable :: k                !! Runge-Kutta coefficient vector
       real(DP), dimension(:),   allocatable  :: ynorm            !! Normalized y value used for adaptive step size control
-      real(DP), dimension(:),   allocatable  :: y0               !! Value of y at the beginning of each substep
+      real(DP), dimension(:),   allocatable  :: y0           !! Value of y at the beginning of each substep
       integer(I4B)                           :: Nvar             !! Number of variables in problem
       integer(I4B)                           :: rkn              !! Runge-Kutta loop index
-      real(DP)                               :: dt, trem         !! Current step size and total time remaining
+      real(DP)                               :: t, x1, dt, trem      !! Current time, step size and total time remaining
       real(DP)                               :: s, yerr, yscale  !!  Step size reduction factor, error in dependent variable, and error scale factor
       integer(I4B)                           :: i, n     
 
@@ -45,13 +45,27 @@ contains
       dt = dt0
 
       trem = t1
+      t = 0._DP
       do
          yscale = norm2(y0(:))
          do i = 1, MAXREDUX
-            do rkn = 1, RKS
-               y1(:) = y0(:) + matmul(k(:, 1:rkn - 1), rkf45_btab(2:rkn, rkn - 1))
-               k(:, rkn) = dt * f%eval(y1(:))
-            end do
+            select type(f)
+            class is (lambda_obj_tvar)
+               do rkn = 1, RKS
+                  y1(:) = y0(:) + matmul(k(:, 1:rkn - 1), rkf45_btab(2:rkn, rkn - 1))
+                  if (rkn == 1) then
+                     x1 = t
+                  else
+                     x1 = t + rkf45_btab(1,rkn-1)
+                  end if
+                  k(:, rkn) = dt * f%evalt(y1(:), t)
+               end do
+            class is (lambda_obj)
+               do rkn = 1, RKS
+                  y1(:) = y0(:) + matmul(k(:, 1:rkn - 1), rkf45_btab(2:rkn, rkn - 1))
+                  k(:, rkn) = dt * f%eval(y1(:))
+               end do
+            end select
             ! Now determine if the step size needs adjusting
             ynorm(:) = matmul(k(:,:), (rkf5_coeff(:) - rkf4_coeff(:))) / yscale
             yerr = norm2(ynorm(:)) 
@@ -67,6 +81,7 @@ contains
          ! Compute new value then step ahead in time
          y1(:) = y0(:) + matmul(k(:, :), rkf4_coeff(:))
          trem = trem - dt
+         t = t + dt
          if (trem <= 0._DP) exit
          y0(:) = y1(:)
       end do

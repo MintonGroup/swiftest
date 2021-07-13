@@ -146,9 +146,19 @@ module lambda_function
       procedure :: eval => lambda_eval_0_err
       procedure, nopass :: lambda_init_0_err
    end type
+
+   type, extends(lambda_obj) :: lambda_obj_tvar
+      !! Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an array of real numbers
+      procedure(lambda0tvar), pointer, nopass :: lambdaptr_tvar => null()
+   contains
+      generic   :: init => lambda_init_tvar
+      procedure :: evalt => lambda_eval_tvar
+      procedure, nopass :: lambda_init_tvar
+   end type
    interface lambda_obj
       module procedure lambda_init_0
       module procedure lambda_init_0_err
+      module procedure lambda_init_tvar
    end interface
 
    abstract interface
@@ -158,12 +168,21 @@ module lambda_function
          real(DP), dimension(:), intent(in) :: x
          real(DP)                           :: y
       end function
+
       function lambda0err(x, lerr) result(y)
          ! Template for a 0 argument function that returns an error value
          import DP
          real(DP), dimension(:), intent(in)  :: x
          logical,                intent(out) :: lerr
          real(DP)                            :: y
+      end function
+
+      function lambda0tvar(x, t) result(y)
+         ! Template for a 0 argument function that returns an error value
+         import DP
+         real(DP), dimension(:), intent(in)  :: x
+         real(DP),               intent(in)  :: t
+         real(DP), dimension(:), allocatable :: y
       end function
    end interface
 
@@ -172,7 +191,6 @@ module lambda_function
          implicit none
          ! Arguments
          procedure(lambda0)             :: lambda
-   
          lambda_init_0%lambdaptr => lambda
          return
       end function lambda_init_0
@@ -186,6 +204,15 @@ module lambda_function
          lambda_init_0_err%lerr = lerr
          return
       end function lambda_init_0_err
+
+      type(lambda_obj_tvar) function lambda_init_tvar(lambda, t)
+         implicit none
+         ! Arguments
+         procedure(lambda0tvar)             :: lambda
+         real(DP), intent(in)               :: t
+         lambda_init_tvar%lambdaptr_tvar => lambda
+         return
+      end function lambda_init_tvar
    
       function lambda_eval_0(self, x) result(y)
          implicit none
@@ -194,7 +221,6 @@ module lambda_function
          real(DP), dimension(:), intent(in) :: x
          ! Result
          real(DP)                      :: y
-   
          if (associated(self%lambdaptr)) then
             y = self%lambdaptr(x)
             self%lastval = y
@@ -212,7 +238,6 @@ module lambda_function
          real(DP), dimension(:), intent(in) :: x
          ! Result
          real(DP)                      :: y
-   
          if (associated(self%lambdaptr_err)) then
             y = self%lambdaptr_err(x, self%lerr)
             self%lastval = y
@@ -222,6 +247,21 @@ module lambda_function
             error stop "Lambda function was not initialized"
          end if
       end function lambda_eval_0_err
+
+      function lambda_eval_tvar(self, x, t) result(y)
+         implicit none
+         ! Arguments
+         class(lambda_obj_tvar), intent(inout) :: self
+         real(DP), dimension(:), intent(in) :: x
+         real(DP),               intent(in) :: t
+         ! Result
+         real(DP), dimension(:), allocatable :: y
+         if (associated(self%lambdaptr_tvar)) then
+            y = self%lambdaptr_tvar(x,t)
+         else
+            error stop "Lambda function was not initialized"
+         end if
+      end function lambda_eval_tvar
 
       subroutine lambda_destroy(self)
          implicit none
