@@ -18,59 +18,42 @@ contains
       ! Internals
       integer(I4B) :: i
       real(DP)     :: e
-      real(DP), dimension(:), allocatable, save :: vdotr
+      real(DP), dimension(:), allocatable :: vdotr
 
       associate(tp => self, ntp => self%nbody)
-         if (tp%lfirst) then
-            if (.not. allocated(vdotr)) allocate(vdotr(ntp))
-            if (param%qmin_coord == "HELIO") then
-               do i = 1, ntp
-                  vdotr(i) = dot_product(tp%xh(:, i), tp%vh(:, i))
-               end do
-            else
-               do i = 1, ntp
-                  vdotr(i) = dot_product(tp%xb(:, i), tp%vb(:, i))
-               end do
-            end if
-            where(vdotr(1:ntp) > 0.0_DP)
-               tp%isperi(1:ntp) = 1
-            elsewhere
-               tp%isperi = -1
-            end where
+         allocate(vdotr(ntp))
+         if (param%qmin_coord == "HELIO") then
+            do i = 1, ntp
+               vdotr(i) = dot_product(tp%xh(:, i), tp%vh(:, i))
+               if (tp%isperi(i) == -1) then
+                  if (vdotr(i) >= 0.0_DP) then
+                     tp%isperi(i) = 0
+                     call orbel_xv2aeq(tp%mu(i), tp%xh(:, i), tp%vh(:, i), tp%atp(i), e, tp%peri(i))
+                  end if
+               else
+                  if (vdotr(i) > 0.0_DP) then
+                     tp%isperi(i) = 1
+                  else
+                     tp%isperi(i) = -1
+                  end if
+               end if
+            end do
          else
-            if (param%qmin_coord == "HELIO") then
-               do i = 1, ntp
-                  vdotr(i) = dot_product(tp%xh(:, i), tp%vh(:, i))
-                  if (tp%isperi(i) == -1) then
-                     if (vdotr(i) >= 0.0_DP) then
-                        tp%isperi(i) = 0
-                        call orbel_xv2aeq(tp%mu(i), tp%xh(:, i), tp%vh(:, i), tp%atp(i), e, tp%peri(i))
-                     end if
-                  else
-                     if (vdotr(i) > 0.0_DP) then
-                        tp%isperi(i) = 1
-                     else
-                        tp%isperi(i) = -1
-                     end if
+            do i = 1, ntp
+               vdotr(i) = dot_product(tp%xb(:, i), tp%vb(:, i))
+               if (tp%isperi(i) == -1) then
+                  if (vdotr(i) >= 0.0_DP) then
+                     tp%isperi(i) = 0
+                     call orbel_xv2aeq(system%msys, tp%xb(:, i), tp%vb(:, i), tp%atp(i), e, tp%peri(i))
                   end if
-               end do
-            else
-               do i = 1, ntp
-                  vdotr(i) = dot_product(tp%xb(:, i), tp%vb(:, i))
-                  if (tp%isperi(i) == -1) then
-                     if (vdotr(i) >= 0.0_DP) then
-                        tp%isperi(i) = 0
-                        call orbel_xv2aeq(system%msys, tp%xb(:, i), tp%vb(:, i), tp%atp(i), e, tp%peri(i))
-                     end if
+               else
+                  if (vdotr(i) > 0.0_DP) then
+                     tp%isperi(i) = 1
                   else
-                     if (vdotr(i) > 0.0_DP) then
-                        tp%isperi(i) = 1
-                     else
-                        tp%isperi(i) = -1
-                     end if
+                     tp%isperi(i) = -1
                   end if
-               end do
-            end if
+               end if
+            end do
          end if
       end associate
       return
