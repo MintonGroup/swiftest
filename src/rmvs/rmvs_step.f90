@@ -50,6 +50,7 @@ contains
                      where (tp%status(:) == INACTIVE) tp%status(:) = ACTIVE
                      pl%lfirst = lfirstpl
                      tp%lfirst = lfirsttp
+                     if (param%ltides) call system%step_spin(param, t, dt)
                   else
                      call whm_step_system(system, param, t, dt)
                   end if

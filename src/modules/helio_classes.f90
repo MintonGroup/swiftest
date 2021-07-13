@@ -14,6 +14,7 @@ module helio_classes
    !********************************************************************************************************************************
    type, public, extends(whm_nbody_system) :: helio_nbody_system
    contains
+      procedure, public :: step => helio_step_system  !! Advance the Helio nbody system forward in time by one step
    end type helio_nbody_system
 
    !********************************************************************************************************************************
@@ -151,15 +152,6 @@ module helio_classes
          real(DP),        intent(in)    :: dt   !! Stepsize
       end subroutine helio_kickvb_tp
 
-      module subroutine helio_step_system(self, param, t, dt)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
-         real(DP),                   intent(in)    :: t      !! Simulation time
-         real(DP),                   intent(in)    :: dt     !! Current stepsize 
-      end subroutine helio_step_system
-
       module subroutine helio_step_pl(self, system, param, t, dt)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
@@ -169,6 +161,15 @@ module helio_classes
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine helio_step_pl
+
+      module subroutine helio_step_system(self, param, t, dt)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
+         real(DP),                   intent(in)    :: t      !! Simulation time
+         real(DP),                   intent(in)    :: dt     !! Current stepsize
+      end subroutine helio_step_system
 
       module subroutine helio_step_tp(self, system, param, t, dt)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters, swiftest_nbody_system

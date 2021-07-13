@@ -17,7 +17,7 @@ module swiftest_classes
    public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_pl, setup_tp
-   public :: tides_getacch_pl
+   public :: tides_getacch_pl, tides_step_spin_system
    public :: user_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_exit, util_fill_body, util_fill_pl, util_fill_tp, &
              util_index, util_peri_tp, util_reverse_status, util_set_beg_end_cb, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
@@ -286,9 +286,10 @@ module swiftest_classes
       procedure, public :: dump           => io_dump_system            !! Dump the state of the system to a file
       procedure, public :: initialize     => io_read_initialize_system !! Initialize the system from an input file
       procedure, public :: read_frame     => io_read_frame_system      !! Append a frame of output data to file
-      procedure, public :: set_msys       => util_set_msys             !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard  => io_write_discard          !! Append a frame of output data to file
       procedure, public :: write_frame    => io_write_frame_system     !! Append a frame of output data to file
+      procedure, public :: step_spin      => tides_step_spin_system    !! Steps the spins of the massive & central bodies due to tides.
+      procedure, public :: set_msys       => util_set_msys             !! Sets the value of msys from the masses of system bodies.
    end type swiftest_nbody_system
 
    abstract interface
@@ -682,11 +683,19 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       end subroutine tides_getacch_pl
 
+      module subroutine tides_step_spin_system(self, param, t, dt)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t     !! Simulation time
+         real(DP),                     intent(in)    :: dt    !! Current stepsize
+      end subroutine tides_step_spin_system
+
       module subroutine user_getacch_body(self, system, param, t, lbeg)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody_system_object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of user parameters
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine user_getacch_body
@@ -744,7 +753,7 @@ module swiftest_classes
       module subroutine util_index(arr, index)
          implicit none
          integer(I4B), dimension(:), intent(out) :: index
-         real(DP), dimension(:), intent(in)   :: arr
+         real(DP),     dimension(:), intent(in)   :: arr
       end subroutine util_index
 
       module subroutine util_peri_tp(self, system, param) 

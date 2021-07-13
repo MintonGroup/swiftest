@@ -1,10 +1,14 @@
 submodule(helio_classes) s_helio_step
    use swiftest
 contains
+
    module subroutine helio_step_system(self, param, t, dt)
       !! author: David A. Minton
       !!
-      !! Step massive bodies and and active test particles ahead in heliocentric coordinates
+      !! Step massive bodies and and active test particles ahead in heliocentric coordinates.
+      !!
+      !! Currently there's no difference between this and the WHM system stepper, so this is just
+      !! a wrapper function to keep the method calls consistent for inherited types.
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk.f
       !! Adapted from David E. Kaufmann's Swifter routine helio_step.f90
@@ -14,13 +18,7 @@ contains
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
       real(DP),                   intent(in)    :: t      !! Simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsize
-
-      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
-         tp%lfirst = pl%lfirst
-         call pl%set_rhill(cb)
-         call pl%step(system, param, t, dt)
-         call tp%step(system, param, t, dt)
-      end associate
+      call whm_step_system(self, param, t, dt)
       return
    end subroutine helio_step_system 
 
