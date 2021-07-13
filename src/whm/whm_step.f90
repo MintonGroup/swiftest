@@ -17,8 +17,10 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsize
 
       associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+         tp%lfirst = pl%lfirst
          call pl%step(system, param, t, dt)
          call tp%step(system, param, t, dt)
+         if (param%ltides) call system%step_spin(param, t, dt)
       end associate
       return
    end subroutine whm_step_system 

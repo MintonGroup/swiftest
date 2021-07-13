@@ -17,9 +17,10 @@ module swiftest_classes
    public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_pl, setup_tp
+   public :: tides_getacch_pl, tides_step_spin_system
    public :: user_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_exit, util_fill_body, util_fill_pl, util_fill_tp, &
-             util_index, util_peri_tp, util_reverse_status, util_set_beg_end_cb, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
+             util_index, util_peri_tp, util_reverse_status, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
              util_set_mu_tp, util_set_rhill, util_sort, util_spill_body, util_spill_pl, util_spill_tp, util_valid, util_version
 
    !********************************************************************************************************************************
@@ -103,31 +104,34 @@ module swiftest_classes
    !> A concrete lass for the central body in a Swiftest simulation
    type, abstract, public, extends(swiftest_base) :: swiftest_cb           
       character(len=STRMAX)     :: name             !! Non-unique name
-      integer(I4B)              :: id      = 0      !! External identifier (unique)
-      real(DP)                  :: mass    = 0.0_DP !! Central body mass (units MU)
-      real(DP)                  :: Gmass   = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
-      real(DP)                  :: radius  = 0.0_DP !! Central body radius (units DU)
-      real(DP)                  :: density = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
-      real(DP)                  :: j2rp2   = 0.0_DP !! J2*R^2 term for central body
-      real(DP)                  :: j4rp4   = 0.0_DP !! J4*R^2 term for central body
-      real(DP), dimension(NDIM) :: aobl    = 0.0_DP !! Barycentric acceleration due to central body oblatenes
-      real(DP), dimension(NDIM) :: aoblbeg = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
-      real(DP), dimension(NDIM) :: aoblend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
-      real(DP), dimension(NDIM) :: xb      = 0.0_DP !! Barycentric position (units DU)
-      real(DP), dimension(NDIM) :: vb      = 0.0_DP !! Barycentric velocity (units DU / TU)
-      real(DP), dimension(NDIM) :: agr     = 0.0_DP !! Acceleration due to post-Newtonian correction
-      real(DP), dimension(NDIM) :: Ip      = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
-      real(DP), dimension(NDIM) :: rot     = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP)                  :: k2      = 0.0_DP !! Tidal Love number
-      real(DP)                  :: Q       = 0.0_DP !! Tidal quality factor
-      real(DP), dimension(NDIM) :: L0      = 0.0_DP !! Initial angular momentum of the central body
-      real(DP), dimension(NDIM) :: dL      = 0.0_DP !! Change in angular momentum of the central body
+      integer(I4B)              :: id       = 0      !! External identifier (unique)
+      real(DP)                  :: mass     = 0.0_DP !! Central body mass (units MU)
+      real(DP)                  :: Gmass    = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
+      real(DP)                  :: radius   = 0.0_DP !! Central body radius (units DU)
+      real(DP)                  :: density  = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
+      real(DP)                  :: j2rp2    = 0.0_DP !! J2*R^2 term for central body
+      real(DP)                  :: j4rp4    = 0.0_DP !! J4*R^2 term for central body
+      real(DP), dimension(NDIM) :: aobl     = 0.0_DP !! Barycentric acceleration due to central body oblatenes
+      real(DP), dimension(NDIM) :: atide    = 0.0_DP !! Barycentric acceleration due to central body oblatenes
+      real(DP), dimension(NDIM) :: aoblbeg  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
+      real(DP), dimension(NDIM) :: aoblend  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
+      real(DP), dimension(NDIM) :: atidebeg = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
+      real(DP), dimension(NDIM) :: atideend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
+      real(DP), dimension(NDIM) :: xb       = 0.0_DP !! Barycentric position (units DU)
+      real(DP), dimension(NDIM) :: vb       = 0.0_DP !! Barycentric velocity (units DU / TU)
+      real(DP), dimension(NDIM) :: agr      = 0.0_DP !! Acceleration due to post-Newtonian correction
+      real(DP), dimension(NDIM) :: Ip       = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
+      real(DP), dimension(NDIM) :: rot      = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
+      real(DP)                  :: k2       = 0.0_DP !! Tidal Love number
+      real(DP)                  :: Q        = 0.0_DP !! Tidal quality factor
+      real(DP)                  :: tlag     = 0.0_DP !! Tidal phase lag angle
+      real(DP), dimension(NDIM) :: L0       = 0.0_DP !! Initial angular momentum of the central body
+      real(DP), dimension(NDIM) :: dL       = 0.0_DP !! Change in angular momentum of the central body
    contains
       private
       procedure, public         :: initialize  => io_read_cb_in        !! I/O routine for reading in central body data
       procedure, public         :: write_frame => io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public         :: read_frame  => io_read_frame_cb     !! I/O routine for reading out a single frame of time-series data for the central body
-      procedure, public         :: set_beg_end => util_set_beg_end_cb  !! Sets the beginning and ending oblateness acceleration term
    end type swiftest_cb
 
    !********************************************************************************************************************************
@@ -148,6 +152,7 @@ module swiftest_classes
       real(DP),              dimension(:,:), allocatable :: vb              !! Barycentric velocity
       real(DP),              dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
       real(DP),              dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
+      real(DP),              dimension(:,:), allocatable :: atide           !! Tanngential component of acceleration of bodies due to tides
       real(DP),              dimension(:,:), allocatable :: agr             !! Acceleration due to post-Newtonian correction
       real(DP),              dimension(:),   allocatable :: ir3h            !! Inverse heliocentric radius term (1/rh**3)
       real(DP),              dimension(:),   allocatable :: a               !! Semimajor axis (pericentric distance for a parabolic orbit)
@@ -204,6 +209,7 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: rot     !! Body rotation vector in inertial coordinate frame (units rad / TU)
       real(DP),     dimension(:),   allocatable :: k2      !! Tidal Love number
       real(DP),     dimension(:),   allocatable :: Q       !! Tidal quality factor
+      real(DP),     dimension(:),   allocatable :: tlag     !! Tidal phase lag
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and util_spill_pl
    contains
@@ -214,6 +220,7 @@ module swiftest_classes
       procedure, public :: eucl_index   => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure, public :: eucl_irij3   => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
       procedure, public :: accel_obl    => obl_acc_pl           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure, public :: accel_tides  => tides_getacch_pl     !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure, public :: setup        => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: set_mu       => util_set_mu_pl       !! Method used to construct the vectorized form of the central body mass
       procedure, public :: set_rhill    => util_set_rhill       !! Calculates the Hill's radii for each body
@@ -284,9 +291,10 @@ module swiftest_classes
       procedure, public :: dump           => io_dump_system            !! Dump the state of the system to a file
       procedure, public :: initialize     => io_read_initialize_system !! Initialize the system from an input file
       procedure, public :: read_frame     => io_read_frame_system      !! Append a frame of output data to file
-      procedure, public :: set_msys       => util_set_msys             !! Sets the value of msys from the masses of system bodies.
       procedure, public :: write_discard  => io_write_discard          !! Append a frame of output data to file
       procedure, public :: write_frame    => io_write_frame_system     !! Append a frame of output data to file
+      procedure, public :: step_spin      => tides_step_spin_system    !! Steps the spins of the massive & central bodies due to tides.
+      procedure, public :: set_msys       => util_set_msys             !! Sets the value of msys from the masses of system bodies.
    end type swiftest_nbody_system
 
    abstract interface
@@ -674,11 +682,25 @@ module swiftest_classes
          integer,            intent(in)    :: n    !! Number of bodies to allocate space for
       end subroutine setup_tp
 
+      module subroutine tides_getacch_pl(self, system)
+         implicit none
+         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      end subroutine tides_getacch_pl
+
+      module subroutine tides_step_spin_system(self, param, t, dt)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t     !! Simulation time
+         real(DP),                     intent(in)    :: dt    !! Current stepsize
+      end subroutine tides_step_spin_system
+
       module subroutine user_getacch_body(self, system, param, t, lbeg)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody_system_object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of user parameters
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine user_getacch_body
@@ -736,7 +758,7 @@ module swiftest_classes
       module subroutine util_index(arr, index)
          implicit none
          integer(I4B), dimension(:), intent(out) :: index
-         real(DP), dimension(:), intent(in)   :: arr
+         real(DP),     dimension(:), intent(in)   :: arr
       end subroutine util_index
 
       module subroutine util_peri_tp(self, system, param) 
@@ -750,13 +772,6 @@ module swiftest_classes
          implicit none
          class(swiftest_body), intent(inout) :: self !! Swiftest body object
       end subroutine util_reverse_status
-
-      module subroutine util_set_beg_end_cb(self, aoblbeg, aoblend)
-         implicit none
-         class(swiftest_cb),     intent(inout)          :: self    !! Swiftest central body object
-         real(DP), dimension(:), intent(in),   optional :: aoblbeg !! Oblateness acceleration term at beginning of step
-         real(DP), dimension(:), intent(in),   optional :: aoblend !! Oblateness acceleration term at end of step
-      end subroutine util_set_beg_end_cb
 
       module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
          implicit none

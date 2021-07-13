@@ -36,10 +36,16 @@ contains
             cb%aoblbeg = cb%aobl
             call pl%accel_obl(system)
             cb%aoblend = cb%aobl
+            if (param%ltides) then
+               cb%atidebeg = cb%aobl
+               call pl%accel_tides(system)
+               cb%atideend = cb%atide
+            end if
          end if
-         if (param%lextra_force) call pl%accel_user(system, param, t)
+
          if (param%lgr) call pl%accel_gr(param) 
 
+         if (param%lextra_force) call pl%accel_user(system, param, t)
       end associate
       return
    end subroutine whm_getacch_pl

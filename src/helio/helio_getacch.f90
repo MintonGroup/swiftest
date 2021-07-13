@@ -22,6 +22,11 @@ contains
             cb%aoblbeg = cb%aobl
             call pl%accel_obl(system)
             cb%aoblend = cb%aobl
+            if (param%ltides) then
+               cb%atidebeg = cb%atide
+               call pl%accel_tides(system)
+               cb%atideend = cb%atide
+            end if
          end if
          if (param%lextra_force) call pl%accel_user(system, param, t)
          !if (param%lgr) call pl%gr_accel(param)
