@@ -4,22 +4,6 @@ submodule(swiftest_classes) s_util_set
    use swiftest
 contains
 
-   module subroutine util_set_beg_end_cb(self, aoblbeg, aoblend)
-      !! author: David A. Minton
-      !! 
-      !! Sets one or more of the values of aoblbeg and aoblend 
-      implicit none
-      ! Arguments
-      class(swiftest_cb),     intent(inout)          :: self    !! Swiftest central body object
-      real(DP), dimension(:), intent(in),   optional :: aoblbeg !! Oblateness acceleration term at beginning of step
-      real(DP), dimension(:), intent(in),   optional :: aoblend !! Oblateness acceleration term at end of step
-
-      if (present(aoblbeg)) self%aoblbeg = aoblbeg
-      if (present(aoblend)) self%aoblend = aoblend
-      return
-
-   end subroutine util_set_beg_end_cb
-   
    module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
       !! author: David A. Minton
       !! 

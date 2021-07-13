@@ -31,9 +31,10 @@ module rmvs_classes
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
-      real(DP), dimension(:, :), allocatable :: x    !! interpolated heliocentric planet position for outer encounter
-      real(DP), dimension(:, :), allocatable :: v    !! interpolated heliocentric planet velocity for outer encounter
-      real(DP), dimension(:, :), allocatable :: aobl !! Encountering planet's oblateness acceleration value
+      real(DP), dimension(:, :), allocatable :: x     !! interpolated heliocentric planet position for outer encounter
+      real(DP), dimension(:, :), allocatable :: v     !! interpolated heliocentric planet velocity for outer encounter
+      real(DP), dimension(:, :), allocatable :: aobl  !! Encountering planet's oblateness acceleration value
+      real(DP), dimension(:, :), allocatable :: atide !! Encountering planet's tidal acceleration value
    end type rmvs_interp
 
    !********************************************************************************************************************************

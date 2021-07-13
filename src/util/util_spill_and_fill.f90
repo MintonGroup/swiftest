@@ -33,6 +33,7 @@ contains
             discards%vb(i, :) = pack(keeps%vb(i, :),     lspill_list(:))
             discards%ah(i, :) = pack(keeps%ah(i, :),     lspill_list(:))
             discards%aobl(i, :) = pack(keeps%aobl(i, :), lspill_list(:))
+            discards%atide(i, :) = pack(keeps%atide(i, :), lspill_list(:))
             discards%agr(i, :)   = pack(keeps%agr(i, :), lspill_list(:))
          end do
          if (count(.not.lspill_list(:))  > 0) then 
@@ -53,6 +54,7 @@ contains
                keeps%vb(i, :)    = pack(keeps%vb(i, :),   .not. lspill_list(:))
                keeps%ah(i, :)    = pack(keeps%ah(i, :),   .not. lspill_list(:))
                keeps%aobl(i, :)  = pack(keeps%aobl(i, :), .not. lspill_list(:))
+               keeps%atide(i, :)  = pack(keeps%atide(i, :), .not. lspill_list(:))
                keeps%agr(i, :)   = pack(keeps%agr(i, :),  .not. lspill_list(:))
             end do
          end if
@@ -117,6 +119,9 @@ contains
             
             keeps%aobl(i, :)  = unpack(keeps%aobl(i, :), .not.lfill_list(:), keeps%aobl(i, :))
             keeps%aobl(i, :)  = unpack(inserts%aobl(i, :), lfill_list(:), keeps%aobl(i, :))
+
+            keeps%atide(i, :)  = unpack(keeps%atide(i, :), .not.lfill_list(:), keeps%atide(i, :))
+            keeps%atide(i, :)  = unpack(inserts%atide(i, :), lfill_list(:), keeps%atide(i, :))
 
             keeps%agr(i, :)  = unpack(keeps%agr(i, :), .not.lfill_list(:), keeps%agr(i, :))
             keeps%agr(i, :)  = unpack(inserts%agr(i, :), lfill_list(:), keeps%agr(i, :))
