@@ -1,6 +1,6 @@
 ! VERSION        Swiftest parameter input
 T0               0.0
-TSTOP            365.25
+TSTOP            3652.5
 DT               1.0
 ISTEP_OUT        11
 ISTEP_DUMP       1

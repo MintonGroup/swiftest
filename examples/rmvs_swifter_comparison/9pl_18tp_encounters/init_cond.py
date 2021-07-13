@@ -24,7 +24,7 @@ sim = swiftest.Simulation()
 
 sim.param['T0'] = 0.0
 sim.param['DT'] = 1.0 
-sim.param['TSTOP'] = 365.25
+sim.param['TSTOP'] = 365.25e1
 sim.param['ISTEP_OUT']  = 11
 sim.param['ISTEP_DUMP'] = 1
 sim.param['CHK_QMIN_COORD'] = "HELIO"

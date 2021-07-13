@@ -6,7 +6,7 @@ sim.param['PL_IN'] = "pl.swiftest.in"
 sim.param['TP_IN'] = "tp.swiftest.in"
 sim.param['CB_IN'] = "cb.swiftest.in"
 sim.param['BIN_OUT'] = "bin.swiftest.dat"
-sim.param['ENC_OUT'] = "enc.swiftest.dat
+sim.param['ENC_OUT'] = "enc.swiftest.dat"
 
 sim.param['MU2KG'] = swiftest.MSun
 sim.param['TU2S'] = swiftest.YR2S
@@ -41,7 +41,6 @@ bodyid = {
 for name, id in bodyid.items():
    sim.add(name, idval=id)
    
-"
 sim.save("param.swiftest.in")
 sim.param['PL_IN'] = "pl.swifter.in"
 sim.param['TP_IN'] = "tp.swifter.in"

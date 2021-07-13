@@ -1,1 +1,0 @@
-/Users/daminton/git/swiftest/python/swifter2swiftest.py
