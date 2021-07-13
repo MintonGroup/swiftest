@@ -8,10 +8,10 @@ module symba_classes
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    implicit none
 
-   integer(I4B), parameter :: NENMAX = 32767
-   integer(I4B), parameter :: NTENC = 3
-   real(DP),     parameter :: RHSCALE = 6.5_DP
-   real(DP),     parameter :: RSHELL = 0.48075_DP
+   !integer(I4B), parameter :: NENMAX = 32767
+   !integer(I4B), parameter :: NTENC = 3
+   !real(DP),     parameter :: RHSCALE = 6.5_DP
+   !real(DP),     parameter :: RSHELL = 0.48075_DP
    character(*), parameter :: PARTICLE_OUTFILE  = 'particle.dat'
    integer(I4B), parameter :: PARTICLEUNIT      = 44 !! File unit number for the binary particle info output file
 

@@ -8,12 +8,12 @@ module rmvs_classes
    implicit none
 
    public
-   integer(I4B), parameter :: NTENC = 10
-   integer(I4B), parameter :: NTPHENC = 3
-   integer(I4B), parameter :: NTPENC = NTENC * NTPHENC
-   real(DP), parameter     :: RHSCALE = 3.5_DP
-   real(DP), parameter     :: RHPSCALE = 1.0_DP
-   real(DP), parameter     :: FACQDT = 2.0_DP
+   integer(I4B), private, parameter :: NTENC = 10
+   integer(I4B), private, parameter :: NTPHENC = 3
+   integer(I4B), private, parameter :: NTPENC = NTENC * NTPHENC
+   real(DP), private, parameter     :: RHSCALE = 3.5_DP
+   real(DP), private, parameter     :: RHPSCALE = 1.0_DP
+   real(DP), private, parameter     :: FACQDT = 2.0_DP
 
    !********************************************************************************************************************************
    !  rmvs_nbody_system class definitions and method interfaces
