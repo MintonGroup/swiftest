@@ -8,10 +8,10 @@ module symba
    use helio
    implicit none
 
-   integer(I4B), public, parameter :: NENMAX = 32767
-   integer(I4B), public, parameter :: NTENC = 3
-   real(DP), public, parameter     :: RHSCALE = 6.5_DP
-   real(DP), public, parameter     :: RSHELL = 0.48075_DP
+   !integer(I4B), public, parameter :: NENMAX = 32767
+   !integer(I4B), public, parameter :: NTENC = 3
+   !real(DP), public, parameter     :: RHSCALE = 6.5_DP
+   !real(DP), public, parameter     :: RSHELL = 0.48075_DP
 
    !********************************************************************************************************************************
    !                                    symba_tp class definitions and method interfaces
