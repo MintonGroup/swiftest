@@ -37,11 +37,35 @@ contains
 
    module subroutine symba_step_interp_system(self, param, t, dt)
       implicit none
+      ! Arguments
       class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t      !! Simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsize
+      ! Internals 
+      real(DP)                                  :: dth
 
+      dth = 0.5_DP * dt
+      select type(pl => self%pl)
+      class is (symba_pl)
+         select type(tp => self%tp)
+         class is (symba_tp)
+            call pl%vh2vb(cb)
+            call pl%lindrift(cb, dth, lbeg=.true.)
+            if (tp%nbody > 0) then
+               call tp%vh2vb(vbcb = -cb%ptbeg)
+               call tp%lindrift(cb, dth, lbeg=.true.)
+               call pl%set_beg_end(xbeg = pl%xh)
+            end if
+            call pl%accel(system, param, t)
+            call tp%accel(system, param, t, lbeg=.true.)
+            call pl%kick(dth)
+            call tp%kick(dth)
+            call pl%drift(system, param, dt)
+            call tp%drift(system, param, dt
+
+         end select
+      end select
       return
    end subroutine symba_step_interp_system
 end submodule s_symba_step
