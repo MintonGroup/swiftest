@@ -138,6 +138,7 @@ module symba_classes
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
       class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
+      integer(I4B)                      :: irec          !! Recursion level
    contains
       private
       procedure, public :: initialize     => symba_setup_system       !! Performs SyMBA-specific initilization steps

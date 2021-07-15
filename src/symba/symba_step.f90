@@ -51,7 +51,6 @@ contains
       real(DP),                   intent(in)    :: dt     !! Current stepsize
       ! Internals 
       real(DP)                                  :: dth
-      integer(I4B)                              :: irec
 
       dth = 0.5_DP * dt
       associate(system => self)
@@ -73,10 +72,10 @@ contains
                   call pl%kick(dth)
                   call tp%kick(dth)
 
-                  irec = -1
+                  system%irec = -1
                   call pl%drift(system, param, dt)
                   call tp%drift(system, param, dt)
-                  irec = 0
+                  system%irec = 0
 
                   call system%recursive_step(param, t, dt)
 
