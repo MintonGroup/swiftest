@@ -140,9 +140,11 @@ module symba_classes
       class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
    contains
       private
-      procedure, public :: initialize => symba_setup_system        !! Performs SyMBA-specific initilization steps
-      procedure, public :: step       => symba_step_system         !! Advance the SyMBA nbody system forward in time by one step
-      procedure, public :: interp     => symba_step_interp_system  !! Perform an interpolation step on the SymBA nbody system 
+      procedure, public :: initialize     => symba_setup_system       !! Performs SyMBA-specific initilization steps
+      procedure, public :: step           => symba_step_system        !! Advance the SyMBA nbody system forward in time by one step
+      procedure, public :: interp         => symba_step_interp_system !! Perform an interpolation step on the SymBA nbody system 
+      procedure, public :: recursive_step => symba_step_recur_system  !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
+                                                                      !! recursion level, if applicable, and descend to the next deeper level if necessarye
    end type symba_nbody_system
 
    interface
@@ -246,6 +248,12 @@ module symba_classes
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine symba_setup_system
 
+      module subroutine symba_setup_tp(self,n)
+         implicit none
+         class(symba_tp), intent(inout) :: self !! SyMBA test particle object
+         integer(I4B),    intent(in)    :: n    !! Number of test particles to allocate
+      end subroutine symba_setup_tp
+
       module subroutine symba_step_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -255,12 +263,6 @@ module symba_classes
          real(DP),                   intent(in)    :: dt     !! Current stepsize
       end subroutine symba_step_system
 
-      module subroutine symba_setup_tp(self,n)
-         implicit none
-         class(symba_tp), intent(inout) :: self !! SyMBA test particle object
-         integer(I4B),    intent(in)    :: n    !! Number of test particles to allocate
-      end subroutine symba_setup_tp
-
       module subroutine symba_step_interp_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -269,5 +271,13 @@ module symba_classes
          real(DP),                   intent(in)    :: t      !! Simulation time
          real(DP),                   intent(in)    :: dt     !! Current stepsize
       end subroutine symba_step_interp_system
+
+      module recursive subroutine symba_step_recur_system(self, param, t, dt)
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t     !! Simulation time
+         real(DP),                   intent(in)    :: dt    !! Current stepsize
+      end subroutine symba_step_recur_system
    end interface
 end module symba_classes
