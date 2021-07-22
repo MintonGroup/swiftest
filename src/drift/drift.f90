@@ -9,6 +9,57 @@ submodule (swiftest_classes) drift_implementation
    integer(I2B), parameter :: NLAG2    = 40
 
 contains
+
+   module subroutine drift_body(self, system, param, dt)
+      !! author: David A. Minton
+      !!
+      !! Loop bodies and call Danby drift routine on the heliocentric position and velocities.
+      !!
+      !! Adapted from Hal Levison's Swift routine drift_tp.f 
+      !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
+      implicit none
+      ! Arguments
+      class(swiftest_body),         intent(inout) :: self   !! Swiftest test particle data structure
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      ! Internals
+      integer(I4B)                              :: i   
+      real(DP)                                  :: energy, vmag2, rmag  !! Variables used in GR calculation
+      integer(I4B), dimension(:), allocatable   :: iflag
+      real(DP), dimension(:), allocatable       :: dtp
+
+      associate(n => self%nbody)
+         if (n == 0) return
+         allocate(iflag(n))
+         iflag(:) = 0
+         allocate(dtp(n))
+         if (param%lgr) then
+            do i = 1, n
+               rmag = norm2(self%xh(:, i))
+               vmag2 = dot_product(self%vh(:, i), self%vh(:, i))
+               energy = 0.5_DP * vmag2 - self%mu(i) / rmag
+               dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
+            end do
+         else
+            dtp(:) = dt
+         end if 
+         do concurrent(i = 1:n, self%status(i) == ACTIVE)
+            call drift_one(self%mu(i), self%xh(1,i), self%xh(2,i), self%xh(3,i), &
+                                       self%vh(1,i), self%vh(2,i), self%vh(3,i), &
+                                       dtp(i), iflag(i))
+         end do
+         if (any(iflag(1:n) /= 0)) then
+            where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
+            do i = 1, n
+               if (iflag(i) /= 0) write(*, *) "Particle ", self%id(i), " lost due to error in Danby drift"
+            end do
+         end if
+      end associate
+
+      return
+   end subroutine drift_body
+
    module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -405,5 +456,6 @@ contains
 
       return
    end subroutine drift_kepu_stumpff
+
 
 end submodule drift_implementation

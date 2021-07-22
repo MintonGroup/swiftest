@@ -7,7 +7,7 @@ module swiftest_classes
    implicit none
    private
    public :: discard_pl, discard_system, discard_tp 
-   public :: drift_one
+   public :: drift_body, drift_one
    public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
    public :: gr_getaccb_ns_body, gr_p4_pos_kick, gr_pseudovel2vel, gr_vel2pseudovel
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
@@ -173,6 +173,7 @@ module swiftest_classes
       procedure(abstract_step_body),    public, deferred :: step
       procedure(abstract_accel),        public, deferred :: accel
       ! These are concrete because the implementation is the same for all types of particles
+      procedure, public :: drift          => drift_body          !! Loop through bodies and call Danby drift routine on heliocentric variables
       procedure, public :: v2pv           => gr_vh2pv_body       !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
       procedure, public :: pv2v           => gr_pv2vh_body       !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
@@ -247,16 +248,16 @@ module swiftest_classes
       private
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: discard       => discard_tp           !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
-      procedure, public :: eucl_index    => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: accel_obl     => obl_acc_tp           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure, public :: setup         => setup_tp             !! A base constructor that sets the number of bodies and 
-      procedure, public :: set_mu        => util_set_mu_tp       !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: h2b           => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
-      procedure, public :: b2h           => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
-      procedure, public :: fill          => util_fill_tp         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: get_peri      => util_peri_tp         !! Determine system pericenter passages for test particles 
-      procedure, public :: spill         => util_spill_tp        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: discard    => discard_tp           !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      procedure, public :: eucl_index => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: accel_obl  => obl_acc_tp           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure, public :: setup      => setup_tp             !! A base constructor that sets the number of bodies and 
+      procedure, public :: set_mu     => util_set_mu_tp       !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: h2b        => util_coord_h2b_tp    !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
+      procedure, public :: b2h        => util_coord_b2h_tp    !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
+      procedure, public :: fill       => util_fill_tp         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: get_peri   => util_peri_tp         !! Determine system pericenter passages for test particles 
+      procedure, public :: spill      => util_spill_tp        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_tp
 
    !********************************************************************************************************************************
@@ -309,7 +310,7 @@ module swiftest_classes
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine abstract_accel
@@ -383,6 +384,14 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine discard_tp
 
+      module subroutine drift_body(self, system, param, dt)
+         implicit none
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         real(DP),                     intent(in)    :: dt     !! Stepsize
+      end subroutine drift_body
+
       module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
          implicit none
          real(DP),     intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
@@ -434,7 +443,7 @@ module swiftest_classes
       module pure subroutine gr_pv2vh_body(self, param)
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine gr_pv2vh_body
 
       module pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
@@ -449,7 +458,7 @@ module swiftest_classes
       module pure subroutine gr_vh2pv_body(self, param)
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine gr_vh2pv_body
 
       module subroutine io_dump_param(self, param_file_name)
