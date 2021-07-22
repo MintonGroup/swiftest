@@ -54,6 +54,7 @@ contains
 
       dth = 0.5_DP * dt
       associate(system => self)
+         call system%reset()
          select type(pl => system%pl)
          class is (symba_pl)
             select type(tp => system%tp)
@@ -114,5 +115,53 @@ contains
       ! Internals
       !associate()
    end subroutine symba_step_recur_system
+
+   module subroutine symba_step_reset_system(self)
+      !! author: David A. Minton
+      !!
+      !! Resets pl, tp,and encounter structures at the start of a new step
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+      ! Internals
+      integer(I4B) :: i
+
+      associate(system => self, pltpenc_list => self%pltpenc_list, plplenc_list => self%plplenc_list, mergeadd_list => self%mergeadd_list, mergesub_list => self%mergesub_list)
+         select type(pl => system%pl)
+         class is (symba_pl)
+            select type(tp => system%tp)
+            class is (symba_tp)
+               system%irec = -1
+               pl%lcollision(:) = .false.
+               pl%kin(:)%parent = [(i, i=1, pl%nbody)]
+               pl%kin(:)%nchild = 0
+               do i = 1, pl%nbody
+                  if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
+               end do
+               pl%nplenc(:) = 0
+               pl%ntpenc(:) = 0
+               pl%levelg(:) = 0
+               pl%levelm(:) = 0
+               pl%lencounter = .false.
+               pl%lcollision = .false.
+            
+               tp%nplenc(:) = 0 
+               tp%levelg(:) = 0
+               tp%levelm(:) = 0
+            
+               plplenc_list%nenc = 0
+               pltpenc_list%nenc = 0
+
+               mergeadd_list%nbody = 0
+               mergesub_list%nbody = 0
+            end select
+         end select
+      end associate
+
+   
+   end subroutine symba_step_reset_system
+
+
 
 end submodule s_symba_step

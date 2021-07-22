@@ -116,6 +116,8 @@ module symba_classes
       integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the planet in encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the test particle in encounter
+   contains
+      procedure, public :: setup  => symba_setup_pltpenc  !! A constructor that sets the number of encounters and allocates and initializes all arrays  
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -127,6 +129,8 @@ module symba_classes
       real(DP),     dimension(:,:), allocatable :: xh2 !! the heliocentric position of parent 2 in encounter
       real(DP),     dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
       real(DP),     dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
+   contains
+      procedure, public :: setup  => symba_setup_plplenc  !! A constructor that sets the number of encounters and allocates and initializes all arrays  
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -145,7 +149,8 @@ module symba_classes
       procedure, public :: step           => symba_step_system        !! Advance the SyMBA nbody system forward in time by one step
       procedure, public :: interp         => symba_step_interp_system !! Perform an interpolation step on the SymBA nbody system 
       procedure, public :: recursive_step => symba_step_recur_system  !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
-                                                                      !! recursion level, if applicable, and descend to the next deeper level if necessarye
+                                                                      !! recursion level, if applicable, and descend to the next deeper level if necessary
+      procedure, public :: reset          => symba_step_reset_system  !! Resets pl, tp,and encounter structures at the start of a new step 
    end type symba_nbody_system
 
    interface
@@ -242,6 +247,18 @@ module symba_classes
          integer(I4B),    intent(in)    :: n    !! Number of massive bodies to allocate
       end subroutine symba_setup_pl
 
+      module subroutine symba_setup_pltpenc(self,n)
+         implicit none
+         class(symba_pltpenc), intent(inout) :: self !! Symba pl-tp encounter structure
+         integer,              intent(in)    :: n    !! Number of encounters to allocate space for
+      end subroutine symba_setup_pltpenc
+
+      module subroutine symba_setup_plplenc(self,n)
+         implicit none
+         class(symba_plplenc), intent(inout) :: self !! Symba pl-tp encounter structure
+         integer,              intent(in)    :: n    !! Number of encounters to allocate space for
+      end subroutine symba_setup_plplenc
+
       module subroutine symba_setup_system(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -280,5 +297,10 @@ module symba_classes
          real(DP),                   intent(in)    :: t     !! Simulation time
          real(DP),                   intent(in)    :: dt    !! Current stepsize
       end subroutine symba_step_recur_system
+
+      module subroutine symba_step_reset_system(self)
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+      end subroutine symba_step_reset_system
    end interface
 end module symba_classes

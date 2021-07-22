@@ -156,10 +156,10 @@ module helio_classes
       module subroutine helio_step_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
-         real(DP),                   intent(in)    :: t      !! Simulation time
-         real(DP),                   intent(in)    :: dt     !! Current stepsize
+         class(helio_nbody_system),  intent(inout) :: self  !! Helio nbody system object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+         real(DP),                   intent(in)    :: t     !! Simulation time
+         real(DP),                   intent(in)    :: dt    !! Current stepsize
       end subroutine helio_step_system
 
       module subroutine helio_step_tp(self, system, param, t, dt)
