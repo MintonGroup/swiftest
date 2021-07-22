@@ -1,7 +1,7 @@
 submodule (helio_classes) s_helio_drift
    use swiftest
 contains
-   module subroutine helio_drift_pl(self, system, param, dt)
+   module subroutine helio_drift_pl(self, system, param, dt, mask)
 
       !! author: David A. Minton
       !!
@@ -13,9 +13,10 @@ contains
       implicit none
       ! Arguments
       class(helio_pl),              intent(inout) :: self   !! Helio massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Stepsize)
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift.
       ! Internals
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
@@ -29,33 +30,39 @@ contains
          iflag(:) = 0
          allocate(dtp(npl))
          allocate(mu(npl))
-         mu =  cb%Gmass
+         mu(:) =  cb%Gmass
 
          if (param%lgr) then
-            do i = 1,npl
-               rmag = norm2(pl%xh(:, i))
-               vmag2 = dot_product(pl%vb(:, i),  pl%vb(:, i))
-               energy = 0.5_DP * vmag2 - pl%mu(i) / rmag
+            do concurrent(i = 1:npl, mask(i))
+               rmag = norm2(pl%xb(:, i))
+               vmag2 = dot_product(pl%vb(:, i), pl%vb(:, i))
+               energy = 0.5_DP * vmag2 - mu(i) / rmag
                dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
             end do
          else
-            dtp(:) = dt
+            where(mask(1:npl)) dtp(1:npl) = dt
          end if 
 
-         call drift_one(mu(1:npl), pl%xh(1,1:npl), pl%xh(2,1:npl), pl%xh(3,1:npl), &
-                                      pl%vb(1,1:npl), pl%vb(2,1:npl), pl%vb(3,1:npl), &
-                                      dtp(1:npl), iflag(1:npl))
+         do concurrent(i = 1:npl, mask(i))
+            call drift_one(mu(i), pl%xb(1,i), pl%xb(2,i), pl%xb(3,i), &
+                                  pl%vb(1,i), pl%vb(2,i), pl%vb(3,i), &
+                                  dtp(i), iflag(i))
+         end do
          if (any(iflag(1:npl) /= 0)) then
             do i = 1, npl
-               write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!"
-               write(*, *) pl%xh(:,i)
-               write(*, *) pl%vb(:,i)
-               write(*, *) " stopping "
-               call util_exit(FAILURE)
+               if (iflag(i) /= 0) then
+                  write(*, *) " Planet ", self%id(i), " is lost!!!!!!!!!!"
+                  write(*, *) pl%xb(:,i)
+                  write(*, *) pl%vb(:,i)
+                  write(*, *) " stopping "
+                  call util_exit(FAILURE)
+               end if
             end do
          end if
       end associate
+
       return
+
    end subroutine helio_drift_pl
    
    module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
@@ -92,57 +99,6 @@ contains
    
       return
    end subroutine helio_drift_linear_pl
-
-   module subroutine helio_drift_tp(self, system, param, dt)
-      !! author: David A. Minton
-      !!
-      !! Loop through test particles and call Danby drift routine
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine helio_drift_tp.f90
-      !! Adapted from Hal Levison's Swift routine drift_tp.f
-      implicit none
-      ! Arguments
-      class(helio_tp),              intent(inout) :: self   !! Helio test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Stepsize
-      ! Internals
-      integer(I4B) :: i !! Loop counter
-      real(DP) :: rmag, vmag2, energy
-      real(DP), dimension(:), allocatable    :: dtp, mu
-      integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
-   
-      associate(tp => self, ntp => self%nbody, cb => system%cb)
-         if (ntp == 0) return
-         allocate(iflag(ntp))
-         allocate(dtp(ntp))
-         iflag(:) = 0
-         allocate(mu(ntp))
-         mu =  cb%Gmass
-
-         if (param%lgr) then
-            do i = 1,ntp
-               rmag = norm2(tp%xh(:, i))
-               vmag2 = dot_product(tp%vh(:, i), tp%vh(:, i))
-               energy = 0.5_DP * vmag2 - tp%mu(i) / rmag
-               dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
-            end do
-         else
-            dtp(:) = dt
-         end if 
-         call drift_one(mu(1:ntp), tp%xh(1,1:ntp), tp%xh(2,1:ntp), tp%xh(3,1:ntp), &
-                                   tp%vb(1,1:ntp), tp%vb(2,1:ntp), tp%vb(3,1:ntp), &
-                                   dtp(1:ntp), iflag(1:ntp))
-         if (any(iflag(1:ntp) /= 0)) then
-            tp%status = DISCARDED_DRIFTERR
-            do i = 1, ntp
-               if (iflag(i) /= 0) write(*, *) "Particle ", tp%id(i), " lost due to error in Danby drift"
-            end do
-         end if
-      end associate
-
-      return
-   end subroutine helio_drift_tp
 
    module subroutine helio_drift_linear_tp(self, cb, dt, lbeg)
       !! author: David A. Minton

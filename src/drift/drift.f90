@@ -10,7 +10,7 @@ submodule (swiftest_classes) drift_implementation
 
 contains
 
-   module subroutine drift_body(self, system, param, dt)
+   module subroutine drift_body(self, system, param, dt, mask)
       !! author: David A. Minton
       !!
       !! Loop bodies and call Danby drift routine on the heliocentric position and velocities.
@@ -23,6 +23,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
+      logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift.
       ! Internals
       integer(I4B)                              :: i   
       real(DP)                                  :: energy, vmag2, rmag  !! Variables used in GR calculation
@@ -35,16 +36,16 @@ contains
          iflag(:) = 0
          allocate(dtp(n))
          if (param%lgr) then
-            do i = 1, n
+            do concurrent(i = 1:n, mask(i))
                rmag = norm2(self%xh(:, i))
                vmag2 = dot_product(self%vh(:, i), self%vh(:, i))
                energy = 0.5_DP * vmag2 - self%mu(i) / rmag
                dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
             end do
          else
-            dtp(:) = dt
+            where(mask(1:n)) dtp(1:n) = dt
          end if 
-         do concurrent(i = 1:n, self%status(i) == ACTIVE)
+         do concurrent(i = 1:n, mask(i))
             call drift_one(self%mu(i), self%xh(1,i), self%xh(2,i), self%xh(3,i), &
                                        self%vh(1,i), self%vh(2,i), self%vh(3,i), &
                                        dtp(i), iflag(i))

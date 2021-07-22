@@ -96,13 +96,14 @@ module whm_classes
          class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body particle data structuree
       end subroutine whm_coord_vh2vj_pl
 
-      module subroutine whm_drift_pl(self, system, param, dt)
+      module subroutine whm_drift_pl(self, system, param, dt, mask)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: dt     !! Stepsize
+         logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       end subroutine whm_drift_pl
 
       module subroutine whm_fill_pl(self, inserts, lfill_list)

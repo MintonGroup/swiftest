@@ -384,12 +384,13 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine discard_tp
 
-      module subroutine drift_body(self, system, param, dt)
+      module subroutine drift_body(self, system, param, dt, mask)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: dt     !! Stepsize
+         logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       end subroutine drift_body
 
       module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)

@@ -73,8 +73,8 @@ contains
                   call tp%kick(dth)
 
                   system%irec = -1
-                  call pl%drift(system, param, dt)
-                  call tp%drift(system, param, dt)
+                  call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
+                  call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
                   system%irec = 0
 
                   call system%recursive_step(param, t, dt)
