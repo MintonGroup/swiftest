@@ -21,7 +21,7 @@ module swiftest_classes
    public :: user_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_exit, util_fill_body, util_fill_pl, util_fill_tp, &
              util_index, util_peri_tp, util_reverse_status, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
-             util_set_mu_tp, util_set_rhill, util_sort, util_spill_body, util_spill_pl, util_spill_tp, util_valid, util_version
+             util_set_mu_tp, util_set_rhill, util_set_rhill_approximate, util_sort, util_spill_body, util_spill_pl, util_spill_tp, util_valid, util_version
 
    !********************************************************************************************************************************
    ! swiftest_parameters class definitions 
@@ -806,8 +806,14 @@ module swiftest_classes
       module subroutine util_set_rhill(self,cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-         class(swiftest_cb), intent(inout) :: cb   !! Swiftest massive body object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_rhill
+
+      module subroutine util_set_rhill_approximate(self,cb)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_set_rhill_approximate
    end interface
 
    interface util_sort

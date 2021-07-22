@@ -30,12 +30,37 @@ contains
 
    end subroutine util_set_beg_end_pl
 
+   module subroutine util_set_ir3h(self)
+      !! author: David A. Minton
+      !!
+      !! Sets the inverse heliocentric radius term (1/rh**3) for all bodies in a structure
+      implicit none
+      ! Arguments
+      class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
+      ! Internals
+      integer(I4B) :: i
+      real(DP) :: r2, irh
+
+      if (self%nbody > 0) then
+
+         do i = 1, self%nbody
+            r2 = dot_product(self%xh(:, i), self%xh(:, i))
+            irh = 1.0_DP / sqrt(r2)
+            self%ir3h(i) = irh / r2
+         end do
+      end if
+
+      return
+   end subroutine util_set_ir3h
+
    module subroutine util_set_msys(self)
       !! author: David A. Minton
       !!
       !! Sets the value of msys and the vector mass quantities based on the total mass of the system
       implicit none
-      class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system objec
+      ! Arguments
+      class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest nobdy system object
+
       self%msys = self%cb%mass + sum(self%pl%mass(1:self%pl%nbody))
 
       return
@@ -46,11 +71,11 @@ contains
       !!
       !! Computes G * (M + m) for each massive body
       implicit none
+      ! Arguments
       class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
       if (self%nbody > 0) self%mu(:) = cb%Gmass + self%Gmass(:)
-
       return
    end subroutine util_set_mu_pl
 
@@ -59,6 +84,7 @@ contains
       !!
       !! Converts certain scalar values to arrays so that they can be used in elemental functions
       implicit none
+      ! Arguments
       class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
@@ -84,8 +110,7 @@ contains
       return
    end subroutine util_set_rhill
 
-
-   module subroutine util_set_approximate_rhill(self,cb)
+   module subroutine util_set_rhill_approximate(self,cb)
       !! author: David A. Minton
       !!
       !! Sets the approximate value of the Hill's radius using the heliocentric radius instead of computing the semimajor axis
@@ -102,27 +127,6 @@ contains
       end if
 
       return
-   end subroutine util_set_approximate_rhill
+   end subroutine util_set_rhill_approximate
 
-   module subroutine util_set_ir3h(self)
-      !! author: David A. Minton
-      !!
-      !! Sets the inverse heliocentric radius term (1/rh**3) for all bodies in a structure
-      implicit none
-      class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-
-      integer(I4B) :: i
-      real(DP) :: r2, irh
-
-      if (self%nbody > 0) then
-
-         do i = 1, self%nbody
-            r2 = dot_product(self%xh(:, i), self%xh(:, i))
-            irh = 1.0_DP / sqrt(r2)
-            self%ir3h(i) = irh / r2
-         end do
-      end if
-
-      return
-   end subroutine util_set_ir3h
 end submodule s_util_set
