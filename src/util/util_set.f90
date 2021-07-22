@@ -119,10 +119,11 @@ contains
       class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       ! Internals
-      real(DP) :: rh
+      real(DP), dimension(:), allocatable :: rh
 
       if (self%nbody > 0) then
-         call self%xv2el(cb) 
+         allocate(rh, mold=self%rhill)
+         
          self%rhill(:) = self%a(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
       end if
 

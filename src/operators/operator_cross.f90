@@ -27,6 +27,16 @@ contains
       return
    end function operator_cross_dp
 
+   module pure function operator_cross_qp(A, B) result(C)
+      implicit none
+      real(QP), dimension(:), intent(in) :: A, B
+      real(QP), dimension(3) :: C
+      C(1) = A(2) * B(3) - A(3) * B(2)
+      C(2) = A(3) * B(1) - A(1) * B(3)
+      C(3) = A(1) * B(2) - A(2) * B(1)
+      return
+   end function operator_cross_qp
+
    module pure function operator_cross_i1b(A, B) result(C)
       implicit none
       integer(I1B), dimension(:), intent(in) :: A, B
@@ -73,6 +83,7 @@ contains
       real(SP), dimension(:,:), allocatable :: C
       integer(I4B) :: i, n
       n = size(A, 2)
+      if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
@@ -88,6 +99,7 @@ contains
       real(DP), dimension(:,:), allocatable :: C
       integer(I4B) :: i, n
       n = size(A, 2)
+      if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
@@ -97,12 +109,29 @@ contains
       return
    end function operator_cross_el_dp
 
+   module pure function operator_cross_el_qp(A, B) result(C)
+      implicit none
+      real(QP), dimension(:,:), intent(in)  :: A, B
+      real(QP), dimension(:,:), allocatable :: C
+      integer(I4B) :: i, n
+      n = size(A, 2)
+      if (allocated(C)) deallocate(C)
+      allocate(C, mold = A)
+      do concurrent (i = 1:n) 
+         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
+         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
+         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
+      end do
+      return
+   end function operator_cross_el_qp
+
    module pure function operator_cross_el_i1b(A, B) result(C)
       implicit none
       integer(I1B), dimension(:,:), intent(in)  :: A, B
       integer(I1B), dimension(:,:), allocatable :: C
       integer(I4B) :: i, n
       n = size(A, 2)
+      if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
@@ -118,6 +147,7 @@ contains
       integer(I2B), dimension(:,:), allocatable :: C
       integer(I4B) :: i, n
       n = size(A, 2)
+      if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
@@ -133,6 +163,7 @@ contains
       integer(I4B), dimension(:,:), allocatable :: C
       integer(I4B) :: i, n
       n = size(A, 2)
+      if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
@@ -148,6 +179,7 @@ contains
       integer(I8B), dimension(:,:), allocatable :: C
       integer(I4B) :: i, n
       n = size(A, 2)
+      if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
          C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
