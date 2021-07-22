@@ -12,7 +12,7 @@ contains
       implicit none
       ! Arguments
       class(whm_nbody_system),    intent(inout) :: self  !! WHM nbody system object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! Current simulation time
       real(DP),                   intent(in)    :: dt    !! Current stepsize
 

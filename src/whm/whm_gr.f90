@@ -10,7 +10,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),              intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: suma
@@ -71,7 +71,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),              intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: dt     !! Step size
       ! Internals
       integer(I4B)                                 :: i
@@ -96,7 +96,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),              intent(inout) :: self  !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: dt    !! Step size
       ! Internals
       integer(I4B)                              :: i

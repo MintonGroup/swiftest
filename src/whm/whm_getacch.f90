@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t       !! Current time
       logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       ! Internals
@@ -61,7 +61,7 @@ contains
       ! Arguments
       class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       ! Internals

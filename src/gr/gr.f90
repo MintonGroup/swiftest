@@ -108,7 +108,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                              :: i
       real(DP), dimension(:,:), allocatable     :: vh    !! Temporary holder of pseudovelocity for in-place conversion
@@ -207,7 +207,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion

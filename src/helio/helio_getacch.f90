@@ -12,7 +12,7 @@ contains
       ! Arguments
       class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
 
@@ -46,7 +46,7 @@ contains
          ! Arguments
          class(helio_tp),              intent(inout) :: self   !! WHM test particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
          ! Internals
@@ -110,7 +110,7 @@ contains
          ! Arguments
          class(helio_tp),              intent(inout) :: tp     !! Helio test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current times
          ! Internals
          integer(I4B)                                :: i, j

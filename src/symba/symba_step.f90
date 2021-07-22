@@ -112,6 +112,7 @@ contains
       real(DP),                   intent(in)    :: t     !! Simulation time
       real(DP),                   intent(in)    :: dt    !! Current stepsize
       ! Internals
+      !associate()
    end subroutine symba_step_recur_system
 
 end submodule s_symba_step
