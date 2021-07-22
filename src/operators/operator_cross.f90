@@ -120,8 +120,12 @@ contains
       return
    end procedure operator_cross_el_i4b
 
-   module procedure operator_cross_el_i8b      
+   module pure function operator_cross_el_i8b(A, B) result(C)
       implicit none
+      ! Arguments
+      integer(I8B), dimension(:,:), intent(in)  :: A, B
+      integer(I8B), dimension(:,:), allocatable :: C
+      ! Internals
       integer(I4B) :: i, n
       n = size(A, 2)
       allocate(C, mold = A)
@@ -131,6 +135,6 @@ contains
          C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
       end do
       return
-   end procedure operator_cross_el_i8b
+   end function operator_cross_el_i8b
 
 end submodule operator_cross_implementation

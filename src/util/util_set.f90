@@ -72,8 +72,9 @@ contains
       !!
       !! Sets the value of the Hill's radius
       implicit none
-      class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb),           intent(inout) :: cb   !! Swiftest massive body object
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
 
       if (self%nbody > 0) then
          call self%xv2el(cb) 
@@ -82,6 +83,26 @@ contains
 
       return
    end subroutine util_set_rhill
+
+
+   module subroutine util_set_approximate_rhill(self,cb)
+      !! author: David A. Minton
+      !!
+      !! Sets the approximate value of the Hill's radius using the heliocentric radius instead of computing the semimajor axis
+      implicit none
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      ! Internals
+      real(DP) :: rh
+
+      if (self%nbody > 0) then
+         call self%xv2el(cb) 
+         self%rhill(:) = self%a(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
+      end if
+
+      return
+   end subroutine util_set_approximate_rhill
 
    module subroutine util_set_ir3h(self)
       !! author: David A. Minton
