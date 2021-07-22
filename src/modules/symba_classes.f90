@@ -75,6 +75,8 @@ module symba_classes
    type, public, extends(helio_pl) :: symba_pl
       logical,                   dimension(:),   allocatable :: lcollision !! flag indicating whether body has merged with another this time step
       logical,                   dimension(:),   allocatable :: lencounter !! flag indicating whether body is part of an encounter this time step
+      logical,                   dimension(:),   allocatable :: lmtiny     !! flag indicating whether this body is below the MTINY cutoff value
+      integer(I4B)                                           :: nplm       !! number of bodies above the MTINY limit
       integer(I4B),              dimension(:),   allocatable :: nplenc     !! number of encounters with other planets this time step
       integer(I4B),              dimension(:),   allocatable :: ntpenc     !! number of encounters with test particles this time step
       integer(I4B),              dimension(:),   allocatable :: levelg     !! level at which this body should be moved
@@ -170,12 +172,13 @@ module symba_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine symba_discard_tp
 
-      module function symba_encounter_check_pl(self, system, dt) result(lencounter)
+      module function symba_encounter_check_pl(self, system, dt, irec) result(lencounter)
          implicit none
          class(symba_pl),           intent(inout) :: self       !! SyMBA test particle object  
          class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt         !! step size
          logical                                  :: lencounter !! Returns true if there is at least one close encounter      
+         integer(I4B),              intent(in)    :: irec       !! Current recursion level 
       end function symba_encounter_check_pl
 
       module function symba_encounter_check_tp(self, system, dt) result(lencounter)

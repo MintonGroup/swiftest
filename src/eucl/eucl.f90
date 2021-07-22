@@ -14,22 +14,22 @@ contains
       ! Arguments
       class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body objec
       ! Internals
-      integer(I4B) :: i, j, k, kp, p
+      integer(I8B) :: i, j, counter, npl
 
-      associate(npl => self%nbody, num_comparisons => self%num_comparisons, k_eucl => self%k_eucl)
+      npl = int(self%nbody, kind=I8B)
+      associate(num_comparisons => self%num_comparisons, k_eucl => self%k_eucl)
          num_comparisons = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, nplm x npl, minus first column
          if (allocated(self%k_eucl)) deallocate(self%k_eucl) ! Reset the index array if it's been set previously
          if (allocated(self%irij3)) deallocate(self%irij3)  
          allocate(self%k_eucl(2, num_comparisons))
          allocate(self%irij3(num_comparisons))
-         !do concurrent(k = 1:num_comparisons) !shared(num_comparisons, k_eucl, npl) local(kp, i, j, p)
-         do k = 1, num_comparisons
-            kp = npl * (npl - 1) / 2 - k
-            p = floor((sqrt(1._DP + 8 * kp) - 1._DP) / 2._DP)
-            i = k - (npl - 1) * (npl - 2) / 2 + p * (p + 1) / 2 + 1
-            j = npl - 1 - p 
-            k_eucl(1, k) = i 
-            k_eucl(2, k) = j
+         do i = 1, npl
+            counter = (i - 1_I8B) * npl - i * (i - 1_I8B) / 2_I8B + 1_I8B
+            do j = i + 1_I8B, npl
+               self%k_eucl(1, counter) = i
+               self%k_eucl(2, counter) = j
+               counter = counter + 1_I8B
+            end do
          end do
       end associate
       return

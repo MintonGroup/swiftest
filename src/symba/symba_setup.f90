@@ -110,6 +110,14 @@ contains
          call system%mergesub_list%setup(1)
          call system%pltpenc_list%setup(1)
          call system%plplenc_list%setup(1)
+         select type(pl => system%pl)
+         class is (symba_pl)
+            select type(param)
+            class is (symba_parameters)
+               pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
+               pl%nplm = count(pl%lmtiny(:))
+            end select
+         end select
       end associate
       return
    end subroutine symba_setup_system
