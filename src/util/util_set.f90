@@ -122,9 +122,8 @@ contains
       real(DP), dimension(:), allocatable :: rh
 
       if (self%nbody > 0) then
-         allocate(rh, mold=self%rhill)
-         
-         self%rhill(:) = self%a(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
+         rh(:) = .mag. self%xh(:,:)
+         self%rhill(:) = rh():) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
       end if
 
       return
