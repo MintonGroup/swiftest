@@ -98,6 +98,12 @@ module rmvs_classes
    end type rmvs_pl
 
    interface
+      module elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
+         implicit none
+         real(DP), intent(in)       :: r2, v2, vdotr, dt, r2crit
+         logical                    :: lflag
+      end function rmvs_chk_ind
+
       module subroutine rmvs_discard_tp(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none

@@ -18,6 +18,7 @@ contains
       ! Internals
       logical           :: lencounter_pl, lencounter_tp, lencounter
      
+      call self%reset()
       select type(pl => self%pl)
       class is (symba_pl)
          select type(tp => self%tp)
@@ -45,16 +46,16 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_step_interp.f
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self   !! SyMBA nbody system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t      !! Simulation time
-      real(DP),                   intent(in)    :: dt     !! Current stepsize
-      ! Internals 
-      real(DP)                                  :: dth
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     !! Simulation time
+      real(DP),                   intent(in)    :: dt    !! Current stepsize
+      ! Internals
+      real(DP)                                  :: dth   !! Half step size
+      integer(I4B)                              :: irec  !! Recursion level                 
 
       dth = 0.5_DP * dt
       associate(system => self)
-         call system%reset()
          select type(pl => system%pl)
          class is (symba_pl)
             select type(tp => system%tp)
@@ -73,12 +74,10 @@ contains
                   call pl%kick(dth)
                   call tp%kick(dth)
 
-                  system%irec = -1
                   call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
                   call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
-                  system%irec = 0
-
-                  call system%recursive_step(param, t, dt)
+                  irec = 0
+                  call system%recursive_step(param, t, dt, irec)
 
                   call pl%set_beg_end(xend = pl%xh)
                   call pl%accel(system, param, t + dt)
@@ -98,7 +97,7 @@ contains
       return
    end subroutine symba_step_interp_system
 
-   module recursive subroutine symba_step_recur_system(self, param, t, dt)
+   module recursive subroutine symba_step_recur_system(self, param, t, dt, ireci)
       !! author: David A. Minton
       !!
       !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
@@ -112,8 +111,27 @@ contains
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! Simulation time
       real(DP),                   intent(in)    :: dt    !! Current stepsize
+      integer(I4B), value,        intent(in)    :: ireci !! input recursion level
       ! Internals
-      !associate()
+      integer(I4B) :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp
+      real(DP) :: dtl, dth,sgn
+
+      associate(plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
+         dtl = param%dt / (NTENC**ireci)
+         dth = 0.5_DP * dtl
+         IF (dtl / param%dt < VSMALL) THEN
+            WRITE(*, *) "SWIFTEST Warning:"
+            WRITE(*, *) "   In symba_step_recur_system, local time step is too small"
+            WRITE(*, *) "   Roundoff error will be important!"
+            call util_exit(FAILURE)
+         END IF
+         irecp = ireci + 1
+         if (ireci == 0) then
+            icflg = 0
+            
+         end if
+      end associate
+
    end subroutine symba_step_recur_system
 
    module subroutine symba_step_reset_system(self)
@@ -132,7 +150,6 @@ contains
          class is (symba_pl)
             select type(tp => system%tp)
             class is (symba_tp)
-               system%irec = -1
                pl%lcollision(:) = .false.
                pl%kin(:)%parent = [(i, i=1, pl%nbody)]
                pl%kin(:)%nchild = 0

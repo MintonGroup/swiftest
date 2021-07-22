@@ -6,12 +6,13 @@ module symba_classes
    use swiftest_globals
    use swiftest_classes, only : swiftest_parameters, swiftest_base
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
+   use rmvs_classes,     only : rmvs_chk_ind
    implicit none
 
    !integer(I4B), parameter :: NENMAX = 32767
-   !integer(I4B), parameter :: NTENC = 3
-   !real(DP),     parameter :: RHSCALE = 6.5_DP
-   !real(DP),     parameter :: RSHELL = 0.48075_DP
+   integer(I4B), private, parameter :: NTENC = 3
+   real(DP),     private, parameter :: RHSCALE = 6.5_DP
+   real(DP),     private, parameter :: RSHELL = 0.48075_DP
    character(*), parameter :: PARTICLE_OUTFILE  = 'particle.dat'
    integer(I4B), parameter :: PARTICLEUNIT      = 44 !! File unit number for the binary particle info output file
 
@@ -142,7 +143,6 @@ module symba_classes
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
       class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
-      integer(I4B)                      :: irec          !! Recursion level
    contains
       private
       procedure, public :: initialize     => symba_setup_system       !! Performs SyMBA-specific initilization steps
@@ -290,12 +290,13 @@ module symba_classes
          real(DP),                   intent(in)    :: dt     !! Current stepsize
       end subroutine symba_step_interp_system
 
-      module recursive subroutine symba_step_recur_system(self, param, t, dt)
+      module recursive subroutine symba_step_recur_system(self, param, t, dt, ireci)
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t     !! Simulation time
          real(DP),                   intent(in)    :: dt    !! Current stepsize
+         integer(I4B), value,        intent(in)    :: ireci !! input recursion level
       end subroutine symba_step_recur_system
 
       module subroutine symba_step_reset_system(self)
