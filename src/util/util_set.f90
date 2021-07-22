@@ -123,7 +123,7 @@ contains
 
       if (self%nbody > 0) then
          rh(:) = .mag. self%xh(:,:)
-         self%rhill(:) = rh():) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
+         self%rhill(:) = rh(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
       end if
 
       return
