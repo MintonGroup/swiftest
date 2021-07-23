@@ -34,7 +34,7 @@ contains
 
          if (param%lgr) then
             do concurrent(i = 1:npl, mask(i))
-               rmag = norm2(pl%xb(:, i))
+               rmag = norm2(pl%xh(:, i))
                vmag2 = dot_product(pl%vb(:, i), pl%vb(:, i))
                energy = 0.5_DP * vmag2 - mu(i) / rmag
                dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
@@ -44,7 +44,7 @@ contains
          end if 
 
          do concurrent(i = 1:npl, mask(i))
-            call drift_one(mu(i), pl%xb(1,i), pl%xb(2,i), pl%xb(3,i), &
+            call drift_one(mu(i), pl%xh(1,i), pl%xh(2,i), pl%xh(3,i), &
                                   pl%vb(1,i), pl%vb(2,i), pl%vb(3,i), &
                                   dtp(i), iflag(i))
          end do
@@ -52,7 +52,7 @@ contains
             do i = 1, npl
                if (iflag(i) /= 0) then
                   write(*, *) " Planet ", self%id(i), " is lost!!!!!!!!!!"
-                  write(*, *) pl%xb(:,i)
+                  write(*, *) pl%xh(:,i)
                   write(*, *) pl%vb(:,i)
                   write(*, *) " stopping "
                   call util_exit(FAILURE)
