@@ -22,41 +22,19 @@ contains
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
       real(DP), dimension(:), allocatable    :: dtp, mu
 
-      if (self%nbody == 0) return
-
-      allocate(iflag(self%nbody))
-      iflag(:) = 0
-      allocate(dtp(self%nbody))
-      allocate(mu(self%nbody))
-      mu(:) =  system%cb%Gmass
-
-      if (param%lgr) then
-         do concurrent(i = 1:self%nbody, mask(i))
-            rmag = norm2(self%xh(:, i))
-            vmag2 = dot_product(self%vb(:, i), self%vb(:, i))
-            energy = 0.5_DP * vmag2 - mu(i) / rmag
-            dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
-         end do
-      else
-         where(mask(1:self%nbody)) dtp(1:self%nbody) = dt
-      end if 
-
-      do concurrent(i = 1:self%nbody, mask(i))
-         call drift_one(mu(i), self%xh(1,i), self%xh(2,i), self%xh(3,i), &
-                               self%vb(1,i), self%vb(2,i), self%vb(3,i), &
-                               dtp(i), iflag(i))
-      end do
-      if (any(iflag(1:self%nbody) /= 0)) then
-         do i = 1, self%nbody
-            if (iflag(i) /= 0) then
-               write(*, *) " Body", self%id(i), " is lost!!!!!!!!!!"
-               write(*, *) self%xh(:,i)
-               write(*, *) self%vb(:,i)
-               write(*, *) " stopping "
-               call util_exit(FAILURE)
-            end if
-         end do
-      end if
+      associate(n => self%nbody)
+         allocate(iflag(n))
+         iflag(:) = 0
+         allocate(mu(n))
+         mu(:) = system%cb%Gmass
+         call drift_all(mu, self%xh, self%vb, self%nbody, param, dt, mask, iflag)
+         if (any(iflag(1:n) /= 0)) then
+            where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
+            do i = 1, n
+               if (iflag(i) /= 0) write(*, *) " Body ", self%id(i), " lost due to error in Danby drift"
+            end do
+         end if
+      end associate
 
       return
    end subroutine helio_drift_body

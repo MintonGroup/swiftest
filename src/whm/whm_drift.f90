@@ -17,43 +17,26 @@ contains
       logical, dimension(:),         intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       ! Internals
       integer(I4B)                              :: i
-      real(DP)                                  :: energy, vmag2, rmag  !! Variables used in GR calculation
       integer(I4B), dimension(:), allocatable   :: iflag
-      real(DP), dimension(:), allocatable       :: dtp
 
       associate(pl => self, npl => self%nbody)
          if (npl == 0) return
 
          allocate(iflag(npl))
          iflag(:) = 0
-         allocate(dtp(npl))
-
-         if (param%lgr) then
-            do concurrent(i = 1:npl, mask(i))
-               rmag = norm2(pl%xj(:, i))
-               vmag2 = dot_product(pl%vj(:, i), pl%vj(:, i))
-               energy = 0.5_DP * vmag2 - pl%muj(i) / rmag
-               dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
-            end do
-         else
-            where(mask(1:npl)) dtp(1:npl) = dt
-         end if 
-
-         do concurrent(i = 1:npl, mask(i))
-            call drift_one(pl%muj(i), pl%xj(1,i), pl%xj(2,i), pl%xj(3,i), &
-                                      pl%vj(1,i), pl%vj(2,i), pl%vj(3,i), &
-                                      dtp(i), iflag(i))
-         end do
+         call drift_all(pl%muj, pl%xj, pl%vj, npl, param, dt, mask, iflag)
          if (any(iflag(1:npl) /= 0)) then
+            where(iflag(1:npl) /= 0) pl%status(1:npl) = DISCARDED_DRIFTERR
             do i = 1, npl
-               if (iflag(i) /= 0) then
-                  write(*, *) " Planet ", self%id(i), " is lost!!!!!!!!!!"
-                  write(*, *) pl%xj(:,i)
-                  write(*, *) pl%vj(:,i)
-                  write(*, *) " stopping "
-                  call util_exit(FAILURE)
+               if (iflag(i) /= 0) then 
+                  write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!!!"
+                  WRITE(*, *) pl%muj(i), dt
+                  WRITE(*, *) pl%xj(:,i)
+                  WRITE(*, *) pl%vj(:,i)
+                  WRITE(*, *) " STOPPING "
                end if
             end do
+            call util_exit(FAILURE)
          end if
       end associate
 

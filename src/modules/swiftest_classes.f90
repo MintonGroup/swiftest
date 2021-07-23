@@ -7,7 +7,7 @@ module swiftest_classes
    implicit none
    private
    public :: discard_pl, discard_system, discard_tp 
-   public :: drift_body, drift_one
+   public :: drift_all, drift_body, drift_one
    public :: eucl_dist_index_plpl, eucl_dist_index_pltp
    public :: gr_getaccb_ns_body, gr_p4_pos_kick, gr_pseudovel2vel, gr_vel2pseudovel
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
@@ -382,6 +382,17 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine discard_tp
+
+      module pure subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
+         implicit none
+         real(DP), dimension(:),     intent(in)    :: mu    !! Vector of gravitational constants
+         real(DP), dimension(:,:),   intent(inout) :: x, v  !! Position and velocity vectors
+         integer(I4B),               intent(in)    :: n     !! number of bodies
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         real(DP),                   intent(in)    :: dt    !! Stepsize
+         logical, dimension(:),      intent(in)    :: mask  !! Logical mask of size self%nbody that determines which bodies to drift.
+         integer(I4B), dimension(:), intent(out)   :: iflag !! Vector of error flags. 0 means no problem
+      end subroutine drift_all
 
       module subroutine drift_body(self, system, param, dt, mask)
          implicit none
