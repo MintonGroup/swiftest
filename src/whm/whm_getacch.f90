@@ -187,17 +187,16 @@ contains
       implicit none
 
       class(whm_pl),           intent(inout) :: pl
-      integer(I4B)                           :: i, j
+      integer(I4B)                           :: k
       real(DP)                               :: rji2, irij3, faci, facj
       real(DP), dimension(NDIM)              :: dx
       real(DP), dimension(:,:), allocatable  :: ah3
    
-      associate(npl => pl%nbody)
+      associate(npl => pl%nbody, nplpl => pl%nplpl)
          allocate(ah3, mold=pl%ah)
          ah3(:, :) = 0.0_DP
-
-         do i = 1, npl - 1
-            do j = i + 1, npl
+         do k = 1, nplpl
+            associate(i => pl%k_eucl(1, k), j => pl%k_eucl(2, k))
                dx(:) = pl%xh(:, j) - pl%xh(:, i)
                rji2  = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))
@@ -205,10 +204,10 @@ contains
                facj = pl%Gmass(j) * irij3
                ah3(:, i) = ah3(:, i) + facj * dx(:)
                ah3(:, j) = ah3(:, j) - faci * dx(:)
-            end do
+            end associate
          end do
-         do i = 1, NDIM
-            pl%ah(i, 1:npl) = pl%ah(i, 1:npl) + ah3(i, 1:npl)
+         do concurrent (k = 1:npl)
+            pl%ah(:, k) = pl%ah(:, k) + ah3(:, k)
          end do
          deallocate(ah3)
       end associate
