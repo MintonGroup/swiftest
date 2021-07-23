@@ -17,7 +17,7 @@ contains
       integer(I8B) :: i, j, counter, npl
 
       npl = int(self%nbody, kind=I8B)
-      associate(num_comparisons => self%num_comparisons, k_eucl => self%k_eucl)
+      associate(num_comparisons => self%num_comparisons)
          num_comparisons = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, nplm x npl, minus first column
          if (allocated(self%k_eucl)) deallocate(self%k_eucl) ! Reset the index array if it's been set previously
          if (allocated(self%irij3)) deallocate(self%irij3)  
