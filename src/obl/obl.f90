@@ -57,8 +57,8 @@ contains
             cb%aobl(i) = -sum(pl%Gmass(1:npl) * pl%aobl(i, 1:npl)) / cb%Gmass
          end do
 
-         do i = 1, NDIM
-            pl%ah(i, 1:npl) = pl%ah(i, 1:npl) + pl%aobl(i, 1:npl) - cb%aobl(i)
+         do i = 1, npl
+            pl%ah(:, i) = pl%ah(:, i) + pl%aobl(:, i) - cb%aobl(:)
          end do
       end associate
 
@@ -89,8 +89,8 @@ contains
             aoblcb = cb%aoblend
          end if
 
-         do i = 1, NDIM
-            tp%ah(i, 1:ntp) = tp%ah(i, 1:ntp) + tp%aobl(i, 1:ntp) - aoblcb(i)
+         do i = 1, ntp
+            tp%ah(:, i) = tp%ah(:, i) + tp%aobl(:, i) - aoblcb(:)
          end do
 
       end associate
