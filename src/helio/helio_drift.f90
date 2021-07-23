@@ -22,46 +22,43 @@ contains
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
       real(DP), dimension(:), allocatable    :: dtp, mu
 
-      associate(pl => self, npl => self%nbody, cb => system%cb)
-         if (npl == 0) return
+      if (self%nbody == 0) return
 
-         allocate(iflag(npl))
-         iflag(:) = 0
-         allocate(dtp(npl))
-         allocate(mu(npl))
-         mu(:) =  cb%Gmass
+      allocate(iflag(self%nbody))
+      iflag(:) = 0
+      allocate(dtp(self%nbody))
+      allocate(mu(self%nbody))
+      mu(:) =  system%cb%Gmass
 
-         if (param%lgr) then
-            do concurrent(i = 1:npl, mask(i))
-               rmag = norm2(pl%xh(:, i))
-               vmag2 = dot_product(pl%vb(:, i), pl%vb(:, i))
-               energy = 0.5_DP * vmag2 - mu(i) / rmag
-               dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
-            end do
-         else
-            where(mask(1:npl)) dtp(1:npl) = dt
-         end if 
-
-         do concurrent(i = 1:npl, mask(i))
-            call drift_one(mu(i), pl%xh(1,i), pl%xh(2,i), pl%xh(3,i), &
-                                  pl%vb(1,i), pl%vb(2,i), pl%vb(3,i), &
-                                  dtp(i), iflag(i))
+      if (param%lgr) then
+         do concurrent(i = 1:self%nbody, mask(i))
+            rmag = norm2(self%xh(:, i))
+            vmag2 = dot_product(self%vb(:, i), self%vb(:, i))
+            energy = 0.5_DP * vmag2 - mu(i) / rmag
+            dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
          end do
-         if (any(iflag(1:npl) /= 0)) then
-            do i = 1, npl
-               if (iflag(i) /= 0) then
-                  write(*, *) " Body", self%id(i), " is lost!!!!!!!!!!"
-                  write(*, *) pl%xh(:,i)
-                  write(*, *) pl%vb(:,i)
-                  write(*, *) " stopping "
-                  call util_exit(FAILURE)
-               end if
-            end do
-         end if
-      end associate
+      else
+         where(mask(1:self%nbody)) dtp(1:self%nbody) = dt
+      end if 
+
+      do concurrent(i = 1:self%nbody, mask(i))
+         call drift_one(mu(i), self%xh(1,i), self%xh(2,i), self%xh(3,i), &
+                               self%vb(1,i), self%vb(2,i), self%vb(3,i), &
+                               dtp(i), iflag(i))
+      end do
+      if (any(iflag(1:self%nbody) /= 0)) then
+         do i = 1, self%nbody
+            if (iflag(i) /= 0) then
+               write(*, *) " Body", self%id(i), " is lost!!!!!!!!!!"
+               write(*, *) self%xh(:,i)
+               write(*, *) self%vb(:,i)
+               write(*, *) " stopping "
+               call util_exit(FAILURE)
+            end if
+         end do
+      end if
 
       return
-
    end subroutine helio_drift_body
 
    module subroutine helio_drift_pl(self, system, param, dt, mask)
