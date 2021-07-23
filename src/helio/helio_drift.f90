@@ -1,18 +1,17 @@
 submodule (helio_classes) s_helio_drift
    use swiftest
 contains
-   module subroutine helio_drift_pl(self, system, param, dt, mask)
+   module subroutine helio_drift_body(self, system, param, dt, mask)
 
       !! author: David A. Minton
       !!
-      !! Loop through massive bodies and call Danby drift routine
-      !! New vectorized version included
+      !! Loop through bodies and call Danby drift routine on democratic heliocentric coordinates
       !!
       !! Adapted from David E. Kaufmann's Swifter routine helio_drift.f90
       !! Adapted from Hal Levison's Swift routine drift.f
       implicit none
       ! Arguments
-      class(helio_pl),              intent(inout) :: self   !! Helio massive body object
+      class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -51,7 +50,7 @@ contains
          if (any(iflag(1:npl) /= 0)) then
             do i = 1, npl
                if (iflag(i) /= 0) then
-                  write(*, *) " Planet ", self%id(i), " is lost!!!!!!!!!!"
+                  write(*, *) " Body", self%id(i), " is lost!!!!!!!!!!"
                   write(*, *) pl%xh(:,i)
                   write(*, *) pl%vb(:,i)
                   write(*, *) " stopping "
@@ -63,7 +62,39 @@ contains
 
       return
 
+   end subroutine helio_drift_body
+
+   module subroutine helio_drift_pl(self, system, param, dt, mask)
+      !! author: David A. Minton
+      !!
+      !! Wrapper function used to call the body drift routine from a helio_pl structure
+      implicit none
+      ! Arguments
+      class(helio_pl),              intent(inout) :: self   !! Helio massive body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift.
+
+      call helio_drift_body(self, system, param, dt, mask)
+      return
    end subroutine helio_drift_pl
+
+   module subroutine helio_drift_tp(self, system, param, dt, mask)
+      !! author: David A. Minton
+      !!
+      !! Wrapper function used to call the body drift routine from a helio_pl structure
+      implicit none
+      ! Arguments
+      class(helio_tp),              intent(inout) :: self   !! Helio massive body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift.
+
+      call helio_drift_body(self, system, param, dt, mask)
+      return
+   end subroutine helio_drift_tp
    
    module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
       !! author: David A. Minton

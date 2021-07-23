@@ -51,9 +51,10 @@ contains
          real(DP),                     intent(in)    :: t      !! Current time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       
-         associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
+         associate(tp => self, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
+            tp%ah(:,:) = 0.0_DP
             if (present(lbeg)) system%lbeg = lbeg
-            if (lbeg) then
+            if (system%lbeg) then
                call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
             else
                call tp%accel_int(pl%Gmass(:), pl%xend(:,:), npl)

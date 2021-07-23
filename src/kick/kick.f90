@@ -48,7 +48,7 @@ contains
       integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
       ! Internals
       integer(I4B)              :: i, j
-      real(DP)                  :: rji2, irij3, fac
+      real(DP)                  :: rji2, irij3, fac, r2
       real(DP), dimension(NDIM) :: dx, acc
 
       associate(tp => self, ntp => self%nbody)
@@ -56,9 +56,11 @@ contains
             acc(:) = 0.0_DP
             do j = 1, npl
                dx(:) = tp%xh(:,i) - xhp(:, j)
-               rji2 = dot_product(dx(:), dx(:))
-               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = GMpl(j) * irij3
+               !rji2 = dot_product(dx(:), dx(:))
+               !irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+               !fac = GMpl(j) * irij3
+               r2 = dot_product(dx(:), dx(:))
+               fac = GMpl(j) / (r2 * sqrt(r2))
                acc(:) = acc(:) - fac * dx(:)
             end do
             tp%ah(:, i) = tp%ah(:, i) + acc(:)
