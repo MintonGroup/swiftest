@@ -976,26 +976,6 @@ contains
       return
    end function io_read_hdr
 
-   module subroutine io_read_initialize_system(self, param)
-      !! author: David A. Minton
-      !!
-      !! Wrapper method to initialize a basic Swiftest nbody system from files
-      !!
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-  
-      call self%cb%initialize(param)
-      call self%pl%initialize(param)
-      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
-      call self%tp%initialize(param)
-      call self%set_msys()
-      call self%pl%set_mu(self%cb) 
-      call self%tp%set_mu(self%cb) 
-   
-   end subroutine io_read_initialize_system
-
    module subroutine io_toupper(string)
       !! author: David A. Minton
       !!

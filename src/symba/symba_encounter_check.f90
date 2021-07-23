@@ -19,8 +19,8 @@ contains
 
       associate(pl => self, npl => self%nbody)
          lencounter = .false.
-         do concurrent(j = 1:npl, .not.pl%lmtiny(j))
-            do i = 1, npl
+         !do concurrent(j = 1:npl, .not.pl%lmtiny(j))
+         !   do i = 1, npl
                rcrit = (pl%rhill(i) + pl%rhill(j)) * RHSCALE * (RSHELL**(irec))
                r2crit = r2crit**2
                xr(:) = pl%xh(:, j) - pl%xh(:, i)
@@ -29,8 +29,8 @@ contains
                vdotr = dot_product(vr(:), xr(:))
                lflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit)
                if (lflag) lencounter = .true.
-            end do
-         end do
+         !   end do
+         !end do
       end associate
       return
    end function symba_encounter_check_pl

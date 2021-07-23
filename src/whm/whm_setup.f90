@@ -81,7 +81,7 @@ contains
       class(whm_nbody_system),    intent(inout) :: self    !! Swiftest system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
-      call io_read_initialize_system(self, param)
+      call setup_initialize_system(self, param)
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(self%tp%nbody)
       call self%pl%set_mu(self%cb)

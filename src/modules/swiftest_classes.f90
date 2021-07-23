@@ -11,12 +11,12 @@ module swiftest_classes
    public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
    public :: gr_getaccb_ns_body, gr_p4_pos_kick, gr_pseudovel2vel, gr_vel2pseudovel
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
-             io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, io_read_initialize_system, &
+             io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, &
              io_toupper, io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
    public :: kickvh_body
    public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
-   public :: setup_body, setup_construct_system, setup_pl, setup_tp
+   public :: setup_body, setup_construct_system, setup_initialize_system, setup_pl, setup_tp
    public :: tides_getacch_pl, tides_step_spin_system
    public :: user_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_exit, util_fill_body, util_fill_pl, util_fill_tp, &
@@ -288,14 +288,14 @@ module swiftest_classes
       procedure(abstract_step_system), public, deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure, public :: discard        => discard_system            !! Perform a discard step on the system
-      procedure, public :: dump           => io_dump_system            !! Dump the state of the system to a file
-      procedure, public :: initialize     => io_read_initialize_system !! Initialize the system from an input file
-      procedure, public :: read_frame     => io_read_frame_system      !! Append a frame of output data to file
-      procedure, public :: write_discard  => io_write_discard          !! Append a frame of output data to file
-      procedure, public :: write_frame    => io_write_frame_system     !! Append a frame of output data to file
-      procedure, public :: step_spin      => tides_step_spin_system    !! Steps the spins of the massive & central bodies due to tides.
-      procedure, public :: set_msys       => util_set_msys             !! Sets the value of msys from the masses of system bodies.
+      procedure, public :: discard       => discard_system          !! Perform a discard step on the system
+      procedure, public :: dump          => io_dump_system          !! Dump the state of the system to a file
+      procedure, public :: initialize    => setup_initialize_system !! Initialize the system from input files
+      procedure, public :: read_frame    => io_read_frame_system    !! Append a frame of output data to file
+      procedure, public :: write_discard => io_write_discard        !! Append a frame of output data to file
+      procedure, public :: write_frame   => io_write_frame_system   !! Append a frame of output data to file
+      procedure, public :: step_spin     => tides_step_spin_system  !! Steps the spins of the massive & central bodies due to tides.
+      procedure, public :: set_msys      => util_set_msys           !! Sets the value of msys from the masses of system bodies.
    end type swiftest_nbody_system
 
    abstract interface
@@ -565,12 +565,6 @@ module swiftest_classes
          integer(I4B),                intent(out)   :: ierr  !! Error code
       end subroutine io_read_frame_system
 
-      module subroutine io_read_initialize_system(self, param)
-         implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self !! Swiftest system object
-         class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-      end subroutine io_read_initialize_system
-
       module subroutine io_write_discard(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
@@ -679,6 +673,12 @@ module swiftest_classes
          class(swiftest_nbody_system),  allocatable, intent(inout) :: system !! Swiftest system object
          type(swiftest_parameters),                  intent(in)    :: param  !! Swiftest parameters
       end subroutine setup_construct_system
+
+      module subroutine setup_initialize_system(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
+         class(swiftest_parameters),   intent(inout) :: param   !! Current run configuration parameters 
+      end subroutine setup_initialize_system
 
       module subroutine setup_pl(self,n)
          implicit none
