@@ -17,12 +17,12 @@ contains
       integer(I8B) :: i, j, counter, npl
 
       npl = int(self%nbody, kind=I8B)
-      associate(num_comparisons => self%num_comparisons)
-         num_comparisons = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, nplm x npl, minus first column
+      associate(nplpl => self%nplpl)
+         nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, nplm x npl, minus first column
          if (allocated(self%k_eucl)) deallocate(self%k_eucl) ! Reset the index array if it's been set previously
          if (allocated(self%irij3)) deallocate(self%irij3)  
-         allocate(self%k_eucl(2, num_comparisons))
-         allocate(self%irij3(num_comparisons))
+         allocate(self%k_eucl(2, nplpl))
+         allocate(self%irij3(nplpl))
          do i = 1, npl
             counter = (i - 1_I8B) * npl - i * (i - 1_I8B) / 2_I8B + 1_I8B
             do j = i + 1_I8B, npl
@@ -61,7 +61,7 @@ contains
       real(DP), dimension(NDIM) :: dx
       real(DP) :: rji2
 
-      associate(k_eucl => self%k_eucl, xh => self%xh, irij3 => self%irij3, nk => self%num_comparisons)
+      associate(k_eucl => self%k_eucl, xh => self%xh, irij3 => self%irij3, nk => self%nplpl)
          do k = 1, nk
             i = k_eucl(1, k)
             j = k_eucl(2, k)

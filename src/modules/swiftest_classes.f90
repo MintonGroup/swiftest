@@ -163,7 +163,7 @@ module swiftest_classes
       real(DP),              dimension(:),   allocatable :: capm            !! Mean anomaly
       real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
       integer(I4B),          dimension(:,:), allocatable :: k_eucl          !! Index array used to convert flattened the body-body comparison upper triangular matrix
-      integer(I8B)                                       :: num_comparisons !! Number of body-body comparisons in the flattened upper triangular matrix
+      integer(I8B)                                       :: nplpl           !! Number of body-body comparisons in the flattened upper triangular matrix
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and util_spill
    contains

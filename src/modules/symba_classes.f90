@@ -77,6 +77,7 @@ module symba_classes
       logical,                   dimension(:),   allocatable :: lencounter !! flag indicating whether body is part of an encounter this time step
       logical,                   dimension(:),   allocatable :: lmtiny     !! flag indicating whether this body is below the MTINY cutoff value
       integer(I4B)                                           :: nplm       !! number of bodies above the MTINY limit
+      integer(I8B)                                           :: nplplm     !! Number of body (all massive)-body (only those above MTINY) comparisons in the flattened upper triangular matrix 
       integer(I4B),              dimension(:),   allocatable :: nplenc     !! number of encounters with other planets this time step
       integer(I4B),              dimension(:),   allocatable :: ntpenc     !! number of encounters with test particles this time step
       integer(I4B),              dimension(:),   allocatable :: levelg     !! level at which this body should be moved

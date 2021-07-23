@@ -183,7 +183,7 @@ contains
       self%k2(:) = 0.0_DP
       self%Q(:) = 0.0_DP
       self%tlag(:) = 0.0_DP
-      self%num_comparisons = 0   
+      self%nplpl = 0   
       return
    end subroutine setup_pl
 
