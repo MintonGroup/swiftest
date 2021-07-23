@@ -19,7 +19,7 @@ contains
 
       associate(pl => self, npl => self%nbody)
          lencounter = .false.
-         do concurrent(j = 1:npl, pl%lmtiny(j))
+         do concurrent(j = 1:npl, .not.pl%lmtiny(j))
             do i = 1, npl
                rcrit = (pl%rhill(i) + pl%rhill(j)) * RHSCALE * (RSHELL**(irec))
                r2crit = r2crit**2
