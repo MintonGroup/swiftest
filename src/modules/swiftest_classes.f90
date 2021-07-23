@@ -8,12 +8,12 @@ module swiftest_classes
    private
    public :: discard_pl, discard_system, discard_tp 
    public :: drift_body, drift_one
-   public :: eucl_dist_index_plpl, eucl_dist_index_pltp, eucl_irij3_plpl
+   public :: eucl_dist_index_plpl, eucl_dist_index_pltp
    public :: gr_getaccb_ns_body, gr_p4_pos_kick, gr_pseudovel2vel, gr_vel2pseudovel
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, &
              io_toupper, io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
-   public :: kickvh_body
+   public :: kick_getacch_int_pl, kick_vh_body
    public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_initialize_system, setup_pl, setup_tp
@@ -179,7 +179,7 @@ module swiftest_classes
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: write_frame    => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure, public :: kick           => kickvh_body         !! Kicks the heliocentric velocities
+      procedure, public :: kick           => kick_vh_body        !! Kicks the heliocentric velocities
       procedure, public :: accel_obl      => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: el2xv          => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
       procedure, public :: xv2el          => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
@@ -201,7 +201,6 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: Gmass   !! Mass gravitational term G * mass (units GU * MU)
       real(DP),     dimension(:),   allocatable :: rhill   !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: radius  !! Body radius (units DU)
-      real(DP),     dimension(:),   allocatable :: irij3   !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance
       real(DP),     dimension(:,:), allocatable :: xbeg    !! Position at beginning of step
       real(DP),     dimension(:,:), allocatable :: xend    !! Position at end of step
       real(DP),     dimension(:,:), allocatable :: vbeg    !! Velocity at beginning of step
@@ -219,10 +218,10 @@ module swiftest_classes
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: discard      => discard_pl           !! Placeholder method for discarding massive bodies 
       procedure, public :: eucl_index   => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: eucl_irij3   => eucl_irij3_plpl      !! Parallelized single loop blocking for Euclidean distance matrix calcualtion
+      procedure, public :: accel_int    => kick_getacch_int_pl !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure, public :: accel_obl    => obl_acc_pl           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure, public :: accel_tides  => tides_getacch_pl     !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure, public :: setup        => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
+      procedure, public :: accel_tides  => tides_getacch_pl     !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure, public :: set_mu       => util_set_mu_pl       !! Method used to construct the vectorized form of the central body mass
       procedure, public :: set_rhill    => util_set_rhill       !! Calculates the Hill's radii for each body
       procedure, public :: h2b          => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
@@ -241,7 +240,6 @@ module swiftest_classes
       integer(I4B), dimension(:),    allocatable :: isperi !! Perihelion passage flag
       real(DP),     dimension(:),    allocatable :: peri   !! Perihelion distance
       real(DP),     dimension(:),    allocatable :: atp    !! Semimajor axis following perihelion passage
-      real(DP),     dimension(:, :), allocatable :: irij3  !! 1.0_DP / (rji2 * sqrt(rji2)) where rji2 is the square of the Euclidean distance betwen each pl-tp
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and util_spill_tp
    contains
@@ -250,6 +248,7 @@ module swiftest_classes
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: discard    => discard_tp           !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
       procedure, public :: eucl_index => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: accel_int  => kick_getacch_int_tp  !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
       procedure, public :: accel_obl  => obl_acc_tp           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: setup      => setup_tp             !! A base constructor that sets the number of bodies and 
       procedure, public :: set_mu     => util_set_mu_tp       !! Method used to construct the vectorized form of the central body mass
@@ -411,11 +410,6 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_pl), intent(inout) :: pl   !! Swiftest massive body object
       end subroutine
-
-      module subroutine eucl_irij3_plpl(self)
-         implicit none
-         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      end subroutine eucl_irij3_plpl
 
       module pure subroutine gr_getaccb_ns_body(self, system, param)
          implicit none
@@ -606,11 +600,24 @@ module swiftest_classes
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_system
 
-      module subroutine kickvh_body(self, dt)
+      module pure subroutine kick_getacch_int_pl(self)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self
+      end subroutine kick_getacch_int_pl
+
+      module pure subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
+         implicit none
+         class(swiftest_tp),       intent(inout) :: self !! Swiftest test particle
+         real(DP), dimension(:),   intent(in)    :: GMpl !! Massive body masses
+         real(DP), dimension(:,:), intent(in)    :: xhp  !! Massive body position vectors
+         integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
+      end subroutine kick_getacch_int_tp
+
+      module subroutine kick_vh_body(self, dt)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest body object
          real(DP),                     intent(in)    :: dt   !! Stepsize
-      end subroutine kickvh_body
+      end subroutine kick_vh_body
 
       module subroutine obl_acc_body(self, system)
          implicit none

@@ -30,7 +30,7 @@ contains
 
          call whm_getacch_ah1(cb, pl) 
          call whm_getacch_ah2(cb, pl) 
-         call whm_getacch_ah3(pl)
+         call pl%accel_int() 
 
          if (param%loblatecb) then
             cb%aoblbeg = cb%aobl
@@ -67,23 +67,25 @@ contains
       ! Internals
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
-      real(DP), dimension(:,:), allocatable       :: xhp
    
       associate(tp => self, ntp => self%nbody, pl => system%pl, cb => system%cb, npl => system%pl%nbody)
          if (ntp == 0 .or. npl == 0) return
          if (present(lbeg)) system%lbeg = lbeg
 
          if (system%lbeg) then
-            allocate(xhp, source=pl%xbeg)
+            ah0(:) = whm_getacch_ah0(pl%Gmass(:), pl%xbeg(:,:), npl)
+            do i = 1, ntp
+               tp%ah(:, i) = ah0(:)
+            end do
+            call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
          else
-            allocate(xhp, source=pl%xend)
+            ah0(:) = whm_getacch_ah0(pl%Gmass(:), pl%xend(:,:), npl)
+            do i = 1, ntp
+               tp%ah(:, i) = ah0(:)
+            end do
+            call tp%accel_int(pl%Gmass(:), pl%xend(:,:), npl)
          end if
 
-         ah0(:) = whm_getacch_ah0(pl%Gmass(:), xhp(:,:), npl)
-         do i = 1, ntp
-            tp%ah(:, i) = ah0(:)
-         end do
-         call whm_getacch_ah3_tp(system, xhp)
          if (param%loblatecb) call tp%accel_obl(system)
          if (param%lextra_force) call tp%accel_user(system, param, t)
          if (param%lgr) call tp%accel_gr(param) 
@@ -177,74 +179,4 @@ contains
       return
    end subroutine whm_getacch_ah2
 
-   pure subroutine whm_getacch_ah3(pl)
-      !! author: David A. Minton
-      !!
-      !! Compute direct cross (third) term heliocentric accelerations of planets
-      !!
-      !! Adapted from Hal Levison's Swift routine getacch_ah3.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
-      implicit none
-
-      class(whm_pl),           intent(inout) :: pl
-      integer(I4B)                           :: k
-      real(DP)                               :: rji2, irij3, faci, facj
-      real(DP), dimension(NDIM)              :: dx
-      real(DP), dimension(:,:), allocatable  :: ah3
-   
-      associate(npl => pl%nbody, nplpl => pl%nplpl)
-         allocate(ah3, mold=pl%ah)
-         ah3(:, :) = 0.0_DP
-         do k = 1, nplpl
-            associate(i => pl%k_eucl(1, k), j => pl%k_eucl(2, k))
-               dx(:) = pl%xh(:, j) - pl%xh(:, i)
-               rji2  = dot_product(dx(:), dx(:))
-               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               faci = pl%Gmass(i) * irij3
-               facj = pl%Gmass(j) * irij3
-               ah3(:, i) = ah3(:, i) + facj * dx(:)
-               ah3(:, j) = ah3(:, j) - faci * dx(:)
-            end associate
-         end do
-         do concurrent (k = 1:npl)
-            pl%ah(:, k) = pl%ah(:, k) + ah3(:, k)
-         end do
-         deallocate(ah3)
-      end associate
-   
-      return
-   end subroutine whm_getacch_ah3
-
-   pure subroutine whm_getacch_ah3_tp(system, xhp) 
-      !! author: David A. Minton
-      !!
-      !! Compute direct cross (third) term heliocentric accelerations of test particles
-      !!
-      !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system),  intent(inout) :: system !! WHM nbody system object
-      real(DP), dimension(:,:),      intent(in)    :: xhp    !! Heliocentric positions of planets at the current substep
-      ! Internals
-      integer(I4B)                         :: i, j
-      real(DP)                             :: rji2, irij3, fac
-      real(DP), dimension(NDIM)            :: dx, acc
-
-      associate(ntp => system%tp%nbody, npl => system%pl%nbody, tp => system%tp, pl => system%pl) 
-         if (ntp == 0) return
-         do i = 1, ntp
-            acc(:) = 0.0_DP
-            do j = 1, npl
-               dx(:) = tp%xh(:, i) - xhp(:, j)
-               rji2 = dot_product(dx(:), dx(:))
-               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               fac = pl%Gmass(j) * irij3
-               acc(:) = acc(:) - fac * dx(:)
-            end do
-            tp%ah(:, i) = tp%ah(:, i) + acc(:)
-         end do
-      end associate
-      return
-   end subroutine whm_getacch_ah3_tp
 end submodule s_whm_getacch

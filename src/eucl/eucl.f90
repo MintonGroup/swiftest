@@ -20,9 +20,7 @@ contains
       associate(nplpl => self%nplpl)
          nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, nplm x npl, minus first column
          if (allocated(self%k_eucl)) deallocate(self%k_eucl) ! Reset the index array if it's been set previously
-         if (allocated(self%irij3)) deallocate(self%irij3)  
          allocate(self%k_eucl(2, nplpl))
-         allocate(self%irij3(nplpl))
          do i = 1, npl
             counter = (i - 1_I8B) * npl - i * (i - 1_I8B) / 2_I8B + 1_I8B
             do j = i + 1_I8B, npl
@@ -48,30 +46,5 @@ contains
       class(swiftest_tp),             intent(inout) :: self  !! Swiftest test particle object
       class(swiftest_pl),             intent(inout) :: pl    !! Swiftest massive body object
    end subroutine eucl_dist_index_pltp
-
-   module subroutine eucl_irij3_plpl(self)
-      !! author: Jacob R. Elliott and David A. Minton
-      !!
-      !! Efficient parallel loop-blocking algrorithm for evaluating the Euclidean distance matrix for planet-planet
-      implicit none
-      ! Arguments
-      class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body object
-      ! Internals
-      integer(I4B) :: k, i, j
-      real(DP), dimension(NDIM) :: dx
-      real(DP) :: rji2
-
-      associate(k_eucl => self%k_eucl, xh => self%xh, irij3 => self%irij3, nk => self%nplpl)
-         do k = 1, nk
-            i = k_eucl(1, k)
-            j = k_eucl(2, k)
-            dx(:) = xh(:, j) - xh(:, i)
-            rji2  = dot_product(dx(:), dx(:))
-            irij3(k) = 1.0_DP / (rji2 * sqrt(rji2))
-         end do
-      end associate
-
-      return
-   end subroutine eucl_irij3_plpl
 
  end submodule s_eucl
