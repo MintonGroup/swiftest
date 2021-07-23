@@ -63,9 +63,9 @@ module symba_classes
    !*******************************************************************************************************************************
    !> Class definition for the kinship relationships used in bookkeeping multiple collisions bodies in a single time step.
    type symba_kinship
-      integer(I4B)                            :: parent ! Index of parent particle
-      integer(I4B)                            :: nchild ! number of children in merger list
-      integer(I4B), dimension(:), allocatable :: child ! Index of children particles
+      integer(I4B)                            :: parent !! Index of parent particle
+      integer(I4B)                            :: nchild !! number of children in merger list
+      integer(I4B), dimension(:), allocatable :: child  !! Index of children particles
    end type symba_kinship
 
    !********************************************************************************************************************************
