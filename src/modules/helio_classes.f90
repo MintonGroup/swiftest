@@ -52,8 +52,8 @@ module helio_classes
    contains
       procedure, public :: vh2vb    => helio_coord_vh2vb_tp  !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
       procedure, public :: vb2vh    => helio_coord_vb2vh_tp  !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
-      procedure, public :: drift    => helio_drift_tp        !! Method for Danby drift in Democratic Heliocentric coordinates 
       procedure, public :: lindrift => helio_drift_linear_tp !! Method for linear drift of massive bodies due to barycentric momentum of Sun
+      procedure, public :: drift    => helio_drift_tp        !! Method for Danby drift in Democratic Heliocentric coordinates 
       procedure, public :: accel    => helio_getacch_tp      !! Compute heliocentric accelerations of massive bodies
       procedure, public :: kick     => helio_kickvb_tp       !! Kicks the barycentric velocities
       procedure, public :: step     => helio_step_tp         !! Steps the body forward one stepsize
@@ -85,25 +85,37 @@ module helio_classes
          class(helio_tp),        intent(inout) :: self !! Helio massive body object
          real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
       end subroutine helio_coord_vh2vb_tp
+
+      module subroutine helio_drift_body(self, system, param, dt, mask)
+         use swiftest_classes, only : swiftest_body, swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Stepsize
+         logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
+      end subroutine helio_drift_body
    
-      module subroutine helio_drift_pl(self, system, param, dt)
+      module subroutine helio_drift_pl(self, system, param, dt, mask)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: dt     !! Stepsize
+         logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       end subroutine helio_drift_pl
 
-      module subroutine helio_drift_tp(self, system, param, dt)
+      module subroutine helio_drift_tp(self, system, param, dt, mask)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(helio_tp),              intent(inout) :: self   !! Helio test particle object
+         class(helio_tp),              intent(inout) :: self   !! Helio massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: dt     !! Stepsize
+         logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       end subroutine helio_drift_tp
-   
+
       module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
          implicit none
          class(helio_pl), intent(inout) :: self  !! Helio massive body object
@@ -125,7 +137,7 @@ module helio_classes
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters of 
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_getacch_pl
@@ -165,10 +177,10 @@ module helio_classes
       module subroutine helio_step_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
-         real(DP),                   intent(in)    :: t      !! Simulation time
-         real(DP),                   intent(in)    :: dt     !! Current stepsize
+         class(helio_nbody_system),  intent(inout) :: self  !! Helio nbody system object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+         real(DP),                   intent(in)    :: t     !! Simulation time
+         real(DP),                   intent(in)    :: dt    !! Current stepsize
       end subroutine helio_step_system
 
       module subroutine helio_step_tp(self, system, param, t, dt)

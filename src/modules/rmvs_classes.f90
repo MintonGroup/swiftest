@@ -54,7 +54,7 @@ module rmvs_classes
    !! RMVS test particle class
    type, public, extends(whm_tp) :: rmvs_tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as rmvs_setup_tp and rmvs_spill_tp
+      !!    component list, such as rmvs_setup_tp and rmvs_util_spill_tp
       ! encounter steps)
       logical,      dimension(:),   allocatable :: lperi  !! planetocentric pericenter passage flag (persistent for a full rmvs time step) over a full RMVS time step)
       integer(I4B), dimension(:),   allocatable :: plperP !! index of planet associated with pericenter distance peri (persistent over a full RMVS time step)
@@ -70,11 +70,11 @@ module rmvs_classes
       private
       procedure, public :: discard         => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
       procedure, public :: encounter_check => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
-      procedure, public :: fill            => rmvs_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: fill            => rmvs_util_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: accel           => rmvs_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
                                                                         !! if the test particle is undergoing a close encounter or not
       procedure, public :: setup           => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
-      procedure, public :: spill           => rmvs_spill_tp           !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: spill           => rmvs_util_spill_tp           !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_tp
 
    !********************************************************************************************************************************
@@ -92,12 +92,18 @@ module rmvs_classes
       logical                                            :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
       private
-      procedure, public :: fill                => rmvs_fill_pl    !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: fill                => rmvs_util_fill_pl    !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: setup               => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
-      procedure, public :: spill               => rmvs_spill_pl    !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: spill               => rmvs_util_spill_pl    !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_pl
 
    interface
+      module elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
+         implicit none
+         real(DP), intent(in)       :: r2, v2, vdotr, dt, r2crit
+         logical                    :: lflag
+      end function rmvs_chk_ind
+
       module subroutine rmvs_discard_tp(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
@@ -114,21 +120,21 @@ module rmvs_classes
          logical                                 :: lencounter !! Returns true if there is at least one close encounter      
       end function rmvs_encounter_check_tp
 
-      module subroutine rmvs_fill_pl(self, inserts, lfill_list)
+      module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
          class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object 
          class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine rmvs_fill_pl
+      end subroutine rmvs_util_fill_pl
 
-      module subroutine rmvs_fill_tp(self, inserts, lfill_list)
+      module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
          class(rmvs_tp),        intent(inout) :: self        !! RMVS massive body object
          class(swiftest_body),  intent(inout) :: inserts     !!  Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine rmvs_fill_tp
+      end subroutine rmvs_util_fill_tp
 
       module subroutine rmvs_getacch_tp(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
@@ -159,21 +165,21 @@ module rmvs_classes
          integer,        intent(in)      :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_tp
 
-      module subroutine rmvs_spill_pl(self, discards, lspill_list)
+      module subroutine rmvs_util_spill_pl(self, discards, lspill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
          class(rmvs_pl),   intent(inout) :: self      !! RMVS massive body object
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-      end subroutine rmvs_spill_pl
+      end subroutine rmvs_util_spill_pl
 
-      module subroutine rmvs_spill_tp(self, discards, lspill_list)
+      module subroutine rmvs_util_spill_tp(self, discards, lspill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
          class(rmvs_tp),        intent(inout) :: self       !! RMVS test particle object
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-      end subroutine rmvs_spill_tp
+      end subroutine rmvs_util_spill_tp
 
       module subroutine rmvs_step_system(self, param, t, dt)
          use swiftest_classes, only : swiftest_parameters

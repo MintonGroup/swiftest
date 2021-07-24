@@ -429,14 +429,14 @@ contains
       !! so that if a dump file gets corrupted during writing, the user can restart from the older one.
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      character(*), optional,       intent(in)    :: msg  !! Message to display with dump operation
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      character(*), optional,       intent(in)    :: msg   !! Message to display with dump operation
       ! Internals
-      class(swiftest_parameters), allocatable :: dump_param   !! Local parameters variable used to parameters change input file names 
-                                                    !!    to dump file-specific values without changing the user-defined values
-      integer(I4B), save           :: idx = 1       !! Index of current dump file. Output flips between 2 files for extra security
-                                                    !!    in case the program halts during writing
+      class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
+                                                            !! to dump file-specific values without changing the user-defined values
+      integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
+                                                            !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
       real(DP) :: tfrac
      
@@ -447,6 +447,7 @@ contains
       dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
       dump_param%out_form = XV
       dump_param%out_stat = 'APPEND'
+      dump_param%T0 = param%t
       call dump_param%dump(param_file_name)
 
       call self%cb%dump(dump_param)
@@ -974,26 +975,6 @@ contains
 
       return
    end function io_read_hdr
-
-   module subroutine io_read_initialize_system(self, param)
-      !! author: David A. Minton
-      !!
-      !! Wrapper method to initialize a basic Swiftest nbody system from files
-      !!
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-  
-      call self%cb%initialize(param)
-      call self%pl%initialize(param)
-      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
-      call self%tp%initialize(param)
-      call self%set_msys()
-      call self%pl%set_mu(self%cb) 
-      call self%tp%set_mu(self%cb) 
-   
-   end subroutine io_read_initialize_system
 
    module subroutine io_toupper(string)
       !! author: David A. Minton

@@ -46,7 +46,7 @@ contains
       return
    end function rmvs_encounter_check_tp
 
-   elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
+   module elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step

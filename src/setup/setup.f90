@@ -69,6 +69,28 @@ contains
       return
    end subroutine setup_construct_system
 
+
+   module subroutine setup_initialize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Wrapper method to initialize a basic Swiftest nbody system from files
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+  
+      call self%cb%initialize(param)
+      call self%pl%initialize(param)
+      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
+      call self%tp%initialize(param)
+      call self%set_msys()
+      call self%pl%set_mu(self%cb) 
+      call self%tp%set_mu(self%cb) 
+      call self%pl%eucl_index()
+      return
+   end subroutine setup_initialize_system
+
    module subroutine setup_body(self,n)
       !! author: David A. Minton
       !!
@@ -83,7 +105,6 @@ contains
       if (n <= 0) return
       self%lfirst = .true.
 
-      !write(*,*) 'Allocating the basic Swiftest particle'
       allocate(self%id(n))
       allocate(self%name(n))
       allocate(self%status(n))
@@ -162,7 +183,7 @@ contains
       self%k2(:) = 0.0_DP
       self%Q(:) = 0.0_DP
       self%tlag(:) = 0.0_DP
-      self%num_comparisons = 0   
+      self%nplpl = 0   
       return
    end subroutine setup_pl
 

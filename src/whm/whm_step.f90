@@ -12,7 +12,7 @@ contains
       implicit none
       ! Arguments
       class(whm_nbody_system),    intent(inout) :: self  !! WHM nbody system object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! Current simulation time
       real(DP),                   intent(in)    :: dt    !! Current stepsize
 
@@ -56,7 +56,7 @@ contains
          call pl%kick(dth)
          call pl%vh2vj(cb) 
          if (param%lgr) call pl%gr_pos_kick(param, dth)
-         call pl%drift(system, param, dt)
+         call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
          if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%j2h(cb)
          call pl%accel(system, param, t + dt)
@@ -95,7 +95,7 @@ contains
             end if
             call tp%kick(dth)
             if (param%lgr) call tp%gr_pos_kick(param, dth)
-            call tp%drift(system, param, dt)
+            call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
             if (param%lgr) call tp%gr_pos_kick(param, dth)
             call tp%accel(system, param, t + dt, lbeg=.false.)
             call tp%kick(dth)
