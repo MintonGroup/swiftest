@@ -76,7 +76,7 @@ contains
                   call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
                   call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
 
-                  call system%recursive_step(param, t, dt, 0)
+                  call system%recursive_step(param, 0)
 
                   call pl%set_beg_end(xend = pl%xh)
                   call pl%accel(system, param, t + dt)
@@ -96,7 +96,7 @@ contains
       return
    end subroutine symba_step_interp_system
 
-   module recursive subroutine symba_step_recur_system(self, param, t, dt, ireci)
+   module recursive subroutine symba_step_recur_system(self, param, ireci)
       !! author: David A. Minton
       !!
       !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
@@ -108,33 +108,60 @@ contains
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t     !! Simulation time
-      real(DP),                   intent(in)    :: dt    !! Current stepsize
       integer(I4B), value,        intent(in)    :: ireci !! input recursion level
       ! Internals
-      integer(I4B) :: i, j, irecp, nloops
-      real(DP) :: dtl, dth, sgn
+      integer(I4B) :: i, j, irecp, nloops, sgn
+      real(DP) :: dtl, dth
       real(DP), dimension(NDIM) :: xr, vr
       logical :: lencounter
 
-      associate(system => self, pl => self%pl, tp => self%tp, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
-         dtl = param%dt / (NTENC**ireci)
-         dth = 0.5_DP * dtl
-         IF (dtl / param%dt < VSMALL) THEN
-            write(*, *) "SWIFTEST Warning:"
-            write(*, *) "   In symba_step_recur_system, local time step is too small"
-            write(*, *) "   Roundoff error will be important!"
-            call util_exit(FAILURE)
-         END IF
-         irecp = ireci + 1
-         if (ireci == 0) then
-            nloops = 1
-         else
-            nloops = NTENC
-         end if
-         do j = 1, nloops
-            lencounter = plplenc_list%encounter_check(system, dtl, irecp) .or. pltpenc_list%encounter_check(system, dtl, irecp)
-         end do
+      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
+         select type(pl => self%pl)
+         class is (symba_pl)
+            select type(tp => self%tp)
+            class is (symba_tp)
+               dtl = param%dt / (NTENC**ireci)
+               dth = 0.5_DP * dtl
+               IF (dtl / param%dt < VSMALL) THEN
+                  write(*, *) "SWIFTEST Warning:"
+                  write(*, *) "   In symba_step_recur_system, local time step is too small"
+                  write(*, *) "   Roundoff error will be important!"
+                  call util_exit(FAILURE)
+               END IF
+               irecp = ireci + 1
+               if (ireci == 0) then
+                  nloops = 1
+               else
+                  nloops = NTENC
+               end if
+               do j = 1, nloops
+                  lencounter = plplenc_list%encounter_check(system, dtl, irecp) .or. pltpenc_list%encounter_check(system, dtl, irecp)
+                  sgn = 1
+                  call plplenc_list%kick(system, dth, irecp, sgn)
+                  call pltpenc_list%kick(system, dth, irecp, sgn)
+                  if (ireci /= 0) then
+                     sgn = -1
+                     call plplenc_list%kick(system, dth, irecp, sgn)
+                     call pltpenc_list%kick(system, dth, irecp, sgn)
+                  end if
+
+                  call pl%drift(system, param, dtl, pl%status(:) == ACTIVE .and. pl%levelg(:) == ireci)
+                  call tp%drift(system, param, dtl, tp%status(:) == ACTIVE .and. tp%levelg(:) == ireci)
+
+                  if (lencounter) call system%recursive_step(param, irecp)
+
+                  sgn = 1
+                  call plplenc_list%kick(system, dth, irecp, sgn)
+                  call pltpenc_list%kick(system, dth, irecp, sgn)
+                  if (ireci /= 0) then
+                     sgn = -1
+                     call plplenc_list%kick(system, dth, irecp, sgn)
+                     call pltpenc_list%kick(system, dth, irecp, sgn)
+                  end if
+
+               end do
+            end select
+         end select
       end associate
 
    end subroutine symba_step_recur_system
