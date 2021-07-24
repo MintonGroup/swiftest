@@ -1,7 +1,7 @@
-submodule(whm_classes) s_whm_spill_and_fill
+submodule(whm_classes) s_whm_util
    use swiftest
 contains
-   module subroutine whm_spill_pl(self, discards, lspill_list)
+   module subroutine whm_util_spill_pl(self, discards, lspill_list)
    !! author: David A. Minton
    !!
    !! Move spilled (discarded) WHM test particle structure from active list to discard list
@@ -42,9 +42,9 @@ contains
 
    return
 
-   end subroutine whm_spill_pl
+   end subroutine whm_util_spill_pl
 
-   module subroutine whm_fill_pl(self, inserts, lfill_list)
+   module subroutine whm_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new WHM test particle structure into an old one. 
@@ -87,6 +87,6 @@ contains
    
       return
    
-      end subroutine whm_fill_pl
+      end subroutine whm_util_fill_pl
 
-end submodule s_whm_spill_and_fill
+end submodule s_whm_util
