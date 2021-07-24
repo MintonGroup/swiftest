@@ -175,6 +175,14 @@ module symba_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine symba_discard_tp
 
+      module pure elemental subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+         implicit none
+         real(DP),     intent(in)  :: xr, yr, zr, vxr, vyr, vzr
+         real(DP),     intent(in)  :: rhill1, rhill2, dt
+         integer(I4B), intent(in)  :: irec
+         logical,      intent(out) :: lencounter, lvdotr
+      end subroutine symba_encounter_check_one
+
       module function symba_encounter_check_pl(self, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_pl),           intent(inout) :: self       !! SyMBA test particle object  

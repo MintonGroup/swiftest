@@ -52,7 +52,6 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsize
       ! Internals
       real(DP)                                  :: dth   !! Half step size
-      integer(I4B)                              :: irec  !! Recursion level                 
 
       dth = 0.5_DP * dt
       associate(system => self)
@@ -76,8 +75,8 @@ contains
 
                   call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
                   call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
-                  irec = 0
-                  call system%recursive_step(param, t, dt, irec)
+
+                  call system%recursive_step(param, t, dt, 0)
 
                   call pl%set_beg_end(xend = pl%xh)
                   call pl%accel(system, param, t + dt)
@@ -113,10 +112,12 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsize
       integer(I4B), value,        intent(in)    :: ireci !! input recursion level
       ! Internals
-      integer(I4B) :: i, j, irecp, icflg, index_i, index_j, index_pl, index_tp
-      real(DP) :: dtl, dth,sgn
+      integer(I4B) :: i, j, irecp, icflg, nloops
+      real(DP) :: dtl, dth, sgn
+      real(DP), dimension(NDIM) :: xr, vr
+      logical :: lencounter
 
-      associate(plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
+      associate(pl => self%pl, tp => self%tp, plplenc_list => self%plplenc_list, nplplenc => self%plplenc_list%nenc, pltpenc_list => self%pltpenc_list, npltpenc => self%pltpenc_list%nenc)
          dtl = param%dt / (NTENC**ireci)
          dth = 0.5_DP * dtl
          IF (dtl / param%dt < VSMALL) THEN
@@ -127,8 +128,21 @@ contains
          END IF
          irecp = ireci + 1
          if (ireci == 0) then
-            icflg = 0
+            nloops = 1
+         else
+            nloops = NTENC
          end if
+         do j = 1, nloops
+            icflg = 0
+            do i = 1, nplplenc
+               associate(index_i => plplenc_list%index1(i), index_j => plplenc_list%index2(i))
+                  xr(:) = pl%xh(:,index_j) - pl%xh(:,index_i)
+                  vr(:) = pl%vb(:,index_j) - pl%vb(:,index_i)
+                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(index_i), pl%rhill(index_j), dtl, irecp, lencounter, plplenc_list%lvdotr(i))
+               end associate
+            end do
+
+         end do
       end associate
 
    end subroutine symba_step_recur_system

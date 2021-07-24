@@ -59,6 +59,7 @@ contains
       allocate(enc_temp, source=self)
       call self%setup(2 * nrequested)
       call self%copy(enc_temp)
+      self%nenc = nrequested
       deallocate(enc_temp)
       return
    end subroutine symba_util_resize_pltpenc
