@@ -12,10 +12,9 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       real(DP)                                  :: r2crit, vdotr, r2, v2, tmin, r2min, term2
-      integer(I4B)                              :: j, nenc_old
+      integer(I4B)                              :: nenc_old
       integer(I8B)                              :: k
       real(DP),     dimension(NDIM)             :: xr, vr
-      integer(I4B), dimension(:,:), allocatable :: ind
       logical,      dimension(:),   allocatable :: lencounter, loc_lvdotr
    
       associate(pl => self, npl => self%nbody, nplpl => self%nplpl)
@@ -71,16 +70,76 @@ contains
       return
    end function symba_encounter_check_pl
 
-   module function symba_encounter_check_tp(self, system, dt) result(lencounter)
+   module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
       implicit none
       ! Arguments
       class(symba_tp),           intent(inout) :: self       !! SyMBA test particle object  
       class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
       real(DP),                  intent(in)    :: dt         !! step size
+      integer(I4B),              intent(in)    :: irec           !! Current recursion level
       ! Result
-      logical                                  :: lencounter !! Returns true if there is at least one close encounter      
+      logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
+      ! Internals
+      real(DP)                                  :: r2crit, vdotr, r2, v2, tmin, r2min, term2
+      integer(I4B)                              :: i, j, nenc_old
+      real(DP),     dimension(NDIM)             :: xr, vr
+      logical,      dimension(:,:), allocatable :: lencounter, loc_lvdotr
+   
+      associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
+         allocate(lencounter(npl, ntp), loc_lvdotr(npl, ntp))
+         lencounter(:,:) = .false.
+   
+         term2 = RHSCALE * (RSHELL**irec)
+   
+         do j = 1, ntp
+            do i = 1, npl
+               xr(:) = tp%xh(:, j) - pl%xh(:, i)
+               r2 = dot_product(xr(:), xr(:)) 
+               r2crit = (pl%rhill(i) * term2)**2
+               vr(:) = tp%vh(:, j) - pl%vh(:, i)
+               vdotr = dot_product(vr(:), xr(:))
+               if (r2 < r2crit) then
+                  lencounter(i,j) = .true.
+                  loc_lvdotr(i,j) = (vdotr < 0.0_DP)
+               else
+                  if (vdotr < 0.0_DP) then
+                     v2 = dot_product(vr(:), vr(:))
+                     tmin = -vdotr /  v2
+                     if (tmin < dt) then
+                        r2min = r2 - vdotr * vdotr / v2
+                     else
+                        r2min = r2 + 2 * vdotr * dt + v2 * dt * dt
+                     end if
+                     r2min = min(r2min, r2)
+                     if (r2min <= r2crit) then
+                        lencounter(i,j) = .true.
+                        loc_lvdotr(i,j) = (vdotr < 0.0_DP)
+                     end if
+                  end if
+               end if
+            end do
+         end do
 
-      lencounter = .false.
+         lany_encounter = any(lencounter(:,:))
+         if (lany_encounter) then 
+            associate(pltpenc_list => system%pltpenc_list, nenc => system%pltpenc_list%nenc)
+               nenc_old = nenc
+               call pltpenc_list%resize(nenc_old + count(lencounter(:,:)))
+               pltpenc_list%status(nenc_old+1:nenc) = ACTIVE
+               pltpenc_list%level(nenc_old+1:nenc) = irec
+               pltpenc_list%lvdotr(nenc_old+1:nenc) = pack(loc_lvdotr(:,:), lencounter(:,:))
+               !*********************************************************************************************************
+               ! This needs to be tested
+               pltpenc_list%index1(nenc_old+1:nenc) = pack(spread([(i, i = 1, npl)], dim=2, ncopies=ntp), lencounter(:,:)) 
+               pltpenc_list%index2(nenc_old+1:nenc) = pack(spread([(j, j = 1, ntp)], dim=1, ncopies=npl), lencounter(:,:))
+               !*********************************************************************************************************
+               select type(pl)
+               class is (symba_pl)
+                  pl%lencounter(pltpenc_list%index1(nenc_old+1:nenc)) = .true.
+               end select
+            end associate
+         end if
+      end associate
       return
    end function symba_encounter_check_tp
 
