@@ -112,12 +112,12 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsize
       integer(I4B), value,        intent(in)    :: ireci !! input recursion level
       ! Internals
-      integer(I4B) :: i, j, irecp, icflg, nloops
+      integer(I4B) :: i, j, irecp, nloops
       real(DP) :: dtl, dth, sgn
       real(DP), dimension(NDIM) :: xr, vr
       logical :: lencounter
 
-      associate(pl => self%pl, tp => self%tp, plplenc_list => self%plplenc_list, nplplenc => self%plplenc_list%nenc, pltpenc_list => self%pltpenc_list, npltpenc => self%pltpenc_list%nenc)
+      associate(system => self, pl => self%pl, tp => self%tp, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
          dtl = param%dt / (NTENC**ireci)
          dth = 0.5_DP * dtl
          IF (dtl / param%dt < VSMALL) THEN
@@ -133,15 +133,7 @@ contains
             nloops = NTENC
          end if
          do j = 1, nloops
-            icflg = 0
-            do i = 1, nplplenc
-               associate(index_i => plplenc_list%index1(i), index_j => plplenc_list%index2(i))
-                  xr(:) = pl%xh(:,index_j) - pl%xh(:,index_i)
-                  vr(:) = pl%vb(:,index_j) - pl%vb(:,index_i)
-                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(index_i), pl%rhill(index_j), dtl, irecp, lencounter, plplenc_list%lvdotr(i))
-               end associate
-            end do
-
+            lencounter = plplenc_list%encounter_check(system, dtl, irecp) .or. pltpenc_list%encounter_check(system, dtl, irecp)
          end do
       end associate
 

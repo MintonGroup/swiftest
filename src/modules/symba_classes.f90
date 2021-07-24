@@ -121,6 +121,7 @@ module symba_classes
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the planet in encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the test particle in encounter
    contains
+      procedure, public :: encounter_check => symba_encounter_check_pltpenc !! Checks if massive bodies are going through close encounters with each other
       procedure, public :: setup  => symba_setup_pltpenc       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure, public :: copy   => symba_util_copy_pltpenc   !! Copies all elements of one pltpenc list to another
       procedure, public :: resize => symba_util_resize_pltpenc !! Checks the current size of the pltpenc_list against the required size and extends it by a factor of 2 more than requested if it is too small 
@@ -136,6 +137,7 @@ module symba_classes
       real(DP),     dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
       real(DP),     dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
    contains
+      procedure, public :: encounter_check => symba_encounter_check_plplenc !! Checks if massive bodies are going through close encounters with each other
       procedure, public :: setup  => symba_setup_plplenc     !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure, public :: copy   => symba_util_copy_plplenc !! Copies all elements of one plplenc list to another
    end type symba_plplenc
@@ -191,6 +193,24 @@ module symba_classes
          integer(I4B),              intent(in)    :: irec       !! Current recursion level 
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_pl
+
+      module function symba_encounter_check_plplenc(self, system, dt, irec) result(lany_encounter)
+         implicit none
+         class(symba_plplenc),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
+         class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
+         real(DP),                  intent(in)    :: dt         !! step size
+         integer(I4B),              intent(in)    :: irec       !! Current recursion level 
+         logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
+      end function symba_encounter_check_plplenc
+
+      module function symba_encounter_check_pltpenc(self, system, dt, irec) result(lany_encounter)
+         implicit none
+         class(symba_pltpenc),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
+         class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
+         real(DP),                  intent(in)    :: dt         !! step size
+         integer(I4B),              intent(in)    :: irec       !! Current recursion level 
+         logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
+      end function symba_encounter_check_pltpenc
 
       module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
          implicit none
