@@ -8,7 +8,7 @@ module swiftest_classes
    private
    public :: discard_pl, discard_system, discard_tp 
    public :: drift_all, drift_body, drift_one
-   public :: eucl_dist_index_plpl, eucl_dist_index_pltp
+   public :: eucl_dist_index_plpl
    public :: gr_getaccb_ns_body, gr_p4_pos_kick, gr_pseudovel2vel, gr_vel2pseudovel
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, &
@@ -162,8 +162,6 @@ module swiftest_classes
       real(DP),              dimension(:),   allocatable :: omega           !! Argument of pericenter
       real(DP),              dimension(:),   allocatable :: capm            !! Mean anomaly
       real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      integer(I4B),          dimension(:,:), allocatable :: k_eucl          !! Index array used to convert flattened the body-body comparison upper triangular matrix
-      integer(I8B)                                       :: nplpl           !! Number of body-body comparisons in the flattened upper triangular matrix
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and util_spill
    contains
@@ -209,7 +207,9 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: rot     !! Body rotation vector in inertial coordinate frame (units rad / TU)
       real(DP),     dimension(:),   allocatable :: k2      !! Tidal Love number
       real(DP),     dimension(:),   allocatable :: Q       !! Tidal quality factor
-      real(DP),     dimension(:),   allocatable :: tlag     !! Tidal phase lag
+      real(DP),     dimension(:),   allocatable :: tlag    !! Tidal phase lag
+      integer(I4B), dimension(:,:), allocatable :: k_plpl  !! Index array used to convert flattened the body-body comparison upper triangular matrix
+      integer(I8B)                              :: nplpl   !! Number of body-body comparisons in the flattened upper triangular matrix
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_pl and util_spill_pl
    contains
@@ -247,7 +247,6 @@ module swiftest_classes
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: discard    => discard_tp           !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
-      procedure, public :: eucl_index => eucl_dist_index_pltp !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure, public :: accel_int  => kick_getacch_int_tp  !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
       procedure, public :: accel_obl  => obl_acc_tp           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: setup      => setup_tp             !! A base constructor that sets the number of bodies and 
@@ -388,7 +387,7 @@ module swiftest_classes
          real(DP), dimension(:),     intent(in)    :: mu    !! Vector of gravitational constants
          real(DP), dimension(:,:),   intent(inout) :: x, v  !! Position and velocity vectors
          integer(I4B),               intent(in)    :: n     !! number of bodies
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
          real(DP),                   intent(in)    :: dt    !! Stepsize
          logical, dimension(:),      intent(in)    :: mask  !! Logical mask of size self%nbody that determines which bodies to drift.
          integer(I4B), dimension(:), intent(out)   :: iflag !! Vector of error flags. 0 means no problem
@@ -414,12 +413,6 @@ module swiftest_classes
       module subroutine eucl_dist_index_plpl(self)
          implicit none
          class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
-      end subroutine
-
-      module subroutine eucl_dist_index_pltp(self, pl)
-         implicit none
-         class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
-         class(swiftest_pl), intent(inout) :: pl   !! Swiftest massive body object
       end subroutine
 
       module pure subroutine gr_getaccb_ns_body(self, system, param)

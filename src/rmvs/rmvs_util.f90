@@ -1,7 +1,7 @@
-submodule(rmvs_classes) s_rmvs_spill_and_fill
+submodule(rmvs_classes) s_rmvs_util
    use swiftest
 contains
-   module subroutine rmvs_spill_pl(self, discards, lspill_list)
+   module subroutine rmvs_util_spill_pl(self, discards, lspill_list)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -31,9 +31,9 @@ contains
 
       return
 
-      end subroutine rmvs_spill_pl
+      end subroutine rmvs_util_spill_pl
 
-      module subroutine rmvs_fill_pl(self, inserts, lfill_list)
+      module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
          !! author: David A. Minton
          !!
          !! Insert new RMVS massive body structure into an old one. 
@@ -62,9 +62,9 @@ contains
       
          return
       
-   end subroutine rmvs_fill_pl
+   end subroutine rmvs_util_fill_pl
 
-   module subroutine rmvs_spill_tp(self, discards, lspill_list)
+   module subroutine rmvs_util_spill_tp(self, discards, lspill_list)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -98,9 +98,9 @@ contains
 
       return
 
-   end subroutine rmvs_spill_tp
+   end subroutine rmvs_util_spill_tp
 
-   module subroutine rmvs_fill_tp(self, inserts, lfill_list)
+   module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new RMVS test particle structure into an old one. 
@@ -133,6 +133,6 @@ contains
    
       return
 
-   end subroutine rmvs_fill_tp
+   end subroutine rmvs_util_fill_tp
 
-end submodule s_rmvs_spill_and_fill
+end submodule s_rmvs_util

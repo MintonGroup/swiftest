@@ -1,7 +1,7 @@
 submodule(symba_classes) s_symba_setup
    use swiftest
 contains
-   module subroutine symba_setup_pl(self,n)
+   module subroutine symba_setup_pl(self, n)
       !! author: David A. Minton
       !!
       !! Allocate SyMBA test particle structure
@@ -43,7 +43,7 @@ contains
       return
    end subroutine symba_setup_pl
 
-   module subroutine symba_setup_pltpenc(self,n)
+   module subroutine symba_setup_pltpenc(self, n)
       !! author: David A. Minton
       !!
       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
@@ -55,6 +55,11 @@ contains
 
       self%nenc = n
       if (n == 0) return
+      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
+      if (allocated(self%status)) deallocate(self%status)
+      if (allocated(self%level)) deallocate(self%level)
+      if (allocated(self%index1)) deallocate(self%index1)
+      if (allocated(self%index2)) deallocate(self%index2)
       allocate(self%lvdotr(n))
       allocate(self%status(n))
       allocate(self%level(n))
@@ -80,6 +85,10 @@ contains
 
       call symba_setup_pltpenc(self, n)
       if (n == 0) return
+      if (allocated(self%xh1)) deallocate(self%xh1)
+      if (allocated(self%xh2)) deallocate(self%xh2)
+      if (allocated(self%vb1)) deallocate(self%vb1)
+      if (allocated(self%vb2)) deallocate(self%vb2)
       allocate(self%xh1(NDIM,n))
       allocate(self%xh2(NDIM,n))
       allocate(self%vb1(NDIM,n))

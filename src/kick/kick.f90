@@ -18,7 +18,7 @@ contains
 
       associate(pl => self, npl => self%nbody, nplpl => self%nplpl)
          do k = 1, nplpl
-            associate(i => pl%k_eucl(1, k), j => pl%k_eucl(2, k))
+            associate(i => pl%k_plpl(1, k), j => pl%k_plpl(2, k))
                dx(:) = pl%xh(:, j) - pl%xh(:, i)
                rji2  = dot_product(dx(:), dx(:))
                irij3 = 1.0_DP / (rji2 * sqrt(rji2))

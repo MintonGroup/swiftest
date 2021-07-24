@@ -121,7 +121,9 @@ module symba_classes
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the planet in encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the test particle in encounter
    contains
-      procedure, public :: setup  => symba_setup_pltpenc  !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure, public :: setup  => symba_setup_pltpenc       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure, public :: copy   => symba_util_copy_pltpenc   !! Copies all elements of one pltpenc list to another
+      procedure, public :: resize => symba_util_resize_pltpenc !! Checks the current size of the pltpenc_list against the required size and extends it by a factor of 2 more than requested if it is too small 
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -134,7 +136,8 @@ module symba_classes
       real(DP),     dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
       real(DP),     dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
    contains
-      procedure, public :: setup  => symba_setup_plplenc  !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure, public :: setup  => symba_setup_plplenc     !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure, public :: copy   => symba_util_copy_plplenc !! Copies all elements of one plplenc list to another
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -306,5 +309,24 @@ module symba_classes
          implicit none
          class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
       end subroutine symba_step_reset_system
+
+      module subroutine symba_util_copy_pltpenc(self, source)
+         implicit none
+         class(symba_pltpenc), intent(inout) :: self   !! SyMBA pl-tp encounter list 
+         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
+      end subroutine symba_util_copy_pltpenc
+
+      module subroutine symba_util_copy_plplenc(self, source)
+         implicit none
+         class(symba_plplenc), intent(inout) :: self   !! SyMBA pl-pl encounter list 
+         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
+      end subroutine symba_util_copy_plplenc
+
+      module subroutine symba_util_resize_pltpenc(self, nrequested)
+         implicit none
+         class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
+         integer(I4B),         intent(in)    :: nrequested !! New size of list needed
+      end subroutine symba_util_resize_pltpenc
+
    end interface
 end module symba_classes
