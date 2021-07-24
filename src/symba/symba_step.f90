@@ -16,14 +16,14 @@ contains
       real(DP),                   intent(in)    :: t      !! Simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsize
       ! Internals
-      logical           :: lencounter_pl, lencounter_tp, lencounter
+      logical :: lencounter
      
       call self%reset()
       select type(pl => self%pl)
       class is (symba_pl)
          select type(tp => self%tp)
          class is (symba_tp)
-            lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt)
+            lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
             if (lencounter) then
                call self%interp(param, t, dt)
             else
@@ -120,15 +120,14 @@ contains
          dtl = param%dt / (NTENC**ireci)
          dth = 0.5_DP * dtl
          IF (dtl / param%dt < VSMALL) THEN
-            WRITE(*, *) "SWIFTEST Warning:"
-            WRITE(*, *) "   In symba_step_recur_system, local time step is too small"
-            WRITE(*, *) "   Roundoff error will be important!"
+            write(*, *) "SWIFTEST Warning:"
+            write(*, *) "   In symba_step_recur_system, local time step is too small"
+            write(*, *) "   Roundoff error will be important!"
             call util_exit(FAILURE)
          END IF
          irecp = ireci + 1
          if (ireci == 0) then
             icflg = 0
-            
          end if
       end associate
 

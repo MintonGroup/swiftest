@@ -175,21 +175,22 @@ module symba_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine symba_discard_tp
 
-      module function symba_encounter_check_pl(self, system, dt, irec) result(lencounter)
+      module function symba_encounter_check_pl(self, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_pl),           intent(inout) :: self       !! SyMBA test particle object  
          class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt         !! step size
-         logical                                  :: lencounter !! Returns true if there is at least one close encounter      
          integer(I4B),              intent(in)    :: irec       !! Current recursion level 
+         logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_pl
 
-      module function symba_encounter_check_tp(self, system, dt) result(lencounter)
+      module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_tp),           intent(inout) :: self       !! SyMBA test particle object  
          class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt         !! step size
-         logical                                  :: lencounter !! Returns true if there is at least one close encounter      
+         integer(I4B),              intent(in)    :: irec       !! Current recursion level 
+         logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
       module subroutine symba_io_dump_particle_info(self, param, msg) 
