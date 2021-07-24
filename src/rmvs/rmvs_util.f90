@@ -23,7 +23,7 @@ contains
             if (count(.not.lspill_list(:))  > 0) then
                keeps%nenc(:)       = pack(keeps%nenc(:),   .not. lspill_list(:))
             end if
-            call whm_spill_pl(keeps, discards, lspill_list)
+            call whm_util_spill_pl(keeps, discards, lspill_list)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
          end select
@@ -54,7 +54,7 @@ contains
                keeps%nenc(:)    = unpack(keeps%nenc(:),    .not.lfill_list(:), keeps%nenc(:))
                keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
                
-               call whm_fill_pl(keeps, inserts, lfill_list)
+               call whm_util_fill_pl(keeps, inserts, lfill_list)
             class default
                write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
             end select
