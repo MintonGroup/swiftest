@@ -52,6 +52,7 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsize
       ! Internals
       real(DP)                                  :: dth   !! Half step size
+      integer(I4B)                              :: irec  !! Recursion level
 
       dth = 0.5_DP * dt
       associate(system => self)
@@ -72,11 +73,11 @@ contains
 
                   call pl%kick(dth)
                   call tp%kick(dth)
-
-                  call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
-                  call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
-
-                  call system%recursive_step(param, 0)
+                  irec = -1
+                  call pl%drift(system, param, dt, pl%status(:) == ACTIVE .and. pl%levelg(:) == irec)
+                  call tp%drift(system, param, dt, tp%status(:) == ACTIVE .and. tp%levelg(:) == irec)
+                  irec = 0
+                  call system%recursive_step(param, irec)
 
                   call pl%set_beg_end(xend = pl%xh)
                   call pl%accel(system, param, t + dt)
