@@ -138,7 +138,6 @@ module symba_classes
       real(DP),     dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
       real(DP),     dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
    contains
-      procedure, public :: kick            => symba_kick_plplenc            !! Kick barycentric velocities of massive bodies within SyMBA recursion
       procedure, public :: setup           => symba_setup_plplenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure, public :: copy            => symba_util_copy_plplenc       !! Copies all elements of one plplenc list to another
    end type symba_plplenc
@@ -195,15 +194,6 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_pl
 
-      module function symba_encounter_check_plplenc(self, system, dt, irec) result(lany_encounter)
-         implicit none
-         class(symba_plplenc),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
-         class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
-         real(DP),                  intent(in)    :: dt         !! step size
-         integer(I4B),              intent(in)    :: irec       !! Current recursion level 
-         logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
-      end function symba_encounter_check_plplenc
-
       module function symba_encounter_check_pltpenc(self, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_pltpenc),      intent(inout) :: self           !! SyMBA pl-pl encounter list object
@@ -221,15 +211,6 @@ module symba_classes
          integer(I4B),              intent(in)    :: irec           !! Current recursion level 
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
-
-      module subroutine symba_kick_plplenc(self, system, dt, irec, sgn)
-         implicit none
-         class(symba_plplenc),      intent(in)    :: self   !! SyMBA pl-pl encounter list object
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         real(DP),                  intent(in)    :: dt     !! step size
-         integer(I4B),              intent(in)    :: irec   !! Current recursion level
-         integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
-      end subroutine symba_kick_plplenc
 
       module subroutine symba_kick_pltpenc(self, system, dt, irec, sgn)
          implicit none
