@@ -138,7 +138,6 @@ module symba_classes
       real(DP),     dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
       real(DP),     dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
    contains
-      procedure, public :: encounter_check => symba_encounter_check_plplenc !! Checks if massive bodies are going through close encounters with each other
       procedure, public :: kick            => symba_kick_plplenc            !! Kick barycentric velocities of massive bodies within SyMBA recursion
       procedure, public :: setup           => symba_setup_plplenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure, public :: copy            => symba_util_copy_plplenc       !! Copies all elements of one plplenc list to another

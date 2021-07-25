@@ -50,57 +50,11 @@ contains
       return
    end function symba_encounter_check_pl
 
-   module function symba_encounter_check_plplenc(self, system, dt, irec) result(lany_encounter)
-      !! author: David A. Minton
-      !!
-      !! Check for an encounter between massive bodies in the plplenc list.
-      !!
-      !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
-      implicit none
-      ! Arguments
-      class(symba_plplenc),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
-      class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
-      real(DP),                  intent(in)    :: dt         !! step size
-      integer(I4B),              intent(in)    :: irec       !! Current recursion level 
-      logical                                  :: lany_encounter !! Returns true if there is at least one close encounter 
-      ! Internals
-      integer(I4B)              :: i
-      real(DP), dimension(NDIM) :: xr, vr
-      logical                   :: lencounter
-      real(DP)                  :: rlim2, rji2
-
-      lany_encounter = .false.
-      associate(plplenc_list => self, nplplenc => self%nenc)
-         select type(pl => system%pl)
-         class is (symba_pl)
-            do i = 1, nplplenc
-               associate(index_i => plplenc_list%index1(i), index_j => plplenc_list%index2(i))
-                  xr(:) = pl%xh(:,index_j) - pl%xh(:,index_i)
-                  vr(:) = pl%vb(:,index_j) - pl%vb(:,index_i)
-                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(index_i), pl%rhill(index_j), dt, irec, lencounter, plplenc_list%lvdotr(i))
-                  if (lencounter) then
-                     rlim2 = (pl%radius(index_i) + pl%radius(index_j))**2
-                     rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
-                     if (rji2 > rlim2) then
-                        lany_encounter = .true.
-                        pl%levelg(index_i) = irec
-                        pl%levelm(index_i) = MAX(irec, pl%levelm(index_i))
-                        pl%levelg(index_j) = irec
-                        pl%levelm(index_j) = MAX(irec, pl%levelm(index_j))
-                        plplenc_list%level(i) = irec
-                     end if
-                  end if   
-               end associate
-            end do
-         end select
-      end associate
-      return
-   end function symba_encounter_check_plplenc
-
    module function symba_encounter_check_pltpenc(self, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies in the pltpenc list.
+      !! Note: This method works for the polymorphic symba_pltpenc and symba_plplenc types.
       !!
       !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
       implicit none
@@ -113,37 +67,56 @@ contains
       ! Internals
       integer(I4B)              :: i
       real(DP), dimension(NDIM) :: xr, vr
-      logical                   :: lencounter
+      logical                   :: lencounter, isplpl
       real(DP)                  :: rlim2, rji2
 
       lany_encounter = .false.
-      associate(pltpenc_list => self, npltpenc => self%nenc)
-         select type(pl => system%pl)
-         class is (symba_pl)
-            select type(tp => system%tp)
-            class is (symba_tp)
-               do i = 1, npltpenc
-                  associate(index_i => pltpenc_list%index1(i), index_j => pltpenc_list%index2(i))
+      select type(self)
+      class is (symba_plplenc)
+         isplpl = .true.
+      class is (symba_pltpenc)
+         isplpl = .false.
+      end select
+      select type(pl => system%pl)
+      class is (symba_pl)
+         select type(tp => system%tp)
+         class is (symba_tp)
+            do i = 1, self%nenc
+               associate(index_i => self%index1(i), index_j => self%index2(i))
+                  if (isplpl) then
+                     xr(:) = pl%xh(:,index_j) - pl%xh(:,index_i)
+                     vr(:) = pl%vb(:,index_j) - pl%vb(:,index_i)
+                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(index_i), pl%rhill(index_j), dt, irec, lencounter, self%lvdotr(i))
+                  else
                      xr(:) = tp%xh(:,index_j) - pl%xh(:,index_i)
                      vr(:) = tp%vb(:,index_j) - pl%vb(:,index_i)
-                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(index_i), 0.0_DP, dt, irec, lencounter, pltpenc_list%lvdotr(i))
-                     if (lencounter) then
+                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(index_i), 0.0_DP, dt, irec, lencounter, self%lvdotr(i))
+                  end if
+                  if (lencounter) then
+                     if (isplpl) then
+                        rlim2 = (pl%radius(index_i) + pl%radius(index_j))**2
+                     else
                         rlim2 = (pl%radius(index_i))**2
-                        rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
-                        if (rji2 > rlim2) then
-                           lany_encounter = .true.
-                           pl%levelg(index_i) = irec
-                           pl%levelm(index_i) = MAX(irec, pl%levelm(index_i))
+                     end if
+                     rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
+                     if (rji2 > rlim2) then
+                        lany_encounter = .true.
+                        pl%levelg(index_i) = irec
+                        pl%levelm(index_i) = MAX(irec, pl%levelm(index_i))
+                        if (isplpl) then
+                           pl%levelg(index_j) = irec
+                           pl%levelm(index_j) = MAX(irec, pl%levelm(index_j))
+                        else
                            tp%levelg(index_j) = irec
                            tp%levelm(index_j) = MAX(irec, tp%levelm(index_j))
-                           pltpenc_list%level(i) = irec
                         end if
-                     end if   
-                  end associate
+                        self%level(i) = irec
+                     end if
+                  end if   
+               end associate
             end do
-         end select
       end select
-      end associate    
+   end select
    end function symba_encounter_check_pltpenc
 
    module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
