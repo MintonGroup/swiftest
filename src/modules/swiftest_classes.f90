@@ -13,7 +13,7 @@ module swiftest_classes
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, &
              io_toupper, io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
-   public :: kick_kick_getacch_int_pl, kick_vh_body
+   public :: kick_getacch_int_pl, kick_vh_body
    public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_initialize_system, setup_pl, setup_tp
@@ -218,7 +218,7 @@ module swiftest_classes
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: discard      => discard_pl           !! Placeholder method for discarding massive bodies 
       procedure, public :: eucl_index   => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: accel_int    => kick_kick_getacch_int_pl !! Compute direct cross (third) term heliocentric accelerations of massive bodies
+      procedure, public :: accel_int    => kick_getacch_int_pl !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure, public :: accel_obl    => obl_acc_pl           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: setup        => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure, public :: accel_tides  => tides_kick_getacch_pl     !! Compute the accelerations of bodies due to tidal interactions with the central body
@@ -247,7 +247,7 @@ module swiftest_classes
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure, public :: discard    => discard_tp           !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
-      procedure, public :: accel_int  => kick_kick_getacch_int_tp  !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
+      procedure, public :: accel_int  => kick_getacch_int_tp  !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
       procedure, public :: accel_obl  => obl_acc_tp           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: setup      => setup_tp             !! A base constructor that sets the number of bodies and 
       procedure, public :: set_mu     => util_set_mu_tp       !! Method used to construct the vectorized form of the central body mass
@@ -604,18 +604,18 @@ module swiftest_classes
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_system
 
-      module pure subroutine kick_kick_getacch_int_pl(self)
+      module pure subroutine kick_getacch_int_pl(self)
          implicit none
          class(swiftest_pl), intent(inout) :: self
-      end subroutine kick_kick_getacch_int_pl
+      end subroutine kick_getacch_int_pl
 
-      module pure subroutine kick_kick_getacch_int_tp(self, GMpl, xhp, npl)
+      module pure subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
          implicit none
          class(swiftest_tp),       intent(inout) :: self !! Swiftest test particle
          real(DP), dimension(:),   intent(in)    :: GMpl !! Massive body masses
          real(DP), dimension(:,:), intent(in)    :: xhp  !! Massive body position vectors
          integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
-      end subroutine kick_kick_getacch_int_tp
+      end subroutine kick_getacch_int_tp
 
       module subroutine kick_vh_body(self, dt)
          implicit none

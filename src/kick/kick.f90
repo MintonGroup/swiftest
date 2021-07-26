@@ -1,7 +1,7 @@
 submodule(swiftest_classes) s_kick
    use swiftest
 contains
-   module pure subroutine kick_kick_getacch_int_pl(self)
+   module pure subroutine kick_getacch_int_pl(self)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of massive bodies
@@ -31,9 +31,9 @@ contains
       end associate
 
       return
-   end subroutine kick_kick_getacch_int_pl
+   end subroutine kick_getacch_int_pl
 
-   module pure subroutine kick_kick_getacch_int_tp(self, GMpl, xhp, npl)
+   module pure subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
@@ -62,7 +62,7 @@ contains
          end do
       end associate
       return
-   end subroutine kick_kick_getacch_int_tp
+   end subroutine kick_getacch_int_tp
 
    module subroutine kick_vh_body(self, dt)
       !! author: David A. Minton
