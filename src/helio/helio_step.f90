@@ -37,8 +37,7 @@ contains
       real(DP),                     intent(in)    :: t      !! Current simulation time
       real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals 
-      integer(I4B)     :: i
-      real(DP)         :: dth, msys
+      real(DP) :: dth   !! Half step size 
 
       if (self%nbody == 0) return
       associate(pl => self)
@@ -49,15 +48,11 @@ contains
                call pl%vh2vb(cb)
                pl%lfirst = .false.
             end if
-            call pl%lindrift(cb, dth, lbeg=.true.)
-            call pl%accel(system, param, t)
-            call pl%kick(dth)
-            call pl%set_beg_end(xbeg = pl%xh)
-            call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
-            call pl%set_beg_end(xend = pl%xh)
-            call pl%accel(system, param, t + dt)
-            call pl%kick(dth)
-            call pl%lindrift(cb, dth, lbeg=.false.)
+            call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
+            call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
+            call pl%drift(system, param, dt, mask=(pl%status(:) == ACTIVE))
+            call pl%kick(system, param, t + dt, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
+            call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
             call pl%vb2vh(cb)
          end select
       end associate
@@ -80,9 +75,9 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nboody system
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
-      real(DP),                     intent(in)    :: dt     !! Stepsiz
+      real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals
-      real(DP) :: dth   !! Half step size
+      real(DP) :: dth   !! Half step size 
    
       if (self%nbody == 0) return
 
@@ -94,13 +89,11 @@ contains
                call tp%vh2vb(vbcb = -cb%ptbeg)
                tp%lfirst = .false.
             end if
-            call tp%lindrift(cb, dth, lbeg=.true.)
-            call tp%accel(system, param, t, lbeg=.true.)
-            call tp%kick(dth)
+            call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
+            call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
             call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
-            call tp%accel(system, param, t + dt, lbeg=.false.)
-            call tp%kick(dth)
-            call tp%lindrift(cb, dth, lbeg=.false.)
+            call tp%kick(system, param, t + dt, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
+            call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
             call tp%vb2vh(vbcb = -cb%ptend)
          end select
       end associate

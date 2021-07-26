@@ -1,7 +1,7 @@
-submodule(swiftest_classes) s_tides_getacch
+submodule(swiftest_classes) s_tides_kick_getacch
    use swiftest
 contains
-   module subroutine tides_getacch_pl(self, system)
+   module subroutine tides_kick_getacch_pl(self, system)
       !! author: Jennifer L.L. Pouplin, Carlisle A. wishard, and David A. Minton
       !!
       !! Calculated tidal torques from central body to any planet and from any planet to central body
@@ -60,5 +60,5 @@ contains
 
       return
 
-   end subroutine tides_getacch_pl
-end submodule s_tides_getacch
+   end subroutine tides_kick_getacch_pl
+end submodule s_tides_kick_getacch

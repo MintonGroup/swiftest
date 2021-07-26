@@ -91,6 +91,7 @@ module symba_classes
       private
       procedure, public :: discard         => symba_discard_pl         !! Process massive body discards
       procedure, public :: encounter_check => symba_encounter_check_pl !! Checks if massive bodies are going through close encounters with each other
+      procedure, public :: accel           => symba_kick_getacch_pl         !! Compute heliocentric accelerations of massive bodies
       procedure, public :: setup           => symba_setup_pl           !! Constructor method - Allocates space for number of particle
    end type symba_pl
 
@@ -106,6 +107,7 @@ module symba_classes
       private
       procedure, public :: discard         => symba_discard_tp         !! process test particle discards
       procedure, public :: encounter_check => symba_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
+      procedure, public :: accel           => symba_kick_getacch_tp         !! Compute heliocentric accelerations of test particles
       procedure, public :: setup           => symba_setup_tp           !! Constructor method - Allocates space for number of particle
    end type symba_tp
 
@@ -121,9 +123,11 @@ module symba_classes
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the planet in encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the test particle in encounter
    contains
-      procedure, public :: setup  => symba_setup_pltpenc       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure, public :: copy   => symba_util_copy_pltpenc   !! Copies all elements of one pltpenc list to another
-      procedure, public :: resize => symba_util_resize_pltpenc !! Checks the current size of the pltpenc_list against the required size and extends it by a factor of 2 more than requested if it is too small 
+      procedure, public :: encounter_check => symba_encounter_check_pltpenc !! Checks if massive bodies are going through close encounters with each other
+      procedure, public :: kick            => symba_kick_pltpenc            !! Kick barycentric velocities of active test particles within SyMBA recursion
+      procedure, public :: setup           => symba_setup_pltpenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure, public :: copy            => symba_util_copy_pltpenc       !! Copies all elements of one pltpenc list to another
+      procedure, public :: resize          => symba_util_resize_pltpenc     !! Checks the current size of the pltpenc_list against the required size and extends it by a factor of 2 more than requested if it is too small 
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -136,8 +140,8 @@ module symba_classes
       real(DP),     dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
       real(DP),     dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
    contains
-      procedure, public :: setup  => symba_setup_plplenc     !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure, public :: copy   => symba_util_copy_plplenc !! Copies all elements of one plplenc list to another
+      procedure, public :: setup           => symba_setup_plplenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure, public :: copy            => symba_util_copy_plplenc       !! Copies all elements of one plplenc list to another
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -175,6 +179,14 @@ module symba_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine symba_discard_tp
 
+      module pure elemental subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+         implicit none
+         real(DP),     intent(in)  :: xr, yr, zr, vxr, vyr, vzr
+         real(DP),     intent(in)  :: rhill1, rhill2, dt
+         integer(I4B), intent(in)  :: irec
+         logical,      intent(out) :: lencounter, lvdotr
+      end subroutine symba_encounter_check_one
+
       module function symba_encounter_check_pl(self, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_pl),           intent(inout) :: self       !! SyMBA test particle object  
@@ -184,14 +196,50 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_pl
 
+      module function symba_encounter_check_pltpenc(self, system, dt, irec) result(lany_encounter)
+         implicit none
+         class(symba_pltpenc),      intent(inout) :: self           !! SyMBA pl-pl encounter list object
+         class(symba_nbody_system), intent(inout) :: system         !! SyMBA nbody system object
+         real(DP),                  intent(in)    :: dt             !! step size
+         integer(I4B),              intent(in)    :: irec           !! Current recursion level 
+         logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
+      end function symba_encounter_check_pltpenc
+
       module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
          implicit none
-         class(symba_tp),           intent(inout) :: self       !! SyMBA test particle object  
-         class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
-         real(DP),                  intent(in)    :: dt         !! step size
-         integer(I4B),              intent(in)    :: irec       !! Current recursion level 
+         class(symba_tp),           intent(inout) :: self           !! SyMBA test particle object  
+         class(symba_nbody_system), intent(inout) :: system         !! SyMBA nbody system object
+         real(DP),                  intent(in)    :: dt             !! step size
+         integer(I4B),              intent(in)    :: irec           !! Current recursion level 
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
+
+      module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
+         implicit none
+         class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current simulation time
+         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      end subroutine symba_kick_getacch_pl
+
+      module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
+         implicit none
+         class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current time
+         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      end subroutine symba_kick_getacch_tp
+
+      module subroutine symba_kick_pltpenc(self, system, dt, irec, sgn)
+         implicit none
+         class(symba_pltpenc),      intent(in)    :: self   !! SyMBA pl-tp encounter list object
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         real(DP),                  intent(in)    :: dt     !! step size
+         integer(I4B),              intent(in)    :: irec   !! Current recursion level
+         integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
+      end subroutine symba_kick_pltpenc
 
       module subroutine symba_io_dump_particle_info(self, param, msg) 
          use swiftest_classes, only : swiftest_parameters
@@ -297,12 +345,10 @@ module symba_classes
          real(DP),                   intent(in)    :: dt    !! Current stepsize
       end subroutine symba_step_interp_system
 
-      module recursive subroutine symba_step_recur_system(self, param, t, dt, ireci)
+      module recursive subroutine symba_step_recur_system(self, param, ireci)
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t     !! Simulation time
-         real(DP),                   intent(in)    :: dt    !! Current stepsize
          integer(I4B), value,        intent(in)    :: ireci !! input recursion level
       end subroutine symba_step_recur_system
 

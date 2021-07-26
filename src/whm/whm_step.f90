@@ -47,21 +47,13 @@ contains
 
       associate(pl => self, cb => system%cb)
          dth = 0.5_DP * dt
-         if (pl%lfirst) then
-            call pl%h2j(cb)
-            call pl%accel(system, param, t)
-            pl%lfirst = .false.
-         end if
-         call pl%set_beg_end(xbeg = pl%xh)
-         call pl%kick(dth)
+         call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
          call pl%vh2vj(cb) 
          if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
          if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%j2h(cb)
-         call pl%accel(system, param, t + dt)
-         call pl%kick(dth)
-         call pl%set_beg_end(xend = pl%xh)
+         call pl%kick(system, param, t + dt, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
       end associate
       return
    end subroutine whm_step_pl
@@ -89,16 +81,11 @@ contains
       class is (whm_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl)
             dth = 0.5_DP * dt
-            if (tp%lfirst) then
-               call tp%accel(system, param, t, lbeg=.true.)
-               tp%lfirst = .false.
-            end if
-            call tp%kick(dth)
+            call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
             if (param%lgr) call tp%gr_pos_kick(param, dth)
-            call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
+            call tp%drift(system, param, dt, mask=(tp%status(:) == ACTIVE))
             if (param%lgr) call tp%gr_pos_kick(param, dth)
-            call tp%accel(system, param, t + dt, lbeg=.false.)
-            call tp%kick(dth)
+            call tp%kick(system, param, t + dt, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
          end associate
       end select
       return

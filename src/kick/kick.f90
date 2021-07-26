@@ -7,7 +7,7 @@ contains
       !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90 and helio_getacch_int.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f90
       implicit none
       ! Arguments
       class(swiftest_pl), intent(inout) :: self
@@ -39,7 +39,7 @@ contains
       !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90 and helio_getacch_int_tp.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int_tp.f90
       implicit none
       ! Arguments
       class(swiftest_tp),       intent(inout) :: self !! Swiftest test particle
@@ -49,50 +49,19 @@ contains
       ! Internals
       integer(I4B)              :: i, j
       real(DP)                  :: rji2, irij3, fac, r2
-      real(DP), dimension(NDIM) :: dx, acc
+      real(DP), dimension(NDIM) :: dx
 
       associate(tp => self, ntp => self%nbody)
          do concurrent(i = 1:ntp, tp%status(i) == ACTIVE)
-            acc(:) = 0.0_DP
             do j = 1, npl
                dx(:) = tp%xh(:,i) - xhp(:, j)
-               !rji2 = dot_product(dx(:), dx(:))
-               !irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               !fac = GMpl(j) * irij3
                r2 = dot_product(dx(:), dx(:))
                fac = GMpl(j) / (r2 * sqrt(r2))
-               acc(:) = acc(:) - fac * dx(:)
+               tp%ah(:, i) = tp%ah(:, i) - fac * dx(:)
             end do
-            tp%ah(:, i) = tp%ah(:, i) + acc(:)
          end do
       end associate
       return
    end subroutine kick_getacch_int_tp
-
-   module subroutine kick_vh_body(self, dt)
-      !! author: David A. Minton
-      !!
-      !! Kick heliocentric velocities of bodies
-      !!
-      !! Adapted from Martin Duncan and Hal Levison's Swift routine kickvh.f and kickvh_tp.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_kickvh.f90 and whm_kickvh_tp.f90
-      implicit none
-      ! Arguments
-      class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-      real(DP),                     intent(in)    :: dt   !! Stepsize
-      ! Internals
-      integer(I4B) :: i
-
-      associate(n => self%nbody, vh => self%vh, ah => self%ah, status => self%status)
-         if (n == 0) return
-         do i = 1, n
-            if (status(i) == ACTIVE) vh(:, i) = vh(:, i) + ah(:, i) * dt
-         end do
-      end associate
-
-      return
-   end subroutine kick_vh_body
-
-
 
 end submodule s_kick
