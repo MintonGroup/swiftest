@@ -17,7 +17,6 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
    logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
 
    associate(cb => system%cb, pl => self, npl => self%nbody)
-      pl%ah(:,:) = 0.0_DP
       call pl%accel_int()
       if (param%loblatecb) then 
          cb%aoblbeg = cb%aobl
@@ -52,7 +51,6 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
       logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
    
       associate(tp => self, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
-         tp%ah(:,:) = 0.0_DP
          if (present(lbeg)) system%lbeg = lbeg
          if (system%lbeg) then
             call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
@@ -87,6 +85,7 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
 
       associate(pl => self, npl => self%nbody)
          if (npl ==0) return
+         pl%ah(:,:) = 0.0_DP
          call pl%accel(system, param, t)
          if (lbeg) then
             call pl%set_beg_end(xbeg = pl%xh)
@@ -123,6 +122,7 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
 
       associate(tp => self, ntp => self%nbody)
          if (ntp ==0) return
+         tp%ah(:,:) = 0.0_DP
          call tp%accel(system, param, t, lbeg)
          do concurrent(i = 1:ntp, mask(i)) 
             tp%vb(:, i) = tp%vb(:, i) + tp%ah(:, i) * dt

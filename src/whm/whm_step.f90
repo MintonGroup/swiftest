@@ -54,7 +54,6 @@ contains
          if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%j2h(cb)
          call pl%kick(system, param, t + dt, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
-         call pl%set_beg_end(xend = pl%xh)
       end associate
       return
    end subroutine whm_step_pl

@@ -25,7 +25,7 @@ contains
 
          ah0(:) = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
          do i = 1, npl
-            pl%ah(:, i) = ah0(:)
+            pl%ah(:, i) = pl%ah(:, i) + ah0(:)
          end do
 
          call whm_kick_getacch_ah1(cb, pl) 
@@ -75,13 +75,13 @@ contains
          if (system%lbeg) then
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xbeg(:,:), npl)
             do i = 1, ntp
-               tp%ah(:, i) = ah0(:)
+               tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
          else
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xend(:,:), npl)
             do i = 1, ntp
-               tp%ah(:, i) = ah0(:)
+               tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(pl%Gmass(:), pl%xend(:,:), npl)
          end if
@@ -200,16 +200,18 @@ contains
 
       associate(pl => self, npl => self%nbody, cb => system%cb)
          if (npl == 0) return
-         if (pl%lfirst) then
-            call pl%h2j(cb)
-            call pl%accel(system, param, t)
-            pl%lfirst = .false.
-         end if
          if (lbeg) then
+            if (pl%lfirst) then
+               call pl%h2j(cb)
+               pl%ah(:,:) = 0.0_DP
+               call pl%accel(system, param, t)
+               pl%lfirst = .false.
+            end if
             call pl%set_beg_end(xbeg = pl%xh)
          else
-            call pl%set_beg_end(xend = pl%xh)
+            pl%ah(:,:) = 0.0_DP
             call pl%accel(system, param, t)
+            call pl%set_beg_end(xend = pl%xh)
          end if
          do concurrent(i = 1:npl, mask(i))
             pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt
@@ -241,10 +243,14 @@ contains
       associate(tp => self, ntp => self%nbody)
          if (ntp == 0) return
          if (tp%lfirst) then
+            tp%ah(:,:) = 0.0_DP
             call tp%accel(system, param, t, lbeg=.true.)
             tp%lfirst = .false.
          end if
-         if (.not.lbeg) call tp%accel(system, param, t, lbeg)
+         if (.not.lbeg) then
+            tp%ah(:,:) = 0.0_DP
+            call tp%accel(system, param, t, lbeg)
+         end if
          do concurrent(i = 1:ntp, mask(i))
             tp%vh(:, i) = tp%vh(:, i) + tp%ah(:, i) * dt
          end do

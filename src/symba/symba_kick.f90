@@ -12,16 +12,16 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_kick.f
       implicit none
       ! Arguments
-      class(symba_pltpenc),     intent(in)   :: self   !! SyMBA pl-tp encounter list object
+      class(symba_pltpenc),      intent(in)   :: self   !! SyMBA pl-tp encounter list object
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      real(DP),              intent(in)   :: dt    !! step size
-      integer(I4B),           intent(in)   :: irec   !! Current recursion level
-      integer(I4B),           intent(in)   :: sgn   !! sign to be applied to acceleration
+      real(DP),                  intent(in)   :: dt    !! step size
+      integer(I4B),              intent(in)   :: irec   !! Current recursion level
+      integer(I4B),              intent(in)   :: sgn   !! sign to be applied to acceleration
       ! Internals
-      integer(I4B)           :: i, irm1, irecl
-      real(DP)              :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
+      integer(I4B)              :: i, irm1, irecl
+      real(DP)                  :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
       real(DP), dimension(NDIM) :: dx
-      logical               :: isplpl, lgoodlevel
+      logical                   :: isplpl, lgoodlevel
 
       select type(self)
       class is (symba_plplenc)
