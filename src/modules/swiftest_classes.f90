@@ -13,7 +13,7 @@ module swiftest_classes
    public :: io_dump_param, io_dump_swiftest, io_dump_system, io_get_args, io_get_token, io_param_reader, io_param_writer, io_read_body_in, &
              io_read_cb_in, io_read_param_in, io_read_frame_body, io_read_frame_cb, io_read_frame_system, &
              io_toupper, io_write_discard, io_write_encounter, io_write_frame_body, io_write_frame_cb, io_write_frame_system
-   public :: kick_getacch_int_pl, kick_vh_body
+   public :: kick_getacch_int_pl
    public :: obl_acc_body, obl_acc_pl, obl_acc_tp
    public :: orbel_el2xv_vec, orbel_xv2el_vec, orbel_scget, orbel_xv2aeq, orbel_xv2aqt
    public :: setup_body, setup_construct_system, setup_initialize_system, setup_pl, setup_tp
@@ -167,6 +167,7 @@ module swiftest_classes
    contains
       private
       procedure(abstract_discard_body), public, deferred :: discard
+      procedure(abstract_kick_body),    public, deferred :: kick     
       procedure(abstract_set_mu),       public, deferred :: set_mu
       procedure(abstract_step_body),    public, deferred :: step
       procedure(abstract_accel),        public, deferred :: accel
@@ -177,7 +178,6 @@ module swiftest_classes
       procedure, public :: initialize     => io_read_body_in     !! Read in body initial conditions from a file
       procedure, public :: read_frame     => io_read_frame_body  !! I/O routine for writing out a single frame of time-series data for the central body
       procedure, public :: write_frame    => io_write_frame_body !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure, public :: kick           => kick_vh_body        !! Kicks the heliocentric velocities
       procedure, public :: accel_obl      => obl_acc_body        !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure, public :: el2xv          => orbel_el2xv_vec     !! Convert orbital elements to position and velocity vectors
       procedure, public :: xv2el          => orbel_xv2el_vec     !! Convert position and velocity vectors to orbital  elements 
@@ -216,19 +216,19 @@ module swiftest_classes
       private
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure, public :: discard      => discard_pl           !! Placeholder method for discarding massive bodies 
-      procedure, public :: eucl_index   => eucl_dist_index_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure, public :: accel_int    => kick_getacch_int_pl !! Compute direct cross (third) term heliocentric accelerations of massive bodies
-      procedure, public :: accel_obl    => obl_acc_pl           !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure, public :: setup        => setup_pl             !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
-      procedure, public :: accel_tides  => tides_kick_getacch_pl     !! Compute the accelerations of bodies due to tidal interactions with the central body
-      procedure, public :: set_mu       => util_set_mu_pl       !! Method used to construct the vectorized form of the central body mass
-      procedure, public :: set_rhill    => util_set_rhill       !! Calculates the Hill's radii for each body
-      procedure, public :: h2b          => util_coord_h2b_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
-      procedure, public :: b2h          => util_coord_b2h_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
-      procedure, public :: fill         => util_fill_pl         !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: set_beg_end  => util_set_beg_end_pl  !! Sets the beginning and ending positions and velocities of planets.
-      procedure, public :: spill        => util_spill_pl        !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: discard      => discard_pl            !! Placeholder method for discarding massive bodies 
+      procedure, public :: eucl_index   => eucl_dist_index_plpl  !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure, public :: accel_int    => kick_getacch_int_pl   !! Compute direct cross (third) term heliocentric accelerations of massive bodies
+      procedure, public :: accel_obl    => obl_acc_pl            !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure, public :: setup        => setup_pl              !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
+      procedure, public :: accel_tides  => tides_kick_getacch_pl !! Compute the accelerations of bodies due to tidal interactions with the central body
+      procedure, public :: set_mu       => util_set_mu_pl        !! Method used to construct the vectorized form of the central body mass
+      procedure, public :: set_rhill    => util_set_rhill        !! Calculates the Hill's radii for each body
+      procedure, public :: h2b          => util_coord_h2b_pl     !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
+      procedure, public :: b2h          => util_coord_b2h_pl     !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
+      procedure, public :: fill         => util_fill_pl          !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure, public :: set_beg_end  => util_set_beg_end_pl   !! Sets the beginning and ending positions and velocities of planets.
+      procedure, public :: spill        => util_spill_pl         !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_pl
 
    !********************************************************************************************************************************
@@ -318,6 +318,18 @@ module swiftest_classes
          class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine abstract_initialize
+
+      subroutine abstract_kick_body(self, system, param, t, dt, mask, lbeg)
+         import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
+         implicit none
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system objec
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current time
+         real(DP),                     intent(in)    :: dt     !! Stepsize
+         logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
+         logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+      end subroutine abstract_kick_body
 
       subroutine abstract_read_frame(self, iu, param, form, ierr)
          import DP, I4B, swiftest_base, swiftest_parameters
@@ -616,12 +628,6 @@ module swiftest_classes
          real(DP), dimension(:,:), intent(in)    :: xhp  !! Massive body position vectors
          integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
       end subroutine kick_getacch_int_tp
-
-      module subroutine kick_vh_body(self, dt)
-         implicit none
-         class(swiftest_body),         intent(inout) :: self !! Swiftest body object
-         real(DP),                     intent(in)    :: dt   !! Stepsize
-      end subroutine kick_vh_body
 
       module subroutine obl_acc_body(self, system)
          implicit none

@@ -66,7 +66,7 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
       return
    end subroutine helio_kick_getacch_tp
 
-   module subroutine helio_kick_vb_pl(self, dt)
+   module subroutine helio_kick_vb_pl(self, system, param, t, dt, mask, lbeg)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of bodies
@@ -75,14 +75,25 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
       !! Adapted from David E. Kaufmann's Swifter routine helio_kick_vb.f90
       implicit none
       ! Arguments
-      class(helio_pl), intent(inout) :: self !! Swiftest generic body object
-      real(DP),        intent(in)    :: dt   !! Stepsize
+      class(helio_pl),              intent(inout) :: self   !! Swiftest generic body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      !! Current time
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
+      logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i
 
       associate(pl => self, npl => self%nbody)
          if (npl ==0) return
-         do concurrent(i = 1:npl, pl%status(i) == ACTIVE) 
+         call pl%accel(system, param, t)
+         if (lbeg) then
+            call pl%set_beg_end(xbeg = pl%xh)
+         else
+            call pl%set_beg_end(xend = pl%xh)
+         end if
+         do concurrent(i = 1:npl, mask(i)) 
             pl%vb(:, i) = pl%vb(:, i) + pl%ah(:, i) * dt
          end do
       end associate
@@ -91,7 +102,7 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
    
    end subroutine helio_kick_vb_pl
 
-   module subroutine helio_kick_vb_tp(self, dt)
+   module subroutine helio_kick_vb_tp(self, system, param, t, dt, mask, lbeg)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of bodies
@@ -100,14 +111,20 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
       !! Adapted from David E. Kaufmann's Swifter routine helio_kick_vb_tp.f90
       implicit none
       ! Arguments
-      class(helio_tp), intent(inout) :: self !! Swiftest generic body object
-      real(DP),        intent(in)    :: dt   !! Stepsize
+      class(helio_tp),              intent(inout) :: self !! Swiftest generic body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t     !! Current time
+      real(DP),                     intent(in)    :: dt    !! Stepsize
+      logical, dimension(:),        intent(in)    :: mask  !! Mask that determines which bodies to kick
+      logical,                      intent(in)    :: lbeg  !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i
 
       associate(tp => self, ntp => self%nbody)
          if (ntp ==0) return
-         do concurrent(i = 1:ntp, tp%status(i) == ACTIVE) 
+         call tp%accel(system, param, t, lbeg)
+         do concurrent(i = 1:ntp, mask(i)) 
             tp%vb(:, i) = tp%vb(:, i) + tp%ah(:, i) * dt
          end do
       end associate

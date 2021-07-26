@@ -116,20 +116,22 @@ module helio_classes
          logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       end subroutine helio_drift_tp
 
-      module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
+      module subroutine helio_drift_linear_pl(self, cb, dt, mask, lbeg)
          implicit none
-         class(helio_pl), intent(inout) :: self  !! Helio massive body object
-         class(helio_cb), intent(inout) :: cb    !! Helio central body object
-         real(DP),        intent(in)    :: dt    !! Stepsize
-         logical,         intent(in)    :: lbeg  !! Argument that determines whether or not this is the beginning or end of the step
+         class(helio_pl),               intent(inout) :: self !! Helio massive body object
+         class(helio_cb),               intent(inout) :: cb   !! Helio central body
+         real(DP),                      intent(in)    :: dt   !! Stepsize
+         logical,         dimension(:), intent(in)    :: mask !! Mask that determines which bodies to kick
+         logical,                       intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_drift_linear_pl 
 
-      module subroutine helio_drift_linear_tp(self, cb, dt, lbeg)
+      module subroutine helio_drift_linear_tp(self, cb, dt, mask, lbeg)
          implicit none
-         class(helio_tp), intent(inout) :: self !! Helio test particle object
-         class(helio_cb), intent(in)    :: cb   !! Helio nbody system object
-         real(DP),        intent(in)    :: dt   !! Stepsize
-         logical,         intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
+         class(helio_tp),               intent(inout) :: self !! Helio test particle object
+         class(helio_cb),               intent(in)    :: cb   !! Helio central body
+         real(DP),                      intent(in)    :: dt   !! Stepsize
+         logical,         dimension(:), intent(in)    :: mask !! Mask that determines which bodies to kick
+         logical,                       intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_drift_linear_tp
 
       module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
@@ -143,7 +145,7 @@ module helio_classes
       end subroutine helio_kick_getacch_pl
 
       module subroutine helio_kick_getacch_tp(self, system, param, t, lbeg)
-         use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(helio_tp),              intent(inout) :: self   !! Helio test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
@@ -152,16 +154,28 @@ module helio_classes
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_kick_getacch_tp
 
-      module subroutine helio_kick_vb_pl(self, dt)
+      module subroutine helio_kick_vb_pl(self, system, param, t, dt, mask, lbeg)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(helio_pl), intent(inout) :: self !! Helio massive body object
-         real(DP),        intent(in)    :: dt   !! Stepsize
+         class(helio_pl),              intent(inout) :: self   !! Helio massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current time
+         real(DP),                     intent(in)    :: dt     !! Stepsize
+         logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
+         logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine helio_kick_vb_pl
 
-      module subroutine helio_kick_vb_tp(self, dt)
+      module subroutine helio_kick_vb_tp(self, system, param, t, dt, mask, lbeg)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(helio_tp), intent(inout) :: self !! Helio test particle object
-         real(DP),        intent(in)    :: dt   !! Stepsize
+         class(helio_tp),              intent(inout) :: self   !! Helio test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current time
+         real(DP),                     intent(in)    :: dt     !! Stepsize
+         logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
+         logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine helio_kick_vb_tp
 
       module subroutine helio_step_pl(self, system, param, t, dt)

@@ -23,7 +23,7 @@ contains
          if (npl == 0) return
          call pl%set_ir3()
 
-         ah0 = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
+         ah0(:) = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
          do i = 1, npl
             pl%ah(:, i) = ah0(:)
          end do
@@ -178,5 +178,81 @@ contains
    
       return
    end subroutine whm_kick_getacch_ah2
+
+   module subroutine whm_kick_vh_pl(self, system, param, t, dt, mask, lbeg)
+      !! author: David A. Minton
+      !!
+      !! Kick heliocentric velocities of massive bodies
+      !!
+      !! Adapted from Martin Duncan and Hal Levison's Swift routine kickvh.f 
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kickvh.f90 
+      implicit none
+      ! Arguments
+      class(whm_pl),                intent(inout) :: self  !! WHM massive body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      !! Current time
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
+      logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+      ! Internals
+      integer(I4B) :: i
+
+      associate(pl => self, npl => self%nbody, cb => system%cb)
+         if (npl == 0) return
+         if (pl%lfirst) then
+            call pl%h2j(cb)
+            call pl%accel(system, param, t)
+            pl%lfirst = .false.
+         end if
+         if (lbeg) then
+            call pl%set_beg_end(xbeg = pl%xh)
+         else
+            call pl%set_beg_end(xend = pl%xh)
+            call pl%accel(system, param, t)
+         end if
+         do concurrent(i = 1:npl, mask(i))
+            pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt
+         end do
+      end associate
+
+      return
+   end subroutine whm_kick_vh_pl
+
+   module subroutine whm_kick_vh_tp(self, system, param, t, dt, mask, lbeg)
+      !! author: David A. Minton
+      !!
+      !! Kick heliocentric velocities of test particles
+      !!
+      !! Adapted from Martin Duncan and Hal Levison's Swift routine kickvh_tp.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kickvh_tp.f90
+      implicit none
+      ! Arguments
+      class(whm_tp),                intent(inout) :: self   !! WHM massive body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      !! Current time
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
+      logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+      ! Internals
+      integer(I4B) :: i
+
+      associate(tp => self, ntp => self%nbody)
+         if (ntp == 0) return
+         if (tp%lfirst) then
+            call tp%accel(system, param, t, lbeg=.true.)
+            tp%lfirst = .false.
+         end if
+         if (.not.lbeg) call tp%accel(system, param, t, lbeg)
+         do concurrent(i = 1:ntp, mask(i))
+            tp%vh(:, i) = tp%vh(:, i) + tp%ah(:, i) * dt
+         end do
+      end associate
+
+      return
+   end subroutine whm_kick_vh_tp
+
+
 
 end submodule s_whm_kick

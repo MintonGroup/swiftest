@@ -62,34 +62,27 @@ contains
             class is (symba_tp)
                select type(cb => system%cb)
                class is (symba_cb)
-                  call pl%vh2vb(cb)
-                  call pl%lindrift(cb, dth, lbeg=.true.)
-                  call tp%vh2vb(vbcb = -cb%ptbeg)
-                  call tp%lindrift(cb, dth, lbeg=.true.)
-
-                  call pl%set_beg_end(xbeg = pl%xh)
-                  call pl%accel(system, param, t)
-                  call tp%accel(system, param, t, lbeg=.true.)
-
-                  call pl%kick(dth)
-                  call tp%kick(dth)
                   irec = -1
-                  call pl%drift(system, param, dt, pl%status(:) == ACTIVE .and. pl%levelg(:) == irec)
-                  call tp%drift(system, param, dt, tp%status(:) == ACTIVE .and. tp%levelg(:) == irec)
+                  call pl%vh2vb(cb)
+                  call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
+                  call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
+                  call pl%drift(system, param, dt, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == irec))
+
+                  call tp%vh2vb(vbcb = -cb%ptbeg)
+                  call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
+                  call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
+                  call tp%drift(system, param, dt, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == irec))
+
                   irec = 0
                   call system%recursive_step(param, irec)
 
-                  call pl%set_beg_end(xend = pl%xh)
-                  call pl%accel(system, param, t + dt)
-                  call tp%accel(system, param, t + dt, lbeg=.false.)
-
-                  call pl%kick(dth)
-                  call tp%kick(dth)
-
+                  call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
                   call pl%vb2vh(cb)
-                  call pl%lindrift(cb, dth, lbeg=.false.)
+                  call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
+
+                  call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
                   call tp%vb2vh(vbcb = -cb%ptend)
-                  call tp%lindrift(cb, dth, lbeg=.false.)
+                  call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
                end select
             end select
          end select
@@ -146,8 +139,8 @@ contains
                      call pltpenc_list%kick(system, dth, irecp, sgn)
                   end if
 
-                  call pl%drift(system, param, dtl, pl%status(:) == ACTIVE .and. pl%levelg(:) == ireci)
-                  call tp%drift(system, param, dtl, tp%status(:) == ACTIVE .and. tp%levelg(:) == ireci)
+                  call pl%drift(system, param, dtl, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == ireci))
+                  call tp%drift(system, param, dtl, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == ireci))
 
                   if (lencounter) call system%recursive_step(param, irecp)
 
