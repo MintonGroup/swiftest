@@ -212,6 +212,24 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
+      module subroutine symba_getacch_pl(self, system, param, t, lbeg)
+         implicit none
+         class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current simulation time
+         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      end subroutine symba_getacch_pl
+
+      module subroutine symba_getacch_tp(self, system, param, t, lbeg)
+         implicit none
+         class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current time
+         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      end subroutine symba_getacch_tp
+
       module subroutine symba_kick_pltpenc(self, system, dt, irec, sgn)
          implicit none
          class(symba_pltpenc),      intent(in)    :: self   !! SyMBA pl-tp encounter list object

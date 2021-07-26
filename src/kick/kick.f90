@@ -49,18 +49,16 @@ contains
       ! Internals
       integer(I4B)              :: i, j
       real(DP)                  :: rji2, irij3, fac, r2
-      real(DP), dimension(NDIM) :: dx, acc
+      real(DP), dimension(NDIM) :: dx
 
       associate(tp => self, ntp => self%nbody)
          do concurrent(i = 1:ntp, tp%status(i) == ACTIVE)
-            acc(:) = 0.0_DP
             do j = 1, npl
                dx(:) = tp%xh(:,i) - xhp(:, j)
                r2 = dot_product(dx(:), dx(:))
                fac = GMpl(j) / (r2 * sqrt(r2))
-               acc(:) = acc(:) - fac * dx(:)
+               tp%ah(:, i) = tp%ah(:, i) - fac * dx(:)
             end do
-            tp%ah(:, i) = tp%ah(:, i) + acc(:)
          end do
       end associate
       return
