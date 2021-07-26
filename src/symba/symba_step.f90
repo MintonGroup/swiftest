@@ -152,7 +152,13 @@ contains
                      call plplenc_list%kick(system, dth, irecp, sgn)
                      call pltpenc_list%kick(system, dth, irecp, sgn)
                   end if
-
+                  associate (plind1 => plplenc_list%index1(1:plplenc_list%nenc), &
+                             plind2 => plplenc_list%index2(1:plplenc_list%nenc), &
+                             plind3 => pltpenc_list%index1(1:pltpenc_list%nenc), &
+                             tpind  => pltpenc_list%index2(1:pltpenc_list%nenc))
+                     where(pl%levelg([plind1,plind2,plind3]) == irecp) pl%levelg(:) = ireci
+                     where(tp%levelg(tpind) == irecp) tp%levelg(:) = ireci
+                  end associate
                end do
             end select
          end select
