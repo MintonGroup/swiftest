@@ -71,7 +71,7 @@ module rmvs_classes
       procedure, public :: discard         => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
       procedure, public :: encounter_check => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: fill            => rmvs_util_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: accel           => rmvs_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
+      procedure, public :: accel           => rmvs_kick_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
                                                                         !! if the test particle is undergoing a close encounter or not
       procedure, public :: setup           => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
       procedure, public :: spill           => rmvs_util_spill_tp           !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
@@ -136,7 +136,7 @@ module rmvs_classes
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine rmvs_util_fill_tp
 
-      module subroutine rmvs_getacch_tp(self, system, param, t, lbeg)
+      module subroutine rmvs_kick_getacch_tp(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle data structure
@@ -144,7 +144,7 @@ module rmvs_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
-      end subroutine rmvs_getacch_tp
+      end subroutine rmvs_kick_getacch_tp
 
       module subroutine rmvs_setup_pl(self,n)
          implicit none

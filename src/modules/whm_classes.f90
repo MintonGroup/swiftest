@@ -35,8 +35,8 @@ module whm_classes
       procedure, public :: vh2vj       => whm_coord_vh2vj_pl      !! Convert velocity vectors from heliocentric to Jacobi coordinates 
       procedure, public :: drift       => whm_drift_pl            !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
       procedure, public :: fill        => whm_util_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: accel       => whm_getacch_pl          !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: accel_gr    => whm_gr_getacch_pl       !! Acceleration term arising from the post-Newtonian correction
+      procedure, public :: accel       => whm_kick_getacch_pl          !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: accel_gr    => whm_gr_kick_getacch_pl       !! Acceleration term arising from the post-Newtonian correction
       procedure, public :: gr_pos_kick => whm_gr_p4_pl            !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: setup       => whm_setup_pl            !! Constructor method - Allocates space for number of particles
       procedure, public :: set_mu      => whm_util_set_mu_eta_pl !! Sets the Jacobi mass value for all massive bodies.
@@ -55,8 +55,8 @@ module whm_classes
       !!    component list, such as whm_setup_tp and whm_util_spill_tp
    contains
       private
-      procedure, public :: accel       => whm_getacch_tp      !! Compute heliocentric accelerations of test particles
-      procedure, public :: accel_gr    => whm_gr_getacch_tp   !! Acceleration term arising from the post-Newtonian correction
+      procedure, public :: accel       => whm_kick_getacch_tp      !! Compute heliocentric accelerations of test particles
+      procedure, public :: accel_gr    => whm_gr_kick_getacch_tp   !! Acceleration term arising from the post-Newtonian correction
       procedure, public :: gr_pos_kick => whm_gr_p4_tp        !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: setup       => whm_setup_tp        !! Allocates new components of the whm class and recursively calls parent allocations
       procedure, public :: step        => whm_step_tp         !! Steps the particle forward one stepsize
@@ -115,7 +115,7 @@ module whm_classes
       end subroutine whm_util_fill_pl
 
       !> Get heliocentric accelration of massive bodies
-      module subroutine whm_getacch_pl(self, system, param, t, lbeg)
+      module subroutine whm_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
@@ -123,10 +123,10 @@ module whm_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
-      end subroutine whm_getacch_pl
+      end subroutine whm_kick_getacch_pl
 
       !> Get heliocentric accelration of the test particle
-      module subroutine whm_getacch_tp(self, system, param, t, lbeg)
+      module subroutine whm_kick_getacch_tp(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
@@ -134,21 +134,21 @@ module whm_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
          logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
-      end subroutine whm_getacch_tp
+      end subroutine whm_kick_getacch_tp
 
-      module subroutine whm_gr_getacch_pl(self, param)
+      module subroutine whm_gr_kick_getacch_pl(self, param)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_pl),              intent(inout) :: self  !! WHM massive body particle data structure
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      end subroutine whm_gr_getacch_pl
+      end subroutine whm_gr_kick_getacch_pl
 
-      module subroutine whm_gr_getacch_tp(self, param)
+      module subroutine whm_gr_kick_getacch_tp(self, param)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_tp),              intent(inout) :: self  !! WHM test particle data structure
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      end subroutine whm_gr_getacch_tp
+      end subroutine whm_gr_kick_getacch_tp
 
       module pure subroutine whm_gr_p4_pl(self, param, dt)
          use swiftest_classes, only : swiftest_parameters

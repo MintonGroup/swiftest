@@ -1,12 +1,12 @@
 submodule(whm_classes) s_whm_gr
    use swiftest
 contains
-   module subroutine whm_gr_getacch_pl(self, param) !! author: David A. Minton
+   module subroutine whm_gr_kick_getacch_pl(self, param) !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
       !!    Based on Saha & Tremaine (1994) Eq. 28
       !!
-      !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
+      !! Adapted from David A. Minton's Swifter routine routine gr_whm_kick_getacch.f90
       implicit none
       ! Arguments
       class(whm_pl),              intent(inout) :: self   !! WHM massive body particle data structure
@@ -33,15 +33,15 @@ contains
          end do
       end associate
       return
-   end subroutine whm_gr_getacch_pl
+   end subroutine whm_gr_kick_getacch_pl
 
-   module subroutine whm_gr_getacch_tp(self, param)
+   module subroutine whm_gr_kick_getacch_tp(self, param)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of test particles
       !!    Based on Saha & Tremaine (1994) Eq. 28
       !!
-      !! Adapted from David A. Minton's Swifter routine routine gr_whm_getacch.f90
+      !! Adapted from David A. Minton's Swifter routine routine gr_whm_kick_getacch.f90
       implicit none
       ! Arguments
       class(whm_tp),              intent(inout) :: self   !! WHM massive body particle data structure
@@ -59,7 +59,7 @@ contains
          end do
       end associate
       return
-   end subroutine whm_gr_getacch_tp
+   end subroutine whm_gr_kick_getacch_tp
 
    module pure subroutine whm_gr_p4_pl(self, param, dt)
       !! author: David A. Minton

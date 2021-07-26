@@ -1,13 +1,13 @@
-submodule(rmvs_classes) s_rmvs_getacch
+submodule(rmvs_classes) s_rmvs_kick
    use swiftest
 contains  
-   module subroutine rmvs_getacch_tp(self, system, param, t, lbeg)
+   module subroutine rmvs_kick_getacch_tp(self, system, param, t, lbeg)
 
       !! author: David A. Minton
       !!
       !! Compute the oblateness acceleration in the inner encounter region with planets 
       !! 
-      !! Performs a similar task as David E. Kaufmann's Swifter routine rmvs_getacch_tp.f90, but 
+      !! Performs a similar task as David E. Kaufmann's Swifter routine rmvs_kick_getacch_tp.f90, but 
       !! uses object polymorphism, and so is not directly adapted.
       implicit none
       ! Arguments
@@ -49,7 +49,7 @@ contains
                         param_planetocen%lextra_force = .false.
                         param_planetocen%lgr = .false.
                         ! Now compute the planetocentric values of acceleration
-                        call whm_getacch_tp(tp, system_planetocen, param_planetocen, t)
+                        call whm_kick_getacch_tp(tp, system_planetocen, param_planetocen, t)
 
                         ! Now compute any heliocentric values of acceleration 
                         if (tp%lfirst) then
@@ -74,7 +74,7 @@ contains
                   end select
                end select
             else ! Not a close encounter, so just proceded with the standard WHM method
-               call whm_getacch_tp(tp, system, param, t, lbeg)
+               call whm_kick_getacch_tp(tp, system, param, t, lbeg)
             end if
          end select
 
@@ -82,6 +82,6 @@ contains
 
       return
 
-   end subroutine rmvs_getacch_tp
+   end subroutine rmvs_kick_getacch_tp
 
-end submodule s_rmvs_getacch
+end submodule s_rmvs_kick

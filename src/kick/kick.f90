@@ -1,13 +1,13 @@
 submodule(swiftest_classes) s_kick
    use swiftest
 contains
-   module pure subroutine kick_getacch_int_pl(self)
+   module pure subroutine kick_kick_getacch_int_pl(self)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90 and helio_getacch_int.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f90
       implicit none
       ! Arguments
       class(swiftest_pl), intent(inout) :: self
@@ -31,15 +31,15 @@ contains
       end associate
 
       return
-   end subroutine kick_getacch_int_pl
+   end subroutine kick_kick_getacch_int_pl
 
-   module pure subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
+   module pure subroutine kick_kick_getacch_int_tp(self, GMpl, xhp, npl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah3.f90 and helio_getacch_int_tp.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int_tp.f90
       implicit none
       ! Arguments
       class(swiftest_tp),       intent(inout) :: self !! Swiftest test particle
@@ -62,7 +62,7 @@ contains
          end do
       end associate
       return
-   end subroutine kick_getacch_int_tp
+   end subroutine kick_kick_getacch_int_tp
 
    module subroutine kick_vh_body(self, dt)
       !! author: David A. Minton

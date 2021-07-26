@@ -1,13 +1,13 @@
-submodule (symba_classes) s_symba_getacch
+submodule (symba_classes) s_symba_kick_getacch
    use swiftest
 contains
-   module subroutine symba_getacch_pl(self, system, param, t, lbeg)
+   module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of massive bodies
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine symba_getacch.f90
-      !! Adapted from Hal Levison's Swift routine symba5_getacch.f
+      !! Adapted from David E. Kaufmann's Swifter routine symba_kick_getacch.f90
+      !! Adapted from Hal Levison's Swift routine symba5_kick_getacch.f
       implicit none
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
@@ -17,13 +17,12 @@ contains
       logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)              :: k
-      real(DP)                  :: rji2, rlim2, faci, facj
+      real(DP)                  :: irij3, rji2, rlim2, faci, facj
       real(DP), dimension(NDIM) :: dx
 
       select type(system)
       class is (symba_nbody_system)
          associate(pl => self, cb => system%cb, plplenc_list => system%plplenc_list, nplplenc => system%plplenc_list%nenc)
-            call helio_getacch_pl(pl, system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
             do k = 1, nplplenc
                associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
@@ -39,19 +38,20 @@ contains
                   end if
                end associate
             end do
+            call helio_kick_getacch_pl(pl, system, param, t, lbeg)
          end associate
       end select
 
       return
-      end subroutine symba_getacch_pl
+      end subroutine symba_kick_getacch_pl
 
-      module subroutine symba_getacch_tp(self, system, param, t, lbeg)
+      module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
          !! author: David A. Minton
          !!
          !! Compute heliocentric accelerations of test particles
          !!
-         !! Adapted from David E. Kaufmann's Swifter routine symba_getacch_tp.f90
-         !! Adapted from Hal Levison's Swift routine symba5_getacch.f
+         !! Adapted from David E. Kaufmann's Swifter routine symba_kick_getacch_tp.f90
+         !! Adapted from Hal Levison's Swift routine symba5_kick_getacch.f
          implicit none
          ! Arguments
          class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
@@ -67,7 +67,6 @@ contains
          select type(system)
          class is (symba_nbody_system)
             associate(tp => self, cb => system%cb, pl => system%pl, pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
-               call helio_getacch_tp(tp, system, param, t, lbeg)
                ! Remove accelerations from encountering pairs
                do k = 1, npltpenc
                   associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
@@ -81,10 +80,11 @@ contains
                         end if
                      end IF
                   end associate
-               end DO
+               end do
+               call helio_kick_getacch_tp(tp, system, param, t, lbeg)
             end associate
          end select
          return
-      end subroutine symba_getacch_tp
+      end subroutine symba_kick_getacch_tp
 
-end submodule s_symba_getacch
+end submodule s_symba_kick_getacch

@@ -1,13 +1,13 @@
-submodule(whm_classes) s_whm_getacch
+submodule(whm_classes) s_whm_kick
    use swiftest
 contains
-   module subroutine whm_getacch_pl(self, system, param, t, lbeg)
+   module subroutine whm_kick_getacch_pl(self, system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of planets
       !!
       !! Adapted from Hal Levison's Swift routine getacch.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch.f90
       implicit none
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
@@ -23,13 +23,13 @@ contains
          if (npl == 0) return
          call pl%set_ir3()
 
-         ah0 = whm_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
+         ah0 = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
          do i = 1, npl
             pl%ah(:, i) = ah0(:)
          end do
 
-         call whm_getacch_ah1(cb, pl) 
-         call whm_getacch_ah2(cb, pl) 
+         call whm_kick_getacch_ah1(cb, pl) 
+         call whm_kick_getacch_ah2(cb, pl) 
          call pl%accel_int() 
 
          if (param%loblatecb) then
@@ -48,15 +48,15 @@ contains
          if (param%lextra_force) call pl%accel_user(system, param, t)
       end associate
       return
-   end subroutine whm_getacch_pl
+   end subroutine whm_kick_getacch_pl
 
-   module subroutine whm_getacch_tp(self, system, param, t, lbeg)
+   module subroutine whm_kick_getacch_tp(self, system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
       !!
       !! Adapted from Hal Levison's Swift routine getacch_tp.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_tp.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_tp.f90
       implicit none
       ! Arguments
       class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
@@ -73,13 +73,13 @@ contains
          if (present(lbeg)) system%lbeg = lbeg
 
          if (system%lbeg) then
-            ah0(:) = whm_getacch_ah0(pl%Gmass(:), pl%xbeg(:,:), npl)
+            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xbeg(:,:), npl)
             do i = 1, ntp
                tp%ah(:, i) = ah0(:)
             end do
             call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
          else
-            ah0(:) = whm_getacch_ah0(pl%Gmass(:), pl%xend(:,:), npl)
+            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xend(:,:), npl)
             do i = 1, ntp
                tp%ah(:, i) = ah0(:)
             end do
@@ -91,9 +91,9 @@ contains
          if (param%lgr) call tp%accel_gr(param) 
       end associate
       return
-   end subroutine whm_getacch_tp
+   end subroutine whm_kick_getacch_tp
 
-   function whm_getacch_ah0(mu, xhp, n) result(ah0)
+   function whm_kick_getacch_ah0(mu, xhp, n) result(ah0)
       !! author: David A. Minton
       !!
       !! Compute zeroth term heliocentric accelerations of planets 
@@ -118,15 +118,15 @@ contains
       end do
 
       return
-   end function whm_getacch_ah0
+   end function whm_kick_getacch_ah0
 
-   pure subroutine whm_getacch_ah1(cb, pl)
+   pure subroutine whm_kick_getacch_ah1(cb, pl)
       !! author: David A. Minton
       !!
       !! Compute first term heliocentric accelerations of planets
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah1.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah1.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah1.f90
       implicit none
       ! Arguments
       class(swiftest_cb), intent(in)    :: cb !! WHM central body object
@@ -145,15 +145,15 @@ contains
    
       return
    
-   end subroutine whm_getacch_ah1
+   end subroutine whm_kick_getacch_ah1
 
-   pure subroutine whm_getacch_ah2(cb, pl)
+   pure subroutine whm_kick_getacch_ah2(cb, pl)
       !! author: David A. Minton
       !!
       !! Compute second term heliocentric accelerations of planets
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah2.f
-      !! Adapted from David E. Kaufmann's Swifter routine whm_getacch_ah2.f90
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah2.f90
       implicit none
       ! Arguments
       class(swiftest_cb), intent(in)    :: cb !! Swiftest central body object
@@ -177,6 +177,6 @@ contains
       end associate
    
       return
-   end subroutine whm_getacch_ah2
+   end subroutine whm_kick_getacch_ah2
 
-end submodule s_whm_getacch
+end submodule s_whm_kick

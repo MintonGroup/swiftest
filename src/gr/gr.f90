@@ -1,7 +1,7 @@
 submodule(swiftest_classes) s_gr
    use swiftest
 contains
-   module pure subroutine gr_getaccb_ns_body(self, system, param) 
+   module pure subroutine gr_kick_getaccb_ns_body(self, system, param) 
       !! author: David A. Minton
       !!
       !! Add relativistic correction acceleration for non-symplectic integrators.
@@ -11,7 +11,7 @@ contains
       !!    Quinn, T.R., Tremaine, S., Duncan, M., 1991. A three million year integration of the earth’s orbit. 
       !!       AJ 101, 2287–2305. https://doi.org/10.1086/115850
       !!
-      !! Adapted from David A. Minton's Swifter routine routine gr_getaccb_ns.f90
+      !! Adapted from David A. Minton's Swifter routine routine gr_kick_getaccb_ns.f90
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
@@ -41,7 +41,7 @@ contains
 
       return
 
-   end subroutine gr_getaccb_ns_body
+   end subroutine gr_kick_getaccb_ns_body
 
    module pure subroutine gr_p4_pos_kick(param, x, v, dt)
       !! author: David A. Minton
