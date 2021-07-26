@@ -71,6 +71,7 @@ contains
       real(DP)                  :: rlim2, rji2
 
       lany_encounter = .false.
+      if (self%nenc == 0) return
       select type(self)
       class is (symba_plplenc)
          isplpl = .true.

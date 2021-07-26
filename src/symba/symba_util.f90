@@ -55,12 +55,13 @@ contains
       integer(I4B)                        :: nold
 
       nold = size(self%status)
-      if (nrequested <= nold) return
-      allocate(enc_temp, source=self)
-      call self%setup(2 * nrequested)
-      call self%copy(enc_temp)
+      if (nrequested > nold) then
+         allocate(enc_temp, source=self)
+         call self%setup(2 * nrequested)
+         call self%copy(enc_temp)
+         deallocate(enc_temp)
+      end if
       self%nenc = nrequested
-      deallocate(enc_temp)
       return
    end subroutine symba_util_resize_pltpenc
 

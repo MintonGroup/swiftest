@@ -86,9 +86,9 @@ contains
                   call pl%kick(dth)
                   call tp%kick(dth)
 
-                  call pl%vh2vb(cb)
+                  call pl%vb2vh(cb)
                   call pl%lindrift(cb, dth, lbeg=.false.)
-                  call tp%vh2vb(vbcb = -cb%ptend)
+                  call tp%vb2vh(vbcb = -cb%ptend)
                   call tp%lindrift(cb, dth, lbeg=.false.)
                end select
             end select
