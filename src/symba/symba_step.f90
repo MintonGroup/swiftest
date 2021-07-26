@@ -159,6 +159,8 @@ contains
                      where(pl%levelg([plind1,plind2,plind3]) == irecp) pl%levelg(:) = ireci
                      where(tp%levelg(tpind) == irecp) tp%levelg(:) = ireci
                   end associate
+                  where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(:) = ireci
+                  where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(:) = ireci
                end do
             end select
          end select
