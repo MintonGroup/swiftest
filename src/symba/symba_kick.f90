@@ -104,7 +104,7 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
       integer(I4B),              intent(in)   :: irec   !! Current recursion level
       integer(I4B),              intent(in)   :: sgn   !! sign to be applied to acceleration
       ! Internals
-      integer(I4B)              :: i, irm1, irecl
+      integer(I4B)              :: k, irm1, irecl
       real(DP)                  :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
       real(DP), dimension(NDIM) :: dx
       logical                   :: isplpl, lgoodlevel
@@ -125,28 +125,28 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
             else
                irecl = irec
             end if
-            do i = 1, self%nenc
-               associate(index_i => self%index1(i), index_j => self%index2(i))
+            do k = 1, self%nenc
+               associate(i => self%index1(k), j => self%index2(k))
                   if (isplpl) then
-                     pl%ah(:,index_i) = 0.0_DP
-                     pl%ah(:,index_j) = 0.0_DP
+                     pl%ah(:,i) = 0.0_DP
+                     pl%ah(:,j) = 0.0_DP
                   else
-                     tp%ah(:,index_j) = 0.0_DP
+                     tp%ah(:,j) = 0.0_DP
                   end if
                   if (isplpl) then
-                     lgoodlevel = (pl%levelg(index_i) >= irm1) .and. (pl%levelg(index_j) >= irm1)
+                     lgoodlevel = (pl%levelg(i) >= irm1) .and. (pl%levelg(j) >= irm1)
                   else
-                     lgoodlevel = (pl%levelg(index_i) >= irm1) .and. (tp%levelg(index_j) >= irm1)
+                     lgoodlevel = (pl%levelg(i) >= irm1) .and. (tp%levelg(j) >= irm1)
                   end if
                   if ((self%status(i) == ACTIVE) .and. lgoodlevel) then
                      if (isplpl) then
-                        ri = ((pl%rhill(index_i)  + pl%rhill(index_j))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
+                        ri = ((pl%rhill(i)  + pl%rhill(j))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
                         rim1 = ri * (RSHELL**2)
-                        dx(:) = pl%xh(:,index_j) - pl%xh(:,index_i)
+                        dx(:) = pl%xh(:,j) - pl%xh(:,i)
                      else
-                        ri = ((pl%rhill(index_i))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
+                        ri = ((pl%rhill(i))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
                         rim1 = ri * (RSHELL**2)
-                        dx(:) = tp%xh(:,index_j) - pl%xh(:,index_i)
+                        dx(:) = tp%xh(:,j) - pl%xh(:,i)
                      end if
                      r2 = dot_product(dx(:), dx(:))
                      if (r2 < rim1) then
@@ -160,24 +160,24 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
                         ir3 = 1.0_DP / (r2 * sqrt(r2))
                         fac = ir3
                      end if
-                     faci = fac * pl%mass(index_i)
+                     faci = fac * pl%mass(i)
                      if (isplpl) then
-                        facj = fac * pl%mass(index_j)
-                        pl%ah(:,index_i) = pl%ah(:,index_i) + facj*dx(:)
-                        pl%ah(:,index_j) = pl%ah(:,index_j) - faci*dx(:)
+                        facj = fac * pl%mass(j)
+                        pl%ah(:,i) = pl%ah(:,i) + facj*dx(:)
+                        pl%ah(:,j) = pl%ah(:,j) - faci*dx(:)
                      else
-                        tp%ah(:,index_j) = tp%ah(:,index_j) - faci*dx(:)
+                        tp%ah(:,j) = tp%ah(:,j) - faci*dx(:)
                      end if
                   end if
                end associate
             end do
             if (isplpl) then
-               do i = 1, self%nenc
-                  associate(index_i => self%index1(i), index_j => self%index2(i))
-                     pl%vb(:,index_i) = pl%vb(:,index_i) + sgn * dt * pl%ah(:,index_i)
-                     pl%vb(:,index_j) = pl%vb(:,index_j) + sgn * dt * pl%ah(:,index_j)
-                     pl%ah(:,index_i) = 0.0_DP
-                     pl%ah(:,index_j) = 0.0_DP
+               do k = 1, self%nenc
+                  associate(i => self%index1(k), j => self%index2(k))
+                     pl%vb(:,i) = pl%vb(:,i) + sgn * dt * pl%ah(:,i)
+                     pl%vb(:,j) = pl%vb(:,j) + sgn * dt * pl%ah(:,j)
+                     pl%ah(:,i) = 0.0_DP
+                     pl%ah(:,j) = 0.0_DP
                   end associate
                end do
             else
