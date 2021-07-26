@@ -14,7 +14,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t       !! Current time
-      logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
@@ -33,9 +33,12 @@ contains
          call pl%accel_int() 
 
          if (param%loblatecb) then
-            cb%aoblbeg = cb%aobl
             call pl%accel_obl(system)
-            cb%aoblend = cb%aobl
+            if (lbeg) then
+               cb%aoblbeg = cb%aobl
+            else
+               cb%aoblend = cb%aobl
+            end if
             if (param%ltides) then
                cb%atidebeg = cb%aobl
                call pl%accel_tides(system)
@@ -45,7 +48,7 @@ contains
 
          if (param%lgr) call pl%accel_gr(param) 
 
-         if (param%lextra_force) call pl%accel_user(system, param, t)
+         if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
       end associate
       return
    end subroutine whm_kick_getacch_pl
@@ -63,16 +66,16 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
-      logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
    
       associate(tp => self, ntp => self%nbody, pl => system%pl, cb => system%cb, npl => system%pl%nbody)
          if (ntp == 0 .or. npl == 0) return
-         if (present(lbeg)) system%lbeg = lbeg
+         system%lbeg = lbeg
 
-         if (system%lbeg) then
+         if (lbeg) then
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xbeg(:,:), npl)
             do i = 1, ntp
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
@@ -87,7 +90,7 @@ contains
          end if
 
          if (param%loblatecb) call tp%accel_obl(system)
-         if (param%lextra_force) call tp%accel_user(system, param, t)
+         if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param) 
       end associate
       return
@@ -204,13 +207,13 @@ contains
             if (pl%lfirst) then
                call pl%h2j(cb)
                pl%ah(:,:) = 0.0_DP
-               call pl%accel(system, param, t)
+               call pl%accel(system, param, t, lbeg)
                pl%lfirst = .false.
             end if
             call pl%set_beg_end(xbeg = pl%xh)
          else
             pl%ah(:,:) = 0.0_DP
-            call pl%accel(system, param, t)
+            call pl%accel(system, param, t, lbeg)
             call pl%set_beg_end(xend = pl%xh)
          end if
          do concurrent(i = 1:npl, mask(i))

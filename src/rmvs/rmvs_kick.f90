@@ -15,7 +15,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structuree 
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       real(DP),                     intent(in)    :: t      !! Current time
-      logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       type(swiftest_parameters)                 :: param_planetocen
       real(DP), dimension(:, :), allocatable    :: xh_original
@@ -34,7 +34,7 @@ contains
                   class is (rmvs_cb)
                      associate(xpc => pl%xh, xpct => self%xh, apct => self%ah, system_planetocen => system)
 
-                        if (present(lbeg)) system_planetocen%lbeg = lbeg
+                        system_planetocen%lbeg = lbeg
 
                         if (system_planetocen%lbeg) then
                            allocate(xhp, source=pl%xbeg)
@@ -49,7 +49,7 @@ contains
                         param_planetocen%lextra_force = .false.
                         param_planetocen%lgr = .false.
                         ! Now compute the planetocentric values of acceleration
-                        call whm_kick_getacch_tp(tp, system_planetocen, param_planetocen, t)
+                        call whm_kick_getacch_tp(tp, system_planetocen, param_planetocen, t, lbeg)
 
                         ! Now compute any heliocentric values of acceleration 
                         if (tp%lfirst) then
@@ -66,7 +66,7 @@ contains
                         GMcb_original = cb%Gmass
                         cb%Gmass = tp%cb_heliocentric%Gmass
                         if (param%loblatecb) call tp%accel_obl(system_planetocen)
-                        if (param%lextra_force) call tp%accel_user(system_planetocen, param, t)
+                        if (param%lextra_force) call tp%accel_user(system_planetocen, param, t, lbeg)
                         if (param%lgr) call tp%accel_gr(param)
                         tp%xh(:,:) = xh_original(:,:)
                         cb%Gmass = GMcb_original

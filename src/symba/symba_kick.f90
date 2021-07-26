@@ -15,7 +15,7 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
    class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
    class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
    real(DP),                     intent(in)    :: t      !! Current simulation time
-   logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+   logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
    ! Internals
    integer(I4B)              :: k
    real(DP)                  :: irij3, rji2, rlim2, faci, facj
@@ -59,7 +59,7 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
-      logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)              :: k
       real(DP)                  :: rji2, fac, rlim2

@@ -124,7 +124,7 @@ module whm_classes
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
-         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine whm_kick_getacch_pl
 
       !> Get heliocentric accelration of the test particle
@@ -135,7 +135,7 @@ module whm_classes
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
-         logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine whm_kick_getacch_tp
 
       module subroutine whm_kick_vh_pl(self, system, param, t, dt, mask, lbeg)

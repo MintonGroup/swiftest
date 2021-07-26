@@ -13,7 +13,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody_system_object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters user parameters
       real(DP),                     intent(in)    :: t      !! Current time
-      logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the ste
+      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the ste
 
       return
    end subroutine user_kick_getacch_body

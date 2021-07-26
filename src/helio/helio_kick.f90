@@ -14,21 +14,27 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
    class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
    class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
    real(DP),                     intent(in)    :: t      !! Current simulation time
-   logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+   logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
 
    associate(cb => system%cb, pl => self, npl => self%nbody)
       call pl%accel_int()
       if (param%loblatecb) then 
-         cb%aoblbeg = cb%aobl
          call pl%accel_obl(system)
-         cb%aoblend = cb%aobl
+         if (lbeg) then
+            cb%aoblbeg = cb%aobl
+         else
+            cb%aoblend = cb%aobl
+         end if
          if (param%ltides) then
-            cb%atidebeg = cb%atide
             call pl%accel_tides(system)
-            cb%atideend = cb%atide
+            if (lbeg) then
+               cb%atidebeg = cb%atide
+            else
+               cb%atideend = cb%atide
+            end if
          end if
       end if
-      if (param%lextra_force) call pl%accel_user(system, param, t)
+      if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
       !if (param%lgr) call pl%gr_accel(param)
    end associate
 
@@ -48,17 +54,17 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
-      logical, optional,            intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
    
       associate(tp => self, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
-         if (present(lbeg)) system%lbeg = lbeg
+         system%lbeg = lbeg
          if (system%lbeg) then
             call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
          else
             call tp%accel_int(pl%Gmass(:), pl%xend(:,:), npl)
          end if
          if (param%loblatecb) call tp%accel_obl(system)
-         if (param%lextra_force) call tp%accel_user(system, param, t)
+         if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
          !if (param%lgr) call tp%gr_accel(param)
       end associate
       return
@@ -86,7 +92,7 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
       associate(pl => self, npl => self%nbody)
          if (npl ==0) return
          pl%ah(:,:) = 0.0_DP
-         call pl%accel(system, param, t)
+         call pl%accel(system, param, t, lbeg)
          if (lbeg) then
             call pl%set_beg_end(xbeg = pl%xh)
          else
