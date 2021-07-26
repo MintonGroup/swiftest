@@ -96,9 +96,7 @@ contains
          pt(3) = sum(pl%Gmass(1:npl) * pl%vb(3,1:npl), mask)
          pt(:) = pt(:) / cb%Gmass
          do concurrent(i = 1:npl, mask(i))
-            pl%xh(1,1:npl) = pl%xh(1,1:npl) + pt(1) * dt
-            pl%xh(2,1:npl) = pl%xh(2,1:npl) + pt(2) * dt
-            pl%xh(3,1:npl) = pl%xh(3,1:npl) + pt(3) * dt
+            pl%xh(:,i) = pl%xh(:,i) + pt(:) * dt
          end do
 
          if (lbeg) then
