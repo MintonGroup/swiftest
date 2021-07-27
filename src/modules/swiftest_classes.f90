@@ -661,16 +661,23 @@ module swiftest_classes
 
       module pure subroutine orbel_xv2aeq(mu, x, v, a, e, q)
          implicit none
-         real(DP), intent(in)  :: mu
-         real(DP), dimension(:), intent(in)  :: x, v
-         real(DP), intent(out) :: a, e, q
+         real(DP),               intent(in)  :: mu !! Gravitational constant
+         real(DP), dimension(:), intent(in)  :: x  !! Position vector
+         real(DP), dimension(:), intent(in)  :: v  !! Velocity vector
+         real(DP),               intent(out) :: a  !! semimajor axis
+         real(DP),               intent(out) :: e  !! eccentricity
+         real(DP),               intent(out) :: q  !! periapsis
       end subroutine orbel_xv2aeq
 
       module pure subroutine orbel_xv2aqt(mu, x, v, a, q, capm, tperi)
          implicit none
-         real(DP), intent(in)  :: mu
-         real(DP), dimension(:), intent(in)  :: x, v
-         real(DP), intent(out) :: a, q, capm, tperi
+         real(DP),               intent(in)  :: mu    !! Gravitational constant
+         real(DP), dimension(:), intent(in)  :: x     !! Position vector
+         real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
+         real(DP),               intent(out) :: a     !! semimajor axis
+         real(DP),               intent(out) :: q     !! periapsis
+         real(DP),               intent(out) :: capm  !! mean anomaly
+         real(DP),               intent(out) :: tperi !! time of pericenter passage
       end subroutine orbel_xv2aqt
 
       module subroutine orbel_xv2el_vec(self, cb)
