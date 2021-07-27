@@ -36,6 +36,41 @@ contains
       real(DP),                   intent(in)    :: t      !! current time
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      ! Internals
+      logical, dimension(:), allocatable        :: lcollision, mask
+      real(DP), dimension(NDIM)                 :: xr, vr
+      integer(I4B)                              :: k
+
+      select type(pl => system%pl)
+      class is (symba_pl)
+         select type(tp => system%tp)
+         class is (symba_tp)
+            associate(pltpenc_list => self, npltpenc => self%nenc, plind => self%index1(1:self%nenc), tpind => self%index2(1:self%nenc))
+               allocate(lcollision(npltpenc), mask(npltpenc))
+               mask(:) = ((pltpenc_list%status(1:npltpenc) == ACTIVE) .and. (pl%levelg(plind) >= irec) .and. (tp%levelg(tpind) >= irec))
+               lcollision(:) = .false.
+               do concurrent(k = 1:npltpenc, mask(k))
+                  associate(i => plind(k), j => tpind(k))
+                     xr(:) = pl%xh(:, i) - tp%xh(:, j) 
+                     vr(:) = pl%vb(:, i) - tp%vb(:, j)
+                     lcollision(i) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, pltpenc_list%lvdotr(k))
+                  end associate
+               end do
+
+               if (any(lcollision(:))) then
+                  where(lcollision(1:npltpenc))
+                     pltpenc_list%status(1:npltpenc) = COLLISION
+                     tp%status(tpind(1:npltpenc)) = DISCARDED_PLR
+                  end where
+                  do k = 1, npltpenc
+                     if (pltpenc_list%status(k) /= COLLISION) cycle
+                     write(*,*) 'Test particle ',tp%id(tpind(k)), ' collided with massive body ',pl%id(plind(k)), ' at time ',t
+                  end do
+               end if
+            end associate
+         end select
+      end select
+      return 
    end subroutine symba_collision_check_pltpenc
 
    pure elemental function symba_collision_check_one(xr, yr, zr, vxr, vyr, vzr, Gmtot, rlim, dt, lvdotr) result(lcollision)
