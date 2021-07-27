@@ -52,7 +52,6 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsize
       ! Internals
       real(DP)                                  :: dth   !! Half step size
-      integer(I4B)                              :: irec  !! Recursion level
 
       dth = 0.5_DP * dt
       associate(system => self)
@@ -62,25 +61,23 @@ contains
             class is (symba_tp)
                select type(cb => system%cb)
                class is (symba_cb)
-                  irec = -1
                   call pl%vh2vb(cb)
                   call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
                   call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
-                  call pl%drift(system, param, dt, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == irec))
+                  call pl%drift(system, param, dt, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == -1))
 
                   call tp%vh2vb(vbcb = -cb%ptbeg)
                   call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
                   call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
-                  call tp%drift(system, param, dt, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == irec))
+                  call tp%drift(system, param, dt, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == -1))
 
-                  irec = 0
-                  call system%recursive_step(param, irec)
+                  call system%recursive_step(param, 0)
 
                   call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
                   call pl%vb2vh(cb)
                   call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
 
-                  call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
+                  call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
                   call tp%vb2vh(vbcb = -cb%ptend)
                   call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
                end select
