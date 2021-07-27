@@ -29,14 +29,14 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
             associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
                dx(:) = pl%xh(:, j) - pl%xh(:, i)
                rji2 = dot_product(dx(:), dx(:))
-               rlim2 = (pl%radius(i) + pl%radius(j))**2
-               if (rji2 > rlim2) then
+               !rlim2 = (pl%radius(i) + pl%radius(j))**2
+               !if (rji2 > rlim2) then
                   irij3 = 1.0_DP / (rji2 * sqrt(rji2))
                   faci = pl%Gmass(i) * irij3
                   facj = pl%Gmass(j) * irij3
                   pl%ah(:, i) = pl%ah(:, i) - facj * dx(:)
                   pl%ah(:, j) = pl%ah(:, j) + faci * dx(:)
-               end if
+               !end if
             end associate
          end do
          call helio_kick_getacch_pl(pl, system, param, t, lbeg)
@@ -78,11 +78,11 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
                         dx(:) = tp%xh(:,j) - pl%xend(:,i)
                      end if
                      rji2 = dot_product(dx(:), dx(:))
-                     rlim2 = (pl%radius(i))**2
-                     if (rji2 > rlim2) then
+                     !rlim2 = (pl%radius(i))**2
+                     !if (rji2 > rlim2) then
                         fac = pl%Gmass(i) / (rji2 * sqrt(rji2))
                         tp%ah(:,j) = tp%ah(:,j) + fac * dx(:)
-                     end if
+                     !end if
                   end IF
                end associate
             end do
