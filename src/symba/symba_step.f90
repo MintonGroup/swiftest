@@ -71,7 +71,7 @@ contains
                   call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
                   call tp%drift(system, param, dt, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == -1))
 
-                  call system%recursive_step(param, 0)
+                  call system%recursive_step(param, t, 0)
 
                   call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
                   call pl%vb2vh(cb)
@@ -87,7 +87,7 @@ contains
       return
    end subroutine symba_step_interp_system
 
-   module recursive subroutine symba_step_recur_system(self, param, ireci)
+   module recursive subroutine symba_step_recur_system(self, param, t, ireci)
       !! author: David A. Minton
       !!
       !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
@@ -99,9 +99,10 @@ contains
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      integer(I4B), value,        intent(in)    :: ireci !! input recursion level
+      real(DP),                   value         :: t
+      integer(I4B),               value         :: ireci !! input recursion level
       ! Internals
-      integer(I4B) :: i, j, irecp, nloops, sgn
+      integer(I4B) :: i, j, irecp, nloops
       real(DP) :: dtl, dth
       real(DP), dimension(NDIM) :: xr, vr
       logical :: lencounter
@@ -127,27 +128,27 @@ contains
                end if
                do j = 1, nloops
                   lencounter = plplenc_list%encounter_check(system, dtl, irecp) .or. pltpenc_list%encounter_check(system, dtl, irecp)
-                  sgn = 1
-                  call plplenc_list%kick(system, dth, irecp, sgn)
-                  call pltpenc_list%kick(system, dth, irecp, sgn)
+                  call plplenc_list%kick(system, dth, irecp, 1)
+                  call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
-                     sgn = -1
-                     call plplenc_list%kick(system, dth, irecp, sgn)
-                     call pltpenc_list%kick(system, dth, irecp, sgn)
+                     call plplenc_list%kick(system, dth, irecp, -1)
+                     call pltpenc_list%kick(system, dth, irecp, -1)
                   end if
 
                   call pl%drift(system, param, dtl, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == ireci))
                   call tp%drift(system, param, dtl, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == ireci))
 
-                  if (lencounter) call system%recursive_step(param, irecp)
+                  if (lencounter) call system%recursive_step(param, t+dth,irecp)
 
-                  sgn = 1
-                  call plplenc_list%kick(system, dth, irecp, sgn)
-                  call pltpenc_list%kick(system, dth, irecp, sgn)
+                  call plplenc_list%kick(system, dth, irecp, 1)
+                  call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
-                     sgn = -1
-                     call plplenc_list%kick(system, dth, irecp, sgn)
-                     call pltpenc_list%kick(system, dth, irecp, sgn)
+                     call plplenc_list%kick(system, dth, irecp, -1)
+                     call pltpenc_list%kick(system, dth, irecp, -1)
+                  end if
+                  if (param%lclose) then
+                     call plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                     call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
                   end if
                   associate (plind1 => plplenc_list%index1(1:plplenc_list%nenc), &
                              plind2 => plplenc_list%index2(1:plplenc_list%nenc), &

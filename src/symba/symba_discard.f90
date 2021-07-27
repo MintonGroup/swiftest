@@ -19,6 +19,8 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
 
+      call discard_tp(self, system, param)
+
       return
    end subroutine symba_discard_tp
 
