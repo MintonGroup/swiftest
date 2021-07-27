@@ -160,9 +160,9 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
                         ir3 = 1.0_DP / (r2 * sqrt(r2))
                         fac = ir3
                      end if
-                     faci = fac * pl%mass(i)
+                     faci = fac * pl%Gmass(i)
                      if (isplpl) then
-                        facj = fac * pl%mass(j)
+                        facj = fac * pl%Gmass(j)
                         pl%ah(:,i) = pl%ah(:,i) + facj*dx(:)
                         pl%ah(:,j) = pl%ah(:,j) - faci*dx(:)
                      else
