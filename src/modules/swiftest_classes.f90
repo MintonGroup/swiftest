@@ -20,7 +20,7 @@ module swiftest_classes
    public :: tides_kick_getacch_pl, tides_step_spin_system
    public :: user_kick_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_exit, util_fill_body, util_fill_pl, util_fill_tp, &
-             util_index, util_peri_tp, util_reverse_status, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
+             util_peri_tp, util_reverse_status, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
              util_set_mu_tp, util_set_rhill, util_set_rhill_approximate, util_sort, util_spill_body, util_spill_pl, util_spill_tp, util_valid, util_version
 
    !********************************************************************************************************************************
@@ -789,12 +789,6 @@ module swiftest_classes
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_tp
 
-      module subroutine util_index(arr, index)
-         implicit none
-         integer(I4B), dimension(:), intent(out) :: index
-         real(DP),     dimension(:), intent(in)   :: arr
-      end subroutine util_index
-
       module subroutine util_peri_tp(self, system, param) 
          implicit none
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
@@ -856,15 +850,33 @@ module swiftest_classes
          integer(I4B), dimension(:), intent(inout) :: arr
       end subroutine util_sort_i4b
 
+      module subroutine util_sort_index_i4b(arr,ind)
+         implicit none
+         integer(I4B), dimension(:), intent(in)  :: arr
+         integer(I4B), dimension(:), intent(out) :: ind
+      end subroutine util_sort_index_i4b
+
       module subroutine util_sort_sp(arr)
          implicit none
          real(SP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_sp
 
+      module subroutine util_sort_index_sp(arr,ind)
+         implicit none
+         real(SP), dimension(:), intent(in)  :: arr
+         integer(I4B), dimension(:), intent(out) :: ind
+      end subroutine util_sort_index_sp
+
       module subroutine util_sort_dp(arr)
          implicit none
          real(DP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_dp
+
+      module subroutine util_sort_index_dp(arr,ind)
+         implicit none
+         real(DP), dimension(:), intent(in)  :: arr
+         integer(I4B), dimension(:), intent(out) :: ind
+      end subroutine util_sort_index_dp
    end interface
 
    interface
