@@ -53,7 +53,7 @@ contains
                   associate(i => plind(k), j => tpind(k))
                      xr(:) = pl%xh(:, i) - tp%xh(:, j) 
                      vr(:) = pl%vb(:, i) - tp%vb(:, j)
-                     lcollision(i) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, pltpenc_list%lvdotr(k))
+                     lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, pltpenc_list%lvdotr(k))
                   end associate
                end do
 
