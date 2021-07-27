@@ -612,41 +612,33 @@ contains
             do i = 1, nbody
                select type(self)
                class is (swiftest_pl)
-                  read(iu, *, iostat = ierr) self%id(i), val 
+                  if (param%lrhill_present) then
+                     read(iu, *, iostat=ierr, err=100) self%id(i), val, self%rhill(i)
+                  else
+                     read(iu, *, iostat=ierr, err=100) self%id(i), val
+                  end if
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
-
-                  if (param%lclose) then
-                     if (param%lrhill_present) then
-                        read(iu, *, iostat = ierr) self%radius(i), self%rhill(i)
-                     else
-                        read(iu, *, iostat = ierr) self%radius(i)
-                     end if
-                     if (ierr /= 0 ) exit
-                  else
-                     self%radius(i) = 0.0_DP
-                  end if
+                  if (param%lclose) read(iu, *, iostat=ierr, err=100) self%radius(i)
                   if (param%lrotation) then
-                     read(iu, iostat = ierr) self%Ip(:, i)
-                     read(iu, iostat = ierr) self%rot(:, i)
+                     read(iu, iostat=ierr, err=100) self%Ip(:, i)
+                     read(iu, iostat=ierr, err=100) self%rot(:, i)
                   end if
                   if (param%ltides) then
-                     read(iu, iostat = ierr) self%k2(i)
-                     read(iu, iostat = ierr) self%Q(i)
+                     read(iu, iostat=ierr, err=100) self%k2(i)
+                     read(iu, iostat=ierr, err=100) self%Q(i)
                   end if
                class is (swiftest_tp)
-                  read(iu, *, iostat = ierr) self%id(i)
+                  read(iu, *, iostat=ierr, err=100) self%id(i)
                end select
-               if (ierr /= 0 ) exit
-               read(iu, *, iostat = ierr) self%xh(1, i), self%xh(2, i), self%xh(3, i)
-               read(iu, *, iostat = ierr) self%vh(1, i), self%vh(2, i), self%vh(3, i)
-               if (ierr /= 0 ) exit
+               read(iu, *, iostat=ierr, err=100) self%xh(1, i), self%xh(2, i), self%xh(3, i)
+               read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                self%status(i) = ACTIVE
             end do
          end if
       case (REAL4_TYPE, REAL8_TYPE)  !, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
-         open(unit = iu, file = infile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
-         read(iu, iostat = ierr) nbody
+         open(unit=iu, file=infile, status='old', form='UNFORMATTED', iostat=ierr)
+         read(iu, iostat=ierr, err=100) nbody
          call self%setup(nbody)
          if (nbody > 0) then
             call self%read_frame(iu, param, XV, ierr)
@@ -658,7 +650,7 @@ contains
       end select
       close(iu)
 
-      if (ierr /= 0 ) then
+      100 if (ierr /= 0 ) then
          write(*,*) 'Error reading in initial conditions from ',trim(adjustl(infile))
          call util_exit(FAILURE)
       end if
@@ -817,45 +809,46 @@ contains
       integer(I4B),               intent(out)   :: ierr   !! Error code
 
       associate(n => self%nbody)
-         read(iu, iostat = ierr) self%id(1:n)
-         !read(iu, iostat = ierr) self%name(1:n)
+         read(iu, iostat=ierr, err=100) self%id(1:n)
+         !read(iu, iostat=ierr, err=100) self%name(1:n)
          select case (form)
          case (EL) 
-            read(iu, iostat = ierr) self%a(1:n)
-            read(iu, iostat = ierr) self%e(1:n)
-            read(iu, iostat = ierr) self%inc(1:n)
-            read(iu, iostat = ierr) self%capom(:)
-            read(iu, iostat = ierr) self%omega(:)
-            read(iu, iostat = ierr) self%capm(:)
+            read(iu, iostat=ierr, err=100) self%a(1:n)
+            read(iu, iostat=ierr, err=100) self%e(1:n)
+            read(iu, iostat=ierr, err=100) self%inc(1:n)
+            read(iu, iostat=ierr, err=100) self%capom(:)
+            read(iu, iostat=ierr, err=100) self%omega(:)
+            read(iu, iostat=ierr, err=100) self%capm(:)
          case (XV)
-            read(iu, iostat = ierr) self%xh(1, 1:n)
-            read(iu, iostat = ierr) self%xh(2, 1:n)
-            read(iu, iostat = ierr) self%xh(3, 1:n)
-            read(iu, iostat = ierr) self%vh(1, 1:n)
-            read(iu, iostat = ierr) self%vh(2, 1:n)
-            read(iu, iostat = ierr) self%vh(3, 1:n)
+            read(iu, iostat=ierr, err=100) self%xh(1, 1:n)
+            read(iu, iostat=ierr, err=100) self%xh(2, 1:n)
+            read(iu, iostat=ierr, err=100) self%xh(3, 1:n)
+            read(iu, iostat=ierr, err=100) self%vh(1, 1:n)
+            read(iu, iostat=ierr, err=100) self%vh(2, 1:n)
+            read(iu, iostat=ierr, err=100) self%vh(3, 1:n)
          end select
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            read(iu, iostat = ierr) pl%Gmass(1:n)
+            read(iu, iostat=ierr, err=100) pl%Gmass(1:n)
             pl%mass(1:n) = pl%Gmass / param%GU 
-            read(iu, iostat = ierr) pl%radius(1:n)
+            if (param%lrhill_present) read(iu, iostat=ierr, err=100) pl%rhill(1:n)
+            read(iu, iostat=ierr, err=100) pl%radius(1:n)
             if (param%lrotation) then
-               read(iu, iostat = ierr) pl%rot(1, 1:n)
-               read(iu, iostat = ierr) pl%rot(2, 1:n)
-               read(iu, iostat = ierr) pl%rot(3, 1:n)
-               read(iu, iostat = ierr) pl%Ip(1, 1:n)
-               read(iu, iostat = ierr) pl%Ip(2, 1:n)
-               read(iu, iostat = ierr) pl%Ip(3, 1:n)
+               read(iu, iostat=ierr, err=100) pl%rot(1, 1:n)
+               read(iu, iostat=ierr, err=100) pl%rot(2, 1:n)
+               read(iu, iostat=ierr, err=100) pl%rot(3, 1:n)
+               read(iu, iostat=ierr, err=100) pl%Ip(1, 1:n)
+               read(iu, iostat=ierr, err=100) pl%Ip(2, 1:n)
+               read(iu, iostat=ierr, err=100) pl%Ip(3, 1:n)
             end if
             if (param%ltides) then
-               read(iu, iostat = ierr) pl%k2(1:n)
-               read(iu, iostat = ierr) pl%Q(1:n)
+               read(iu, iostat=ierr, err=100) pl%k2(1:n)
+               read(iu, iostat=ierr, err=100) pl%Q(1:n)
             end if
          end select
       end associate
 
-      if (ierr /=0) then
+      100 if (ierr /=0) then
          write(*,*) 'Error reading Swiftest body data'
          call util_exit(FAILURE)
       end if
@@ -878,22 +871,22 @@ contains
       character(*),               intent(in)    :: form     !! Input format code ("XV" or "EL")
       integer(I4B),               intent(out)   :: ierr     !! Error cod
 
-      read(iu, iostat = ierr) self%id
-      !read(iu, iostat = ierr) self%name
-      read(iu, iostat = ierr) self%Gmass
+      read(iu, iostat=ierr, err=100) self%id
+      !read(iu, iostat=ierr, err=100) self%name
+      read(iu, iostat=ierr, err=100) self%Gmass
       self%mass = self%Gmass / param%GU
-      read(iu, iostat = ierr) self%radius
-      read(iu, iostat = ierr) self%j2rp2 
-      read(iu, iostat = ierr) self%j4rp4 
+      read(iu, iostat=ierr, err=100) self%radius
+      read(iu, iostat=ierr, err=100) self%j2rp2 
+      read(iu, iostat=ierr, err=100) self%j4rp4 
       if (param%lrotation) then
-         read(iu, iostat = ierr) self%Ip(:)
-         read(iu, iostat = ierr) self%rot(:)
+         read(iu, iostat=ierr, err=100) self%Ip(:)
+         read(iu, iostat=ierr, err=100) self%rot(:)
       end if
       if (param%ltides) then
-         read(iu, iostat = ierr) self%k2
-         read(iu, iostat = ierr) self%Q
+         read(iu, iostat=ierr, err=100) self%k2
+         read(iu, iostat=ierr, err=100) self%Q
       end if
-      if (ierr /=0) then
+      100 if (ierr /=0) then
          write(*,*) 'Error reading central body data'
          call util_exit(FAILURE)
       end if
@@ -1160,6 +1153,7 @@ contains
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu) pl%Gmass(1:n)
+            write(iu) pl%rhill(1:n)
             write(iu) pl%radius(1:n)
             if (param%lrotation) then
                write(iu) pl%rot(1, 1:n)

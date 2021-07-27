@@ -71,6 +71,7 @@ def read_swiftest_param(param_file_name, param):
         param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
         param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
         param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
+        param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
         param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
         param['ROTATION'] = param['ROTATION'].upper()
         param['TIDES'] = param['TIDES'].upper()
@@ -401,6 +402,8 @@ def make_swiftest_labels(param):
     plab = tlab.copy()
     plab.append('Mass')
     plab.append('Radius')
+    if param['RHILL_PRESENT'] == 'YES':
+        plab.append('Rhill')
     clab = ['Mass', 'Radius', 'J_2', 'J_4']
     if param['ROTATION'] == 'YES':
         clab.append('Ip_x')
@@ -491,6 +494,8 @@ def swiftest_stream(f, param):
             p6 = f.read_reals(np.float64)
             Mpl = f.read_reals(np.float64)
             Rpl = f.read_reals(np.float64)
+            if param['RHILL_PRESENT'] == 'YES':
+                Rhill = f.read_reals(np.float64)
             if param['ROTATION'] == 'YES':
                 Ipplx = f.read_reals(np.float64)
                 Ipply = f.read_reals(np.float64)
@@ -523,6 +528,9 @@ def swiftest_stream(f, param):
             tvec = np.empty((6, 0))
             tpid = np.empty(0)
         cvec = np.array([Mcb, Rcb, J2cb, J4cb])
+        if param['RHILL_PRESENT'] == 'YES':
+           if npl > 0:
+              pvec = np.vstack([pvec, Rhill])
         if param['ROTATION'] == 'YES':
             cvec = np.vstack([cvec, Ipcbx, Ipcby, Ipcbz, rotcbx, rotcby, rotcbz])
             if npl > 0:
@@ -1021,9 +1029,13 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
             for n in range(1, npl):  # Loop over planets
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                name = int(i_list[0])
+                idnum = int(i_list[0])
                 GMpl = real2float(i_list[1])
-                print(name, GMpl, file=plnew)
+                if swifter_param['RHILL_PRESENT'] == 'YES':
+                   Rhill = real2float(i_list[2])
+                   print(idnum, GMpl, Rhill, file=plnew)
+                else:
+                   print(idnum, GMpl, file=plnew)
                 if swifter_param['CHK_CLOSE'] == 'YES':
                     line = plold.readline()
                     i_list = [i for i in line.split(" ") if i.strip()]
@@ -1237,7 +1249,6 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
        tmp = swifter_param.pop(key, None)
     swifter_param['J2'] = J2
     swifter_param['J4'] = J4
-    swifter_param['RHILL_PRESENT'] = "YES"
     swifter_param['CHK_CLOSE'] = "YES"
     if swifter_param['OUT_STAT'] == "REPLACE":
         swifter_param['OUT_STAT'] = "UNKNOWN"

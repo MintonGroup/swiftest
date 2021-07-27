@@ -55,7 +55,7 @@ v_pl = np.array([0.0, vpl, 0.0], dtype=np.double)
 p_tp = np.array([atp, 0.0, 0.0], dtype=np.double)
 v_tp = np.array([0.0, vtp, 0.0], dtype=np.double)
 
-Rhill = apl * 0.0100447248332378922085
+Rhill = np.double(apl * 0.0100447248332378922085)
 
 #Make Swifter files
 plfile = open(swifter_pl, 'w')
@@ -126,6 +126,7 @@ plfile.write_record(v_pl[0])
 plfile.write_record(v_pl[1])
 plfile.write_record(v_pl[2])
 plfile.write_record(mass)
+plfile.write_record(Rhill)
 plfile.write_record(radius)
 plfile.close()
 tpfile = FortranFile(swiftest_tp, 'w')
@@ -171,6 +172,7 @@ print(f'GR             no')
 print(f'MU2KG          {MU2KG}')
 print(f'DU2M           {DU2M}')
 print(f'TU2S           {TU2S}')
+print(f'RHILL_PRESENT  yes')
 
 
 
