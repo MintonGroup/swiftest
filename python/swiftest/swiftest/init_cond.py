@@ -196,8 +196,8 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
             GMpl.append(GMcb[0] / MSun_over_Mpl[key])
             # Generate planet value vectors
             if (param['RHILL_PRESENT'] == 'YES'):
-                Rhill.append(pldata[key].elements()['a'][0] * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
-                pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, p7, p8, p9, p10, p11, p12, Rhill])
+                Rhill.append(pldata[key].elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
+                pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, Rhill, p7, p8, p9, p10, p11, p12])
             else:
                 pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, p7, p8, p9, p10, p11, p12])
         else:

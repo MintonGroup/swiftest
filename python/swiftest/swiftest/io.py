@@ -678,7 +678,10 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         print(pl.id.count().values, file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
-            print(i.values, pli['Mass'].values, file=plfile)
+            if param['RHILL_PRESENT'] == 'YES':
+               print(i.values, pli['Mass'].values, pli['Rhill'].values, file=plfile)
+            else:
+               print(i.values, pli['Mass'].values, file=plfile)
             print(pli['Radius'].values, file=plfile)
             print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
             print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
@@ -697,36 +700,55 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         # Now make Swiftest files
         cbfile = FortranFile(param['CB_IN'], 'w')
         cbfile.write_record(cbid)
-        MSun = np.double(1.0)
         cbfile.write_record(np.double(GMSun))
-        cbfile.write_record(np.double(rmin))
+        cbfile.write_record(np.double(RSun))
         cbfile.write_record(np.double(J2))
         cbfile.write_record(np.double(J4))
         cbfile.close()
         
         plfile = FortranFile(param['PL_IN'], 'w')
-        plfile.write_record(npl)
+        npl = pl.id.count().values
+        plid = pl.id.values
+        px = pl['px'].values  
+        py = pl['py'].values  
+        pz = pl['pz'].values  
+        vx = pl['vx'].values  
+        vy = pl['vy'].values  
+        vz = pl['vz'].values  
+        mass = pl['Mass'].values  
+        radius = pl['Radius'].values  
         
+        plfile.write_record(npl)
         plfile.write_record(plid)
-        plfile.write_record(p_pl[0])
-        plfile.write_record(p_pl[1])
-        plfile.write_record(p_pl[2])
-        plfile.write_record(v_pl[0])
-        plfile.write_record(v_pl[1])
-        plfile.write_record(v_pl[2])
+        plfile.write_record(px)
+        plfile.write_record(py)
+        plfile.write_record(pz)
+        plfile.write_record(vx)
+        plfile.write_record(vy)
+        plfile.write_record(vz)
         plfile.write_record(mass)
+        if param['RHILL_PRESENT'] == 'YES':
+            rhill = pl['Rhill'].values
+            plfile.write_record(rhill)
         plfile.write_record(radius)
         plfile.close()
         tpfile = FortranFile(param['TP_IN'], 'w')
-        ntp = 1
+        ntp = tp.id.count().values
+        tpid = tp.id.values
+        px = tp['px'].values  
+        py = tp['py'].values  
+        pz = tp['pz'].values  
+        vx = tp['vx'].values  
+        vy = tp['vy'].values  
+        vz = tp['vz'].values 
         tpfile.write_record(ntp)
         tpfile.write_record(tpid)
-        tpfile.write_record(p_tp[0])
-        tpfile.write_record(p_tp[1])
-        tpfile.write_record(p_tp[2])
-        tpfile.write_record(v_tp[0])
-        tpfile.write_record(v_tp[1])
-        tpfile.write_record(v_tp[2])
+        tpfile.write_record(px)
+        tpfile.write_record(py)
+        tpfile.write_record(pz)
+        tpfile.write_record(vx)
+        tpfile.write_record(vy)
+        tpfile.write_record(vz)
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
 
