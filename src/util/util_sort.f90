@@ -1,6 +1,29 @@
 submodule (swiftest_classes) s_util_sort
    use swiftest
 contains
+   module subroutine util_sort_body(self, sortby, reverse)
+      !! author: David A. Minton
+      !!
+      !! Sort a Swiftest body structure in-place. 
+      !! sortby is a string. The only valid input the body class takes is "id," which is also the default value. 
+      !! Sort order is ascending order by default. Set reverse=.true. to sort in descending order.
+      implicit none
+      class(swiftest_body),   intent(inout) :: self    !! Swiftest body object
+      character(*), optional, intent(in)    :: sortby  !! Sorting attribute
+      logical,      optional, intent(in)    :: reverse !! Logical flag indicating whether or not the sorting should be in reverse (descending order)
+   end subroutine util_sort_body
+
+   module subroutine util_sort_pl(self, sortby, reverse)
+      !! author: David A. Minton
+      !!
+      !! sortby is a string. The only valid input the body class takes is "id," which is also the default value. 
+      !! Sort order is ascending order by default. Set reverse=.true. to sort in descending order.
+      implicit none
+      class(swiftest_pl), intent(inout)  :: self    !! Swiftest body object
+      character(*), optional, intent(in) :: sortby  !! Sorting attribute
+      logical,      optional, intent(in) :: reverse !! Logical flag indicating whether or not the sorting should be in reverse (descending order)
+   end subroutine util_sort_pl
+
    module subroutine util_sort_dp(arr)
       !! author: David A. Minton
       !!

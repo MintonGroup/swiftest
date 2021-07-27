@@ -21,7 +21,7 @@ module swiftest_classes
    public :: user_kick_getacch_body
    public :: util_coord_b2h_pl, util_coord_b2h_tp, util_coord_h2b_pl, util_coord_h2b_tp, util_exit, util_fill_body, util_fill_pl, util_fill_tp, &
              util_peri_tp, util_reverse_status, util_set_beg_end_pl, util_set_ir3h, util_set_msys, util_set_mu_pl, &
-             util_set_mu_tp, util_set_rhill, util_set_rhill_approximate, util_sort, util_spill_body, util_spill_pl, util_spill_tp, util_valid, util_version
+             util_set_mu_tp, util_set_rhill, util_set_rhill_approximate, util_sort, util_sort_body, util_sort_pl, util_spill_body, util_spill_pl, util_spill_tp, util_valid, util_version
 
    !********************************************************************************************************************************
    ! swiftest_parameters class definitions 
@@ -186,6 +186,7 @@ module swiftest_classes
       procedure, public :: accel_user     => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
       procedure, public :: fill           => util_fill_body      !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: spill          => util_spill_body     !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure, public :: sort           => util_sort_body      !! Sorts a body by an attribute (base method only allows for sorting by id. Override to add other capabilities)
       procedure, public :: reverse_status => util_reverse_status !! Reverses the active/inactive status of all particles in a structure
    end type swiftest_body
       
@@ -228,6 +229,7 @@ module swiftest_classes
       procedure, public :: b2h          => util_coord_b2h_pl     !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure, public :: fill         => util_fill_pl          !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure, public :: set_beg_end  => util_set_beg_end_pl   !! Sets the beginning and ending positions and velocities of planets.
+      procedure, public :: sort         => util_sort_pl          !! Sorts a body by an attribute (adds ability to sort by mass)
       procedure, public :: spill        => util_spill_pl         !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_pl
 
@@ -877,9 +879,23 @@ module swiftest_classes
          real(DP), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), intent(out) :: ind
       end subroutine util_sort_index_dp
-   end interface
+   end interface util_sort
 
    interface
+      module subroutine util_sort_body(self, sortby, reverse)
+         implicit none
+         class(swiftest_body),   intent(inout) :: self    !! Swiftest body object
+         character(*), optional, intent(in)    :: sortby  !! Sorting attribute
+         logical,      optional, intent(in)    :: reverse !! Logical flag indicating whether or not the sorting should be in reverse (descending order)
+      end subroutine util_sort_body
+   
+      module subroutine util_sort_pl(self, sortby, reverse)
+         implicit none
+         class(swiftest_pl),     intent(inout) :: self    !! Swiftest body object
+         character(*), optional, intent(in)    :: sortby  !! Sorting attribute
+         logical,      optional, intent(in)    :: reverse !! Logical flag indicating whether or not the sorting should be in reverse (descending order)
+      end subroutine util_sort_pl
+
       module subroutine util_spill_body(self, discards, lspill_list)
          implicit none
          class(swiftest_body), intent(inout) :: self        !! Swiftest body object
