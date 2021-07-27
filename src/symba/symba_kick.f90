@@ -72,7 +72,11 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
             do k = 1, npltpenc
                associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
                   if (tp%status(j) == ACTIVE) THEN
-                     dx(:) = tp%xh(:,j) - pl%xh(:,i)
+                     if (lbeg) then
+                        dx(:) = tp%xh(:,j) - pl%xbeg(:,i)
+                     else
+                        dx(:) = tp%xh(:,j) - pl%xend(:,i)
+                     end if
                      rji2 = dot_product(dx(:), dx(:))
                      rlim2 = (pl%radius(i))**2
                      if (rji2 > rlim2) then
