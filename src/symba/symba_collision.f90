@@ -61,6 +61,7 @@ contains
                   where(lcollision(1:npltpenc))
                      pltpenc_list%status(1:npltpenc) = COLLISION
                      tp%status(tpind(1:npltpenc)) = DISCARDED_PLR
+                     tp%ldiscard(tpind(1:npltpenc)) = .true.
                   end where
                   do k = 1, npltpenc
                      if (pltpenc_list%status(k) /= COLLISION) cycle

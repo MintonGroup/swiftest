@@ -105,7 +105,6 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: levelm  !! deepest encounter level achieved this time step
    contains
       private
-      procedure, public :: discard         => symba_discard_tp         !! process test particle discards
       procedure, public :: encounter_check => symba_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure, public :: accel           => symba_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
       procedure, public :: setup           => symba_setup_tp           !! Constructor method - Allocates space for number of particle
@@ -193,14 +192,6 @@ module symba_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine symba_discard_pl
-
-      module subroutine symba_discard_tp(self, system, param)
-         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
-         implicit none
-         class(symba_tp),              intent(inout) :: self   !! SyMBA test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      end subroutine symba_discard_tp
 
       module pure elemental subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
          implicit none
