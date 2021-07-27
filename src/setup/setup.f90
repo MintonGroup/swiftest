@@ -69,7 +69,6 @@ contains
       return
    end subroutine setup_construct_system
 
-
    module subroutine setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -83,6 +82,7 @@ contains
       call self%cb%initialize(param)
       call self%pl%initialize(param)
       call self%tp%initialize(param)
+      call util_valid(self%pl, self%tp)
       call self%set_msys()
       call self%pl%set_mu(self%cb) 
       call self%tp%set_mu(self%cb) 
