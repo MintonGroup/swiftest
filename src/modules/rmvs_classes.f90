@@ -6,28 +6,27 @@ module rmvs_classes
    use swiftest_globals
    use whm_classes, only : whm_cb, whm_pl, whm_tp, whm_nbody_system
    implicit none
-
    public
+
    integer(I4B), private, parameter :: NTENC = 10
    integer(I4B), private, parameter :: NTPHENC = 3
    integer(I4B), private, parameter :: NTPENC = NTENC * NTPHENC
-   real(DP), private, parameter     :: RHSCALE = 3.5_DP
-   real(DP), private, parameter     :: RHPSCALE = 1.0_DP
-   real(DP), private, parameter     :: FACQDT = 2.0_DP
+   real(DP),     private, parameter :: RHSCALE = 3.5_DP
+   real(DP),     private, parameter :: RHPSCALE = 1.0_DP
+   real(DP),     private, parameter :: FACQDT = 2.0_DP
 
    !********************************************************************************************************************************
    !  rmvs_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
-   type, public, extends(whm_nbody_system) :: rmvs_nbody_system
+   type, extends(whm_nbody_system) :: rmvs_nbody_system
       !> In the RMVS integrator, only test particles are discarded
       logical                               :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
       real(DP)                              :: rts                        !! fraction of Hill's sphere radius to use as radius of encounter region
       real(DP), dimension(:,:), allocatable :: vbeg                       !! Planet velocities at beginning ot step
    contains
-      private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize    => rmvs_setup_initialize_system      !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
-      procedure, public :: step          => rmvs_step_system       !! Advance the RMVS nbody system forward in time by one step
+      procedure :: initialize => rmvs_setup_initialize_system  !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
+      procedure :: step       => rmvs_step_system              !! Advance the RMVS nbody system forward in time by one step
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -41,7 +40,7 @@ module rmvs_classes
    ! rmvs_cb class definitions and method interfaces
    !*******************************************************************************************************************************
    !> RMVS central body particle class 
-   type, public, extends(whm_cb) :: rmvs_cb
+   type, extends(whm_cb) :: rmvs_cb
       type(rmvs_interp), dimension(:), allocatable :: outer !! interpolated heliocentric central body position for outer encounters
       type(rmvs_interp), dimension(:), allocatable :: inner !! interpolated heliocentric central body position for inner encounters
       logical                                      :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
@@ -52,7 +51,7 @@ module rmvs_classes
    !*******************************************************************************************************************************
 
    !! RMVS test particle class
-   type, public, extends(whm_tp) :: rmvs_tp
+   type, extends(whm_tp) :: rmvs_tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as rmvs_setup_tp and rmvs_util_spill_tp
       ! encounter steps)
@@ -67,14 +66,13 @@ module rmvs_classes
       integer(I4B)                              :: ipleP           !!  index value of encountering planet
       logical                                   :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
-      private
-      procedure, public :: discard         => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
-      procedure, public :: encounter_check => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
-      procedure, public :: fill            => rmvs_util_fill_tp            !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: accel           => rmvs_kick_getacch_tp         !!  Calculates either the standard or modified version of the acceleration depending if the
-                                                                        !! if the test particle is undergoing a close encounter or not
-      procedure, public :: setup           => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
-      procedure, public :: spill           => rmvs_util_spill_tp           !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: discard         => rmvs_discard_tp         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
+      procedure :: encounter_check => rmvs_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
+      procedure :: fill            => rmvs_util_fill_tp       !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: accel           => rmvs_kick_getacch_tp    !! Calculates either the standard or modified version of the acceleration depending if the
+                                                              !!    if the test particle is undergoing a close encounter or not
+      procedure :: setup           => rmvs_setup_tp           !! Constructor method - Allocates space for number of particles
+      procedure :: spill           => rmvs_util_spill_tp      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_tp
 
    !********************************************************************************************************************************
@@ -82,19 +80,18 @@ module rmvs_classes
    !*******************************************************************************************************************************
  
    !> RMVS massive body particle class
-   type, public, extends(whm_pl) :: rmvs_pl
-      integer(I4B),             dimension(:), allocatable :: nenc    !! number of test particles encountering planet this full rmvs time step
-      integer(I4B),             dimension(:), allocatable :: tpenc1P !! index of first test particle encountering planet
-      integer(I4B),             dimension(:), allocatable :: plind ! Connects the planetocentric indices back to the heliocentric planet list
-      type(rmvs_interp),        dimension(:), allocatable :: outer !! interpolated heliocentric central body position for outer encounters
-      type(rmvs_interp),        dimension(:), allocatable :: inner !! interpolated heliocentric central body position for inner encounters
-      class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric
-      logical                                            :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
+   type, extends(whm_pl) :: rmvs_pl
+      integer(I4B),             dimension(:), allocatable :: nenc                      !! number of test particles encountering planet this full rmvs time step
+      integer(I4B),             dimension(:), allocatable :: tpenc1P                   !! index of first test particle encountering planet
+      integer(I4B),             dimension(:), allocatable :: plind                     !! Connects the planetocentric indices back to the heliocentric planet list
+      type(rmvs_interp),        dimension(:), allocatable :: outer                     !! interpolated heliocentric central body position for outer encounters
+      type(rmvs_interp),        dimension(:), allocatable :: inner                     !! interpolated heliocentric central body position for inner encounters
+      class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric            !! Planetocentric version of the massive body objects (one for each massive body)
+      logical                                             :: lplanetocentric = .false. !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
-      private
-      procedure, public :: fill                => rmvs_util_fill_pl    !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: setup               => rmvs_setup_pl    !! Constructor method - Allocates space for number of particles
-      procedure, public :: spill               => rmvs_util_spill_pl    !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: fill  => rmvs_util_fill_pl   !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: setup => rmvs_setup_pl       !! Constructor method - Allocates space for number of particles
+      procedure :: spill => rmvs_util_spill_pl  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_pl
 
    interface

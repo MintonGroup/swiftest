@@ -8,6 +8,7 @@ module symba_classes
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use rmvs_classes,     only : rmvs_chk_ind
    implicit none
+   public
 
    integer(I4B), private, parameter :: NENMAX           = 32767
    integer(I4B), private, parameter :: NTENC            = 3
@@ -16,28 +17,26 @@ module symba_classes
    character(*),          parameter :: PARTICLE_OUTFILE = 'particle.dat'
    integer(I4B),          parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
 
-   type, public, extends(swiftest_parameters) :: symba_parameters
+   type, extends(swiftest_parameters) :: symba_parameters
       character(STRMAX)                       :: particle_file  = PARTICLE_OUTFILE !! Name of output particle information file
       real(DP)                                :: MTINY          = -1.0_DP          !! Smallest mass that is fully gravitating
       integer(I4B), dimension(:), allocatable :: seed                              !! Random seeds
       logical                                 :: lfragmentation = .false.          !! Do fragmentation modeling instead of simple merger.
    contains
-      private
-      procedure, public :: reader => symba_io_param_reader
-      procedure, public :: writer => symba_io_param_writer
+      procedure :: reader => symba_io_param_reader
+      procedure :: writer => symba_io_param_writer
    end type symba_parameters
 
    !********************************************************************************************************************************
    ! symba_cb class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA central body particle class
-   type, public, extends(helio_cb) :: symba_cb
+   type, extends(helio_cb) :: symba_cb
       real(DP) :: M0  = 0.0_DP !! Initial mass of the central body
       real(DP) :: dM  = 0.0_DP !! Change in mass of the central body
       real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
       real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
    contains
-      private
    end type symba_cb
 
    !********************************************************************************************************************************
@@ -45,17 +44,16 @@ module symba_classes
    !*******************************************************************************************************************************
    !> Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
    !> of fragments produced in collisional events.
-   type, public, extends(swiftest_base) :: symba_particle_info
+   type, extends(swiftest_base) :: symba_particle_info
       character(len=32)         :: origin_type !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP)                  :: origin_time !! The time of the particle's formation
       real(DP), dimension(NDIM) :: origin_xh   !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(NDIM) :: origin_vh   !! The heliocentric velocity vector at the time of the particle's formation
    contains
-      private
-      procedure, public :: dump        => symba_io_dump_particle_info       !! I/O routine for dumping particle info to file
-      procedure, public :: initialize  => symba_io_initialize_particle_info !! I/O routine for reading in particle info data
-      procedure, public :: read_frame  => symba_io_read_frame_info          !! I/O routine for reading in a single frame of particle info
-      procedure, public :: write_frame => symba_io_write_frame_info         !! I/O routine for writing out a single frame of particle info
+      procedure :: dump        => symba_io_dump_particle_info       !! I/O routine for dumping particle info to file
+      procedure :: initialize  => symba_io_initialize_particle_info !! I/O routine for reading in particle info data
+      procedure :: read_frame  => symba_io_read_frame_info          !! I/O routine for reading in a single frame of particle info
+      procedure :: write_frame => symba_io_write_frame_info         !! I/O routine for writing out a single frame of particle info
    end type symba_particle_info
 
    !********************************************************************************************************************************
@@ -72,7 +70,7 @@ module symba_classes
    !                                    symba_pl class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA massive body class
-   type, public, extends(helio_pl) :: symba_pl
+   type, extends(helio_pl) :: symba_pl
       logical,                   dimension(:), allocatable :: lcollision !! flag indicating whether body has merged with another this time step
       logical,                   dimension(:), allocatable :: lencounter !! flag indicating whether body is part of an encounter this time step
       logical,                   dimension(:), allocatable :: lmtiny     !! flag indicating whether this body is below the MTINY cutoff value
@@ -88,37 +86,35 @@ module symba_classes
       type(symba_kinship),       dimension(:), allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
       type(symba_particle_info), dimension(:), allocatable :: info
    contains
-      private
-      procedure, public :: discard         => symba_discard_pl             !! Process massive body discards
-      procedure, public :: encounter_check => symba_encounter_check_pl     !! Checks if massive bodies are going through close encounters with each other
-      procedure, public :: accel           => symba_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: setup           => symba_setup_pl               !! Constructor method - Allocates space for number of particle
-      procedure, public :: sort            => symba_util_sort_pl           !! Sorts body arrays by a sortable componen
-      procedure, public :: rearrange       => symba_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: discard         => symba_discard_pl             !! Process massive body discards
+      procedure :: encounter_check => symba_encounter_check_pl     !! Checks if massive bodies are going through close encounters with each other
+      procedure :: accel           => symba_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
+      procedure :: setup           => symba_setup_pl               !! Constructor method - Allocates space for number of particle
+      procedure :: sort            => symba_util_sort_pl           !! Sorts body arrays by a sortable componen
+      procedure :: rearrange       => symba_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
    end type symba_pl
 
    !********************************************************************************************************************************
    !                                    symba_tp class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA test particle class
-   type, public, extends(helio_tp) :: symba_tp
+   type, extends(helio_tp) :: symba_tp
       integer(I4B), dimension(:), allocatable :: nplenc  !! number of encounters with planets this time step
       integer(I4B), dimension(:), allocatable :: levelg  !! level at which this particle should be moved
       integer(I4B), dimension(:), allocatable :: levelm  !! deepest encounter level achieved this time step
    contains
-      private
-      procedure, public :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
-      procedure, public :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
-      procedure, public :: setup           => symba_setup_tp               !! Constructor method - Allocates space for number of particle
-      procedure, public :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
-      procedure, public :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
+      procedure :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
+      procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for number of particle
+      procedure :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
+      procedure :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
    end type symba_tp
 
    !********************************************************************************************************************************
    !                                    symba_pltpenc class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-tp close encounters in a step
-   type, public :: symba_pltpenc
+   type :: symba_pltpenc
       integer(I4B)                              :: nenc   !! Total number of encounters
       logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
       integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
@@ -126,49 +122,47 @@ module symba_classes
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the planet in encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the test particle in encounter
    contains
-      procedure, public :: collision_check => symba_collision_check_pltpenc !! Checks if a test particle is going to collide with a massive body
-      procedure, public :: encounter_check => symba_encounter_check_pltpenc !! Checks if massive bodies are going through close encounters with each other
-      procedure, public :: kick            => symba_kick_pltpenc            !! Kick barycentric velocities of active test particles within SyMBA recursion
-      procedure, public :: setup           => symba_setup_pltpenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure, public :: copy            => symba_util_copy_pltpenc       !! Copies all elements of one pltpenc list to another
-      procedure, public :: resize          => symba_util_resize_pltpenc     !! Checks the current size of the pltpenc_list against the required size and extends it by a factor of 2 more than requested if it is too small 
+      procedure :: collision_check => symba_collision_check_pltpenc !! Checks if a test particle is going to collide with a massive body
+      procedure :: encounter_check => symba_encounter_check_pltpenc !! Checks if massive bodies are going through close encounters with each other
+      procedure :: kick            => symba_kick_pltpenc            !! Kick barycentric velocities of active test particles within SyMBA recursion
+      procedure :: setup           => symba_setup_pltpenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: copy            => symba_util_copy_pltpenc       !! Copies all elements of one pltpenc list to another
+      procedure :: resize          => symba_util_resize_pltpenc     !! Checks the current size of the pltpenc_list against the required size and extends it by a factor of 2 more than requested if it is too small 
    end type symba_pltpenc
 
    !********************************************************************************************************************************
    !                                    symba_plplenc class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-pl close encounters in a step
-   type, public, extends(symba_pltpenc) :: symba_plplenc
+   type, extends(symba_pltpenc) :: symba_plplenc
       real(DP), dimension(:,:), allocatable :: xh1 !! the heliocentric position of parent 1 in encounter
       real(DP), dimension(:,:), allocatable :: xh2 !! the heliocentric position of parent 2 in encounter
       real(DP), dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
       real(DP), dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
    contains
-      procedure, public :: collision_check => symba_collision_check_plplenc !! Checks if two massive bodies are going to collide 
-      procedure, public :: setup           => symba_setup_plplenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure, public :: copy            => symba_util_copy_plplenc       !! Copies all elements of one plplenc list to another
+      procedure :: collision_check => symba_collision_check_plplenc !! Checks if two massive bodies are going to collide 
+      procedure :: setup           => symba_setup_plplenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: copy            => symba_util_copy_plplenc       !! Copies all elements of one plplenc list to another
    end type symba_plplenc
 
    !********************************************************************************************************************************
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
-   type, public, extends(helio_nbody_system) :: symba_nbody_system
+   type, extends(helio_nbody_system) :: symba_nbody_system
       class(symba_pl),      allocatable :: mergeadd_list !! List of added bodies in mergers or collisions
       class(symba_pl),      allocatable :: mergesub_list !! List of subtracted bodies in mergers or collisions
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
       class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
    contains
-      private
-      procedure, public :: initialize     => symba_setup_initialize_system       !! Performs SyMBA-specific initilization steps
-      procedure, public :: step           => symba_step_system        !! Advance the SyMBA nbody system forward in time by one step
-      procedure, public :: interp         => symba_step_interp_system !! Perform an interpolation step on the SymBA nbody system 
-      procedure, public :: recursive_step => symba_step_recur_system  !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
-      procedure, public :: reset          => symba_step_reset_system  !! Resets pl, tp,and encounter structures at the start of a new step 
+      procedure :: initialize     => symba_setup_initialize_system       !! Performs SyMBA-specific initilization steps
+      procedure :: step           => symba_step_system        !! Advance the SyMBA nbody system forward in time by one step
+      procedure :: interp         => symba_step_interp_system !! Perform an interpolation step on the SymBA nbody system 
+      procedure :: recursive_step => symba_step_recur_system  !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
+      procedure :: reset          => symba_step_reset_system  !! Resets pl, tp,and encounter structures at the start of a new step 
    end type symba_nbody_system
 
    interface
-
       module subroutine symba_collision_check_pltpenc(self, system, param, t, dt, irec)
          implicit none
          class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list object
