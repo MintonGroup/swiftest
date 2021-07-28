@@ -112,4 +112,66 @@ contains
          end if
       end subroutine whm_util_set_ir3j
 
+      module subroutine whm_util_sort_pl(self, sortby, ascending)
+         !! author: David A. Minton
+         !!
+         !! Sort a WHM massive body object in-place. 
+         !! sortby is a string indicating which array component to sort.
+         implicit none
+         ! Arguments
+         class(whm_pl), intent(inout) :: self      !! WHM massive body object
+         character(*),  intent(in)    :: sortby    !! Sorting attribute
+         logical,       intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+         ! Internals
+         integer(I4B), dimension(self%nbody) :: ind
+         integer(I4B) :: direction
+  
+         if (ascending) then
+            direction = 1
+         else
+            direction = -1
+         end if
+         associate(pl => self, npl => self%nbody)
+            select case(sortby)
+            case("eta")
+               call util_sort(direction * pl%eta(1:npl), ind(1:npl))
+            case("muj")
+               call util_sort(direction * pl%muj(1:npl), ind(1:npl))
+            case("ir3j")
+               call util_sort(direction * pl%ir3j(1:npl), ind(1:npl))
+            case default
+               call util_sort_pl(pl, sortby, ascending)
+               return
+            end select
+            call pl%rearrange(ind)
+         end associate
+         return
+      end subroutine whm_util_sort_pl
+   
+      module subroutine whm_util_sort_rearrange_pl(self, ind)
+         !! author: David A. Minton
+         !!
+         !! Rearrange WHM massive body structure in-place from an index list.
+         !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
+         implicit none
+         ! Arguments
+         class(whm_pl),               intent(inout) :: self !! WHM massive body object
+         integer(I4B),  dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+         ! Internals
+         class(whm_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
+         integer(I4B) :: i
+   
+         associate(pl => self, npl => self%nbody)
+            call util_sort_rearrange_pl(pl,ind)
+            allocate(pl_sorted, source=self)
+            pl%eta(1:npl) = pl_sorted%eta(ind(1:npl))
+            pl%xj(:,1:npl) = pl_sorted%xj(:,ind(1:npl))
+            pl%vj(:,1:npl) = pl_sorted%vj(:,ind(1:npl))
+            pl%muj(1:npl) = pl_sorted%muj(ind(1:npl))
+            pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
+            deallocate(pl_sorted)
+         end associate
+         return
+      end subroutine whm_util_sort_rearrange_pl
+   
 end submodule s_whm_util
