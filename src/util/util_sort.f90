@@ -13,50 +13,35 @@ contains
       logical,              intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B)                        :: direction
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
 
       associate(body => self, n => self%nbody)
          select case(sortby)
          case("id")
-            if (ascending) then
-               call util_sort(body%id(1:n), ind(1:n))
-            else
-               call util_sort(-body%id(1:n), ind(1:n))
-            end if
+            call util_sort(direction * body%id(1:n), ind(1:n))
          case("a")
-            if (ascending) then
-               call util_sort(body%a(1:n), ind(1:n))
-            else
-               call util_sort(-body%a(1:n), ind(1:n))
-            end if
+            call util_sort(direction * body%a(1:n), ind(1:n))
          case("e")
-            if (ascending) then
-               call util_sort(body%e(1:n), ind(1:n))
-            else
-               call util_sort(-body%e(1:n), ind(1:n))
-            end if
+            call util_sort(direction * body%e(1:n), ind(1:n))
          case("inc")
-            if (ascending) then
-               call util_sort(body%inc(1:n), ind(1:n))
-            else
-               call util_sort(-body%inc(1:n), ind(1:n))
-            end if
+            call util_sort(direction * body%inc(1:n), ind(1:n))
          case("capom")
-            if (ascending) then
-               call util_sort(body%capom(1:n), ind(1:n))
-            else
-               call util_sort(-body%capom(1:n), ind(1:n))
-            end if
+            call util_sort(direction * body%capom(1:n), ind(1:n))
          case("mu")
-            if (ascending) then
-               call util_sort(body%mu(1:n), ind(1:n))
-            else
-               call util_sort(-body%mu(1:n), ind(1:n))
-            end if
+            call util_sort(direction * body%mu(1:n), ind(1:n))
          case default
-            write(*,*) 'Cannot sort structure by component '//trim(adjustl(sortby))
+            write(*,*) 'Cannot sort structure by component ' // trim(adjustl(sortby))
             return
          end select
+
          call body%rearrange(ind)
+
       end associate
 
       return
@@ -74,56 +59,37 @@ contains
       logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B)                        :: direction
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
 
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("Gmass","mass")
-            if (ascending) then
-               call util_sort(pl%Gmass(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%Gmass(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%Gmass(1:npl), ind(1:npl))
          case("rhill")
-            if (ascending) then
-               call util_sort(pl%rhill(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%rhill(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%rhill(1:npl), ind(1:npl))
          case("radius")
-            if (ascending) then
-               call util_sort(pl%radius(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%radius(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%radius(1:npl), ind(1:npl))
          case("density")
-            if (ascending) then
-               call util_sort(pl%density(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%density(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%density(1:npl), ind(1:npl))
          case("k2")
-            if (ascending) then
-               call util_sort(pl%k2(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%k2(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%k2(1:npl), ind(1:npl))
          case("Q")
-            if (ascending) then
-               call util_sort(pl%Q(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%Q(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%Q(1:npl), ind(1:npl))
          case("tlag")
-            if (ascending) then
-               call util_sort(pl%tlag(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%tlag(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%tlag(1:npl), ind(1:npl))
          case default
             call util_sort_body(pl, sortby, ascending)
             return
          end select
+
          call pl%rearrange(ind)
+
       end associate
 
       return
@@ -141,27 +107,27 @@ contains
       logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B)                        :: direction
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
 
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("peri")
-            if (ascending) then
-               call util_sort(tp%peri(1:ntp), ind(1:ntp))
-            else
-               call util_sort(-tp%peri(1:ntp), ind(1:ntp))
-            end if
+            call util_sort(direction * tp%peri(1:ntp), ind(1:ntp))
          case("atp")
-            if (ascending) then
-               call util_sort(tp%atp(1:ntp), ind(1:ntp))
-            else
-               call util_sort(-tp%atp(1:ntp), ind(1:ntp))
-            end if
+            call util_sort(direction * tp%atp(1:ntp), ind(1:ntp))
          case default
             call util_sort_body(tp, sortby, ascending)
             return
          end select
 
          call tp%rearrange(ind)
+
       end associate
 
       return

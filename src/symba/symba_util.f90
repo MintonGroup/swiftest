@@ -77,50 +77,35 @@ contains
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B)                        :: direction
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
 
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("nplenc")
-            if (ascending) then
-               call util_sort(pl%nplenc(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%nplenc(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%nplenc(1:npl), ind(1:npl))
          case("ntpenc")
-            if (ascending) then
-               call util_sort(pl%ntpenc(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%ntpenc(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%ntpenc(1:npl), ind(1:npl))
          case("levelg")
-            if (ascending) then
-               call util_sort(pl%levelg(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%levelg(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%levelg(1:npl), ind(1:npl))
          case("levelm")
-            if (ascending) then
-               call util_sort(pl%levelm(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%levelm(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%levelm(1:npl), ind(1:npl))
          case("peri")
-            if (ascending) then
-               call util_sort(pl%peri(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%peri(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%peri(1:npl), ind(1:npl))
          case("atp")
-            if (ascending) then
-               call util_sort(pl%atp(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%atp(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%atp(1:npl), ind(1:npl))
          case default
             call util_sort_pl(pl, sortby, ascending)
             return
          end select
+
          call pl%rearrange(ind)
+
       end associate
       return
    end subroutine symba_util_sort_pl
@@ -137,32 +122,29 @@ contains
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B)                        :: direction
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
 
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("nplenc")
-            if (ascending) then
-               call util_sort(tp%nplenc(1:ntp), ind(1:ntp))
-            else
-               call util_sort(-tp%nplenc(1:ntp), ind(1:ntp))
-            end if
+            call util_sort(direction * tp%nplenc(1:ntp), ind(1:ntp))
          case("levelg")
-            if (ascending) then
-               call util_sort(tp%levelg(1:ntp), ind(1:ntp))
-            else
-               call util_sort(-tp%levelg(1:ntp), ind(1:ntp))
-            end if
+            call util_sort(direction * tp%levelg(1:ntp), ind(1:ntp))
          case("levelm")
-            if (ascending) then
-               call util_sort(tp%levelm(1:ntp), ind(1:ntp))
-            else
-               call util_sort(-tp%levelm(1:ntp), ind(1:ntp))
-            end if
+            call util_sort(direction * tp%levelm(1:ntp), ind(1:ntp))
          case default
             call util_sort_tp(tp, sortby, ascending)
             return
          end select
+
          call tp%rearrange(ind)
+
       end associate
       return
    end subroutine symba_util_sort_tp

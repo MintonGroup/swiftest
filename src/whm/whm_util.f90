@@ -131,6 +131,7 @@ contains
          else
             direction = -1
          end if
+
          associate(pl => self, npl => self%nbody)
             select case(sortby)
             case("eta")
@@ -143,7 +144,9 @@ contains
                call util_sort_pl(pl, sortby, ascending)
                return
             end select
+
             call pl%rearrange(ind)
+
          end associate
          return
       end subroutine whm_util_sort_pl
