@@ -8,21 +8,49 @@ contains
       !! sortby is a string. The only valid input the body class takes is "id," which is also the default value. 
       !! Sort order is ascending order by default. Set reverse=.true. to sort in descending order.
       implicit none
-      class(swiftest_body),   intent(inout) :: self    !! Swiftest body object
-      character(*), optional, intent(in)    :: sortby  !! Sorting attribute
-      logical,      optional, intent(in)    :: reverse !! Logical flag indicating whether or not the sorting should be in reverse (descending order)
-   end subroutine util_sort_body
+      ! Arguments
+      class(swiftest_body), intent(inout) :: self    !! Swiftest body object
+      character(*),         intent(in)    :: sortby  !! Sorting attribute
+      logical,              intent(in)    :: reverse !! Logical flag indicating whether or not the sorting should be in reverse (descending order)
+      ! Internals
+      class(swiftest_body),       allocatable :: body_sorted  !! Temporary holder for sorted body
+      integer(I4B), dimension(:), allocatable :: ind
 
-   module subroutine util_sort_pl(self, sortby, reverse)
-      !! author: David A. Minton
-      !!
-      !! sortby is a string. The only valid input the body class takes is "id," which is also the default value. 
-      !! Sort order is ascending order by default. Set reverse=.true. to sort in descending order.
-      implicit none
-      class(swiftest_pl), intent(inout)  :: self    !! Swiftest body object
-      character(*), optional, intent(in) :: sortby  !! Sorting attribute
-      logical,      optional, intent(in) :: reverse !! Logical flag indicating whether or not the sorting should be in reverse (descending order)
-   end subroutine util_sort_pl
+      associate(n => self%nbody)
+         allocate(body_sorted, source=self)
+         allocate(ind(n))
+         select case(sortby)
+         case("id")
+            if (reverse) then
+               call util_sort(-self%id(1:n), ind(1:n))
+            else
+               call util_sort(self%id(1:n), ind(1:n))
+            end if
+         end select
+
+         self%id(1:n) = body_sorted%id(ind(1:n))
+         self%name(1:n) = body_sorted%name(ind(1:n))
+         self%status(1:n) = body_sorted%status(ind(1:n))
+         self%ldiscard(1:n) = body_sorted%ldiscard(ind(1:n))
+         self%xh(:,1:n) = body_sorted%xh(:,ind(1:n))
+         self%vh(:,1:n) = body_sorted%vh(:,ind(1:n))
+         self%xb(:,1:n) = body_sorted%xb(:,ind(1:n))
+         self%vb(:,1:n) = body_sorted%vb(:,ind(1:n))
+         self%ah(:,1:n) = body_sorted%ah(:,ind(1:n))
+         self%aobl(:,1:n) = body_sorted%aobl(:,ind(1:n))
+         self%atide(:,1:n) = body_sorted%atide(:,ind(1:n))
+         self%agr(:,1:n) = body_sorted%agr(:,ind(1:n))
+         self%ir3h(1:n) = body_sorted%ir3h(ind(1:n))
+         self%a(1:n) = body_sorted%a(ind(1:n))
+         self%e(1:n) = body_sorted%e(ind(1:n))
+         self%inc(1:n) = body_sorted%inc(ind(1:n))
+         self%capom(1:n) = body_sorted%capom(ind(1:n))
+         self%omega(1:n) = body_sorted%omega(ind(1:n))
+         self%capm(1:n) = body_sorted%capm(ind(1:n))
+         self%mu(1:n) = body_sorted%mu(ind(1:n))
+      end associate
+      return
+   end subroutine util_sort_body
 
    module subroutine util_sort_dp(arr)
       !! author: David A. Minton
