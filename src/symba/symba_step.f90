@@ -137,7 +137,6 @@ contains
 
                   call pl%drift(system, param, dtl, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == ireci))
                   call tp%drift(system, param, dtl, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == ireci))
-
                   if (lencounter) call system%recursive_step(param, t+dth,irecp)
 
                   call plplenc_list%kick(system, dth, irecp, 1)
@@ -154,8 +153,14 @@ contains
                              plind2 => plplenc_list%index2(1:plplenc_list%nenc), &
                              plind3 => pltpenc_list%index1(1:pltpenc_list%nenc), &
                              tpind  => pltpenc_list%index2(1:pltpenc_list%nenc))
-                     where(pl%levelg([plind1,plind2,plind3]) == irecp) pl%levelg(:) = ireci
-                     where(tp%levelg(tpind) == irecp) tp%levelg(:) = ireci
+                     do i = 1, plplenc_list%nenc
+                        if (pl%levelg(plind1(i)) == irecp) pl%levelg(plind1(i)) = ireci
+                        if (pl%levelg(plind2(i)) == irecp) pl%levelg(plind2(i)) = ireci
+                     end do
+                     do i = 1, pltpenc_list%nenc
+                        if (pl%levelg(plind3(i)) == irecp) pl%levelg(plind3(i)) = ireci
+                        if (tp%levelg(tpind(i)) == irecp) tp%levelg(tpind(i)) = ireci
+                     end do
                   end associate
                   where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(:) = ireci
                   where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(:) = ireci

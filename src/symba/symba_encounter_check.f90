@@ -15,7 +15,6 @@ contains
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
-      integer(I4B)                              :: nenc_old
       integer(I8B)                              :: k
       real(DP),     dimension(NDIM)             :: xr, vr
       logical,      dimension(:),   allocatable :: lencounter, loc_lvdotr
@@ -35,15 +34,14 @@ contains
          lany_encounter = any(lencounter(:))
          if (lany_encounter) then 
             associate(plplenc_list => system%plplenc_list, nenc => system%plplenc_list%nenc)
-               nenc_old = nenc
-               call plplenc_list%resize(nenc_old + count(lencounter(:)))
-               plplenc_list%status(nenc_old+1:nenc) = ACTIVE
-               plplenc_list%level(nenc_old+1:nenc) = irec
-               plplenc_list%lvdotr(nenc_old+1:nenc) = pack(loc_lvdotr(:), lencounter(:))
-               plplenc_list%index1(nenc_old+1:nenc) = pack(pl%k_plpl(1,:), lencounter(:))
-               plplenc_list%index2(nenc_old+1:nenc) = pack(pl%k_plpl(2,:), lencounter(:))
-               pl%lencounter(plplenc_list%index1(nenc_old+1:nenc)) = .true.
-               pl%lencounter(plplenc_list%index2(nenc_old+1:nenc)) = .true.
+               call plplenc_list%resize(count(lencounter(:)))
+               plplenc_list%status(1:nenc) = ACTIVE
+               plplenc_list%level(1:nenc) = irec
+               plplenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:), lencounter(:))
+               plplenc_list%index1(1:nenc) = pack(pl%k_plpl(1,:), lencounter(:))
+               plplenc_list%index2(1:nenc) = pack(pl%k_plpl(2,:), lencounter(:))
+               pl%lencounter(plplenc_list%index1(1:nenc)) = .true.
+               pl%lencounter(plplenc_list%index2(1:nenc)) = .true.
             end associate
          end if
       end associate
@@ -135,7 +133,7 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       real(DP)                                  :: r2crit, vdotr, r2, v2, tmin, r2min, term2
-      integer(I4B)                              :: i, j, nenc_old
+      integer(I4B)                              :: i, j
       real(DP),     dimension(NDIM)             :: xr, vr
       logical,      dimension(:,:), allocatable :: lencounter, loc_lvdotr
    
@@ -154,16 +152,16 @@ contains
          lany_encounter = any(lencounter(:,:))
          if (lany_encounter) then 
             associate(pltpenc_list => system%pltpenc_list, nenc => system%pltpenc_list%nenc)
-               nenc_old = nenc
-               call pltpenc_list%resize(nenc_old + count(lencounter(:,:)))
-               pltpenc_list%status(nenc_old+1:nenc) = ACTIVE
-               pltpenc_list%level(nenc_old+1:nenc) = irec
-               pltpenc_list%lvdotr(nenc_old+1:nenc) = pack(loc_lvdotr(:,:), lencounter(:,:))
-               pltpenc_list%index1(nenc_old+1:nenc) = pack(spread([(i, i = 1, npl)], dim=2, ncopies=ntp), lencounter(:,:)) 
-               pltpenc_list%index2(nenc_old+1:nenc) = pack(spread([(j, j = 1, ntp)], dim=1, ncopies=npl), lencounter(:,:))
+               call pltpenc_list%resize(count(lencounter(:,:)))
+               pltpenc_list%status(1:nenc) = ACTIVE
+               pltpenc_list%level(1:nenc) = irec
+               pltpenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:,:), lencounter(:,:))
+               pltpenc_list%index1(1:nenc) = pack(spread([(i, i = 1, npl)], dim=2, ncopies=ntp), lencounter(:,:)) 
+               pltpenc_list%index2(1:nenc) = pack(spread([(j, j = 1, ntp)], dim=1, ncopies=npl), lencounter(:,:))
                select type(pl)
                class is (symba_pl)
-                  pl%lencounter(pltpenc_list%index1(nenc_old+1:nenc)) = .true.
+                  pl%lencounter(:) = .false.
+                  pl%lencounter(pltpenc_list%index1(1:nenc)) = .true.
                end select
             end associate
          end if
@@ -188,14 +186,13 @@ contains
       integer(I4B) :: iflag
       real(DP)     :: r2, v2, rcrit, r2crit, vdotr
 
-      lencounter = .false.
       rcrit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
       r2crit = rcrit**2
       r2 = xr**2 + yr**2 + zr**2
       v2 = vxr**2 + vyr**2 + vzr**2
       vdotr = xr * vxr + yr * vyr + zr * vzr
       iflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit)
-      if (iflag /= 0) lencounter = .true.
+      lencounter = (iflag /= 0)
       lvdotr = (vdotr < 0.0_DP)
 
       return

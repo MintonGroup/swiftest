@@ -60,6 +60,8 @@ contains
          call self%setup(2 * nrequested)
          call self%copy(enc_temp)
          deallocate(enc_temp)
+      else
+         self%status(nrequested+1:nold) = INACTIVE
       end if
       self%nenc = nrequested
       return
