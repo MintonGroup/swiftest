@@ -137,7 +137,11 @@ contains
 
                   call pl%drift(system, param, dtl, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == ireci))
                   call tp%drift(system, param, dtl, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == ireci))
-
+                  if (ireci /=0) then
+                     if (pl%levelg(2) == ireci) then
+                        write(14,*) ireci,j,pl%xh(1,2)
+                     end if
+                  end if
                   if (lencounter) call system%recursive_step(param, t+dth,irecp)
 
                   call plplenc_list%kick(system, dth, irecp, 1)
