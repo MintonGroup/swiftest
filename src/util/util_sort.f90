@@ -54,8 +54,8 @@ contains
             end if
          case default
             write(*,*) 'Cannot sort structure by component '//trim(adjustl(sortby))
+            return
          end select
-
          call body%rearrange(ind)
       end associate
 
@@ -121,8 +121,8 @@ contains
             end if
          case default
             call util_sort_body(pl, sortby, ascending)
+            return
          end select
-
          call pl%rearrange(ind)
       end associate
 
@@ -158,6 +158,7 @@ contains
             end if
          case default
             call util_sort_body(tp, sortby, ascending)
+            return
          end select
 
          call tp%rearrange(ind)
@@ -216,22 +217,22 @@ contains
       ! Internals
       class(swiftest_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
 
-      call util_sort_rearrange_body(self,ind)
-      associate(n => self%nbody)
+      associate(pl => self, npl => self%nbody)
+         call util_sort_rearrange_body(pl,ind)
          allocate(pl_sorted, source=self)
-         self%mass(1:n) = pl_sorted%mass(ind(1:n))
-         self%Gmass(1:n) = pl_sorted%Gmass(ind(1:n))
-         self%rhill(1:n) = pl_sorted%rhill(ind(1:n))
-         self%radius(1:n) = pl_sorted%radius(ind(1:n))
-         self%xbeg(:,1:n) = pl_sorted%xbeg(:,ind(1:n))
-         self%xend(:,1:n) = pl_sorted%xend(:,ind(1:n))
-         self%vbeg(:,1:n) = pl_sorted%vbeg(:,ind(1:n))
-         self%density(1:n) = pl_sorted%density(ind(1:n))
-         self%Ip(:,1:n) = pl_sorted%Ip(:,ind(1:n))
-         self%rot(:,1:n) = pl_sorted%rot(:,ind(1:n))
-         self%k2(1:n) = pl_sorted%k2(ind(1:n))
-         self%Q(1:n) = pl_sorted%Q(ind(1:n))
-         self%tlag(1:n) = pl_sorted%tlag(ind(1:n))
+         pl%mass(1:npl) = pl_sorted%mass(ind(1:npl))
+         pl%Gmass(1:npl) = pl_sorted%Gmass(ind(1:npl))
+         pl%rhill(1:npl) = pl_sorted%rhill(ind(1:npl))
+         pl%radius(1:npl) = pl_sorted%radius(ind(1:npl))
+         pl%xbeg(:,1:npl) = pl_sorted%xbeg(:,ind(1:npl))
+         pl%xend(:,1:npl) = pl_sorted%xend(:,ind(1:npl))
+         pl%vbeg(:,1:npl) = pl_sorted%vbeg(:,ind(1:npl))
+         pl%density(1:npl) = pl_sorted%density(ind(1:npl))
+         pl%Ip(:,1:npl) = pl_sorted%Ip(:,ind(1:npl))
+         pl%rot(:,1:npl) = pl_sorted%rot(:,ind(1:npl))
+         pl%k2(1:npl) = pl_sorted%k2(ind(1:npl))
+         pl%Q(1:npl) = pl_sorted%Q(ind(1:npl))
+         pl%tlag(1:npl) = pl_sorted%tlag(ind(1:npl))
          deallocate(pl_sorted)
       end associate
       return
@@ -249,12 +250,12 @@ contains
       ! Internals
       class(swiftest_tp), allocatable :: tp_sorted  !! Temporary holder for sorted body
 
-      call util_sort_rearrange_body(self,ind)
-      associate(n => self%nbody)
+      associate(tp => self, ntp => self%nbody)
+         call util_sort_rearrange_body(tp,ind)
          allocate(tp_sorted, source=self)
-         self%isperi(1:n) = tp_sorted%isperi(ind(1:n))
-         self%peri(1:n) = tp_sorted%peri(ind(1:n))
-         self%atp(1:n) = tp_sorted%atp(ind(1:n))
+         tp%isperi(1:ntp) = tp_sorted%isperi(ind(1:ntp))
+         tp%peri(1:ntp) = tp_sorted%peri(ind(1:ntp))
+         tp%atp(1:ntp) = tp_sorted%atp(ind(1:ntp))
          deallocate(tp_sorted)
       end associate
       return

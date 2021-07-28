@@ -118,10 +118,10 @@ contains
             end if
          case default
             call util_sort_pl(pl, sortby, ascending)
+            return
          end select
          call pl%rearrange(ind)
       end associate
-
       return
    end subroutine symba_util_sort_pl
 
@@ -160,10 +160,10 @@ contains
             end if
          case default
             call util_sort_tp(tp, sortby, ascending)
+            return
          end select
          call tp%rearrange(ind)
       end associate
-
       return
    end subroutine symba_util_sort_tp
 
