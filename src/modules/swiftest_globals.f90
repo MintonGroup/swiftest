@@ -86,6 +86,7 @@ module swiftest_globals
    integer(I4B), parameter :: SUPERCATASTROPHIC  = -10
    integer(I4B), parameter :: GRAZE_AND_MERGE    = -11
    integer(I4B), parameter :: HIT_AND_RUN        = -12
+   integer(I4B), parameter :: COLLISION          = -13
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1

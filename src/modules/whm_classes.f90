@@ -12,7 +12,7 @@ module whm_classes
    ! whm_cb class definitions and method interfaces
    !*******************************************************************************************************************************
    !> Swiftest central body particle class
-   type, public, extends(swiftest_cb) :: whm_cb
+   type, extends(swiftest_cb) :: whm_cb
    contains
    end type whm_cb
 
@@ -21,7 +21,7 @@ module whm_classes
    !*******************************************************************************************************************************
 
    !> WHM massive body particle class
-   type, public, extends(swiftest_pl) :: whm_pl
+   type, extends(swiftest_pl) :: whm_pl
       real(DP), dimension(:),   allocatable :: eta    !! Jacobi mass
       real(DP), dimension(:,:), allocatable :: xj     !! Jacobi position
       real(DP), dimension(:,:), allocatable :: vj     !! Jacobi velocity
@@ -30,20 +30,20 @@ module whm_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_pl and whm_util_spill_pl
    contains
-      procedure, public :: h2j         => whm_coord_h2j_pl       !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: j2h         => whm_coord_j2h_pl       !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
-      procedure, public :: vh2vj       => whm_coord_vh2vj_pl     !! Convert velocity vectors from heliocentric to Jacobi coordinates 
-      procedure, public :: drift       => whm_drift_pl           !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
-      procedure, public :: fill        => whm_util_fill_pl       !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure, public :: accel       => whm_kick_getacch_pl    !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: kick        => whm_kick_vh_pl         !! Kick heliocentric velocities of massive bodies
-      procedure, public :: accel_gr    => whm_gr_kick_getacch_pl !! Acceleration term arising from the post-Newtonian correction
-      procedure, public :: gr_pos_kick => whm_gr_p4_pl           !! Position kick due to p**4 term in the post-Newtonian correction
-      procedure, public :: setup       => whm_setup_pl           !! Constructor method - Allocates space for number of particles
-      procedure, public :: set_mu      => whm_util_set_mu_eta_pl !! Sets the Jacobi mass value for all massive bodies.
-      procedure, public :: set_ir3     => whm_setup_set_ir3j     !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
-      procedure, public :: step        => whm_step_pl            !! Steps the body forward one stepsize
-      procedure, public :: spill       => whm_util_spill_pl      !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: h2j         => whm_coord_h2j_pl       !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
+      procedure :: j2h         => whm_coord_j2h_pl       !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
+      procedure :: vh2vj       => whm_coord_vh2vj_pl     !! Convert velocity vectors from heliocentric to Jacobi coordinates 
+      procedure :: drift       => whm_drift_pl           !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
+      procedure :: fill        => whm_util_fill_pl       !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: accel       => whm_kick_getacch_pl    !! Compute heliocentric accelerations of massive bodies
+      procedure :: kick        => whm_kick_vh_pl         !! Kick heliocentric velocities of massive bodies
+      procedure :: accel_gr    => whm_gr_kick_getacch_pl !! Acceleration term arising from the post-Newtonian correction
+      procedure :: gr_pos_kick => whm_gr_p4_pl           !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure :: setup       => whm_setup_pl           !! Constructor method - Allocates space for number of particles
+      procedure :: set_mu      => whm_util_set_mu_eta_pl !! Sets the Jacobi mass value for all massive bodies.
+      procedure :: set_ir3     => whm_util_set_ir3j     !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
+      procedure :: step        => whm_step_pl            !! Steps the body forward one stepsize
+      procedure :: spill       => whm_util_spill_pl      !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type whm_pl
 
    !********************************************************************************************************************************
@@ -51,29 +51,27 @@ module whm_classes
    !*******************************************************************************************************************************
 
    !! WHM test particle class
-   type, public, extends(swiftest_tp) :: whm_tp
+   type, extends(swiftest_tp) :: whm_tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_tp and whm_util_spill_tp
    contains
-      private
-      procedure, public :: accel       => whm_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
-      procedure, public :: kick        => whm_kick_vh_tp         !! Kick heliocentric velocities of test particles
-      procedure, public :: accel_gr    => whm_gr_kick_getacch_tp !! Acceleration term arising from the post-Newtonian correction
-      procedure, public :: gr_pos_kick => whm_gr_p4_tp           !! Position kick due to p**4 term in the post-Newtonian correction
-      procedure, public :: setup       => whm_setup_tp           !! Allocates new components of the whm class and recursively calls parent allocations
-      procedure, public :: step        => whm_step_tp            !! Steps the particle forward one stepsize
+      procedure :: accel       => whm_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
+      procedure :: kick        => whm_kick_vh_tp         !! Kick heliocentric velocities of test particles
+      procedure :: accel_gr    => whm_gr_kick_getacch_tp !! Acceleration term arising from the post-Newtonian correction
+      procedure :: gr_pos_kick => whm_gr_p4_tp           !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure :: setup       => whm_setup_tp           !! Allocates new components of the whm class and recursively calls parent allocations
+      procedure :: step        => whm_step_tp            !! Steps the particle forward one stepsize
    end type whm_tp
 
    !********************************************************************************************************************************
    !  whm_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    !> An abstract class for the WHM integrator nbody system 
-   type, public, extends(swiftest_nbody_system) :: whm_nbody_system
+   type, extends(swiftest_nbody_system) :: whm_nbody_system
    contains
-      private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize   => whm_setup_system      !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
-      procedure, public :: step         => whm_step_system       !! Advance the WHM nbody system forward in time by one step
+      procedure :: initialize   => whm_setup_initialize_system      !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure :: step         => whm_step_system       !! Advance the WHM nbody system forward in time by one step
    end type whm_nbody_system
 
    interface
@@ -199,10 +197,10 @@ module whm_classes
          integer(I4B),  intent(in)       :: n    !! Number of test particles to allocate
       end subroutine whm_setup_pl
 
-      module subroutine whm_setup_set_ir3j(self)
+      module subroutine whm_util_set_ir3j(self)
          implicit none
          class(whm_pl),                intent(inout) :: self    !! WHM massive body object
-      end subroutine whm_setup_set_ir3j
+      end subroutine whm_util_set_ir3j
 
       module subroutine whm_util_set_mu_eta_pl(self, cb)
          use swiftest_classes, only : swiftest_cb
@@ -211,12 +209,12 @@ module whm_classes
          class(swiftest_cb),           intent(inout) :: cb     !! Swiftest central body object
       end subroutine whm_util_set_mu_eta_pl
 
-      module subroutine whm_setup_system(self, param)
+      module subroutine whm_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine whm_setup_system
+      end subroutine whm_setup_initialize_system
 
       !> Reads WHM test particle object in from file
       module subroutine whm_setup_tp(self,n)

@@ -69,7 +69,6 @@ contains
       return
    end subroutine setup_construct_system
 
-
    module subroutine setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -82,12 +81,13 @@ contains
   
       call self%cb%initialize(param)
       call self%pl%initialize(param)
-      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
       call self%tp%initialize(param)
+      call util_valid(self%pl, self%tp)
       call self%set_msys()
       call self%pl%set_mu(self%cb) 
       call self%tp%set_mu(self%cb) 
       call self%pl%eucl_index()
+      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
       return
    end subroutine setup_initialize_system
 
@@ -177,7 +177,7 @@ contains
       self%Gmass(:) = 0.0_DP
       self%rhill(:) = 0.0_DP
       self%radius(:) = 0.0_DP
-      self%density(:) = 0.0_DP
+      self%density(:) = 1.0_DP
       self%rot(:,:) = 0.0_DP
       self%Ip(:,:) = 0.0_DP
       self%k2(:) = 0.0_DP

@@ -7,21 +7,22 @@ module helio_classes
    use swiftest_classes, only : swiftest_cb, swiftest_pl, swiftest_tp, swiftest_nbody_system
    use whm_classes, only : whm_nbody_system
    implicit none
+   public
 
 
    !********************************************************************************************************************************
    !  helio_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
-   type, public, extends(whm_nbody_system) :: helio_nbody_system
+   type, extends(whm_nbody_system) :: helio_nbody_system
    contains
-      procedure, public :: step => helio_step_system  !! Advance the Helio nbody system forward in time by one step
+      procedure :: step => helio_step_system  !! Advance the Helio nbody system forward in time by one step
    end type helio_nbody_system
 
    !********************************************************************************************************************************
    ! helio_cb class definitions and method interfaces
    !*******************************************************************************************************************************
    !> Helio central body particle class
-   type, public, extends(swiftest_cb) :: helio_cb
+   type, extends(swiftest_cb) :: helio_cb
       real(DP), dimension(NDIM)  :: ptbeg !! negative barycentric velocity of the central body at the beginning of time step
       real(DP), dimension(NDIM)  :: ptend !! negative barycentric velocity of the central body at the end of time step
    contains
@@ -32,15 +33,15 @@ module helio_classes
    !*******************************************************************************************************************************
 
    !! Helio massive body particle class
-   type, public, extends(swiftest_pl) :: helio_pl
+   type, extends(swiftest_pl) :: helio_pl
    contains
-      procedure, public :: vh2vb    => helio_coord_vh2vb_pl  !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
-      procedure, public :: vb2vh    => helio_coord_vb2vh_pl  !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
-      procedure, public :: drift    => helio_drift_pl        !! Method for Danby drift in Democratic Heliocentric coordinates 
-      procedure, public :: lindrift => helio_drift_linear_pl !! Method for linear drift of massive bodies due to barycentric momentum of Sun
-      procedure, public :: accel    => helio_kick_getacch_pl      !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: kick     => helio_kick_vb_pl       !! Kicks the barycentric velocities
-      procedure, public :: step     => helio_step_pl         !! Steps the body forward one stepsize
+      procedure :: vh2vb    => helio_coord_vh2vb_pl  !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
+      procedure :: vb2vh    => helio_coord_vb2vh_pl  !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
+      procedure :: drift    => helio_drift_pl        !! Method for Danby drift in Democratic Heliocentric coordinates 
+      procedure :: lindrift => helio_drift_linear_pl !! Method for linear drift of massive bodies due to barycentric momentum of Sun
+      procedure :: accel    => helio_kick_getacch_pl      !! Compute heliocentric accelerations of massive bodies
+      procedure :: kick     => helio_kick_vb_pl       !! Kicks the barycentric velocities
+      procedure :: step     => helio_step_pl         !! Steps the body forward one stepsize
    end type helio_pl
 
    !********************************************************************************************************************************
@@ -48,15 +49,15 @@ module helio_classes
    !*******************************************************************************************************************************
 
    !! Helio test particle class
-   type, public, extends(swiftest_tp) :: helio_tp
+   type, extends(swiftest_tp) :: helio_tp
    contains
-      procedure, public :: vh2vb    => helio_coord_vh2vb_tp  !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure, public :: vb2vh    => helio_coord_vb2vh_tp  !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
-      procedure, public :: lindrift => helio_drift_linear_tp !! Method for linear drift of massive bodies due to barycentric momentum of Sun
-      procedure, public :: drift    => helio_drift_tp        !! Method for Danby drift in Democratic Heliocentric coordinates 
-      procedure, public :: accel    => helio_kick_getacch_tp      !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: kick     => helio_kick_vb_tp       !! Kicks the barycentric velocities
-      procedure, public :: step     => helio_step_tp         !! Steps the body forward one stepsize
+      procedure :: vh2vb    => helio_coord_vh2vb_tp  !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
+      procedure :: vb2vh    => helio_coord_vb2vh_tp  !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
+      procedure :: lindrift => helio_drift_linear_tp !! Method for linear drift of massive bodies due to barycentric momentum of Sun
+      procedure :: drift    => helio_drift_tp        !! Method for Danby drift in Democratic Heliocentric coordinates 
+      procedure :: accel    => helio_kick_getacch_tp      !! Compute heliocentric accelerations of massive bodies
+      procedure :: kick     => helio_kick_vb_tp       !! Kicks the barycentric velocities
+      procedure :: step     => helio_step_tp         !! Steps the body forward one stepsize
    end type helio_tp
 
    interface

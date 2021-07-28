@@ -32,7 +32,6 @@ contains
                call util_exit(FAILURE)
             end if
          end do
-         deallocate(idarr)
       end associate
 
       return

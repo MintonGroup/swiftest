@@ -52,7 +52,6 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsize
       ! Internals
       real(DP)                                  :: dth   !! Half step size
-      integer(I4B)                              :: irec  !! Recursion level
 
       dth = 0.5_DP * dt
       associate(system => self)
@@ -62,25 +61,23 @@ contains
             class is (symba_tp)
                select type(cb => system%cb)
                class is (symba_cb)
-                  irec = -1
                   call pl%vh2vb(cb)
                   call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
                   call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
-                  call pl%drift(system, param, dt, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == irec))
+                  call pl%drift(system, param, dt, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == -1))
 
                   call tp%vh2vb(vbcb = -cb%ptbeg)
                   call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
                   call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
-                  call tp%drift(system, param, dt, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == irec))
+                  call tp%drift(system, param, dt, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == -1))
 
-                  irec = 0
-                  call system%recursive_step(param, irec)
+                  call system%recursive_step(param, t, 0)
 
                   call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
                   call pl%vb2vh(cb)
                   call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
 
-                  call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
+                  call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
                   call tp%vb2vh(vbcb = -cb%ptend)
                   call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
                end select
@@ -90,7 +87,7 @@ contains
       return
    end subroutine symba_step_interp_system
 
-   module recursive subroutine symba_step_recur_system(self, param, ireci)
+   module recursive subroutine symba_step_recur_system(self, param, t, ireci)
       !! author: David A. Minton
       !!
       !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
@@ -102,9 +99,10 @@ contains
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      integer(I4B), value,        intent(in)    :: ireci !! input recursion level
+      real(DP),                   value         :: t
+      integer(I4B),               value         :: ireci !! input recursion level
       ! Internals
-      integer(I4B) :: i, j, irecp, nloops, sgn
+      integer(I4B) :: i, j, irecp, nloops
       real(DP) :: dtl, dth
       real(DP), dimension(NDIM) :: xr, vr
       logical :: lencounter
@@ -130,29 +128,37 @@ contains
                end if
                do j = 1, nloops
                   lencounter = plplenc_list%encounter_check(system, dtl, irecp) .or. pltpenc_list%encounter_check(system, dtl, irecp)
-                  sgn = 1
-                  call plplenc_list%kick(system, dth, irecp, sgn)
-                  call pltpenc_list%kick(system, dth, irecp, sgn)
+                  call plplenc_list%kick(system, dth, irecp, 1)
+                  call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
-                     sgn = -1
-                     call plplenc_list%kick(system, dth, irecp, sgn)
-                     call pltpenc_list%kick(system, dth, irecp, sgn)
+                     call plplenc_list%kick(system, dth, irecp, -1)
+                     call pltpenc_list%kick(system, dth, irecp, -1)
                   end if
 
                   call pl%drift(system, param, dtl, mask=(pl%status(:) == ACTIVE .and. pl%levelg(:) == ireci))
                   call tp%drift(system, param, dtl, mask=(tp%status(:) == ACTIVE .and. tp%levelg(:) == ireci))
 
-                  if (lencounter) call system%recursive_step(param, irecp)
+                  if (lencounter) call system%recursive_step(param, t+dth,irecp)
 
-                  sgn = 1
-                  call plplenc_list%kick(system, dth, irecp, sgn)
-                  call pltpenc_list%kick(system, dth, irecp, sgn)
+                  call plplenc_list%kick(system, dth, irecp, 1)
+                  call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
-                     sgn = -1
-                     call plplenc_list%kick(system, dth, irecp, sgn)
-                     call pltpenc_list%kick(system, dth, irecp, sgn)
+                     call plplenc_list%kick(system, dth, irecp, -1)
+                     call pltpenc_list%kick(system, dth, irecp, -1)
                   end if
-
+                  if (param%lclose) then
+                     call plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                     call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                  end if
+                  associate (plind1 => plplenc_list%index1(1:plplenc_list%nenc), &
+                             plind2 => plplenc_list%index2(1:plplenc_list%nenc), &
+                             plind3 => pltpenc_list%index1(1:pltpenc_list%nenc), &
+                             tpind  => pltpenc_list%index2(1:pltpenc_list%nenc))
+                     where(pl%levelg([plind1,plind2,plind3]) == irecp) pl%levelg(:) = ireci
+                     where(tp%levelg(tpind) == irecp) tp%levelg(:) = ireci
+                  end associate
+                  where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(:) = ireci
+                  where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(:) = ireci
                end do
             end select
          end select

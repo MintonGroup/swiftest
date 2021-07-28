@@ -37,6 +37,8 @@ sim.param['OUT_FORM'] = "XV"
 sim.param['OUT_STAT'] = "UNKNOWN"
 sim.param['GR'] = 'NO'
 sim.param['CHK_CLOSE'] = 'YES'
+sim.param['RHILL_PRESENT'] = 'YES'
+sim.param['MTINY'] = 1.0e-12
 
 sim.param['MU2KG'] = swiftest.MSun
 sim.param['TU2S'] = swiftest.JD2S

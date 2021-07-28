@@ -82,7 +82,7 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
-            do i = 1, self%nenc
+            do concurrent(i = 1:self%nenc, self%status(i) == ACTIVE .and. self%level(i) == irec - 1)
                associate(index_i => self%index1(i), index_j => self%index2(i))
                   if (isplpl) then
                      xr(:) = pl%xh(:,index_j) - pl%xh(:,index_i)

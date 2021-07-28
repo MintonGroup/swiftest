@@ -100,10 +100,11 @@ contains
       return
    end subroutine symba_setup_plplenc
 
-   module subroutine symba_setup_system(self, param)
+   module subroutine symba_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
       !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
+      !! This subroutine will also sort the massive bodies in descending order by mass
       !! 
       implicit none
       ! Arguments
@@ -114,13 +115,14 @@ contains
 
       ! Call parent method
       associate(system => self)
-         call whm_setup_system(system, param)
+         call whm_setup_initialize_system(system, param)
          call system%mergeadd_list%setup(1)
          call system%mergesub_list%setup(1)
          call system%pltpenc_list%setup(1)
          call system%plplenc_list%setup(1)
          select type(pl => system%pl)
          class is (symba_pl)
+            call pl%sort("mass", ascending=.false.)
             select type(param)
             class is (symba_parameters)
                pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
@@ -129,7 +131,7 @@ contains
          end select
       end associate
       return
-   end subroutine symba_setup_system
+   end subroutine symba_setup_initialize_system
 
    module subroutine symba_setup_tp(self,n)
       !! author: David A. Minton

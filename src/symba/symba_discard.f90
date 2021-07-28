@@ -12,14 +12,4 @@ contains
       return
    end subroutine symba_discard_pl
 
-   module subroutine symba_discard_tp(self, system, param)
-      implicit none
-      ! Arguments
-      class(symba_tp),              intent(inout) :: self   !! SyMBA test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-
-      return
-   end subroutine symba_discard_tp
-
 end submodule s_symba_discard

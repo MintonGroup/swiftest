@@ -46,7 +46,7 @@ contains
       return
    end subroutine rmvs_setup_pl 
 
-   module subroutine rmvs_setup_system(self, param)
+   module subroutine rmvs_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
       !! Initialize an RMVS nbody system from files and sets up the planetocentric structures.
@@ -64,7 +64,7 @@ contains
       integer(I4B) :: i, j
 
       ! Call parent method
-      call whm_setup_system(self, param)
+      call whm_setup_initialize_system(self, param)
 
       ! Set up the pl-tp planetocentric encounter structures for pl and cb. The planetocentric tp structures are 
       ! generated as necessary during close encounter steps.
@@ -116,7 +116,7 @@ contains
          end select
       end select
    
-   end subroutine rmvs_setup_system
+   end subroutine rmvs_setup_initialize_system
 
    module subroutine rmvs_setup_tp(self,n)
       !! author: David A. Minton
