@@ -99,7 +99,9 @@ contains
             call util_sort(direction * pl%peri(1:npl), ind(1:npl))
          case("atp")
             call util_sort(direction * pl%atp(1:npl), ind(1:npl))
-         case default
+         case("lcollision", "lencounter", "lmtiny", "nplm", "nplplm", "kin", "info")
+            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+         case default ! Look for components in the parent class
             call util_sort_pl(pl, sortby, ascending)
             return
          end select
@@ -138,7 +140,7 @@ contains
             call util_sort(direction * tp%levelg(1:ntp), ind(1:ntp))
          case("levelm")
             call util_sort(direction * tp%levelm(1:ntp), ind(1:ntp))
-         case default
+         case default ! Look for components in the parent class
             call util_sort_tp(tp, sortby, ascending)
             return
          end select
@@ -156,7 +158,7 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(symba_pl),               intent(inout) :: self !! Symba massive body object
+      class(symba_pl),               intent(inout) :: self !! SyMBA massive body object
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       ! Internals
       class(symba_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
@@ -193,7 +195,7 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(symba_tp),               intent(inout) :: self !! Symba massive body object
+      class(symba_tp),               intent(inout) :: self !! SyMBA test particle object
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       ! Internals
       class(symba_tp), allocatable :: tp_sorted  !! Temporary holder for sorted body

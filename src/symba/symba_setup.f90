@@ -50,7 +50,7 @@ contains
       !!
       implicit none
       ! Arguments
-      class(symba_pltpenc), intent(inout) :: self !! Symba pl-tp encounter structure
+      class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
       integer,              intent(in)    :: n    !! Number of encounters to allocate space for
 
       self%nenc = n
@@ -80,7 +80,7 @@ contains
       !
       implicit none
       ! Arguments
-      class(symba_plplenc), intent(inout) :: self !! Symba pl-tp encounter structure
+      class(symba_plplenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
       integer,              intent(in)    :: n    !! Number of encounters to allocate space for
 
       call symba_setup_pltpenc(self, n)

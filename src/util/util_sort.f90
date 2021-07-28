@@ -35,8 +35,10 @@ contains
             call util_sort(direction * body%capom(1:n), ind(1:n))
          case("mu")
             call util_sort(direction * body%mu(1:n), ind(1:n))
+         case("lfirst", "nbody","xh", "vh", "xb", "vb", "ah", "aobl", "atide", "agr")
+            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
-            write(*,*) 'Cannot sort structure by component ' // trim(adjustl(sortby))
+            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not found!'
             return
          end select
 
@@ -83,7 +85,9 @@ contains
             call util_sort(direction * pl%Q(1:npl), ind(1:npl))
          case("tlag")
             call util_sort(direction * pl%tlag(1:npl), ind(1:npl))
-         case default
+         case("xbeg", "xend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
+            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+         case default ! Look for components in the parent class
             call util_sort_body(pl, sortby, ascending)
             return
          end select
@@ -121,7 +125,9 @@ contains
             call util_sort(direction * tp%peri(1:ntp), ind(1:ntp))
          case("atp")
             call util_sort(direction * tp%atp(1:ntp), ind(1:ntp))
-         case default
+         case("isperi")
+            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+         case default ! Look for components in the parent class
             call util_sort_body(tp, sortby, ascending)
             return
          end select

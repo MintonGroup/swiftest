@@ -316,13 +316,13 @@ module symba_classes
 
       module subroutine symba_setup_pltpenc(self,n)
          implicit none
-         class(symba_pltpenc), intent(inout) :: self !! Symba pl-tp encounter structure
+         class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
          integer,              intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine symba_setup_pltpenc
 
       module subroutine symba_setup_plplenc(self,n)
          implicit none
-         class(symba_plplenc), intent(inout) :: self !! Symba pl-tp encounter structure
+         class(symba_plplenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
          integer,              intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine symba_setup_plplenc
 

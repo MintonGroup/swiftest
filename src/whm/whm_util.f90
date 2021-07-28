@@ -140,6 +140,8 @@ contains
                call util_sort(direction * pl%muj(1:npl), ind(1:npl))
             case("ir3j")
                call util_sort(direction * pl%ir3j(1:npl), ind(1:npl))
+            case("xj", "vj")
+               write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
             case default
                call util_sort_pl(pl, sortby, ascending)
                return
