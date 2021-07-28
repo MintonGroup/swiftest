@@ -390,27 +390,27 @@ module symba_classes
 
       module subroutine symba_util_sort_pl(self, sortby, ascending)
          implicit none
-         class(symba_pl), intent(inout) :: self      !! Symba massive body object
+         class(symba_pl), intent(inout) :: self      !! SyMBA massive body object
          character(*),    intent(in)    :: sortby    !! Sorting attribute
          logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine symba_util_sort_pl 
 
       module subroutine symba_util_sort_tp(self, sortby, ascending)
          implicit none
-         class(symba_tp), intent(inout) :: self      !! Swiftest test particle object
+         class(symba_tp), intent(inout) :: self      !! SyMBA test particle object
          character(*),    intent(in)    :: sortby    !! Sorting attribute
          logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine symba_util_sort_tp
 
       module subroutine symba_util_sort_rearrange_pl(self, ind)
          implicit none
-         class(symba_pl),               intent(inout) :: self !! Symba massive body object
+         class(symba_pl),               intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine symba_util_sort_rearrange_pl
 
       module subroutine symba_util_sort_rearrange_tp(self, ind)
          implicit none
-         class(symba_tp),               intent(inout) :: self !! Symba massive body object
+         class(symba_tp),               intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine symba_util_sort_rearrange_tp
         

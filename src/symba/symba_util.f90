@@ -68,11 +68,11 @@ contains
    module subroutine symba_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
       !!
-      !! Sort a Swiftest test particle object  in-place. 
+      !! Sort a SyMBA massive body object in-place. 
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(symba_pl), intent(inout) :: self      !! Symba massive body object
+      class(symba_pl), intent(inout) :: self      !! SyMBA massive body object
       character(*),    intent(in)    :: sortby    !! Sorting attribute
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
@@ -128,11 +128,11 @@ contains
    module subroutine symba_util_sort_tp(self, sortby, ascending)
       !! author: David A. Minton
       !!
-      !! Sort a Swiftest test particle object  in-place. 
+      !! Sort a SyMBA test particle object in-place. 
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(symba_tp), intent(inout) :: self      !! Swiftest test particle object
+      class(symba_tp), intent(inout) :: self      !! SyMBA test particle object
       character(*),    intent(in)    :: sortby    !! Sorting attribute
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
@@ -207,7 +207,7 @@ contains
    module subroutine symba_util_sort_rearrange_tp(self, ind)
       !! author: David A. Minton
       !!
-      !! Rearrange SyMBA test particle object  in-place from an index list.
+      !! Rearrange SyMBA test particle object in-place from an index list.
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
