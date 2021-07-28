@@ -41,7 +41,7 @@ module whm_classes
       procedure, public :: gr_pos_kick => whm_gr_p4_pl           !! Position kick due to p**4 term in the post-Newtonian correction
       procedure, public :: setup       => whm_setup_pl           !! Constructor method - Allocates space for number of particles
       procedure, public :: set_mu      => whm_util_set_mu_eta_pl !! Sets the Jacobi mass value for all massive bodies.
-      procedure, public :: set_ir3     => whm_setup_set_ir3j     !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
+      procedure, public :: set_ir3     => whm_util_set_ir3j     !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
       procedure, public :: step        => whm_step_pl            !! Steps the body forward one stepsize
       procedure, public :: spill       => whm_util_spill_pl      !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type whm_pl
@@ -72,7 +72,7 @@ module whm_classes
    contains
       private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize   => whm_setup_system      !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure, public :: initialize   => whm_setup_initialize_system      !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
       procedure, public :: step         => whm_step_system       !! Advance the WHM nbody system forward in time by one step
    end type whm_nbody_system
 
@@ -199,10 +199,10 @@ module whm_classes
          integer(I4B),  intent(in)       :: n    !! Number of test particles to allocate
       end subroutine whm_setup_pl
 
-      module subroutine whm_setup_set_ir3j(self)
+      module subroutine whm_util_set_ir3j(self)
          implicit none
          class(whm_pl),                intent(inout) :: self    !! WHM massive body object
-      end subroutine whm_setup_set_ir3j
+      end subroutine whm_util_set_ir3j
 
       module subroutine whm_util_set_mu_eta_pl(self, cb)
          use swiftest_classes, only : swiftest_cb
@@ -211,12 +211,12 @@ module whm_classes
          class(swiftest_cb),           intent(inout) :: cb     !! Swiftest central body object
       end subroutine whm_util_set_mu_eta_pl
 
-      module subroutine whm_setup_system(self, param)
+      module subroutine whm_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine whm_setup_system
+      end subroutine whm_setup_initialize_system
 
       !> Reads WHM test particle object in from file
       module subroutine whm_setup_tp(self,n)

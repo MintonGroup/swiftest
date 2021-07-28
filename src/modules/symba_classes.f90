@@ -160,7 +160,7 @@ module symba_classes
       class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
    contains
       private
-      procedure, public :: initialize     => symba_setup_system       !! Performs SyMBA-specific initilization steps
+      procedure, public :: initialize     => symba_setup_initialize_system       !! Performs SyMBA-specific initilization steps
       procedure, public :: step           => symba_step_system        !! Advance the SyMBA nbody system forward in time by one step
       procedure, public :: interp         => symba_step_interp_system !! Perform an interpolation step on the SymBA nbody system 
       procedure, public :: recursive_step => symba_step_recur_system  !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
@@ -332,12 +332,12 @@ module symba_classes
          integer,              intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine symba_setup_plplenc
 
-      module subroutine symba_setup_system(self, param)
+      module subroutine symba_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA system object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine symba_setup_system
+      end subroutine symba_setup_initialize_system
 
       module subroutine symba_setup_tp(self,n)
          implicit none

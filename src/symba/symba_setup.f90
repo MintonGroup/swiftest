@@ -100,7 +100,7 @@ contains
       return
    end subroutine symba_setup_plplenc
 
-   module subroutine symba_setup_system(self, param)
+   module subroutine symba_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
       !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
@@ -115,7 +115,7 @@ contains
 
       ! Call parent method
       associate(system => self)
-         call whm_setup_system(system, param)
+         call whm_setup_initialize_system(system, param)
          call system%mergeadd_list%setup(1)
          call system%mergesub_list%setup(1)
          call system%pltpenc_list%setup(1)
@@ -131,7 +131,7 @@ contains
          end select
       end associate
       return
-   end subroutine symba_setup_system
+   end subroutine symba_setup_initialize_system
 
    module subroutine symba_setup_tp(self,n)
       !! author: David A. Minton

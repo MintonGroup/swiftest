@@ -71,7 +71,7 @@ contains
 
    end subroutine whm_util_set_mu_eta_pl
 
-   module subroutine whm_setup_system(self, param)
+   module subroutine whm_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
       !! Initialize a WHM nbody system from files
@@ -91,29 +91,6 @@ contains
          call self%tp%v2pv(param)
       end if
 
-   end subroutine whm_setup_system
-
-   module subroutine whm_setup_set_ir3j(self)
-      !! author: David A. Minton
-      !!
-      !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
-      implicit none
-      ! Arguments
-      class(whm_pl),                 intent(inout) :: self    !! WHM massive body object
-      ! Internals
-      integer(I4B)                                 :: i
-      real(DP)                                     :: r2, ir
-
-      if (self%nbody > 0) then
-         do i = 1, self%nbody
-            r2 = dot_product(self%xh(:, i), self%xh(:, i))
-            ir = 1.0_DP / sqrt(r2)
-            self%ir3h(i) = ir / r2
-            r2 = dot_product(self%xj(:, i), self%xj(:, i))
-            ir = 1.0_DP / sqrt(r2)
-            self%ir3j(i) = ir / r2
-         end do
-      end if
-   end subroutine whm_setup_set_ir3j
+   end subroutine whm_setup_initialize_system
 
 end submodule s_whm_setup

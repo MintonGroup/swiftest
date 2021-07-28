@@ -26,7 +26,7 @@ module rmvs_classes
    contains
       private
       !> Replace the abstract procedures with concrete ones
-      procedure, public :: initialize    => rmvs_setup_system      !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
+      procedure, public :: initialize    => rmvs_setup_initialize_system      !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
       procedure, public :: step          => rmvs_step_system       !! Advance the RMVS nbody system forward in time by one step
    end type rmvs_nbody_system
 
@@ -152,12 +152,12 @@ module rmvs_classes
          integer,             intent(in)    :: n    !! Number of test particles to allocate
       end subroutine rmvs_setup_pl
 
-      module subroutine rmvs_setup_system(self, param)
+      module subroutine rmvs_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(rmvs_nbody_system),   intent(inout) :: self    !! RMVS system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine rmvs_setup_system
+      end subroutine rmvs_setup_initialize_system
 
       module subroutine rmvs_setup_tp(self,n)
          implicit none

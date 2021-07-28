@@ -89,4 +89,27 @@ contains
    
       end subroutine whm_util_fill_pl
 
+      module subroutine whm_util_set_ir3j(self)
+         !! author: David A. Minton
+         !!
+         !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
+         implicit none
+         ! Arguments
+         class(whm_pl),                 intent(inout) :: self    !! WHM massive body object
+         ! Internals
+         integer(I4B)                                 :: i
+         real(DP)                                     :: r2, ir
+   
+         if (self%nbody > 0) then
+            do i = 1, self%nbody
+               r2 = dot_product(self%xh(:, i), self%xh(:, i))
+               ir = 1.0_DP / sqrt(r2)
+               self%ir3h(i) = ir / r2
+               r2 = dot_product(self%xj(:, i), self%xj(:, i))
+               ir = 1.0_DP / sqrt(r2)
+               self%ir3j(i) = ir / r2
+            end do
+         end if
+      end subroutine whm_util_set_ir3j
+
 end submodule s_whm_util
