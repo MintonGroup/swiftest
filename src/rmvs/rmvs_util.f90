@@ -1,6 +1,70 @@
 submodule(rmvs_classes) s_rmvs_util
    use swiftest
 contains
+   module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Insert new RMVS massive body structure into an old one. 
+      !! This is the inverse of a fill operation.
+      !! 
+      implicit none
+      ! Arguments
+      class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
+      class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      ! Internals
+      integer(I4B)                                      :: i
+
+      associate(keeps => self)
+         select type(inserts)
+         class is (rmvs_pl)
+
+            keeps%nenc(:)    = unpack(keeps%nenc(:),    .not.lfill_list(:), keeps%nenc(:))
+            keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
+            
+            call whm_util_fill_pl(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
+         end select
+      end associate
+
+      return
+   end subroutine rmvs_util_fill_pl
+
+   module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Insert new RMVS test particle structure into an old one. 
+      !! This is the inverse of a fill operation.
+      !! 
+      implicit none
+      ! Arguments
+      class(rmvs_tp),                     intent(inout) :: self        !! RMVS massive body object
+      class(swiftest_body),               intent(inout) :: inserts     !!  Inserted object 
+      logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      associate(keeps => self)
+         select type(inserts)
+         class is (rmvs_tp)
+
+            keeps%lperi(:)  = unpack(keeps%lperi(:),  .not.lfill_list(:), keeps%lperi(:))
+            keeps%lperi(:)  = unpack(inserts%lperi(:),  lfill_list(:), keeps%lperi(:))
+            
+            keeps%plperP(:) = unpack(keeps%plperP(:), .not.lfill_list(:), keeps%plperP(:))
+            keeps%plperP(:) = unpack(inserts%plperP(:), lfill_list(:), keeps%plperP(:))
+            
+            keeps%plencP(:) = unpack(keeps%plencP(:), .not.lfill_list(:), keeps%plencP(:))
+            keeps%plencP(:) = unpack(inserts%plencP(:), lfill_list(:), keeps%plencP(:))
+            
+            call util_fill_tp(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! fill method called for incompatible return type on rmvs_tp'
+         end select
+      end associate
+
+      return
+   end subroutine rmvs_util_fill_tp
+
    module subroutine rmvs_util_spill_pl(self, discards, lspill_list)
       !! author: David A. Minton
       !!
@@ -30,39 +94,7 @@ contains
       end associate
 
       return
-
-      end subroutine rmvs_util_spill_pl
-
-      module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
-         !! author: David A. Minton
-         !!
-         !! Insert new RMVS massive body structure into an old one. 
-         !! This is the inverse of a fill operation.
-         !! 
-         implicit none
-         ! Arguments
-         class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
-         class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
-         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-         ! Internals
-         integer(I4B)                                      :: i
-      
-         associate(keeps => self)
-            select type(inserts)
-            class is (rmvs_pl)
-      
-               keeps%nenc(:)    = unpack(keeps%nenc(:),    .not.lfill_list(:), keeps%nenc(:))
-               keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
-               
-               call whm_util_fill_pl(keeps, inserts, lfill_list)
-            class default
-               write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
-            end select
-         end associate
-      
-         return
-      
-   end subroutine rmvs_util_fill_pl
+   end subroutine rmvs_util_spill_pl
 
    module subroutine rmvs_util_spill_tp(self, discards, lspill_list)
       !! author: David A. Minton
@@ -97,42 +129,6 @@ contains
       end associate
 
       return
-
    end subroutine rmvs_util_spill_tp
-
-   module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Insert new RMVS test particle structure into an old one. 
-      !! This is the inverse of a fill operation.
-      !! 
-      implicit none
-      ! Arguments
-      class(rmvs_tp),                     intent(inout) :: self        !! RMVS massive body object
-      class(swiftest_body),               intent(inout) :: inserts     !!  Inserted object 
-      logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-   
-      associate(keeps => self)
-         select type(inserts)
-         class is (rmvs_tp)
-
-            keeps%lperi(:)  = unpack(keeps%lperi(:),  .not.lfill_list(:), keeps%lperi(:))
-            keeps%lperi(:)  = unpack(inserts%lperi(:),  lfill_list(:), keeps%lperi(:))
-            
-            keeps%plperP(:) = unpack(keeps%plperP(:), .not.lfill_list(:), keeps%plperP(:))
-            keeps%plperP(:) = unpack(inserts%plperP(:), lfill_list(:), keeps%plperP(:))
-            
-            keeps%plencP(:) = unpack(keeps%plencP(:), .not.lfill_list(:), keeps%plencP(:))
-            keeps%plencP(:) = unpack(inserts%plencP(:), lfill_list(:), keeps%plencP(:))
-            
-            call util_fill_tp(keeps, inserts, lfill_list)
-         class default
-            write(*,*) 'Error! fill method called for incompatible return type on rmvs_tp'
-         end select
-      end associate
-   
-      return
-
-   end subroutine rmvs_util_fill_tp
 
 end submodule s_rmvs_util
