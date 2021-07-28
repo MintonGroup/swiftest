@@ -30,20 +30,22 @@ module whm_classes
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as whm_setup_pl and whm_util_spill_pl
    contains
-      procedure :: h2j         => whm_coord_h2j_pl       !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
-      procedure :: j2h         => whm_coord_j2h_pl       !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
-      procedure :: vh2vj       => whm_coord_vh2vj_pl     !! Convert velocity vectors from heliocentric to Jacobi coordinates 
-      procedure :: drift       => whm_drift_pl           !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
-      procedure :: fill        => whm_util_fill_pl       !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure :: accel       => whm_kick_getacch_pl    !! Compute heliocentric accelerations of massive bodies
-      procedure :: kick        => whm_kick_vh_pl         !! Kick heliocentric velocities of massive bodies
-      procedure :: accel_gr    => whm_gr_kick_getacch_pl !! Acceleration term arising from the post-Newtonian correction
-      procedure :: gr_pos_kick => whm_gr_p4_pl           !! Position kick due to p**4 term in the post-Newtonian correction
-      procedure :: setup       => whm_setup_pl           !! Constructor method - Allocates space for number of particles
-      procedure :: set_mu      => whm_util_set_mu_eta_pl !! Sets the Jacobi mass value for all massive bodies.
-      procedure :: set_ir3     => whm_util_set_ir3j     !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
-      procedure :: step        => whm_step_pl            !! Steps the body forward one stepsize
-      procedure :: spill       => whm_util_spill_pl      !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: h2j         => whm_coord_h2j_pl           !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
+      procedure :: j2h         => whm_coord_j2h_pl           !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
+      procedure :: vh2vj       => whm_coord_vh2vj_pl         !! Convert velocity vectors from heliocentric to Jacobi coordinates 
+      procedure :: drift       => whm_drift_pl               !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
+      procedure :: fill        => whm_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: accel       => whm_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
+      procedure :: kick        => whm_kick_vh_pl             !! Kick heliocentric velocities of massive bodies
+      procedure :: accel_gr    => whm_gr_kick_getacch_pl     !! Acceleration term arising from the post-Newtonian correction
+      procedure :: gr_pos_kick => whm_gr_p4_pl               !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure :: setup       => whm_setup_pl               !! Constructor method - Allocates space for number of particles
+      procedure :: set_mu      => whm_util_set_mu_eta_pl     !! Sets the Jacobi mass value for all massive bodies.
+      procedure :: set_ir3     => whm_util_set_ir3j          !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
+      procedure :: sort        => whm_util_sort_pl           !! Sort a WHM massive body object in-place. 
+      procedure :: rearrange   => whm_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: step        => whm_step_pl                !! Steps the body forward one stepsize
+      procedure :: spill       => whm_util_spill_pl          !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type whm_pl
 
    !********************************************************************************************************************************
@@ -208,6 +210,19 @@ module whm_classes
          class(whm_pl),                intent(inout) :: self    !! WHM massive body object
          class(swiftest_cb),           intent(inout) :: cb     !! Swiftest central body object
       end subroutine whm_util_set_mu_eta_pl
+
+      module subroutine whm_util_sort_pl(self, sortby, ascending)
+         implicit none
+         class(whm_pl), intent(inout) :: self        !! WHM massive body object
+         character(*),  intent(in)    :: sortby    !! Sorting attribute
+         logical,       intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      end subroutine whm_util_sort_pl
+
+      module subroutine whm_util_sort_rearrange_pl(self, ind)
+         implicit none
+         class(whm_pl),               intent(inout) :: self !! WHM massive body object
+         integer(I4B),  dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      end subroutine whm_util_sort_rearrange_pl
 
       module subroutine whm_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters

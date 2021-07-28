@@ -68,59 +68,46 @@ contains
    module subroutine symba_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
       !!
-      !! Sort a Swiftest test particle object  in-place. 
+      !! Sort a SyMBA massive body object in-place. 
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(symba_pl), intent(inout) :: self      !! Symba massive body object
+      class(symba_pl), intent(inout) :: self      !! SyMBA massive body object
       character(*),    intent(in)    :: sortby    !! Sorting attribute
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B)                        :: direction
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
 
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("nplenc")
-            if (ascending) then
-               call util_sort(pl%nplenc(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%nplenc(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%nplenc(1:npl), ind(1:npl))
          case("ntpenc")
-            if (ascending) then
-               call util_sort(pl%ntpenc(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%ntpenc(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%ntpenc(1:npl), ind(1:npl))
          case("levelg")
-            if (ascending) then
-               call util_sort(pl%levelg(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%levelg(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%levelg(1:npl), ind(1:npl))
          case("levelm")
-            if (ascending) then
-               call util_sort(pl%levelm(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%levelm(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%levelm(1:npl), ind(1:npl))
          case("peri")
-            if (ascending) then
-               call util_sort(pl%peri(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%peri(1:npl), ind(1:npl))
-            end if
+            call util_sort(direction * pl%peri(1:npl), ind(1:npl))
          case("atp")
-            if (ascending) then
-               call util_sort(pl%atp(1:npl), ind(1:npl))
-            else
-               call util_sort(-pl%atp(1:npl), ind(1:npl))
-            end if
-         case default
+            call util_sort(direction * pl%atp(1:npl), ind(1:npl))
+         case("lcollision", "lencounter", "lmtiny", "nplm", "nplplm", "kin", "info")
+            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+         case default ! Look for components in the parent class
             call util_sort_pl(pl, sortby, ascending)
             return
          end select
+
          call pl%rearrange(ind)
+
       end associate
       return
    end subroutine symba_util_sort_pl
@@ -128,41 +115,38 @@ contains
    module subroutine symba_util_sort_tp(self, sortby, ascending)
       !! author: David A. Minton
       !!
-      !! Sort a Swiftest test particle object  in-place. 
+      !! Sort a SyMBA test particle object in-place. 
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(symba_tp), intent(inout) :: self      !! Swiftest test particle object
+      class(symba_tp), intent(inout) :: self      !! SyMBA test particle object
       character(*),    intent(in)    :: sortby    !! Sorting attribute
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B)                        :: direction
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
 
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("nplenc")
-            if (ascending) then
-               call util_sort(tp%nplenc(1:ntp), ind(1:ntp))
-            else
-               call util_sort(-tp%nplenc(1:ntp), ind(1:ntp))
-            end if
+            call util_sort(direction * tp%nplenc(1:ntp), ind(1:ntp))
          case("levelg")
-            if (ascending) then
-               call util_sort(tp%levelg(1:ntp), ind(1:ntp))
-            else
-               call util_sort(-tp%levelg(1:ntp), ind(1:ntp))
-            end if
+            call util_sort(direction * tp%levelg(1:ntp), ind(1:ntp))
          case("levelm")
-            if (ascending) then
-               call util_sort(tp%levelm(1:ntp), ind(1:ntp))
-            else
-               call util_sort(-tp%levelm(1:ntp), ind(1:ntp))
-            end if
-         case default
+            call util_sort(direction * tp%levelm(1:ntp), ind(1:ntp))
+         case default ! Look for components in the parent class
             call util_sort_tp(tp, sortby, ascending)
             return
          end select
+
          call tp%rearrange(ind)
+
       end associate
       return
    end subroutine symba_util_sort_tp
@@ -174,7 +158,7 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(symba_pl),               intent(inout) :: self !! Symba massive body object
+      class(symba_pl),               intent(inout) :: self !! SyMBA massive body object
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       ! Internals
       class(symba_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
@@ -207,11 +191,11 @@ contains
    module subroutine symba_util_sort_rearrange_tp(self, ind)
       !! author: David A. Minton
       !!
-      !! Rearrange SyMBA test particle object  in-place from an index list.
+      !! Rearrange SyMBA test particle object in-place from an index list.
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(symba_tp),               intent(inout) :: self !! Symba massive body object
+      class(symba_tp),               intent(inout) :: self !! SyMBA test particle object
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       ! Internals
       class(symba_tp), allocatable :: tp_sorted  !! Temporary holder for sorted body
