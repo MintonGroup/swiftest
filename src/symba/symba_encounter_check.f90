@@ -186,14 +186,13 @@ contains
       integer(I4B) :: iflag
       real(DP)     :: r2, v2, rcrit, r2crit, vdotr
 
-      lencounter = .false.
       rcrit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
       r2crit = rcrit**2
       r2 = xr**2 + yr**2 + zr**2
       v2 = vxr**2 + vyr**2 + vzr**2
       vdotr = xr * vxr + yr * vyr + zr * vzr
       iflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit)
-      if (iflag /= 0) lencounter = .true.
+      lencounter = (iflag /= 0)
       lvdotr = (vdotr < 0.0_DP)
 
       return
