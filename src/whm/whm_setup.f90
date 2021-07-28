@@ -53,8 +53,8 @@ contains
       !! Sets the Jacobi mass value eta for all massive bodies
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self    !! Swiftest system object
-      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
+      class(whm_pl),      intent(inout) :: self   !! WHM system object
+      class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body object
       ! Internals
       integer(I4B)                                 :: i
 
@@ -82,6 +82,9 @@ contains
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
       call setup_initialize_system(self, param)
+      ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
+      call util_set_ir3h(self%pl)
+      call self%pl%sort("ir3h", ascending=.false.)
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(self%tp%nbody)
       call self%pl%set_mu(self%cb)

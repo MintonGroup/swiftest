@@ -25,6 +25,10 @@ contains
          select case(sortby)
          case("id")
             call util_sort(direction * body%id(1:n), ind(1:n))
+         case("status")
+            call util_sort(direction * body%status(1:n), ind(1:n))
+         case("ir3h")
+            call util_sort(direction * body%ir3h(1:n), ind(1:n))
          case("a")
             call util_sort(direction * body%a(1:n), ind(1:n))
          case("e")
@@ -35,7 +39,7 @@ contains
             call util_sort(direction * body%capom(1:n), ind(1:n))
          case("mu")
             call util_sort(direction * body%mu(1:n), ind(1:n))
-         case("lfirst", "nbody","xh", "vh", "xb", "vb", "ah", "aobl", "atide", "agr")
+         case("lfirst", "nbody", "ldiscard", "xh", "vh", "xb", "vb", "ah", "aobl", "atide", "agr")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not found!'
