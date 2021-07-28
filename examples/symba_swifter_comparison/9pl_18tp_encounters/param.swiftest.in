@@ -33,4 +33,4 @@ ENERGY           NO
 GR               NO
 YARKOVSKY        NO
 YORP             NO
-MTINY            0.0
+MTINY            1e-12

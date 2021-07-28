@@ -10,9 +10,9 @@ program swiftest_driver
    implicit none
 
    class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
-   type(swiftest_parameters)               :: param
+   class(swiftest_parameters),   allocatable  :: param            !! Run configuration parameters
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters
+   character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
    integer(I4B)                               :: ierr             !! I/O error code 
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
@@ -31,6 +31,12 @@ program swiftest_driver
    end if
    !$ start_wall_time = omp_get_wtime()
    !> Read in the user-defined parameters file and the initial conditions of the system
+   select case(integrator)
+   case(symba)
+      allocate(symba_parameters :: param)
+   case default
+      allocate(swiftest_parameters :: param)
+   end select
    param%integrator = integrator
    call setup_construct_system(nbody_system, param)
    call param%read_from_file(param_file_name)

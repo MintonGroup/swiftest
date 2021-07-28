@@ -12,7 +12,7 @@ contains
       character(*),         intent(in)    :: sortby    !! Sorting attribute
       logical,              intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(:), allocatable :: ind
+      integer(I4B), dimension(self%nbody) :: ind
 
       associate(body => self, n => self%nbody)
          select case(sortby)
@@ -73,7 +73,7 @@ contains
       character(*),       intent(in)    :: sortby    !! Sorting attribute
       logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(:), allocatable :: ind
+      integer(I4B), dimension(self%nbody) :: ind
 
       associate(pl => self, npl => self%nbody)
          select case(sortby)
@@ -140,7 +140,7 @@ contains
       character(*),       intent(in)    :: sortby    !! Sorting attribute
       logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(:), allocatable :: ind
+      integer(I4B), dimension(self%nbody) :: ind
 
       associate(tp => self, ntp => self%nbody)
          select case(sortby)

@@ -104,6 +104,7 @@ contains
       !! author: David A. Minton
       !!
       !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
+      !! This subroutine will also sort the massive bodies in descending order by mass
       !! 
       implicit none
       ! Arguments
@@ -121,6 +122,7 @@ contains
          call system%plplenc_list%setup(1)
          select type(pl => system%pl)
          class is (symba_pl)
+            call pl%sort("mass", ascending=.false.)
             select type(param)
             class is (symba_parameters)
                pl%lmtiny(:) = pl%Gmass(:) > param%MTINY

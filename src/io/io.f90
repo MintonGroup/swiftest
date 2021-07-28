@@ -259,10 +259,10 @@ contains
    
          ! Determine if the GR flag is set correctly for this integrator
          select case(integrator)
-         case(WHM, RMVS)
+         case(WHM, RMVS, SYMBA)
             write(*,*) "GR             = ", self%lgr
          case default   
-            write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
+            if (self%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
          end select
       end associate
 

@@ -51,6 +51,7 @@ contains
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
          allocate(param%seed(nseeds))
+         rewind(unit)
          do
             read(unit = unit, fmt = linefmt, iostat = iostat, end = 1) line
             line_trim = trim(adjustl(line))
@@ -121,8 +122,10 @@ contains
             return
          end if
       end associate
-      return
 
+      iostat = 0
+
+      return
    end subroutine symba_io_param_reader
 
    module subroutine symba_io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 

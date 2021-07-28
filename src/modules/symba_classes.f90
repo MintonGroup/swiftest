@@ -89,10 +89,12 @@ module symba_classes
       type(symba_particle_info), dimension(:), allocatable :: info
    contains
       private
-      procedure, public :: discard         => symba_discard_pl         !! Process massive body discards
-      procedure, public :: encounter_check => symba_encounter_check_pl !! Checks if massive bodies are going through close encounters with each other
-      procedure, public :: accel           => symba_kick_getacch_pl         !! Compute heliocentric accelerations of massive bodies
-      procedure, public :: setup           => symba_setup_pl           !! Constructor method - Allocates space for number of particle
+      procedure, public :: discard         => symba_discard_pl             !! Process massive body discards
+      procedure, public :: encounter_check => symba_encounter_check_pl     !! Checks if massive bodies are going through close encounters with each other
+      procedure, public :: accel           => symba_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
+      procedure, public :: setup           => symba_setup_pl               !! Constructor method - Allocates space for number of particle
+      procedure, public :: sort            => symba_util_sort_pl           !! Sorts body arrays by a sortable componen
+      procedure, public :: rearrange       => symba_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
    end type symba_pl
 
    !********************************************************************************************************************************
@@ -105,9 +107,11 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: levelm  !! deepest encounter level achieved this time step
    contains
       private
-      procedure, public :: encounter_check => symba_encounter_check_tp !! Checks if any test particles are undergoing a close encounter with a massive body
-      procedure, public :: accel           => symba_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
-      procedure, public :: setup           => symba_setup_tp           !! Constructor method - Allocates space for number of particle
+      procedure, public :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
+      procedure, public :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
+      procedure, public :: setup           => symba_setup_tp               !! Constructor method - Allocates space for number of particle
+      procedure, public :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
+      procedure, public :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
    end type symba_tp
 
    !********************************************************************************************************************************
@@ -389,6 +393,33 @@ module symba_classes
          class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
          integer(I4B),         intent(in)    :: nrequested !! New size of list needed
       end subroutine symba_util_resize_pltpenc
+
+      module subroutine symba_util_sort_pl(self, sortby, ascending)
+         implicit none
+         class(symba_pl), intent(inout) :: self      !! Symba massive body object
+         character(*),    intent(in)    :: sortby    !! Sorting attribute
+         logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      end subroutine symba_util_sort_pl 
+
+      module subroutine symba_util_sort_tp(self, sortby, ascending)
+         implicit none
+         class(symba_tp), intent(inout) :: self      !! Swiftest test particle object
+         character(*),    intent(in)    :: sortby    !! Sorting attribute
+         logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      end subroutine symba_util_sort_tp
+
+      module subroutine symba_util_sort_rearrange_pl(self, ind)
+         implicit none
+         class(symba_pl),               intent(inout) :: self !! Symba massive body object
+         integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      end subroutine symba_util_sort_rearrange_pl
+
+      module subroutine symba_util_sort_rearrange_tp(self, ind)
+         implicit none
+         class(symba_tp),               intent(inout) :: self !! Symba massive body object
+         integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      end subroutine symba_util_sort_rearrange_tp
+        
 
    end interface
 end module symba_classes
