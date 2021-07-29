@@ -2,7 +2,7 @@ module swiftest
    !! author: David A. Minton
    !! graph: false
    !!
-   !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
+   !! This module serves to combine all of the Swiftest project modules under a single umbrella so that they can be accessed from individual submodule implementations with a simple "use swiftest" line.
    use swiftest_globals
    use swiftest_operators
    use swiftest_classes
