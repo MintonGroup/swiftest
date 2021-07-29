@@ -25,6 +25,7 @@ contains
       return
    end subroutine whm_step_system 
 
+
    module subroutine whm_step_pl(self, system, param, t, dt)
       !! author: David A. Minton
       !!
@@ -55,8 +56,10 @@ contains
          call pl%j2h(cb)
          call pl%kick(system, param, t + dt, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
       end associate
+
       return
    end subroutine whm_step_pl
+
 
    module subroutine whm_step_tp(self, system, param, t, dt)
       !! author: David A. Minton
@@ -88,6 +91,7 @@ contains
             call tp%kick(system, param, t + dt, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
          end associate
       end select
+
       return
    end subroutine whm_step_tp   
 

@@ -1,45 +1,47 @@
 submodule(helio_classes) s_helio_kick
    use swiftest
 contains
-module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
-   !! author: David A. Minton
-   !!
-   !! Compute heliocentric accelerations of massive bodies
-   !!
-   !! Adapted from David E. Kaufmann's Swifter routine helio_kick_getacch.f90
-   !! Adapted from Hal Levison's Swift routine helio_kick_getacch.f
-   implicit none
-   ! Arguments
-   class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
-   class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-   class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-   real(DP),                     intent(in)    :: t      !! Current simulation time
-   logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
 
-   associate(cb => system%cb, pl => self, npl => self%nbody)
-      call pl%accel_int()
-      if (param%loblatecb) then 
-         call pl%accel_obl(system)
-         if (lbeg) then
-            cb%aoblbeg = cb%aobl
-         else
-            cb%aoblend = cb%aobl
-         end if
-         if (param%ltides) then
-            call pl%accel_tides(system)
+   module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
+      !! author: David A. Minton
+      !!
+      !! Compute heliocentric accelerations of massive bodies
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine helio_kick_getacch.f90
+      !! Adapted from Hal Levison's Swift routine helio_kick_getacch.f
+      implicit none
+      ! Arguments
+      class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      !! Current simulation time
+      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+
+      associate(cb => system%cb, pl => self, npl => self%nbody)
+         call pl%accel_int()
+         if (param%loblatecb) then 
+            call pl%accel_obl(system)
             if (lbeg) then
-               cb%atidebeg = cb%atide
+               cb%aoblbeg = cb%aobl
             else
-               cb%atideend = cb%atide
+               cb%aoblend = cb%aobl
+            end if
+            if (param%ltides) then
+               call pl%accel_tides(system)
+               if (lbeg) then
+                  cb%atidebeg = cb%atide
+               else
+                  cb%atideend = cb%atide
+               end if
             end if
          end if
-      end if
-      if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
-      !if (param%lgr) call pl%gr_accel(param)
-   end associate
+         if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
+         !if (param%lgr) call pl%gr_accel(param)
+      end associate
 
-   return
+      return
    end subroutine helio_kick_getacch_pl
+
 
    module subroutine helio_kick_getacch_tp(self, system, param, t, lbeg)
       !! author: David A. Minton
@@ -67,8 +69,10 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
          if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
          !if (param%lgr) call tp%gr_accel(param)
       end associate
+
       return
    end subroutine helio_kick_getacch_tp
+
 
    module subroutine helio_kick_vb_pl(self, system, param, t, dt, mask, lbeg)
       !! author: David A. Minton
@@ -104,8 +108,8 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
       end associate
    
       return
-   
    end subroutine helio_kick_vb_pl
+
 
    module subroutine helio_kick_vb_tp(self, system, param, t, dt, mask, lbeg)
       !! author: David A. Minton
@@ -136,6 +140,6 @@ module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
       end associate
    
       return
-   
    end subroutine helio_kick_vb_tp
+
 end submodule s_helio_kick

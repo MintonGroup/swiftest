@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_eucl
    use swiftest
 contains
+
    module subroutine eucl_dist_index_plpl(self)
       !! author: Jacob R. Elliott and David A. Minton
       !!
@@ -30,8 +31,8 @@ contains
             end do
          end do
       end associate
-      return
 
+      return
    end subroutine eucl_dist_index_plpl
 
  end submodule s_eucl

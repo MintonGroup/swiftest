@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_peri
    use swiftest
 contains
+
    module subroutine util_peri_tp(self, system, param) 
       !! author: David A. Minton
       !!
@@ -56,7 +57,8 @@ contains
             end do
          end if
       end associate
-      return
 
+      return
    end subroutine util_peri_tp
+
 end submodule s_util_peri

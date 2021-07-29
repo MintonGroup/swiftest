@@ -27,8 +27,8 @@ contains
       end if
 
       return
-
    end subroutine util_set_beg_end_pl
+
 
    module subroutine util_set_ir3h(self)
       !! author: David A. Minton
@@ -53,6 +53,7 @@ contains
       return
    end subroutine util_set_ir3h
 
+
    module subroutine util_set_msys(self)
       !! author: David A. Minton
       !!
@@ -66,6 +67,7 @@ contains
       return
    end subroutine util_set_msys
 
+
    module subroutine util_set_mu_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -76,8 +78,10 @@ contains
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
       if (self%nbody > 0) self%mu(:) = cb%Gmass + self%Gmass(:)
+
       return
    end subroutine util_set_mu_pl
+
 
    module subroutine util_set_mu_tp(self, cb)
       !! author: David A. Minton
@@ -92,6 +96,7 @@ contains
 
       return
    end subroutine util_set_mu_tp
+
 
    module subroutine util_set_rhill(self,cb)
       !! author: David A. Minton
@@ -109,6 +114,7 @@ contains
 
       return
    end subroutine util_set_rhill
+
 
    module subroutine util_set_rhill_approximate(self,cb)
       !! author: David A. Minton

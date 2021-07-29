@@ -1,6 +1,7 @@
 submodule(symba_classes) s_symba_setup
    use swiftest
 contains
+
    module subroutine symba_setup_pl(self, n)
       !! author: David A. Minton
       !!
@@ -43,6 +44,7 @@ contains
       return
    end subroutine symba_setup_pl
 
+
    module subroutine symba_setup_pltpenc(self, n)
       !! author: David A. Minton
       !!
@@ -73,6 +75,7 @@ contains
       return
    end subroutine symba_setup_pltpenc
 
+
    module subroutine symba_setup_plplenc(self,n)
       !! author: David A. Minton
       !!
@@ -99,6 +102,7 @@ contains
       self%vb2(:,:) = 0.0_DP
       return
    end subroutine symba_setup_plplenc
+
 
    module subroutine symba_setup_initialize_system(self, param)
       !! author: David A. Minton
@@ -133,6 +137,7 @@ contains
       return
    end subroutine symba_setup_initialize_system
 
+
    module subroutine symba_setup_tp(self,n)
       !! author: David A. Minton
       !!
@@ -153,6 +158,7 @@ contains
       self%nplenc(:) = 0
       self%levelg(:) = -1
       self%levelm(:) = -1
+      
       return
    end subroutine symba_setup_tp
 

@@ -1,6 +1,7 @@
 submodule(whm_classes) whm_drift
    use swiftest
 contains
+
    module subroutine whm_drift_pl(self, system, param, dt, mask)
       !! author: David A. Minton
       !!
@@ -41,7 +42,6 @@ contains
       end associate
 
       return
-
    end subroutine whm_drift_pl
 
 end submodule whm_drift

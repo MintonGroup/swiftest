@@ -1,6 +1,7 @@
 submodule(whm_classes) s_whm_setup
    use swiftest
 contains
+
    module subroutine whm_setup_pl(self,n)
       !! author: David A. Minton
       !!
@@ -30,6 +31,7 @@ contains
       return
    end subroutine whm_setup_pl 
 
+
    module subroutine whm_setup_tp(self,n)
       !! author: David A. Minton
       !!
@@ -46,6 +48,7 @@ contains
 
       return
    end subroutine whm_setup_tp
+
 
    module subroutine whm_util_set_mu_eta_pl(self, cb)
       !! author: David A. Minton
@@ -69,7 +72,9 @@ contains
          end do
       end associate
 
+      return
    end subroutine whm_util_set_mu_eta_pl
+
 
    module subroutine whm_setup_initialize_system(self, param)
       !! author: David A. Minton
@@ -95,6 +100,7 @@ contains
          call self%tp%v2pv(param)
       end if
 
+      return
    end subroutine whm_setup_initialize_system
 
 end submodule s_whm_setup

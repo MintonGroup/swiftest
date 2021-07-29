@@ -96,5 +96,4 @@ program swiftest_driver
    call util_exit(SUCCESS)
 
    stop
-
 end program swiftest_driver

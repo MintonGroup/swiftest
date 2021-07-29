@@ -1,6 +1,7 @@
 submodule(rmvs_classes) s_rmvs_kick
    use swiftest
 contains  
+
    module subroutine rmvs_kick_getacch_tp(self, system, param, t, lbeg)
 
       !! author: David A. Minton
@@ -77,11 +78,9 @@ contains
                call whm_kick_getacch_tp(tp, system, param, t, lbeg)
             end if
          end select
-
       end associate
 
       return
-
    end subroutine rmvs_kick_getacch_tp
 
 end submodule s_rmvs_kick

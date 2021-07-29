@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_exit
    use swiftest
 contains
+
    module subroutine util_exit(code)
       !! author: David A. Minton
       !!
@@ -30,4 +31,5 @@ contains
       stop
 
    end subroutine util_exit
+   
 end submodule s_util_exit

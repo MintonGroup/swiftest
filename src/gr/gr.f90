@@ -1,6 +1,7 @@
 submodule(swiftest_classes) s_gr
    use swiftest
 contains
+
    module pure subroutine gr_kick_getaccb_ns_body(self, system, param) 
       !! author: David A. Minton
       !!
@@ -36,12 +37,11 @@ contains
                cb%agr(i) = -sum(self%Gmass(1:n) * self%agr(1:n, i) / cb%Gmass)
             end do
          end select
-
       end associate 
 
       return
-
    end subroutine gr_kick_getaccb_ns_body
+
 
    module pure subroutine gr_p4_pos_kick(param, x, v, dt)
       !! author: David A. Minton
@@ -71,6 +71,7 @@ contains
       return
    end subroutine gr_p4_pos_kick
 
+
    module pure subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
       !! author: David A. Minton
       !!
@@ -98,8 +99,10 @@ contains
          grterm = 1.0_DP - inv_c2 * (0.5_DP * vmag2 + 3 * mu / rmag)
          vh(:) = pv(:) * grterm
       end associate
+
       return
    end subroutine gr_pseudovel2vel
+
 
    module pure subroutine gr_pv2vh_body(self, param)
       !! author: David A. Minton
@@ -121,8 +124,10 @@ contains
          end do
          call move_alloc(vh, self%vh)
       end associate
+
       return
    end subroutine gr_pv2vh_body
+
 
    module pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
       !! author: David A. Minton
@@ -200,6 +205,7 @@ contains
       return
    end subroutine gr_vel2pseudovel
 
+
    module pure subroutine gr_vh2pv_body(self, param)
       !! author: David A. Minton
       !!
@@ -220,8 +226,8 @@ contains
          end do
          call move_alloc(pv, self%vh)
       end associate
+
       return
    end subroutine gr_vh2pv_body
-
 
 end submodule s_gr

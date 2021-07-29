@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_orbel
    use swiftest
 contains
+
    module subroutine orbel_el2xv_vec(self, cb)
       !! author: David A. Minton
       !!
@@ -20,6 +21,7 @@ contains
                            self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
       end do
    end subroutine orbel_el2xv_vec
+
 
    pure subroutine orbel_el2xv(mu, a, ie, inc, capom, omega, capm, x, v)
       !! author: David A. Minton
@@ -122,6 +124,7 @@ contains
       return
    end subroutine orbel_el2xv
 
+
    module pure subroutine orbel_scget(angle, sx, cx)
       !! author: David A. Minton
       !!
@@ -148,6 +151,7 @@ contains
       return
 
    end subroutine orbel_scget
+
 
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
@@ -183,6 +187,7 @@ contains
       
       return
    end subroutine orbel_schget
+
 
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
@@ -285,6 +290,7 @@ contains
       return
    end function  orbel_flon
 
+
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
    ! Date: 2020-06-29  
@@ -354,6 +360,7 @@ contains
       return
    end function  orbel_fget
 
+
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
    ! Date: 2020-06-29  
@@ -405,6 +412,7 @@ contains
 
       return
    end function orbel_zget
+
 
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
@@ -458,6 +466,7 @@ contains
 
       return   
    end function orbel_esolmd
+
 
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
@@ -530,6 +539,7 @@ contains
 
       return
    end function orbel_ehie
+
 
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
@@ -608,6 +618,7 @@ contains
       return
    end function orbel_eget
 
+
    !**********************************************************************
    ! Code converted to Modern Fortran by David A. Minton
    ! Date: 2020-06-29  
@@ -685,6 +696,7 @@ contains
 
       return
    end function orbel_fhybrid
+   
 
    module pure subroutine orbel_xv2aeq(mu, x, v, a, e, q)
       !! author: David A. Minton
@@ -743,6 +755,7 @@ contains
       return
 
    end subroutine orbel_xv2aeq
+
 
    module pure subroutine orbel_xv2aqt(mu, x, v, a, q, capm, tperi)
       !! author: David A. Minton
@@ -993,4 +1006,5 @@ contains
       return
    end subroutine orbel_xv2el
 
+   
 end submodule s_orbel

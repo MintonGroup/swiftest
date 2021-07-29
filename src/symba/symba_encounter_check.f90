@@ -1,6 +1,7 @@
 submodule (symba_classes) s_symba_encounter_check
    use swiftest
 contains
+
    module function symba_encounter_check_pl(self, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
@@ -47,6 +48,7 @@ contains
       end associate
       return
    end function symba_encounter_check_pl
+
 
    module function symba_encounter_check_pltpenc(self, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
@@ -114,9 +116,12 @@ contains
                   end if   
                end associate
             end do
+         end select
       end select
-   end select
+
+      return
    end function symba_encounter_check_pltpenc
+
 
    module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
@@ -166,8 +171,10 @@ contains
             end associate
          end if
       end associate
+
       return
    end function symba_encounter_check_tp
+
 
    module pure elemental subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
       !! author: David A. Minton
@@ -197,6 +204,5 @@ contains
 
       return
    end subroutine symba_encounter_check_one
-
 
 end submodule s_symba_encounter_check

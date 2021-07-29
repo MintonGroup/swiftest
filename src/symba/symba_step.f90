@@ -1,6 +1,7 @@
 submodule (symba_classes) s_symba_step
    use swiftest
 contains
+
    module subroutine symba_step_system(self, param, t, dt)
       !! author: David A. Minton
       !!
@@ -36,8 +37,8 @@ contains
       end select
 
       return
-
    end subroutine symba_step_system
+
 
    module subroutine symba_step_interp_system(self, param, t, dt)
       !! author: David A. Minton
@@ -87,8 +88,10 @@ contains
             end select
          end select
       end associate
+
       return
    end subroutine symba_step_interp_system
+
 
    module recursive subroutine symba_step_recur_system(self, param, t, ireci)
       !! author: David A. Minton
@@ -172,7 +175,9 @@ contains
          end select
       end associate
 
+      return
    end subroutine symba_step_recur_system
+
 
    module subroutine symba_step_reset_system(self)
       !! author: David A. Minton
@@ -216,9 +221,7 @@ contains
          end select
       end associate
 
-   
+      return
    end subroutine symba_step_reset_system
-
-
 
 end submodule s_symba_step

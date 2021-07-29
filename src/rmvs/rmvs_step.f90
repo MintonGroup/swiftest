@@ -1,6 +1,7 @@
 submodule(rmvs_classes) s_rmvs_step
    use swiftest
 contains
+
    module subroutine rmvs_step_system(self, param, t, dt)
       !! author: David A. Minton
       !!
@@ -59,8 +60,8 @@ contains
          end select
       end select
       return
-
    end subroutine rmvs_step_system 
+
 
    subroutine rmvs_interp_out(cb, pl, dt)
       !! author: David A. Minton
@@ -138,8 +139,8 @@ contains
       end associate
 
       return
-
    end subroutine rmvs_interp_out   
+
 
    subroutine rmvs_step_out(cb, pl, tp, system, param, t, dt)
       !! author: David A. Minton
@@ -195,9 +196,10 @@ contains
             end do
          end do
       end associate
-      return
 
+      return
    end subroutine rmvs_step_out
+
 
    subroutine rmvs_interp_in(cb, pl, system, param, dt, outer_index)
       !! author: David A. Minton
@@ -322,6 +324,7 @@ contains
 
    end subroutine rmvs_interp_in
 
+
    subroutine rmvs_step_in(cb, pl, tp, param, outer_time, dto)
       !! author: David A. Minton
       !!
@@ -394,6 +397,7 @@ contains
       end associate
       return
    end subroutine rmvs_step_in
+
 
    subroutine rmvs_make_planetocentric(cb, pl, tp)
       !! author: David A. Minton
@@ -470,8 +474,10 @@ contains
             end select
          end do
       end associate
+
       return
    end subroutine rmvs_make_planetocentric
+
 
    subroutine rmvs_peri_tp(tp, pl, t, dt, lfirst, inner_index, ipleP, param)
       !! author: David A. Minton
@@ -555,6 +561,7 @@ contains
       return
 
    end subroutine rmvs_peri_tp
+
 
    subroutine rmvs_end_planetocentric(pl, tp)
       !! author: David A. Minton

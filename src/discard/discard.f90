@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_discard
    use swiftest
 contains
+
    module subroutine discard_system(self, param)
       !! author: David A. Minton
       !!
@@ -15,8 +16,10 @@ contains
          call pl%discard(system, param)
          if (any(tp%ldiscard(:) .or. any(pl%ldiscard(:)))) call system%write_discard(param)
       end associate
+
       return
    end subroutine discard_system
+
 
    module subroutine discard_pl(self, system, param)
       !! author: David A. Minton
@@ -29,8 +32,10 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
       self%ldiscard(:) = .false.
+
       return
    end subroutine discard_pl
+
 
    module subroutine discard_tp(self, system, param)
       !! author: David A. Minton
@@ -59,8 +64,10 @@ contains
          if (param%lclose .and. ntp > 0) call discard_pl_tp(tp, system, param)
          if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard)
       end associate
+
       return
    end subroutine discard_tp
+
 
    subroutine discard_sun_tp(tp, system, param)
       !! author: David A. Minton
@@ -111,6 +118,7 @@ contains
       return
    end subroutine discard_sun_tp
 
+
    subroutine discard_peri_tp(tp, system, param)
       !! author: David A. Minton
       !!
@@ -153,9 +161,10 @@ contains
             end if
          end do
       end associate
+
       return
-   
    end subroutine discard_peri_tp
+
 
    subroutine discard_pl_tp(tp, system, param)
       !! author: David A. Minton
@@ -192,11 +201,11 @@ contains
                end do
             end if
          end do
-   
       end associate
+
       return
-   
    end subroutine discard_pl_tp
+   
 
    subroutine discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
       !! author: David A. Minton

@@ -1,6 +1,7 @@
 submodule(swiftest_classes) s_kick
    use swiftest
 contains
+
    module pure subroutine kick_getacch_int_pl(self)
       !! author: David A. Minton
       !!
@@ -33,6 +34,7 @@ contains
       return
    end subroutine kick_getacch_int_pl
 
+
    module pure subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
       !! author: David A. Minton
       !!
@@ -61,6 +63,7 @@ contains
             end do
          end do
       end associate
+      
       return
    end subroutine kick_getacch_int_tp
 
