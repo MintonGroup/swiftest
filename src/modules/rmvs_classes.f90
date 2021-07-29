@@ -134,8 +134,8 @@ module rmvs_classes
       module subroutine rmvs_setup_pl(self, n, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(rmvs_pl),            intent(inout) :: self  !! RMVS massive body object
-         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(rmvs_pl),             intent(inout) :: self  !! RMVS massive body object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine rmvs_setup_pl
 

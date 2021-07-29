@@ -119,9 +119,6 @@ contains
       allocate(self%xb(NDIM, n))
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
-      allocate(self%aobl(NDIM, n))
-      allocate(self%agr(NDIM, n))
-      allocate(self%atide(NDIM, n))
       allocate(self%ir3h(n))
       allocate(self%a(n))
       allocate(self%e(n))
@@ -140,7 +137,6 @@ contains
       self%xb(:,:)   = 0.0_DP
       self%vb(:,:)   = 0.0_DP
       self%ah(:,:)   = 0.0_DP
-      self%aobl(:,:) = 0.0_DP
       self%ir3h(:)   = 0.0_DP
       self%a(:)      = 0.0_DP
       self%e(:)      = 0.0_DP
@@ -150,6 +146,19 @@ contains
       self%capm(:)   = 0.0_DP
       self%a(:)      = 0.0_DP
       self%mu(:)     = 0.0_DP
+
+      if (param%loblatecb) then
+         allocate(self%aobl(NDIM, n))
+         self%aobl(:,:) = 0.0_DP
+      end if
+      if (param%ltides) then
+         allocate(self%atide(NDIM, n))
+         self%atide(:,:) = 0.0_DP
+      end if
+      if (param%lgr) then
+         allocate(self%agr(NDIM, n))
+         self%agr(:,:) = 0.0_DP
+      end if
 
       return
    end subroutine setup_body
@@ -174,25 +183,35 @@ contains
       allocate(self%mass(n))
       allocate(self%Gmass(n))
       allocate(self%rhill(n))
-      allocate(self%radius(n))
-      allocate(self%density(n))
-      allocate(self%rot(NDIM, n))
-      allocate(self%Ip(NDIM, n))
-      allocate(self%k2(n))
-      allocate(self%Q(n))
-      allocate(self%tlag(n))
 
       self%mass(:) = 0.0_DP
       self%Gmass(:) = 0.0_DP
       self%rhill(:) = 0.0_DP
-      self%radius(:) = 0.0_DP
-      self%density(:) = 1.0_DP
-      self%rot(:,:) = 0.0_DP
-      self%Ip(:,:) = 0.0_DP
-      self%k2(:) = 0.0_DP
-      self%Q(:) = 0.0_DP
-      self%tlag(:) = 0.0_DP
+
       self%nplpl = 0   
+
+      if (param%lclose) then
+         allocate(self%radius(n))
+         allocate(self%density(n))
+         self%radius(:) = 0.0_DP
+         self%density(:) = 1.0_DP
+      end if
+
+      if (param%lrotation) then
+         allocate(self%rot(NDIM, n))
+         allocate(self%Ip(NDIM, n))
+         self%rot(:,:) = 0.0_DP
+         self%Ip(:,:) = 0.0_DP
+      end if
+
+      if (param%ltides) then
+         allocate(self%k2(n))
+         allocate(self%Q(n))
+         allocate(self%tlag(n))
+         self%k2(:) = 0.0_DP
+         self%Q(:) = 0.0_DP
+         self%tlag(:) = 0.0_DP
+      end if
       
       return
    end subroutine setup_pl

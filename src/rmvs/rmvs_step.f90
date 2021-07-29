@@ -242,15 +242,18 @@ contains
          GMcb(:) = cb%Gmass
          xtmp(:, :) = pl%inner(0)%x(:, :)
          vtmp(:, :) = pl%inner(0)%v(:, :)
-         if (param%loblatecb) then
-            allocate(xh_original,source=pl%xh)
+
+         if ((param%loblatecb) .or. (param%ltides)) then
+            allocate(xh_original, source=pl%xh)
             pl%xh(:, :) = xtmp(:, :) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
+         end if
+         if (param%loblatecb) then
             call pl%accel_obl(system)
             pl%inner(0)%aobl(:, :) = pl%aobl(:, :) ! Save the oblateness acceleration on the planet for this substep
-            if (param%ltides) then
-               call pl%accel_tides(system)
-               pl%inner(0)%atide(:, :) = pl%atide(:, :) ! Save the oblateness acceleration on the planet for this substep
-            end if
+         end if
+         if (param%ltides) then
+            call pl%accel_tides(system)
+            pl%inner(0)%atide(:, :) = pl%atide(:, :) ! Save the oblateness acceleration on the planet for this substep
          end if
 
          do inner_index = 1, NTPHENC - 1
@@ -301,10 +304,10 @@ contains
                pl%xh(:,:) = pl%inner(inner_index)%x(:, :)
                call pl%accel_obl(system)
                pl%inner(inner_index)%aobl(:, :) = pl%aobl(:, :) 
-               if (param%ltides) then 
-                  call pl%accel_tides(system)
-                  pl%inner(inner_index)%atide(:, :) = pl%atide(:, :)  
-               end if
+            end if
+            if (param%ltides) then 
+               call pl%accel_tides(system)
+               pl%inner(inner_index)%atide(:, :) = pl%atide(:, :)  
             end if
          end do
          if (param%loblatecb) then
@@ -312,13 +315,13 @@ contains
             pl%xh(:,:) = pl%inner(NTPHENC)%x(:, :)
             call pl%accel_obl(system)
             pl%inner(NTPHENC)%aobl(:, :) = pl%aobl(:, :) 
-            if (param%ltides) then
-               call pl%accel_tides(system)
-               pl%inner(NTPHENC)%atide(:, :) = pl%atide(:, :) 
-            end if
-            ! Put the planet positions back into place
-            call move_alloc(xh_original, pl%xh)
          end if
+         if (param%ltides) then
+            call pl%accel_tides(system)
+            pl%inner(NTPHENC)%atide(:, :) = pl%atide(:, :) 
+         end if
+         ! Put the planet positions back into place 
+         if (allocated(xh_original)) call move_alloc(xh_original, pl%xh)
       end associate
       return
 
@@ -373,10 +376,10 @@ contains
                               if (param%loblatecb) then
                                  cbenci%aoblbeg = cbenci%inner(inner_index - 1)%aobl(:, 1)
                                  cbenci%aoblend = cbenci%inner(inner_index    )%aobl(:, 1)
-                                 if (param%ltides) then
-                                    cbenci%atidebeg = cbenci%inner(inner_index - 1)%atide(:, 1)
-                                    cbenci%atideend = cbenci%inner(inner_index    )%atide(:, 1)
-                                 end if
+                              end if
+                              if (param%ltides) then
+                                 cbenci%atidebeg = cbenci%inner(inner_index - 1)%atide(:, 1)
+                                 cbenci%atideend = cbenci%inner(inner_index    )%atide(:, 1)
                               end if
 
                               call tpenci%step(planetocen_system, param, inner_time, dti)
@@ -451,18 +454,25 @@ contains
                      do inner_index = 0, NTPHENC 
                         allocate(plenci%inner(inner_index)%x, mold=pl%inner(inner_index)%x)
                         allocate(plenci%inner(inner_index)%v, mold=pl%inner(inner_index)%x)
-                        allocate(plenci%inner(inner_index)%aobl, mold=pl%inner(inner_index)%aobl)
-                        allocate(plenci%inner(inner_index)%atide, mold=pl%inner(inner_index)%atide)
                         allocate(cbenci%inner(inner_index)%x(NDIM,1))
                         allocate(cbenci%inner(inner_index)%v(NDIM,1))
-                        allocate(cbenci%inner(inner_index)%aobl(NDIM,1))
-                        allocate(cbenci%inner(inner_index)%atide(NDIM,1))
                         cbenci%inner(inner_index)%x(:,1)    =  pl%inner(inner_index)%x(:, i) 
                         cbenci%inner(inner_index)%v(:,1)    =  pl%inner(inner_index)%v(:, i) 
-                        cbenci%inner(inner_index)%aobl(:,1) =  pl%inner(inner_index)%aobl(:, i) 
-                        cbenci%inner(inner_index)%atide(:,1) =  pl%inner(inner_index)%atide(:, i) 
                         plenci%inner(inner_index)%x(:,1)    = -cbenci%inner(inner_index)%x(:,1)
                         plenci%inner(inner_index)%v(:,1)    = -cbenci%inner(inner_index)%v(:,1)
+
+                        if (param%loblatecb) then
+                           allocate(plenci%inner(inner_index)%aobl, mold=pl%inner(inner_index)%aobl)
+                           allocate(cbenci%inner(inner_index)%aobl(NDIM,1))
+                           cbenci%inner(inner_index)%aobl(:,1) =  pl%inner(inner_index)%aobl(:, i) 
+                        end if
+
+                        if (param%ltides) then  
+                           allocate(plenci%inner(inner_index)%atide, mold=pl%inner(inner_index)%atide)
+                           allocate(cbenci%inner(inner_index)%atide(NDIM,1))
+                           cbenci%inner(inner_index)%atide(:,1) =  pl%inner(inner_index)%atide(:, i) 
+                        end if
+
                         do j = 2, npl
                            ipc2hc = plenci%plind(j)
                            plenci%inner(inner_index)%x(:,j) = pl%inner(inner_index)%x(:, ipc2hc) - cbenci%inner(inner_index)%x(:,1)
@@ -608,8 +618,8 @@ contains
                      do inner_index = 0, NTPHENC 
                         deallocate(plenci%inner(inner_index)%x) 
                         deallocate(plenci%inner(inner_index)%v) 
-                        deallocate(plenci%inner(inner_index)%aobl)
-                        deallocate(plenci%inner(inner_index)%atide)
+                        if (allocated(plenci%inner(inner_index)%aobl))  deallocate(plenci%inner(inner_index)%aobl)
+                        if (allocated(plenci%inner(inner_index)%atide)) deallocate(plenci%inner(inner_index)%atide)
                      end do
                   end select
                end select
