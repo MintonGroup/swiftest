@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_sort
    use swiftest
 contains
+
    module subroutine util_sort_body(self, sortby, ascending)
       !! author: David A. Minton
       !!
@@ -53,6 +54,7 @@ contains
       return
    end subroutine util_sort_body
 
+
    module subroutine util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
       !!
@@ -103,6 +105,7 @@ contains
       return
    end subroutine util_sort_pl
 
+
    module subroutine util_sort_tp(self, sortby, ascending)
       !! author: David A. Minton
       !!
@@ -143,6 +146,7 @@ contains
       return
    end subroutine util_sort_tp
 
+
    module subroutine util_sort_rearrange_body(self, ind)
       !! author: David A. Minton
       !!
@@ -179,8 +183,10 @@ contains
          self%mu(1:n) = body_sorted%mu(ind(1:n))
          deallocate(body_sorted)
       end associate
+
       return
    end subroutine util_sort_rearrange_body
+
 
    module subroutine util_sort_rearrange_pl(self, ind)
       !! author: David A. Minton
@@ -211,8 +217,10 @@ contains
          pl%tlag(1:npl) = pl_sorted%tlag(ind(1:npl))
          deallocate(pl_sorted)
       end associate
+
       return
    end subroutine util_sort_rearrange_pl
+
 
    module subroutine util_sort_rearrange_tp(self, ind)
       !! author: David A. Minton
@@ -234,8 +242,10 @@ contains
          tp%atp(1:ntp) = tp_sorted%atp(ind(1:ntp))
          deallocate(tp_sorted)
       end associate
+
       return
    end subroutine util_sort_rearrange_tp
+
 
    module subroutine util_sort_dp(arr)
       !! author: David A. Minton
@@ -259,8 +269,10 @@ contains
          end do
          arr(j + 1) = tmp
       end do
+
       return
    end subroutine util_sort_dp
+
 
    module subroutine util_sort_index_dp(arr, ind)
       !! author: David A. Minton
@@ -286,8 +298,10 @@ contains
          end do
          ind(j + 1) = i
       end do
+
       return
    end subroutine util_sort_index_dp
+
 
    module subroutine util_sort_i4b(arr)
       !! author: David A. Minton
@@ -311,8 +325,10 @@ contains
          end do
          arr(j + 1) = tmp
       end do
+
       return
    end subroutine util_sort_i4b
+
 
    module subroutine util_sort_index_i4b(arr, ind)
       !! author: David A. Minton
@@ -338,8 +354,10 @@ contains
          end do
          ind(j + 1) = i
       end do
+
       return
    end subroutine util_sort_index_i4b
+
 
    module subroutine util_sort_sp(arr)
       !! author: David A. Minton
@@ -363,8 +381,10 @@ contains
          end do
          arr(j + 1) = tmp
       end do
+
       return
    end subroutine util_sort_sp
+
 
    module subroutine util_sort_index_sp(arr, ind)
       !! author: David A. Minton
@@ -390,6 +410,8 @@ contains
          end do
          ind(j + 1) = i
       end do
+
       return
    end subroutine util_sort_index_sp
+
 end submodule s_util_sort

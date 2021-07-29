@@ -1,6 +1,7 @@
 submodule(swiftest_classes) s_util_coord
    use swiftest
 contains
+
    module subroutine util_coord_h2b_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -37,6 +38,7 @@ contains
       return
    end subroutine util_coord_h2b_pl
 
+
    module subroutine util_coord_h2b_tp(self, cb)
       !! author: David A. Minton
       !!
@@ -66,6 +68,7 @@ contains
       return
    end subroutine util_coord_h2b_tp
 
+
    module subroutine util_coord_b2h_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -90,6 +93,7 @@ contains
 
       return
    end subroutine util_coord_b2h_pl
+
 
    module subroutine util_coord_b2h_tp(self, cb)
       !! author: David A. Minton
@@ -118,4 +122,5 @@ contains
 
       return
    end subroutine util_coord_b2h_tp
+   
 end submodule s_util_coord

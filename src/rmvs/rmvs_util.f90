@@ -1,6 +1,7 @@
 submodule(rmvs_classes) s_rmvs_util
    use swiftest
 contains
+
    module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -30,6 +31,7 @@ contains
 
       return
    end subroutine rmvs_util_fill_pl
+
 
    module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
@@ -106,6 +108,7 @@ contains
       return
    end subroutine rmvs_util_sort_pl
 
+
    module subroutine rmvs_util_sort_tp(self, sortby, ascending)
       !! author: David A. Minton
       !!
@@ -168,8 +171,10 @@ contains
          pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
          deallocate(pl_sorted)
       end associate
+
       return
    end subroutine rmvs_util_sort_rearrange_pl
+
 
    module subroutine rmvs_util_sort_rearrange_tp(self, ind)
       !! author: David A. Minton
@@ -192,8 +197,10 @@ contains
          tp%xheliocentric(:,1:ntp) = tp_sorted%xheliocentric(:,ind(1:ntp))
          deallocate(tp_sorted)
       end associate
+
       return
    end subroutine rmvs_util_sort_rearrange_tp
+   
 
    module subroutine rmvs_util_spill_pl(self, discards, lspill_list)
       !! author: David A. Minton
@@ -226,6 +233,7 @@ contains
       return
    end subroutine rmvs_util_spill_pl
 
+   
    module subroutine rmvs_util_spill_tp(self, discards, lspill_list)
       !! author: David A. Minton
       !!

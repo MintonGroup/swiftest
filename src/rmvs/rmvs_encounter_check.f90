@@ -1,6 +1,7 @@
 submodule (rmvs_classes) s_rmvs_chk
    use swiftest
 contains
+
    module function rmvs_encounter_check_tp(self, system, dt) result(lencounter)
       !! author: David A. Minton
       !!
@@ -46,6 +47,7 @@ contains
       return
    end function rmvs_encounter_check_tp
 
+
    module elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
       !! author: David A. Minton
       !!
@@ -77,6 +79,6 @@ contains
       end if
 
       return
-
    end function rmvs_chk_ind
+
 end submodule s_rmvs_chk

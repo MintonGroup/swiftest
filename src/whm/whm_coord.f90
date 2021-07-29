@@ -1,6 +1,7 @@
 submodule (whm_classes) s_whm_coord
    use swiftest
 contains
+
    module subroutine whm_coord_h2j_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -39,6 +40,7 @@ contains
       return
    end subroutine whm_coord_h2j_pl
 
+
    module subroutine whm_coord_j2h_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -76,6 +78,7 @@ contains
       return
    end subroutine whm_coord_j2h_pl
 
+
    module subroutine whm_coord_vh2vj_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -107,5 +110,6 @@ contains
     
       return
    end subroutine whm_coord_vh2vj_pl
+
 end submodule s_whm_coord
 

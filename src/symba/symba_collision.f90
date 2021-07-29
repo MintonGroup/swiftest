@@ -1,6 +1,7 @@
 submodule (symba_classes) s_symba_collision
    use swiftest
 contains
+
    module subroutine symba_collision_check_plplenc(self, system, param, t, dt, irec)
       !! author: Jennifer L.L. Pouplin, Carlisle A. wishard, and David A. Minton
       !!
@@ -19,6 +20,7 @@ contains
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
    end subroutine symba_collision_check_plplenc
+
 
    module subroutine symba_collision_check_pltpenc(self, system, param, t, dt, irec)
       !! author: David A. Minton
@@ -71,8 +73,10 @@ contains
             end associate
          end select
       end select
+
       return 
    end subroutine symba_collision_check_pltpenc
+
 
    pure elemental function symba_collision_check_one(xr, yr, zr, vxr, vyr, vzr, Gmtot, rlim, dt, lvdotr) result(lcollision)
       !! author: David A. Minton
@@ -112,8 +116,8 @@ contains
             end if
          end if
       end if
+
       return
    end function symba_collision_check_one
-
 
 end submodule s_symba_collision

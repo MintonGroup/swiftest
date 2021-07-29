@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_reverse_status
    use swiftest
 contains
+
    module subroutine util_reverse_status(self)
       !! author: David A. Minton
       !!
@@ -14,5 +15,8 @@ contains
       elsewhere (self%status(:) == INACTIVE)
          self%status(:) = ACTIVE
       end where
+      
+      return
    end subroutine util_reverse_status
+
 end submodule s_util_reverse_status

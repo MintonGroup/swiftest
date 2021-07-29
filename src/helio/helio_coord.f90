@@ -1,6 +1,7 @@
 submodule (helio_classes) s_helio_coord
    use swiftest
 contains
+
    module subroutine helio_coord_vb2vh_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -26,6 +27,7 @@ contains
       return
    end subroutine helio_coord_vb2vh_pl
 
+
    module subroutine helio_coord_vb2vh_tp(self, vbcb)
       !! author: David A. Minton
       !!
@@ -48,6 +50,7 @@ contains
 
       return
    end subroutine helio_coord_vb2vh_tp
+
 
    module subroutine helio_coord_vh2vb_pl(self, cb)
       !! author: David A. Minton
@@ -76,6 +79,7 @@ contains
       return
    end subroutine helio_coord_vh2vb_pl
 
+
    module subroutine helio_coord_vh2vb_tp(self, vbcb)
       !! author: David A. Minton
       !!
@@ -98,5 +102,6 @@ contains
 
       return
    end subroutine helio_coord_vh2vb_tp
+   
 end submodule s_helio_coord
 

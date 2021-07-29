@@ -29,6 +29,7 @@ submodule(swiftest_classes) s_tides_step_spin
    end interface
 
 contains
+
    module subroutine tides_step_spin_system(self, param, t, dt)
       !! author: Jennifer L.L. Pouplin and David A. Minton
       !!
@@ -58,6 +59,7 @@ contains
 
       return
    end subroutine tides_step_spin_system
+
 
    function tides_spin_derivs(rot_pl_cb, t, dt, xbeg, xend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
       !! author: Jennifer L.L. Pouplin and David A. Minton
@@ -90,6 +92,7 @@ contains
          !
       end do
 
+      return
    end function tides_spin_derivs
 
    function tides_derivs_eval(self, x, t) result(y)
@@ -105,6 +108,8 @@ contains
       else
          error stop "Lambda function was not initialized"
       end if
+
+      return
    end function tides_derivs_eval
 
    function tides_derivs_init(lambda, dt, xbeg, xend) result(f)
@@ -120,6 +125,8 @@ contains
       f%dt = dt
       allocate(f%xbeg, source = xbeg)
       allocate(f%xend, source = xend)
+
       return
    end function tides_derivs_init
+
 end submodule s_tides_step_spin

@@ -18,9 +18,12 @@ contains
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
       real(DP),                   intent(in)    :: t      !! Simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsize
+
       call whm_step_system(self, param, t, dt)
+
       return
    end subroutine helio_step_system 
+
 
    module subroutine helio_step_pl(self, system, param, t, dt)
       !! author: David A. Minton
@@ -58,8 +61,8 @@ contains
       end associate
    
       return
-   
    end subroutine helio_step_pl
+
 
    module subroutine helio_step_tp(self, system, param, t, dt)
 
@@ -99,7 +102,6 @@ contains
       end associate
    
       return
-   
    end subroutine helio_step_tp
 
 end submodule s_helio_step

@@ -1,6 +1,7 @@
 submodule (symba_classes) s_symba_step
    use swiftest
 contains
+
    module subroutine symba_step_system(self, param, t, dt)
       !! author: David A. Minton
       !!
@@ -25,7 +26,10 @@ contains
          class is (symba_tp)
             lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
             if (lencounter) then
+               tp%lfirst = pl%lfirst
                call self%interp(param, t, dt)
+               pl%lfirst = .true.
+               tp%lfirst = .true.
             else
                call helio_step_system(self, param, t, dt)
             end if
@@ -33,8 +37,8 @@ contains
       end select
 
       return
-
    end subroutine symba_step_system
+
 
    module subroutine symba_step_interp_system(self, param, t, dt)
       !! author: David A. Minton
@@ -84,8 +88,10 @@ contains
             end select
          end select
       end associate
+
       return
    end subroutine symba_step_interp_system
+
 
    module recursive subroutine symba_step_recur_system(self, param, t, ireci)
       !! author: David A. Minton
@@ -169,7 +175,9 @@ contains
          end select
       end associate
 
+      return
    end subroutine symba_step_recur_system
+
 
    module subroutine symba_step_reset_system(self)
       !! author: David A. Minton
@@ -213,9 +221,7 @@ contains
          end select
       end associate
 
-   
+      return
    end subroutine symba_step_reset_system
-
-
 
 end submodule s_symba_step

@@ -1,6 +1,7 @@
 submodule(rmvs_classes) s_rmvs_setup
    use swiftest
 contains
+
    module subroutine rmvs_setup_pl(self,n)
       !! author: David A. Minton
       !!
@@ -45,6 +46,7 @@ contains
       end associate
       return
    end subroutine rmvs_setup_pl 
+
 
    module subroutine rmvs_setup_initialize_system(self, param)
       !! author: David A. Minton
@@ -115,8 +117,9 @@ contains
             end select
          end select
       end select
-   
+      return
    end subroutine rmvs_setup_initialize_system
+
 
    module subroutine rmvs_setup_tp(self,n)
       !! author: David A. Minton

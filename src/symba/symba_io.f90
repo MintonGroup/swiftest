@@ -1,6 +1,7 @@
 submodule (symba_classes) s_symba_io
    use swiftest
 contains
+
    module subroutine symba_io_dump_particle_info(self, param, msg) 
       !! author: David A. Minton
       !!
@@ -11,6 +12,7 @@ contains
       character(*), optional,     intent(in)    :: msg   !! Message to display with dump operation
    end subroutine symba_io_dump_particle_info
 
+
    module subroutine symba_io_initialize_particle_info(self, param) 
       !! author: David A. Minton
       !!
@@ -20,6 +22,7 @@ contains
       class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
    end subroutine symba_io_initialize_particle_info
+
 
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -128,6 +131,7 @@ contains
       return
    end subroutine symba_io_param_reader
 
+
    module subroutine symba_io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: David A. Minton
       !!
@@ -187,8 +191,8 @@ contains
       end associate
 
       return
-
    end subroutine symba_io_param_writer
+
 
    module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
       !! author: David A. Minton
@@ -203,6 +207,7 @@ contains
 
       ierr = 0
    end subroutine symba_io_read_frame_info
+   
 
    module subroutine symba_io_write_frame_info(self, iu, param)
       implicit none

@@ -43,6 +43,7 @@ contains
       return
    end subroutine drift_body
 
+
    module pure subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
       !! author: David A. Minton
       !!
@@ -84,6 +85,7 @@ contains
       return
    end subroutine drift_all
 
+
    module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -118,6 +120,7 @@ contains
    
       return
    end subroutine drift_one
+
 
    pure subroutine drift_dan(mu, x0, v0, dt0, iflag)
       !! author: David A. Minton
@@ -185,8 +188,10 @@ contains
          x0(:) = x(:)
          v0(:) = v(:)
       end if
+
       return
    end subroutine drift_dan
+
 
    pure subroutine drift_kepmd(dm, es, ec, x, s, c)
       !! author: David A. Minton
@@ -226,6 +231,7 @@ contains
       return
    end subroutine drift_kepmd
 
+
    pure subroutine drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
       !! author: David A. Minton
       !!
@@ -253,6 +259,7 @@ contains
       return
    end subroutine drift_kepu
 
+
    pure subroutine drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
       !! author: David A. Minton
       !!
@@ -274,6 +281,7 @@ contains
 
       return
    end subroutine drift_kepu_fchk
+
 
    pure subroutine drift_kepu_guess(dt, r0, mu, alpha, u, s)
       !! author: David A. Minton
@@ -311,6 +319,7 @@ contains
 
       return
    end subroutine drift_kepu_guess
+
 
    pure subroutine drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
       !! author: David A. Minton
@@ -356,6 +365,7 @@ contains
       return
    end subroutine drift_kepu_lag
 
+
    pure subroutine drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
       !! author: David A. Minton
       !!
@@ -396,6 +406,7 @@ contains
    
       return
    end subroutine drift_kepu_new
+
 
    pure subroutine drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
       !! author: David A. Minton
@@ -439,6 +450,7 @@ contains
 
       return
    end subroutine drift_kepu_p3solve
+   
 
    pure subroutine drift_kepu_stumpff(x, c0, c1, c2, c3)
       !! author: David A. Minton

@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_io
    use swiftest
 contains
+
    module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -271,6 +272,7 @@ contains
       return 
    end subroutine io_param_reader
 
+
    module subroutine io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: David A. Minton
       !!
@@ -347,6 +349,7 @@ contains
       return
    end subroutine io_param_writer
 
+
    module subroutine io_dump_param(self, param_file_name)
       !! author: David A. Minton
       !!
@@ -382,6 +385,7 @@ contains
 
       return
    end subroutine io_dump_param
+
 
    module subroutine io_dump_swiftest(self, param, msg) 
       !! author: David A. Minton
@@ -420,6 +424,7 @@ contains
 
       return
    end subroutine io_dump_swiftest
+
 
    module subroutine io_dump_system(self, param, msg)
       !! author: David A. Minton
@@ -463,6 +468,7 @@ contains
 
       return
    end subroutine io_dump_system
+
 
    module function io_get_args(integrator, param_file_name) result(ierr)
       !! author: David A. Minton
@@ -522,7 +528,10 @@ contains
          end if
       end if
       if (ierr /= 0) call util_exit(USAGE) 
+
+      return
    end function io_get_args
+
 
    module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
       !! author: David A. Minton
@@ -568,8 +577,10 @@ contains
       ierr = 0
    
       token = buffer(ifirst:ilast)
+
       return
    end function io_get_token
+
 
    module subroutine io_read_body_in(self, param) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -658,6 +669,7 @@ contains
       return
    end subroutine io_read_body_in
 
+
    module subroutine io_read_cb_in(self, param) 
       !! author: David A. Minton
       !!
@@ -702,6 +714,7 @@ contains
       return
    end subroutine io_read_cb_in
 
+
    module subroutine io_read_param_in(self, param_file_name) 
       !! author: David A. Minton
       !!
@@ -742,6 +755,7 @@ contains
 
       return 
    end subroutine io_read_param_in
+
 
    function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
          xh1, xh2, vh1, vh2, encounter_file, out_type) result(ierr)
@@ -792,6 +806,7 @@ contains
 
       return
    end function io_read_encounter
+
 
    module subroutine io_read_frame_body(self, iu, param, form, ierr)
       !! author: David A. Minton
@@ -856,6 +871,7 @@ contains
       return
    end subroutine io_read_frame_body
 
+
    module subroutine io_read_frame_cb(self, iu, param, form, ierr)
       !! author: David A. Minton
       !!
@@ -893,6 +909,7 @@ contains
 
       return
    end subroutine io_read_frame_cb
+
  
    module subroutine io_read_frame_system(self, iu, param, form, ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -929,8 +946,10 @@ contains
       call self%pl%read_frame(iu, param, form, ierr)
       if (ierr /= 0) return
       call self%tp%read_frame(iu, param, form, ierr)
+
       return
    end subroutine io_read_frame_system
+
 
    function io_read_hdr(iu, t, npl, ntp, out_form, out_type) result(ierr)
       !! author: David A. Minton
@@ -969,6 +988,7 @@ contains
       return
    end function io_read_hdr
 
+
    module subroutine io_toupper(string)
       !! author: David A. Minton
       !!
@@ -991,8 +1011,8 @@ contains
       end do
    
       return
-   
    end subroutine io_toupper
+
 
    module subroutine io_write_discard(self, param)
       !! author: David A. Minton
@@ -1062,9 +1082,10 @@ contains
          end if
          close(LUN)
       end associate
+
       return
-   
    end subroutine io_write_discard
+
 
    module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
                                  xh1, xh2, vh1, vh2, encounter_file, out_type)
@@ -1113,8 +1134,8 @@ contains
       end if
 
       return
-
    end subroutine io_write_encounter
+
 
    module subroutine io_write_frame_body(self, iu, param)
       !! author: David A. Minton
@@ -1173,6 +1194,7 @@ contains
       return
    end subroutine io_write_frame_body
 
+
    module subroutine io_write_frame_cb(self, iu, param)
       !! author: David A. Minton
       !!
@@ -1206,8 +1228,10 @@ contains
             write(iu) cb%Q
          end if
       end associate
+
       return
    end subroutine io_write_frame_cb
+
 
    module subroutine io_write_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -1284,6 +1308,7 @@ contains
       return
    end subroutine io_write_frame_system
 
+
    subroutine io_write_hdr(iu, t, npl, ntp, out_form, out_type)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -1323,8 +1348,6 @@ contains
       write(iu, iostat = ierr) out_form
    
       return
-   
    end subroutine io_write_hdr
-
 
 end submodule s_io

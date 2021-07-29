@@ -1,6 +1,7 @@
 submodule(symba_classes) s_symba_util
    use swiftest
 contains
+
    module subroutine symba_util_copy_pltpenc(self, source)
       !! author: David A. Minton
       !!
@@ -18,7 +19,10 @@ contains
          self%index1(1:n) = source%index1(1:n)
          self%index2(1:n) = source%index2(1:n)
       end associate
+
+      return
    end subroutine symba_util_copy_pltpenc
+
 
    module subroutine symba_util_copy_plplenc(self, source)
       !! author: David A. Minton
@@ -39,6 +43,8 @@ contains
             self%vb2(:,1:n) = source%vb2(:,1:n) 
          end select
       end associate
+
+      return
    end subroutine symba_util_copy_plplenc
 
    module subroutine symba_util_resize_pltpenc(self, nrequested)
@@ -64,8 +70,10 @@ contains
          self%status(nrequested+1:nold) = INACTIVE
       end if
       self%nenc = nrequested
+
       return
    end subroutine symba_util_resize_pltpenc
+
 
    module subroutine symba_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
@@ -114,6 +122,7 @@ contains
       return
    end subroutine symba_util_sort_pl
 
+
    module subroutine symba_util_sort_tp(self, sortby, ascending)
       !! author: David A. Minton
       !!
@@ -148,10 +157,11 @@ contains
          end select
 
          call tp%rearrange(ind)
-
       end associate
+
       return
    end subroutine symba_util_sort_tp
+
 
    module subroutine symba_util_sort_rearrange_pl(self, ind)
       !! author: David A. Minton
@@ -187,8 +197,10 @@ contains
          end do
          deallocate(pl_sorted)
       end associate
+
       return
    end subroutine symba_util_sort_rearrange_pl
+
 
    module subroutine symba_util_sort_rearrange_tp(self, ind)
       !! author: David A. Minton
@@ -210,6 +222,7 @@ contains
          tp%levelm(1:ntp) = tp_sorted%levelm(ind(1:ntp))
          deallocate(tp_sorted)
       end associate
+      
       return
    end subroutine symba_util_sort_rearrange_tp
 

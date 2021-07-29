@@ -1,6 +1,7 @@
 submodule(whm_classes) s_whm_gr
    use swiftest
 contains
+
    module subroutine whm_gr_kick_getacch_pl(self, param) !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
@@ -32,8 +33,10 @@ contains
             pl%ah(:, i) = pl%ah(:, i) + aj(:, i) + suma(:)
          end do
       end associate
+
       return
    end subroutine whm_gr_kick_getacch_pl
+
 
    module subroutine whm_gr_kick_getacch_tp(self, param)
       !! author: David A. Minton
@@ -58,8 +61,10 @@ contains
             tp%ah(:, i) = tp%ah(:, i) + beta * tp%xh(:, i) / rjmag4
          end do
       end associate
+
       return
    end subroutine whm_gr_kick_getacch_tp
+   
 
    module pure subroutine whm_gr_p4_pl(self, param, dt)
       !! author: David A. Minton

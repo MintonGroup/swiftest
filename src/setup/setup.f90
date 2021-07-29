@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_setup
    use swiftest
 contains
+
    module subroutine setup_construct_system(system, param)
       !! author: David A. Minton
       !!
@@ -69,6 +70,7 @@ contains
       return
    end subroutine setup_construct_system
 
+
    module subroutine setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -90,6 +92,7 @@ contains
       if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
       return
    end subroutine setup_initialize_system
+
 
    module subroutine setup_body(self,n)
       !! author: David A. Minton
@@ -148,6 +151,7 @@ contains
       return
    end subroutine setup_body
 
+
    module subroutine setup_pl(self,n)
       !! author: David A. Minton
       !!
@@ -186,6 +190,7 @@ contains
       self%nplpl = 0   
       return
    end subroutine setup_pl
+   
 
    module subroutine setup_tp(self, n)
       !! author: David A. Minton

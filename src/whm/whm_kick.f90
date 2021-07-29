@@ -1,6 +1,7 @@
 submodule(whm_classes) s_whm_kick
    use swiftest
 contains
+
    module subroutine whm_kick_getacch_pl(self, system, param, t, lbeg)
       !! author: David A. Minton
       !!
@@ -50,8 +51,10 @@ contains
 
          if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
       end associate
+
       return
    end subroutine whm_kick_getacch_pl
+
 
    module subroutine whm_kick_getacch_tp(self, system, param, t, lbeg)
       !! author: David A. Minton
@@ -93,8 +96,10 @@ contains
          if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param) 
       end associate
+
       return
    end subroutine whm_kick_getacch_tp
+
 
    function whm_kick_getacch_ah0(mu, xhp, n) result(ah0)
       !! author: David A. Minton
@@ -123,6 +128,7 @@ contains
       return
    end function whm_kick_getacch_ah0
 
+
    pure subroutine whm_kick_getacch_ah1(cb, pl)
       !! author: David A. Minton
       !!
@@ -147,8 +153,8 @@ contains
       end associate
    
       return
-   
    end subroutine whm_kick_getacch_ah1
+
 
    pure subroutine whm_kick_getacch_ah2(cb, pl)
       !! author: David A. Minton
@@ -181,6 +187,7 @@ contains
    
       return
    end subroutine whm_kick_getacch_ah2
+
 
    module subroutine whm_kick_vh_pl(self, system, param, t, dt, mask, lbeg)
       !! author: David A. Minton
@@ -224,6 +231,7 @@ contains
       return
    end subroutine whm_kick_vh_pl
 
+
    module subroutine whm_kick_vh_tp(self, system, param, t, dt, mask, lbeg)
       !! author: David A. Minton
       !!
@@ -261,7 +269,5 @@ contains
 
       return
    end subroutine whm_kick_vh_tp
-
-
 
 end submodule s_whm_kick

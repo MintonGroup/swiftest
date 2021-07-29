@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_spill_and_fill
    use swiftest
 contains
+
    module subroutine util_spill_body(self, discards, lspill_list)
       !! author: David A. Minton
       !!
@@ -70,8 +71,10 @@ contains
          discards%ldiscard = .true.
 
       end associate
-      
+     
+      return
    end subroutine util_spill_body
+
 
    module subroutine util_fill_body(self, inserts, lfill_list)
       !! author: David A. Minton
@@ -152,8 +155,10 @@ contains
          ! This is the base class, so will be the last to be called in the cascade. 
          keeps%nbody = size(keeps%id(:))
       end associate
-      
+     
+      return
    end subroutine util_fill_body
+
 
    module subroutine util_spill_pl(self, discards, lspill_list)
       !! author: David A. Minton
@@ -198,8 +203,10 @@ contains
             write(*,*) 'Error! spill method called for incompatible return type on swiftest_pl'
          end select
       end associate
+
       return
    end subroutine util_spill_pl
+
 
    module subroutine util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
@@ -257,8 +264,10 @@ contains
             write(*,*) 'Error! fill method called for incompatible return type on swiftest_pl'
          end select
       end associate
+
       return
    end subroutine util_fill_pl
+
 
    module subroutine util_spill_tp(self, discards, lspill_list)
       !! author: David A. Minton
@@ -272,24 +281,26 @@ contains
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discardse
 
       associate(keeps => self, ntp => self%nbody)
-      select type(discards)
-      class is (swiftest_tp)
-      !> Spill components specific to the test particle class
-         discards%isperi(:) = pack(keeps%isperi(:),       lspill_list(:))
-         discards%peri(:)   = pack(keeps%peri(:),         lspill_list(:))
-         discards%atp(:)    = pack(keeps%atp(:),          lspill_list(:))
-         if (count(.not.lspill_list(:))  > 0) then 
-            keeps%atp(:)       = pack(keeps%atp(:),    .not. lspill_list(:))
-            keeps%peri(:)      = pack(keeps%peri(:),   .not. lspill_list(:))
-            keeps%isperi(:)    = pack(keeps%isperi(:), .not. lspill_list(:))
-         end if
-         call util_spill_body(keeps, discards, lspill_list)
-      class default
-         write(*,*) 'Error! spill method called for incompatible return type on swiftest_tp'
-      end select
+         select type(discards)
+         class is (swiftest_tp)
+            !> Spill components specific to the test particle class
+            discards%isperi(:) = pack(keeps%isperi(:),       lspill_list(:))
+            discards%peri(:)   = pack(keeps%peri(:),         lspill_list(:))
+            discards%atp(:)    = pack(keeps%atp(:),          lspill_list(:))
+            if (count(.not.lspill_list(:))  > 0) then 
+               keeps%atp(:)       = pack(keeps%atp(:),    .not. lspill_list(:))
+               keeps%peri(:)      = pack(keeps%peri(:),   .not. lspill_list(:))
+               keeps%isperi(:)    = pack(keeps%isperi(:), .not. lspill_list(:))
+            end if
+            call util_spill_body(keeps, discards, lspill_list)
+         class default
+            write(*,*) 'Error! spill method called for incompatible return type on swiftest_tp'
+         end select
       end associate
+
       return
    end subroutine util_spill_tp
+
 
    module subroutine util_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
@@ -303,23 +314,24 @@ contains
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
-      select type(inserts)
-      class is (swiftest_tp)
-      !> Spill components specific to the test particle class
-         keeps%isperi(:) = unpack(keeps%isperi(:), .not.lfill_list(:), keeps%isperi(:))
-         keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
-      
-         keeps%peri(:)   = unpack(keeps%peri(:),   .not.lfill_list(:), keeps%peri(:))
-         keeps%peri(:)   = unpack(inserts%peri(:),   lfill_list(:), keeps%peri(:))
-      
-         keeps%atp(:)    = unpack(keeps%atp(:),    .not.lfill_list(:), keeps%atp(:))
-         keeps%atp(:)    = unpack(inserts%atp(:),    lfill_list(:), keeps%atp(:))
-      
-         call util_fill_body(keeps, inserts, lfill_list)
-      class default
-         write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'
-      end select
+         select type(inserts)
+         class is (swiftest_tp)
+         !> Spill components specific to the test particle class
+            keeps%isperi(:) = unpack(keeps%isperi(:), .not.lfill_list(:), keeps%isperi(:))
+            keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
+         
+            keeps%peri(:)   = unpack(keeps%peri(:),   .not.lfill_list(:), keeps%peri(:))
+            keeps%peri(:)   = unpack(inserts%peri(:),   lfill_list(:), keeps%peri(:))
+         
+            keeps%atp(:)    = unpack(keeps%atp(:),    .not.lfill_list(:), keeps%atp(:))
+            keeps%atp(:)    = unpack(inserts%atp(:),    lfill_list(:), keeps%atp(:))
+         
+            call util_fill_body(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'
+         end select
       end associate
+
       return
    end subroutine util_fill_tp
 
