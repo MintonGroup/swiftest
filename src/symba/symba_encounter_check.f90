@@ -190,7 +190,6 @@ contains
       integer(I4B), intent(in)  :: irec
       logical,      intent(out) :: lencounter, lvdotr
       ! Internals
-      integer(I4B) :: iflag
       real(DP)     :: r2, v2, rcrit, r2crit, vdotr
 
       rcrit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
@@ -198,8 +197,7 @@ contains
       r2 = xr**2 + yr**2 + zr**2
       v2 = vxr**2 + vyr**2 + vzr**2
       vdotr = xr * vxr + yr * vyr + zr * vzr
-      iflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit)
-      lencounter = (iflag /= 0)
+      lencounter = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit)
       lvdotr = (vdotr < 0.0_DP)
 
       return
