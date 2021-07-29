@@ -2,7 +2,7 @@
 T0               0.0
 TSTOP            3652.5
 DT               1.0
-ISTEP_OUT        11
+ISTEP_OUT        1
 ISTEP_DUMP       1
 OUT_FORM         XV
 OUT_TYPE         REAL8

@@ -2,7 +2,7 @@ submodule(whm_classes) whm_drift
    use swiftest
 contains
 
-   module subroutine whm_drift_pl(self, system, param, dt, mask)
+   module subroutine whm_drift_pl(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through planets and call Danby drift routine
@@ -15,7 +15,6 @@ contains
       class(swiftest_nbody_system),  intent(inout) :: system !! WHM nbody system object
       class(swiftest_parameters),    intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                      intent(in)    :: dt     !! Stepsize
-      logical, dimension(:),         intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       ! Internals
       integer(I4B)                              :: i
       integer(I4B), dimension(:), allocatable   :: iflag
@@ -25,7 +24,7 @@ contains
 
          allocate(iflag(npl))
          iflag(:) = 0
-         call drift_all(pl%muj, pl%xj, pl%vj, npl, param, dt, mask, iflag)
+         call drift_all(pl%muj, pl%xj, pl%vj, npl, param, dt, pl%lmask, iflag)
          if (any(iflag(1:npl) /= 0)) then
             where(iflag(1:npl) /= 0) pl%status(1:npl) = DISCARDED_DRIFTERR
             do i = 1, npl

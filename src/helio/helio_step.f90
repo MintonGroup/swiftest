@@ -51,11 +51,12 @@ contains
                call pl%vh2vb(cb)
                pl%lfirst = .false.
             end if
-            call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
-            call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
-            call pl%drift(system, param, dt, mask=(pl%status(:) == ACTIVE))
-            call pl%kick(system, param, t + dt, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
-            call pl%lindrift(cb, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
+            pl%lmask(:) = pl%status(:) == ACTIVE
+            call pl%lindrift(cb, dth, lbeg=.true.)
+            call pl%kick(system, param, t, dth, lbeg=.true.)
+            call pl%drift(system, param, dt)
+            call pl%kick(system, param, t + dt, dth, lbeg=.false.)
+            call pl%lindrift(cb, dth, lbeg=.false.)
             call pl%vb2vh(cb)
          end select
       end associate
@@ -92,11 +93,12 @@ contains
                call tp%vh2vb(vbcb = -cb%ptbeg)
                tp%lfirst = .false.
             end if
-            call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
-            call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
-            call tp%drift(system, param, dt, tp%status(:) == ACTIVE)
-            call tp%kick(system, param, t + dt, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
-            call tp%lindrift(cb, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
+            tp%lmask(:) = tp%status(:) == ACTIVE
+            call tp%lindrift(cb, dth, lbeg=.true.)
+            call tp%kick(system, param, t, dth, lbeg=.true.)
+            call tp%drift(system, param, dt)
+            call tp%kick(system, param, t + dt, dth, lbeg=.false.)
+            call tp%lindrift(cb, dth, lbeg=.false.)
             call tp%vb2vh(vbcb = -cb%ptend)
          end select
       end associate

@@ -143,6 +143,7 @@ module swiftest_classes
       real(DP),              dimension(:),   allocatable :: omega           !! Argument of pericenter
       real(DP),              dimension(:),   allocatable :: capm            !! Mean anomaly
       real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
+      logical,               dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and util_spill
    contains
@@ -302,7 +303,7 @@ module swiftest_classes
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine abstract_initialize
 
-      subroutine abstract_kick_body(self, system, param, t, dt, mask, lbeg)
+      subroutine abstract_kick_body(self, system, param, t, dt, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
@@ -310,7 +311,6 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
-         logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine abstract_kick_body
 
@@ -388,13 +388,12 @@ module swiftest_classes
          integer(I4B), dimension(:), intent(out)   :: iflag !! Vector of error flags. 0 means no problem
       end subroutine drift_all
 
-      module subroutine drift_body(self, system, param, dt, mask)
+      module subroutine drift_body(self, system, param, dt)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: dt     !! Stepsize
-         logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       end subroutine drift_body
 
       module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)

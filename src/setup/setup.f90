@@ -120,13 +120,8 @@ contains
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%ir3h(n))
-      allocate(self%a(n))
-      allocate(self%e(n))
-      allocate(self%inc(n))
-      allocate(self%capom(n))
-      allocate(self%omega(n))
-      allocate(self%capm(n))
       allocate(self%mu(n))
+      allocate(self%lmask(n))
 
       self%id(:)   = 0
       self%name(:) = "UNNAMED"
@@ -138,14 +133,8 @@ contains
       self%vb(:,:)   = 0.0_DP
       self%ah(:,:)   = 0.0_DP
       self%ir3h(:)   = 0.0_DP
-      self%a(:)      = 0.0_DP
-      self%e(:)      = 0.0_DP
-      self%inc(:)    = 0.0_DP
-      self%capom(:)  = 0.0_DP
-      self%omega(:)  = 0.0_DP
-      self%capm(:)   = 0.0_DP
-      self%a(:)      = 0.0_DP
       self%mu(:)     = 0.0_DP
+      self%lmask(:)  = .false.
 
       if (param%loblatecb) then
          allocate(self%aobl(NDIM, n))

@@ -70,7 +70,7 @@ contains
             ! Remove accelerations from encountering pairs
             do k = 1, npltpenc
                associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
-                  if (tp%status(j) == ACTIVE) THEN
+                  if (tp%lmask(j)) THEN
                      if (lbeg) then
                         dx(:) = tp%xh(:,j) - pl%xbeg(:,i)
                      else
@@ -181,7 +181,7 @@ contains
                   end associate
                end do
             else
-               where(tp%status(self%index2(1:self%nenc)) == ACTIVE)
+               where(tp%lmask(self%index2(1:self%nenc)))
                   tp%vb(1,self%index2(:)) = tp%vb(1,self%index2(:)) + sgn * dt * tp%ah(1,self%index2(:))
                   tp%vb(2,self%index2(:)) = tp%vb(2,self%index2(:)) + sgn * dt * tp%ah(2,self%index2(:))
                   tp%vb(3,self%index2(:)) = tp%vb(3,self%index2(:)) + sgn * dt * tp%ah(3,self%index2(:))

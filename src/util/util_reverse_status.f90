@@ -15,6 +15,7 @@ contains
       elsewhere (self%status(:) == INACTIVE)
          self%status(:) = ACTIVE
       end where
+      self%lmask(:) = self%status(:) == ACTIVE
       
       return
    end subroutine util_reverse_status

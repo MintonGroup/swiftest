@@ -21,12 +21,8 @@ contains
          discards%id(:)       = pack(keeps%id(:),     lspill_list(:))
          discards%name(:)     = pack(keeps%name(:),   lspill_list(:))
          discards%status(:)   = pack(keeps%status(:), lspill_list(:))
-         discards%a(:)        = pack(keeps%a(:),      lspill_list(:))
-         discards%e(:)        = pack(keeps%e(:),      lspill_list(:))
-         discards%capom(:)    = pack(keeps%capom(:),  lspill_list(:))
-         discards%omega(:)    = pack(keeps%omega(:),  lspill_list(:))
-         discards%capm(:)     = pack(keeps%capm(:),   lspill_list(:))
          discards%mu(:)       = pack(keeps%mu(:),     lspill_list(:))
+         discards%lmask(:)    = pack(keeps%lmask(:),  lspill_list(:))
          do i = 1, NDIM
             discards%xh(i, :) = pack(keeps%xh(i, :),     lspill_list(:))
             discards%vh(i, :) = pack(keeps%vh(i, :),     lspill_list(:))
@@ -34,6 +30,14 @@ contains
             discards%vb(i, :) = pack(keeps%vb(i, :),     lspill_list(:))
             discards%ah(i, :) = pack(keeps%ah(i, :),     lspill_list(:))
          end do
+
+         if (allocated(keeps%a))     discards%a(:)        = pack(keeps%a(:),      lspill_list(:))
+         if (allocated(keeps%e))     discards%e(:)        = pack(keeps%e(:),      lspill_list(:))
+         if (allocated(keeps%capom)) discards%capom(:)    = pack(keeps%capom(:),  lspill_list(:))
+         if (allocated(keeps%omega)) discards%omega(:)    = pack(keeps%omega(:),  lspill_list(:))
+         if (allocated(keeps%capm))  discards%capm(:)     = pack(keeps%capm(:),   lspill_list(:))
+
+
          if (allocated(keeps%aobl)) then
             do i = 1, NDIM
                discards%aobl(i, :) = pack(keeps%aobl(i, :), lspill_list(:))
@@ -54,13 +58,9 @@ contains
             keeps%id(:)         = pack(keeps%id(:),     .not. lspill_list(:))
             keeps%name(:)       = pack(keeps%name(:),   .not. lspill_list(:))
             keeps%status(:)     = pack(keeps%status(:), .not. lspill_list(:))
-            keeps%a(:)          = pack(keeps%a(:),      .not. lspill_list(:))
-            keeps%e(:)          = pack(keeps%e(:),      .not. lspill_list(:))
-            keeps%inc(:)        = pack(keeps%inc(:),    .not. lspill_list(:))
-            keeps%capom(:)      = pack(keeps%capom(:),  .not. lspill_list(:))
-            keeps%omega(:)      = pack(keeps%omega(:),  .not. lspill_list(:))
-            keeps%capm(:)       = pack(keeps%capm(:),   .not. lspill_list(:))
             keeps%mu(:)         = pack(keeps%mu(:),     .not. lspill_list(:))
+            keeps%lmask(:)      = pack(keeps%lmask(:),  .not. lspill_list(:))
+
             do i = 1, NDIM
                keeps%xh(i, :)    = pack(keeps%xh(i, :),   .not. lspill_list(:))
                keeps%vh(i, :)    = pack(keeps%vh(i, :),   .not. lspill_list(:))
@@ -68,6 +68,13 @@ contains
                keeps%vb(i, :)    = pack(keeps%vb(i, :),   .not. lspill_list(:))
                keeps%ah(i, :)    = pack(keeps%ah(i, :),   .not. lspill_list(:))
             end do
+
+            if (allocated(keeps%a))     keeps%a(:)          = pack(keeps%a(:),      .not. lspill_list(:))
+            if (allocated(keeps%e))     keeps%e(:)          = pack(keeps%e(:),      .not. lspill_list(:))
+            if (allocated(keeps%inc))   keeps%inc(:)        = pack(keeps%inc(:),    .not. lspill_list(:))
+            if (allocated(keeps%capom)) keeps%capom(:)      = pack(keeps%capom(:),  .not. lspill_list(:))
+            if (allocated(keeps%omega)) keeps%omega(:)      = pack(keeps%omega(:),  .not. lspill_list(:))
+            if (allocated(keeps%capm))  keeps%capm(:)       = pack(keeps%capm(:),   .not. lspill_list(:))
 
             if (allocated(keeps%aobl)) then
                do i = 1, NDIM
@@ -133,6 +140,12 @@ contains
          keeps%ldiscard(:) = unpack(keeps%ldiscard(:), .not.lfill_list(:), keeps%ldiscard(:))
          keeps%ldiscard(:) = unpack(inserts%ldiscard(:), lfill_list(:), keeps%ldiscard(:))
 
+         keeps%mu(:)    = unpack(keeps%mu(:),   .not.lfill_list(:), keeps%mu(:))
+         keeps%mu(:)    = unpack(inserts%mu(:),   lfill_list(:), keeps%mu(:))
+
+         keeps%lmask(:) = unpack(keeps%lmask(:), .not.lfill_list(:), keeps%ldiscard(:))
+         keeps%lmask(:) = unpack(inserts%lmask(:), lfill_list(:), keeps%ldiscard(:))
+
          do i = 1, NDIM
             keeps%xh(i, :)    = unpack(keeps%xh(i, :), .not.lfill_list(:), keeps%xh(i, :))
             keeps%xh(i, :)    = unpack(inserts%xh(i, :), lfill_list(:), keeps%xh(i, :))
@@ -170,29 +183,37 @@ contains
                keeps%atide(i, :)  = unpack(inserts%atide(i, :), lfill_list(:), keeps%atide(i, :))
             end do
          end if
-         
-         keeps%a(:)     = unpack(keeps%a(:),    .not.lfill_list(:), keeps%a(:))
-         keeps%a(:)     = unpack(inserts%a(:),    lfill_list(:), keeps%a(:))
+        
+         if (allocated(keeps%a)) then
+            keeps%a(:)     = unpack(keeps%a(:),    .not.lfill_list(:), keeps%a(:))
+            keeps%a(:)     = unpack(inserts%a(:),    lfill_list(:), keeps%a(:))
+         end if
+           
+         if (allocated(keeps%e)) then
+            keeps%e(:)     = unpack(keeps%e(:),    .not.lfill_list(:), keeps%e(:))
+            keeps%e(:)     = unpack(inserts%e(:),    lfill_list(:), keeps%e(:))
+         end if
+           
+         if (allocated(keeps%inc)) then
+            keeps%inc(:)   = unpack(keeps%inc(:),  .not.lfill_list(:), keeps%inc(:))
+            keeps%inc(:)   = unpack(inserts%inc(:),  lfill_list(:), keeps%inc(:))
+         end if
+           
+         if (allocated(keeps%capom)) then
+            keeps%capom(:) = unpack(keeps%capom(:),.not.lfill_list(:), keeps%capom(:))
+            keeps%capom(:) = unpack(inserts%capom(:),lfill_list(:), keeps%capom(:))
+         end if
+           
+         if (allocated(keeps%omega)) then
+            keeps%omega(:) = unpack(keeps%omega(:),.not.lfill_list(:), keeps%omega(:))
+            keeps%omega(:) = unpack(inserts%omega(:),lfill_list(:), keeps%omega(:))
+         end if
+           
+         if (allocated(keeps%capm)) then
+            keeps%capm(:)  = unpack(keeps%capm(:), .not.lfill_list(:), keeps%capm(:))
+            keeps%capm(:)  = unpack(inserts%capm(:), lfill_list(:), keeps%capm(:))
+         end if
             
-         keeps%e(:)     = unpack(keeps%e(:),    .not.lfill_list(:), keeps%e(:))
-         keeps%e(:)     = unpack(inserts%e(:),    lfill_list(:), keeps%e(:))
-            
-         keeps%inc(:)   = unpack(keeps%inc(:),  .not.lfill_list(:), keeps%inc(:))
-         keeps%inc(:)   = unpack(inserts%inc(:),  lfill_list(:), keeps%inc(:))
-            
-         keeps%capom(:) = unpack(keeps%capom(:),.not.lfill_list(:), keeps%capom(:))
-         keeps%capom(:) = unpack(inserts%capom(:),lfill_list(:), keeps%capom(:))
-            
-         keeps%omega(:) = unpack(keeps%omega(:),.not.lfill_list(:), keeps%omega(:))
-         keeps%omega(:) = unpack(inserts%omega(:),lfill_list(:), keeps%omega(:))
-            
-         keeps%capm(:)  = unpack(keeps%capm(:), .not.lfill_list(:), keeps%capm(:))
-         keeps%capm(:)  = unpack(inserts%capm(:), lfill_list(:), keeps%capm(:))
-            
-         keeps%mu(:)    = unpack(keeps%mu(:),   .not.lfill_list(:), keeps%mu(:))
-         keeps%mu(:)    = unpack(inserts%mu(:),   lfill_list(:), keeps%mu(:))
-            
-
          ! This is the base class, so will be the last to be called in the cascade. 
          keeps%nbody = size(keeps%id(:))
       end associate

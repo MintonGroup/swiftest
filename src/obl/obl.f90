@@ -19,7 +19,7 @@ contains
 
       associate(n => self%nbody, cb => system%cb)
          self%aobl(:,:) = 0.0_DP
-         do i = 1, n 
+         do concurrent(i = 1:n, self%lmask(i))
             r2 = dot_product(self%xh(:, i), self%xh(:, i))
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
@@ -55,10 +55,10 @@ contains
       associate(pl => self, npl => self%nbody, cb => system%cb)
          call obl_acc_body(pl, system)
          do i = 1, NDIM
-            cb%aobl(i) = -sum(pl%Gmass(1:npl) * pl%aobl(i, 1:npl)) / cb%Gmass
+            cb%aobl(i) = -sum(pl%Gmass(1:npl) * pl%aobl(i, 1:npl), pl%lmask(1:npl)) / cb%Gmass
          end do
 
-         do i = 1, npl
+         do concurrent(i = 1:npl, pl%lmask(i))
             pl%ah(:, i) = pl%ah(:, i) + pl%aobl(:, i) - cb%aobl(:)
          end do
       end associate
@@ -91,7 +91,7 @@ contains
             aoblcb = cb%aoblend
          end if
 
-         do i = 1, ntp
+         do concurrent(i = 1:ntp, tp%lmask(i))
             tp%ah(:, i) = tp%ah(:, i) + tp%aobl(:, i) - aoblcb(:)
          end do
 

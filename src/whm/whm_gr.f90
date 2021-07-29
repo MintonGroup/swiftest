@@ -55,7 +55,7 @@ contains
       
       associate(tp => self, ntp => self%nbody, inv_c2 => param%inv_c2)
          if (ntp == 0) return
-         do i = 1, ntp
+         do concurrent(i = 1:ntp, tp%lmask(i))
             rjmag4 = (dot_product(tp%xh(:, i), tp%xh(:, i)))**2
             beta = - tp%mu(i)**2 * inv_c2 
             tp%ah(:, i) = tp%ah(:, i) + beta * tp%xh(:, i) / rjmag4
@@ -83,7 +83,7 @@ contains
 
       associate(pl => self, npl => self%nbody)
          if (npl == 0) return
-         do i = 1, npl
+         do concurrent(i = 1:npl, pl%lmask(i))
             call gr_p4_pos_kick(param, pl%xj(:, i), pl%vj(:, i), dt)
          end do
       end associate
@@ -108,7 +108,7 @@ contains
 
       associate(tp => self, ntp => self%nbody)
          if (ntp == 0) return
-         do i = 1, ntp
+         do concurrent(i = 1:ntp, tp%lmask(i))
             call gr_p4_pos_kick(param, tp%xh(:, i), tp%vh(:, i), dt)
          end do
       end associate

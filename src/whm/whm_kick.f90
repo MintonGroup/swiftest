@@ -189,7 +189,7 @@ contains
    end subroutine whm_kick_getacch_ah2
 
 
-   module subroutine whm_kick_vh_pl(self, system, param, t, dt, mask, lbeg)
+   module subroutine whm_kick_vh_pl(self, system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick heliocentric velocities of massive bodies
@@ -203,7 +203,6 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
-      logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i
@@ -223,7 +222,7 @@ contains
             call pl%accel(system, param, t, lbeg)
             call pl%set_beg_end(xend = pl%xh)
          end if
-         do concurrent(i = 1:npl, mask(i))
+         do concurrent(i = 1:npl, pl%lmask(i))
             pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt
          end do
       end associate
@@ -232,7 +231,7 @@ contains
    end subroutine whm_kick_vh_pl
 
 
-   module subroutine whm_kick_vh_tp(self, system, param, t, dt, mask, lbeg)
+   module subroutine whm_kick_vh_tp(self, system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick heliocentric velocities of test particles
@@ -246,7 +245,6 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
-      logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i
@@ -262,7 +260,7 @@ contains
             tp%ah(:,:) = 0.0_DP
             call tp%accel(system, param, t, lbeg)
          end if
-         do concurrent(i = 1:ntp, mask(i))
+         do concurrent(i = 1:ntp, tp%lmask(i))
             tp%vh(:, i) = tp%vh(:, i) + tp%ah(:, i) * dt
          end do
       end associate

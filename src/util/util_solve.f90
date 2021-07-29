@@ -21,9 +21,9 @@ contains
       real(DP),                              parameter :: DTFAC = 0.95_DP !! Step size reduction safety factor (Value just under 1.0 to prevent adaptive step size control from discarding steps too aggressively)
       integer(I4B),                          parameter :: RKS = 6         !! Number of RK stages
       real(DP),     dimension(RKS, RKS - 1), parameter :: rkf45_btab = reshape( & !! Butcher tableau for Runge-Kutta-Fehlberg method
-         (/        1./4.,       1./4.,          0.,            0.,           0.,           0.,&
+         (/       1./4.,       1./4.,          0.,            0.,           0.,           0.,&
                   3./8.,      3./32.,      9./32.,            0.,           0.,           0.,&
-               12./13., 1932./2197., -7200./2197.,  7296./2197.,           0.,           0.,&
+                12./13., 1932./2197., -7200./2197.,  7296./2197.,           0.,           0.,&
                      1.,   439./216.,          -8.,   3680./513.,   -845./4104.,          0.,&
                   1./2.,     -8./27.,           2., -3544./2565.,   1859./4104.,    -11./40./), shape(rkf45_btab))
       real(DP), dimension(RKS),  parameter   :: rkf4_coeff =  (/ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5.,      0. /)

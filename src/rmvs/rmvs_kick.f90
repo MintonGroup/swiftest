@@ -53,11 +53,11 @@ contains
 
                         ! Now compute any heliocentric values of acceleration 
                         if (tp%lfirst) then
-                           do i = 1, ntp
+                           do concurrent(i = 1:ntp, tp%lmask(i))
                               tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(inner_index - 1)%x(:,1)
                            end do
                         else
-                           do i = 1, ntp
+                           do concurrent(i = 1:ntp, tp%lmask(i))
                               tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(inner_index    )%x(:,1)
                            end do
                         end if
