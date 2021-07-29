@@ -413,7 +413,7 @@ module symba_classes
          class(symba_tp),               intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine symba_util_sort_rearrange_tp
-        
 
    end interface
+
 end module symba_classes

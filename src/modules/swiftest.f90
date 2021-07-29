@@ -16,5 +16,4 @@ module swiftest
    implicit none
    public
 
-
 end module swiftest
