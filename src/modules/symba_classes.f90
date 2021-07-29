@@ -164,6 +164,7 @@ module symba_classes
 
    interface
       module subroutine symba_collision_check_pltpenc(self, system, param, t, dt, irec)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list object
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
@@ -174,6 +175,7 @@ module symba_classes
       end subroutine symba_collision_check_pltpenc
 
       module subroutine symba_collision_check_plplenc(self, system, param, t, dt, irec)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list object
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
@@ -227,6 +229,7 @@ module symba_classes
       end function symba_encounter_check_tp
 
       module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
@@ -236,6 +239,7 @@ module symba_classes
       end subroutine symba_kick_getacch_pl
 
       module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
@@ -358,6 +362,7 @@ module symba_classes
       end subroutine symba_step_interp_system
 
       module recursive subroutine symba_step_recur_system(self, param, t, ireci)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
