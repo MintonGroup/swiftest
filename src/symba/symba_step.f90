@@ -25,7 +25,10 @@ contains
          class is (symba_tp)
             lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
             if (lencounter) then
+               tp%lfirst = pl%lfirst
                call self%interp(param, t, dt)
+               pl%lfirst = .true.
+               tp%lfirst = .true.
             else
                call helio_step_system(self, param, t, dt)
             end if
