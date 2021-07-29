@@ -1,6 +1,7 @@
 submodule(rmvs_classes) s_rmvs_discard
    use swiftest
 contains  
+
    module subroutine rmvs_discard_tp(self, system, param)
       !! author: David A. Minton
       !!
@@ -33,4 +34,5 @@ contains
       end associate
 
    end subroutine rmvs_discard_tp
+
 end submodule s_rmvs_discard
