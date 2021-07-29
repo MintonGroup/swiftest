@@ -138,14 +138,14 @@ contains
       logical,      dimension(:,:), allocatable :: lencounter, loc_lvdotr
    
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
-         allocate(lencounter(npl, ntp), loc_lvdotr(npl, ntp))
+         allocate(lencounter(ntp, npl), loc_lvdotr(ntp, npl))
          lencounter(:,:) = .false.
    
-         do j = 1, ntp
-            do i = 1, npl
-               xr(:) = tp%xh(:, j) - pl%xh(:, i)
-               vr(:) = tp%vh(:, j) - pl%vh(:, i)
-               call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), 0.0_DP, dt, irec, lencounter(i,j), loc_lvdotr(i,j))
+         do j = 1, npl
+            do i = 1, ntp
+               xr(:) = tp%xh(:, i) - pl%xh(:, j)
+               vr(:) = tp%vh(:, i) - pl%vh(:, j)
+               call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(j), 0.0_DP, dt, irec, lencounter(i,j), loc_lvdotr(i,j))
             end do
          end do
 
@@ -156,8 +156,8 @@ contains
                pltpenc_list%status(1:nenc) = ACTIVE
                pltpenc_list%level(1:nenc) = irec
                pltpenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:,:), lencounter(:,:))
-               pltpenc_list%index1(1:nenc) = pack(spread([(i, i = 1, npl)], dim=2, ncopies=ntp), lencounter(:,:)) 
-               pltpenc_list%index2(1:nenc) = pack(spread([(j, j = 1, ntp)], dim=1, ncopies=npl), lencounter(:,:))
+               pltpenc_list%index1(1:nenc) = pack(spread([(i, i = 1, npl)], dim=1, ncopies=ntp), lencounter(:,:)) 
+               pltpenc_list%index2(1:nenc) = pack(spread([(i, i = 1, ntp)], dim=2, ncopies=npl), lencounter(:,:))
                select type(pl)
                class is (symba_pl)
                   pl%lencounter(:) = .false.

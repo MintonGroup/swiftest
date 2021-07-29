@@ -24,6 +24,7 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
    select type(system)
    class is (symba_nbody_system)
       associate(pl => self, cb => system%cb, plplenc_list => system%plplenc_list, nplplenc => system%plplenc_list%nenc)
+         call helio_kick_getacch_pl(pl, system, param, t, lbeg)
          ! Remove accelerations from encountering pairs
          do k = 1, nplplenc
             associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
@@ -39,7 +40,6 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
                !end if
             end associate
          end do
-         call helio_kick_getacch_pl(pl, system, param, t, lbeg)
       end associate
    end select
 
@@ -68,6 +68,7 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
       select type(system)
       class is (symba_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl, pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
+            call helio_kick_getacch_tp(tp, system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
             do k = 1, npltpenc
                associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
@@ -86,7 +87,6 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
                   end IF
                end associate
             end do
-            call helio_kick_getacch_tp(tp, system, param, t, lbeg)
          end associate
       end select
       return
@@ -142,7 +142,7 @@ module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
                   else
                      lgoodlevel = (pl%levelg(i) >= irm1) .and. (tp%levelg(j) >= irm1)
                   end if
-                  if ((self%status(i) == ACTIVE) .and. lgoodlevel) then
+                  if ((self%status(k) == ACTIVE) .and. lgoodlevel) then
                      if (isplpl) then
                         ri = ((pl%rhill(i)  + pl%rhill(j))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
                         rim1 = ri * (RSHELL**2)
