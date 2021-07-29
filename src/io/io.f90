@@ -618,7 +618,7 @@ contains
       case(ASCII_TYPE)
          open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', iostat = ierr)
          read(iu, *, iostat = ierr) nbody
-         call self%setup(nbody)
+         call self%setup(nbody, param)
          if (nbody > 0) then
             do i = 1, nbody
                select type(self)
@@ -650,7 +650,7 @@ contains
       case (REAL4_TYPE, REAL8_TYPE)  !, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
          open(unit=iu, file=infile, status='old', form='UNFORMATTED', iostat=ierr)
          read(iu, iostat=ierr, err=100) nbody
-         call self%setup(nbody)
+         call self%setup(nbody, param)
          if (nbody > 0) then
             call self%read_frame(iu, param, XV, ierr)
             self%status(:) = ACTIVE

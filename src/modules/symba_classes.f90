@@ -312,22 +312,24 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine symba_io_write_frame_info 
 
-      module subroutine symba_setup_pl(self,n)
+      module subroutine symba_setup_pl(self, n, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_pl), intent(inout) :: self !! SyMBA test particle object
-         integer(I4B),    intent(in)    :: n    !! Number of massive bodies to allocate
+         class(symba_pl),           intent(inout) :: self  !! SyMBA massive body object
+         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine symba_setup_pl
 
       module subroutine symba_setup_pltpenc(self,n)
          implicit none
          class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
-         integer,              intent(in)    :: n    !! Number of encounters to allocate space for
+         integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine symba_setup_pltpenc
 
       module subroutine symba_setup_plplenc(self,n)
          implicit none
          class(symba_plplenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
-         integer,              intent(in)    :: n    !! Number of encounters to allocate space for
+         integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine symba_setup_plplenc
 
       module subroutine symba_setup_initialize_system(self, param)
@@ -337,10 +339,12 @@ module symba_classes
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine symba_setup_initialize_system
 
-      module subroutine symba_setup_tp(self,n)
+      module subroutine symba_setup_tp(self, n, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_tp), intent(inout) :: self !! SyMBA test particle object
-         integer(I4B),    intent(in)    :: n    !! Number of test particles to allocate
+         class(symba_tp),            intent(inout) :: self  !! SyMBA test particle object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
       end subroutine symba_setup_tp
 
       module subroutine symba_step_system(self, param, t, dt)

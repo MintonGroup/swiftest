@@ -669,34 +669,37 @@ module swiftest_classes
          class(swiftest_cb),   intent(inout) :: cb   !! Swiftest central body object
       end subroutine orbel_xv2el_vec
 
-      module subroutine setup_body(self,n)
+      module subroutine setup_body(self, n, param)
          implicit none
-         class(swiftest_body), intent(inout) :: self !! Swiftest body object
-         integer,              intent(in)    :: n    !! Number of particles to allocate space for
+         class(swiftest_body),      intent(inout) :: self  !! Swiftest body object
+         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine setup_body
 
       module subroutine setup_construct_system(system, param)
          implicit none
          class(swiftest_nbody_system),  allocatable, intent(inout) :: system !! Swiftest system object
-         type(swiftest_parameters),                  intent(in)    :: param  !! Swiftest parameters
+         class(swiftest_parameters),                  intent(in)    :: param  !! Current run configuration parameters
       end subroutine setup_construct_system
 
       module subroutine setup_initialize_system(self, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
-         class(swiftest_parameters),   intent(inout) :: param   !! Current run configuration parameters 
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine setup_initialize_system
 
-      module subroutine setup_pl(self,n)
+      module subroutine setup_pl(self, n, param)
          implicit none
-         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-         integer,            intent(in)    :: n    !! Number of massive bodies to allocate space for
+         class(swiftest_pl),        intent(inout) :: self  !! Swiftest massive body object
+         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine setup_pl
 
-      module subroutine setup_tp(self, n)
+      module subroutine setup_tp(self, n, param)
          implicit none
-         class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
-         integer,            intent(in)    :: n    !! Number of bodies to allocate space for
+         class(swiftest_tp),        intent(inout) :: self  !! Swiftest test particle object
+         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parametersr
       end subroutine setup_tp
 
       module subroutine tides_kick_getacch_pl(self, system)

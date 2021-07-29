@@ -10,7 +10,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-      type(swiftest_parameters),                   intent(in)    :: param     !! Swiftest parameters
+      class(swiftest_parameters),                  intent(in)    :: param     !! Swiftest parameters
 
       select case(param%integrator)
       case (BS)
@@ -78,7 +78,7 @@ contains
       !!
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self    !! Swiftest system object
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
   
       call self%cb%initialize(param)
@@ -94,15 +94,17 @@ contains
    end subroutine setup_initialize_system
 
 
-   module subroutine setup_body(self,n)
+   module subroutine setup_body(self, n, param)
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
       !! initializes all components with a value.
       !! Note: Timing tests indicate that (NDIM, n) is more efficient than (NDIM, n) 
       implicit none
-      class(swiftest_body),         intent(inout) :: self !! Swiftest generic body object
-      integer,                      intent(in)    :: n    !! Number of particles to allocate space for
+      ! Arguments
+      class(swiftest_body),       intent(inout) :: self  !! Swiftest generic body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
       self%nbody = n
       if (n <= 0) return
@@ -119,6 +121,7 @@ contains
       allocate(self%ah(NDIM, n))
       allocate(self%aobl(NDIM, n))
       allocate(self%agr(NDIM, n))
+      allocate(self%atide(NDIM, n))
       allocate(self%ir3h(n))
       allocate(self%a(n))
       allocate(self%e(n))
@@ -152,18 +155,20 @@ contains
    end subroutine setup_body
 
 
-   module subroutine setup_pl(self,n)
+   module subroutine setup_pl(self, n, param)
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest massive body class. Allocates space for all particles and
       !! initializes all components with a value. 
       implicit none
-      class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
-      integer,                      intent(in)    :: n    !! Number of massive bodies to allocate space for
+      ! Arguments
+      class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
-      call setup_body(self, n)
+      call setup_body(self, n, param)
       if (n <= 0) return 
 
       allocate(self%mass(n))
@@ -188,22 +193,25 @@ contains
       self%Q(:) = 0.0_DP
       self%tlag(:) = 0.0_DP
       self%nplpl = 0   
+      
       return
    end subroutine setup_pl
    
 
-   module subroutine setup_tp(self, n)
+   module subroutine setup_tp(self, n, param)
       !! author: David A. Minton
       !!
       !! Constructor for base Swiftest test particle particle class. Allocates space for 
       !! all particles and initializes all components with a value. 
       implicit none
-      class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
-      integer,                      intent(in)    :: n    !! Number of bodies to allocate space for
+      ! Arguments
+      class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
-      call setup_body(self, n)
+      call setup_body(self, n, param)
       if (n <= 0) return
 
       allocate(self%isperi(n))

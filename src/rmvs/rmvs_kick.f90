@@ -18,7 +18,7 @@ contains
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
-      type(swiftest_parameters)                 :: param_planetocen
+      class(swiftest_parameters), allocatable   :: param_planetocen
       real(DP), dimension(:, :), allocatable    :: xh_original
       real(DP)                                  :: GMcb_original
       integer(I4B)                              :: i
@@ -34,7 +34,6 @@ contains
                   select type (cb => system%cb)
                   class is (rmvs_cb)
                      associate(xpc => pl%xh, xpct => self%xh, apct => self%ah, system_planetocen => system)
-
                         system_planetocen%lbeg = lbeg
 
                         if (system_planetocen%lbeg) then
@@ -44,7 +43,7 @@ contains
                         end if
                
                         allocate(xh_original, source=tp%xh)
-                        param_planetocen = param
+                        allocate(param_planetocen, source=param)
                         ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter
                         param_planetocen%loblatecb = .false.
                         param_planetocen%lextra_force = .false.

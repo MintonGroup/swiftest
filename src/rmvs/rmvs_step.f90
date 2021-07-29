@@ -347,7 +347,7 @@ contains
 
       associate(npl => pl%nbody)
          dti = dto / NTPHENC
-         call rmvs_make_planetocentric(cb, pl, tp)
+         call rmvs_make_planetocentric(param, cb, pl, tp)
          do i = 1, npl
             if (pl%nenc(i) == 0) cycle
             select type(planetocen_system => pl%planetocentric(i))
@@ -399,7 +399,7 @@ contains
    end subroutine rmvs_step_in
 
 
-   subroutine rmvs_make_planetocentric(cb, pl, tp)
+   subroutine rmvs_make_planetocentric(param, cb, pl, tp)
       !! author: David A. Minton
       !!
       !! When encounters are detected, this method will call the interpolation methods for the planets and 
@@ -408,13 +408,14 @@ contains
       !!
       implicit none
       ! Arguments
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration paramete
       class(rmvs_cb),             intent(inout) :: cb     !! RMVS central body object
       class(rmvs_pl),             intent(inout) :: pl     !! RMVS massive body object
       class(rmvs_tp),             intent(inout) :: tp     !! RMVS test particle object
 
       ! Internals
-      integer(I4B)                                   :: i, j, inner_index, ipc2hc
-      logical, dimension(:), allocatable             :: encmask
+      integer(I4B)                        :: i, j, inner_index, ipc2hc
+      logical, dimension(:), allocatable  :: encmask
 
       associate (npl => pl%nbody, ntp => tp%nbody)
          do i = 1, npl
@@ -432,7 +433,7 @@ contains
                   select type(tpenci => pl%planetocentric(i)%tp)
                   class is (rmvs_tp)
                      tpenci%lplanetocentric = .true.
-                     call tpenci%setup(pl%nenc(i))
+                     call tpenci%setup(pl%nenc(i), param)
                      tpenci%cb_heliocentric = cb
                      tpenci%ipleP = i
                      tpenci%status(:) = ACTIVE
@@ -488,18 +489,18 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_peri.f90
       implicit none
       ! Arguments
-      class(rmvs_tp),                intent(inout) :: tp        !! RMVS test particle object (planetocentric) 
-      class(rmvs_pl),                intent(inout) :: pl        !! RMVS massive body object (heliocentric)
-      real(DP),                      intent(in)    :: t         !! current time
-      real(DP),                      intent(in)    :: dt        !! step size
-      logical,                       intent(in)    :: lfirst    !! Logical flag indicating whether current invocation is the first
-      integer(I4B),                  intent(in)    :: inner_index !! Outer substep number within current set
-      integer(I4B),                  intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
+      class(rmvs_tp),             intent(inout) :: tp        !! RMVS test particle object (planetocentric) 
+      class(rmvs_pl),             intent(inout) :: pl        !! RMVS massive body object (heliocentric)
+      real(DP),                   intent(in)    :: t         !! current time
+      real(DP),                   intent(in)    :: dt        !! step size
+      logical,                    intent(in)    :: lfirst    !! Logical flag indicating whether current invocation is the first
+      integer(I4B),               intent(in)    :: inner_index !! Outer substep number within current set
+      integer(I4B),               intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
       class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B)                                 :: i, id1, id2
-      real(DP)                                     :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
-      real(DP), dimension(NDIM)                    :: xh1, xh2, vh1, vh2
+      integer(I4B)              :: i, id1, id2
+      real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
+      real(DP), dimension(NDIM) :: xh1, xh2, vh1, vh2
 
       rhill2 = pl%rhill(ipleP)**2
       mu = pl%Gmass(ipleP)
@@ -570,8 +571,8 @@ contains
       !!
       implicit none
       ! Arguments
-      class(rmvs_pl),             intent(inout) :: pl     !! RMVS massive body object
-      class(rmvs_tp),             intent(inout) :: tp     !! RMVS test particle objec
+      class(rmvs_pl), intent(inout) :: pl     !! RMVS massive body object
+      class(rmvs_tp), intent(inout) :: tp     !! RMVS test particle objec
       ! Internals
       integer(I4B) :: i, j, inner_index
       integer(I4B), dimension(:), allocatable :: tpind

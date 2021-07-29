@@ -17,7 +17,8 @@ program swiftest_driver
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
-   integer(I8B), parameter                    :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
+   !integer(I8B), parameter                    :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
+   integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    real(DP)                                   :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                   :: finish_wall_time !! Wall clock time when execution has finished
    integer(I4B)                               :: iu               !! Unit number of binary file
@@ -51,6 +52,7 @@ program swiftest_driver
       iloop = 0
       iout = istep_out
       idump = istep_dump
+      nloops = ceiling(tstop / dt)
       if (istep_out > 0) call nbody_system%write_frame(iu, param)
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
@@ -59,7 +61,7 @@ program swiftest_driver
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
       write(*, *) " *************** Main Loop *************** "
-      do iloop = 1, LOOPMAX 
+      do iloop = 1, nloops
          !> Step the system forward in time
          call nbody_system%step(param, t, dt)
 
@@ -85,7 +87,7 @@ program swiftest_driver
                idump = istep_dump
             end if
          end if
-         if (t > tstop) exit 
+         !if (t >= tstop) exit 
       end do
 
       !> Dump the final state of the system to file
