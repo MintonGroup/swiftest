@@ -71,7 +71,7 @@ contains
       integer(I4B),              intent(in)    :: irec       !! Current recursion level 
       logical                                  :: lany_encounter !! Returns true if there is at least one close encounter  
       ! Internals
-      integer(I4B)              :: i
+      integer(I4B)              :: k
       real(DP), dimension(NDIM) :: xr, vr
       logical                   :: lencounter, isplpl
       real(DP)                  :: rlim2, rji2
@@ -93,41 +93,41 @@ contains
          class is (symba_tp)
             allocate(lencmask(self%nenc))
             lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(:) == irec - 1)
-            if (.not.any(lencmask(:))) return 
-            do concurrent(i = 1:self%nenc, lencmask(i))
-               associate(index_i => self%index1(i), index_j => self%index2(i))
+            if (.not.any(lencmask(:))) return
+            associate(ind1 => self%index1, ind2 => self%index2) 
+               do concurrent(k = 1:self%nenc, lencmask(k))
                   if (isplpl) then
-                     xr(:) = pl%xh(:,index_j) - pl%xh(:,index_i)
-                     vr(:) = pl%vb(:,index_j) - pl%vb(:,index_i)
-                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(index_i), pl%rhill(index_j), dt, irec, lencounter, self%lvdotr(i))
+                     xr(:) = pl%xh(:,ind2(k)) - pl%xh(:,ind1(k))
+                     vr(:) = pl%vb(:,ind2(k)) - pl%vb(:,ind1(k))
+                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(ind1(k)), pl%rhill(ind2(k)), dt, irec, lencounter, self%lvdotr(k))
                   else
-                     xr(:) = tp%xh(:,index_j) - pl%xh(:,index_i)
-                     vr(:) = tp%vb(:,index_j) - pl%vb(:,index_i)
-                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(index_i), 0.0_DP, dt, irec, lencounter, self%lvdotr(i))
+                     xr(:) = tp%xh(:,ind2(k)) - pl%xh(:,ind1(k))
+                     vr(:) = tp%vb(:,ind2(k)) - pl%vb(:,ind1(k))
+                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(ind1(k)), 0.0_DP, dt, irec, lencounter, self%lvdotr(k))
                   end if
                   if (lencounter) then
                      if (isplpl) then
-                        rlim2 = (pl%radius(index_i) + pl%radius(index_j))**2
+                        rlim2 = (pl%radius(ind1(k)) + pl%radius(ind2(k)))**2
                      else
-                        rlim2 = (pl%radius(index_i))**2
+                        rlim2 = (pl%radius(ind1(k)))**2
                      end if
                      rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
                      if (rji2 > rlim2) then
                         lany_encounter = .true.
-                        pl%levelg(index_i) = irec
-                        pl%levelm(index_i) = MAX(irec, pl%levelm(index_i))
+                        pl%levelg(ind1(k)) = irec
+                        pl%levelm(ind1(k)) = MAX(irec, pl%levelm(ind1(k)))
                         if (isplpl) then
-                           pl%levelg(index_j) = irec
-                           pl%levelm(index_j) = MAX(irec, pl%levelm(index_j))
+                           pl%levelg(ind2(k)) = irec
+                           pl%levelm(ind2(k)) = MAX(irec, pl%levelm(ind2(k)))
                         else
-                           tp%levelg(index_j) = irec
-                           tp%levelm(index_j) = MAX(irec, tp%levelm(index_j))
+                           tp%levelg(ind2(k)) = irec
+                           tp%levelm(ind2(k)) = MAX(irec, tp%levelm(ind2(k)))
                         end if
-                        self%level(i) = irec
+                        self%level(k) = irec
                      end if
                   end if   
-               end associate
-            end do
+               end do
+            end associate
          end select
       end select
 
