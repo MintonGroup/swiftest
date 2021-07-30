@@ -92,7 +92,7 @@ contains
          select type(tp => system%tp)
          class is (symba_tp)
             allocate(lencmask(self%nenc))
-            lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(:) == irec - 1)
+            lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
             if (.not.any(lencmask(:))) return
             associate(ind1 => self%index1, ind2 => self%index2) 
                do concurrent(k = 1:self%nenc, lencmask(k))
