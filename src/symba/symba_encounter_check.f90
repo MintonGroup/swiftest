@@ -75,6 +75,7 @@ contains
       real(DP), dimension(NDIM) :: xr, vr
       logical                   :: lencounter, isplpl
       real(DP)                  :: rlim2, rji2
+      logical, dimension(:), allocatable :: lencmask
 
       lany_encounter = .false.
       if (self%nenc == 0) return
@@ -90,7 +91,10 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
-            do concurrent(i = 1:self%nenc, self%status(i) == ACTIVE .and. self%level(i) == irec - 1)
+            allocate(lencmask(self%nenc))
+            lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(:) == irec - 1)
+            if (.not.any(lencmask(:))) return 
+            do concurrent(i = 1:self%nenc, lencmask(i))
                associate(index_i => self%index1(i), index_j => self%index2(i))
                   if (isplpl) then
                      xr(:) = pl%xh(:,index_j) - pl%xh(:,index_i)
