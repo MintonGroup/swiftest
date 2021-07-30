@@ -44,14 +44,11 @@ contains
                      pl%outer(NTENC)%v(:,:) = pl%vh(:,:)
                      call rmvs_interp_out(cb, pl, dt)
                      call rmvs_step_out(cb, pl, tp, system, param, t, dt) 
-                     call tp%reverse_status()
+                     tp%lmask(1:ntp) = .not. tp%lmask(1:ntp)
                      call pl%set_beg_end(xbeg = xbeg, xend = xend)
                      tp%lfirst = .true.
                      call tp%step(system, param, t, dt)
-                     where (tp%status(:) == INACTIVE) 
-                        tp%status(:) = ACTIVE
-                        tp%lmask(:) = .true.
-                     end where
+                     tp%lmask(1:ntp) = .true.
                      pl%lfirst = lfirstpl
                      tp%lfirst = .true.
                      if (param%ltides) call system%step_spin(param, t, dt)
@@ -170,7 +167,6 @@ contains
       associate(npl => pl%nbody, ntp => tp%nbody)
          dto = dt / NTENC
          where(tp%plencP(:) == 0)
-            tp%status(:) = INACTIVE
             tp%lmask(:) = .false.
          elsewhere  
             tp%lperi(:) = .false.
@@ -197,8 +193,7 @@ contains
             do j = 1, npl
                if (pl%nenc(j) == 0) cycle
                tp%lfirst = .true.
-               where((tp%plencP(:) == j) .and. (tp%status(:) == INACTIVE)) 
-                  tp%status(:) = ACTIVE
+               where((tp%plencP(:) == j) .and. (.not.tp%lmask(:)))
                   tp%lmask(:) = .true.
                end where 
             end do
@@ -266,8 +261,8 @@ contains
 
          do inner_index = 1, NTPHENC - 1
             call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
-                                       vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
-                                       dti(1:npl), iflag(1:npl))
+                                        vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
+                                        dti(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /=0) then
@@ -397,10 +392,7 @@ contains
                               inner_time = outer_time + j * dti
                               call rmvs_peri_tp(tpenci, pl, inner_time, dti, .false., inner_index, i, param) 
                            end do
-                           where(tpenci%status(:) == ACTIVE) 
-                              tpenci%status(:) = INACTIVE
-                              tpenci%lmask(:) = .false.
-                           end where
+                           tpenci%lmask(:) = .false.
                         end associate
                      end select
                   end select
@@ -450,7 +442,6 @@ contains
                      call tpenci%setup(pl%nenc(i), param)
                      tpenci%cb_heliocentric = cb
                      tpenci%ipleP = i
-                     tpenci%status(:) = ACTIVE
                      tpenci%lmask(:) = .true.
                      ! Grab all the encountering test particles and convert them to a planetocentric frame
                      tpenci%id(:) = pack(tp%id(:), encmask(:)) 

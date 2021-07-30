@@ -165,7 +165,6 @@ module swiftest_classes
       procedure :: setup          => setup_body               !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user     => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
       procedure :: fill           => util_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure :: reverse_status => util_reverse_status      !! Reverses the active/inactive status of all particles in a structure
       procedure :: set_ir3        => util_set_ir3h            !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure :: sort           => util_sort_body           !! Sorts body arrays by a sortable componen
       procedure :: rearrange      => util_sort_rearrange_body !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
@@ -780,11 +779,6 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
-
-      module subroutine util_reverse_status(self)
-         implicit none
-         class(swiftest_body), intent(inout) :: self !! Swiftest body object
-      end subroutine util_reverse_status
 
       module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
          implicit none
