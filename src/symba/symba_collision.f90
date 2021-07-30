@@ -19,6 +19,8 @@ contains
       real(DP),                   intent(in)    :: t      !! current time
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
+
+      return
    end subroutine symba_collision_check_plplenc
 
 
@@ -42,6 +44,8 @@ contains
       logical, dimension(:), allocatable        :: lcollision, mask
       real(DP), dimension(NDIM)                 :: xr, vr
       integer(I4B)                              :: k
+
+      if (self%nenc == 0) return
 
       select type(pl => system%pl)
       class is (symba_pl)

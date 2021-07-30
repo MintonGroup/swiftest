@@ -31,7 +31,7 @@ GMSun = swiftest.GMSunSI * TU2S**2 / DU2M**3
 # Simulation start, stop, and output cadence times
 t_0	  = 0 # simulation start time
 deltaT	= 0.25 * swiftest.JD2S / TU2S   # simulation step size
-end_sim = deltaT #0.15
+end_sim = 0.15
 t_print = deltaT  #output interval to print results
 
 iout = int(np.ceil(t_print / deltaT))

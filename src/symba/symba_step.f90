@@ -99,38 +99,44 @@ contains
       !!
       !! Resets pl, tp,and encounter structures at the start of a new step
       !! 
+      !! Adapted from David E. Kaufmann's Swifter routine: symba_step_recur.f90
+      !! Adapted from Hal Levison's Swift routine symba5_step_recur.f
       implicit none
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       integer(I4B),               intent(in)    :: ireci !! Input recursion level 
       ! Internals
-      integer(I4B) :: i, irecp
+      integer(I4B) :: k, irecp
 
       associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
          select type(pl => self%pl)
          class is (symba_pl)
             select type(tp => self%tp)
             class is (symba_tp)
-               associate (plind1 => plplenc_list%index1(1:plplenc_list%nenc), &
-                          plind2 => plplenc_list%index2(1:plplenc_list%nenc), &
-                          plind3 => pltpenc_list%index1(1:pltpenc_list%nenc), &
-                          tpind  => pltpenc_list%index2(1:pltpenc_list%nenc))
+               irecp = ireci + 1
 
-                  irecp = ireci + 1
-
-                  do i = 1, plplenc_list%nenc
-                     if (pl%levelg(plind1(i)) == irecp) pl%levelg(plind1(i)) = ireci
-                     if (pl%levelg(plind2(i)) == irecp) pl%levelg(plind2(i)) = ireci
+               if (plplenc_list%nenc > 0) then
+                  do k = 1, plplenc_list%nenc
+                     associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
+                        if (pl%levelg(i) == irecp) pl%levelg(i) = ireci
+                        if (pl%levelg(j) == irecp) pl%levelg(j) = ireci
+                     end associate
                   end do
-                  do i = 1, pltpenc_list%nenc
-                     if (pl%levelg(plind3(i)) == irecp) pl%levelg(plind3(i)) = ireci
-                     if (tp%levelg(tpind(i))  == irecp) tp%levelg(tpind(i))  = ireci
-                  end do
-               end associate
+                  where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(1:plplenc_list%nenc) = ireci
+               end if
 
-               if (plplenc_list%nenc > 0) where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(:) = ireci
-               if (pltpenc_list%nenc > 0) where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(:) = ireci
+               if (pltpenc_list%nenc > 0) then
+                  do k = 1, pltpenc_list%nenc
+                     associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
+                        if (pl%levelg(i) == irecp) pl%levelg(i) = ireci
+                        if (tp%levelg(j) == irecp) tp%levelg(j) = ireci
+                     end associate
+                  end do
+                  where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(1:pltpenc_list%nenc) = ireci
+               end if
+
                system%irec = ireci
+
             end select
          end select
       end associate
@@ -223,6 +229,8 @@ contains
       !!
       !! Resets pl, tp,and encounter structures at the start of a new step
       !! 
+      !! Adapted from David E. Kaufmann's Swifter routine: symba_step.f90
+      !! Adapted from Hal Levison's Swift routine symba5_step.f
       implicit none
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
