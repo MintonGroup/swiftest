@@ -94,14 +94,15 @@ contains
    end subroutine symba_step_interp_system
 
 
-   module subroutine symba_step_set_recur_levels_system(self)
+   module subroutine symba_step_set_recur_levels_system(self, ireci)
       !! author: David A. Minton
       !!
       !! Resets pl, tp,and encounter structures at the start of a new step
       !! 
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      integer(I4B),               intent(in)    :: ireci !! Input recursion level 
       ! Internals
       integer(I4B) :: i, irecp
 
@@ -115,20 +116,21 @@ contains
                           plind3 => pltpenc_list%index1(1:pltpenc_list%nenc), &
                           tpind  => pltpenc_list%index2(1:pltpenc_list%nenc))
 
-                  irecp = system%irec + 1
+                  irecp = ireci + 1
 
                   do i = 1, plplenc_list%nenc
-                     if (pl%levelg(plind1(i)) == irecp) pl%levelg(plind1(i)) = system%irec
-                     if (pl%levelg(plind2(i)) == irecp) pl%levelg(plind2(i)) = system%irec
+                     if (pl%levelg(plind1(i)) == irecp) pl%levelg(plind1(i)) = ireci
+                     if (pl%levelg(plind2(i)) == irecp) pl%levelg(plind2(i)) = ireci
                   end do
                   do i = 1, pltpenc_list%nenc
-                     if (pl%levelg(plind3(i)) == irecp) pl%levelg(plind3(i)) = system%irec
-                     if (tp%levelg(tpind(i))  == irecp) tp%levelg(tpind(i))  = system%irec
+                     if (pl%levelg(plind3(i)) == irecp) pl%levelg(plind3(i)) = ireci
+                     if (tp%levelg(tpind(i))  == irecp) tp%levelg(tpind(i))  = ireci
                   end do
                end associate
 
-               where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(:) = system%irec
-               where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(:) = system%irec
+               if (plplenc_list%nenc > 0) where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(:) = ireci
+               if (pltpenc_list%nenc > 0) where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(:) = ireci
+               system%irec = ireci
             end select
          end select
       end associate
@@ -205,7 +207,7 @@ contains
                      call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
                   end if
 
-                  call self%set_recur_levels()
+                  call self%set_recur_levels(ireci)
 
                end do
             end select
