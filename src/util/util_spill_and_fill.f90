@@ -250,6 +250,24 @@ contains
             if (allocated(keeps%Q))       discards%Q(:)       = pack(keeps%Q(:),       lspill_list(:))
             if (allocated(keeps%tlag))    discards%tlag(:)    = pack(keeps%tlag(:),    lspill_list(:))
 
+            if (allocated(keeps%xbeg)) then
+               do i = 1, NDIM
+                  discards%xbeg(i, :)  = pack(keeps%xbeg(i, :),     lspill_list(:))
+               end do
+            end if
+
+            if (allocated(keeps%xend)) then
+               do i = 1, NDIM
+                  discards%xend(i, :)  = pack(keeps%xend(i, :),     lspill_list(:))
+               end do
+            end if
+
+            if (allocated(keeps%vbeg)) then
+               do i = 1, NDIM
+                  discards%vbeg(i, :)  = pack(keeps%vbeg(i, :),     lspill_list(:))
+               end do
+            end if
+
             if (allocated(keeps%Ip)) then
                do i = 1, NDIM
                   discards%Ip(i, :)  = pack(keeps%Ip(i, :),     lspill_list(:))
@@ -271,6 +289,24 @@ contains
                if (allocated(keeps%k2))      keeps%k2(:)          = pack(keeps%k2(:),      .not. lspill_list(:))
                if (allocated(keeps%Q))       keeps%Q(:)           = pack(keeps%Q(:),       .not. lspill_list(:))
                if (allocated(keeps%tlag))    keeps%tlag(:)        = pack(keeps%tlag(:),    .not. lspill_list(:))
+
+               if (allocated(keeps%xbeg)) then
+                  do i = 1, NDIM
+                     keeps%xbeg(i,:)     = pack(keeps%xbeg(i,:),   .not. lspill_list(:))
+                  end do
+               end if
+
+               if (allocated(keeps%xend)) then
+                  do i = 1, NDIM
+                     keeps%xend(i,:)     = pack(keeps%xend(i,:),   .not. lspill_list(:))
+                  end do
+               end if
+
+               if (allocated(keeps%vbeg)) then
+                  do i = 1, NDIM
+                     keeps%vbeg(i,:)     = pack(keeps%vbeg(i,:),   .not. lspill_list(:))
+                  end do
+               end if
 
                if (allocated(keeps%Ip)) then
                   do i = 1, NDIM
@@ -323,39 +359,60 @@ contains
             keeps%rhill(:)    = unpack(keeps%rhill(:),.not.lfill_list(:), keeps%rhill(:))
             keeps%rhill(:)    = unpack(inserts%rhill(:),lfill_list(:), keeps%rhill(:))
         
-            if (allocated(keeps%radius)) then
+            if (allocated(keeps%radius) .and. allocated(inserts%radius)) then
                keeps%radius(:)   = unpack(keeps%radius(:),.not.lfill_list(:), keeps%radius(:))
                keeps%radius(:)   = unpack(inserts%radius(:),lfill_list(:), keeps%radius(:))
             end if
         
-            if (allocated(keeps%density)) then
+            if (allocated(keeps%density) .and. allocated(inserts%density)) then
                keeps%density(:)  = unpack(keeps%density(:),.not.lfill_list(:), keeps%density(:))
                keeps%density(:)  = unpack(inserts%density(:),lfill_list(:), keeps%density(:))
             end if
 
-            if (allocated(keeps%k2)) then
+            if (allocated(keeps%k2) .and. allocated(inserts%k2)) then
                keeps%k2(:)  = unpack(keeps%k2(:),.not.lfill_list(:), keeps%k2(:))
                keeps%k2(:)  = unpack(inserts%k2(:),lfill_list(:), keeps%k2(:))
             end if
 
-            if (allocated(keeps%Q)) then
+            if (allocated(keeps%Q) .and. allocated(inserts%Q)) then
                keeps%Q(:)  = unpack(keeps%Q(:),.not.lfill_list(:), keeps%Q(:))
                keeps%Q(:)  = unpack(inserts%Q(:),lfill_list(:), keeps%Q(:))
             end if
 
-            if (allocated(keeps%tlag)) then
+            if (allocated(keeps%tlag) .and. allocated(inserts%tlag)) then
                keeps%tlag(:)  = unpack(keeps%tlag(:),.not.lfill_list(:), keeps%tlag(:))
                keeps%tlag(:)  = unpack(inserts%tlag(:),lfill_list(:), keeps%tlag(:))
             end if
 
-            if (allocated(keeps%Ip)) then
+            if (allocated(keeps%xbeg) .and. allocated(inserts%xbeg)) then
+               do i = 1, NDIM
+                  keeps%xbeg(i, :)    = unpack(keeps%xbeg(i, :), .not.lfill_list(:), keeps%xbeg(i, :))
+                  keeps%xbeg(i, :)    = unpack(inserts%xbeg(i, :), lfill_list(:), keeps%xbeg(i, :))
+               end do
+            end if
+
+            if (allocated(keeps%xend) .and. allocated(inserts%xend)) then
+               do i = 1, NDIM
+                  keeps%xend(i, :)    = unpack(keeps%xend(i, :), .not.lfill_list(:), keeps%xend(i, :))
+                  keeps%xend(i, :)    = unpack(inserts%xend(i, :), lfill_list(:), keeps%xend(i, :))
+               end do
+            end if
+
+            if (allocated(keeps%vbeg) .and. allocated(inserts%vbeg)) then
+               do i = 1, NDIM
+                  keeps%vbeg(i, :)    = unpack(keeps%vbeg(i, :), .not.lfill_list(:), keeps%vbeg(i, :))
+                  keeps%vbeg(i, :)    = unpack(inserts%vbeg(i, :), lfill_list(:), keeps%vbeg(i, :))
+               end do
+            end if
+
+            if (allocated(keeps%Ip) .and. allocated(inserts%Ip)) then
                do i = 1, NDIM
                   keeps%Ip(i, :)    = unpack(keeps%Ip(i, :), .not.lfill_list(:), keeps%Ip(i, :))
                   keeps%Ip(i, :)    = unpack(inserts%Ip(i, :), lfill_list(:), keeps%Ip(i, :))
                end do
             end if
 
-            if (allocated(keeps%rot)) then
+            if (allocated(keeps%rot) .and. allocated(inserts%rot)) then
                do i = 1, NDIM
                   keeps%rot(i, :)    = unpack(keeps%rot(i, :), .not.lfill_list(:), keeps%rot(i, :))
                   keeps%rot(i, :)    = unpack(inserts%rot(i, :), lfill_list(:), keeps%rot(i, :))

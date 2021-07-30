@@ -36,7 +36,6 @@ contains
                   lencounter = tp%encounter_check(system, dt)
                   if (lencounter) then
                      lfirstpl = pl%lfirst
-                     lfirsttp = tp%lfirst
                      pl%outer(0)%x(:,:) = xbeg(:,:)
                      pl%outer(0)%v(:,:) = vbeg(:,:)
                      call pl%step(system, param, t, dt) 
