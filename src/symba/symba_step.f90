@@ -140,6 +140,8 @@ contains
                end if
                do j = 1, nloops
                   lencounter = plplenc_list%encounter_check(system, dtl, irecp) .or. pltpenc_list%encounter_check(system, dtl, irecp)
+                  pl%lmask(:) = pl%status(:) == ACTIVE 
+                  tp%lmask(:) = tp%status(:) == ACTIVE 
                   call plplenc_list%kick(system, dth, irecp, 1)
                   call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
@@ -153,6 +155,8 @@ contains
                   call tp%drift(system, param, dtl)
                   if (lencounter) call system%recursive_step(param, t+dth,irecp)
 
+                  pl%lmask(:) = pl%status(:) == ACTIVE 
+                  tp%lmask(:) = tp%status(:) == ACTIVE 
                   call plplenc_list%kick(system, dth, irecp, 1)
                   call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
