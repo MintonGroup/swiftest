@@ -17,6 +17,7 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       integer(I8B)                              :: k
+      integer(I4B)                              :: nenc
       real(DP),     dimension(NDIM)             :: xr, vr
       logical,      dimension(:),   allocatable :: lencounter, loc_lvdotr
   
@@ -34,17 +35,20 @@ contains
             end associate
          end do
 
-         lany_encounter = any(lencounter(:))
+         nenc = count(lencounter(:))
+         lany_encounter = nenc > 0
          if (lany_encounter) then 
-            associate(plplenc_list => system%plplenc_list, nenc => system%plplenc_list%nenc)
-               call plplenc_list%resize(count(lencounter(:)))
-               plplenc_list%status(1:nenc) = ACTIVE
-               plplenc_list%level(1:nenc) = irec
+            associate(plplenc_list => system%plplenc_list)
+               call plplenc_list%resize(nenc)
                plplenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:), lencounter(:))
                plplenc_list%index1(1:nenc) = pack(pl%k_plpl(1,:), lencounter(:))
                plplenc_list%index2(1:nenc) = pack(pl%k_plpl(2,:), lencounter(:))
-               pl%lencounter(plplenc_list%index1(1:nenc)) = .true.
-               pl%lencounter(plplenc_list%index2(1:nenc)) = .true.
+               do k = 1, nenc
+                  plplenc_list%status(k) = ACTIVE
+                  plplenc_list%level(k) = irec
+                  pl%lencounter(plplenc_list%index1(k)) = .true.
+                  pl%lencounter(plplenc_list%index2(k)) = .true.
+               end do
             end associate
          end if
       end associate
@@ -142,7 +146,7 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       real(DP)                                  :: r2crit, vdotr, r2, v2, tmin, r2min, term2
-      integer(I4B)                              :: i, j
+      integer(I4B)                              :: i, j, k,nenc
       real(DP),     dimension(NDIM)             :: xr, vr
       logical,      dimension(:,:), allocatable :: lencounter, loc_lvdotr
   
@@ -160,10 +164,11 @@ contains
             end do
          end do
 
-         lany_encounter = any(lencounter(:,:))
+         nenc = count(lencounter(:,:))
+         lany_encounter = nenc > 0
          if (lany_encounter) then 
-            associate(pltpenc_list => system%pltpenc_list, nenc => system%pltpenc_list%nenc)
-               call pltpenc_list%resize(count(lencounter(:,:)))
+            associate(pltpenc_list => system%pltpenc_list)
+               call pltpenc_list%resize(nenc)
                pltpenc_list%status(1:nenc) = ACTIVE
                pltpenc_list%level(1:nenc) = irec
                pltpenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:,:), lencounter(:,:))
@@ -172,7 +177,9 @@ contains
                select type(pl)
                class is (symba_pl)
                   pl%lencounter(:) = .false.
-                  pl%lencounter(pltpenc_list%index1(1:nenc)) = .true.
+                  do k = 1, nenc
+                     pl%lencounter(pltpenc_list%index1(k)) = .true.
+                  end do
                end select
             end associate
          end if

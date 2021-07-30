@@ -8,13 +8,19 @@ contains
       !! Calls the discard methods for each body class and then the write method if any discards were detected
       !!
       implicit none
+      ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+      logical :: lany_discards
 
       associate(system => self, tp => self%tp, pl => self%pl)
-         call tp%discard(system, param)
+         lany_discards = .false.
          call pl%discard(system, param)
-         if (any(tp%ldiscard(:) .or. any(pl%ldiscard(:)))) call system%write_discard(param)
+         call tp%discard(system, param)
+         if (tp%nbody > 0) lany_discards = lany_discards .or.  any(tp%ldiscard(:))
+         if (pl%nbody > 0) lany_discards = lany_discards .or.  any(pl%ldiscard(:))
+         if (lany_discards) call system%write_discard(param)
       end associate
 
       return
@@ -31,6 +37,7 @@ contains
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+
       self%ldiscard(:) = .false.
 
       return

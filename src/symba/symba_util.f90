@@ -59,13 +59,21 @@ contains
       ! Internals
       class(symba_pltpenc), allocatable   :: enc_temp
       integer(I4B)                        :: nold
+      logical                             :: lmalloc
 
-      nold = size(self%status)
+      lmalloc = allocated(self%status)
+      if (lmalloc) then
+         nold = size(self%status)
+      else
+         nold = 0
+      end if
       if (nrequested > nold) then
-         allocate(enc_temp, source=self)
+         if (lmalloc) allocate(enc_temp, source=self)
          call self%setup(2 * nrequested)
-         call self%copy(enc_temp)
-         deallocate(enc_temp)
+         if (lmalloc) then
+            call self%copy(enc_temp)
+            deallocate(enc_temp)
+         end if
       else
          self%status(nrequested+1:nold) = INACTIVE
       end if
