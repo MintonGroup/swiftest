@@ -35,13 +35,15 @@ module helio_classes
    !! Helio massive body particle class
    type, extends(swiftest_pl) :: helio_pl
    contains
-      procedure :: vh2vb    => helio_coord_vh2vb_pl  !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
-      procedure :: vb2vh    => helio_coord_vb2vh_pl  !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
-      procedure :: drift    => helio_drift_pl        !! Method for Danby drift in Democratic Heliocentric coordinates 
-      procedure :: lindrift => helio_drift_linear_pl !! Method for linear drift of massive bodies due to barycentric momentum of Sun
-      procedure :: accel    => helio_kick_getacch_pl      !! Compute heliocentric accelerations of massive bodies
-      procedure :: kick     => helio_kick_vb_pl       !! Kicks the barycentric velocities
-      procedure :: step     => helio_step_pl         !! Steps the body forward one stepsize
+      procedure :: vh2vb       => helio_coord_vh2vb_pl     !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
+      procedure :: vb2vh       => helio_coord_vb2vh_pl     !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
+      procedure :: drift       => helio_drift_pl           !! Method for Danby drift in Democratic Heliocentric coordinates 
+      procedure :: lindrift    => helio_drift_linear_pl    !! Method for linear drift of massive bodies due to barycentric momentum of Sun
+      procedure :: accel_gr    => helio_gr_kick_getacch_pl !! Acceleration term arising from the post-Newtonian correction
+      procedure :: gr_pos_kick => helio_gr_p4_pl           !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure :: accel       => helio_kick_getacch_pl    !! Compute heliocentric accelerations of massive bodies
+      procedure :: kick        => helio_kick_vb_pl         !! Kicks the barycentric velocities
+      procedure :: step        => helio_step_pl            !! Steps the body forward one stepsize
    end type helio_pl
 
    !********************************************************************************************************************************
@@ -51,13 +53,15 @@ module helio_classes
    !! Helio test particle class
    type, extends(swiftest_tp) :: helio_tp
    contains
-      procedure :: vh2vb    => helio_coord_vh2vb_tp  !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure :: vb2vh    => helio_coord_vb2vh_tp  !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
-      procedure :: lindrift => helio_drift_linear_tp !! Method for linear drift of massive bodies due to barycentric momentum of Sun
-      procedure :: drift    => helio_drift_tp        !! Method for Danby drift in Democratic Heliocentric coordinates 
-      procedure :: accel    => helio_kick_getacch_tp      !! Compute heliocentric accelerations of massive bodies
-      procedure :: kick     => helio_kick_vb_tp       !! Kicks the barycentric velocities
-      procedure :: step     => helio_step_tp         !! Steps the body forward one stepsize
+      procedure :: vh2vb       => helio_coord_vh2vb_tp     !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
+      procedure :: vb2vh       => helio_coord_vb2vh_tp     !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
+      procedure :: lindrift    => helio_drift_linear_tp    !! Method for linear drift of massive bodies due to barycentric momentum of Sun
+      procedure :: drift       => helio_drift_tp           !! Method for Danby drift in Democratic Heliocentric coordinates 
+      procedure :: accel_gr    => helio_gr_kick_getacch_tp !! Acceleration term arising from the post-Newtonian correction
+      procedure :: gr_pos_kick => helio_gr_p4_tp           !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure :: accel       => helio_kick_getacch_tp    !! Compute heliocentric accelerations of massive bodies
+      procedure :: kick        => helio_kick_vb_tp         !! Kicks the barycentric velocities
+      procedure :: step        => helio_step_tp            !! Steps the body forward one stepsize
    end type helio_tp
 
    interface
@@ -129,6 +133,36 @@ module helio_classes
          real(DP),                      intent(in)    :: dt   !! Stepsize
          logical,                       intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_drift_linear_tp
+
+      module subroutine helio_gr_kick_getacch_pl(self, param) 
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(helio_pl),            intent(inout) :: self   !! Helio massive body particle data structure
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      end subroutine helio_gr_kick_getacch_pl
+   
+      module subroutine helio_gr_kick_getacch_tp(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(helio_tp),            intent(inout) :: self   !! Helio massive body particle data structure
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
+      end subroutine helio_gr_kick_getacch_tp
+      
+      module pure subroutine helio_gr_p4_pl(self, param, dt)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(helio_pl),            intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: dt     !! Step size
+      end subroutine helio_gr_p4_pl
+   
+      module pure subroutine helio_gr_p4_tp(self, param, dt)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(helio_tp),              intent(inout) :: self  !! Swiftest particle object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: dt    !! Step size
+      end subroutine helio_gr_p4_tp
 
       module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system

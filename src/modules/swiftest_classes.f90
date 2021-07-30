@@ -153,22 +153,22 @@ module swiftest_classes
       procedure(abstract_step_body),    deferred :: step
       procedure(abstract_accel),        deferred :: accel
       ! These are concrete because the implementation is the same for all types of particles
-      procedure :: drift          => drift_body               !! Loop through bodies and call Danby drift routine on heliocentric variables
-      procedure :: v2pv           => gr_vh2pv_body            !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
-      procedure :: pv2v           => gr_pv2vh_body            !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
-      procedure :: initialize     => io_read_body_in          !! Read in body initial conditions from a file
-      procedure :: read_frame     => io_read_frame_body       !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure :: write_frame    => io_write_frame_body      !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure :: accel_obl      => obl_acc_body             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure :: el2xv          => orbel_el2xv_vec          !! Convert orbital elements to position and velocity vectors
-      procedure :: xv2el          => orbel_xv2el_vec          !! Convert position and velocity vectors to orbital  elements 
-      procedure :: setup          => setup_body               !! A constructor that sets the number of bodies and allocates all allocatable arrays
-      procedure :: accel_user     => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
-      procedure :: fill           => util_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure :: set_ir3        => util_set_ir3h            !! Sets the inverse heliocentric radius term (1/rh**3)
-      procedure :: sort           => util_sort_body           !! Sorts body arrays by a sortable componen
-      procedure :: rearrange      => util_sort_rearrange_body !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill          => util_spill_body          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: drift       => drift_body               !! Loop through bodies and call Danby drift routine on heliocentric variables
+      procedure :: v2pv        => gr_vh2pv_body            !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
+      procedure :: pv2v        => gr_pv2vh_body            !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
+      procedure :: initialize  => io_read_body_in          !! Read in body initial conditions from a file
+      procedure :: read_frame  => io_read_frame_body       !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure :: write_frame => io_write_frame_body      !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure :: accel_obl   => obl_acc_body             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure :: el2xv       => orbel_el2xv_vec          !! Convert orbital elements to position and velocity vectors
+      procedure :: xv2el       => orbel_xv2el_vec          !! Convert position and velocity vectors to orbital  elements 
+      procedure :: setup       => setup_body               !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure :: accel_user  => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
+      procedure :: fill        => util_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: set_ir3     => util_set_ir3h            !! Sets the inverse heliocentric radius term (1/rh**3)
+      procedure :: sort        => util_sort_body           !! Sorts body arrays by a sortable componen
+      procedure :: rearrange   => util_sort_rearrange_body !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill       => util_spill_body          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_body
       
    !********************************************************************************************************************************
@@ -414,6 +414,16 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine gr_kick_getaccb_ns_body
+
+      module subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
+         implicit none
+         real(DP), dimension(:),     intent(in)  :: mu     !! Gravitational constant
+         real(DP), dimension(:,:),   intent(in)  :: x      !! Position vectors
+         logical,  dimension(:),     intent(in)  :: lmask  !! Logical mask indicating which bodies to compute
+         integer(I4B),               intent(in)  :: n      !! Total number of bodies
+         real(DP),                   intent(in)  :: inv_c2 !! Inverse speed of light squared: 1 / c**2
+         real(DP), dimension(:,:),   intent(out) :: agr    !! Accelerations
+      end subroutine gr_kick_getacch
 
       module pure subroutine gr_p4_pos_kick(param, x, v, dt)
          implicit none

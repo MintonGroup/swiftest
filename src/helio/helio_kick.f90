@@ -36,7 +36,7 @@ contains
             end if
          end if
          if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
-         !if (param%lgr) call pl%gr_accel(param)
+         if (param%lgr) call pl%accel_gr(param)
       end associate
 
       return
@@ -67,7 +67,7 @@ contains
          end if
          if (param%loblatecb) call tp%accel_obl(system)
          if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
-         !if (param%lgr) call tp%gr_accel(param)
+         if (param%lgr) call tp%accel_gr(param)
       end associate
 
       return
