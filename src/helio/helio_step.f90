@@ -51,7 +51,6 @@ contains
                call pl%vh2vb(cb)
                pl%lfirst = .false.
             end if
-            pl%lmask(:) = pl%status(:) == ACTIVE
             call pl%lindrift(cb, dth, lbeg=.true.)
             call pl%kick(system, param, t, dth, lbeg=.true.)
             call pl%drift(system, param, dt)
@@ -93,7 +92,6 @@ contains
                call tp%vh2vb(vbcb = -cb%ptbeg)
                tp%lfirst = .false.
             end if
-            tp%lmask(:) = tp%status(:) == ACTIVE
             call tp%lindrift(cb, dth, lbeg=.true.)
             call tp%kick(system, param, t, dth, lbeg=.true.)
             call tp%drift(system, param, dt)

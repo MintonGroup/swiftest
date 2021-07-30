@@ -48,7 +48,6 @@ contains
 
       associate(pl => self, cb => system%cb)
          dth = 0.5_DP * dt
-         pl%lmask(:) = pl%status(:) == ACTIVE
          call pl%kick(system, param, t, dth,lbeg=.true.)
          call pl%vh2vj(cb) 
          if (param%lgr) call pl%gr_pos_kick(param, dth)
@@ -85,7 +84,6 @@ contains
       class is (whm_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl)
             dth = 0.5_DP * dt
-            tp%lmask(:) = tp%status(:) == ACTIVE
             call tp%kick(system, param, t, dth, lbeg=.true.)
             if (param%lgr) call tp%gr_pos_kick(param, dth)
             call tp%drift(system, param, dt)

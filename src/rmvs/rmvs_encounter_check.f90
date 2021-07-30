@@ -30,7 +30,7 @@ contains
             tp%plencP(:) = 0
             do j = 1, npl
                do i = 1, ntp
-                  if ((tp%status(i) /= ACTIVE).or.(tp%plencP(i) /= 0)) cycle
+                  if ((.not.tp%lmask(i)).or.(tp%plencP(i) /= 0)) cycle
                   xr(:) = tp%xh(:, i) - pl%xbeg(:, j)
                   vr(:) = tp%vh(:, i) - pl%vbeg(:, j)
                   r2 = dot_product(xr(:), xr(:))

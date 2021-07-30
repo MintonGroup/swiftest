@@ -26,7 +26,10 @@ contains
          iflag(:) = 0
          call drift_all(pl%muj, pl%xj, pl%vj, npl, param, dt, pl%lmask, iflag)
          if (any(iflag(1:npl) /= 0)) then
-            where(iflag(1:npl) /= 0) pl%status(1:npl) = DISCARDED_DRIFTERR
+            where(iflag(1:npl) /= 0) 
+               pl%status(1:npl) = DISCARDED_DRIFTERR
+               pl%lmask(1:npl) = .false.
+            end where
             do i = 1, npl
                if (iflag(i) /= 0) then 
                   write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!!!"

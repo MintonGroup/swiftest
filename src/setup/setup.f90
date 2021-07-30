@@ -126,6 +126,7 @@ contains
       self%id(:)   = 0
       self%name(:) = "UNNAMED"
       self%status(:) = INACTIVE
+      self%lmask(:)  = .false.
       self%ldiscard(:) = .false.
       self%xh(:,:)   = 0.0_DP
       self%vh(:,:)   = 0.0_DP
@@ -134,7 +135,6 @@ contains
       self%ah(:,:)   = 0.0_DP
       self%ir3h(:)   = 0.0_DP
       self%mu(:)     = 0.0_DP
-      self%lmask(:)  = .false.
 
       if (param%loblatecb) then
          allocate(self%aobl(NDIM, n))

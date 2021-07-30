@@ -48,7 +48,10 @@ contains
                      call pl%set_beg_end(xbeg = xbeg, xend = xend)
                      tp%lfirst = .true.
                      call tp%step(system, param, t, dt)
-                     where (tp%status(:) == INACTIVE) tp%status(:) = ACTIVE
+                     where (tp%status(:) == INACTIVE) 
+                        tp%status(:) = ACTIVE
+                        tp%lmask(:) = .true.
+                     end where
                      pl%lfirst = lfirstpl
                      tp%lfirst = lfirsttp
                      if (param%ltides) call system%step_spin(param, t, dt)
@@ -168,6 +171,7 @@ contains
          dto = dt / NTENC
          where(tp%plencP(:) == 0)
             tp%status(:) = INACTIVE
+            tp%lmask(:) = .false.
          elsewhere  
             tp%lperi(:) = .false.
          end where
@@ -177,7 +181,7 @@ contains
                                 vbeg = pl%outer(outer_index - 1)%v(:, :), &
                                 xend = pl%outer(outer_index    )%x(:, :))
             system%rts = RHPSCALE
-            lencounter = tp%encounter_check(system, dt) 
+            lencounter = tp%encounter_check(system, dto) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region
                call rmvs_interp_in(cb, pl, system, param, dto, outer_index) 
@@ -192,7 +196,10 @@ contains
             end if
             do j = 1, npl
                if (pl%nenc(j) == 0) cycle
-               where((tp%plencP(:) == j) .and. (tp%status(:) == INACTIVE)) tp%status(:) = ACTIVE
+               where((tp%plencP(:) == j) .and. (tp%status(:) == INACTIVE)) 
+                  tp%status(:) = ACTIVE
+                  tp%lmask(:) = .true.
+               end where 
             end do
          end do
       end associate
@@ -282,8 +289,8 @@ contains
 
          do inner_index = NTPHENC - 1, 1, -1
             call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
-                                       vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
-                                       -dti(1:npl), iflag(1:npl))
+                                        vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
+                                        -dti(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /=0) then
@@ -389,7 +396,10 @@ contains
                               inner_time = outer_time + j * dti
                               call rmvs_peri_tp(tpenci, pl, inner_time, dti, .false., inner_index, i, param) 
                            end do
-                           where(tpenci%status(:) == ACTIVE) tpenci%status(:) = INACTIVE
+                           where(tpenci%status(:) == ACTIVE) 
+                              tpenci%status(:) = INACTIVE
+                              tpenci%lmask(:) = .false.
+                           end where
                         end associate
                      end select
                   end select
@@ -440,6 +450,7 @@ contains
                      tpenci%cb_heliocentric = cb
                      tpenci%ipleP = i
                      tpenci%status(:) = ACTIVE
+                     tpenci%lmask(:) = .true.
                      ! Grab all the encountering test particles and convert them to a planetocentric frame
                      tpenci%id(:) = pack(tp%id(:), encmask(:)) 
                      do j = 1, NDIM 
@@ -517,7 +528,7 @@ contains
       associate(nenc => tp%nbody, xpc => tp%xh, vpc => tp%vh)
          if (lfirst) then
             do i = 1, nenc
-               if (tp%status(i) == ACTIVE) then
+               if (tp%lmask(i)) then
                   vdotr = dot_product(xpc(:, i), vpc(:, i))
                   if (vdotr > 0.0_DP) then
                      tp%isperi(i) = 1
@@ -528,7 +539,7 @@ contains
             end do
          else
             do i = 1, nenc
-               if (tp%status(i) == ACTIVE) then
+               if (tp%lmask(i)) then
                   vdotr = dot_product(xpc(:, i), vpc(:, i))
                   if (tp%isperi(i) == -1) then
                      if (vdotr >= 0.0_DP) then
@@ -607,6 +618,7 @@ contains
             
                      ! Copy the results of the integration back over and shift back to heliocentric reference
                      tp%status(tpind(1:pl%nenc(i))) = tpenci%status(1:pl%nenc(i)) 
+                     tp%lmask(tpind(1:pl%nenc(i))) = tpenci%lmask(1:pl%nenc(i)) 
                      do j = 1, NDIM
                         tp%xh(j, tpind(1:pl%nenc(i))) = tpenci%xh(j,1:pl%nenc(i)) + pl%inner(NTPHENC)%x(j, i)
                         tp%vh(j, tpind(1:pl%nenc(i))) = tpenci%vh(j,1:pl%nenc(i)) + pl%inner(NTPHENC)%v(j, i)

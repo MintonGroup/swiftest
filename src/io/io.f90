@@ -645,6 +645,7 @@ contains
                read(iu, *, iostat=ierr, err=100) self%xh(1, i), self%xh(2, i), self%xh(3, i)
                read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                self%status(i) = ACTIVE
+               self%lmask(i) = .true.
             end do
          end if
       case (REAL4_TYPE, REAL8_TYPE)  !, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
@@ -654,6 +655,7 @@ contains
          if (nbody > 0) then
             call self%read_frame(iu, param, XV, ierr)
             self%status(:) = ACTIVE
+            self%lmask(:) = .true.
          end if
       case default
          write(*,*) trim(adjustl(param%in_type)) // ' is an unrecognized file type'

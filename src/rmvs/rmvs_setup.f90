@@ -103,6 +103,7 @@ contains
                            plenci%lplanetocentric = .true.
                            call plenci%setup(npl, param)
                            plenci%status(:) = ACTIVE
+                           plenci%lmask(:) = .true.
                            ! plind stores the heliocentric index value of a planetocentric planet
                            ! e.g. Consider an encounter with planet 3.  
                            ! Then the following will be the values of plind:

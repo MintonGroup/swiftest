@@ -80,13 +80,13 @@ contains
 
          if (lbeg) then
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xbeg(:,:), npl)
-            do i = 1, ntp
+            do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
          else
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xend(:,:), npl)
-            do i = 1, ntp
+            do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(pl%Gmass(:), pl%xend(:,:), npl)
@@ -145,7 +145,7 @@ contains
       real(DP), dimension(NDIM)    :: ah1h, ah1j
 
       associate(npl => pl%nbody)
-         do i = 2, npl
+         do concurrent (i = 2:npl, pl%lmask(i))
             ah1j(:) = pl%xj(:, i) * pl%ir3j(i)
             ah1h(:) = pl%xh(:, i) * pl%ir3h(i)
             pl%ah(:, i) = pl%ah(:, i) + cb%Gmass * (ah1j(:) - ah1h(:))
@@ -176,7 +176,7 @@ contains
          ah2(:) = 0.0_DP
          ah2o(:) = 0.0_DP
          etaj = cb%Gmass
-         do i = 2, npl
+         do concurrent(i = 2:npl, pl%lmask(i))
             etaj = etaj + pl%Gmass(i - 1)
             fac = pl%Gmass(i) * cb%Gmass * pl%ir3j(i) / etaj
             ah2(:) = ah2o + fac * pl%xj(:, i)
@@ -252,12 +252,20 @@ contains
       associate(tp => self, ntp => self%nbody)
          if (ntp == 0) return
          if (tp%lfirst) then
-            tp%ah(:,:) = 0.0_DP
+            where(tp%lmask(1:ntp)) 
+               tp%ah(1,1:ntp) = 0.0_DP
+               tp%ah(2,1:ntp) = 0.0_DP
+               tp%ah(3,1:ntp) = 0.0_DP
+            end where
             call tp%accel(system, param, t, lbeg=.true.)
             tp%lfirst = .false.
          end if
          if (.not.lbeg) then
-            tp%ah(:,:) = 0.0_DP
+            where(tp%lmask(1:ntp)) 
+               tp%ah(1,1:ntp) = 0.0_DP
+               tp%ah(2,1:ntp) = 0.0_DP
+               tp%ah(3,1:ntp) = 0.0_DP
+            end where
             call tp%accel(system, param, t, lbeg)
          end if
          do concurrent(i = 1:ntp, tp%lmask(i))

@@ -25,6 +25,7 @@ contains
                      tp%status(i) = DISCARDED_PLQ
                      write(*, *) "Particle ",tp%id(i)," q with respect to Planet ",pl%id(iplperP)," is too small at t = ",t
                      tp%ldiscard(i) = .true.
+                     tp%lmask(i) = .false.
                   end if
                end if
             end associate
