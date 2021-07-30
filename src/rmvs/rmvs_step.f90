@@ -53,7 +53,7 @@ contains
                         tp%lmask(:) = .true.
                      end where
                      pl%lfirst = lfirstpl
-                     tp%lfirst = lfirsttp
+                     tp%lfirst = .true.
                      if (param%ltides) call system%step_spin(param, t, dt)
                   else
                      call whm_step_system(system, param, t, dt)
@@ -196,6 +196,7 @@ contains
             end if
             do j = 1, npl
                if (pl%nenc(j) == 0) cycle
+               tp%lfirst = .true.
                where((tp%plencP(:) == j) .and. (tp%status(:) == INACTIVE)) 
                   tp%status(:) = ACTIVE
                   tp%lmask(:) = .true.
