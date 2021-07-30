@@ -53,8 +53,10 @@ contains
             end if
             call pl%lindrift(cb, dth, lbeg=.true.)
             call pl%kick(system, param, t, dth, lbeg=.true.)
+            if (param%lgr) call pl%gr_pos_kick(param, dth)
             call pl%drift(system, param, dt)
             call pl%kick(system, param, t + dt, dth, lbeg=.false.)
+            if (param%lgr) call pl%gr_pos_kick(param, dth)
             call pl%lindrift(cb, dth, lbeg=.false.)
             call pl%vb2vh(cb)
          end select

@@ -260,11 +260,8 @@ contains
    
          ! Determine if the GR flag is set correctly for this integrator
          select case(integrator)
-         case(WHM, RMVS)
+         case(WHM, RMVS, HELIO, SYMBA)
             write(*,*) "GR             = ", self%lgr
-         case(HELIO, SYMBA)
-            write(*,*) "GR             = ", self%lgr
-            if (self%lgr) write(*,*) "GR is still in development with this integrator and will not produce correct results." 
          case default   
             if (self%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
             self%lgr = .false.
