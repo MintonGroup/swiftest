@@ -1,6 +1,7 @@
 submodule(swiftest_classes) s_tides_kick_getacch
    use swiftest
 contains
+
    module subroutine tides_kick_getacch_pl(self, system)
       !! author: Jennifer L.L. Pouplin, Carlisle A. wishard, and David A. Minton
       !!
@@ -59,6 +60,6 @@ contains
       end associate
 
       return
-
    end subroutine tides_kick_getacch_pl
+   
 end submodule s_tides_kick_getacch

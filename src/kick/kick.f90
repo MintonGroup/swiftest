@@ -20,13 +20,15 @@ contains
       associate(pl => self, npl => self%nbody, nplpl => self%nplpl)
          do k = 1, nplpl
             associate(i => pl%k_plpl(1, k), j => pl%k_plpl(2, k))
-               dx(:) = pl%xh(:, j) - pl%xh(:, i)
-               rji2  = dot_product(dx(:), dx(:))
-               irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-               faci = pl%Gmass(i) * irij3
-               facj = pl%Gmass(j) * irij3
-               pl%ah(:, i) = pl%ah(:, i) + facj * dx(:)
-               pl%ah(:, j) = pl%ah(:, j) - faci * dx(:)
+               if (pl%lmask(i) .and. pl%lmask(j)) then
+                  dx(:) = pl%xh(:, j) - pl%xh(:, i)
+                  rji2  = dot_product(dx(:), dx(:))
+                  irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+                  faci = pl%Gmass(i) * irij3
+                  facj = pl%Gmass(j) * irij3
+                  pl%ah(:, i) = pl%ah(:, i) + facj * dx(:)
+                  pl%ah(:, j) = pl%ah(:, j) - faci * dx(:)
+               end if
             end associate
          end do
       end associate
@@ -54,7 +56,7 @@ contains
       real(DP), dimension(NDIM) :: dx
 
       associate(tp => self, ntp => self%nbody)
-         do concurrent(i = 1:ntp, tp%status(i) == ACTIVE)
+         do concurrent(i = 1:ntp, tp%lmask(i))
             do j = 1, npl
                dx(:) = tp%xh(:,i) - xhp(:, j)
                r2 = dot_product(dx(:), dx(:))

@@ -55,13 +55,12 @@ module whm_classes
    !! WHM test particle class
    type, extends(swiftest_tp) :: whm_tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as whm_setup_tp and whm_util_spill_tp
+      !!    component list, such as whm_util_spill_tp
    contains
       procedure :: accel       => whm_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
       procedure :: kick        => whm_kick_vh_tp         !! Kick heliocentric velocities of test particles
       procedure :: accel_gr    => whm_gr_kick_getacch_tp !! Acceleration term arising from the post-Newtonian correction
       procedure :: gr_pos_kick => whm_gr_p4_tp           !! Position kick due to p**4 term in the post-Newtonian correction
-      procedure :: setup       => whm_setup_tp           !! Allocates new components of the whm class and recursively calls parent allocations
       procedure :: step        => whm_step_tp            !! Steps the particle forward one stepsize
    end type whm_tp
 
@@ -98,14 +97,13 @@ module whm_classes
          class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body particle data structuree
       end subroutine whm_coord_vh2vj_pl
 
-      module subroutine whm_drift_pl(self, system, param, dt, mask)
+      module subroutine whm_drift_pl(self, system, param, dt)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: dt     !! Stepsize
-         logical, dimension(:),        intent(in)    :: mask   !! Logical mask of size self%nbody that determines which bodies to drift
       end subroutine whm_drift_pl
 
       module subroutine whm_util_fill_pl(self, inserts, lfill_list)
@@ -138,7 +136,7 @@ module whm_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine whm_kick_getacch_tp
 
-      module subroutine whm_kick_vh_pl(self, system, param, t, dt, mask, lbeg)
+      module subroutine whm_kick_vh_pl(self, system, param, t, dt, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(whm_pl),                intent(inout) :: self   !! WHM massive body object
@@ -146,11 +144,10 @@ module whm_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
-         logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine whm_kick_vh_pl
 
-      module subroutine whm_kick_vh_tp(self, system, param, t, dt, mask, lbeg)
+      module subroutine whm_kick_vh_tp(self, system, param, t, dt, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(whm_tp),                intent(inout) :: self   !! WHM test particle object
@@ -158,7 +155,6 @@ module whm_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
-         logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine whm_kick_vh_tp
 
@@ -193,10 +189,12 @@ module whm_classes
       end subroutine whm_gr_p4_tp
 
       !> Reads WHM massive body object in from file
-      module subroutine whm_setup_pl(self,n)
+      module subroutine whm_setup_pl(self, n, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(whm_pl), intent(inout)    :: self !! WHM massive body objectobject
-         integer(I4B),  intent(in)       :: n    !! Number of test particles to allocate
+         class(whm_pl),             intent(inout) :: self  !! WHM massive body objectobject
+         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine whm_setup_pl
 
       module subroutine whm_util_set_ir3j(self)
@@ -230,13 +228,6 @@ module whm_classes
          class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine whm_setup_initialize_system
-
-      !> Reads WHM test particle object in from file
-      module subroutine whm_setup_tp(self,n)
-         implicit none
-         class(whm_tp), intent(inout) :: self   !! WHM test particle data structure
-         integer,       intent(in)    :: n      !! Number of test particles to allocate
-      end subroutine whm_setup_tp
 
       module subroutine whm_step_pl(self, system, param, t, dt)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters

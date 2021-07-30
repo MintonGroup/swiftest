@@ -17,9 +17,11 @@ contains
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
 
+      if (self%nbody == 0) return
+
       associate(n => self%nbody, cb => system%cb)
          self%aobl(:,:) = 0.0_DP
-         do i = 1, n 
+         do concurrent(i = 1:n, self%lmask(i))
             r2 = dot_product(self%xh(:, i), self%xh(:, i))
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
@@ -52,13 +54,15 @@ contains
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody, cb => system%cb)
          call obl_acc_body(pl, system)
          do i = 1, NDIM
-            cb%aobl(i) = -sum(pl%Gmass(1:npl) * pl%aobl(i, 1:npl)) / cb%Gmass
+            cb%aobl(i) = -sum(pl%Gmass(1:npl) * pl%aobl(i, 1:npl), pl%lmask(1:npl)) / cb%Gmass
          end do
 
-         do i = 1, npl
+         do concurrent(i = 1:npl, pl%lmask(i))
             pl%ah(:, i) = pl%ah(:, i) + pl%aobl(:, i) - cb%aobl(:)
          end do
       end associate
@@ -83,6 +87,8 @@ contains
       real(DP), dimension(NDIM)                   :: aoblcb
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody, cb => system%cb)
          call obl_acc_body(tp, system)
          if (system%lbeg) then
@@ -91,7 +97,7 @@ contains
             aoblcb = cb%aoblend
          end if
 
-         do i = 1, ntp
+         do concurrent(i = 1:ntp, tp%lmask(i))
             tp%ah(:, i) = tp%ah(:, i) + tp%aobl(:, i) - aoblcb(:)
          end do
 

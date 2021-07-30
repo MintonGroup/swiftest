@@ -43,6 +43,36 @@ contains
    end subroutine gr_kick_getaccb_ns_body
 
 
+   module subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
+      !! author: David A. Minton
+      !!
+      !! Compute relativisitic accelerations of massive bodies
+      !!    Based on Saha & Tremaine (1994) Eq. 28
+      !!
+      !! Adapted from David A. Minton's Swifter routine routine gr_whm_kick_getacch.f90
+      implicit none
+      ! Arguments
+      real(DP), dimension(:),     intent(in)    :: mu     !! Gravitational constant
+      real(DP), dimension(:,:),   intent(in)    :: x      !! Position vectors
+      logical,  dimension(:),     intent(in)    :: lmask  !! Logical mask indicating which bodies to compute
+      integer(I4B),               intent(in)    :: n      !! Total number of bodies
+      real(DP),                   intent(in)    :: inv_c2 !! Inverse speed of light squared: 1 / c**2
+      real(DP), dimension(:,:),   intent(out)   :: agr    !! Accelerations
+      ! Internals
+      integer(I4B)                              :: i
+      real(DP)                                  :: beta, rjmag4
+     
+      agr(:,:) = 0.0_DP
+      do concurrent (i = 1:n, lmask(i))
+         rjmag4 = (dot_product(x(:, i), x(:, i)))**2
+         beta = -mu(i)**2 * inv_c2 
+         agr(:, i) = 2 * beta * x(:, i) / rjmag4
+      end do
+
+      return
+   end subroutine gr_kick_getacch
+
+
    module pure subroutine gr_p4_pos_kick(param, x, v, dt)
       !! author: David A. Minton
       !!

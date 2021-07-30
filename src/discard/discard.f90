@@ -97,10 +97,12 @@ contains
                   tp%status(i) = DISCARDED_RMAX
                   write(*, *) "Particle ", tp%id(i), " too far from sun at t = ", t
                   tp%ldiscard(i) = .true.
+                  tp%lmask(i) = .false.
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   tp%status(i) = DISCARDED_RMIN
                   write(*, *) "Particle ", tp%id(i), " too close to sun at t = ", t
                   tp%ldiscard(i) = .true.
+                  tp%lmask(i) = .false.
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
                   vb2 = dot_product(tp%vb(:, i), tp%vb(:, i))
@@ -109,6 +111,7 @@ contains
                      tp%status(i) = DISCARDED_RMAXU
                      write(*, *) "Particle ", tp%id(i), " is unbound and too far from barycenter at t = ", t
                      tp%ldiscard(i) = .true.
+                     tp%lmask(i) = .false.
                   end if
                end if
             end if
@@ -193,6 +196,7 @@ contains
                   call discard_pl_close(dx(:), dv(:), dt, radius**2, isp, r2min)
                   if (isp /= 0) then
                      tp%status(i) = DISCARDED_PLR
+                     tp%lmask(i) = .false.
                      pl%ldiscard(j) = .true.
                      write(*, *) "Particle ", tp%id(i), " too close to massive body ", pl%id(j), " at t = ", t
                      tp%ldiscard(i) = .true.

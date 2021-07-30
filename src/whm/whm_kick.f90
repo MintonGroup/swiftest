@@ -20,8 +20,9 @@ contains
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
 
+      if (self%nbody == 0) return
+
       associate(cb => system%cb, pl => self, npl => self%nbody)
-         if (npl == 0) return
          call pl%set_ir3()
 
          ah0(:) = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
@@ -80,13 +81,13 @@ contains
 
          if (lbeg) then
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xbeg(:,:), npl)
-            do i = 1, ntp
+            do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
          else
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xend(:,:), npl)
-            do i = 1, ntp
+            do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(pl%Gmass(:), pl%xend(:,:), npl)
@@ -145,7 +146,7 @@ contains
       real(DP), dimension(NDIM)    :: ah1h, ah1j
 
       associate(npl => pl%nbody)
-         do i = 2, npl
+         do concurrent (i = 2:npl, pl%lmask(i))
             ah1j(:) = pl%xj(:, i) * pl%ir3j(i)
             ah1h(:) = pl%xh(:, i) * pl%ir3h(i)
             pl%ah(:, i) = pl%ah(:, i) + cb%Gmass * (ah1j(:) - ah1h(:))
@@ -176,7 +177,7 @@ contains
          ah2(:) = 0.0_DP
          ah2o(:) = 0.0_DP
          etaj = cb%Gmass
-         do i = 2, npl
+         do concurrent(i = 2:npl, pl%lmask(i))
             etaj = etaj + pl%Gmass(i - 1)
             fac = pl%Gmass(i) * cb%Gmass * pl%ir3j(i) / etaj
             ah2(:) = ah2o + fac * pl%xj(:, i)
@@ -189,7 +190,7 @@ contains
    end subroutine whm_kick_getacch_ah2
 
 
-   module subroutine whm_kick_vh_pl(self, system, param, t, dt, mask, lbeg)
+   module subroutine whm_kick_vh_pl(self, system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick heliocentric velocities of massive bodies
@@ -203,7 +204,6 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
-      logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i
@@ -223,7 +223,7 @@ contains
             call pl%accel(system, param, t, lbeg)
             call pl%set_beg_end(xend = pl%xh)
          end if
-         do concurrent(i = 1:npl, mask(i))
+         do concurrent(i = 1:npl, pl%lmask(i))
             pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt
          end do
       end associate
@@ -232,7 +232,7 @@ contains
    end subroutine whm_kick_vh_pl
 
 
-   module subroutine whm_kick_vh_tp(self, system, param, t, dt, mask, lbeg)
+   module subroutine whm_kick_vh_tp(self, system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick heliocentric velocities of test particles
@@ -246,23 +246,31 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
-      logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody)
-         if (ntp == 0) return
          if (tp%lfirst) then
-            tp%ah(:,:) = 0.0_DP
+            where(tp%lmask(1:ntp)) 
+               tp%ah(1,1:ntp) = 0.0_DP
+               tp%ah(2,1:ntp) = 0.0_DP
+               tp%ah(3,1:ntp) = 0.0_DP
+            end where
             call tp%accel(system, param, t, lbeg=.true.)
             tp%lfirst = .false.
          end if
          if (.not.lbeg) then
-            tp%ah(:,:) = 0.0_DP
+            where(tp%lmask(1:ntp)) 
+               tp%ah(1,1:ntp) = 0.0_DP
+               tp%ah(2,1:ntp) = 0.0_DP
+               tp%ah(3,1:ntp) = 0.0_DP
+            end where
             call tp%accel(system, param, t, lbeg)
          end if
-         do concurrent(i = 1:ntp, mask(i))
+         do concurrent(i = 1:ntp, tp%lmask(i))
             tp%vh(:, i) = tp%vh(:, i) + tp%ah(:, i) * dt
          end do
       end associate

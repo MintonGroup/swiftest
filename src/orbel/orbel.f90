@@ -14,8 +14,8 @@ contains
       integer(I4B) :: i
    
       if (self%nbody == 0) return
+
       call self%set_mu(cb)
-      !do concurrent (i = 1:self%nbody) 
       do i = 1, self%nbody
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
                            self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
@@ -876,8 +876,14 @@ contains
       integer(I4B) :: i
     
       if (self%nbody == 0) return
+
       call self%set_mu(cb)
-      !do concurrent (i = 1:self%nbody)
+      if (.not.allocated(self%a))     allocate(self%a(self%nbody))
+      if (.not.allocated(self%e))     allocate(self%e(self%nbody))
+      if (.not.allocated(self%inc))   allocate(self%inc(self%nbody))
+      if (.not.allocated(self%capom)) allocate(self%capom(self%nbody))
+      if (.not.allocated(self%omega)) allocate(self%omega(self%nbody))
+      if (.not.allocated(self%capm))  allocate(self%capm(self%nbody))
       do i = 1, self%nbody
          call orbel_xv2el(self%mu(i), self%xh(:, i), self%vh(:, i), self%a(i), self%e(i), self%inc(i),  &
                           self%capom(i), self%omega(i), self%capm(i))

@@ -17,6 +17,8 @@ contains
       real(DP),                     intent(in)    :: t      !! Current simulation time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
 
+      if (self%nbody == 0) return
+
       associate(cb => system%cb, pl => self, npl => self%nbody)
          call pl%accel_int()
          if (param%loblatecb) then 
@@ -36,7 +38,7 @@ contains
             end if
          end if
          if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
-         !if (param%lgr) call pl%gr_accel(param)
+         if (param%lgr) call pl%accel_gr(param)
       end associate
 
       return
@@ -58,6 +60,8 @@ contains
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
    
+      if (self%nbody == 0) return
+
       associate(tp => self, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
          system%lbeg = lbeg
          if (system%lbeg) then
@@ -67,14 +71,14 @@ contains
          end if
          if (param%loblatecb) call tp%accel_obl(system)
          if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
-         !if (param%lgr) call tp%gr_accel(param)
+         if (param%lgr) call tp%accel_gr(param)
       end associate
 
       return
    end subroutine helio_kick_getacch_tp
 
 
-   module subroutine helio_kick_vb_pl(self, system, param, t, dt, mask, lbeg)
+   module subroutine helio_kick_vb_pl(self, system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of bodies
@@ -88,13 +92,13 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
-      logical, dimension(:),        intent(in)    :: mask   !! Mask that determines which bodies to kick
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody)
-         if (npl ==0) return
          pl%ah(:,:) = 0.0_DP
          call pl%accel(system, param, t, lbeg)
          if (lbeg) then
@@ -102,7 +106,7 @@ contains
          else
             call pl%set_beg_end(xend = pl%xh)
          end if
-         do concurrent(i = 1:npl, mask(i)) 
+         do concurrent(i = 1:npl, pl%lmask(i)) 
             pl%vb(:, i) = pl%vb(:, i) + pl%ah(:, i) * dt
          end do
       end associate
@@ -111,7 +115,7 @@ contains
    end subroutine helio_kick_vb_pl
 
 
-   module subroutine helio_kick_vb_tp(self, system, param, t, dt, mask, lbeg)
+   module subroutine helio_kick_vb_tp(self, system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of bodies
@@ -125,16 +129,16 @@ contains
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t     !! Current time
       real(DP),                     intent(in)    :: dt    !! Stepsize
-      logical, dimension(:),        intent(in)    :: mask  !! Mask that determines which bodies to kick
       logical,                      intent(in)    :: lbeg  !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody)
-         if (ntp ==0) return
          tp%ah(:,:) = 0.0_DP
          call tp%accel(system, param, t, lbeg)
-         do concurrent(i = 1:ntp, mask(i)) 
+         do concurrent(i = 1:ntp, tp%lmask(i)) 
             tp%vb(:, i) = tp%vb(:, i) + tp%ah(:, i) * dt
          end do
       end associate

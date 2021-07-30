@@ -48,13 +48,13 @@ contains
 
       associate(pl => self, cb => system%cb)
          dth = 0.5_DP * dt
-         call pl%kick(system, param, t, dth, mask=(pl%status(:) == ACTIVE), lbeg=.true.)
+         call pl%kick(system, param, t, dth,lbeg=.true.)
          call pl%vh2vj(cb) 
          if (param%lgr) call pl%gr_pos_kick(param, dth)
-         call pl%drift(system, param, dt, pl%status(:) == ACTIVE)
+         call pl%drift(system, param, dt)
          if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%j2h(cb)
-         call pl%kick(system, param, t + dt, dth, mask=(pl%status(:) == ACTIVE), lbeg=.false.)
+         call pl%kick(system, param, t + dt, dth, lbeg=.false.)
       end associate
 
       return
@@ -84,11 +84,11 @@ contains
       class is (whm_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl)
             dth = 0.5_DP * dt
-            call tp%kick(system, param, t, dth, mask=(tp%status(:) == ACTIVE), lbeg=.true.)
+            call tp%kick(system, param, t, dth, lbeg=.true.)
             if (param%lgr) call tp%gr_pos_kick(param, dth)
-            call tp%drift(system, param, dt, mask=(tp%status(:) == ACTIVE))
+            call tp%drift(system, param, dt)
             if (param%lgr) call tp%gr_pos_kick(param, dth)
-            call tp%kick(system, param, t + dt, dth, mask=(tp%status(:) == ACTIVE), lbeg=.false.)
+            call tp%kick(system, param, t + dt, dth, lbeg=.false.)
          end associate
       end select
 

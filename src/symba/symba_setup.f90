@@ -2,7 +2,42 @@ submodule(symba_classes) s_symba_setup
    use swiftest
 contains
 
-   module subroutine symba_setup_pl(self, n)
+   module subroutine symba_setup_initialize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
+      !! This subroutine will also sort the massive bodies in descending order by mass
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      integer(I4B) :: i, j
+
+      ! Call parent method
+      associate(system => self)
+         call whm_setup_initialize_system(system, param)
+         call system%mergeadd_list%setup(1, param)
+         call system%mergesub_list%setup(1, param)
+         call system%pltpenc_list%setup(0)
+         call system%plplenc_list%setup(0)
+         select type(pl => system%pl)
+         class is (symba_pl)
+            call pl%sort("mass", ascending=.false.)
+            select type(param)
+            class is (symba_parameters)
+               pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
+               pl%nplm = count(pl%lmtiny(:))
+            end select
+         end select
+      end associate
+
+      return
+   end subroutine symba_setup_initialize_system
+
+
+   module subroutine symba_setup_pl(self, n, param)
       !! author: David A. Minton
       !!
       !! Allocate SyMBA test particle structure
@@ -10,16 +45,19 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine symba_setup.f90
       implicit none
       ! Arguments
-      class(symba_pl), intent(inout) :: self !! SyMBA test particle object
-      integer(I4B),    intent(in)    :: n    !! Number of massive bodies to allocate
+      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
       ! Internals
-      integer(I4B)                   :: i
+      integer(I4B) :: i
 
-      !> Call allocation method for parent class
-      call setup_pl(self, n) 
+      !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
+      call setup_pl(self, n, param) 
       if (n <= 0) return
+
       allocate(self%lcollision(n))
       allocate(self%lencounter(n))
+      allocate(self%lmtiny(n))
       allocate(self%nplenc(n))
       allocate(self%ntpenc(n))
       allocate(self%levelg(n))
@@ -32,6 +70,7 @@ contains
 
       self%lcollision(:) = .false.
       self%lencounter(:) = .false.
+      self%lmtiny(:) = .false.
       self%nplenc(:) = 0
       self%ntpenc(:) = 0
       self%levelg(:) = -1
@@ -53,10 +92,11 @@ contains
       implicit none
       ! Arguments
       class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
-      integer,              intent(in)    :: n    !! Number of encounters to allocate space for
+      integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
 
       self%nenc = n
       if (n == 0) return
+
       if (allocated(self%lvdotr)) deallocate(self%lvdotr)
       if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%level)) deallocate(self%level)
@@ -72,11 +112,12 @@ contains
       self%level(:) = -1
       self%index1(:) = 0
       self%index2(:) = 0
+
       return
    end subroutine symba_setup_pltpenc
 
 
-   module subroutine symba_setup_plplenc(self,n)
+   module subroutine symba_setup_plplenc(self, n)
       !! author: David A. Minton
       !!
       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
@@ -84,10 +125,11 @@ contains
       implicit none
       ! Arguments
       class(symba_plplenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
-      integer,              intent(in)    :: n    !! Number of encounters to allocate space for
+      integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
 
       call symba_setup_pltpenc(self, n)
       if (n == 0) return
+
       if (allocated(self%xh1)) deallocate(self%xh1)
       if (allocated(self%xh2)) deallocate(self%xh2)
       if (allocated(self%vb1)) deallocate(self%vb1)
@@ -100,45 +142,12 @@ contains
       self%xh2(:,:) = 0.0_DP
       self%vb1(:,:) = 0.0_DP
       self%vb2(:,:) = 0.0_DP
+
       return
    end subroutine symba_setup_plplenc
 
 
-   module subroutine symba_setup_initialize_system(self, param)
-      !! author: David A. Minton
-      !!
-      !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
-      !! This subroutine will also sort the massive bodies in descending order by mass
-      !! 
-      implicit none
-      ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      ! Internals
-      integer(I4B) :: i, j
-
-      ! Call parent method
-      associate(system => self)
-         call whm_setup_initialize_system(system, param)
-         call system%mergeadd_list%setup(1)
-         call system%mergesub_list%setup(1)
-         call system%pltpenc_list%setup(1)
-         call system%plplenc_list%setup(1)
-         select type(pl => system%pl)
-         class is (symba_pl)
-            call pl%sort("mass", ascending=.false.)
-            select type(param)
-            class is (symba_parameters)
-               pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
-               pl%nplm = count(pl%lmtiny(:))
-            end select
-         end select
-      end associate
-      return
-   end subroutine symba_setup_initialize_system
-
-
-   module subroutine symba_setup_tp(self,n)
+   module subroutine symba_setup_tp(self, n, param)
       !! author: David A. Minton
       !!
       !! Allocate WHM test particle structure
@@ -146,12 +155,14 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       implicit none
       ! Arguments
-      class(symba_tp), intent(inout) :: self !! SyMBA test particle object
-      integer,         intent(in)    :: n    !! Number of test particles to allocate
+      class(symba_tp),            intent(inout) :: self  !! SyMBA test particle object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
-      !> Call allocation method for parent class
-      call setup_tp(self, n) 
+      !> Call allocation method for parent class. In this case, helio_tp does not have its own setup method so we use the base method for swiftest_tp
+      call setup_tp(self, n, param) 
       if (n <= 0) return
+
       allocate(self%nplenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))

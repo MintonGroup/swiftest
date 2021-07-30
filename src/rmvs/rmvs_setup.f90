@@ -2,7 +2,7 @@ submodule(rmvs_classes) s_rmvs_setup
    use swiftest
 contains
 
-   module subroutine rmvs_setup_pl(self,n)
+   module subroutine rmvs_setup_pl(self, n, param)
       !! author: David A. Minton
       !!
       !! Allocate RMVS test particle structure
@@ -10,14 +10,15 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_setup.f90
       implicit none
       ! Arguments
-      class(rmvs_pl), intent(inout) :: self !! RMVS test particle object
-      integer(I4B),   intent(in)    :: n    !! Number of massive bodies to allocate
+      class(rmvs_pl),            intent(inout) :: self  !! RMVS test particle object
+      integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
       ! Internals
-      integer(I4B)                  :: i,j
+      integer(I4B) :: i,j
 
       !> Call allocation method for parent class
       associate(pl => self)
-         call whm_setup_pl(pl, n) 
+         call whm_setup_pl(pl, n, param) 
          if (n <= 0) return
 
          allocate(pl%outer(0:NTENC))
@@ -35,13 +36,21 @@ contains
             do i = 0, NTPHENC
                allocate(pl%inner(i)%x(NDIM, n))
                allocate(pl%inner(i)%v(NDIM, n))
-               allocate(pl%inner(i)%aobl(NDIM, n))
-               allocate(pl%inner(i)%atide(NDIM, n))
                pl%inner(i)%x(:,:) = 0.0_DP
                pl%inner(i)%v(:,:) = 0.0_DP
-               pl%inner(i)%aobl(:,:) = 0.0_DP
-               pl%inner(i)%atide(:,:) = 0.0_DP
             end do
+            if (param%loblatecb) then
+               do i = 0, NTPHENC
+                  allocate(pl%inner(i)%aobl(NDIM, n))
+                  pl%inner(i)%aobl(:,:) = 0.0_DP
+               end do
+            end if
+            if (param%ltides) then
+               do i = 0, NTPHENC
+                  allocate(pl%inner(i)%atide(NDIM, n))
+                  pl%inner(i)%atide(:,:) = 0.0_DP
+               end do
+            end if
          end if
       end associate
       return
@@ -92,8 +101,9 @@ contains
                         class is (rmvs_pl)
                            cbenci%lplanetocentric = .true.
                            plenci%lplanetocentric = .true.
-                           call plenci%setup(npl)
+                           call plenci%setup(npl, param)
                            plenci%status(:) = ACTIVE
+                           plenci%lmask(:) = .true.
                            ! plind stores the heliocentric index value of a planetocentric planet
                            ! e.g. Consider an encounter with planet 3.  
                            ! Then the following will be the values of plind:
@@ -121,7 +131,7 @@ contains
    end subroutine rmvs_setup_initialize_system
 
 
-   module subroutine rmvs_setup_tp(self,n)
+   module subroutine rmvs_setup_tp(self, n, param)
       !! author: David A. Minton
       !!
       !! Allocate WHM test particle structure
@@ -129,11 +139,12 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       implicit none
       ! Arguments
-      class(rmvs_tp), intent(inout) :: self !! RMVS test particle object
-      integer,        intent(in)    :: n    !! Number of test particles to allocate
+      class(rmvs_tp),             intent(inout) :: self  !! RMVS test particle object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
-      !> Call allocation method for parent class
-      call whm_setup_tp(self, n) 
+      !> Call allocation method for parent class. In this case, whm does not have its own setup method, so we use the base method for swiftest_tp
+      call setup_tp(self, n, param) 
       if (n <= 0) return
 
       allocate(self%lperi(n))

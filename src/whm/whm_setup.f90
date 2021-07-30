@@ -2,7 +2,7 @@ submodule(whm_classes) s_whm_setup
    use swiftest
 contains
 
-   module subroutine whm_setup_pl(self,n)
+   module subroutine whm_setup_pl(self, n, param)
       !! author: David A. Minton
       !!
       !! Allocate WHM planet structure
@@ -10,10 +10,12 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self !! Swiftest test particle object
-      integer(I4B),                     intent(in) :: n    !! Number of test particles to allocate
+      class(whm_pl),             intent(inout) :: self  !! Swiftest test particle object
+      integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+
       !> Call allocation method for parent class
-      call setup_pl(self, n) 
+      call setup_pl(self, n, param) 
       if (n <= 0) return
 
       allocate(self%eta(n))
@@ -30,24 +32,6 @@ contains
 
       return
    end subroutine whm_setup_pl 
-
-
-   module subroutine whm_setup_tp(self,n)
-      !! author: David A. Minton
-      !!
-      !! Allocate WHM test particle structure
-      !!
-      !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
-      implicit none
-      ! Arguments
-      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      integer,                       intent(in)    :: n      !! Number of test particles to allocate
-      !> Call allocation method for parent class
-      call setup_tp(self, n) 
-      if (n <= 0) return
-
-      return
-   end subroutine whm_setup_tp
 
 
    module subroutine whm_util_set_mu_eta_pl(self, cb)
@@ -92,7 +76,7 @@ contains
       call self%pl%sort("ir3h", ascending=.false.)
 
       ! Make sure that the discard list gets allocated initially
-      call self%tp_discards%setup(self%tp%nbody)
+      call self%tp_discards%setup(self%tp%nbody, param)
       call self%pl%set_mu(self%cb)
       call self%tp%set_mu(self%cb)
       if (param%lgr) then

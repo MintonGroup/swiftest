@@ -260,10 +260,11 @@ contains
    
          ! Determine if the GR flag is set correctly for this integrator
          select case(integrator)
-         case(WHM, RMVS, SYMBA)
+         case(WHM, RMVS, HELIO, SYMBA)
             write(*,*) "GR             = ", self%lgr
          case default   
             if (self%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
+            self%lgr = .false.
          end select
       end associate
 
@@ -618,7 +619,7 @@ contains
       case(ASCII_TYPE)
          open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', iostat = ierr)
          read(iu, *, iostat = ierr) nbody
-         call self%setup(nbody)
+         call self%setup(nbody, param)
          if (nbody > 0) then
             do i = 1, nbody
                select type(self)
@@ -645,15 +646,17 @@ contains
                read(iu, *, iostat=ierr, err=100) self%xh(1, i), self%xh(2, i), self%xh(3, i)
                read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                self%status(i) = ACTIVE
+               self%lmask(i) = .true.
             end do
          end if
       case (REAL4_TYPE, REAL8_TYPE)  !, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
          open(unit=iu, file=infile, status='old', form='UNFORMATTED', iostat=ierr)
          read(iu, iostat=ierr, err=100) nbody
-         call self%setup(nbody)
+         call self%setup(nbody, param)
          if (nbody > 0) then
             call self%read_frame(iu, param, XV, ierr)
             self%status(:) = ACTIVE
+            self%lmask(:) = .true.
          end if
       case default
          write(*,*) trim(adjustl(param%in_type)) // ' is an unrecognized file type'
@@ -828,6 +831,12 @@ contains
          !read(iu, iostat=ierr, err=100) self%name(1:n)
          select case (form)
          case (EL) 
+            if (.not.allocated(self%a))     allocate(self%a(n))
+            if (.not.allocated(self%e))     allocate(self%e(n))
+            if (.not.allocated(self%inc))   allocate(self%inc(n))
+            if (.not.allocated(self%capom)) allocate(self%capom(n))
+            if (.not.allocated(self%omega)) allocate(self%omega(n))
+            if (.not.allocated(self%capm))  allocate(self%capm(n))
             read(iu, iostat=ierr, err=100) self%a(1:n)
             read(iu, iostat=ierr, err=100) self%e(1:n)
             read(iu, iostat=ierr, err=100) self%inc(1:n)

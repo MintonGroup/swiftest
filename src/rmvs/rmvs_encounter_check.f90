@@ -23,6 +23,8 @@ contains
       real(DP), dimension(system%pl%nbody)    :: r2crit
       logical                                 :: lflag
 
+      if (self%nbody == 0) return
+
       select type(pl => system%pl)
       class is (rmvs_pl)
          associate(tp => self, ntp => self%nbody, npl => pl%nbody, rts => system%rts)
@@ -30,7 +32,7 @@ contains
             tp%plencP(:) = 0
             do j = 1, npl
                do i = 1, ntp
-                  if ((tp%status(i) /= ACTIVE).or.(tp%plencP(i) /= 0)) cycle
+                  if ((.not.tp%lmask(i)).or.(tp%plencP(i) /= 0)) cycle
                   xr(:) = tp%xh(:, i) - pl%xbeg(:, j)
                   vr(:) = tp%vh(:, i) - pl%vbeg(:, j)
                   r2 = dot_product(xr(:), xr(:))

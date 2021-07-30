@@ -21,6 +21,7 @@ contains
       real(DP)                  :: irij3, rji2, rlim2, faci, facj
       real(DP), dimension(NDIM) :: dx
 
+      if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
          associate(pl => self, cb => system%cb, plplenc_list => system%plplenc_list, nplplenc => system%plplenc_list%nenc)
@@ -62,7 +63,8 @@ contains
       integer(I4B)              :: k
       real(DP)                  :: rji2, fac, rlim2
       real(DP), dimension(NDIM) :: dx
-  
+
+      if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl, pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
@@ -70,7 +72,7 @@ contains
             ! Remove accelerations from encountering pairs
             do k = 1, npltpenc
                associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
-                  if (tp%status(j) == ACTIVE) THEN
+                  if (tp%lmask(j)) THEN
                      if (lbeg) then
                         dx(:) = tp%xh(:,j) - pl%xbeg(:,i)
                      else
@@ -109,6 +111,8 @@ contains
       real(DP), dimension(NDIM) :: dx
       logical                   :: isplpl, lgoodlevel
 
+      if (self%nenc == 0) return
+
       select type(self)
       class is (symba_plplenc)
          isplpl = .true.
@@ -119,6 +123,10 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
+
+            if (pl%nbody > 0) pl%lmask(:) = pl%status(:) == ACTIVE
+            if (tp%nbody > 0) tp%lmask(:) = tp%status(:) == ACTIVE
+
             irm1 = irec - 1
             if (sgn < 0) then
                irecl = irec - 1
@@ -181,7 +189,7 @@ contains
                   end associate
                end do
             else
-               where(tp%status(self%index2(1:self%nenc)) == ACTIVE)
+               where(tp%lmask(self%index2(1:self%nenc)))
                   tp%vb(1,self%index2(:)) = tp%vb(1,self%index2(:)) + sgn * dt * tp%ah(1,self%index2(:))
                   tp%vb(2,self%index2(:)) = tp%vb(2,self%index2(:)) + sgn * dt * tp%ah(2,self%index2(:))
                   tp%vb(3,self%index2(:)) = tp%vb(3,self%index2(:)) + sgn * dt * tp%ah(3,self%index2(:))

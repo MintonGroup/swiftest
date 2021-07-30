@@ -25,6 +25,9 @@ MU2KG = swiftest.MSun
 TU2S = swiftest.YR2S
 DU2M = swiftest.AU2M
 
+J2 = 0.0 #swiftest.J2Sun
+J4 = 0.0 #swiftest.J4Sun
+
 GMSun = swiftest.GMSunSI * TU2S**2 / DU2M**3
 
 # Simple initial conditions of a circular planet with one test particle in a close encounter state
@@ -90,8 +93,8 @@ print(f'BIN_OUT       {swifter_bin}')
 print(f'OUT_TYPE      REAL8')
 print(f'OUT_FORM      XV')
 print(f'OUT_STAT      UNKNOWN')
-print(f'J2            {swiftest.J2Sun}')
-print(f'J4            {swiftest.J4Sun}')
+print(f'J2            {J2}')
+print(f'J4            {J4}')
 print(f'CHK_CLOSE     yes')
 print(f'CHK_RMIN      {rmin}')
 print(f'CHK_RMAX      {rmax}')
@@ -111,8 +114,8 @@ Msun = np.double(1.0)
 cbfile.write_record(0)
 cbfile.write_record(np.double(GMSun))
 cbfile.write_record(np.double(rmin))
-cbfile.write_record(np.double(swiftest.J2Sun))
-cbfile.write_record(np.double(swiftest.J4Sun))
+cbfile.write_record(np.double(J2))
+cbfile.write_record(np.double(J4))
 cbfile.close()
 
 plfile = FortranFile(swiftest_pl, 'w')

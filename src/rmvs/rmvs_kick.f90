@@ -18,11 +18,12 @@ contains
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
-      type(swiftest_parameters)                 :: param_planetocen
+      class(swiftest_parameters), allocatable   :: param_planetocen
       real(DP), dimension(:, :), allocatable    :: xh_original
       real(DP)                                  :: GMcb_original
       integer(I4B)                              :: i
-      real(DP), dimension(:, :), allocatable    :: xhp
+
+      if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, ipleP => self%ipleP, inner_index => self%index)
          select type(system)
@@ -34,43 +35,45 @@ contains
                   select type (cb => system%cb)
                   class is (rmvs_cb)
                      associate(xpc => pl%xh, xpct => self%xh, apct => self%ah, system_planetocen => system)
-
                         system_planetocen%lbeg = lbeg
 
-                        if (system_planetocen%lbeg) then
-                           allocate(xhp, source=pl%xbeg)
-                        else
-                           allocate(xhp, source=pl%xend)
-                        end if
-               
+                        ! Save the original heliocentric position for later
                         allocate(xh_original, source=tp%xh)
-                        param_planetocen = param
-                        ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter
+
+                        ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter using a copy of the parameter list with all of the heliocentric-specific acceleration terms turned off
+                        allocate(param_planetocen, source=param)
                         param_planetocen%loblatecb = .false.
                         param_planetocen%lextra_force = .false.
                         param_planetocen%lgr = .false.
-                        ! Now compute the planetocentric values of acceleration
+
+                        ! Compute the planetocentric values of acceleration
                         call whm_kick_getacch_tp(tp, system_planetocen, param_planetocen, t, lbeg)
 
                         ! Now compute any heliocentric values of acceleration 
                         if (tp%lfirst) then
-                           do i = 1, ntp
+                           do concurrent(i = 1:ntp, tp%lmask(i))
                               tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(inner_index - 1)%x(:,1)
                            end do
                         else
-                           do i = 1, ntp
+                           do concurrent(i = 1:ntp, tp%lmask(i))
                               tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(inner_index    )%x(:,1)
                            end do
                         end if
+
                         ! Swap the planetocentric and heliocentric position vectors and central body masses
                         tp%xh(:,:) = tp%xheliocentric(:,:)
                         GMcb_original = cb%Gmass
                         cb%Gmass = tp%cb_heliocentric%Gmass
+
+                        ! If the heliocentric-specifc acceleration terms are requested, compute those now
                         if (param%loblatecb) call tp%accel_obl(system_planetocen)
                         if (param%lextra_force) call tp%accel_user(system_planetocen, param, t, lbeg)
                         if (param%lgr) call tp%accel_gr(param)
+
+                        ! Put everything back the way we found it
                         tp%xh(:,:) = xh_original(:,:)
                         cb%Gmass = GMcb_original
+
                      end associate
                   end select
                end select
