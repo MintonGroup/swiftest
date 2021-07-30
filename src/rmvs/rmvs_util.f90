@@ -161,6 +161,8 @@ contains
       class(rmvs_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange_pl(pl,ind)
          allocate(pl_sorted, source=self)
@@ -187,6 +189,8 @@ contains
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       ! Internals
       class(rmvs_tp), allocatable :: tp_sorted  !! Temporary holder for sorted body
+
+      if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody)
          call util_sort_rearrange_tp(tp,ind)
@@ -219,7 +223,6 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (rmvs_pl)
-
             discards%nenc(:)    = pack(keeps%nenc(:),         lspill_list(:))
             if (count(.not.lspill_list(:))  > 0) then
                keeps%nenc(:)       = pack(keeps%nenc(:),   .not. lspill_list(:))

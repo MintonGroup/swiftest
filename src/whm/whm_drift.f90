@@ -19,9 +19,9 @@ contains
       integer(I4B)                              :: i
       integer(I4B), dimension(:), allocatable   :: iflag
 
-      associate(pl => self, npl => self%nbody)
-         if (npl == 0) return
+      if (self%nbody == 0) return
 
+      associate(pl => self, npl => self%nbody)
          allocate(iflag(npl))
          iflag(:) = 0
          call drift_all(pl%muj, pl%xj, pl%vj, npl, param, dt, pl%lmask, iflag)

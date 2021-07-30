@@ -19,8 +19,9 @@ contains
       real(DP), dimension(:, :), allocatable       :: aj
       real(DP)                                     :: beta, rjmag4
       
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody)
-         if (npl == 0) return
          call gr_kick_getacch(pl%mu, pl%xh, pl%lmask, npl, param%inv_c2, pl%agr) 
          pl%ah(:,1:npl) = pl%ah(:,1:npl) + pl%agr(:,1:npl)
       end associate
@@ -44,8 +45,9 @@ contains
       integer(I4B)                                 :: i
       real(DP)                                     :: rjmag4, beta
       
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody)
-         if (ntp == 0) return
          call gr_kick_getacch(tp%mu, tp%xh, tp%lmask, ntp, param%inv_c2, tp%agr) 
          tp%ah(:,1:ntp) = tp%ah(:,1:ntp) + tp%agr(:,1:ntp)
       end associate
@@ -69,8 +71,9 @@ contains
       ! Internals
       integer(I4B)                                 :: i
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody)
-         if (npl == 0) return
          do concurrent(i = 1:npl, pl%lmask(i))
             call gr_p4_pos_kick(param, pl%xh(:, i), pl%vb(:, i), dt)
          end do
@@ -94,8 +97,9 @@ contains
       ! Internals
       integer(I4B)                              :: i
 
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody)
-         if (ntp == 0) return
          do concurrent(i = 1:ntp, tp%lmask(i))
             call gr_p4_pos_kick(param, tp%xh(:, i), tp%vb(:, i), dt)
          end do

@@ -87,6 +87,7 @@ module symba_classes
       type(symba_particle_info), dimension(:), allocatable :: info
    contains
       procedure :: discard         => symba_discard_pl             !! Process massive body discards
+      procedure :: drift           => symba_drift_pl               !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_pl     !! Checks if massive bodies are going through close encounters with each other
       procedure :: accel           => symba_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
       procedure :: setup           => symba_setup_pl               !! Constructor method - Allocates space for number of particle
@@ -103,6 +104,7 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: levelg  !! level at which this particle should be moved
       integer(I4B), dimension(:), allocatable :: levelm  !! deepest encounter level achieved this time step
    contains
+      procedure :: drift           => symba_drift_tp               !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
       procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for number of particle
@@ -154,12 +156,14 @@ module symba_classes
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
       class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
+      integer(I4B)                      :: irec          !! System recursion level
    contains
-      procedure :: initialize     => symba_setup_initialize_system       !! Performs SyMBA-specific initilization steps
-      procedure :: step           => symba_step_system        !! Advance the SyMBA nbody system forward in time by one step
-      procedure :: interp         => symba_step_interp_system !! Perform an interpolation step on the SymBA nbody system 
-      procedure :: recursive_step => symba_step_recur_system  !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
-      procedure :: reset          => symba_step_reset_system  !! Resets pl, tp,and encounter structures at the start of a new step 
+      procedure :: initialize       => symba_setup_initialize_system        !! Performs SyMBA-specific initilization steps
+      procedure :: step             => symba_step_system                    !! Advance the SyMBA nbody system forward in time by one step
+      procedure :: interp           => symba_step_interp_system             !! Perform an interpolation step on the SymBA nbody system 
+      procedure :: set_recur_levels => symba_step_set_recur_levels_system   !! Sets recursion levels of bodies and encounter lists to the current system level
+      procedure :: recursive_step   => symba_step_recur_system              !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
+      procedure :: reset            => symba_step_reset_system              !! Resets pl, tp,and encounter structures at the start of a new step 
    end type symba_nbody_system
 
    interface
@@ -192,6 +196,24 @@ module symba_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine symba_discard_pl
+
+      module subroutine symba_drift_pl(self, system, param, dt)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(symba_pl),              intent(inout) :: self   !! Helio massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Stepsize
+      end subroutine symba_drift_pl
+   
+      module subroutine symba_drift_tp(self, system, param, dt)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(symba_tp),              intent(inout) :: self   !! Helio massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Stepsize
+      end subroutine symba_drift_tp
 
       module pure elemental subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
          implicit none
@@ -364,6 +386,11 @@ module symba_classes
          real(DP),                   intent(in)    :: t     !! Simulation time
          real(DP),                   intent(in)    :: dt    !! Current stepsize
       end subroutine symba_step_interp_system
+
+      module subroutine symba_step_set_recur_levels_system(self)
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system objec
+      end subroutine symba_step_set_recur_levels_system
 
       module recursive subroutine symba_step_recur_system(self, param, t, ireci)
          use swiftest_classes, only : swiftest_parameters

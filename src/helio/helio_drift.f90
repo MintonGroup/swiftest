@@ -21,6 +21,8 @@ contains
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
       real(DP), dimension(:), allocatable    :: dtp, mu
 
+      if (self%nbody == 0) return
+
       associate(n => self%nbody)
          allocate(iflag(n))
          iflag(:) = 0
@@ -90,6 +92,8 @@ contains
       real(DP), dimension(NDIM) :: pt     !! negative barycentric velocity of the central body
       integer(I4B)              :: i    
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody)
          if (npl == 0) return
          pt(1) = sum(pl%Gmass(1:npl) * pl%vb(1,1:npl), self%lmask(1:npl))
@@ -128,6 +132,8 @@ contains
       ! Internals
       real(DP), dimension(NDIM)      :: pt     !! negative barycentric velocity of the central body
         
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody)
          if (ntp == 0) return
          if (lbeg) then

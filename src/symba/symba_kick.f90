@@ -21,6 +21,7 @@ contains
       real(DP)                  :: irij3, rji2, rlim2, faci, facj
       real(DP), dimension(NDIM) :: dx
 
+      if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
          associate(pl => self, cb => system%cb, plplenc_list => system%plplenc_list, nplplenc => system%plplenc_list%nenc)
@@ -62,7 +63,8 @@ contains
       integer(I4B)              :: k
       real(DP)                  :: rji2, fac, rlim2
       real(DP), dimension(NDIM) :: dx
-  
+
+      if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl, pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
@@ -109,6 +111,8 @@ contains
       real(DP), dimension(NDIM) :: dx
       logical                   :: isplpl, lgoodlevel
 
+      if (self%nenc == 0) return
+
       select type(self)
       class is (symba_plplenc)
          isplpl = .true.
@@ -119,6 +123,10 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
+
+            if (pl%nbody > 0) pl%lmask(:) = pl%status(:) == ACTIVE
+            if (tp%nbody > 0) tp%lmask(:) = tp%status(:) == ACTIVE
+
             irm1 = irec - 1
             if (sgn < 0) then
                irecl = irec - 1

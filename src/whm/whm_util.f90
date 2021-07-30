@@ -171,6 +171,8 @@ contains
       class(whm_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange_pl(pl,ind)
          allocate(pl_sorted, source=self)

@@ -23,6 +23,8 @@ contains
       real(DP), dimension(system%pl%nbody)    :: r2crit
       logical                                 :: lflag
 
+      if (self%nbody == 0) return
+
       select type(pl => system%pl)
       class is (rmvs_pl)
          associate(tp => self, ntp => self%nbody, npl => pl%nbody, rts => system%rts)

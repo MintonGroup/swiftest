@@ -19,7 +19,9 @@ contains
       integer(I8B)                              :: k
       real(DP),     dimension(NDIM)             :: xr, vr
       logical,      dimension(:),   allocatable :: lencounter, loc_lvdotr
-   
+  
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody, nplpl => self%nplpl)
          allocate(lencounter(nplpl), loc_lvdotr(nplpl))
          lencounter(:) = .false.
@@ -72,12 +74,14 @@ contains
 
       lany_encounter = .false.
       if (self%nenc == 0) return
+
       select type(self)
       class is (symba_plplenc)
          isplpl = .true.
       class is (symba_pltpenc)
          isplpl = .false.
       end select
+
       select type(pl => system%pl)
       class is (symba_pl)
          select type(tp => system%tp)
@@ -141,7 +145,9 @@ contains
       integer(I4B)                              :: i, j
       real(DP),     dimension(NDIM)             :: xr, vr
       logical,      dimension(:,:), allocatable :: lencounter, loc_lvdotr
-   
+  
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
          allocate(lencounter(ntp, npl), loc_lvdotr(ntp, npl))
          lencounter(:,:) = .false.

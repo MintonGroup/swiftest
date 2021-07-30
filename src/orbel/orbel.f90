@@ -14,6 +14,7 @@ contains
       integer(I4B) :: i
    
       if (self%nbody == 0) return
+
       call self%set_mu(cb)
       do i = 1, self%nbody
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
@@ -875,6 +876,7 @@ contains
       integer(I4B) :: i
     
       if (self%nbody == 0) return
+
       call self%set_mu(cb)
       if (.not.allocated(self%a))     allocate(self%a(self%nbody))
       if (.not.allocated(self%e))     allocate(self%e(self%nbody))

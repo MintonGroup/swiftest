@@ -23,6 +23,8 @@ contains
       real(DP)                                  :: GMcb_original
       integer(I4B)                              :: i
 
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody, ipleP => self%ipleP, inner_index => self%index)
          select type(system)
          class is (rmvs_nbody_system)

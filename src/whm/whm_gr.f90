@@ -19,8 +19,9 @@ contains
       real(DP), dimension(:, :), allocatable       :: aj
       real(DP)                                     :: beta, rjmag4
       
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody, inv_c2 => param%inv_c2)
-         if (npl == 0) return
          call gr_kick_getacch(pl%muj, pl%xj, pl%lmask, npl, param%inv_c2, pl%agr) 
          suma(:) = 0.0_DP
          pl%ah(:, 1) = pl%ah(:, 1) + pl%agr(:, 1)
@@ -49,8 +50,9 @@ contains
       integer(I4B)                                 :: i
       real(DP)                                     :: rjmag4, beta
       
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody, inv_c2 => param%inv_c2)
-         if (ntp == 0) return
          call gr_kick_getacch(tp%mu, tp%xh, tp%lmask, ntp, param%inv_c2, tp%agr) 
          tp%ah(:,1:ntp) = tp%ah(:,1:ntp) + tp%agr(:,1:ntp)
       end associate

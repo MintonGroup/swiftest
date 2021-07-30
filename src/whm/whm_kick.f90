@@ -20,8 +20,9 @@ contains
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
 
+      if (self%nbody == 0) return
+
       associate(cb => system%cb, pl => self, npl => self%nbody)
-         if (npl == 0) return
          call pl%set_ir3()
 
          ah0(:) = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
@@ -249,8 +250,9 @@ contains
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody)
-         if (ntp == 0) return
          if (tp%lfirst) then
             where(tp%lmask(1:ntp)) 
                tp%ah(1,1:ntp) = 0.0_DP

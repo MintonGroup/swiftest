@@ -43,6 +43,7 @@ contains
       real(DP) :: dth   !! Half step size 
 
       if (self%nbody == 0) return
+
       associate(pl => self)
          select type(cb => system%cb)
          class is (helio_cb)

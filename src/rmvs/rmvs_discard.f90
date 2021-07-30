@@ -17,6 +17,8 @@ contains
       ! Internals
       integer(I4B)                                 :: i
 
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody, pl => system%pl, t => param%t)
          do i = 1, ntp
             associate(iplperP => tp%plperP(i))

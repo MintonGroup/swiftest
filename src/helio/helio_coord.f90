@@ -16,6 +16,8 @@ contains
       ! Internals
       integer(I4B)              :: i
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody)
          do i = 1, NDIM
             cb%vb(i) = -sum(pl%Gmass(1:npl) * pl%vb(i, 1:npl)) / cb%Gmass
@@ -38,6 +40,8 @@ contains
       ! Arguments
       class(helio_tp),              intent(inout) :: self !! Helio massive body object
       real(DP), dimension(:),       intent(in)    :: vbcb  !! Barycentric velocity of the central body
+
+      if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody)
          where (tp%lmask(1:ntp))
@@ -66,6 +70,8 @@ contains
       integer(I4B)  :: i
       real(DP)      :: msys
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody)
          msys = cb%Gmass + sum(pl%Gmass(1:npl))
          do i = 1, NDIM
@@ -89,6 +95,8 @@ contains
       ! Arguments
       class(helio_tp),        intent(inout) :: self !! Helio massive body object
       real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
+
+      if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody)
          where (tp%lmask(1:ntp))

@@ -65,28 +65,23 @@ contains
             class is (symba_tp)
                select type(cb => system%cb)
                class is (symba_cb)
+                  system%irec = -1
                   call pl%vh2vb(cb)
-                  pl%lmask(:) = pl%status(:) == ACTIVE
-                  call pl%lindrift(cb, dth,  lbeg=.true.)
+                  call pl%lindrift(cb, dth, lbeg=.true.)
                   call pl%kick(system, param, t, dth, lbeg=.true.)
-                  pl%lmask(:) = pl%status(:) == ACTIVE .and. pl%levelg(:) == -1
                   call pl%drift(system, param, dt)
 
                   call tp%vh2vb(vbcb = -cb%ptbeg)
-                  tp%lmask(:) = tp%status(:) == ACTIVE
                   call tp%lindrift(cb, dth, lbeg=.true.)
                   call tp%kick(system, param, t, dth, lbeg=.true.)
-                  tp%lmask(:) = tp%status(:) == ACTIVE .and. tp%levelg(:) == -1
                   call tp%drift(system, param, dt)
 
                   call system%recursive_step(param, t, 0)
 
-                  pl%lmask(:) = pl%status(:) == ACTIVE
                   call pl%kick(system, param, t, dth, lbeg=.false.)
                   call pl%vb2vh(cb)
                   call pl%lindrift(cb, dth, lbeg=.false.)
 
-                  tp%lmask(:) = tp%status(:) == ACTIVE
                   call tp%kick(system, param, t, dth, lbeg=.false.)
                   call tp%vb2vh(vbcb = -cb%ptend)
                   call tp%lindrift(cb, dth, lbeg=.false.)
@@ -97,6 +92,49 @@ contains
 
       return
    end subroutine symba_step_interp_system
+
+
+   module subroutine symba_step_set_recur_levels_system(self)
+      !! author: David A. Minton
+      !!
+      !! Resets pl, tp,and encounter structures at the start of a new step
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+      ! Internals
+      integer(I4B) :: i, irecp
+
+      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
+         select type(pl => self%pl)
+         class is (symba_pl)
+            select type(tp => self%tp)
+            class is (symba_tp)
+               associate (plind1 => plplenc_list%index1(1:plplenc_list%nenc), &
+                          plind2 => plplenc_list%index2(1:plplenc_list%nenc), &
+                          plind3 => pltpenc_list%index1(1:pltpenc_list%nenc), &
+                          tpind  => pltpenc_list%index2(1:pltpenc_list%nenc))
+
+                  irecp = system%irec + 1
+
+                  do i = 1, plplenc_list%nenc
+                     if (pl%levelg(plind1(i)) == irecp) pl%levelg(plind1(i)) = system%irec
+                     if (pl%levelg(plind2(i)) == irecp) pl%levelg(plind2(i)) = system%irec
+                  end do
+                  do i = 1, pltpenc_list%nenc
+                     if (pl%levelg(plind3(i)) == irecp) pl%levelg(plind3(i)) = system%irec
+                     if (tp%levelg(tpind(i))  == irecp) tp%levelg(tpind(i))  = system%irec
+                  end do
+               end associate
+
+               where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(:) = system%irec
+               where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(:) = system%irec
+            end select
+         end select
+      end associate
+
+      return
+   end subroutine symba_step_set_recur_levels_system
 
 
    module recursive subroutine symba_step_recur_system(self, param, t, ireci)
@@ -124,6 +162,7 @@ contains
          class is (symba_pl)
             select type(tp => self%tp)
             class is (symba_tp)
+               system%irec = ireci
                dtl = param%dt / (NTENC**ireci)
                dth = 0.5_DP * dtl
                IF (dtl / param%dt < VSMALL) THEN
@@ -140,8 +179,7 @@ contains
                end if
                do j = 1, nloops
                   lencounter = plplenc_list%encounter_check(system, dtl, irecp) .or. pltpenc_list%encounter_check(system, dtl, irecp)
-                  pl%lmask(:) = pl%status(:) == ACTIVE 
-                  tp%lmask(:) = tp%status(:) == ACTIVE 
+                   
                   call plplenc_list%kick(system, dth, irecp, 1)
                   call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
@@ -149,39 +187,26 @@ contains
                      call pltpenc_list%kick(system, dth, irecp, -1)
                   end if
 
-                  pl%lmask(:) = pl%status(:) == ACTIVE .and. pl%levelg(:) == ireci
-                  tp%lmask(:) = tp%status(:) == ACTIVE .and. tp%levelg(:) == ireci
                   call pl%drift(system, param, dtl)
                   call tp%drift(system, param, dtl)
-                  if (lencounter) call system%recursive_step(param, t+dth,irecp)
 
-                  pl%lmask(:) = pl%status(:) == ACTIVE 
-                  tp%lmask(:) = tp%status(:) == ACTIVE 
+                  if (lencounter) call system%recursive_step(param, t+dth,irecp)
+                  system%irec = ireci
+
                   call plplenc_list%kick(system, dth, irecp, 1)
                   call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
                      call plplenc_list%kick(system, dth, irecp, -1)
                      call pltpenc_list%kick(system, dth, irecp, -1)
                   end if
+
                   if (param%lclose) then
                      call plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
                      call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
                   end if
-                  associate (plind1 => plplenc_list%index1(1:plplenc_list%nenc), &
-                             plind2 => plplenc_list%index2(1:plplenc_list%nenc), &
-                             plind3 => pltpenc_list%index1(1:pltpenc_list%nenc), &
-                             tpind  => pltpenc_list%index2(1:pltpenc_list%nenc))
-                     do i = 1, plplenc_list%nenc
-                        if (pl%levelg(plind1(i)) == irecp) pl%levelg(plind1(i)) = ireci
-                        if (pl%levelg(plind2(i)) == irecp) pl%levelg(plind2(i)) = ireci
-                     end do
-                     do i = 1, pltpenc_list%nenc
-                        if (pl%levelg(plind3(i)) == irecp) pl%levelg(plind3(i)) = ireci
-                        if (tp%levelg(tpind(i)) == irecp) tp%levelg(tpind(i)) = ireci
-                     end do
-                  end associate
-                  where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(:) = ireci
-                  where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(:) = ireci
+
+                  call self%set_recur_levels()
+
                end do
             end select
          end select
@@ -207,25 +232,28 @@ contains
          class is (symba_pl)
             select type(tp => system%tp)
             class is (symba_tp)
-               pl%lcollision(:) = .false.
-               pl%kin(:)%parent = [(i, i=1, pl%nbody)]
-               pl%kin(:)%nchild = 0
-               do i = 1, pl%nbody
-                  if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
-               end do
-               pl%nplenc(:) = 0
-               pl%ntpenc(:) = 0
-               pl%levelg(:) = 0
-               pl%levelm(:) = 0
-               pl%lencounter = .false.
-               pl%lcollision = .false.
-            
-               tp%nplenc(:) = 0 
-               tp%levelg(:) = 0
-               tp%levelm(:) = 0
-            
-               plplenc_list%nenc = 0
+               if (pl%nbody > 0) then
+                  pl%lcollision(:) = .false.
+                  pl%kin(:)%parent = [(i, i=1, pl%nbody)]
+                  pl%kin(:)%nchild = 0
+                  do i = 1, pl%nbody
+                     if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
+                  end do
+                  pl%nplenc(:) = 0
+                  pl%ntpenc(:) = 0
+                  pl%levelg(:) = 0
+                  pl%levelm(:) = 0
+                  pl%lencounter = .false.
+                  pl%lcollision = .false.
+                  plplenc_list%nenc = 0
+               end if
+           
+               if (tp%nbody > 0) then
+                  tp%nplenc(:) = 0 
+                  tp%levelg(:) = 0
+                  tp%levelm(:) = 0
                pltpenc_list%nenc = 0
+               end if
 
                mergeadd_list%nbody = 0
                mergesub_list%nbody = 0

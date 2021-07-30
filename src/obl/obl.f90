@@ -17,6 +17,8 @@ contains
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
 
+      if (self%nbody == 0) return
+
       associate(n => self%nbody, cb => system%cb)
          self%aobl(:,:) = 0.0_DP
          do concurrent(i = 1:n, self%lmask(i))
@@ -52,6 +54,8 @@ contains
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody, cb => system%cb)
          call obl_acc_body(pl, system)
          do i = 1, NDIM
@@ -82,6 +86,8 @@ contains
       ! Internals
       real(DP), dimension(NDIM)                   :: aoblcb
       integer(I4B) :: i
+
+      if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, cb => system%cb)
          call obl_acc_body(tp, system)

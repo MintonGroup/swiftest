@@ -89,6 +89,8 @@ contains
       integer(I4B), dimension(self%nbody) :: ind
       integer(I4B)                        :: direction
 
+      if (self%nbody == 0) return
+
       if (ascending) then
          direction = 1
       else
@@ -137,6 +139,8 @@ contains
       integer(I4B), dimension(self%nbody) :: ind
       integer(I4B)                        :: direction
 
+      if (self%nbody == 0) return
+
       if (ascending) then
          direction = 1
       else
@@ -181,6 +185,7 @@ contains
          allocate(pl_sorted, source=self)
          pl%lcollision(1:npl) = pl_sorted%lcollision(ind(1:npl))
          pl%lencounter(1:npl) = pl_sorted%lencounter(ind(1:npl))
+         pl%lmtiny(1:npl) = pl_sorted%lmtiny(ind(1:npl))
          pl%nplenc(1:npl) = pl_sorted%nplenc(ind(1:npl))
          pl%ntpenc(1:npl) = pl_sorted%ntpenc(ind(1:npl))
          pl%levelg(1:npl) = pl_sorted%levelg(ind(1:npl))

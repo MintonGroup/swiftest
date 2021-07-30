@@ -20,8 +20,8 @@ contains
          call whm_setup_initialize_system(system, param)
          call system%mergeadd_list%setup(1, param)
          call system%mergesub_list%setup(1, param)
-         call system%pltpenc_list%setup(1)
-         call system%plplenc_list%setup(1)
+         call system%pltpenc_list%setup(0)
+         call system%plplenc_list%setup(0)
          select type(pl => system%pl)
          class is (symba_pl)
             call pl%sort("mass", ascending=.false.)
@@ -57,6 +57,7 @@ contains
 
       allocate(self%lcollision(n))
       allocate(self%lencounter(n))
+      allocate(self%lmtiny(n))
       allocate(self%nplenc(n))
       allocate(self%ntpenc(n))
       allocate(self%levelg(n))
@@ -69,6 +70,7 @@ contains
 
       self%lcollision(:) = .false.
       self%lencounter(:) = .false.
+      self%lmtiny(:) = .false.
       self%nplenc(:) = 0
       self%ntpenc(:) = 0
       self%levelg(:) = -1
