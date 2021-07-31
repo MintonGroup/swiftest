@@ -2,7 +2,7 @@ submodule(whm_classes) s_whm_util
    use swiftest
 contains
 
-   module subroutine whm_util_spill_pl(self, discards, lspill_list)
+   module subroutine whm_util_copy_spill_pl(self, discards, lspill_list)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) WHM test particle structure from active list to discard list
@@ -35,17 +35,17 @@ contains
                   keeps%vj(i, :)    = pack(keeps%vj(i, :), .not. lspill_list(:))
                end do
             end if
-            call util_spill_pl(keeps, discards, lspill_list)
+            call util_copy_spill_pl(keeps, discards, lspill_list)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on whm_pl'
          end select
       end associate
 
       return
-   end subroutine whm_util_spill_pl
+   end subroutine whm_util_copy_spill_pl
 
 
-   module subroutine whm_util_fill_pl(self, inserts, lfill_list)
+   module subroutine whm_util_copy_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new WHM test particle structure into an old one. 
@@ -55,7 +55,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                      intent(inout) :: self       !! WHM massive body object
-      class(swiftest_body),               intent(inout) :: inserts    !! inserted object 
+      class(swiftest_body),               intent(in)    :: inserts    !! inserted object 
       logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       ! Internals
       integer(I4B)                                      :: i
@@ -80,14 +80,14 @@ contains
                keeps%vj(i, :) = unpack(keeps%vj(i, :), .not.lfill_list(:), keeps%vj(i, :))
                keeps%vj(i, :) = unpack(inserts%vj(i, :), lfill_list(:), keeps%vj(i, :))
             end do
-            call util_fill_pl(keeps, inserts, lfill_list)
+            call util_copy_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on whm_pl'
          end select
       end associate
    
       return
-   end subroutine whm_util_fill_pl
+   end subroutine whm_util_copy_fill_pl
 
 
    module subroutine whm_util_set_ir3j(self)

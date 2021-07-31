@@ -2,7 +2,7 @@ submodule(rmvs_classes) s_rmvs_util
    use swiftest
 contains
 
-   module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
+   module subroutine rmvs_util_copy_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new RMVS massive body structure into an old one. 
@@ -11,7 +11,7 @@ contains
       implicit none
       ! Arguments
       class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
-      class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       ! Internals
       integer(I4B) :: i
@@ -23,17 +23,17 @@ contains
             keeps%nenc(:)    = unpack(keeps%nenc(:),    .not.lfill_list(:), keeps%nenc(:))
             keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
             
-            call whm_util_fill_pl(keeps, inserts, lfill_list)
+            call whm_util_copy_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
          end select
       end associate
 
       return
-   end subroutine rmvs_util_fill_pl
+   end subroutine rmvs_util_copy_fill_pl
 
 
-   module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)
+   module subroutine rmvs_util_copy_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new RMVS test particle structure into an old one. 
@@ -42,7 +42,7 @@ contains
       implicit none
       ! Arguments
       class(rmvs_tp),        intent(inout) :: self       !! RMVS test particle object
-      class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
@@ -58,14 +58,14 @@ contains
             keeps%plencP(:) = unpack(keeps%plencP(:), .not.lfill_list(:), keeps%plencP(:))
             keeps%plencP(:) = unpack(inserts%plencP(:), lfill_list(:), keeps%plencP(:))
             
-            call util_fill_tp(keeps, inserts, lfill_list)
+            call util_copy_fill_tp(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on rmvs_tp'
          end select
       end associate
 
       return
-   end subroutine rmvs_util_fill_tp
+   end subroutine rmvs_util_copy_fill_tp
 
    module subroutine rmvs_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
@@ -206,7 +206,7 @@ contains
    end subroutine rmvs_util_sort_rearrange_tp
    
 
-   module subroutine rmvs_util_spill_pl(self, discards, lspill_list)
+   module subroutine rmvs_util_copy_spill_pl(self, discards, lspill_list)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -227,17 +227,17 @@ contains
             if (count(.not.lspill_list(:))  > 0) then
                keeps%nenc(:)       = pack(keeps%nenc(:),   .not. lspill_list(:))
             end if
-            call whm_util_spill_pl(keeps, discards, lspill_list)
+            call whm_util_copy_spill_pl(keeps, discards, lspill_list)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
          end select
       end associate
 
       return
-   end subroutine rmvs_util_spill_pl
+   end subroutine rmvs_util_copy_spill_pl
 
    
-   module subroutine rmvs_util_spill_tp(self, discards, lspill_list)
+   module subroutine rmvs_util_copy_spill_tp(self, discards, lspill_list)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -263,13 +263,13 @@ contains
                keeps%plencP(:)    = pack(keeps%plencP(:), .not. lspill_list(:))
             end if
 
-            call util_spill_tp(keeps, discards, lspill_list)
+            call util_copy_spill_tp(keeps, discards, lspill_list)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_tp'
          end select
       end associate
 
       return
-   end subroutine rmvs_util_spill_tp
+   end subroutine rmvs_util_copy_spill_tp
 
 end submodule s_rmvs_util

@@ -2,7 +2,7 @@ submodule (swiftest_classes) s_util_append
    use swiftest
 contains
 
-   module subroutine util_append_body(self, source, param, lmask)
+   module subroutine util_append_body(self, source, param, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append components from one Swiftest body object to another. 
@@ -12,7 +12,7 @@ contains
       class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
       class(swiftest_body),            intent(in)    :: source !! Source object to append
       class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters
-      logical, dimension(:), optional, intent(in)    :: lmask  !! Logical mask indicating which elements to append to
+      logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
 
       associate(nold => self%nbody, nnew => source%nbody)
          if (nnew > size(self%status)) call self%resize(nnew, param)
