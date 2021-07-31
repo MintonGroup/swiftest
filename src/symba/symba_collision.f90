@@ -41,7 +41,7 @@ contains
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
-      logical, dimension(:), allocatable        :: lcollision, mask
+      logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
       integer(I4B)                              :: k
 
@@ -51,16 +51,20 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
-            associate(pltpenc_list => self, npltpenc => self%nenc, plind => self%index1(1:self%nenc), tpind => self%index2(1:self%nenc))
-               allocate(lcollision(npltpenc), mask(npltpenc))
-               mask(:) = ((pltpenc_list%status(1:npltpenc) == ACTIVE) .and. (pl%levelg(plind) >= irec) .and. (tp%levelg(tpind) >= irec))
+            associate(pltpenc_list => self, npltpenc => self%nenc, plind => self%index1, tpind => self%index2 )
+               allocate(lmask(npltpenc))
+               lmask(:) = ((pltpenc_list%status(1:npltpenc) == ACTIVE) &
+                     .and. (pl%levelg(plind(1:npltpenc)) >= irec) &
+                     .and. (tp%levelg(tpind(1:npltpenc)) >= irec))
+               if (.not.any(lmask(:))) return
+
+               allocate(lcollision(npltpenc))
                lcollision(:) = .false.
-               do concurrent(k = 1:npltpenc, mask(k))
-                  associate(i => plind(k), j => tpind(k))
-                     xr(:) = pl%xh(:, i) - tp%xh(:, j) 
-                     vr(:) = pl%vb(:, i) - tp%vb(:, j)
-                     lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, pltpenc_list%lvdotr(k))
-                  end associate
+
+               do concurrent(k = 1:npltpenc, lmask(k))
+                  xr(:) = pl%xh(:, plind(k)) - tp%xh(:, tpind(k)) 
+                  vr(:) = pl%vb(:, plind(k)) - tp%vb(:, tpind(k))
+                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(plind(k)), pl%radius(plind(k)), dt, pltpenc_list%lvdotr(k))
                end do
 
                if (any(lcollision(:))) then
@@ -69,6 +73,7 @@ contains
                      tp%status(tpind(1:npltpenc)) = DISCARDED_PLR
                      tp%ldiscard(tpind(1:npltpenc)) = .true.
                   end where
+
                   do k = 1, npltpenc
                      if (pltpenc_list%status(k) /= COLLISION) cycle
                      write(*,*) 'Test particle ',tp%id(tpind(k)), ' collided with massive body ',pl%id(plind(k)), ' at time ',t
