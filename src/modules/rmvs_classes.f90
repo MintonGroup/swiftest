@@ -71,7 +71,7 @@ module rmvs_classes
       procedure :: accel           => rmvs_kick_getacch_tp        !! Calculates either the standard or modified version of the acceleration depending if the
                                                                   !!    if the test particle is undergoing a close encounter or not
       procedure :: setup           => rmvs_setup_tp               !! Constructor method - Allocates space for number of particles
-      procedure :: fill            => rmvs_util_copy_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: fill            => rmvs_util_copy_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: sort            => rmvs_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => rmvs_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => rmvs_util_copy_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
@@ -94,7 +94,7 @@ module rmvs_classes
       procedure :: setup     => rmvs_setup_pl               !! Constructor method - Allocates space for number of particles
       procedure :: sort      => rmvs_util_sort_pl           !! Sorts body arrays by a sortable componen
       procedure :: rearrange => rmvs_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: fill      => rmvs_util_copy_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: fill      => rmvs_util_copy_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: spill     => rmvs_util_copy_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_pl
 

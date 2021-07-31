@@ -2,6 +2,99 @@ submodule(symba_classes) s_symba_util
    use swiftest
 contains
 
+   module subroutine symba_util_copy_fill_pl(self, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Insert new SyMBA test particle structure into an old one. 
+      !! This is the inverse of a fill operation.
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_pl),       intent(inout) :: self       !! SyMBA masive body object
+      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
+      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      associate(keeps => self)
+         select type(inserts)
+         class is (symba_pl)
+            keeps%lcollision(:)  = unpack(keeps%lcollision(:),  .not.lfill_list(:), keeps%lcollision(:))
+            keeps%lcollision(:)  = unpack(inserts%lcollision(:),  lfill_list(:), keeps%lcollision(:))
+            
+            keeps%lencounter(:) = unpack(keeps%lencounter(:), .not.lfill_list(:), keeps%lencounter(:))
+            keeps%lencounter(:) = unpack(inserts%lencounter(:), lfill_list(:), keeps%lencounter(:))
+            
+            keeps%lmtiny(:) = unpack(keeps%lmtiny(:), .not.lfill_list(:), keeps%lmtiny(:))
+            keeps%lmtiny(:) = unpack(inserts%lmtiny(:), lfill_list(:), keeps%lmtiny(:))
+
+            keeps%nplenc(:)  = unpack(keeps%nplenc(:),  .not.lfill_list(:), keeps%nplenc(:))
+            keeps%nplenc(:)  = unpack(inserts%nplenc(:),  lfill_list(:), keeps%nplenc(:))
+            
+            keeps%nplenc(:)  = unpack(keeps%nplenc(:),  .not.lfill_list(:), keeps%nplenc(:))
+            keeps%ntpenc(:)  = unpack(inserts%ntpenc(:),  lfill_list(:), keeps%ntpenc(:))
+            
+            keeps%levelg(:) = unpack(keeps%levelg(:), .not.lfill_list(:), keeps%levelg(:))
+            keeps%levelg(:) = unpack(inserts%levelg(:), lfill_list(:), keeps%levelg(:))
+            
+            keeps%levelm(:) = unpack(keeps%levelm(:), .not.lfill_list(:), keeps%levelm(:))
+            keeps%levelm(:) = unpack(inserts%levelm(:), lfill_list(:), keeps%levelm(:))
+            
+            keeps%isperi(:) = unpack(keeps%isperi(:), .not.lfill_list(:), keeps%isperi(:))
+            keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
+            
+            keeps%peri(:) = unpack(keeps%peri(:), .not.lfill_list(:), keeps%peri(:))
+            keeps%peri(:) = unpack(inserts%peri(:), lfill_list(:), keeps%peri(:))
+            
+            keeps%atp(:) = unpack(keeps%atp(:), .not.lfill_list(:), keeps%atp(:))
+            keeps%atp(:) = unpack(inserts%atp(:), lfill_list(:), keeps%atp(:))
+            
+            keeps%kin(:) = unpack(keeps%kin(:), .not.lfill_list(:), keeps%kin(:))
+            keeps%kin(:) = unpack(inserts%kin(:), lfill_list(:), keeps%kin(:))
+            
+            keeps%info(:) = unpack(keeps%info(:), .not.lfill_list(:), keeps%info(:))
+            keeps%info(:) = unpack(inserts%info(:), lfill_list(:), keeps%info(:))
+            
+            call util_copy_fill_pl(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! fill method called for incompatible return type on symba_pl'
+         end select
+      end associate
+
+      return
+   end subroutine symba_util_copy_fill_pl
+
+   module subroutine symba_util_copy_fill_tp(self, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Insert new SyMBA test particle structure into an old one. 
+      !! This is the inverse of a fill operation.
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_tp),       intent(inout) :: self       !! SyMBA test particle object
+      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
+      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      associate(keeps => self)
+         select type(inserts)
+         class is (symba_tp)
+            keeps%nplenc(:)  = unpack(keeps%nplenc(:),  .not.lfill_list(:), keeps%nplenc(:))
+            keeps%nplenc(:)  = unpack(inserts%nplenc(:),  lfill_list(:), keeps%nplenc(:))
+            
+            keeps%levelg(:) = unpack(keeps%levelg(:), .not.lfill_list(:), keeps%levelg(:))
+            keeps%levelg(:) = unpack(inserts%levelg(:), lfill_list(:), keeps%levelg(:))
+            
+            keeps%levelm(:) = unpack(keeps%levelm(:), .not.lfill_list(:), keeps%levelm(:))
+            keeps%levelm(:) = unpack(inserts%levelm(:), lfill_list(:), keeps%levelm(:))
+            
+            call util_copy_fill_tp(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! fill method called for incompatible return type on symba_tp'
+         end select
+      end associate
+
+      return
+   end subroutine symba_util_copy_fill_tp
+
    module subroutine symba_util_copy_pltpenc(self, source)
       !! author: David A. Minton
       !!

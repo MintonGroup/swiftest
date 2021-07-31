@@ -166,7 +166,7 @@ module swiftest_classes
       procedure :: accel_user  => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
       procedure :: append      => util_append_body         !! Appends elements from one structure to another
       procedure :: copy_into   => util_copy_into_body      !! Copies elements from one Swiftest body object to another. 
-      procedure :: fill        => util_copy_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: fill        => util_copy_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize      => util_resize_body         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_ir3     => util_set_ir3h            !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure :: sort        => util_sort_body           !! Sorts body arrays by a sortable componen
@@ -208,7 +208,7 @@ module swiftest_classes
       procedure :: accel_tides  => tides_kick_getacch_pl  !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure :: h2b          => util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
-      procedure :: fill         => util_copy_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: fill         => util_copy_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
       procedure :: set_mu       => util_set_mu_pl         !! Method used to construct the vectorized form of the central body mass
       procedure :: set_rhill    => util_set_rhill         !! Calculates the Hill's radii for each body
@@ -237,7 +237,7 @@ module swiftest_classes
       procedure :: setup      => setup_tp               !! A base constructor that sets the number of bodies and 
       procedure :: h2b        => util_coord_h2b_tp      !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h        => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
-      procedure :: fill       => util_copy_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: fill       => util_copy_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri   => util_peri_tp           !! Determine system pericenter passages for test particles 
       procedure :: set_mu     => util_set_mu_tp         !! Method used to construct the vectorized form of the central body mass
       procedure :: sort       => util_sort_tp           !! Sorts body arrays by a sortable component

@@ -34,7 +34,7 @@ module whm_classes
       procedure :: j2h         => whm_coord_j2h_pl           !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
       procedure :: vh2vj       => whm_coord_vh2vj_pl         !! Convert velocity vectors from heliocentric to Jacobi coordinates 
       procedure :: drift       => whm_drift_pl               !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
-      procedure :: fill        => whm_util_copy_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: fill        => whm_util_copy_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: accel       => whm_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
       procedure :: kick        => whm_kick_vh_pl             !! Kick heliocentric velocities of massive bodies
       procedure :: accel_gr    => whm_gr_kick_getacch_pl     !! Acceleration term arising from the post-Newtonian correction

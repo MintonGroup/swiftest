@@ -311,7 +311,6 @@ contains
          if (allocated(keeps%omega)) discards%omega(:)    = pack(keeps%omega(:),  lspill_list(:))
          if (allocated(keeps%capm))  discards%capm(:)     = pack(keeps%capm(:),   lspill_list(:))
 
-
          if (allocated(keeps%aobl)) then
             do i = 1, NDIM
                discards%aobl(i, :) = pack(keeps%aobl(i, :), lspill_list(:))
