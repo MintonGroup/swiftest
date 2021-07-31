@@ -95,6 +95,7 @@ module symba_classes
       procedure :: fill            => symba_util_copy_fill_pl        !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill           => symba_util_copy_spill_pl       !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_pl
 
    !********************************************************************************************************************************
@@ -113,6 +114,7 @@ module symba_classes
       procedure :: fill            => symba_util_copy_fill_tp      !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill           => symba_util_copy_spill_tp     !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_tp
 
    !********************************************************************************************************************************
@@ -449,6 +451,22 @@ module symba_classes
          class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
          integer(I4B),         intent(in)    :: nrequested !! New size of list needed
       end subroutine symba_util_resize_pltpenc
+
+      module subroutine symba_util_copy_spill_pl(self, discards, lspill_list)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_pl),       intent(inout) :: self        !! SyMBA massive body object
+         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine symba_util_copy_spill_pl
+
+      module subroutine symba_util_copy_spill_tp(self, discards, lspill_list)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_tp),       intent(inout) :: self        !! SyMBA test particle object
+         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      end subroutine symba_util_copy_spill_tp
 
       module subroutine symba_util_sort_pl(self, sortby, ascending)
          implicit none

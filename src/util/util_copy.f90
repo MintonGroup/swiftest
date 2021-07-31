@@ -378,7 +378,6 @@ contains
          allocate(discards%ldiscard(discards%nbody))
          keeps%ldiscard = .false.
          discards%ldiscard = .true.
-
       end associate
      
       return
