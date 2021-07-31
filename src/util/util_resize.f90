@@ -26,7 +26,7 @@ contains
          if (lmalloc) allocate(temp, source=self)
          call self%setup(nrequested, param)
          if (lmalloc) then
-            call self%copy(temp, param)
+            call self%copy_into(temp, param)
             deallocate(temp)
          end if
       else

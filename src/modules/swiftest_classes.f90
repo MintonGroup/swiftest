@@ -164,7 +164,8 @@ module swiftest_classes
       procedure :: xv2el       => orbel_xv2el_vec          !! Convert position and velocity vectors to orbital  elements 
       procedure :: setup       => setup_body               !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user  => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
-      procedure :: copy        => util_copy_body           !! Copies elements from one structure to another
+      procedure :: append      => util_append_body         !! Appends elements from one structure to another
+      procedure :: copy_into   => util_copy_into_body      !! Copies elements from one Swiftest body object to another. 
       procedure :: fill        => util_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure :: resize      => util_resize_body         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_ir3     => util_set_ir3h            !! Sets the inverse heliocentric radius term (1/rh**3)
@@ -735,6 +736,14 @@ module swiftest_classes
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine user_kick_getacch_body
 
+      module subroutine util_append_body(self, source, param, lmask)
+         implicit none
+         class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
+         class(swiftest_body),            intent(in)    :: source !! Source object to append
+         class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters
+         logical, dimension(:), optional, intent(in)    :: lmask  !! Logical mask indicating which elements to append to
+      end subroutine util_append_body
+
       module subroutine util_coord_b2h_pl(self, cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
@@ -759,12 +768,13 @@ module swiftest_classes
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
 
-      module subroutine util_copy_body(self, source, param)
+      module subroutine util_copy_into_body(self, source, param, lmask)
          implicit none
-         class(swiftest_body),       intent(inout) :: self   !! Swiftest body object
-         class(swiftest_body),       intent(in)    :: source !! Source object to copy
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
-      end subroutine util_copy_body
+         class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
+         class(swiftest_body),            intent(in)    :: source !! Source object to append
+         class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters
+         logical, dimension(:), optional, intent(in)    :: lmask  !! Logical mask indicating which elements to append to
+      end subroutine util_copy_into_body
 
       module subroutine util_exit(code)
          implicit none
