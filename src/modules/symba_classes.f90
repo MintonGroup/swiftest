@@ -86,13 +86,14 @@ module symba_classes
       type(symba_kinship),       dimension(:), allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
       type(symba_particle_info), dimension(:), allocatable :: info
    contains
-      procedure :: discard         => symba_discard_pl             !! Process massive body discards
-      procedure :: drift           => symba_drift_pl               !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
-      procedure :: encounter_check => symba_encounter_check_pl     !! Checks if massive bodies are going through close encounters with each other
-      procedure :: accel           => symba_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
-      procedure :: setup           => symba_setup_pl               !! Constructor method - Allocates space for number of particle
-      procedure :: sort            => symba_util_sort_pl           !! Sorts body arrays by a sortable componen
-      procedure :: rearrange       => symba_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: make_family     => symba_collision_make_family_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
+      procedure :: discard         => symba_discard_pl               !! Process massive body discards
+      procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
+      procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
+      procedure :: accel           => symba_kick_getacch_pl          !! Compute heliocentric accelerations of massive bodies
+      procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for number of particle
+      procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
+      procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
    end type symba_pl
 
    !********************************************************************************************************************************
@@ -188,6 +189,12 @@ module symba_classes
          real(DP),                   intent(in)    :: dt     !! step size
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine symba_collision_check_plplenc
+
+      module subroutine symba_collision_make_family_pl(self,idx)
+         implicit none
+         class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
+         integer(I4B), dimension(2), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision
+      end subroutine symba_collision_make_family_pl
 
       module subroutine symba_discard_pl(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters

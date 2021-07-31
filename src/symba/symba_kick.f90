@@ -123,38 +123,37 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
+            associate(ind1 => self%index1, ind2 => self%index2)
+               if (pl%nbody > 0) pl%lmask(:) = pl%status(:) == ACTIVE
+               if (tp%nbody > 0) tp%lmask(:) = tp%status(:) == ACTIVE
 
-            if (pl%nbody > 0) pl%lmask(:) = pl%status(:) == ACTIVE
-            if (tp%nbody > 0) tp%lmask(:) = tp%status(:) == ACTIVE
-
-            irm1 = irec - 1
-            if (sgn < 0) then
-               irecl = irec - 1
-            else
-               irecl = irec
-            end if
-            do k = 1, self%nenc
-               associate(i => self%index1(k), j => self%index2(k))
+               irm1 = irec - 1
+               if (sgn < 0) then
+                  irecl = irec - 1
+               else
+                  irecl = irec
+               end if
+               do k = 1, self%nenc
                   if (isplpl) then
-                     pl%ah(:,i) = 0.0_DP
-                     pl%ah(:,j) = 0.0_DP
+                     pl%ah(:,ind1(k)) = 0.0_DP
+                     pl%ah(:,ind2(k)) = 0.0_DP
                   else
-                     tp%ah(:,j) = 0.0_DP
+                     tp%ah(:,ind2(k)) = 0.0_DP
                   end if
                   if (isplpl) then
-                     lgoodlevel = (pl%levelg(i) >= irm1) .and. (pl%levelg(j) >= irm1)
+                     lgoodlevel = (pl%levelg(ind1(k)) >= irm1) .and. (pl%levelg(ind2(k)) >= irm1)
                   else
-                     lgoodlevel = (pl%levelg(i) >= irm1) .and. (tp%levelg(j) >= irm1)
+                     lgoodlevel = (pl%levelg(ind1(k)) >= irm1) .and. (tp%levelg(ind2(k)) >= irm1)
                   end if
                   if ((self%status(k) == ACTIVE) .and. lgoodlevel) then
                      if (isplpl) then
-                        ri = ((pl%rhill(i)  + pl%rhill(j))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
+                        ri = ((pl%rhill(ind1(k))  + pl%rhill(ind2(k)))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
                         rim1 = ri * (RSHELL**2)
-                        dx(:) = pl%xh(:,j) - pl%xh(:,i)
+                        dx(:) = pl%xh(:,ind2(k)) - pl%xh(:,ind1(k))
                      else
-                        ri = ((pl%rhill(i))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
+                        ri = ((pl%rhill(ind1(k)))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
                         rim1 = ri * (RSHELL**2)
-                        dx(:) = tp%xh(:,j) - pl%xh(:,i)
+                        dx(:) = tp%xh(:,ind2(k)) - pl%xh(:,ind1(k))
                      end if
                      r2 = dot_product(dx(:), dx(:))
                      if (r2 < rim1) then
@@ -168,34 +167,30 @@ contains
                         ir3 = 1.0_DP / (r2 * sqrt(r2))
                         fac = ir3
                      end if
-                     faci = fac * pl%Gmass(i)
+                     faci = fac * pl%Gmass(ind1(k))
                      if (isplpl) then
-                        facj = fac * pl%Gmass(j)
-                        pl%ah(:,i) = pl%ah(:,i) + facj*dx(:)
-                        pl%ah(:,j) = pl%ah(:,j) - faci*dx(:)
+                        facj = fac * pl%Gmass(ind2(k))
+                        pl%ah(:,ind1(k)) = pl%ah(:,ind1(k)) + facj * dx(:)
+                        pl%ah(:,ind2(k)) = pl%ah(:,ind2(k)) - faci * dx(:)
                      else
-                        tp%ah(:,j) = tp%ah(:,j) - faci*dx(:)
+                        tp%ah(:,ind2(k)) = tp%ah(:,ind2(k)) - faci * dx(:)
                      end if
                   end if
-               end associate
-            end do
-            if (isplpl) then
-               do k = 1, self%nenc
-                  associate(i => self%index1(k), j => self%index2(k))
-                     pl%vb(:,i) = pl%vb(:,i) + sgn * dt * pl%ah(:,i)
-                     pl%vb(:,j) = pl%vb(:,j) + sgn * dt * pl%ah(:,j)
-                     pl%ah(:,i) = 0.0_DP
-                     pl%ah(:,j) = 0.0_DP
-                  end associate
                end do
-            else
-               where(tp%lmask(self%index2(1:self%nenc)))
-                  tp%vb(1,self%index2(:)) = tp%vb(1,self%index2(:)) + sgn * dt * tp%ah(1,self%index2(:))
-                  tp%vb(2,self%index2(:)) = tp%vb(2,self%index2(:)) + sgn * dt * tp%ah(2,self%index2(:))
-                  tp%vb(3,self%index2(:)) = tp%vb(3,self%index2(:)) + sgn * dt * tp%ah(3,self%index2(:))
-               end where
-               tp%ah(:,self%index2(1:self%nenc)) = 0.0_DP
-            end if
+               if (isplpl) then
+                  do k = 1, self%nenc
+                     pl%vb(:,ind1(k)) = pl%vb(:,ind1(k)) + sgn * dt * pl%ah(:,ind1(k))
+                     pl%vb(:,ind2(k)) = pl%vb(:,ind2(k)) + sgn * dt * pl%ah(:,ind2(k))
+                     pl%ah(:,ind1(k)) = 0.0_DP
+                     pl%ah(:,ind1(k)) = 0.0_DP
+                  end do
+               else
+                  do k = 1, self%nenc
+                     tp%vb(:,ind2(k)) = tp%vb(:,ind2(k)) + sgn * dt * tp%ah(:,ind2(k))
+                     tp%ah(:,ind2(k)) = 0.0_DP
+                  end do
+               end if
+            end associate
          end select
       end select
       
