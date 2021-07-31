@@ -189,6 +189,48 @@ contains
       class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
       integer(I4B), dimension(2), intent(in)    :: idx  !! Array holding the indices of the two bodies involved in the collision
       ! Internals
+      integer(I4B)                              :: i, j, index_parent, index_child, p1, p2
+      integer(I4B)                              :: nchild_inherit, nchild_orig, nchild_new
+      integer(I4B), dimension(:), allocatable   :: temp
+
+      associate(pl => self)
+         p1 = pl%kin(idx(1))%parent
+         p2 = pl%kin(idx(2))%parent
+         if (p1 == p2) return ! This is a collision between to children of a shared parent. We will ignore it.
+
+         if (pl%Gmass(p1) > pl%Gmass(p2)) then
+            index_parent = p1
+            index_child = p2
+         else
+            index_parent = p2
+            index_child = p1
+         end if
+
+         ! Expand the child array (or create it if necessary) and copy over the previous lists of children
+         nchild_orig = pl%kin(index_parent)%nchild
+         nchild_inherit = pl%kin(index_child)%nchild
+         nchild_new = nchild_orig + nchild_inherit + 1
+         allocate(temp(nchild_new))
+
+         if (nchild_orig > 0) temp(1:nchild_orig) = pl%kin(index_parent)%child(1:nchild_orig)
+         ! Find out if the child body has any children of its own. The new parent wil inherit these children
+         if (nchild_inherit > 0) then
+            temp(nchild_orig+1:nchild_orig+nchild_inherit) = pl%kin(index_child)%child(1:nchild_inherit)
+            do i = 1, nchild_inherit
+               j = pl%kin(index_child)%child(i)
+               ! Set the childrens' parent to the new parent
+               pl%kin(j)%parent = index_parent
+            end do
+         end if
+         if (allocated(pl%kin(index_child)%child)) deallocate(pl%kin(index_child)%child)
+         pl%kin(index_child)%nchild = 0
+         ! Add the new child to its parent
+         pl%kin(index_child)%parent = index_parent
+         temp(nchild_new) = index_child
+         ! Save the new child array to the parent
+         pl%kin(index_parent)%nchild = nchild_new
+         call move_alloc(from=temp, to=pl%kin(index_parent)%child)
+      end associate
 
       return
    end subroutine symba_collision_make_family_pl
