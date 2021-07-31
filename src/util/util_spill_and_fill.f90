@@ -231,7 +231,7 @@ contains
       ! Arguments
       class(swiftest_pl),    intent(inout) :: self        !! Swiftest massive body object
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discardse
+      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
       ! Internals
       integer(I4B) :: i
 

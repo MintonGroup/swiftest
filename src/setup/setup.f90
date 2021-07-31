@@ -110,6 +110,19 @@ contains
       if (n <= 0) return
       self%lfirst = .true.
 
+      if (allocated(self%id)) deallocate(self%id)
+      if (allocated(self%name)) deallocate(self%name)
+      if (allocated(self%status)) deallocate(self%status)
+      if (allocated(self%ldiscard)) deallocate(self%ldiscard)
+      if (allocated(self%xh)) deallocate(self%xh)
+      if (allocated(self%vh)) deallocate(self%vh)
+      if (allocated(self%xb)) deallocate(self%xb)
+      if (allocated(self%vb)) deallocate(self%vb)
+      if (allocated(self%ah)) deallocate(self%ah)
+      if (allocated(self%ir3h)) deallocate(self%ir3h)
+      if (allocated(self%mu)) deallocate(self%mu)
+      if (allocated(self%lmask)) deallocate(self%lmask)
+
       allocate(self%id(n))
       allocate(self%name(n))
       allocate(self%status(n))
@@ -137,14 +150,17 @@ contains
       self%mu(:)     = 0.0_DP
 
       if (param%loblatecb) then
+         if (allocated(self%aobl)) deallocate(self%aobl)
          allocate(self%aobl(NDIM, n))
          self%aobl(:,:) = 0.0_DP
       end if
       if (param%ltides) then
+         if (allocated(self%atide)) deallocate(self%lmask)
          allocate(self%atide(NDIM, n))
          self%atide(:,:) = 0.0_DP
       end if
       if (param%lgr) then
+         if (allocated(self%agr)) deallocate(self%lmask)
          allocate(self%agr(NDIM, n))
          self%agr(:,:) = 0.0_DP
       end if
@@ -169,6 +185,10 @@ contains
       call setup_body(self, n, param)
       if (n <= 0) return 
 
+      if (allocated(self%mass)) deallocate(self%mass)
+      if (allocated(self%Gmass)) deallocate(self%Gmass)
+      if (allocated(self%rhill)) deallocate(self%rhill)
+
       allocate(self%mass(n))
       allocate(self%Gmass(n))
       allocate(self%rhill(n))
@@ -180,6 +200,8 @@ contains
       self%nplpl = 0   
 
       if (param%lclose) then
+         if (allocated(self%radius)) deallocate(self%radius)
+         if (allocated(self%density)) deallocate(self%density)
          allocate(self%radius(n))
          allocate(self%density(n))
          self%radius(:) = 0.0_DP
@@ -187,6 +209,8 @@ contains
       end if
 
       if (param%lrotation) then
+         if (allocated(self%rot)) deallocate(self%rhill)
+         if (allocated(self%Ip)) deallocate(self%rhill)
          allocate(self%rot(NDIM, n))
          allocate(self%Ip(NDIM, n))
          self%rot(:,:) = 0.0_DP
@@ -194,6 +218,9 @@ contains
       end if
 
       if (param%ltides) then
+         if (allocated(self%k2)) deallocate(self%rhill)
+         if (allocated(self%Q)) deallocate(self%rhill)
+         if (allocated(self%tlag)) deallocate(self%rhill)
          allocate(self%k2(n))
          allocate(self%Q(n))
          allocate(self%tlag(n))
@@ -221,6 +248,10 @@ contains
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call setup_body(self, n, param)
       if (n <= 0) return
+
+      if (allocated(self%isperi)) deallocate(self%isperi)
+      if (allocated(self%peri)) deallocate(self%peri)
+      if (allocated(self%atp)) deallocate(self%atp)
 
       allocate(self%isperi(n))
       allocate(self%peri(n))

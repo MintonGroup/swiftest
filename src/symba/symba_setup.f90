@@ -55,6 +55,19 @@ contains
       call setup_pl(self, n, param) 
       if (n <= 0) return
 
+      if (allocated(self%lcollision)) deallocate(self%lcollision)
+      if (allocated(self%lencounter)) deallocate(self%lencounter)
+      if (allocated(self%lmtiny)) deallocate(self%lmtiny)
+      if (allocated(self%nplenc)) deallocate(self%nplenc)
+      if (allocated(self%ntpenc)) deallocate(self%ntpenc)
+      if (allocated(self%levelg)) deallocate(self%levelg)
+      if (allocated(self%levelm)) deallocate(self%levelm)
+      if (allocated(self%isperi)) deallocate(self%isperi)
+      if (allocated(self%peri)) deallocate(self%peri)
+      if (allocated(self%atp)) deallocate(self%atp)
+      if (allocated(self%kin)) deallocate(self%kin)
+      if (allocated(self%info)) deallocate(self%info)
+
       allocate(self%lcollision(n))
       allocate(self%lencounter(n))
       allocate(self%lmtiny(n))
@@ -102,11 +115,13 @@ contains
       if (allocated(self%level)) deallocate(self%level)
       if (allocated(self%index1)) deallocate(self%index1)
       if (allocated(self%index2)) deallocate(self%index2)
+
       allocate(self%lvdotr(n))
       allocate(self%status(n))
       allocate(self%level(n))
       allocate(self%index1(n))
       allocate(self%index2(n))
+
       self%lvdotr(:) = .false.
       self%status(:) = INACTIVE
       self%level(:) = -1
@@ -134,10 +149,12 @@ contains
       if (allocated(self%xh2)) deallocate(self%xh2)
       if (allocated(self%vb1)) deallocate(self%vb1)
       if (allocated(self%vb2)) deallocate(self%vb2)
+
       allocate(self%xh1(NDIM,n))
       allocate(self%xh2(NDIM,n))
       allocate(self%vb1(NDIM,n))
       allocate(self%vb2(NDIM,n))
+
       self%xh1(:,:) = 0.0_DP
       self%xh2(:,:) = 0.0_DP
       self%vb1(:,:) = 0.0_DP
@@ -163,9 +180,14 @@ contains
       call setup_tp(self, n, param) 
       if (n <= 0) return
 
+      if (allocated(self%nplenc)) deallocate(self%nplenc)
+      if (allocated(self%levelg)) deallocate(self%levelg)
+      if (allocated(self%levelm)) deallocate(self%levelm)
+
       allocate(self%nplenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))
+
       self%nplenc(:) = 0
       self%levelg(:) = -1
       self%levelm(:) = -1
