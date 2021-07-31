@@ -19,6 +19,54 @@ contains
       real(DP),                   intent(in)    :: t      !! current time
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      ! Internals
+      logical, dimension(:), allocatable        :: lcollision, lmask
+      real(DP), dimension(NDIM)                 :: xr, vr
+      integer(I4B)                              :: k
+      real(DP)                                  :: rlim, mtot
+
+      if (self%nenc == 0) return
+
+      select type(pl => system%pl)
+      class is (symba_pl)
+         select type(tp => system%tp)
+         class is (symba_tp)
+            associate(plplenc_list => self, nplplenc => self%nenc, ind1 => self%index1, ind2 => self%index2)
+               allocate(lmask(nplplenc))
+               lmask(:) = ((plplenc_list%status(1:nplplenc) == ACTIVE) &
+                     .and. (pl%levelg(ind1(1:nplplenc)) >= irec) &
+                     .and. (pl%levelg(ind2(1:nplplenc)) >= irec))
+               if (.not.any(lmask(:))) return
+
+               allocate(lcollision(nplplenc))
+               lcollision(:) = .false.
+
+               do concurrent(k = 1:nplplenc, lmask(k))
+                  xr(:) = pl%xh(:, ind1(k)) - pl%xh(:, ind2(k)) 
+                  vr(:) = pl%vb(:, ind1(k)) - pl%vb(:, ind2(k))
+                  rlim = pl%radius(ind1(k)) + pl%radius(ind2(k))
+                  mtot = pl%Gmass(ind1(k)) + pl%Gmass(ind2(k))
+                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), mtot, rlim, dt, plplenc_list%lvdotr(k))
+               end do
+
+               if (any(lcollision(:))) then
+                  do k = 1, nplplenc
+                     if (plplenc_list%status(k) /= COLLISION) cycle
+                     plplenc_list%status(k) = COLLISION
+                     plplenc_list%xh1(:,k) = pl%xh(:,ind1(k)) 
+                     plplenc_list%vb1(:,k) = pl%vb(:,ind1(k)) 
+                     plplenc_list%xh2(:,k) = pl%xh(:,ind2(k))
+                     plplenc_list%vb2(:,k) = pl%vb(:,ind2(k))
+                     if (pl%lcollision(ind1(k)) .or. pl%lcollision(ind2(k))) call plplenc_list%make_family(system)
+                     pl%lcollision(ind1(k)) = .true.
+                     pl%lcollision(ind2(k)) = .true.
+                  end do
+               end if
+            end associate
+         end select
+      end select
+
+      return 
 
       return
    end subroutine symba_collision_check_plplenc
@@ -51,7 +99,7 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
-            associate(pltpenc_list => self, npltpenc => self%nenc, plind => self%index1, tpind => self%index2 )
+            associate(pltpenc_list => self, npltpenc => self%nenc, plind => self%index1, tpind => self%index2)
                allocate(lmask(npltpenc))
                lmask(:) = ((pltpenc_list%status(1:npltpenc) == ACTIVE) &
                      .and. (pl%levelg(plind(1:npltpenc)) >= irec) &
