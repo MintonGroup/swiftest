@@ -20,9 +20,10 @@ contains
          select type(inserts)
          class is (rmvs_pl)
 
-            keeps%nenc(:)    = unpack(keeps%nenc(:),    .not.lfill_list(:), keeps%nenc(:))
-            keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
-            
+            call util_fill(keeps%nenc, inserts%nenc, lfill_list)
+            call util_fill(keeps%tpenc1P, inserts%tpenc1P, lfill_list)
+            call util_fill(keeps%plind, inserts%plind, lfill_list)
+
             call whm_util_copy_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
@@ -49,14 +50,9 @@ contains
          select type(inserts)
          class is (rmvs_tp)
 
-            keeps%lperi(:)  = unpack(keeps%lperi(:),  .not.lfill_list(:), keeps%lperi(:))
-            keeps%lperi(:)  = unpack(inserts%lperi(:),  lfill_list(:), keeps%lperi(:))
-            
-            keeps%plperP(:) = unpack(keeps%plperP(:), .not.lfill_list(:), keeps%plperP(:))
-            keeps%plperP(:) = unpack(inserts%plperP(:), lfill_list(:), keeps%plperP(:))
-            
-            keeps%plencP(:) = unpack(keeps%plencP(:), .not.lfill_list(:), keeps%plencP(:))
-            keeps%plencP(:) = unpack(inserts%plencP(:), lfill_list(:), keeps%plencP(:))
+            call util_fill(keeps%lperi, inserts%lperi, lfill_list)
+            call util_fill(keeps%plperP, inserts%plperP, lfill_list)
+            call util_fill(keeps%plencP, inserts%plencP, lfill_list)
             
             call util_copy_fill_tp(keeps, inserts, lfill_list)
          class default

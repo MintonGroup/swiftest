@@ -85,7 +85,7 @@ module swiftest_classes
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, abstract, extends(swiftest_base) :: swiftest_cb           
-      character(len=STRMAX)     :: name             !! Non-unique name
+      character(len=STRMAX)     :: name              !! Non-unique name
       integer(I4B)              :: id       = 0      !! External identifier (unique)
       real(DP)                  :: mass     = 0.0_DP !! Central body mass (units MU)
       real(DP)                  :: Gmass    = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
@@ -801,7 +801,46 @@ module swiftest_classes
          class(swiftest_body),  intent(in)    :: inserts    !! Swiftest body object to be inserted
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_copy_fill_tp
+   end interface
 
+   interface util_fill
+      module subroutine util_fill_arr_char_string(keeps, inserts, lfill_list)
+         implicit none
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+         logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_char_string
+
+      module subroutine util_fill_arr_DP(keeps, inserts, lfill_list)
+         implicit none
+         real(DP), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         real(DP), dimension(:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+         logical,  dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_DP
+
+      module subroutine util_fill_arr_DPvec(keeps, inserts, lfill_list)
+         implicit none
+         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         real(DP), dimension(:,:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+         logical,  dimension(:),                intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_DPvec
+
+      module subroutine util_fill_arr_I4B(keeps, inserts, lfill_list)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         integer(I4B), dimension(:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+         logical,      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_I4B
+
+      module subroutine util_fill_arr_logical(keeps, inserts, lfill_list)
+         implicit none
+         logical, dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         logical, dimension(:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+         logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_logical
+   end interface
+
+   interface
       module subroutine util_peri_tp(self, system, param) 
          implicit none
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object

@@ -63,23 +63,12 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (whm_pl)
-            keeps%eta(:)  = unpack(keeps%eta(:),  .not.lfill_list(:), keeps%eta(:))
-            keeps%eta(:)  = unpack(inserts%eta(:),  lfill_list(:), keeps%eta(:))
-            
-            keeps%muj(:)  = unpack(keeps%muj(:),  .not.lfill_list(:), keeps%muj(:))
-            keeps%muj(:)  = unpack(inserts%muj(:),  lfill_list(:), keeps%muj(:))
-            
-            keeps%ir3j(:) = unpack(keeps%ir3j(:), .not.lfill_list(:), keeps%ir3j(:))
-            keeps%ir3j(:) = unpack(inserts%ir3j(:), lfill_list(:), keeps%ir3j(:))
-            
-   
-            do i = 1, NDIM
-               keeps%xj(i, :) = unpack(keeps%xj(i, :), .not.lfill_list(:), keeps%xj(i, :))
-               keeps%xj(i, :) = unpack(inserts%xj(i, :), lfill_list(:), keeps%xj(i, :))
-            
-               keeps%vj(i, :) = unpack(keeps%vj(i, :), .not.lfill_list(:), keeps%vj(i, :))
-               keeps%vj(i, :) = unpack(inserts%vj(i, :), lfill_list(:), keeps%vj(i, :))
-            end do
+            call util_fill(keeps%eta, inserts%eta, lfill_list)
+            call util_fill(keeps%muj, inserts%muj, lfill_list)
+            call util_fill(keeps%ir3j, inserts%ir3j, lfill_list)
+            call util_fill(keeps%xj, inserts%xj, lfill_list)
+            call util_fill(keeps%vj, inserts%vj, lfill_list)
+
             call util_copy_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on whm_pl'

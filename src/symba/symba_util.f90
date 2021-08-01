@@ -17,35 +17,16 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (symba_pl)
-            keeps%lcollision(:)  = unpack(keeps%lcollision(:),  .not.lfill_list(:), keeps%lcollision(:))
-            keeps%lcollision(:)  = unpack(inserts%lcollision(:),  lfill_list(:), keeps%lcollision(:))
-            
-            keeps%lencounter(:) = unpack(keeps%lencounter(:), .not.lfill_list(:), keeps%lencounter(:))
-            keeps%lencounter(:) = unpack(inserts%lencounter(:), lfill_list(:), keeps%lencounter(:))
-            
-            keeps%lmtiny(:) = unpack(keeps%lmtiny(:), .not.lfill_list(:), keeps%lmtiny(:))
-            keeps%lmtiny(:) = unpack(inserts%lmtiny(:), lfill_list(:), keeps%lmtiny(:))
-
-            keeps%nplenc(:)  = unpack(keeps%nplenc(:),  .not.lfill_list(:), keeps%nplenc(:))
-            keeps%nplenc(:)  = unpack(inserts%nplenc(:),  lfill_list(:), keeps%nplenc(:))
-            
-            keeps%nplenc(:)  = unpack(keeps%nplenc(:),  .not.lfill_list(:), keeps%nplenc(:))
-            keeps%ntpenc(:)  = unpack(inserts%ntpenc(:),  lfill_list(:), keeps%ntpenc(:))
-            
-            keeps%levelg(:) = unpack(keeps%levelg(:), .not.lfill_list(:), keeps%levelg(:))
-            keeps%levelg(:) = unpack(inserts%levelg(:), lfill_list(:), keeps%levelg(:))
-            
-            keeps%levelm(:) = unpack(keeps%levelm(:), .not.lfill_list(:), keeps%levelm(:))
-            keeps%levelm(:) = unpack(inserts%levelm(:), lfill_list(:), keeps%levelm(:))
-            
-            keeps%isperi(:) = unpack(keeps%isperi(:), .not.lfill_list(:), keeps%isperi(:))
-            keeps%isperi(:) = unpack(inserts%isperi(:), lfill_list(:), keeps%isperi(:))
-            
-            keeps%peri(:) = unpack(keeps%peri(:), .not.lfill_list(:), keeps%peri(:))
-            keeps%peri(:) = unpack(inserts%peri(:), lfill_list(:), keeps%peri(:))
-            
-            keeps%atp(:) = unpack(keeps%atp(:), .not.lfill_list(:), keeps%atp(:))
-            keeps%atp(:) = unpack(inserts%atp(:), lfill_list(:), keeps%atp(:))
+            call util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
+            call util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
+            call util_fill(keeps%lmtiny, inserts%lmtiny, lfill_list)
+            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
+            call util_fill(keeps%ntpenc, inserts%ntpenc, lfill_list)
+            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
+            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
+            call util_fill(keeps%isperi, inserts%isperi, lfill_list)
+            call util_fill(keeps%peri, inserts%peri, lfill_list)
+            call util_fill(keeps%atp, inserts%atp, lfill_list)
             
             keeps%kin(:) = unpack(keeps%kin(:), .not.lfill_list(:), keeps%kin(:))
             keeps%kin(:) = unpack(inserts%kin(:), lfill_list(:), keeps%kin(:))
@@ -77,14 +58,9 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (symba_tp)
-            keeps%nplenc(:)  = unpack(keeps%nplenc(:),  .not.lfill_list(:), keeps%nplenc(:))
-            keeps%nplenc(:)  = unpack(inserts%nplenc(:),  lfill_list(:), keeps%nplenc(:))
-            
-            keeps%levelg(:) = unpack(keeps%levelg(:), .not.lfill_list(:), keeps%levelg(:))
-            keeps%levelg(:) = unpack(inserts%levelg(:), lfill_list(:), keeps%levelg(:))
-            
-            keeps%levelm(:) = unpack(keeps%levelm(:), .not.lfill_list(:), keeps%levelm(:))
-            keeps%levelm(:) = unpack(inserts%levelm(:), lfill_list(:), keeps%levelm(:))
+            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
+            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
+            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
             
             call util_copy_fill_tp(keeps, inserts, lfill_list)
          class default
