@@ -418,6 +418,36 @@ module symba_classes
          class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
       end subroutine symba_step_reset_system
 
+      module subroutine symba_util_copy_pltpenc(self, source)
+         implicit none
+         class(symba_pltpenc), intent(inout) :: self   !! SyMBA pl-tp encounter list 
+         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
+      end subroutine symba_util_copy_pltpenc
+
+      module subroutine symba_util_copy_plplenc(self, source)
+         implicit none
+         class(symba_plplenc), intent(inout) :: self   !! SyMBA pl-pl encounter list 
+         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
+      end subroutine symba_util_copy_plplenc
+   end interface 
+
+   interface util_fill
+      module subroutine symba_util_fill_arr_char_info(keeps, inserts, lfill_list)
+         implicit none
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         type(symba_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine symba_util_fill_arr_char_info
+
+      module subroutine symba_util_fill_arr_char_kin(keeps, inserts, lfill_list)
+         implicit none
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         type(symba_kinship), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine symba_util_fill_arr_char_kin
+   end interface
+
+   interface
       module subroutine symba_util_fill_pl(self, inserts, lfill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
@@ -434,41 +464,11 @@ module symba_classes
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine symba_util_fill_tp
 
-      module subroutine symba_util_copy_pltpenc(self, source)
-         implicit none
-         class(symba_pltpenc), intent(inout) :: self   !! SyMBA pl-tp encounter list 
-         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
-      end subroutine symba_util_copy_pltpenc
-
-      module subroutine symba_util_copy_plplenc(self, source)
-         implicit none
-         class(symba_plplenc), intent(inout) :: self   !! SyMBA pl-pl encounter list 
-         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
-      end subroutine symba_util_copy_plplenc
-
       module subroutine symba_util_resize_pltpenc(self, nrequested)
          implicit none
          class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
          integer(I4B),         intent(in)    :: nrequested !! New size of list needed
       end subroutine symba_util_resize_pltpenc
-
-      module subroutine symba_util_spill_pl(self, discards, lspill_list, ldestructive)
-         use swiftest_classes, only : swiftest_body
-         implicit none
-         class(symba_pl),       intent(inout) :: self         !! SyMBA massive body object
-         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
-         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine symba_util_spill_pl
-
-      module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
-         use swiftest_classes, only : swiftest_body
-         implicit none
-         class(symba_tp),       intent(inout) :: self         !! SyMBA test particle object
-         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
-         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine symba_util_spill_tp
 
       module subroutine symba_util_sort_pl(self, sortby, ascending)
          implicit none
@@ -495,7 +495,44 @@ module symba_classes
          class(symba_tp),               intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine symba_util_sort_rearrange_tp
+   end interface
 
+   interface util_spill
+      module subroutine symba_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,                    dimension(:),             intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                              intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine symba_util_spill_arr_info
+
+      module subroutine symba_util_spill_arr_kin(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,               dimension(:),            intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                        intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine symba_util_spill_arr_kin
+   end interface
+
+   interface
+      module subroutine symba_util_spill_pl(self, discards, lspill_list, ldestructive)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_pl),       intent(inout) :: self         !! SyMBA massive body object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine symba_util_spill_pl
+
+      module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_tp),       intent(inout) :: self         !! SyMBA test particle object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine symba_util_spill_tp
    end interface
 
 end module symba_classes

@@ -2,75 +2,6 @@ submodule(symba_classes) s_symba_util
    use swiftest
 contains
 
-   module subroutine symba_util_fill_pl(self, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Insert new SyMBA test particle structure into an old one. 
-      !! This is the inverse of a fill operation.
-      !! 
-      implicit none
-      ! Arguments
-      class(symba_pl),       intent(inout) :: self       !! SyMBA masive body object
-      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
-      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      associate(keeps => self)
-         select type(inserts)
-         class is (symba_pl)
-            call util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
-            call util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
-            call util_fill(keeps%lmtiny, inserts%lmtiny, lfill_list)
-            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
-            call util_fill(keeps%ntpenc, inserts%ntpenc, lfill_list)
-            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
-            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
-            call util_fill(keeps%isperi, inserts%isperi, lfill_list)
-            call util_fill(keeps%peri, inserts%peri, lfill_list)
-            call util_fill(keeps%atp, inserts%atp, lfill_list)
-            
-            keeps%kin(:) = unpack(keeps%kin(:), .not.lfill_list(:), keeps%kin(:))
-            keeps%kin(:) = unpack(inserts%kin(:), lfill_list(:), keeps%kin(:))
-            
-            keeps%info(:) = unpack(keeps%info(:), .not.lfill_list(:), keeps%info(:))
-            keeps%info(:) = unpack(inserts%info(:), lfill_list(:), keeps%info(:))
-            
-            call util_fill_pl(keeps, inserts, lfill_list)
-         class default
-            write(*,*) 'Error! fill method called for incompatible return type on symba_pl'
-         end select
-      end associate
-
-      return
-   end subroutine symba_util_fill_pl
-
-   module subroutine symba_util_fill_tp(self, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Insert new SyMBA test particle structure into an old one. 
-      !! This is the inverse of a fill operation.
-      !! 
-      implicit none
-      ! Arguments
-      class(symba_tp),       intent(inout) :: self       !! SyMBA test particle object
-      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
-      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      associate(keeps => self)
-         select type(inserts)
-         class is (symba_tp)
-            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
-            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
-            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
-            
-            call util_fill_tp(keeps, inserts, lfill_list)
-         class default
-            write(*,*) 'Error! fill method called for incompatible return type on symba_tp'
-         end select
-      end associate
-
-      return
-   end subroutine symba_util_fill_tp
-
    module subroutine symba_util_copy_pltpenc(self, source)
       !! author: David A. Minton
       !!
@@ -115,6 +46,113 @@ contains
 
       return
    end subroutine symba_util_copy_plplenc
+
+
+   module subroutine symba_util_fill_arr_char_info(keeps, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Performs a fill operation on a single array of particle origin information types
+      !! This is the inverse of a spill operation
+      implicit none
+      ! Arguments
+      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+      type(symba_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+      logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+
+      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+   
+      return
+   end subroutine symba_util_fill_arr_char_info
+
+
+   module subroutine symba_util_fill_arr_char_kin(keeps, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Performs a fill operation on a single array of particle kinship types
+      !! This is the inverse of a spill operation   
+      implicit none
+      ! Arguments
+      type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+      type(symba_kinship), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+      logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+
+      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+   
+      return
+   end subroutine symba_util_fill_arr_char_kin
+
+
+   module subroutine symba_util_fill_pl(self, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Insert new SyMBA test particle structure into an old one. 
+      !! This is the inverse of a fill operation.
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_pl),       intent(inout) :: self       !! SyMBA masive body object
+      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
+      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      associate(keeps => self)
+         select type(inserts)
+         class is (symba_pl)
+            call util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
+            call util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
+            call util_fill(keeps%lmtiny, inserts%lmtiny, lfill_list)
+            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
+            call util_fill(keeps%ntpenc, inserts%ntpenc, lfill_list)
+            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
+            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
+            call util_fill(keeps%isperi, inserts%isperi, lfill_list)
+            call util_fill(keeps%peri, inserts%peri, lfill_list)
+            call util_fill(keeps%atp, inserts%atp, lfill_list)
+            call util_fill(keeps%kin, inserts%kin, lfill_list)
+            call util_fill(keeps%info, inserts%info, lfill_list)
+            
+            call util_fill_pl(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! fill method called for incompatible return type on symba_pl'
+         end select
+      end associate
+
+      return
+   end subroutine symba_util_fill_pl
+
+
+   module subroutine symba_util_fill_tp(self, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Insert new SyMBA test particle structure into an old one. 
+      !! This is the inverse of a fill operation.
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_tp),       intent(inout) :: self       !! SyMBA test particle object
+      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
+      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      associate(keeps => self)
+         select type(inserts)
+         class is (symba_tp)
+            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
+            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
+            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
+            
+            call util_fill_tp(keeps, inserts, lfill_list)
+         class default
+            write(*,*) 'Error! fill method called for incompatible return type on symba_tp'
+         end select
+      end associate
+
+      return
+   end subroutine symba_util_fill_tp
 
 
    module subroutine symba_util_resize_pltpenc(self, nrequested)
@@ -310,6 +348,62 @@ contains
    end subroutine symba_util_sort_rearrange_tp
 
 
+   module subroutine symba_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
+      !! author: David A. Minton
+      !!
+      !! Performs a spill operation on a single array of particle origin information types
+      !! This is the inverse of a spill operation
+      implicit none
+      ! Arguments
+      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+      logical,                   dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+      logical,                                              intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+
+      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
+      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+
+      discards(:) = pack(keeps(:), lspill_list(:))
+      if (ldestructive) then
+         if (count(.not.lspill_list(:)) > 0) then
+            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         else
+            deallocate(keeps)
+         end if
+      end if
+
+      return
+   end subroutine symba_util_spill_arr_info
+
+
+   module subroutine symba_util_spill_arr_kin(keeps, discards, lspill_list, ldestructive)
+      !! author: David A. Minton
+      !!
+      !! Performs a spill operation on a single array of particle kinships
+      !! This is the inverse of a spill operation
+      implicit none
+      ! Arguments
+      type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+      type(symba_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+      logical,             dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+      logical,                                        intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+
+      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
+      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+
+      discards(:) = pack(keeps(:), lspill_list(:))
+      if (ldestructive) then
+         if (count(.not.lspill_list(:)) > 0) then
+            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         else
+            deallocate(keeps)
+         end if
+      end if
+
+      return
+   end subroutine symba_util_spill_arr_kin
+
+
    module subroutine symba_util_spill_pl(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
@@ -329,7 +423,6 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_pl)
-
             call util_spill(keeps%lcollision, discards%lcollision, lspill_list, ldestructive)
             call util_spill(keeps%lencounter, discards%lencounter, lspill_list, ldestructive)
             call util_spill(keeps%lmtiny, discards%lmtiny, lspill_list, ldestructive)
@@ -340,15 +433,8 @@ contains
             call util_spill(keeps%isperi, discards%isperi, lspill_list, ldestructive)
             call util_spill(keeps%peri, discards%peri, lspill_list, ldestructive)
             call util_spill(keeps%atp, discards%atp, lspill_list, ldestructive)
-            discards%info(:)       = pack(keeps%info(:),       lspill_list(:))
-            discards%kin(:)        = pack(keeps%kin(:),        lspill_list(:))
-
-            if (ldestructive) then
-               if (count(.not.lspill_list(:)) > 0) then 
-                  keeps%info(:)       = pack(keeps%info(:),       .not. lspill_list(:))
-                  keeps%kin(:)        = pack(keeps%kin(:),        .not. lspill_list(:))
-               end if
-            end if
+            call util_spill(keeps%info, discards%info, lspill_list, ldestructive)
+            call util_spill(keeps%kin, discards%kin, lspill_list, ldestructive)
 
             call util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
