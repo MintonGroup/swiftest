@@ -442,6 +442,7 @@ contains
                      tpenci%cb_heliocentric = cb
                      tpenci%ipleP = i
                      tpenci%lmask(:) = .true.
+                     tpenci%status(:) = ACTIVE
                      ! Grab all the encountering test particles and convert them to a planetocentric frame
                      tpenci%id(:) = pack(tp%id(:), encmask(:)) 
                      do j = 1, NDIM 
