@@ -38,7 +38,8 @@ module swiftest_classes
       character(STRMAX)    :: qmin_coord     = 'HELIO'            !! Coordinate frame to use for qmin
       real(DP)             :: qmin_alo       = -1.0_DP            !! Minimum semimajor axis for qmin
       real(DP)             :: qmin_ahi       = -1.0_DP            !! Maximum semimajor axis for qmin
-      character(STRMAX)    :: encounter_file = ENC_OUTFILE        !! Name of output file for encounters
+      character(STRMAX)    :: enc_out        = ""                 !! Name of output file for encounters
+      character(STRMAX)    :: discard_out    = ""                 !! Name of output file for discards
       real(QP)             :: MU2KG          = -1.0_QP            !! Converts mass units to grams
       real(QP)             :: TU2S           = -1.0_QP            !! Converts time units to seconds
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
@@ -277,8 +278,8 @@ module swiftest_classes
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure :: discard       => discard_system          !! Perform a discard step on the system
       procedure :: dump          => io_dump_system          !! Dump the state of the system to a file
-      procedure :: read_frame    => io_read_frame_system    !! Append a frame of output data to file
-      procedure :: write_discard => io_write_discard        !! Append a frame of output data to file
+      procedure :: read_frame    => io_read_frame_system    !! Read in a frame of input data from file
+      procedure :: write_discard => io_write_discard        !! Write out information about discarded test particles
       procedure :: write_frame   => io_write_frame_system   !! Append a frame of output data to file
       procedure :: initialize    => setup_initialize_system !! Initialize the system from input files
       procedure :: step_spin     => tides_step_spin_system  !! Steps the spins of the massive & central bodies due to tides.
@@ -584,12 +585,12 @@ module swiftest_classes
       end subroutine io_toupper
 
       module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                           xh1, xh2, vh1, vh2, encounter_file, out_type)
+                                           xh1, xh2, vh1, vh2, enc_out, out_type)
          implicit none
          integer(I4B),           intent(in) :: name1, name2
          real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
          real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
-         character(*),           intent(in) :: encounter_file, out_type
+         character(*),           intent(in) :: enc_out, out_type
       end subroutine io_write_encounter
 
       module subroutine io_write_frame_body(self, iu, param)

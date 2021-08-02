@@ -207,7 +207,70 @@ contains
 
       ierr = 0
    end subroutine symba_io_read_frame_info
-   
+
+
+   module subroutine symba_io_write_discard(self, param)
+      implicit none
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      ! Internals
+      integer(I4B), parameter   :: LUN = 40
+      integer(I4B)          :: i, ierr
+      logical, save :: lfirst = .true. 
+      real(DP), dimension(:,:), allocatable :: vh
+      character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
+      character(*), parameter :: NAMEFMT   = '(A, 2(1X, I8))'
+      character(*), parameter :: VECFMT    = '(3(E23.16, 1X))'
+      character(*), parameter :: NPLFMT    = '(I8)'
+      character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
+      class(swiftest_body), allocatable :: pltemp
+
+      associate(pl_discards => self%pl_discards, nsppl => self%pl_discards%nbody, pl => self%pl, npl => self%pl%nbody)
+         if (self%tp_discards%nbody > 0) call io_write_discard(self, param)
+
+         if (nsppl == 0) return
+         select case(param%out_stat)
+         case('APPEND')
+            open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
+         case('NEW', 'REPLACE', 'UNKNOWN')
+            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
+         case default
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+            call util_exit(FAILURE)
+         end select
+         lfirst = .false.
+         if (param%lgr) call pl_discards%pv2v(param) 
+
+      !    write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
+      !    do i = 1, nsp
+      !       write(LUN, NAMEFMT) sub, tp_discards%id(i), tp_discards%status(i)
+      !       write(LUN, VECFMT) tp_discards%xh(1, i), tp_discards%xh(2, i), tp_discards%xh(3, i)
+      !       write(LUN, VECFMT) tp_discards%vh(1, i), tp_discards%vh(2, i), tp_discards%vh(3, i)
+      !    end do
+      !    if (param%lbig_discard) then
+      !          if (param%lgr) then
+      !             allocate(pltemp, source = pl)
+      !             call pltemp%pv2v(param)
+      !             allocate(vh, source = pltemp%vh)
+      !             deallocate(pltemp)
+      !          else
+      !             allocate(vh, source = pl%vh)
+      !          end if
+
+      !          write(LUN, NPLFMT) npl
+      !          do i = 1, npl
+      !             write(LUN, PLNAMEFMT) pl%id(i), pl%Gmass(i), pl%radius(i)
+      !             write(LUN, VECFMT) pl%xh(1, i), pl%xh(2, i), pl%xh(3, i)
+      !             write(LUN, VECFMT) vh(1, i), vh(2, i), vh(3, i)
+      !          end do
+      !          deallocate(vh)
+      !    end if
+      !    close(LUN)
+       end associate
+
+      return
+   end subroutine symba_io_write_discard
+
 
    module subroutine symba_io_write_frame_info(self, iu, param)
       implicit none
@@ -215,7 +278,6 @@ contains
       integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
    end subroutine symba_io_write_frame_info 
-
 
 end submodule s_symba_io
 

@@ -167,6 +167,7 @@ module symba_classes
       class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
       integer(I4B)                      :: irec          !! System recursion level
    contains
+      procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
       procedure :: step             => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
       procedure :: interp           => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
@@ -265,34 +266,12 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
-      module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
-         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
+      module subroutine symba_io_write_discard(self, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t      !! Current simulation time
-         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
-      end subroutine symba_kick_getacch_pl
-
-      module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
-         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
-         implicit none
-         class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t      !! Current time
-         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
-      end subroutine symba_kick_getacch_tp
-
-      module subroutine symba_kick_pltpenc(self, system, dt, irec, sgn)
-         implicit none
-         class(symba_pltpenc),      intent(in)    :: self   !! SyMBA pl-tp encounter list object
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         real(DP),                  intent(in)    :: dt     !! step size
-         integer(I4B),              intent(in)    :: irec   !! Current recursion level
-         integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
-      end subroutine symba_kick_pltpenc
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      end subroutine symba_io_write_discard
 
       module subroutine symba_io_dump_particle_info(self, param, msg) 
          use swiftest_classes, only : swiftest_parameters
@@ -340,6 +319,36 @@ module symba_classes
          character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
          integer(I4B),               intent(out)   :: ierr  !! Error code
       end subroutine symba_io_read_frame_info
+
+      module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current simulation time
+         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      end subroutine symba_kick_getacch_pl
+
+      module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      !! Current time
+         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      end subroutine symba_kick_getacch_tp
+
+      module subroutine symba_kick_pltpenc(self, system, dt, irec, sgn)
+         implicit none
+         class(symba_pltpenc),      intent(in)    :: self   !! SyMBA pl-tp encounter list object
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         real(DP),                  intent(in)    :: dt     !! step size
+         integer(I4B),              intent(in)    :: irec   !! Current recursion level
+         integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
+      end subroutine symba_kick_pltpenc
+
 
       module subroutine symba_io_write_frame_info(self, iu, param)
          use swiftest_classes, only : swiftest_parameters

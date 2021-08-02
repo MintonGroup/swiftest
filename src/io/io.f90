@@ -99,7 +99,9 @@ contains
                param_value = io_get_token(line, ifirst, ilast, iostat)
                read(param_value, *) self%qmin_ahi
             case ("ENC_OUT")
-               self%encounter_file = param_value
+               self%enc_out = param_value
+            case ("DISCARD_OUT")
+               self%discard_out = param_value
             case ("EXTRA_FORCE")
                call io_toupper(param_value)
                if (param_value == "YES" .or. param_value == 'T') self%lextra_force = .true.
@@ -225,9 +227,7 @@ contains
       write(*,*) "CHK_QMIN       = ",self%qmin
       write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(self%qmin_coord))
       write(*,*) "CHK_QMIN_RANGE = ",self%qmin_alo, self%qmin_ahi
-      write(*,*) "ENC_OUT        = ",trim(adjustl(self%encounter_file))
       write(*,*) "EXTRA_FORCE    = ",self%lextra_force
-      write(*,*) "BIG_DISCARD    = ",self%lbig_discard
       write(*,*) "RHILL_PRESENT  = ",self%lrhill_present
       write(*,*) "ROTATION      = ", self%lrotation
       write(*,*) "TIDES         = ", self%ltides
@@ -235,6 +235,18 @@ contains
       write(*,*) "MU2KG          = ",self%MU2KG       
       write(*,*) "TU2S           = ",self%TU2S        
       write(*,*) "DU2M           = ",self%DU2M        
+      if (trim(adjustl(self%enc_out)) /= "") then
+         write(*,*) "ENC_OUT        = ",trim(adjustl(self%enc_out))
+      else
+         write(*,*) "! ENC_OUT not set: Encounters will not be recorded to file"
+      end if
+      if (trim(adjustl(self%discard_out)) /= "") then
+         write(*,*) "DISCARD_OUT    = ",trim(adjustl(self%discard_out))
+         write(*,*) "BIG_DISCARD    = ",self%lbig_discard
+      else
+         write(*,*) "! DISCARD_OUT not set: Discards will not be recorded to file"
+         write(*,*) "! BIG_DISCARD    = ",self%lbig_discard
+      end if
 
       if ((self%MU2KG < 0.0_DP) .or. (self%TU2S < 0.0_DP) .or. (self%DU2M < 0.0_DP)) then
          write(iomsg,*) 'Invalid unit conversion factor'
@@ -317,7 +329,7 @@ contains
             write(param_name, Afmt) "OUT_FORM"; write(param_value, Afmt) trim(adjustl(param%out_form)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "OUT_STAT"; write(param_value, Afmt) "APPEND"; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          end if
-         write(param_name, Afmt) "ENC_OUT"; write(param_value, Afmt) trim(adjustl(param%encounter_file)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "ENC_OUT"; write(param_value, Afmt) trim(adjustl(param%enc_out)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          if (param%istep_dump > 0) then
             write(param_name, Afmt) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          end if
@@ -761,7 +773,7 @@ contains
 
 
    function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-         xh1, xh2, vh1, vh2, encounter_file, out_type) result(ierr)
+         xh1, xh2, vh1, vh2, enc_out, out_type) result(ierr)
       !! author: David A. Minton
       !!
       !! Read close encounter data from input binary files
@@ -773,7 +785,7 @@ contains
       integer(I4B),           intent(out) :: name1, name2
       real(DP),               intent(out) :: t, mass1, mass2, radius1, radius2
       real(DP), dimension(:), intent(out) :: xh1, xh2, vh1, vh2
-      character(*),           intent(in)  :: encounter_file, out_type
+      character(*),           intent(in)  :: enc_out, out_type
       ! Result
       integer(I4B)         :: ierr
       ! Internals
@@ -782,7 +794,7 @@ contains
       integer(I4B), save    :: iu = lun
 
       if (lfirst) then
-         open(unit = iu, file = encounter_file, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+         open(unit = iu, file = enc_out, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
          if (ierr /= 0) then
             write(*, *) "Swiftest Error:"
             write(*, *) "   unable to open binary encounter file"
@@ -1046,31 +1058,27 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
-      associate(t => param%t, discards => self%tp_discards, nsp => self%tp_discards%nbody, dxh => self%tp_discards%xh, dvh => self%tp_discards%vh, &
-                dname => self%tp_discards%id, dstatus => self%tp_discards%status) 
-         
+      associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
+         if (nsp == 0) return
          select case(param%out_stat)
          case('APPEND')
-            open(unit = LUN, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+            open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
          case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit = LUN, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
+            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
          case default
             write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
          end select
          lfirst = .false.
-         if (param%lgr) call discards%pv2v(param) 
+         if (param%lgr) call tp_discards%pv2v(param) 
 
-         write(LUN, HDRFMT) t, nsp, param%lbig_discard
+         write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
          do i = 1, nsp
-            write(LUN, NAMEFMT) sub, dname(i), dstatus(i)
-            write(LUN, VECFMT) dxh(1, i), dxh(2, i), dxh(3, i)
-            write(LUN, VECFMT) dvh(1, i), dvh(2, i), dvh(3, i)
+            write(LUN, NAMEFMT) sub, tp_discards%id(i), tp_discards%status(i)
+            write(LUN, VECFMT) tp_discards%xh(1, i), tp_discards%xh(2, i), tp_discards%xh(3, i)
+            write(LUN, VECFMT) tp_discards%vh(1, i), tp_discards%vh(2, i), tp_discards%vh(3, i)
          end do
          if (param%lbig_discard) then
-            associate(npl => self%pl%nbody, pl => self%pl, GMpl => self%pl%Gmass, &
-                     Rpl => self%pl%radius, name => self%pl%id, xh => self%pl%xh)
-
                if (param%lgr) then
                   allocate(pltemp, source = pl)
                   call pltemp%pv2v(param)
@@ -1082,12 +1090,11 @@ contains
 
                write(LUN, NPLFMT) npl
                do i = 1, npl
-                  write(LUN, PLNAMEFMT) name(i), GMpl(i), Rpl(i)
-                  write(LUN, VECFMT) xh(1, i), xh(2, i), xh(3, i)
+                  write(LUN, PLNAMEFMT) pl%id(i), pl%Gmass(i), pl%radius(i)
+                  write(LUN, VECFMT) pl%xh(1, i), pl%xh(2, i), pl%xh(3, i)
                   write(LUN, VECFMT) vh(1, i), vh(2, i), vh(3, i)
                end do
                deallocate(vh)
-            end associate
          end if
          close(LUN)
       end associate
@@ -1097,7 +1104,7 @@ contains
 
 
    module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                 xh1, xh2, vh1, vh2, encounter_file, out_type)
+                                 xh1, xh2, vh1, vh2, enc_out, out_type)
       !! author: David A. Minton
       !!
       !! Write close encounter data to output binary files
@@ -1110,16 +1117,16 @@ contains
       integer(I4B),           intent(in) :: name1, name2
       real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
       real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
-      character(*),           intent(in) :: encounter_file, out_type
+      character(*),           intent(in) :: enc_out, out_type
       ! Internals
       logical , save    :: lfirst = .true.
       integer(I4B), parameter :: lun = 30
       integer(I4B)        :: ierr
       integer(I4B), save    :: iu = lun
 
-      open(unit = iu, file = encounter_file, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+      open(unit = iu, file = enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
       if ((ierr /= 0) .and. lfirst) then
-         open(unit = iu, file = encounter_file, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
+         open(unit = iu, file = enc_out, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
       end if
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
