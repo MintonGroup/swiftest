@@ -46,16 +46,30 @@ contains
                mtot = pl%Gmass(ind1(k)) + pl%Gmass(ind2(k))
                lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), mtot, rlim, dt, plplenc_list%lvdotr(k))
             end do
+            deallocate(lmask)
 
             if (any(lcollision(:))) then
+               allocate(lmask(pl%nbody))
                do k = 1, nplplenc
-                  if (plplenc_list%status(k) /= COLLISION) cycle
+                  if (.not.lcollision(k)) cycle
+                  
+                  ! Set this encounter as a collision and save the position and velocity vectors at the time of the collision
                   plplenc_list%status(k) = COLLISION
                   plplenc_list%xh1(:,k) = pl%xh(:,ind1(k)) 
                   plplenc_list%vb1(:,k) = pl%vb(:,ind1(k)) 
                   plplenc_list%xh2(:,k) = pl%xh(:,ind2(k))
                   plplenc_list%vb2(:,k) = pl%vb(:,ind2(k))
+
+                  ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional family
                   if (pl%lcollision(ind1(k)) .or. pl%lcollision(ind2(k))) call pl%make_family([ind1(k),ind2(k)])
+
+                  ! Add any of the bodies that have *not* previously been involved in a collision to the subtraction list
+                  lmask(:) = .false.
+                  lmask(ind1(k)) = .not.pl%lcollision(ind1(k))
+                  lmask(ind2(k)) = .not.pl%lcollision(ind2(k))
+                  call system%mergesub_list%append(pl, lmask)
+
+                  ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                   pl%lcollision(ind1(k)) = .true.
                   pl%lcollision(ind2(k)) = .true.
                end do
