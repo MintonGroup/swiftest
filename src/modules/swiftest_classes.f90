@@ -165,7 +165,6 @@ module swiftest_classes
       procedure :: setup       => setup_body               !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user  => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
       procedure :: append      => util_append_body         !! Appends elements from one structure to another
-      procedure :: copy_into   => util_copy_into_body      !! Copies elements from one Swiftest body object to another. 
       procedure :: fill        => util_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize      => util_resize_body         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_ir3     => util_set_ir3h            !! Sets the inverse heliocentric radius term (1/rh**3)
@@ -769,14 +768,6 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
-
-      module subroutine util_copy_into_body(self, source, param, lsource_mask)
-         implicit none
-         class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
-         class(swiftest_body),            intent(in)    :: source !! Source object to append
-         class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters
-         logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
-      end subroutine util_copy_into_body
 
       module subroutine util_exit(code)
          implicit none
