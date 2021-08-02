@@ -63,15 +63,10 @@ contains
                   ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional family
                   if (pl%lcollision(ind1(k)) .or. pl%lcollision(ind2(k))) call pl%make_family([ind1(k),ind2(k)])
 
-                  ! Add any of the bodies that have *not* previously been involved in a collision to the subtraction list
-                  lmask(:) = .false.
-                  lmask(ind1(k)) = .not.pl%lcollision(ind1(k))
-                  lmask(ind2(k)) = .not.pl%lcollision(ind2(k))
                   ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                   pl%lcollision([ind1(k), ind2(k)]) = .true.
                   pl%lcollision([ind1(k), ind2(k)]) = .true.
                   pl%status([ind1(k), ind2(k)]) = COLLISION
-                  call system%mergesub_list%append(pl, lmask)
                end do
 
             end if

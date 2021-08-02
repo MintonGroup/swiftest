@@ -37,7 +37,10 @@ contains
    subroutine symba_discard_cb_pl(pl, system, param)
       !! author: David A. Minton
       !!
-      !!  Check to see if planets should be discarded based on their positions relative to the central body 
+      !! Check to see if planets should be discarded based on their positions relative to the central body.
+      !! If a body gets flagged here when it has also been previously flagged for a collision with another massive body,
+      !! its collisional status will be revoked. Discards due to colliding with or escaping the central body take precedence 
+      !! over pl-pl collisions
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_cb.f90
       !! Adapted from Hal Levison's Swift routine discard_massive5.f
@@ -60,10 +63,12 @@ contains
                rh2 = dot_product(pl%xh(:,i), pl%xh(:,i))
                if ((param%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   pl%ldiscard(i) = .true.
+                  pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMAX
                   write(*, *) "Massive body ",  pl%id(i), " too far from the central body at t = ", param%t
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
+                  pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMIN
                   write(*, *) "Massive body ", pl%id(i), " too close to the central body at t = ", param%t
                else if (param%rmaxu >= 0.0_DP) then
@@ -72,6 +77,7 @@ contains
                   energy = 0.5_DP * vb2 - system%msys / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      pl%ldiscard(i) = .true.
+                     pl%lcollision(i) = .false. 
                      pl%status(i) = DISCARDED_RMAXU
                      write(*, *) "Massive body ", pl%id(i), " is unbound and too far from barycenter at t = ", param%t
                   end if
