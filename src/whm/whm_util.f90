@@ -155,11 +155,11 @@ contains
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange_pl(pl,ind)
          allocate(pl_sorted, source=self)
-         pl%eta(1:npl) = pl_sorted%eta(ind(1:npl))
-         pl%xj(:,1:npl) = pl_sorted%xj(:,ind(1:npl))
-         pl%vj(:,1:npl) = pl_sorted%vj(:,ind(1:npl))
-         pl%muj(1:npl) = pl_sorted%muj(ind(1:npl))
-         pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
+         if (allocated(pl%eta))  pl%eta(1:npl) = pl_sorted%eta(ind(1:npl))
+         if (allocated(pl%xj))   pl%xj(:,1:npl) = pl_sorted%xj(:,ind(1:npl))
+         if (allocated(pl%vj))   pl%vj(:,1:npl) = pl_sorted%vj(:,ind(1:npl))
+         if (allocated(pl%muj))  pl%muj(1:npl) = pl_sorted%muj(ind(1:npl))
+         if (allocated(pl%ir3j)) pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
          deallocate(pl_sorted)
       end associate
 

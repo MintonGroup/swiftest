@@ -299,23 +299,25 @@ contains
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange_pl(pl,ind)
          allocate(pl_sorted, source=self)
-         pl%lcollision(1:npl) = pl_sorted%lcollision(ind(1:npl))
-         pl%lencounter(1:npl) = pl_sorted%lencounter(ind(1:npl))
-         pl%lmtiny(1:npl) = pl_sorted%lmtiny(ind(1:npl))
-         pl%nplenc(1:npl) = pl_sorted%nplenc(ind(1:npl))
-         pl%ntpenc(1:npl) = pl_sorted%ntpenc(ind(1:npl))
-         pl%levelg(1:npl) = pl_sorted%levelg(ind(1:npl))
-         pl%levelm(1:npl) = pl_sorted%levelm(ind(1:npl))
-         pl%isperi(1:npl) = pl_sorted%isperi(ind(1:npl))
-         pl%peri(1:npl) = pl_sorted%peri(ind(1:npl))
-         pl%atp(1:npl) = pl_sorted%atp(ind(1:npl))
-         pl%info(1:npl) = pl_sorted%info(ind(1:npl))
-         pl%kin(1:npl) = pl_sorted%kin(ind(1:npl))
-         do i = 1, npl
-            do j = 1, pl%kin(i)%nchild
-               pl%kin(i)%child(j) = ind(pl%kin(i)%child(j))
+         if (allocated(pl%lcollision)) pl%lcollision(1:npl) = pl_sorted%lcollision(ind(1:npl))
+         if (allocated(pl%lencounter)) pl%lencounter(1:npl) = pl_sorted%lencounter(ind(1:npl))
+         if (allocated(pl%lmtiny))     pl%lmtiny(1:npl) = pl_sorted%lmtiny(ind(1:npl))
+         if (allocated(pl%nplenc))     pl%nplenc(1:npl) = pl_sorted%nplenc(ind(1:npl))
+         if (allocated(pl%ntpenc))     pl%ntpenc(1:npl) = pl_sorted%ntpenc(ind(1:npl))
+         if (allocated(pl%levelg))     pl%levelg(1:npl) = pl_sorted%levelg(ind(1:npl))
+         if (allocated(pl%levelm))     pl%levelm(1:npl) = pl_sorted%levelm(ind(1:npl))
+         if (allocated(pl%isperi))     pl%isperi(1:npl) = pl_sorted%isperi(ind(1:npl))
+         if (allocated(pl%peri))       pl%peri(1:npl) = pl_sorted%peri(ind(1:npl))
+         if (allocated(pl%atp))        pl%atp(1:npl) = pl_sorted%atp(ind(1:npl))
+         if (allocated(pl%info))       pl%info(1:npl) = pl_sorted%info(ind(1:npl))
+         if (allocated(pl%kin)) then
+            pl%kin(1:npl) = pl_sorted%kin(ind(1:npl))
+            do i = 1, npl
+               do j = 1, pl%kin(i)%nchild
+                  pl%kin(i)%child(j) = ind(pl%kin(i)%child(j))
+               end do
             end do
-         end do
+         end if
          deallocate(pl_sorted)
       end associate
 
@@ -338,9 +340,9 @@ contains
       associate(tp => self, ntp => self%nbody)
          call util_sort_rearrange_tp(tp,ind)
          allocate(tp_sorted, source=self)
-         tp%nplenc(1:ntp) = tp_sorted%nplenc(ind(1:ntp))
-         tp%levelg(1:ntp) = tp_sorted%levelg(ind(1:ntp))
-         tp%levelm(1:ntp) = tp_sorted%levelm(ind(1:ntp))
+         if (allocated(tp%nplenc)) tp%nplenc(1:ntp) = tp_sorted%nplenc(ind(1:ntp))
+         if (allocated(tp%levelg)) tp%levelg(1:ntp) = tp_sorted%levelg(ind(1:ntp))
+         if (allocated(tp%levelm)) tp%levelm(1:ntp) = tp_sorted%levelm(ind(1:ntp))
          deallocate(tp_sorted)
       end associate
       

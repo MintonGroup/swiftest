@@ -49,7 +49,6 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (rmvs_tp)
-
             call util_fill(keeps%lperi, inserts%lperi, lfill_list)
             call util_fill(keeps%plperP, inserts%plperP, lfill_list)
             call util_fill(keeps%plencP, inserts%plencP, lfill_list)
@@ -162,11 +161,9 @@ contains
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange_pl(pl,ind)
          allocate(pl_sorted, source=self)
-         pl%eta(1:npl) = pl_sorted%eta(ind(1:npl))
-         pl%xj(:,1:npl) = pl_sorted%xj(:,ind(1:npl))
-         pl%vj(:,1:npl) = pl_sorted%vj(:,ind(1:npl))
-         pl%muj(1:npl) = pl_sorted%muj(ind(1:npl))
-         pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
+         if (allocated(pl%nenc))    pl%nenc(1:npl) = pl_sorted%nenc(ind(1:npl))
+         if (allocated(pl%tpenc1P)) pl%tpenc1P(1:npl) = pl_sorted%tpenc1P(ind(1:npl))
+         if (allocated(pl%plind))   pl%plind(1:npl) = pl_sorted%plind(ind(1:npl))
          deallocate(pl_sorted)
       end associate
 
@@ -191,10 +188,10 @@ contains
       associate(tp => self, ntp => self%nbody)
          call util_sort_rearrange_tp(tp,ind)
          allocate(tp_sorted, source=self)
-         tp%lperi(1:ntp) = tp_sorted%lperi(ind(1:ntp))
-         tp%plperP(1:ntp) = tp_sorted%plperP(ind(1:ntp))
-         tp%plencP(1:ntp) = tp_sorted%plencP(ind(1:ntp))
-         tp%xheliocentric(:,1:ntp) = tp_sorted%xheliocentric(:,ind(1:ntp))
+         if (allocated(tp%lperi))         tp%lperi(1:ntp) = tp_sorted%lperi(ind(1:ntp))
+         if (allocated(tp%plperP))        tp%plperP(1:ntp) = tp_sorted%plperP(ind(1:ntp))
+         if (allocated(tp%plencP))        tp%plencP(1:ntp) = tp_sorted%plencP(ind(1:ntp))
+         if (allocated(tp%xheliocentric)) tp%xheliocentric(:,1:ntp) = tp_sorted%xheliocentric(:,ind(1:ntp))
          deallocate(tp_sorted)
       end associate
 
@@ -223,6 +220,7 @@ contains
             call util_spill(keeps%nenc, discards%nenc, lspill_list, ldestructive)
             call util_spill(keeps%tpenc1P, discards%tpenc1P, lspill_list, ldestructive)
             call util_spill(keeps%plind, discards%plind, lspill_list, ldestructive)
+
             call whm_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
