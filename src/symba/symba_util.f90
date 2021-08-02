@@ -720,7 +720,7 @@ contains
       !> Spill all the common components
       associate(keeps => self)
          select type(discards)
-         class is (symba_pl)
+         class is (symba_tp)
             call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
             call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
             call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
