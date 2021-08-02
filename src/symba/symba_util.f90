@@ -104,7 +104,7 @@ contains
 
          call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
       class default
-         write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents"
+         write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
          call util_exit(FAILURE)
       end select
 
@@ -131,7 +131,7 @@ contains
 
          call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
       class default
-         write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents"
+         write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
          call util_exit(FAILURE)
       end select
 
@@ -254,7 +254,8 @@ contains
             
             call util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
-            write(*,*) 'Error! fill method called for incompatible return type on symba_pl'
+            write(*,*) "Invalid object passed to the fill method. Source must be of class symba_pl or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
 
@@ -283,7 +284,8 @@ contains
             
             call util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
-            write(*,*) 'Error! fill method called for incompatible return type on symba_tp'
+            write(*,*) "Invalid object passed to the fill method. Source must be of class symba_tp or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
 
@@ -691,7 +693,8 @@ contains
 
             call util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
-            write(*,*) 'Error! spill method called for incompatible return type on symba_pl'
+            write(*,*) "Invalid object passed to the spill method. Source must be of class symba_pl or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
      
@@ -724,7 +727,8 @@ contains
 
             call util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
-            write(*,*) 'Error! spill method called for incompatible return type on symba_pl'
+            write(*,*) "Invalid object passed to the spill method. Source must be of class symba_tp or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
      

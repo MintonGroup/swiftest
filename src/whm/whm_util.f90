@@ -56,7 +56,7 @@ contains
 
             call util_fill_pl(keeps, inserts, lfill_list)
          class default
-            write(*,*) "Invalid object passed to the fill method. Inserts must be of class whm_pl or its descendents"
+            write(*,*) "Invalid object passed to the fill method. Inserts must be of class whm_pl or its descendents!"
             call util_exit(FAILURE)
          end select
       end associate
@@ -209,7 +209,8 @@ contains
 
             call util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
-            write(*,*) 'Error! spill method called for incompatible return type on whm_pl'
+            write(*,*) "Invalid object passed to the spill method. Source must be of class whm_pl or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
 
