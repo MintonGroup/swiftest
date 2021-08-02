@@ -10,7 +10,7 @@ contains
       implicit none
       ! Arguments
       character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+      character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
       logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
@@ -29,7 +29,7 @@ contains
       implicit none
       ! Arguments
       real(DP), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      real(DP), dimension(:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+      real(DP), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
       logical,  dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
@@ -48,7 +48,7 @@ contains
       implicit none
       ! Arguments
       real(DP), dimension(:,:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      real(DP), dimension(:,:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+      real(DP), dimension(:,:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
       logical,  dimension(:),                intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       ! Internals
       integer(I4B) :: i
@@ -71,7 +71,7 @@ contains
       implicit none
       ! Arguments
       integer(I4B), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      integer(I4B), dimension(:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+      integer(I4B), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
       logical,      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
@@ -90,7 +90,7 @@ contains
       implicit none
       ! Arguments
       logical, dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      logical, dimension(:), allocatable, intent(in)    :: inserts    !! Array of arrays to insert into keep
+      logical, dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
       logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
@@ -102,7 +102,7 @@ contains
    end subroutine util_fill_arr_logical
 
 
-   module subroutine util_copy_fill_body(self, inserts, lfill_list)
+   module subroutine util_fill_body(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new Swiftest generic particle structure into an old one. 
@@ -122,6 +122,7 @@ contains
          call util_fill(keeps%name, inserts%name, lfill_list)
          call util_fill(keeps%status, inserts%status, lfill_list)
          call util_fill(keeps%ldiscard, inserts%ldiscard, lfill_list)
+         call util_fill(keeps%lmask, inserts%lmask, lfill_list)
          call util_fill(keeps%mu, inserts%mu, lfill_list)
          call util_fill(keeps%xh, inserts%xh, lfill_list)
          call util_fill(keeps%vh, inserts%vh, lfill_list)
@@ -143,10 +144,10 @@ contains
       end associate
      
       return
-   end subroutine util_copy_fill_body
+   end subroutine util_fill_body
 
 
-   module subroutine util_copy_fill_pl(self, inserts, lfill_list)
+   module subroutine util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new Swiftest massive body structure into an old one. 
@@ -177,17 +178,17 @@ contains
             call util_fill(keeps%Ip, inserts%Ip, lfill_list)
             call util_fill(keeps%rot, inserts%rot, lfill_list)
             
-            call util_copy_fill_body(keeps, inserts, lfill_list)
+            call util_fill_body(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on swiftest_pl'
          end select
       end associate
 
       return
-   end subroutine util_copy_fill_pl
+   end subroutine util_fill_pl
 
 
-   module subroutine util_copy_fill_tp(self, inserts, lfill_list)
+   module subroutine util_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new Swiftest test particle structure into an old one. 
@@ -206,13 +207,13 @@ contains
             call util_fill(keeps%peri, inserts%peri, lfill_list)
             call util_fill(keeps%atp, inserts%atp, lfill_list)
 
-            call util_copy_fill_body(keeps, inserts, lfill_list)
+            call util_fill_body(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'
          end select
       end associate
 
       return
-   end subroutine util_copy_fill_tp
+   end subroutine util_fill_tp
 
 end submodule s_util_fill

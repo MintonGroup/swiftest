@@ -2,7 +2,7 @@ submodule(symba_classes) s_symba_util
    use swiftest
 contains
 
-   module subroutine symba_util_copy_fill_pl(self, inserts, lfill_list)
+   module subroutine symba_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new SyMBA test particle structure into an old one. 
@@ -34,16 +34,16 @@ contains
             keeps%info(:) = unpack(keeps%info(:), .not.lfill_list(:), keeps%info(:))
             keeps%info(:) = unpack(inserts%info(:), lfill_list(:), keeps%info(:))
             
-            call util_copy_fill_pl(keeps, inserts, lfill_list)
+            call util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on symba_pl'
          end select
       end associate
 
       return
-   end subroutine symba_util_copy_fill_pl
+   end subroutine symba_util_fill_pl
 
-   module subroutine symba_util_copy_fill_tp(self, inserts, lfill_list)
+   module subroutine symba_util_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new SyMBA test particle structure into an old one. 
@@ -62,14 +62,14 @@ contains
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
             
-            call util_copy_fill_tp(keeps, inserts, lfill_list)
+            call util_fill_tp(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on symba_tp'
          end select
       end associate
 
       return
-   end subroutine symba_util_copy_fill_tp
+   end subroutine symba_util_fill_tp
 
    module subroutine symba_util_copy_pltpenc(self, source)
       !! author: David A. Minton
@@ -310,7 +310,7 @@ contains
    end subroutine symba_util_sort_rearrange_tp
 
 
-   module subroutine symba_util_copy_spill_pl(self, discards, lspill_list)
+   module subroutine symba_util_spill_pl(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) SyMBA massive body particle structure from active list to discard list
@@ -320,6 +320,7 @@ contains
       class(symba_pl),       intent(inout) :: self        !! SyMBA massive body object
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
       ! Internals
       integer(I4B) :: i
 
@@ -328,54 +329,48 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_pl)
-            discards%lcollision(:) = pack(keeps%lcollision(:), lspill_list(:))
-            discards%lencounter(:) = pack(keeps%lencounter(:), lspill_list(:))
-            discards%lmtiny(:)     = pack(keeps%lmtiny(:),     lspill_list(:))
-            discards%nplenc(:)     = pack(keeps%nplenc(:),     lspill_list(:))
-            discards%ntpenc(:)     = pack(keeps%ntpenc(:),     lspill_list(:))
-            discards%levelg(:)     = pack(keeps%levelg(:),     lspill_list(:))
-            discards%levelm(:)     = pack(keeps%levelm(:),     lspill_list(:))
-            discards%isperi(:)     = pack(keeps%isperi(:),     lspill_list(:))
-            discards%peri(:)       = pack(keeps%peri(:),       lspill_list(:))
-            discards%atp(:)        = pack(keeps%atp(:),        lspill_list(:))
+
+            call util_spill(keeps%lcollision, discards%lcollision, lspill_list, ldestructive)
+            call util_spill(keeps%lencounter, discards%lencounter, lspill_list, ldestructive)
+            call util_spill(keeps%lmtiny, discards%lmtiny, lspill_list, ldestructive)
+            call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
+            call util_spill(keeps%ntpenc, discards%ntpenc, lspill_list, ldestructive)
+            call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
+            call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
+            call util_spill(keeps%isperi, discards%isperi, lspill_list, ldestructive)
+            call util_spill(keeps%peri, discards%peri, lspill_list, ldestructive)
+            call util_spill(keeps%atp, discards%atp, lspill_list, ldestructive)
             discards%info(:)       = pack(keeps%info(:),       lspill_list(:))
             discards%kin(:)        = pack(keeps%kin(:),        lspill_list(:))
 
-            if (count(.not.lspill_list(:)) > 0) then 
-               keeps%lcollision(:) = pack(keeps%lcollision(:), .not. lspill_list(:))
-               keeps%lencounter(:) = pack(keeps%lencounter(:), .not. lspill_list(:))
-               keeps%lmtiny(:)     = pack(keeps%lmtiny(:),     .not. lspill_list(:))
-               keeps%nplenc(:)     = pack(keeps%nplenc(:),     .not. lspill_list(:))
-               keeps%ntpenc(:)     = pack(keeps%ntpenc(:),     .not. lspill_list(:))
-               keeps%levelg(:)     = pack(keeps%levelg(:),     .not. lspill_list(:))
-               keeps%levelm(:)     = pack(keeps%levelm(:),     .not. lspill_list(:))
-               keeps%isperi(:)     = pack(keeps%isperi(:),     .not. lspill_list(:))
-               keeps%peri(:)       = pack(keeps%peri(:),       .not. lspill_list(:))
-               keeps%atp(:)        = pack(keeps%atp(:),        .not. lspill_list(:))
-               keeps%info(:)       = pack(keeps%info(:),       .not. lspill_list(:))
-               keeps%kin(:)        = pack(keeps%kin(:),        .not. lspill_list(:))
+            if (ldestructive) then
+               if (count(.not.lspill_list(:)) > 0) then 
+                  keeps%info(:)       = pack(keeps%info(:),       .not. lspill_list(:))
+                  keeps%kin(:)        = pack(keeps%kin(:),        .not. lspill_list(:))
+               end if
             end if
 
-            call util_copy_spill_pl(keeps, discards, lspill_list)
+            call util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on symba_pl'
          end select
       end associate
      
       return
-   end subroutine symba_util_copy_spill_pl
+   end subroutine symba_util_spill_pl
 
 
-   module subroutine symba_util_copy_spill_tp(self, discards, lspill_list)
+   module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) SyMBA test particle structure from active list to discard list
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
       ! Arguments
-      class(symba_tp),       intent(inout) :: self        !! SyMBA test particle object
-      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      class(symba_tp),       intent(inout) :: self         !! SyMBA test particle object
+      class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
       ! Internals
       integer(I4B) :: i
 
@@ -384,23 +379,17 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_pl)
-            discards%nplenc(:) = pack(keeps%nplenc(:),  lspill_list(:))
-            discards%levelg(:) = pack(keeps%levelg(:),  lspill_list(:))
-            discards%levelm(:) = pack(keeps%levelm(:),  lspill_list(:))
+            call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
+            call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
+            call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
 
-            if (count(.not.lspill_list(:)) > 0) then 
-               keeps%nplenc(:) = pack(keeps%nplenc(:), .not. lspill_list(:))
-               keeps%levelg(:) = pack(keeps%levelg(:), .not. lspill_list(:))
-               keeps%levelm(:) = pack(keeps%levelm(:), .not. lspill_list(:))
-            end if
-
-            call util_copy_spill_tp(keeps, discards, lspill_list)
+            call util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on symba_pl'
          end select
       end associate
      
       return
-   end subroutine symba_util_copy_spill_tp
+   end subroutine symba_util_spill_tp
 
 end submodule s_symba_util

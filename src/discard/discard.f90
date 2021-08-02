@@ -69,7 +69,7 @@ contains
          end if
          if (param%qmin >= 0.0_DP .and. ntp > 0) call discard_peri_tp(tp, system, param)
          if (param%lclose .and. ntp > 0) call discard_pl_tp(tp, system, param)
-         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard)
+         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard, ldestructive=.true.)
       end associate
 
       return

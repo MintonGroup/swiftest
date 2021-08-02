@@ -2,7 +2,7 @@ submodule(whm_classes) s_whm_util
    use swiftest
 contains
 
-   module subroutine whm_util_copy_spill_pl(self, discards, lspill_list)
+   module subroutine whm_util_spill_pl(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) WHM test particle structure from active list to discard list
@@ -13,39 +13,29 @@ contains
       class(whm_pl),                         intent(inout) :: self        !! WHM massive body object
       class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B)                                         :: i
       associate(keeps => self)
          select type(discards)
          class is (whm_pl)
-            discards%eta(:) = pack(keeps%eta(:),       lspill_list(:))
-            discards%muj(:) = pack(keeps%muj(:),       lspill_list(:))
-            discards%ir3j(:) = pack(keeps%ir3j(:),       lspill_list(:))
-            do i = 1, NDIM
-               discards%xj(i, :) = pack(keeps%xj(i, :),       lspill_list(:))
-               discards%vj(i, :) = pack(keeps%vj(i, :),       lspill_list(:))
-            end do
+            call util_spill(keeps%eta, discards%eta, lspill_list, ldestructive)
+            call util_spill(keeps%muj, discards%muj, lspill_list, ldestructive)
+            call util_spill(keeps%ir3j, discards%ir3j, lspill_list, ldestructive)
+            call util_spill(keeps%xj, discards%xj, lspill_list, ldestructive)
+            call util_spill(keeps%vj, discards%vj, lspill_list, ldestructive)
 
-            if (count(.not.lspill_list(:))  > 0) then 
-               keeps%eta(:)    = pack(keeps%eta(:), .not. lspill_list(:))
-               keeps%muj(:)    = pack(keeps%muj(:), .not. lspill_list(:))
-               keeps%ir3j(:)    = pack(keeps%ir3j(:), .not. lspill_list(:))
-               do i = 1, NDIM
-                  keeps%xj(i, :)    = pack(keeps%xj(i, :), .not. lspill_list(:))
-                  keeps%vj(i, :)    = pack(keeps%vj(i, :), .not. lspill_list(:))
-               end do
-            end if
-            call util_copy_spill_pl(keeps, discards, lspill_list)
+            call util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on whm_pl'
          end select
       end associate
 
       return
-   end subroutine whm_util_copy_spill_pl
+   end subroutine whm_util_spill_pl
 
 
-   module subroutine whm_util_copy_fill_pl(self, inserts, lfill_list)
+   module subroutine whm_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new WHM test particle structure into an old one. 
@@ -69,14 +59,14 @@ contains
             call util_fill(keeps%xj, inserts%xj, lfill_list)
             call util_fill(keeps%vj, inserts%vj, lfill_list)
 
-            call util_copy_fill_pl(keeps, inserts, lfill_list)
+            call util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on whm_pl'
          end select
       end associate
    
       return
-   end subroutine whm_util_copy_fill_pl
+   end subroutine whm_util_fill_pl
 
 
    module subroutine whm_util_set_ir3j(self)

@@ -2,7 +2,7 @@ submodule(rmvs_classes) s_rmvs_util
    use swiftest
 contains
 
-   module subroutine rmvs_util_copy_fill_pl(self, inserts, lfill_list)
+   module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new RMVS massive body structure into an old one. 
@@ -24,17 +24,17 @@ contains
             call util_fill(keeps%tpenc1P, inserts%tpenc1P, lfill_list)
             call util_fill(keeps%plind, inserts%plind, lfill_list)
 
-            call whm_util_copy_fill_pl(keeps, inserts, lfill_list)
+            call whm_util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
          end select
       end associate
 
       return
-   end subroutine rmvs_util_copy_fill_pl
+   end subroutine rmvs_util_fill_pl
 
 
-   module subroutine rmvs_util_copy_fill_tp(self, inserts, lfill_list)
+   module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Insert new RMVS test particle structure into an old one. 
@@ -54,14 +54,14 @@ contains
             call util_fill(keeps%plperP, inserts%plperP, lfill_list)
             call util_fill(keeps%plencP, inserts%plencP, lfill_list)
             
-            call util_copy_fill_tp(keeps, inserts, lfill_list)
+            call util_fill_tp(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on rmvs_tp'
          end select
       end associate
 
       return
-   end subroutine rmvs_util_copy_fill_tp
+   end subroutine rmvs_util_fill_tp
 
    module subroutine rmvs_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
@@ -202,7 +202,7 @@ contains
    end subroutine rmvs_util_sort_rearrange_tp
    
 
-   module subroutine rmvs_util_copy_spill_pl(self, discards, lspill_list)
+   module subroutine rmvs_util_spill_pl(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -210,30 +210,30 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine discard_discard_spill.f90
       implicit none
       ! Arguments
-      class(rmvs_pl),        intent(inout) :: self        !! RMVS massive body body object
-      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      class(rmvs_pl),        intent(inout) :: self         !! RMVS massive body body object
+      class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: i
 
       associate(keeps => self)
          select type(discards)
          class is (rmvs_pl)
-            discards%nenc(:)    = pack(keeps%nenc(:),         lspill_list(:))
-            if (count(.not.lspill_list(:))  > 0) then
-               keeps%nenc(:)       = pack(keeps%nenc(:),   .not. lspill_list(:))
-            end if
-            call whm_util_copy_spill_pl(keeps, discards, lspill_list)
+            call util_spill(keeps%nenc, discards%nenc, lspill_list, ldestructive)
+            call util_spill(keeps%tpenc1P, discards%tpenc1P, lspill_list, ldestructive)
+            call util_spill(keeps%plind, discards%plind, lspill_list, ldestructive)
+            call whm_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
          end select
       end associate
 
       return
-   end subroutine rmvs_util_copy_spill_pl
+   end subroutine rmvs_util_spill_pl
 
    
-   module subroutine rmvs_util_copy_spill_tp(self, discards, lspill_list)
+   module subroutine rmvs_util_spill_tp(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -244,28 +244,24 @@ contains
       class(rmvs_tp),        intent(inout) :: self        !! RMVS test particle object
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: i
 
       associate(keeps => self)
          select type(discards)
          class is (rmvs_tp)
-            discards%lperi(:)  = pack(keeps%lperi(:),       lspill_list(:))
-            discards%plperP(:) = pack(keeps%plperP(:),       lspill_list(:))
-            discards%plencP(:) = pack(keeps%plencP(:),       lspill_list(:))
-            if (count(.not.lspill_list(:))  > 0) then
-               keeps%lperi(:)     = pack(keeps%lperi(:), .not. lspill_list(:))
-               keeps%plperP(:)    = pack(keeps%plperP(:), .not. lspill_list(:))
-               keeps%plencP(:)    = pack(keeps%plencP(:), .not. lspill_list(:))
-            end if
+            call util_spill(keeps%lperi, discards%lperi, lspill_list, ldestructive)
+            call util_spill(keeps%plperP, discards%plperP, lspill_list, ldestructive)
+            call util_spill(keeps%plencP, discards%plencP, lspill_list, ldestructive)
 
-            call util_copy_spill_tp(keeps, discards, lspill_list)
+            call util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on rmvs_tp'
          end select
       end associate
 
       return
-   end subroutine rmvs_util_copy_spill_tp
+   end subroutine rmvs_util_spill_tp
 
 end submodule s_rmvs_util
