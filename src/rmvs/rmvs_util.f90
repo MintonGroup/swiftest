@@ -15,6 +15,8 @@ contains
 
       select type(source)
       class is (rmvs_pl)
+         call whm_util_append_pl(self, source, lsource_mask)
+
          call util_append(self%nenc, source%nenc, lsource_mask)
          call util_append(self%tpenc1P, source%tpenc1P, lsource_mask)
          call util_append(self%plind, source%plind, lsource_mask)
@@ -24,8 +26,6 @@ contains
          !call util_append(self%outer, source%outer, lsource_mask)
          !call util_append(self%inner, source%inner, lsource_mask)
          !call util_append(self%planetocentric, source%planetocentric, lsource_mask)
-
-         call whm_util_append_pl(self, source, lsource_mask)
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_pl or its descendents!"
          call util_exit(FAILURE)
@@ -48,11 +48,11 @@ contains
 
       select type(source)
       class is (rmvs_tp)
+         call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
+
          call util_append(self%lperi, source%lperi, lsource_mask)
          call util_append(self%plperP, source%plperP, lsource_mask)
          call util_append(self%plencP, source%plencP, lsource_mask)
-
-         call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents!"
          call util_exit(FAILURE)

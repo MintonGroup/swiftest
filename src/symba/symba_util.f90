@@ -29,10 +29,12 @@ contains
          narr = 0
       end if
 
+      call util_resize(arr, narr + nsrc)
+
       if (present(lsource_mask)) then
-         arr(narr+1:nsrc) = pack(source(:), lsource_mask(:))
+         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
       else
-         arr(narr+1:nsrc) = source(:)
+         arr(narr + 1:narr + nsrc) = source(:)
       end if
 
       return
@@ -66,10 +68,12 @@ contains
          narr = 0
       end if
 
+      call util_resize(arr, narr + nsrc)
+
       if (present(lsource_mask)) then
-         arr(narr+1:nsrc) = pack(source(:), lsource_mask(:))
+         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
       else
-         arr(narr+1:nsrc) = source(:)
+         arr(narr + 1:narr + nsrc) = source(:)
       end if
 
       return
@@ -89,6 +93,8 @@ contains
 
       select type(source)
       class is (symba_pl)
+         call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
+
          call util_append(self%lcollision, source%lcollision, lsource_mask)
          call util_append(self%lencounter, source%lencounter, lsource_mask)
          call util_append(self%lmtiny, source%lmtiny, lsource_mask)
@@ -101,8 +107,6 @@ contains
          call util_append(self%atp, source%atp, lsource_mask)
          call util_append(self%kin, source%kin, lsource_mask)
          call util_append(self%info, source%info, lsource_mask)
-
-         call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
          call util_exit(FAILURE)
@@ -125,11 +129,11 @@ contains
 
       select type(source)
       class is (symba_tp)
+         call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
+
          call util_append(self%nplenc, source%nplenc, lsource_mask)
          call util_append(self%levelg, source%levelg, lsource_mask)
          call util_append(self%levelm, source%levelm, lsource_mask)
-
-         call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
          call util_exit(FAILURE)

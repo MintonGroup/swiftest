@@ -181,6 +181,7 @@ contains
       integer(I4B),               intent(in)    :: nnew  !! New size neded
 
       call util_resize(self%name, nnew)
+      call util_resize(self%id, nnew)
       call util_resize(self%status, nnew)
       call util_resize(self%ldiscard, nnew)
       call util_resize(self%lmask, nnew)

@@ -29,10 +29,12 @@ contains
          narr = 0
       end if
 
+      call util_resize(arr, narr + nsrc)
+
       if (present(lsource_mask)) then
-         arr(narr+1:nsrc) = pack(source(:), lsource_mask(:))
+         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
       else
-         arr(narr+1:nsrc) = source(:)
+         arr(narr + 1:narr + nsrc) = source(:)
       end if
 
       return
@@ -66,10 +68,12 @@ contains
          narr = 0
       end if
 
+      call util_resize(arr, narr + nsrc)
+
       if (present(lsource_mask)) then
-         arr(narr+1:nsrc) = pack(source(:), lsource_mask(:))
+         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
       else
-         arr(narr+1:nsrc) = source(:)
+         arr(narr + 1:narr + nsrc) = source(:)
       end if
 
       return
@@ -103,12 +107,14 @@ contains
          narr = 0
       end if
 
+      call util_resize(arr, narr + nsrc)
+
       if (present(lsource_mask)) then
-         arr(1, narr+1:nsrc) = pack(source(1,:), lsource_mask(:))
-         arr(2, narr+1:nsrc) = pack(source(2,:), lsource_mask(:))
-         arr(3, narr+1:nsrc) = pack(source(3,:), lsource_mask(:))
+         arr(1, narr + 1:narr + nsrc) = pack(source(1,:), lsource_mask(:))
+         arr(2, narr + 1:narr + nsrc) = pack(source(2,:), lsource_mask(:))
+         arr(3, narr + 1:narr + nsrc) = pack(source(3,:), lsource_mask(:))
       else
-         arr(:, narr+1:nsrc) = source(:,:)
+         arr(:, narr + 1:narr + nsrc) = source(:,:)
       end if
 
       return
@@ -142,12 +148,13 @@ contains
          narr = 0
       end if
 
-      if (present(lsource_mask)) then
-         arr(narr+1:nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr+1:nsrc) = source(:)
-      end if
+      call util_resize(arr, narr + nsrc)
 
+      if (present(lsource_mask)) then
+         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
+      else
+         arr(narr + 1:narr + nsrc) = source(:)
+      end if
 
       return
    end subroutine util_append_arr_I4B
@@ -180,10 +187,12 @@ contains
          nsrc = size(source)
       end if
 
+      call util_resize(arr, narr + nsrc)
+
       if (present(lsource_mask)) then
-         arr(narr+1:nsrc) = pack(source(:), lsource_mask(:))
+         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
       else
-         arr(narr+1:nsrc) = source(:)
+         arr(narr + 1:narr + nsrc) = source(:)
       end if
 
       return
@@ -202,6 +211,7 @@ contains
       logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       call util_append(self%name, source%name, lsource_mask)
+      call util_append(self%id, source%id, lsource_mask)
       call util_append(self%status, source%status, lsource_mask)
       call util_append(self%ldiscard, source%ldiscard, lsource_mask)
       call util_append(self%lmask, source%lmask, lsource_mask)
@@ -242,6 +252,8 @@ contains
 
       select type(source)
       class is (swiftest_pl)
+         call util_append_body(self, source, lsource_mask)
+
          call util_append(self%mass, source%mass, lsource_mask)
          call util_append(self%Gmass, source%Gmass, lsource_mask)
          call util_append(self%rhill, source%rhill, lsource_mask)
@@ -255,8 +267,6 @@ contains
          call util_append(self%k2, source%k2, lsource_mask)
          call util_append(self%Q, source%Q, lsource_mask)
          call util_append(self%tlag, source%tlag, lsource_mask)
-
-         call util_append_body(self, source, lsource_mask)
 
          call self%eucl_index()
       class default
@@ -281,11 +291,11 @@ contains
 
       select type(source)
       class is (swiftest_tp)
+         call util_append_body(self, source, lsource_mask)
+
          call util_append(self%isperi, source%isperi, lsource_mask)
          call util_append(self%peri, source%peri, lsource_mask)
          call util_append(self%atp, source%atp, lsource_mask)
-
-         call util_append_body(self, source, lsource_mask)
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_tp or its descendents"
          call util_exit(FAILURE)
