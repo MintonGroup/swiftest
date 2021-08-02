@@ -736,12 +736,50 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine user_kick_getacch_body
+   end interface
 
-      module subroutine util_append_body(self, source, param, lsource_mask)
+   interface util_append
+      module subroutine util_append_arr_char_string(arr, source, lsource_mask)
+         implicit none
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: source       !! Array to append 
+         logical,               dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_char_string
+
+      module subroutine util_append_arr_DP(arr, source, lsource_mask)
+         implicit none
+         real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         real(DP), dimension(:), allocatable, intent(inout) :: source       !! Array to append 
+         logical,  dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_DP
+
+      module subroutine util_append_arr_DPvec(arr, source, lsource_mask)
+         implicit none
+         real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
+         real(DP), dimension(:,:), allocatable, intent(inout) :: source       !! Array to append 
+         logical,  dimension(:),   optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_DPvec
+
+      module subroutine util_append_arr_I4B(arr, source, lsource_mask)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         integer(I4B), dimension(:), allocatable, intent(inout) :: source       !! Array to append 
+         logical,      dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_I4B
+
+      module subroutine util_append_arr_logical(arr, source, lsource_mask)
+         implicit none
+         logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         logical, dimension(:), allocatable, intent(inout) :: source       !! Array to append 
+         logical, dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_logical
+   end interface
+
+   interface
+      module subroutine util_append_body(self, source, lsource_mask)
          implicit none
          class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
          class(swiftest_body),            intent(in)    :: source !! Source object to append
-         class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters
          logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
 
