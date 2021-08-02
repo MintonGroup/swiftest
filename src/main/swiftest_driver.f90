@@ -67,7 +67,7 @@ program swiftest_driver
 
          t = t0 + iloop * dt
 
-         !> Evaluate any discards or mergers
+         !> Evaluate any discards or collisional outcomes
          call nbody_system%discard(param)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame

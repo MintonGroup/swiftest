@@ -65,7 +65,7 @@ contains
             if (ntp > 0) call tp%h2b(cb) 
          end if
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-            if (ntp > 0) call discard_sun_tp(tp, system, param)
+            if (ntp > 0) call discard_cb_tp(tp, system, param)
          end if
          if (param%qmin >= 0.0_DP .and. ntp > 0) call discard_peri_tp(tp, system, param)
          if (param%lclose .and. ntp > 0) call discard_pl_tp(tp, system, param)
@@ -76,7 +76,7 @@ contains
    end subroutine discard_tp
 
 
-   subroutine discard_sun_tp(tp, system, param)
+   subroutine discard_cb_tp(tp, system, param)
       !! author: David A. Minton
       !!
       !!  Check to see if test particles should be discarded based on their positions relative to the Sun
@@ -126,7 +126,7 @@ contains
       end associate
 
       return
-   end subroutine discard_sun_tp
+   end subroutine discard_cb_tp
 
 
    subroutine discard_peri_tp(tp, system, param)
