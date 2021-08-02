@@ -2,6 +2,66 @@ submodule(rmvs_classes) s_rmvs_util
    use swiftest
 contains
 
+   module subroutine rmvs_util_append_pl(self, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append components from one massive body object to another. 
+      !! This method will automatically resize the destination body if it is too small
+      implicit none
+      !! Arguments
+      class(rmvs_pl),                  intent(inout) :: self         !! RMVS massive body object
+      class(swiftest_body),            intent(in)    :: source       !! Source object to append
+      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+
+      select type(source)
+      class is (rmvs_pl)
+         call util_append(self%nenc, source%nenc, lsource_mask)
+         call util_append(self%tpenc1P, source%tpenc1P, lsource_mask)
+         call util_append(self%plind, source%plind, lsource_mask)
+
+         ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
+         ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
+         !call util_append(self%outer, source%outer, lsource_mask)
+         !call util_append(self%inner, source%inner, lsource_mask)
+         !call util_append(self%planetocentric, source%planetocentric, lsource_mask)
+
+         call whm_util_append_pl(self, source, lsource_mask)
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_pl or its descendents"
+         call util_exit(FAILURE)
+      end select
+
+      return
+   end subroutine rmvs_util_append_pl
+
+
+   module subroutine rmvs_util_append_tp(self, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append components from test particle object to another. 
+      !! This method will automatically resize the destination body if it is too small
+      implicit none
+      !! Arguments
+      class(rmvs_tp),                  intent(inout) :: self         !! RMVS test particle object
+      class(swiftest_body),            intent(in)    :: source       !! Source object to append
+      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+
+      select type(source)
+      class is (rmvs_tp)
+         call util_append(self%lperi, source%lperi, lsource_mask)
+         call util_append(self%plperP, source%plperP, lsource_mask)
+         call util_append(self%plencP, source%plencP, lsource_mask)
+
+         call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents"
+         call util_exit(FAILURE)
+      end select
+
+      return
+   end subroutine rmvs_util_append_tp
+
+
    module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -19,10 +79,15 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (rmvs_pl)
-
             call util_fill(keeps%nenc, inserts%nenc, lfill_list)
             call util_fill(keeps%tpenc1P, inserts%tpenc1P, lfill_list)
             call util_fill(keeps%plind, inserts%plind, lfill_list)
+
+            ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
+            ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
+            !call util_fill(keeps%outer, inserts%outer, lfill_list)
+            !call util_fill(keeps%inner, inserts%inner, lfill_list)
+            !call util_fill(keeps%planetocentric, inserts%planetocentric, lfill_list)
 
             call whm_util_fill_pl(keeps, inserts, lfill_list)
          class default
@@ -53,7 +118,7 @@ contains
             call util_fill(keeps%plperP, inserts%plperP, lfill_list)
             call util_fill(keeps%plencP, inserts%plencP, lfill_list)
             
-            call util_fill_tp(keeps, inserts, lfill_list)
+            call util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) 'Error! fill method called for incompatible return type on rmvs_tp'
          end select

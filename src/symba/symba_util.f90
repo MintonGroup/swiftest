@@ -2,6 +2,142 @@ submodule(symba_classes) s_symba_util
    use swiftest
 contains
 
+   module subroutine symba_util_append_arr_info(arr, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+      implicit none
+      ! Arguments
+      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+      type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+      logical,                   dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: narr, nsrc
+
+      if (.not. allocated(source)) return
+
+      if (present(lsource_mask)) then
+         nsrc = count(lsource_mask)
+      else
+         nsrc = size(source)
+      end if
+
+      if (allocated(arr)) then
+         narr = size(arr)
+      else
+         allocate(arr(nsrc))
+         narr = 0
+      end if
+
+      if (present(lsource_mask)) then
+         arr(narr+1:nsrc) = pack(source(:), lsource_mask(:))
+      else
+         arr(narr+1:nsrc) = source(:)
+      end if
+
+      return
+   end subroutine symba_util_append_arr_info
+
+
+   module subroutine symba_util_append_arr_kin(arr, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append a single array of kinship type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+      implicit none
+      ! Arguments
+      type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+      type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+      logical,             dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: narr, nsrc
+
+      if (.not. allocated(source)) return
+
+      if (present(lsource_mask)) then
+         nsrc = count(lsource_mask)
+      else
+         nsrc = size(source)
+      end if
+
+      if (allocated(arr)) then
+         narr = size(arr)
+      else
+         allocate(arr(nsrc))
+         narr = 0
+      end if
+
+      if (present(lsource_mask)) then
+         arr(narr+1:nsrc) = pack(source(:), lsource_mask(:))
+      else
+         arr(narr+1:nsrc) = source(:)
+      end if
+
+      return
+   end subroutine symba_util_append_arr_kin
+
+
+   module subroutine symba_util_append_pl(self, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append components from one massive body object to another. 
+      !! This method will automatically resize the destination body if it is too small
+      implicit none
+      !! Arguments
+      class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
+      class(swiftest_body),            intent(in)    :: source       !! Source object to append
+      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+
+      select type(source)
+      class is (symba_pl)
+         call util_append(self%lcollision, source%lcollision, lsource_mask)
+         call util_append(self%lencounter, source%lencounter, lsource_mask)
+         call util_append(self%lmtiny, source%lmtiny, lsource_mask)
+         call util_append(self%nplenc, source%nplenc, lsource_mask)
+         call util_append(self%ntpenc, source%ntpenc, lsource_mask)
+         call util_append(self%levelg, source%levelg, lsource_mask)
+         call util_append(self%levelm, source%levelm, lsource_mask)
+         call util_append(self%isperi, source%isperi, lsource_mask)
+         call util_append(self%peri, source%peri, lsource_mask)
+         call util_append(self%atp, source%atp, lsource_mask)
+         call util_append(self%kin, source%kin, lsource_mask)
+         call util_append(self%info, source%info, lsource_mask)
+
+         call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents"
+         call util_exit(FAILURE)
+      end select
+
+      return
+   end subroutine symba_util_append_pl
+
+
+   module subroutine symba_util_append_tp(self, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append components from test particle object to another. 
+      !! This method will automatically resize the destination body if it is too small
+      implicit none
+      !! Arguments
+      class(symba_tp),                 intent(inout) :: self         !! SyMBA test particle object
+      class(swiftest_body),            intent(in)    :: source       !! Source object to append
+      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+
+      select type(source)
+      class is (symba_tp)
+         call util_append(self%nplenc, source%nplenc, lsource_mask)
+         call util_append(self%levelg, source%levelg, lsource_mask)
+         call util_append(self%levelm, source%levelm, lsource_mask)
+
+         call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents"
+         call util_exit(FAILURE)
+      end select
+
+      return
+   end subroutine symba_util_append_tp
+
    module subroutine symba_util_copy_pltpenc(self, source)
       !! author: David A. Minton
       !!
@@ -48,7 +184,7 @@ contains
    end subroutine symba_util_copy_plplenc
 
 
-   module subroutine symba_util_fill_arr_char_info(keeps, inserts, lfill_list)
+   module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Performs a fill operation on a single array of particle origin information types
@@ -65,7 +201,7 @@ contains
       keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
    
       return
-   end subroutine symba_util_fill_arr_char_info
+   end subroutine symba_util_fill_arr_info
 
 
    module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
@@ -116,7 +252,7 @@ contains
             call util_fill(keeps%kin, inserts%kin, lfill_list)
             call util_fill(keeps%info, inserts%info, lfill_list)
             
-            call util_fill_pl(keeps, inserts, lfill_list)
+            call util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) 'Error! fill method called for incompatible return type on symba_pl'
          end select
@@ -145,7 +281,7 @@ contains
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
             
-            call util_fill_tp(keeps, inserts, lfill_list)
+            call util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) 'Error! fill method called for incompatible return type on symba_tp'
          end select

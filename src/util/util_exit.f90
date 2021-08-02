@@ -26,6 +26,7 @@ contains
       case default
          write(*, FAIL_MSG) VERSION_NUMBER
          write(*, BAR)
+         error stop
       end select
 
       stop

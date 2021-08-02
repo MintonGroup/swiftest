@@ -38,6 +38,7 @@ module whm_classes
       procedure :: gr_pos_kick => whm_gr_p4_pl               !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => whm_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
       procedure :: kick        => whm_kick_vh_pl             !! Kick heliocentric velocities of massive bodies
+      procedure :: append      => whm_util_append_pl         !! Appends elements from one structure to another
       procedure :: fill        => whm_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize      => whm_util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_ir3     => whm_util_set_ir3j          !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
@@ -207,6 +208,15 @@ module whm_classes
          real(DP),                     intent(in)    :: dt     !! Current stepsize
       end subroutine whm_step_pl
 
+      module subroutine whm_step_system(self, param, t, dt)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(whm_nbody_system),    intent(inout) :: self    !! WHM system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t      !! Simulation time
+         real(DP),                   intent(in)    :: dt     !! Current stepsize
+      end subroutine whm_step_system
+
       module subroutine whm_step_tp(self, system, param, t, dt)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
@@ -217,6 +227,14 @@ module whm_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine whm_step_tp
 
+      module subroutine whm_util_append_pl(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(whm_pl),                   intent(inout) :: self         !! WHM massive body object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine whm_util_append_pl
+
       module subroutine whm_util_spill_pl(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_body
          implicit none
@@ -225,15 +243,6 @@ module whm_classes
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine whm_util_spill_pl
-
-      module subroutine whm_step_system(self, param, t, dt)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(whm_nbody_system),    intent(inout) :: self    !! WHM system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t      !! Simulation time
-         real(DP),                   intent(in)    :: dt     !! Current stepsize
-      end subroutine whm_step_system
 
       module subroutine whm_util_fill_pl(self, inserts, lfill_list)
          use swiftest_classes, only : swiftest_body

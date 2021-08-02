@@ -92,6 +92,7 @@ module symba_classes
       procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
       procedure :: accel           => symba_kick_getacch_pl          !! Compute heliocentric accelerations of massive bodies
       procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for number of particle
+      procedure :: append          => symba_util_append_pl           !! Appends elements from one structure to another
       procedure :: fill            => symba_util_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize          => symba_util_resize_pl           !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
@@ -112,6 +113,7 @@ module symba_classes
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
       procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for number of particle
+      procedure :: append          => symba_util_append_tp         !! Appends elements from one structure to another
       procedure :: fill            => symba_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize          => symba_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
@@ -419,6 +421,40 @@ module symba_classes
          implicit none
          class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
       end subroutine symba_step_reset_system
+   end interface
+
+   interface util_append
+      module subroutine symba_util_append_arr_info(arr, source, lsource_mask)
+         implicit none
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         logical,                   dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_arr_info
+     
+      module subroutine symba_util_append_arr_kin(arr, source, lsource_mask)
+         implicit none
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         logical,             dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_arr_kin
+   end interface
+
+   interface
+      module subroutine symba_util_append_pl(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_pl
+
+      module subroutine symba_util_append_tp(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_tp),                 intent(inout) :: self        !! SyMBA test particle object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_tp
 
       module subroutine symba_util_copy_pltpenc(self, source)
          implicit none
@@ -434,12 +470,12 @@ module symba_classes
    end interface 
 
    interface util_fill
-      module subroutine symba_util_fill_arr_char_info(keeps, inserts, lfill_list)
+      module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
          implicit none
          type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
          type(symba_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
          logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine symba_util_fill_arr_char_info
+      end subroutine symba_util_fill_arr_info
 
       module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
          implicit none

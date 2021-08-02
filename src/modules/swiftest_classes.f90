@@ -205,6 +205,7 @@ module swiftest_classes
       procedure :: accel_obl    => obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup        => setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure :: accel_tides  => tides_kick_getacch_pl  !! Compute the accelerations of bodies due to tidal interactions with the central body
+      procedure :: append       => util_append_pl         !! Appends elements from one structure to another
       procedure :: h2b          => util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
@@ -231,19 +232,20 @@ module swiftest_classes
    contains
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure :: discard    => discard_tp             !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
-      procedure :: accel_int  => kick_getacch_int_tp    !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
-      procedure :: accel_obl  => obl_acc_tp             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure :: setup      => setup_tp               !! A base constructor that sets the number of bodies and 
-      procedure :: h2b        => util_coord_h2b_tp      !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
-      procedure :: b2h        => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
-      procedure :: fill       => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
-      procedure :: get_peri   => util_peri_tp           !! Determine system pericenter passages for test particles 
-      procedure :: resize     => util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
-      procedure :: set_mu     => util_set_mu_tp         !! Method used to construct the vectorized form of the central body mass
-      procedure :: sort       => util_sort_tp           !! Sorts body arrays by a sortable component
-      procedure :: rearrange  => util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill      => util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: discard   => discard_tp             !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      procedure :: accel_int => kick_getacch_int_tp    !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
+      procedure :: accel_obl => obl_acc_tp             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure :: setup     => setup_tp               !! A base constructor that sets the number of bodies and 
+      procedure :: append    => util_append_tp         !! Appends elements from one structure to another
+      procedure :: h2b       => util_coord_h2b_tp      !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
+      procedure :: b2h       => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
+      procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
+      procedure :: resize    => util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
+      procedure :: set_mu    => util_set_mu_tp         !! Method used to construct the vectorized form of the central body mass
+      procedure :: sort      => util_sort_tp           !! Sorts body arrays by a sortable component
+      procedure :: rearrange => util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill     => util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_tp
 
    !********************************************************************************************************************************
@@ -742,35 +744,35 @@ module swiftest_classes
       module subroutine util_append_arr_char_string(arr, source, lsource_mask)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: source       !! Array to append 
+         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
          logical,               dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_char_string
 
       module subroutine util_append_arr_DP(arr, source, lsource_mask)
          implicit none
          real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         real(DP), dimension(:), allocatable, intent(inout) :: source       !! Array to append 
+         real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
          logical,  dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_DP
 
       module subroutine util_append_arr_DPvec(arr, source, lsource_mask)
          implicit none
          real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
-         real(DP), dimension(:,:), allocatable, intent(inout) :: source       !! Array to append 
+         real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
          logical,  dimension(:),   optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_DPvec
 
       module subroutine util_append_arr_I4B(arr, source, lsource_mask)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         integer(I4B), dimension(:), allocatable, intent(inout) :: source       !! Array to append 
+         integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
          logical,      dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_I4B
 
       module subroutine util_append_arr_logical(arr, source, lsource_mask)
          implicit none
          logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         logical, dimension(:), allocatable, intent(inout) :: source       !! Array to append 
+         logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
          logical, dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_logical
    end interface
@@ -782,6 +784,20 @@ module swiftest_classes
          class(swiftest_body),            intent(in)    :: source !! Source object to append
          logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
+
+      module subroutine util_append_pl(self, source, lsource_mask)
+         implicit none
+         class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_pl
+   
+      module subroutine util_append_tp(self, source, lsource_mask)
+         implicit none
+         class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_tp
 
       module subroutine util_coord_b2h_pl(self, cb)
          implicit none
