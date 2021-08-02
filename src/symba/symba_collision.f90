@@ -67,11 +67,11 @@ contains
                   lmask(:) = .false.
                   lmask(ind1(k)) = .not.pl%lcollision(ind1(k))
                   lmask(ind2(k)) = .not.pl%lcollision(ind2(k))
-                  call system%mergesub_list%append(pl, lmask)
-
                   ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                   pl%lcollision([ind1(k), ind2(k)]) = .true.
-                  pl%ldiscard([ind1(k), ind2(k)]) = .true.
+                  pl%lcollision([ind1(k), ind2(k)]) = .true.
+                  pl%status([ind1(k), ind2(k)]) = COLLISION
+                  call system%mergesub_list%append(pl, lmask)
                end do
 
             end if

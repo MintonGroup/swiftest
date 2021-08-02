@@ -53,7 +53,6 @@ contains
             allocate(symba_cb :: system%cb)
             allocate(symba_pl :: system%pl)
             allocate(symba_tp :: system%tp)
-            allocate(symba_pl :: system%pl_discards)
             allocate(symba_tp :: system%tp_discards)
             allocate(symba_pl :: system%mergeadd_list)
             allocate(symba_pl :: system%mergesub_list)

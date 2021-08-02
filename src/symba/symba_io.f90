@@ -225,10 +225,10 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
-      associate(pl_discards => self%pl_discards, nsppl => self%pl_discards%nbody, pl => self%pl, npl => self%pl%nbody)
+      associate(pl => self%pl, npl => self%pl%nbody, mergesub_list => self%mergesub_list, mergeadd_list => self%mergeadd_list)
          if (self%tp_discards%nbody > 0) call io_write_discard(self, param)
 
-         if (nsppl == 0) return
+         if (mergesub_list%nbody == 0) return
          select case(param%out_stat)
          case('APPEND')
             open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
@@ -239,14 +239,19 @@ contains
             call util_exit(FAILURE)
          end select
          lfirst = .false.
-         if (param%lgr) call pl_discards%pv2v(param) 
+         if (param%lgr) then
+            call mergesub_list%pv2v(param) 
+            call mergeadd_list%pv2v(param) 
+         end if
 
-      !    write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
-      !    do i = 1, nsp
-      !       write(LUN, NAMEFMT) sub, tp_discards%id(i), tp_discards%status(i)
-      !       write(LUN, VECFMT) tp_discards%xh(1, i), tp_discards%xh(2, i), tp_discards%xh(3, i)
-      !       write(LUN, VECFMT) tp_discards%vh(1, i), tp_discards%vh(2, i), tp_discards%vh(3, i)
-      !    end do
+         write(LUN, HDRFMT) param%t, mergesub_list%nbody, param%lbig_discard
+         do i = 1, mergesub_list%nbody
+             write(LUN, NAMEFMT) SUB, mergesub_list%id(i), mergesub_list%status(i)
+             write(LUN, VECFMT) mergesub_list%xh(1, i), mergesub_list%xh(2, i), mergesub_list%xh(3, i)
+             write(LUN, VECFMT) mergesub_list%vh(1, i), mergesub_list%vh(2, i), mergesub_list%vh(3, i)
+         end do
+
+         ! This is incomplete until the mergeadd_list methods are completed
       !    if (param%lbig_discard) then
       !          if (param%lgr) then
       !             allocate(pltemp, source = pl)
@@ -265,7 +270,7 @@ contains
       !          end do
       !          deallocate(vh)
       !    end if
-      !    close(LUN)
+          close(LUN)
        end associate
 
       return

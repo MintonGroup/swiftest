@@ -17,9 +17,9 @@ contains
 
       select type(system)
       class is (symba_nbody_system)
-         self%lmask(:) = self%status(:) == ACTIVE .and. self%levelg(:) == system%irec
+         self%lmask(:) = self%status(:) /= INACTIVE .and. self%levelg(:) == system%irec
          call helio_drift_body(self, system, param, dt)
-         self%lmask(:) = self%status(:) == ACTIVE 
+         self%lmask(:) = self%status(:) /= INACTIVE 
       end select
 
       return
@@ -41,9 +41,9 @@ contains
 
       select type(system)
       class is (symba_nbody_system)
-         self%lmask(:) = self%status(:) == ACTIVE .and. self%levelg(:) == system%irec
+         self%lmask(:) = self%status(:) /= INACTIVE .and. self%levelg(:) == system%irec
          call helio_drift_body(self, system, param, dt)
-         self%lmask(:) = self%status(:) == ACTIVE 
+         self%lmask(:) = self%status(:) /= INACTIVE 
       end select
 
       return

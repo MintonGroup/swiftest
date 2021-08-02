@@ -164,7 +164,6 @@ module symba_classes
       class(symba_pl),      allocatable :: mergesub_list !! List of subtracted bodies in mergers or collisions
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
-      class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
       integer(I4B)                      :: irec          !! System recursion level
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA

@@ -124,8 +124,8 @@ contains
          select type(tp => system%tp)
          class is (symba_tp)
             associate(ind1 => self%index1, ind2 => self%index2)
-               if (pl%nbody > 0) pl%lmask(:) = pl%status(:) == ACTIVE
-               if (tp%nbody > 0) tp%lmask(:) = tp%status(:) == ACTIVE
+               if (pl%nbody > 0) pl%lmask(:) = pl%status(:) /= INACTIVE
+               if (tp%nbody > 0) tp%lmask(:) = tp%status(:) /= INACTIVE
 
                irm1 = irec - 1
                if (sgn < 0) then
@@ -145,7 +145,7 @@ contains
                   else
                      lgoodlevel = (pl%levelg(ind1(k)) >= irm1) .and. (tp%levelg(ind2(k)) >= irm1)
                   end if
-                  if ((self%status(k) == ACTIVE) .and. lgoodlevel) then
+                  if ((self%status(k) /= INACTIVE) .and. lgoodlevel) then
                      if (isplpl) then
                         ri = ((pl%rhill(ind1(k))  + pl%rhill(ind2(k)))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
                         rim1 = ri * (RSHELL**2)

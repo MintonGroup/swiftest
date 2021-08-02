@@ -201,7 +201,7 @@ contains
       call util_resize(self%capom, nnew)
       call util_resize(self%omega, nnew)
       call util_resize(self%capm, nnew)
-      self%nbody = count(self%status(1:nnew) == ACTIVE)
+      self%nbody = count(self%status(1:nnew) /= INACTIVE)
 
       return
    end subroutine util_resize_body

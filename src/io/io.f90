@@ -1074,7 +1074,7 @@ contains
 
          write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
          do i = 1, nsp
-            write(LUN, NAMEFMT) sub, tp_discards%id(i), tp_discards%status(i)
+            write(LUN, NAMEFMT) SUB, tp_discards%id(i), tp_discards%status(i)
             write(LUN, VECFMT) tp_discards%xh(1, i), tp_discards%xh(2, i), tp_discards%xh(3, i)
             write(LUN, VECFMT) tp_discards%vh(1, i), tp_discards%vh(2, i), tp_discards%vh(3, i)
          end do

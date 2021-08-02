@@ -54,7 +54,7 @@ contains
       associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, status => self%status, &
                xb => self%xb, xh => self%xh, vb => self%vb, vh => self%vh)
 
-         where(status(1:ntp) == ACTIVE)
+         where(status(1:ntp) /= INACTIVE)
             xb(1, 1:ntp) = xh(1, 1:ntp) + xbcb(1)
             xb(2, 1:ntp) = xh(2, 1:ntp) + xbcb(2)
             xb(3, 1:ntp) = xh(3, 1:ntp) + xbcb(3)
@@ -109,7 +109,7 @@ contains
 
       associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, xb => self%xb, xh => self%xh, &
                vb => self%vb, vh => self%vh, status => self%status)
-         where(status(1:ntp) == ACTIVE)
+         where(status(1:ntp) /= INACTIVE)
             xh(1, 1:ntp) = xb(1, 1:ntp) - xbcb(1)
             xh(2, 1:ntp) = xb(2, 1:ntp) - xbcb(2)
             xh(3, 1:ntp) = xb(3, 1:ntp) - xbcb(3)

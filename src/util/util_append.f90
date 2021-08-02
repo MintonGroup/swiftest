@@ -232,7 +232,7 @@ contains
       call util_append(self%omega, source%omega, lsource_mask)
       call util_append(self%capm, source%capm, lsource_mask)
 
-      self%nbody = count(self%status(:) == ACTIVE)
+      self%nbody = count(self%status(:) /= INACTIVE)
 
       return
    end subroutine util_append_body
