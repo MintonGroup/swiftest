@@ -72,6 +72,7 @@ module rmvs_classes
                                                                   !!    if the test particle is undergoing a close encounter or not
       procedure :: setup           => rmvs_setup_tp               !! Constructor method - Allocates space for number of particles
       procedure :: fill            => rmvs_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize          => rmvs_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort            => rmvs_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => rmvs_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => rmvs_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
@@ -92,9 +93,10 @@ module rmvs_classes
       logical                                             :: lplanetocentric = .false. !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
       procedure :: setup     => rmvs_setup_pl               !! Constructor method - Allocates space for number of particles
+      procedure :: fill      => rmvs_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize    => rmvs_util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort      => rmvs_util_sort_pl           !! Sorts body arrays by a sortable componen
       procedure :: rearrange => rmvs_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: fill      => rmvs_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: spill     => rmvs_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_pl
 
@@ -169,6 +171,18 @@ module rmvs_classes
          class(swiftest_body),  intent(in)    :: inserts     !!  Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine rmvs_util_fill_tp
+
+      module subroutine rmvs_util_resize_pl(self, nnew)
+         implicit none
+         class(rmvs_pl), intent(inout) :: self  !! RMVS massive body object
+         integer(I4B),   intent(in)    :: nnew  !! New size neded
+      end subroutine rmvs_util_resize_pl
+
+      module subroutine rmvs_util_resize_tp(self, nnew)
+         implicit none
+         class(rmvs_tp), intent(inout) :: self  !! RMVS test particle object
+         integer(I4B),   intent(in)    :: nnew  !! New size neded
+      end subroutine rmvs_util_resize_tp
 
       module subroutine rmvs_util_sort_pl(self, sortby, ascending)
          implicit none

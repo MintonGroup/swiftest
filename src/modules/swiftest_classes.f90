@@ -127,6 +127,8 @@ module swiftest_classes
       integer(I4B),          dimension(:),   allocatable :: id              !! External identifier (unique)
       integer(I4B),          dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
       logical,               dimension(:),   allocatable :: ldiscard        !! Body should be discarded
+      logical,               dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
+      real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
       real(DP),              dimension(:,:), allocatable :: xh              !! Heliocentric position
       real(DP),              dimension(:,:), allocatable :: vh              !! Heliocentric velocity
       real(DP),              dimension(:,:), allocatable :: xb              !! Barycentric position
@@ -142,8 +144,6 @@ module swiftest_classes
       real(DP),              dimension(:),   allocatable :: capom           !! Longitude of ascending node
       real(DP),              dimension(:),   allocatable :: omega           !! Argument of pericenter
       real(DP),              dimension(:),   allocatable :: capm            !! Mean anomaly
-      real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      logical,               dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and util_spill
    contains
@@ -209,6 +209,7 @@ module swiftest_classes
       procedure :: h2b          => util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
       procedure :: set_mu       => util_set_mu_pl         !! Method used to construct the vectorized form of the central body mass
       procedure :: set_rhill    => util_set_rhill         !! Calculates the Hill's radii for each body
@@ -239,6 +240,7 @@ module swiftest_classes
       procedure :: b2h        => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure :: fill       => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri   => util_peri_tp           !! Determine system pericenter passages for test particles 
+      procedure :: resize     => util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_mu     => util_set_mu_tp         !! Method used to construct the vectorized form of the central body mass
       procedure :: sort       => util_sort_tp           !! Sorts body arrays by a sortable component
       procedure :: rearrange  => util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
@@ -847,13 +849,58 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
+   end interface
 
-      module subroutine util_resize_body(self, nrequested, param)
+   interface util_resize
+      module subroutine util_resize_arr_char_string(arr, nnew)
          implicit none
-         class(swiftest_body),       intent(inout) :: self       !! Swiftest body object
-         integer(I4B),               intent(in)    :: nrequested !! New size neded
-         class(swiftest_parameters), intent(in)    :: param      !! Current run configuration parameters
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                                     intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_char_string
+
+      module subroutine util_resize_arr_DP(arr, nnew)
+         implicit none
+         real(DP), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                        intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_DP
+
+      module subroutine util_resize_arr_DPvec(arr, nnew)
+         implicit none
+         real(DP), dimension(:,:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                          intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_DPvec
+
+      module subroutine util_resize_arr_I4B(arr, nnew)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                            intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_I4B
+
+      module subroutine util_resize_arr_logical(arr, nnew)
+         implicit none
+         logical, dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                       intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_logical
+   end interface
+
+   interface
+      module subroutine util_resize_body(self, nnew)
+         implicit none
+         class(swiftest_body), intent(inout) :: self !! Swiftest body object
+         integer(I4B),         intent(in)    :: nnew !! New size neded
       end subroutine util_resize_body
+
+      module subroutine util_resize_pl(self, nnew)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         integer(I4B),       intent(in)    :: nnew !! New size neded
+      end subroutine util_resize_pl
+
+      module subroutine util_resize_tp(self, nnew)
+         implicit none
+         class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
+         integer(I4B),       intent(in)    :: nnew !! New size neded
+      end subroutine util_resize_tp
 
       module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
          implicit none

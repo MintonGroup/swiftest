@@ -92,10 +92,11 @@ module symba_classes
       procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
       procedure :: accel           => symba_kick_getacch_pl          !! Compute heliocentric accelerations of massive bodies
       procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for number of particle
-      procedure :: fill            => symba_util_fill_pl        !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: fill            => symba_util_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize          => symba_util_resize_pl           !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill           => symba_util_spill_pl       !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: spill           => symba_util_spill_pl            !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_pl
 
    !********************************************************************************************************************************
@@ -111,10 +112,11 @@ module symba_classes
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
       procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for number of particle
-      procedure :: fill            => symba_util_fill_tp      !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: fill            => symba_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize          => symba_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill           => symba_util_spill_tp     !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: spill           => symba_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_tp
 
    !********************************************************************************************************************************
@@ -163,12 +165,12 @@ module symba_classes
       class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
       integer(I4B)                      :: irec          !! System recursion level
    contains
-      procedure :: initialize       => symba_setup_initialize_system        !! Performs SyMBA-specific initilization steps
-      procedure :: step             => symba_step_system                    !! Advance the SyMBA nbody system forward in time by one step
-      procedure :: interp           => symba_step_interp_system             !! Perform an interpolation step on the SymBA nbody system 
-      procedure :: set_recur_levels => symba_step_set_recur_levels_system   !! Sets recursion levels of bodies and encounter lists to the current system level
-      procedure :: recursive_step   => symba_step_recur_system              !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
-      procedure :: reset            => symba_step_reset_system              !! Resets pl, tp,and encounter structures at the start of a new step 
+      procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
+      procedure :: step             => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
+      procedure :: interp           => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
+      procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
+      procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
+      procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
    end type symba_nbody_system
 
    interface
@@ -439,12 +441,12 @@ module symba_classes
          logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine symba_util_fill_arr_char_info
 
-      module subroutine symba_util_fill_arr_char_kin(keeps, inserts, lfill_list)
+      module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
          type(symba_kinship), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
          logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine symba_util_fill_arr_char_kin
+      end subroutine symba_util_fill_arr_kin
    end interface
 
    interface
@@ -463,12 +465,40 @@ module symba_classes
          class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine symba_util_fill_tp
+   end interface
 
-      module subroutine symba_util_resize_pltpenc(self, nrequested)
+   interface util_resize
+      module subroutine symba_util_resize_arr_info(arr, nnew)
+         implicit none
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                                         intent(in)    :: nnew !! New size
+      end subroutine symba_util_resize_arr_info
+
+      module subroutine symba_util_resize_arr_kin(arr, nnew)
+         implicit none
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                                   intent(in)    :: nnew !! New size
+      end subroutine symba_util_resize_arr_kin
+   end interface
+   
+   interface
+      module subroutine symba_util_resize_pl(self, nnew)
+         implicit none
+         class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
+         integer(I4B),    intent(in)    :: nnew  !! New size neded
+      end subroutine symba_util_resize_pl
+
+      module subroutine symba_util_resize_pltpenc(self, nnew)
          implicit none
          class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
-         integer(I4B),         intent(in)    :: nrequested !! New size of list needed
+         integer(I4B),         intent(in)    :: nnew !! New size of list needed
       end subroutine symba_util_resize_pltpenc
+
+      module subroutine symba_util_resize_tp(self, nnew)
+         implicit none
+         class(symba_tp), intent(inout) :: self  !! SyMBA massive body object
+         integer(I4B),    intent(in)    :: nnew  !! New size neded
+      end subroutine symba_util_resize_tp
 
       module subroutine symba_util_sort_pl(self, sortby, ascending)
          implicit none

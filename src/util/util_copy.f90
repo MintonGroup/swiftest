@@ -26,7 +26,7 @@ contains
       lfill_list = .false.
       lfill_list(1:nnew) = .true.
       associate(nold => self%nbody)
-         if (nnew > size(self%status)) call self%resize(nnew, param)
+         if (nnew > size(self%status)) call self%resize(nnew)
          call self%fill(source, lfill_list)
       end associate
       return

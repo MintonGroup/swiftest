@@ -1,40 +1,258 @@
 submodule (swiftest_classes) s_util_resize
    use swiftest
 contains
+   module subroutine util_resize_arr_char_string(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                                     intent(in)    :: nnew !! New size
+      ! Internals
+      character(len=STRMAX), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
 
-   module subroutine util_resize_body(self, nrequested, param)
+      if (.not. allocated(arr) .or. nnew < 0) return
+
+      nold = size(arr)
+      if (nnew == nold) return
+
+      if (nnew == 0) then
+         deallocate(arr)
+         return
+      end if
+      
+      allocate(tmp(nnew))
+      if (nnew > nold) then
+         tmp(1:nold) = arr(1:nold)
+      else
+         tmp(1:nnew) = arr(1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_resize_arr_char_string
+
+
+   module subroutine util_resize_arr_DP(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of double precision type. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      real(DP), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                        intent(in)    :: nnew !! New size
+      ! Internals
+      real(DP), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
+
+      if (.not. allocated(arr) .or. nnew < 0) return
+
+      nold = size(arr)
+      if (nnew == nold) return
+
+      if (nnew == 0) then
+         deallocate(arr)
+         return
+      end if
+      
+      allocate(tmp(nnew))
+      if (nnew > nold) then
+         tmp(1:nold) = arr(1:nold)
+      else
+         tmp(1:nnew) = arr(1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_resize_arr_DP
+
+
+   module subroutine util_resize_arr_DPvec(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of double precision vectors of size (NDIM, n). Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      real(DP), dimension(:,:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                          intent(in)    :: nnew !! New size
+      ! Internals
+      real(DP), dimension(:,:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
+
+      if (.not. allocated(arr) .or. nnew < 0) return
+
+      nold = size(arr, dim=2)
+      if (nnew == nold) return
+
+      if (nnew == 0) then
+         deallocate(arr)
+         return
+      end if
+      
+      allocate(tmp(NDIM, nnew))
+      if (nnew > nold) then
+         tmp(:, 1:nold) = arr(:, 1:nold)
+      else
+         tmp(:, 1:nnew) = arr(:, 1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_resize_arr_DPvec
+
+
+   module subroutine util_resize_arr_I4B(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of integer type. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      integer(I4B), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                            intent(in)    :: nnew !! New size
+      ! Internals
+      integer(I4B), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
+
+      if (.not. allocated(arr) .or. nnew < 0) return
+
+      nold = size(arr)
+      if (nnew == nold) return
+
+      if (nnew == 0) then
+         deallocate(arr)
+         return
+      end if
+      
+      allocate(tmp(nnew))
+      if (nnew > nold) then
+         tmp(1:nold) = arr(1:nold)
+      else
+         tmp(1:nnew) = arr(1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_resize_arr_I4B
+
+
+   module subroutine util_resize_arr_logical(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of logical type. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      logical, dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                       intent(in)    :: nnew !! New size
+      ! Internals
+      logical, dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
+
+      if (.not. allocated(arr) .or. nnew < 0) return
+
+      nold = size(arr)
+      if (nnew == nold) return
+
+      if (nnew == 0) then
+         deallocate(arr)
+         return
+      end if
+      
+      allocate(tmp(nnew))
+      if (nnew > nold) then
+         tmp(1:nold) = arr(1:nold)
+      else
+         tmp(1:nnew) = arr(1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_resize_arr_logical
+
+
+   module subroutine util_resize_body(self, nnew)
       !! author: David A. Minton
       !!
       !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       implicit none
       ! Arguments
-      class(swiftest_body),       intent(inout) :: self       !! Swiftest body object
-      integer(I4B),               intent(in)    :: nrequested !! New size neded
-      class(swiftest_parameters), intent(in)    :: param      !! Current run configuration parameters
-      ! Internals
-      class(swiftest_body), allocatable   :: temp
-      integer(I4B)                        :: nold
-      logical                             :: lmalloc
+      class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
+      integer(I4B),               intent(in)    :: nnew  !! New size neded
 
-      lmalloc = allocated(self%status)
-      if (lmalloc) then
-         nold = size(self%status)
-      else
-         nold = 0
-      end if
-      if (nrequested > nold) then
-         if (lmalloc) allocate(temp, source=self)
-         call self%setup(nrequested, param)
-         if (lmalloc) then
-            call self%copy_into(temp, param)
-            deallocate(temp)
-         end if
-      else
-         self%status(nrequested+1:nold) = INACTIVE
-      end if
-      self%nbody = nrequested
+      call util_resize(self%name, nnew)
+      call util_resize(self%status, nnew)
+      call util_resize(self%ldiscard, nnew)
+      call util_resize(self%lmask, nnew)
+      call util_resize(self%mu, nnew)
+      call util_resize(self%xh, nnew)
+      call util_resize(self%vh, nnew)
+      call util_resize(self%xb, nnew)
+      call util_resize(self%vb, nnew)
+      call util_resize(self%ah, nnew)
+      call util_resize(self%aobl, nnew)
+      call util_resize(self%atide, nnew)
+      call util_resize(self%agr, nnew)
+      call util_resize(self%ir3h, nnew)
+      call util_resize(self%a, nnew)
+      call util_resize(self%e, nnew)
+      call util_resize(self%inc, nnew)
+      call util_resize(self%capom, nnew)
+      call util_resize(self%omega, nnew)
+      call util_resize(self%capm, nnew)
+      self%nbody = count(self%status(1:nnew) == ACTIVE)
 
       return
    end subroutine util_resize_body
+
+
+   module subroutine util_resize_pl(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
+      integer(I4B),       intent(in)    :: nnew  !! New size neded
+
+      call util_resize_body(self, nnew)
+
+      call util_resize(self%mass, nnew)
+      call util_resize(self%Gmass, nnew)
+      call util_resize(self%rhill, nnew)
+      call util_resize(self%radius, nnew)
+      call util_resize(self%xbeg, nnew)
+      call util_resize(self%xend, nnew)
+      call util_resize(self%vbeg, nnew)
+      call util_resize(self%density, nnew)
+      call util_resize(self%Ip, nnew)
+      call util_resize(self%rot, nnew)
+      call util_resize(self%k2, nnew)
+      call util_resize(self%Q, nnew)
+      call util_resize(self%tlag, nnew)
+      call self%eucl_index()
+
+      return
+   end subroutine util_resize_pl
+
+
+   module subroutine util_resize_tp(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(swiftest_tp), intent(inout) :: self  !! Swiftest massive body object
+      integer(I4B),       intent(in)    :: nnew  !! New size neded
+
+      call util_resize_body(self, nnew)
+
+      call util_resize(self%isperi, nnew)
+      call util_resize(self%peri, nnew)
+      call util_resize(self%atp, nnew)
+
+      return
+   end subroutine util_resize_tp
+
 
 end submodule s_util_resize

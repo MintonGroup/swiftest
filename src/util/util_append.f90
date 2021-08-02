@@ -15,7 +15,7 @@ contains
       logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
 
       associate(nold => self%nbody, nnew => source%nbody)
-         if (nnew > size(self%status)) call self%resize(nnew, param)
+         if (nnew > size(self%status)) call self%resize(nnew)
 
       end associate
       return

@@ -62,6 +62,52 @@ contains
       return
    end subroutine rmvs_util_fill_tp
 
+
+   module subroutine rmvs_util_resize_pl(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a massive body object against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(rmvs_pl), intent(inout) :: self  !! RMVS massive body object
+      integer(I4B),   intent(in)    :: nnew  !! New size neded
+
+      call whm_util_resize_pl(self, nnew)
+
+      call util_resize(self%nenc, nnew)
+      call util_resize(self%tpenc1P, nnew)
+      call util_resize(self%plind, nnew)
+
+      ! The following are not implemented as RMVS doesn't make use of resize operations on pl type
+      ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
+      !call util_resize(self%outer, nnew)
+      !call util_resize(self%inner, nnew)
+      !call util_resize(self%planetocentric, nnew)
+
+      return
+   end subroutine rmvs_util_resize_pl
+
+
+   module subroutine rmvs_util_resize_tp(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a test particle object against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(rmvs_tp), intent(inout) :: self  !! RMVS test particle object
+      integer(I4B),   intent(in)    :: nnew  !! New size neded
+
+      call util_resize_tp(self, nnew)
+
+      call util_resize(self%lperi, nnew)
+      call util_resize(self%plperP, nnew)
+      call util_resize(self%plencP, nnew)
+      call util_resize(self%xheliocentric, nnew)
+
+      return
+   end subroutine rmvs_util_resize_tp
+
+
    module subroutine rmvs_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
       !!

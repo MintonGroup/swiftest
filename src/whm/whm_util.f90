@@ -69,6 +69,27 @@ contains
    end subroutine whm_util_fill_pl
 
 
+   module subroutine whm_util_resize_pl(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a massive body against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(whm_pl), intent(inout) :: self  !! WHM massive body object
+      integer(I4B),  intent(in)    :: nnew  !! New size neded
+
+      call util_resize_pl(self, nnew)
+
+      call util_resize(self%eta, nnew)
+      call util_resize(self%xj, nnew)
+      call util_resize(self%vj, nnew)
+      call util_resize(self%muj, nnew)
+      call util_resize(self%ir3j, nnew)
+
+      return
+   end subroutine whm_util_resize_pl
+
+
    module subroutine whm_util_set_ir3j(self)
       !! author: David A. Minton
       !!

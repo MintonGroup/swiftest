@@ -68,7 +68,7 @@ contains
    end subroutine symba_util_fill_arr_char_info
 
 
-   module subroutine symba_util_fill_arr_char_kin(keeps, inserts, lfill_list)
+   module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
       !! author: David A. Minton
       !!
       !! Performs a fill operation on a single array of particle kinship types
@@ -85,7 +85,7 @@ contains
       keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
    
       return
-   end subroutine symba_util_fill_arr_char_kin
+   end subroutine symba_util_fill_arr_kin
 
 
    module subroutine symba_util_fill_pl(self, inserts, lfill_list)
@@ -155,7 +155,122 @@ contains
    end subroutine symba_util_fill_tp
 
 
-   module subroutine symba_util_resize_pltpenc(self, nrequested)
+   module subroutine symba_util_resize_arr_info(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                                         intent(in)    :: nnew !! New size
+      ! Internals
+      type(symba_particle_info), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
+
+      if (.not. allocated(arr) .or. nnew < 0) return
+
+      nold = size(arr)
+      if (nnew == nold) return
+
+      if (nnew == 0) then
+         deallocate(arr)
+         return
+      end if
+      
+      allocate(tmp(nnew))
+      if (nnew > nold) then
+         tmp(1:nold) = arr(1:nold)
+      else
+         tmp(1:nnew) = arr(1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine symba_util_resize_arr_info
+
+
+   module subroutine symba_util_resize_arr_kin(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                                   intent(in)    :: nnew !! New size
+      ! Internals
+      type(symba_kinship), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
+
+      if (.not. allocated(arr) .or. nnew < 0) return
+
+      nold = size(arr)
+      if (nnew == nold) return
+
+      if (nnew == 0) then
+         deallocate(arr)
+         return
+      end if
+      
+      allocate(tmp(nnew))
+      if (nnew > nold) then
+         tmp(1:nold) = arr(1:nold)
+      else
+         tmp(1:nnew) = arr(1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine symba_util_resize_arr_kin
+
+
+   module subroutine symba_util_resize_pl(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a massive body object against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
+      integer(I4B),    intent(in)    :: nnew  !! New size neded
+
+      call util_resize_pl(self, nnew)
+
+      call util_resize(self%lcollision, nnew)
+      call util_resize(self%lencounter, nnew)
+      call util_resize(self%lmtiny, nnew)
+      call util_resize(self%nplenc, nnew)
+      call util_resize(self%ntpenc, nnew)
+      call util_resize(self%levelg, nnew)
+      call util_resize(self%levelm, nnew)
+      call util_resize(self%isperi, nnew)
+      call util_resize(self%peri, nnew)
+      call util_resize(self%atp, nnew)
+      call util_resize(self%kin, nnew)
+      call util_resize(self%info, nnew)
+
+      return
+   end subroutine symba_util_resize_pl
+
+
+   module subroutine symba_util_resize_tp(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a test particle object against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(symba_tp), intent(inout) :: self  !! SyMBA test particle object
+      integer(I4B),    intent(in)    :: nnew  !! New size neded
+
+      call util_resize_tp(self, nnew)
+
+      call util_resize(self%nplenc, nnew)
+      call util_resize(self%levelg, nnew)
+      call util_resize(self%levelm, nnew)
+
+      return
+   end subroutine symba_util_resize_tp
+
+
+   module subroutine symba_util_resize_pltpenc(self, nnew)
       !! author: David A. Minton
       !!
       !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
@@ -163,7 +278,7 @@ contains
       implicit none
       ! Arguments
       class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
-      integer(I4B),         intent(in)    :: nrequested !! New size of list needed
+      integer(I4B),         intent(in)    :: nnew !! New size of list needed
       ! Internals
       class(symba_pltpenc), allocatable   :: enc_temp
       integer(I4B)                        :: nold
@@ -175,17 +290,17 @@ contains
       else
          nold = 0
       end if
-      if (nrequested > nold) then
+      if (nnew > nold) then
          if (lmalloc) allocate(enc_temp, source=self)
-         call self%setup(2 * nrequested)
+         call self%setup(2 * nnew)
          if (lmalloc) then
             call self%copy(enc_temp)
             deallocate(enc_temp)
          end if
       else
-         self%status(nrequested+1:nold) = INACTIVE
+         self%status(nnew+1:nold) = INACTIVE
       end if
-      self%nenc = nrequested
+      self%nenc = nnew
 
       return
    end subroutine symba_util_resize_pltpenc
