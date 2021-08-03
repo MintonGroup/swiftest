@@ -292,8 +292,14 @@ module swiftest_classes
       integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
+      real(DP),     dimension(:,:), allocatable :: x1     !! the position of body 1 in the encounter
+      real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
+      real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
+      real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
    contains
-      procedure :: copy => util_copy_encounter
+      procedure :: copy   => util_copy_encounter
+      procedure :: resize => util_resize_encounter
+      procedure :: setup  => setup_encounter
    end type swiftest_encounter
 
    abstract interface
@@ -707,6 +713,12 @@ module swiftest_classes
          class(swiftest_parameters),                  intent(in)    :: param  !! Current run configuration parameters
       end subroutine setup_construct_system
 
+      module subroutine setup_encounter(self, n)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
+         integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
+      end subroutine setup_encounter
+
       module subroutine setup_initialize_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
@@ -951,6 +963,12 @@ module swiftest_classes
          class(swiftest_body), intent(inout) :: self !! Swiftest body object
          integer(I4B),         intent(in)    :: nnew !! New size neded
       end subroutine util_resize_body
+
+      module subroutine util_resize_encounter(self, nnew)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter list 
+         integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      end subroutine util_resize_encounter
 
       module subroutine util_resize_pl(self, nnew)
          implicit none

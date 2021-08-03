@@ -105,61 +105,16 @@ contains
       class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
       integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
 
-      self%nenc = n
+      call setup_encounter(self, n)
       if (n == 0) return
 
-      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
-      if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%level)) deallocate(self%level)
-      if (allocated(self%index1)) deallocate(self%index1)
-      if (allocated(self%index2)) deallocate(self%index2)
-
-      allocate(self%lvdotr(n))
-      allocate(self%status(n))
       allocate(self%level(n))
-      allocate(self%index1(n))
-      allocate(self%index2(n))
 
-      self%lvdotr(:) = .false.
-      self%status(:) = INACTIVE
       self%level(:) = -1
-      self%index1(:) = 0
-      self%index2(:) = 0
 
       return
    end subroutine symba_setup_pltpenc
-
-
-   module subroutine symba_setup_plplenc(self, n)
-      !! author: David A. Minton
-      !!
-      !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      !
-      implicit none
-      ! Arguments
-      class(symba_plplenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
-      integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
-
-      call symba_setup_pltpenc(self, n)
-      if (n == 0) return
-
-      if (allocated(self%xh1)) deallocate(self%xh1)
-      if (allocated(self%xh2)) deallocate(self%xh2)
-      if (allocated(self%vb1)) deallocate(self%vb1)
-      if (allocated(self%vb2)) deallocate(self%vb2)
-
-      allocate(self%xh1(NDIM,n))
-      allocate(self%xh2(NDIM,n))
-      allocate(self%vb1(NDIM,n))
-      allocate(self%vb2(NDIM,n))
-
-      self%xh1(:,:) = 0.0_DP
-      self%xh2(:,:) = 0.0_DP
-      self%vb1(:,:) = 0.0_DP
-      self%vb2(:,:) = 0.0_DP
-
-      return
-   end subroutine symba_setup_plplenc
 
 
    module subroutine symba_setup_tp(self, n, param)

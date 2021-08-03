@@ -162,31 +162,6 @@ contains
       return
    end subroutine symba_util_copy_pltpenc
 
-
-   module subroutine symba_util_copy_plplenc(self, source)
-      !! author: David A. Minton
-      !!
-      !! Copies elements from the source encounter list into self.
-      implicit none
-      ! Arguments
-      class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list 
-      class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
-
-      call symba_util_copy_pltpenc(self, source)
-      associate(n => source%nenc)
-         select type(source)
-         class is (symba_plplenc)
-            self%xh1(:,1:n) = source%xh1(:,1:n) 
-            self%xh2(:,1:n) = source%xh2(:,1:n) 
-            self%vb1(:,1:n) = source%vb1(:,1:n) 
-            self%vb2(:,1:n) = source%vb2(:,1:n) 
-         end select
-      end associate
-
-      return
-   end subroutine symba_util_copy_plplenc
-
-
    module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -409,43 +384,6 @@ contains
 
       return
    end subroutine symba_util_resize_tp
-
-
-   module subroutine symba_util_resize_pltpenc(self, nnew)
-      !! author: David A. Minton
-      !!
-      !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      !! Polymorphic method works on both symba_pltpenc and symba_plplenc types
-      implicit none
-      ! Arguments
-      class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
-      integer(I4B),         intent(in)    :: nnew !! New size of list needed
-      ! Internals
-      class(symba_pltpenc), allocatable   :: enc_temp
-      integer(I4B)                        :: nold
-      logical                             :: lmalloc
-
-      lmalloc = allocated(self%status)
-      if (lmalloc) then
-         nold = size(self%status)
-      else
-         nold = 0
-      end if
-      if (nnew > nold) then
-         if (lmalloc) allocate(enc_temp, source=self)
-         call self%setup(2 * nnew)
-         if (lmalloc) then
-            call self%copy(enc_temp)
-            deallocate(enc_temp)
-         end if
-      else
-         self%status(nnew+1:nold) = INACTIVE
-      end if
-      self%nenc = nnew
-
-      return
-   end subroutine symba_util_resize_pltpenc
-
 
    module subroutine symba_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton

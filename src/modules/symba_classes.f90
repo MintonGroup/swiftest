@@ -133,7 +133,6 @@ module symba_classes
       procedure :: kick            => symba_kick_pltpenc            !! Kick barycentric velocities of active test particles within SyMBA recursion
       procedure :: setup           => symba_setup_pltpenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure :: copy            => symba_util_copy_pltpenc       !! Copies all elements of one pltpenc list to another
-      procedure :: resize          => symba_util_resize_pltpenc     !! Checks the current size of the pltpenc_list against the required size and extends it by a factor of 2 more than requested if it is too small 
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -141,14 +140,7 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-pl close encounters in a step
    type, extends(symba_pltpenc) :: symba_plplenc
-      real(DP), dimension(:,:), allocatable :: xh1 !! the heliocentric position of parent 1 in encounter
-      real(DP), dimension(:,:), allocatable :: xh2 !! the heliocentric position of parent 2 in encounter
-      real(DP), dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
-      real(DP), dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
    contains
-      procedure :: collision_check => symba_collision_check_plplenc !! Checks if two massive bodies are going to collide 
-      procedure :: setup           => symba_setup_plplenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: copy            => symba_util_copy_plplenc       !! Copies all elements of one plplenc list to another
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -181,17 +173,6 @@ module symba_classes
          real(DP),                   intent(in)    :: dt     !! step size
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine symba_collision_check_pltpenc
-
-      module subroutine symba_collision_check_plplenc(self, system, param, t, dt, irec)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list object
-         class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t      !! current time
-         real(DP),                   intent(in)    :: dt     !! step size
-         integer(I4B),               intent(in)    :: irec   !! Current recursion level
-      end subroutine symba_collision_check_plplenc
 
       module subroutine symba_collision_make_family_pl(self,idx)
          implicit none
@@ -343,7 +324,6 @@ module symba_classes
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_pltpenc
 
-
       module subroutine symba_io_write_frame_info(self, iu, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -465,13 +445,6 @@ module symba_classes
          class(symba_pltpenc),      intent(inout) :: self   !! SyMBA pl-tp encounter list 
          class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
       end subroutine symba_util_copy_pltpenc
-
-      module subroutine symba_util_copy_plplenc(self, source)
-         use swiftest_classes, only : swifest_encounter
-         implicit none
-         class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list 
-         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
-      end subroutine symba_util_copy_plplenc
    end interface 
 
    interface util_fill
@@ -528,12 +501,6 @@ module symba_classes
          class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
          integer(I4B),    intent(in)    :: nnew  !! New size neded
       end subroutine symba_util_resize_pl
-
-      module subroutine symba_util_resize_pltpenc(self, nnew)
-         implicit none
-         class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
-         integer(I4B),         intent(in)    :: nnew !! New size of list needed
-      end subroutine symba_util_resize_pltpenc
 
       module subroutine symba_util_resize_tp(self, nnew)
          implicit none

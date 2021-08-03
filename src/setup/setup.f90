@@ -70,6 +70,50 @@ contains
    end subroutine setup_construct_system
 
 
+   module subroutine setup_encounter(self, n)
+      !! author: David A. Minton
+      !!
+      !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
+      integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
+
+      self%nenc = n
+      if (n == 0) return
+
+      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
+      if (allocated(self%status)) deallocate(self%status)
+      if (allocated(self%index1)) deallocate(self%index1)
+      if (allocated(self%index2)) deallocate(self%index2)
+      if (allocated(self%x1)) deallocate(self%x1)
+      if (allocated(self%x2)) deallocate(self%x2)
+      if (allocated(self%v1)) deallocate(self%v1)
+      if (allocated(self%v2)) deallocate(self%v2)
+
+      allocate(self%lvdotr(n))
+      allocate(self%status(n))
+      allocate(self%index1(n))
+      allocate(self%index2(n))
+      allocate(self%x1(NDIM,n))
+      allocate(self%x2(NDIM,n))
+      allocate(self%v1(NDIM,n))
+      allocate(self%v2(NDIM,n))
+
+      self%lvdotr(:) = .false.
+      self%status(:) = INACTIVE
+      self%index1(:) = 0
+      self%index2(:) = 0
+      self%x1(:,:) = 0.0_DP
+      self%x2(:,:) = 0.0_DP
+      self%v1(:,:) = 0.0_DP
+      self%v2(:,:) = 0.0_DP
+
+      return
+   end subroutine setup_encounter
+
+
    module subroutine setup_initialize_system(self, param)
       !! author: David A. Minton
       !!

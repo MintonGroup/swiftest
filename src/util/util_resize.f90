@@ -207,6 +207,41 @@ contains
    end subroutine util_resize_body
 
 
+   module subroutine util_resize_encounter(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+      implicit none
+      ! Arguments
+      class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter list 
+      integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      ! Internals
+      class(swiftest_encounter), allocatable :: enc_temp
+      integer(I4B)                           :: nold
+      logical                                :: lmalloc
+
+      lmalloc = allocated(self%status)
+      if (lmalloc) then
+         nold = size(self%status)
+      else
+         nold = 0
+      end if
+      if (nnew > nold) then
+         if (lmalloc) allocate(enc_temp, source=self)
+         call self%setup(2 * nnew)
+         if (lmalloc) then
+            call self%copy(enc_temp)
+            deallocate(enc_temp)
+         end if
+      else
+         self%status(nnew+1:nold) = INACTIVE
+      end if
+      self%nenc = nnew
+
+      return
+   end subroutine util_resize_encounter
+
+
    module subroutine util_resize_pl(self, nnew)
       !! author: David A. Minton
       !!
