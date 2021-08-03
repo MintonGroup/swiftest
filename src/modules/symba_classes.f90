@@ -4,7 +4,7 @@ module symba_classes
    !! Definition of classes and methods specific to the Democratic SyMBAcentric Method
    !! Adapted from David E. Kaufmann's Swifter routine: helio.f90
    use swiftest_globals
-   use swiftest_classes, only : swiftest_parameters, swiftest_base
+   use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use rmvs_classes,     only : rmvs_chk_ind
    implicit none
@@ -125,13 +125,8 @@ module symba_classes
    !                                    symba_pltpenc class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-tp close encounters in a step
-   type :: symba_pltpenc
-      integer(I4B)                              :: nenc   !! Total number of encounters
-      logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
-      integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
+   type, extends(swiftest_encounter) :: symba_pltpenc
       integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
-      integer(I4B), dimension(:),   allocatable :: index1 !! position of the planet in encounter
-      integer(I4B), dimension(:),   allocatable :: index2 !! position of the test particle in encounter
    contains
       procedure :: collision_check => symba_collision_check_pltpenc !! Checks if a test particle is going to collide with a massive body
       procedure :: encounter_check => symba_encounter_check_pltpenc !! Checks if massive bodies are going through close encounters with each other
@@ -465,15 +460,17 @@ module symba_classes
       end subroutine symba_util_append_tp
 
       module subroutine symba_util_copy_pltpenc(self, source)
+         use swiftest_classes, only : swiftest_encounter
          implicit none
-         class(symba_pltpenc), intent(inout) :: self   !! SyMBA pl-tp encounter list 
-         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
+         class(symba_pltpenc),      intent(inout) :: self   !! SyMBA pl-tp encounter list 
+         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
       end subroutine symba_util_copy_pltpenc
 
       module subroutine symba_util_copy_plplenc(self, source)
+         use swiftest_classes, only : swifest_encounter
          implicit none
-         class(symba_plplenc), intent(inout) :: self   !! SyMBA pl-pl encounter list 
-         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
+         class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list 
+         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
       end subroutine symba_util_copy_plplenc
    end interface 
 

@@ -75,7 +75,7 @@ module swiftest_classes
       logical :: lintegrate = .false.  !! Flag indicating that this object should be integrated in the current step 
    contains
       !! The minimal methods that all systems must have
-      procedure                                         :: dump => io_dump_swiftest 
+      procedure                                 :: dump => io_dump_swiftest 
       procedure(abstract_initialize),  deferred :: initialize
       procedure(abstract_read_frame),  deferred :: read_frame
       procedure(abstract_write_frame), deferred :: write_frame
@@ -285,6 +285,16 @@ module swiftest_classes
       procedure :: step_spin     => tides_step_spin_system  !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys      => util_set_msys           !! Sets the value of msys from the masses of system bodies.
    end type swiftest_nbody_system
+
+   type :: swiftest_encounter
+      integer(I4B)                              :: nenc   !! Total number of encounters
+      logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
+      integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
+      integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
+      integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
+   contains
+      procedure :: copy => util_copy_encounter
+   end type swiftest_encounter
 
    abstract interface
       subroutine abstract_discard_body(self, system, param) 
@@ -823,6 +833,12 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
+
+      module subroutine util_copy_encounter(self, source)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self   !! Encounter list 
+         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
+      end subroutine util_copy_encounter
 
       module subroutine util_exit(code)
          implicit none

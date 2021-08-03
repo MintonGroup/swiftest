@@ -148,16 +148,15 @@ contains
       !! Copies elements from the source encounter list into self.
       implicit none
       ! Arguments
-      class(symba_pltpenc), intent(inout) :: self   !! SyMBA pl-tp encounter list 
-      class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
+      class(symba_pltpenc),      intent(inout) :: self   !! SyMBA pl-tp encounter list 
+      class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
 
+      call util_copy_encounter(self, source)
       associate(n => source%nenc)
-         self%nenc = n
-         self%lvdotr(1:n) = source%lvdotr(1:n) 
-         self%status(1:n) = source%status(1:n) 
-         self%level(1:n)  = source%level(1:n)
-         self%index1(1:n) = source%index1(1:n)
-         self%index2(1:n) = source%index2(1:n)
+         select type(source)
+         class is (symba_pltpenc)
+            self%level(1:n)  = source%level(1:n)
+         end select
       end associate
 
       return
@@ -170,8 +169,8 @@ contains
       !! Copies elements from the source encounter list into self.
       implicit none
       ! Arguments
-      class(symba_plplenc), intent(inout) :: self   !! SyMBA pl-pl encounter list 
-      class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
+      class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list 
+      class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
 
       call symba_util_copy_pltpenc(self, source)
       associate(n => source%nenc)
