@@ -142,7 +142,9 @@ module symba_classes
    !> SyMBA class for tracking pl-pl close encounters in a step
    type, extends(symba_pltpenc) :: symba_plplenc
    contains
-      procedure :: scrub_non_collision => symba_collision_encounter_scrub !! Processes the pl-pl encounter list remove only those encounters that led to a collisio
+      procedure :: scrub_non_collision    => symba_collision_encounter_scrub        !! Processes the pl-pl encounter list remove only those encounters that led to a collision
+      procedure :: resolve_fragmentations => symba_collision_resolve_fragmentations !! Process list of collisions, determine the collisional regime, and then create fragments
+      procedure :: resolve_mergers        => symba_collision_resolve_mergers        !! Process list of collisions and merge colliding bodies together
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -188,6 +190,20 @@ module symba_classes
          class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
          integer(I4B), dimension(2), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision
       end subroutine symba_collision_make_family_pl
+
+      module subroutine symba_collision_resolve_fragmentations(self, system, param)
+         implicit none
+         class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      end subroutine symba_collision_resolve_fragmentations
+   
+      module subroutine symba_collision_resolve_mergers(self, system, param)
+         implicit none
+         class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      end subroutine symba_collision_resolve_mergers
 
       module subroutine symba_discard_pl(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters

@@ -147,8 +147,19 @@ contains
    
       select type(system)
       class is (symba_nbody_system)
-         call symba_discard_nonplpl(self, system, param)
-         call system%plplenc_list%scrub_non_collision(system, param)
+         select type(param)
+         class is (symba_parameters)
+            associate(pl => self, plplenc_list => system%plplenc_list)
+               call symba_discard_nonplpl(self, system, param)
+               call plplenc_list%scrub_non_collision(system, param)
+               call pl%h2b(system%cb) 
+               if (param%lfragmentation) then
+                  call plplenc_list%resolve_fragmentations(system, param)
+               else
+                  call plplenc_list%resolve_mergers(system, param)
+               end if
+            end associate
+         end select 
       end select
 
       return

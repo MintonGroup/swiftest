@@ -272,4 +272,36 @@ contains
       return
    end subroutine symba_collision_make_family_pl
 
+
+   module subroutine symba_collision_resolve_fragmentations(self, system, param)
+      !! author: David A. Minton
+      !! 
+      !! Process list of collisions, determine the collisional regime, and then create fragments.
+      !!
+      implicit none
+      ! Arguments
+      class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      ! Internals
+
+      return
+   end subroutine symba_collision_resolve_fragmentations
+
+
+   module subroutine symba_collision_resolve_mergers(self, system, param)
+      !! author: David A. Minton
+      !! 
+      !! Process list of collisions and merge colliding bodies together.
+      !!
+      implicit none
+      ! Arguments
+      class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      ! Internals
+
+      return
+   end subroutine symba_collision_resolve_mergers
+
 end submodule s_symba_collision
