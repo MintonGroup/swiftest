@@ -143,6 +143,124 @@ contains
    end function symba_collision_check_one
 
 
+   function symba_collision_consolidate_familes(pl, idx_parent, family, x, v, mass, radius, L_spin, Ip) result(lflag)
+      !! author: David A. Minton
+      !! 
+      !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all family members, 
+      !! and pairs of quantities (x and v vectors, mass, radius, L_spin, and Ip) that can be used to resolve the collisional outcome.
+      implicit none
+      ! Arguments
+      class(symba_pl),                                 intent(inout) :: pl               !! SyMBA massive body object
+      integer(I4B),    dimension(2),                   intent(inout) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
+      integer(I4B),    dimension(:),      allocatable, intent(out)   :: family           !! List of indices of all bodies inovlved in the collision
+      real(DP),        dimension(NDIM,2),              intent(out)   :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),        dimension(2),                   intent(out)   :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
+      ! Result
+      logical                                                        :: lflag            !! Logical flag indicating whether a family was successfully created or not
+      ! Internals
+      type family_array
+         integer(I4B), dimension(:), allocatable :: id
+         integer(I4B), dimension(:), allocatable :: idx
+      end type family_array
+      type(family_array), dimension(2) :: parent_child_index_array
+      integer(I4B), dimension(2)       :: nchild
+      integer(I4B)                     :: i, j, fam_size, idx_child
+      real(DP), dimension(2)           :: volume, density
+      real(DP)                         :: mchild, mtot, volchild
+      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv
+
+      nchild(:) = pl%kin(idx_parent(:))%nchild 
+      ! If all of these bodies share a parent, but this is still a unique collision, move the last child
+      ! out of the parent's position and make it the secondary body
+      if (idx_parent(1) == idx_parent(2)) then
+         if (nchild(1) == 0) then ! There is only one valid body recorded in this pair (this could happen due to restructuring of the kinship relationships, though it should be rare)
+            lflag = .false. 
+            return
+         end if
+         idx_parent(2) = pl%kin(idx_parent(1))%child(nchild(1))
+         nchild(1) = nchild(1) - 1
+         nchild(2) = 0
+         pl%kin(idx_parent(:))%nchild = nchild(:)
+         pl%kin(idx_parent(2))%parent = idx_parent(1)
+      end if
+
+      mass(:) = pl%mass(idx_parent(:)) ! Note: This is meant to mass, not G*mass, as the collisional regime determination uses mass values that will be converted to Si
+      radius(:) = pl%radius(idx_parent(:))
+      volume(:) =  (4.0_DP / 3.0_DP) * PI * radius(:)**3
+ 
+      ! Group together the ids and indexes of each collisional parent and its children
+      do j = 1, 2
+         allocate(parent_child_index_array(j)%idx(nchild(j)+ 1))
+         allocate(parent_child_index_array(j)%id(nchild(j)+ 1))
+         associate(idx_arr => parent_child_index_array(j)%idx, &
+                   id_arr => parent_child_index_array(j)%id, &
+                   ncj => nchild(j), &
+                   pl => pl, &
+                   plkinj => pl%kin(idx_parent(j)))
+            idx_arr(1) = idx_parent(j)
+            if (ncj > 0) idx_arr(2:ncj + 1) = plkinj%child(1:ncj)
+            id_arr(:) = pl%id(idx_arr(:))
+         end associate
+      end do
+
+      ! Consolidate the groups of collsional parents with any children they may have into a single "family" index array
+      fam_size = 2 + sum(nchild(:))
+      allocate(family(fam_size))
+      family = [parent_child_index_array(1)%idx(:),parent_child_index_array(2)%idx(:)]
+      fam_size = count(pl%status(family(:)) == ACTIVE)
+      family = pack(family(:), pl%status(family(:)) == ACTIVE)
+
+      ! Find the barycenter of each body along with its children, if it has any
+      do j = 1, 2
+         x(:, j)  = pl%xb(:, idx_parent(j))
+         v(:, j)  = pl%vb(:, idx_parent(j))
+         Ip(:, j) = mass(j) * pl%Ip(:, idx_parent(j))
+         ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
+         L_spin(:, j)  = Ip(3, j) * radius(j)**2 * pl%rot(:, idx_parent(j))
+
+         ! Use conservation of energy and angular momentum to adjust velocities and distances to be those equivalent to where they would be when the mutual radii are touching
+         !call vector_adjust(mass(j), x(:,j), v(:,j))
+         if (nchild(j) > 0) then
+            do i = 1, nchild(j) ! Loop over all children and take the mass weighted mean of the properties
+               idx_child = parent_child_index_array(j)%idx(i + 1)
+               if ((idx_child) /= COLLISION) cycle
+               mchild = pl%Gmass(idx_child)
+               xchild(:) = pl%xb(:, idx_child)
+               vchild(:) = pl%vb(:, idx_child)
+               volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
+               volume(j) = volume(j) + volchild
+               ! Get angular momentum of the child-parent pair and add that to the spin
+               xcom(:) = (mass(j) * x(:,j) + mchild * xchild(:)) / (mass(j) + mchild)
+               vcom(:) = (mass(j) * v(:,j) + mchild * vchild(:)) / (mass(j) + mchild)
+               xc(:) = x(:, j) - xcom(:)
+               vc(:) = v(:, j) - vcom(:)
+               xcrossv(:) = xc(:) .cross. vc(:) 
+               L_spin(:, j) = L_spin(:, j) + mass(j) * xcrossv(:)
+
+               xc(:) = xchild(:) - xcom(:)
+               vc(:) = vchild(:) - vcom(:)
+               xcrossv(:) = xc(:) .cross. vc(:) 
+               L_spin(:, j) = L_spin(:, j) + mchild * xcrossv(:)
+
+               ! Add the child's spin
+               L_spin(:, j) = L_spin(:, j) + mchild * pl%Ip(3, idx_child) * pl%radius(idx_child)**2 * pl%rot(:, idx_child)
+
+               ! Merge the child and parent
+               mass(j) = mass(j) + mchild
+               x(:, j) = xcom(:)
+               v(:, j) = vcom(:)
+               Ip(:, j) = Ip(:, j) + mchild * pl%Ip(:, idx_child)
+            end do
+         end if
+         density(j) =  mass(j) / volume(j)
+         radius(j) = ((3 * mass(j)) / (density(j) * 4 * pi))**(1.0_DP / 3.0_DP)
+         Ip(:, j) = Ip(:, j) / mass(j)
+      end do
+      lflag = .true.
+
+      return
+   end function symba_collision_consolidate_familes
+
    module subroutine symba_collision_encounter_scrub(self, system, param)
       !! author: David A. Minton
       !! 
