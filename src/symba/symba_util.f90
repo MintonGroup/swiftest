@@ -375,15 +375,35 @@ contains
       !! Clean up the massive body structures to remove discarded bodies and add new bodies
       implicit none
       ! Arguments
-      class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(symba_pl),           intent(inout) :: self   !! SyMBA massive body object
+      class(symba_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+      class(symba_pl), allocatable :: pl_discards !! The discarded body list.
 
-      ! First 
+      associate(pl => self, mergeadd_list => system%mergeadd_list)
+         allocate(pl_discards, mold=pl)
+         ! Remove the discards
+         call pl%spill(pl_discards, lspill_list=(pl%ldiscard(:) .or. pl%status(:) == INACTIVE), ldestructive=.true.)
+
+         ! Add in any new bodies
+         call pl%append(mergeadd_list)
+
+         ! If there are still bodies in the system, sort by mass in descending order and re-index
+         if (pl%nbody > 0) then
+            call pl%sort("mass", ascending=.false.)
+            pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
+            pl%nplm = count(pl%lmtiny(:))
+            call pl%eucl_index()
+         end if
+
+         ! Destroy the discarded body list, since we already have what we need in the mergesub_list
+         call pl_discards%setup(0,param)
+         deallocate(pl_discards)
+      end associate
 
       return
    end subroutine symba_util_rearray_pl
-
 
 
    module subroutine symba_util_resize_arr_info(arr, nnew)

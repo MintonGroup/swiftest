@@ -97,6 +97,8 @@ contains
             ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
             plnew%id(1) = pl%id(family(ibiggest))
             plnew%status(1) = ACTIVE
+            plnew%lcollision = .false.
+            plnew%ldiscard = .false.
             plnew%xb(:,1) = xcom(:)
             plnew%vb(:,1) = vcom(:)
             plnew%xh(:,1) = xcom(:) - cb%xb(:)

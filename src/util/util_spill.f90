@@ -163,6 +163,7 @@ contains
          call util_spill(keeps%name, discards%name, lspill_list, ldestructive)
          call util_spill(keeps%status, discards%status, lspill_list, ldestructive)
          call util_spill(keeps%lmask, discards%lmask, lspill_list, ldestructive)
+         call util_spill(keeps%ldiscard, discards%ldiscard, lspill_list, ldestructive)
          call util_spill(keeps%mu, discards%mu, lspill_list, ldestructive)
          call util_spill(keeps%xh, discards%xh, lspill_list, ldestructive)
          call util_spill(keeps%vh, discards%vh, lspill_list, ldestructive)

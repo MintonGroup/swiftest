@@ -310,7 +310,7 @@ contains
 
                if (any(pl%ldiscard(:))) then
                   call symba_discard_nonplpl_conservation(self, system, param)
-                  !call pl%rearray(self, system, param)
+                  call pl%rearray(system, param)
                end if
 
             end associate

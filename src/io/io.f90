@@ -2,6 +2,238 @@ submodule (swiftest_classes) s_io
    use swiftest
 contains
 
+   module subroutine io_dump_param(self, param_file_name)
+      !! author: David A. Minton
+      !!
+      !! Dump integration parameters to file
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine io_dump_param.f90
+      !! Adapted from Martin Duncan's Swift routine io_dump_param.f
+      implicit none
+      ! Arguments
+      class(swiftest_parameters),intent(in) :: self    !! Output collection of parameters
+      character(len=*),          intent(in) :: param_file_name !! Parameter input file name (i.e. param.in)
+      ! Internals
+      integer(I4B), parameter  :: LUN = 7       !! Unit number of output file
+      integer(I4B)             :: ierr          !! Error code
+      character(STRMAX)        :: error_message !! Error message in UDIO procedure
+
+      open(unit = LUN, file = param_file_name, status='replace', form = 'FORMATTED', iostat =ierr)
+      if (ierr /=0) then
+         write(*,*) 'Swiftest error.'
+         write(*,*) '   Could not open dump file: ',trim(adjustl(param_file_name))
+         call util_exit(FAILURE)
+      end if
+      
+      !! todo: Currently this procedure does not work in user-defined derived-type input mode 
+      !!    due to compiler incompatabilities
+      !write(LUN,'(DT)') param
+      call self%writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = error_message)
+      if (ierr /= 0) then
+         write(*,*) trim(adjustl(error_message))
+         call util_exit(FAILURE)
+      end if
+      close(LUN)
+
+      return
+   end subroutine io_dump_param
+
+
+   module subroutine io_dump_swiftest(self, param, msg) 
+      !! author: David A. Minton
+      !!
+      !! Dump massive body data to files
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: io_dump_pl.f90 and io_dump_tp.f90
+      !! Adapted from Hal Levison's Swift routine io_dump_pl.f and io_dump_tp.f
+      implicit none
+      ! Arguments
+      class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      character(*), optional,     intent(in)    :: msg  !! Message to display with dump operation
+      ! Internals
+      integer(I4B)                   :: ierr    !! Error code
+      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
+      integer(I4B)                   :: iu = LUN
+      character(len=:), allocatable  :: dump_file_name
+
+      select type(self)
+      class is(swiftest_cb)
+         dump_file_name = trim(adjustl(param%incbfile)) 
+      class is (swiftest_pl)
+         dump_file_name = trim(adjustl(param%inplfile)) 
+      class is (swiftest_tp)
+         dump_file_name = trim(adjustl(param%intpfile)) 
+      end select
+      open(unit = iu, file = dump_file_name, form = "UNFORMATTED", status = 'replace', iostat = ierr)
+      if (ierr /= 0) then
+         write(*, *) "Swiftest error:"
+         write(*, *) "   Unable to open binary dump file " // dump_file_name
+         call util_exit(FAILURE)
+      end if
+      call self%write_frame(iu, param)
+      close(LUN)
+
+      return
+   end subroutine io_dump_swiftest
+
+
+   module subroutine io_dump_system(self, param, msg)
+      !! author: David A. Minton
+      !!
+      !! Dumps the state of the system to files in case the simulation is interrupted.
+      !! As a safety mechanism, there are two dump files that are written in alternating order
+      !! so that if a dump file gets corrupted during writing, the user can restart from the older one.
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      character(*), optional,       intent(in)    :: msg   !! Message to display with dump operation
+      ! Internals
+      class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
+                                                            !! to dump file-specific values without changing the user-defined values
+      integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
+                                                            !! in case the program halts during writing
+      character(len=:), allocatable :: param_file_name
+      real(DP) :: tfrac
+     
+      allocate(dump_param, source=param)
+      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
+      dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
+      dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
+      dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
+      dump_param%out_form = XV
+      dump_param%out_stat = 'APPEND'
+      dump_param%T0 = param%t
+      call dump_param%dump(param_file_name)
+
+      call self%cb%dump(dump_param)
+      if (self%pl%nbody > 0) call self%pl%dump(dump_param)
+      if (self%tp%nbody > 0) call self%tp%dump(dump_param)
+
+      idx = idx + 1
+      if (idx > NDUMPFILES) idx = 1
+
+      ! Print the status message (format code passed in from main driver)
+      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+      write(*,msg) param%t, tfrac, self%pl%nbody, self%tp%nbody
+
+      return
+   end subroutine io_dump_system
+
+
+   module function io_get_args(integrator, param_file_name) result(ierr)
+      !! author: David A. Minton
+      !!
+      !! Reads in the name of the parameter file from command line arguments. 
+      implicit none
+      ! Arguments
+      integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
+      character(len=:), allocatable :: param_file_name !! Name of the input parameters file
+      ! Result
+      integer(I4B)                  :: ierr             !! I/O error code
+      ! Internals
+      character(len=STRMAX) :: arg1, arg2
+      integer :: narg,ierr_arg1, ierr_arg2
+      character(len=*),parameter    :: linefmt = '(A)'
+
+      ierr = -1 ! Default is to fail
+      narg = command_argument_count() !
+      if (narg == 2) then
+         call get_command_argument(1, arg1, status = ierr_arg1)
+         call get_command_argument(2, arg2, status = ierr_arg2)
+         if ((ierr_arg1 == 0) .and. (ierr_arg2 == 0)) then
+            ierr = 0
+            call io_toupper(arg1)
+            select case(arg1)
+            case('BS')
+               integrator = BS
+            case('HELIO')
+               integrator = HELIO
+            case('RA15')
+               integrator = RA15
+            case('TU4')
+               integrator = TU4
+            case('WHM')
+               integrator = WHM
+            case('RMVS')
+               integrator = RMVS
+            case('SYMBA')
+               integrator = SYMBA
+            case('RINGMOONS')
+               integrator = RINGMOONS
+            case default
+               integrator = UNKNOWN_INTEGRATOR
+               write(*,*) trim(adjustl(arg1)) // ' is not a valid integrator.'
+               ierr = -1
+            end select
+            param_file_name = trim(adjustl(arg2))
+         end if
+      else 
+         call get_command_argument(1, arg1, status = ierr_arg1)
+         if (ierr_arg1 == 0) then
+            if (arg1 == '-v' .or. arg1 == '--version') then
+               call util_version() 
+            else if (arg1 == '-h' .or. arg1 == '--help') then
+               call util_exit(HELP)
+            end if
+         end if
+      end if
+      if (ierr /= 0) call util_exit(USAGE) 
+
+      return
+   end function io_get_args
+
+
+   module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
+      !! author: David A. Minton
+      !!
+      !! Retrieves a character token from an input string. Here a token is defined as any set of contiguous non-blank characters not 
+      !! beginning with or containing "!". If "!" is present, any remaining part of the buffer including the "!" is ignored
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine io_get_token.f90
+      implicit none
+      ! Arguments
+      character(len=*), intent(in)    :: buffer         !! Input string buffer
+      integer(I4B),     intent(inout) :: ifirst         !! Index of the buffer at which to start the search for a token
+      integer(I4B),     intent(out)   :: ilast          !! Index of the buffer at the end of the returned token
+      integer(I4B),     intent(out)   :: ierr           !! Error code
+      ! Result
+      character(len=:), allocatable   :: token          !! Returned token string
+      ! Internals
+      integer(I4B) :: i,ilength
+   
+      ilength = len(buffer)
+   
+      if (ifirst > ilength) then
+          ilast = ifirst
+          ierr = -1 !! Bad input
+          token = ''
+          return
+      end if
+      do i = ifirst, ilength
+          if (buffer(i:i) /= ' ') exit
+      end do
+      if ((i > ilength) .or. (buffer(i:i) == '!')) then
+          ifirst = i
+          ilast = i
+          ierr = -2 !! No valid token
+          token = ''
+          return
+      end if
+      ifirst = i
+      do i = ifirst, ilength
+          if ((buffer(i:i) == ' ') .or. (buffer(i:i) == '!')) exit
+      end do
+      ilast = i - 1
+      ierr = 0
+   
+      token = buffer(ifirst:ilast)
+
+      return
+   end function io_get_token
+
+
    module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -363,238 +595,6 @@ contains
    end subroutine io_param_writer
 
 
-   module subroutine io_dump_param(self, param_file_name)
-      !! author: David A. Minton
-      !!
-      !! Dump integration parameters to file
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine io_dump_param.f90
-      !! Adapted from Martin Duncan's Swift routine io_dump_param.f
-      implicit none
-      ! Arguments
-      class(swiftest_parameters),intent(in) :: self    !! Output collection of parameters
-      character(len=*),          intent(in) :: param_file_name !! Parameter input file name (i.e. param.in)
-      ! Internals
-      integer(I4B), parameter  :: LUN = 7       !! Unit number of output file
-      integer(I4B)             :: ierr          !! Error code
-      character(STRMAX)        :: error_message !! Error message in UDIO procedure
-
-      open(unit = LUN, file = param_file_name, status='replace', form = 'FORMATTED', iostat =ierr)
-      if (ierr /=0) then
-         write(*,*) 'Swiftest error.'
-         write(*,*) '   Could not open dump file: ',trim(adjustl(param_file_name))
-         call util_exit(FAILURE)
-      end if
-      
-      !! todo: Currently this procedure does not work in user-defined derived-type input mode 
-      !!    due to compiler incompatabilities
-      !write(LUN,'(DT)') param
-      call self%writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = error_message)
-      if (ierr /= 0) then
-         write(*,*) trim(adjustl(error_message))
-         call util_exit(FAILURE)
-      end if
-      close(LUN)
-
-      return
-   end subroutine io_dump_param
-
-
-   module subroutine io_dump_swiftest(self, param, msg) 
-      !! author: David A. Minton
-      !!
-      !! Dump massive body data to files
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_dump_pl.f90 and io_dump_tp.f90
-      !! Adapted from Hal Levison's Swift routine io_dump_pl.f and io_dump_tp.f
-      implicit none
-      ! Arguments
-      class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      character(*), optional,     intent(in)    :: msg  !! Message to display with dump operation
-      ! Internals
-      integer(I4B)                   :: ierr    !! Error code
-      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
-      integer(I4B)                   :: iu = LUN
-      character(len=:), allocatable  :: dump_file_name
-
-      select type(self)
-      class is(swiftest_cb)
-         dump_file_name = trim(adjustl(param%incbfile)) 
-      class is (swiftest_pl)
-         dump_file_name = trim(adjustl(param%inplfile)) 
-      class is (swiftest_tp)
-         dump_file_name = trim(adjustl(param%intpfile)) 
-      end select
-      open(unit = iu, file = dump_file_name, form = "UNFORMATTED", status = 'replace', iostat = ierr)
-      if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   Unable to open binary dump file " // dump_file_name
-         call util_exit(FAILURE)
-      end if
-      call self%write_frame(iu, param)
-      close(LUN)
-
-      return
-   end subroutine io_dump_swiftest
-
-
-   module subroutine io_dump_system(self, param, msg)
-      !! author: David A. Minton
-      !!
-      !! Dumps the state of the system to files in case the simulation is interrupted.
-      !! As a safety mechanism, there are two dump files that are written in alternating order
-      !! so that if a dump file gets corrupted during writing, the user can restart from the older one.
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
-      character(*), optional,       intent(in)    :: msg   !! Message to display with dump operation
-      ! Internals
-      class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
-                                                            !! to dump file-specific values without changing the user-defined values
-      integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
-                                                            !! in case the program halts during writing
-      character(len=:), allocatable :: param_file_name
-      real(DP) :: tfrac
-     
-      allocate(dump_param, source=param)
-      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
-      dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-      dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-      dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-      dump_param%out_form = XV
-      dump_param%out_stat = 'APPEND'
-      dump_param%T0 = param%t
-      call dump_param%dump(param_file_name)
-
-      call self%cb%dump(dump_param)
-      if (self%pl%nbody > 0) call self%pl%dump(dump_param)
-      if (self%tp%nbody > 0) call self%tp%dump(dump_param)
-
-      idx = idx + 1
-      if (idx > NDUMPFILES) idx = 1
-
-      ! Print the status message (format code passed in from main driver)
-      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
-      write(*,msg) param%t, tfrac, self%pl%nbody, self%tp%nbody
-
-      return
-   end subroutine io_dump_system
-
-
-   module function io_get_args(integrator, param_file_name) result(ierr)
-      !! author: David A. Minton
-      !!
-      !! Reads in the name of the parameter file from command line arguments. 
-      implicit none
-      ! Arguments
-      integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
-      character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-      ! Result
-      integer(I4B)                  :: ierr             !! I/O error code
-      ! Internals
-      character(len=STRMAX) :: arg1, arg2
-      integer :: narg,ierr_arg1, ierr_arg2
-      character(len=*),parameter    :: linefmt = '(A)'
-
-      ierr = -1 ! Default is to fail
-      narg = command_argument_count() !
-      if (narg == 2) then
-         call get_command_argument(1, arg1, status = ierr_arg1)
-         call get_command_argument(2, arg2, status = ierr_arg2)
-         if ((ierr_arg1 == 0) .and. (ierr_arg2 == 0)) then
-            ierr = 0
-            call io_toupper(arg1)
-            select case(arg1)
-            case('BS')
-               integrator = BS
-            case('HELIO')
-               integrator = HELIO
-            case('RA15')
-               integrator = RA15
-            case('TU4')
-               integrator = TU4
-            case('WHM')
-               integrator = WHM
-            case('RMVS')
-               integrator = RMVS
-            case('SYMBA')
-               integrator = SYMBA
-            case('RINGMOONS')
-               integrator = RINGMOONS
-            case default
-               integrator = UNKNOWN_INTEGRATOR
-               write(*,*) trim(adjustl(arg1)) // ' is not a valid integrator.'
-               ierr = -1
-            end select
-            param_file_name = trim(adjustl(arg2))
-         end if
-      else 
-         call get_command_argument(1, arg1, status = ierr_arg1)
-         if (ierr_arg1 == 0) then
-            if (arg1 == '-v' .or. arg1 == '--version') then
-               call util_version() 
-            else if (arg1 == '-h' .or. arg1 == '--help') then
-               call util_exit(HELP)
-            end if
-         end if
-      end if
-      if (ierr /= 0) call util_exit(USAGE) 
-
-      return
-   end function io_get_args
-
-
-   module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
-      !! author: David A. Minton
-      !!
-      !! Retrieves a character token from an input string. Here a token is defined as any set of contiguous non-blank characters not 
-      !! beginning with or containing "!". If "!" is present, any remaining part of the buffer including the "!" is ignored
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine io_get_token.f90
-      implicit none
-      ! Arguments
-      character(len=*), intent(in)    :: buffer         !! Input string buffer
-      integer(I4B),     intent(inout) :: ifirst         !! Index of the buffer at which to start the search for a token
-      integer(I4B),     intent(out)   :: ilast          !! Index of the buffer at the end of the returned token
-      integer(I4B),     intent(out)   :: ierr           !! Error code
-      ! Result
-      character(len=:), allocatable   :: token          !! Returned token string
-      ! Internals
-      integer(I4B) :: i,ilength
-   
-      ilength = len(buffer)
-   
-      if (ifirst > ilength) then
-          ilast = ifirst
-          ierr = -1 !! Bad input
-          token = ''
-          return
-      end if
-      do i = ifirst, ilength
-          if (buffer(i:i) /= ' ') exit
-      end do
-      if ((i > ilength) .or. (buffer(i:i) == '!')) then
-          ifirst = i
-          ilast = i
-          ierr = -2 !! No valid token
-          token = ''
-          return
-      end if
-      ifirst = i
-      do i = ifirst, ilength
-          if ((buffer(i:i) == ' ') .or. (buffer(i:i) == '!')) exit
-      end do
-      ilast = i - 1
-      ierr = 0
-   
-      token = buffer(ifirst:ilast)
-
-      return
-   end function io_get_token
-
-
    module subroutine io_read_body_in(self, param) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -730,50 +730,9 @@ contains
    end subroutine io_read_cb_in
 
 
-   module subroutine io_read_param_in(self, param_file_name) 
-      !! author: David A. Minton
-      !!
-      !! Read in parameters for the integration
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
-      !! Adapted from Martin Duncan's Swift routine io_init_param.f
-      implicit none
-      ! Arguments
-      class(swiftest_parameters),intent(inout) :: self             !! Current run configuration parameters
-      character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
-      ! Internals
-      integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
-      integer(I4B)            :: ierr = 0                !! Input error code
-      character(STRMAX)       :: error_message           !! Error message in UDIO procedure
-
-      ! Read in name of parameter file
-      write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
-      write(*, *) ' '
-      100 format(A)
-      open(unit = LUN, file = param_file_name, status = 'old', iostat = ierr)
-      if (ierr /= 0) then
-         write(*,*) 'Swiftest error: ', ierr
-         write(*,*) '   Unable to open file ',trim(adjustl(param_file_name))
-         call util_exit(FAILURE)
-      end if
-
-      !! todo: Currently this procedure does not work in user-defined derived-type input mode 
-      !!    as the newline characters are ignored in the input file when compiled in ifort.
-
-      !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) param
-      call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = error_message)
-      if (ierr /= 0) then
-         write(*,*) 'Swiftest error reading ', trim(adjustl(param_file_name))
-         write(*,*) ierr,trim(adjustl(error_message))
-         call util_exit(FAILURE)
-      end if
-
-      return 
-   end subroutine io_read_param_in
-
 
    function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-         xh1, xh2, vh1, vh2, enc_out, out_type) result(ierr)
+      xh1, xh2, vh1, vh2, enc_out, out_type) result(ierr)
       !! author: David A. Minton
       !!
       !! Read close encounter data from input binary files
@@ -807,7 +766,7 @@ contains
          close(unit = iu, iostat = ierr)
          return
       end if
-  
+
       read(iu, iostat = ierr) name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), mass1, radius1
       if (ierr /= 0) then
          close(unit = iu, iostat = ierr)
@@ -931,7 +890,7 @@ contains
       return
    end subroutine io_read_frame_cb
 
- 
+
    module subroutine io_read_frame_system(self, iu, param, form, ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -1008,6 +967,47 @@ contains
 
       return
    end function io_read_hdr
+
+   module subroutine io_read_param_in(self, param_file_name) 
+      !! author: David A. Minton
+      !!
+      !! Read in parameters for the integration
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
+      !! Adapted from Martin Duncan's Swift routine io_init_param.f
+      implicit none
+      ! Arguments
+      class(swiftest_parameters),intent(inout) :: self             !! Current run configuration parameters
+      character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
+      ! Internals
+      integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
+      integer(I4B)            :: ierr = 0                !! Input error code
+      character(STRMAX)       :: error_message           !! Error message in UDIO procedure
+
+      ! Read in name of parameter file
+      write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
+      write(*, *) ' '
+      100 format(A)
+      open(unit = LUN, file = param_file_name, status = 'old', iostat = ierr)
+      if (ierr /= 0) then
+         write(*,*) 'Swiftest error: ', ierr
+         write(*,*) '   Unable to open file ',trim(adjustl(param_file_name))
+         call util_exit(FAILURE)
+      end if
+
+      !! todo: Currently this procedure does not work in user-defined derived-type input mode 
+      !!    as the newline characters are ignored in the input file when compiled in ifort.
+
+      !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) param
+      call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = error_message)
+      if (ierr /= 0) then
+         write(*,*) 'Swiftest error reading ', trim(adjustl(param_file_name))
+         write(*,*) ierr,trim(adjustl(error_message))
+         call util_exit(FAILURE)
+      end if
+
+      return 
+   end subroutine io_read_param_in
 
 
    module subroutine io_toupper(string)

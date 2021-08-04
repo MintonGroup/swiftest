@@ -537,9 +537,9 @@ module symba_classes
 
       module subroutine symba_util_rearray_pl(self, system, param)
          implicit none
-         class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         class(symba_pl),           intent(inout) :: self   !! SyMBA massive body object
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_util_rearray_pl
    end interface
 
