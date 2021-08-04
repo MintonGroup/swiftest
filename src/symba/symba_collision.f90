@@ -208,8 +208,8 @@ contains
       fam_size = 2 + sum(nchild(:))
       allocate(family(fam_size))
       family = [parent_child_index_array(1)%idx(:),parent_child_index_array(2)%idx(:)]
-      fam_size = count(pl%status(family(:)) == COLLISION)
-      family = pack(family(:), pl%status(family(:)) == COLLISION)
+      fam_size = count(pl%lcollision(family(:)))
+      family = pack(family(:), pl%lcollision(family(:)))
       L_spin(:,:) = 0.0_DP
       Ip(:,:) = 0.0_DP
 
@@ -226,8 +226,8 @@ contains
          if (nchild(j) > 0) then
             do i = 1, nchild(j) ! Loop over all children and take the mass weighted mean of the properties
                idx_child = parent_child_index_array(j)%idx(i + 1)
-               if ((idx_child) /= COLLISION) cycle
-               mchild = pl%Gmass(idx_child)
+               if (.not. pl%lcollision(idx_child)) cycle
+               mchild = pl%mass(idx_child)
                xchild(:) = pl%xb(:, idx_child)
                vchild(:) = pl%vb(:, idx_child)
                volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
@@ -265,6 +265,7 @@ contains
 
       return
    end function symba_collision_consolidate_familes
+
 
    module subroutine symba_collision_encounter_scrub(self, system, param)
       !! author: David A. Minton

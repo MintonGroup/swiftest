@@ -58,6 +58,108 @@ contains
    end subroutine symba_discard_cb_pl
 
 
+   subroutine symba_discard_conserve_mtm(pl, system, param, ipl, lescape_body)
+      !! author: David A. Minton
+      !! 
+      !! Conserves system momentum when a body is lost from the system or collides with central body
+      implicit none
+      ! Arguments
+      class(symba_pl),           intent(inout) :: pl
+      class(symba_nbody_system), intent(inout) :: system
+      class(symba_parameters),   intent(inout) :: param
+      integer(I4B),              intent(in)    :: ipl
+      logical,                   intent(in)         :: lescape_body
+      ! Internals
+      real(DP), dimension(NDIM) :: Lpl, Ltot, Lcb, xcom, vcom
+      real(DP)                  :: pe, ke_orbit, ke_spin
+      integer(I4B)              :: i, oldstat
+   
+      select type(cb => system%cb)
+      class is (symba_cb)
+   
+         ! Add the potential and kinetic energy of the lost body to the records
+         pe = -cb%mass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, 1))
+         ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
+         if (param%lrotation) then
+            ke_spin  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
+         else
+            ke_spin = 0.0_DP
+         end if
+   
+         ! Add the pre-collision ke of the central body to the records
+         ! Add planet mass to central body accumulator
+         if (lescape_body) then
+            system%Mescape = system%Mescape + pl%mass(ipl)
+            do i = 1, npl
+               if (i == ipl) cycle
+               pe = pe - pl%mass(i) * pl%mass(ipl) / norm2(xb(:, ipl) - xb(:, i))
+            end do
+   
+            Ltot(:) = 0.0_DP
+            do i = 1, npl
+               Lpl(:) = mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Ltot(:) = Ltot(:) + Lpl(:)
+            end do
+            Ltot(:) = Ltot(:) + cb%mass * cb%xb(:) .cross. cb%vb(:)
+            call pl%b2h(cb)
+            oldstat = status(ipl)
+            pl%status(ipl) = INACTIVE
+            call pl%h2b(cb)
+            pl%status(ipl) = oldstat
+            do i = 1, npl
+               if (i == ipl) cycle
+               Lpl(:) = mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Ltot(:) = Ltot(:) - Lpl(:) 
+            end do 
+            Ltot(:) = Ltot(:) - cb%mass * cb%xb(:) .cross. cb%vb(:)
+            system%Lescape(:) = system%Lescape(:) + system%Ltot(:) 
+            if (param%lrotation) system%Lescape(:) = system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
+   
+         else
+            xcom(:) = (pl%mass(ipl) * pl%xb(:, ipl) + cb%mass * cb%xb(:)) / (cb%mass + pl%mass(ipl))
+            vcom(:) = (pl%mass(ipl) * pl%vb(:, ipl) + cb%mass * cb%vb(:)) / (cb%mass + pl%mass(ipl))
+            Lpl(:) = (pl%xb(:,ipl) - xcom(:)) .cross. pL%vb(:,ipl) - vcom(:)
+            if (param%lrotation) Lpl(:) = pl%mass(ipl) * (Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl))
+     
+            Lcb(:) = cb%mass * (cb%xb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:))
+   
+            ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
+            if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
+            ! Update mass of central body to be consistent with its total mass
+            cb%dM = cb%dM + pl%mass(ipl)
+            cb%dR = cb%dR + 1.0_DP / 3.0_DP * (pl%radius(ipl) / cb%radius)**3 - 2.0_DP / 9.0_DP * (pl%radius(ipl) / cb%radius)**6
+            cb%mass = cb%M0 + cb%dM
+            cb%Gmass = param%GU * cb%mass 
+            cb%radius = cb%R0 + cb%dR
+            param%rmin = cb%radius
+            ! Add planet angular momentum to central body accumulator
+            cb%dL(:) = Lpl(:) + Lcb(:) + cb%dL(:)
+            ! Update rotation of central body to by consistent with its angular momentum 
+            if (param%lrotation) then
+               cb%rot(:) = (cb%L0(:) + cb%dL(:)) / (cb%Ip(3) * cb%mass * cb%radius**2)        
+               ke_spin  = ke_spin - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) 
+            end if
+            cb%xb(:) = xcom(:)
+            cb%vb(:) = vcom(:)
+            ke_orbit = ke_orbit - 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
+         end if
+         call pl%b2h(cb)
+   
+         ! We must do this for proper book-keeping, since we can no longer track this body's contribution to energy directly
+         if (lescape_body) then
+            system%Ecollisions  = system%Ecollisions + ke_orbit + ke_spin + pe
+            system%Euntracked  = system%Euntracked - (ke_orbit + ke_spin + pe)
+         else
+            system%Ecollisions  = system%Ecollisions + pe 
+            system%Euntracked = system%Euntracked - pe
+         end if
+   
+      end select
+      return
+   
+   end subroutine symba_discard_conserve_mtm
+
+
    subroutine symba_discard_nonplpl(pl, system, param)
       !! author: David A. Minton
       !!
@@ -87,6 +189,45 @@ contains
 
       return
    end subroutine symba_discard_nonplpl
+
+
+   subroutine symba_discard_nonplpl_conservation(pl, system, param)
+      !! author: David A. Minton
+      !!
+      !! If there are any bodies that are removed due to either colliding with the central body or escaping the systme,
+      !! we need to track the conserved quantities with the system bookkeeping terms.
+      implicit none
+      ! Arguments
+      class(symba_pl),              intent(inout) :: pl     !! SyMBA test particle object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      ! Internals
+      integer(I4B)                            :: i, ndiscard, dstat
+      logical                                 :: lescape
+      logical, dimension(pl%nbody)            :: discard_l_pl
+      integer(I4B), dimension(:), allocatable :: discard_index_list
+
+      associate(npl => pl%nbody)
+         discard_l_pl(1:npl) = pl%ldiscard(1:npl) .and. .not. pl%lcollision(1:npl) ! These are bodies that are discarded but not flagged as pl-pl collision
+         ndiscard = count(discard_l_pl(:)) 
+         allocate(discard_index_list(ndiscard))
+         discard_index_list(:) = pack([(i, i = 1, npl)], discard_l_pl(1:npl))
+         do i = 1, ndiscard
+            dstat = pl%status(discard_index_list(i)) 
+            if ((dstat == DISCARDED_RMIN) .or. (dstat == DISCARDED_PERI)) then
+               lescape = .false.
+            else if ((dstat == DISCARDED_RMAX) .or. (dstat == DISCARDED_RMAXU)) then
+               lescape = .true.
+            else 
+               cycle
+            end if
+            ! Conserve all the quantities
+            call symba_discard_conserve_mtm(pl, system, param, discard_index_list(i), lescape)
+         end do
+      end associate
+
+      return
+   end subroutine symba_discard_nonplpl_conservation
 
 
    subroutine symba_discard_peri_pl(pl, system, param)
@@ -150,17 +291,28 @@ contains
          select type(param)
          class is (symba_parameters)
             associate(pl => self, plplenc_list => system%plplenc_list)
-               call symba_discard_nonplpl(self, system, param)
-               call plplenc_list%scrub_non_collision(system, param)
-               if (plplenc_list%nenc == 0) return ! No collisions to resolve
-               write(*, *) "Collision detected at time t = ",param%t
-
                call pl%h2b(system%cb) 
-               if (param%lfragmentation) then
-                  call plplenc_list%resolve_fragmentations(system, param)
-               else
-                  call plplenc_list%resolve_mergers(system, param)
+
+               ! First deal with the non pl-pl collisions
+               call symba_discard_nonplpl(self, system, param)
+
+               ! Scrub the pl-pl encounter list of any encounters that did not lead to a collision
+               call plplenc_list%scrub_non_collision(system, param)
+
+               if ((plplenc_list%nenc > 0) .and. any(pl%lcollision(:))) then 
+                  write(*, *) "Collision between massive bodies detected at time t = ",param%t
+                  if (param%lfragmentation) then
+                     call plplenc_list%resolve_fragmentations(system, param)
+                  else
+                     call plplenc_list%resolve_mergers(system, param)
+                  end if
                end if
+
+               if (any(pl%ldiscard(:))) then
+                  call symba_discard_nonplpl_conservation(self, system, param)
+                  call pl%rearray(self, system, param)
+               end if
+
             end associate
          end select 
       end select

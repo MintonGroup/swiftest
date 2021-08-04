@@ -369,6 +369,23 @@ contains
    end subroutine symba_util_peri_pl
 
 
+   module subroutine symba_util_rearray_pl(self, system, param)
+      !! Author: the Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+      !!
+      !! Clean up the massive body structures to remove discarded bodies and add new bodies
+      implicit none
+      ! Arguments
+      class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+
+      ! First 
+
+      return
+   end subroutine symba_util_rearray_pl
+
+
+
    module subroutine symba_util_resize_arr_info(arr, nnew)
       !! author: David A. Minton
       !!
