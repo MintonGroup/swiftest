@@ -215,7 +215,7 @@ contains
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
-      integer(I4B)          :: i, ierr
+      integer(I4B)          :: iadd, isub, j, ierr, nsub, nadd
       logical, save :: lfirst = .true. 
       real(DP), dimension(:,:), allocatable :: vh
       character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
@@ -245,33 +245,35 @@ contains
          end if
 
          write(LUN, HDRFMT) param%t, mergesub_list%nbody, param%lbig_discard
-         do i = 1, mergesub_list%nbody
-             write(LUN, NAMEFMT) SUB, mergesub_list%id(i), mergesub_list%status(i)
-             write(LUN, VECFMT) mergesub_list%xh(1, i), mergesub_list%xh(2, i), mergesub_list%xh(3, i)
-             write(LUN, VECFMT) mergesub_list%vh(1, i), mergesub_list%vh(2, i), mergesub_list%vh(3, i)
+         iadd = 1
+         isub = 1
+         do while (iadd <= mergeadd_list%nbody)
+            nadd = mergeadd_list%ncomp(iadd)
+            nsub = mergesub_list%ncomp(isub)
+            do j = 1, nadd
+               if (iadd <= mergeadd_list%nbody) then
+                  write(LUN, NAMEFMT) SUB, mergesub_list%id(iadd), mergesub_list%status(iadd)
+                  write(LUN, VECFMT) mergeadd_list%xh(1, iadd), mergeadd_list%xh(2, iadd), mergeadd_list%xh(3, iadd)
+                  write(LUN, VECFMT) mergeadd_list%vh(1, iadd), mergeadd_list%vh(2, iadd), mergeadd_list%vh(3, iadd)
+               else 
+                  exit
+               end if
+               iadd = iadd + 1
+            end do
+            do j = 1, nsub
+               if (isub <= mergesub_list%nbody) then
+                  write(LUN, NAMEFMT) SUB, mergesub_list%id(isub), mergesub_list%status(isub)
+                  write(LUN, VECFMT) mergesub_list%xh(1, isub), mergesub_list%xh(2, isub), mergesub_list%xh(3, isub)
+                  write(LUN, VECFMT) mergesub_list%vh(1, isub), mergesub_list%vh(2, isub), mergesub_list%vh(3, isub)
+               else
+                  exit
+               end if
+               isub = isub + 1
+            end do
          end do
 
-         ! This is incomplete until the mergeadd_list methods are completed
-      !    if (param%lbig_discard) then
-      !          if (param%lgr) then
-      !             allocate(pltemp, source = pl)
-      !             call pltemp%pv2v(param)
-      !             allocate(vh, source = pltemp%vh)
-      !             deallocate(pltemp)
-      !          else
-      !             allocate(vh, source = pl%vh)
-      !          end if
-
-      !          write(LUN, NPLFMT) npl
-      !          do i = 1, npl
-      !             write(LUN, PLNAMEFMT) pl%id(i), pl%Gmass(i), pl%radius(i)
-      !             write(LUN, VECFMT) pl%xh(1, i), pl%xh(2, i), pl%xh(3, i)
-      !             write(LUN, VECFMT) vh(1, i), vh(2, i), vh(3, i)
-      !          end do
-      !          deallocate(vh)
-      !    end if
-          close(LUN)
-       end associate
+         close(LUN)
+      end associate
 
       return
    end subroutine symba_io_write_discard

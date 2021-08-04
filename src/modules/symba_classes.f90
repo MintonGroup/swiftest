@@ -91,15 +91,23 @@ module symba_classes
       procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
       procedure :: accel           => symba_kick_getacch_pl          !! Compute heliocentric accelerations of massive bodies
-      procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for number of particle
+      procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for the input number of bodies
       procedure :: append          => symba_util_append_pl           !! Appends elements from one structure to another
       procedure :: fill            => symba_util_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri        => symba_util_peri_pl             !! Determine system pericenter passages for massive bodies
-      procedure :: resize          => symba_util_resize_pl           !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
+      procedure :: resize          => symba_util_resize_pl           !! Checks the current size of a SyMBA massive body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => symba_util_spill_pl            !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_pl
+
+   type, extends(symba_pl) :: symba_merger
+      integer(I4B), dimension(:), allocatable :: ncomp
+   contains
+      procedure :: append          => symba_util_append_merger       !! Appends elements from one structure to another
+      procedure :: resize          => symba_util_resize_merger       !! Checks the current size of a SyMBA merger list against the requested size and resizes it if it is too small.
+      procedure :: setup           => symba_setup_merger             !! Constructor method - Allocates space for the input number of bodies
+   end type symba_merger
 
    !********************************************************************************************************************************
    !                                    symba_tp class definitions and method interfaces
@@ -113,7 +121,7 @@ module symba_classes
       procedure :: drift           => symba_drift_tp               !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
-      procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for number of particle
+      procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for the input number of bodies
       procedure :: append          => symba_util_append_tp         !! Appends elements from one structure to another
       procedure :: fill            => symba_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize          => symba_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -151,8 +159,8 @@ module symba_classes
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_pl),      allocatable :: mergeadd_list !! List of added bodies in mergers or collisions
-      class(symba_pl),      allocatable :: mergesub_list !! List of subtracted bodies in mergers or collisions
+      class(symba_merger),  allocatable :: mergeadd_list !! List of added bodies in mergers or collisions
+      class(symba_merger),  allocatable :: mergesub_list !! List of subtracted bodies in mergers or collisions
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
       integer(I4B)                      :: irec          !! System recursion level
@@ -266,6 +274,16 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
+      module function symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
+         implicit none
+         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
+         class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
+         real(DP),        dimension(:,:), intent(in)    :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
+         real(DP),        dimension(:),   intent(in)    :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collisio
+         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+      end function symba_fragmentation_casemerge
+
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -357,11 +375,26 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine symba_io_write_frame_info 
 
+      module subroutine symba_setup_initialize_system(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA system object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine symba_setup_initialize_system
+
+      module subroutine symba_setup_merger(self, n, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_merger),        intent(inout) :: self  !! SyMBA merger list object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      end subroutine symba_setup_merger
+
       module subroutine symba_setup_pl(self, n, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_pl),           intent(inout) :: self  !! SyMBA massive body object
-         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine symba_setup_pl
 
@@ -370,19 +403,6 @@ module symba_classes
          class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
          integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine symba_setup_pltpenc
-
-      module subroutine symba_setup_plplenc(self,n)
-         implicit none
-         class(symba_plplenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
-         integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
-      end subroutine symba_setup_plplenc
-
-      module subroutine symba_setup_initialize_system(self, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA system object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine symba_setup_initialize_system
 
       module subroutine symba_setup_tp(self, n, param)
          use swiftest_classes, only : swiftest_parameters
@@ -448,6 +468,14 @@ module symba_classes
    end interface
 
    interface
+      module subroutine symba_util_append_merger(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_merger),             intent(inout) :: self         !! SyMBA massive body object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_merger
+
       module subroutine symba_util_append_pl(self, source, lsource_mask)
          use swiftest_classes, only : swiftest_body
          implicit none
@@ -522,6 +550,12 @@ module symba_classes
    end interface
    
    interface
+      module subroutine symba_util_resize_merger(self, nnew)
+         implicit none
+         class(symba_merger), intent(inout) :: self  !! SyMBA merger list object
+         integer(I4B),        intent(in)    :: nnew  !! New size neded
+      end subroutine symba_util_resize_merger
+
       module subroutine symba_util_resize_pl(self, nnew)
          implicit none
          class(symba_pl), intent(inout) :: self  !! SyMBA massive body object

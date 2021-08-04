@@ -116,6 +116,37 @@ contains
    end subroutine symba_util_append_pl
 
 
+   module subroutine symba_util_append_merger(self, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append components from one massive body object to another. 
+      !! This method will automatically resize the destination body if it is too small
+      implicit none
+      ! Arguments
+      class(symba_merger),             intent(inout) :: self         !! SyMBA massive body object
+      class(swiftest_body),            intent(in)    :: source       !! Source object to append
+      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B), dimension(:), allocatable        :: ncomp_tmp    !! Temporary placeholder for ncomp incase we are appending a symba_pl object to a symba_merger
+
+      select type(source)
+      class is (symba_merger)
+         call symba_util_append_pl(self, source, lsource_mask) 
+         call util_append(self%ncomp, source%ncomp, lsource_mask)
+      class is (symba_pl)
+         call symba_util_append_pl(self, source, lsource_mask) 
+         allocate(ncomp_tmp, mold=source%id)
+         ncomp_tmp(:) = 0
+         call util_append(self%ncomp, ncomp_tmp, lsource_mask)
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
+         call util_exit(FAILURE)
+      end select
+
+      return
+   end subroutine symba_util_append_merger
+
+
    module subroutine symba_util_append_tp(self, source, lsource_mask)
       !! author: David A. Minton
       !!
@@ -406,10 +437,27 @@ contains
    end subroutine symba_util_resize_arr_kin
 
 
+   module subroutine symba_util_resize_merger(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a SyMBA merger list against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(symba_merger), intent(inout) :: self  !! SyMBA massive body object
+      integer(I4B),        intent(in)    :: nnew  !! New size neded
+
+      call symba_util_resize_pl(self, nnew)
+
+      call util_resize(self%ncomp, nnew)
+
+      return
+   end subroutine symba_util_resize_merger
+
+
    module subroutine symba_util_resize_pl(self, nnew)
       !! author: David A. Minton
       !!
-      !! Checks the current size of a massive body object against the requested size and resizes it if it is too small.
+      !! Checks the current size of a SyMBA massive body object against the requested size and resizes it if it is too small.
       implicit none
       ! Arguments
       class(symba_pl), intent(inout) :: self  !! SyMBA massive body object

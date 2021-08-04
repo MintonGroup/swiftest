@@ -70,7 +70,7 @@ module rmvs_classes
       procedure :: encounter_check => rmvs_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => rmvs_kick_getacch_tp        !! Calculates either the standard or modified version of the acceleration depending if the
                                                                   !!    if the test particle is undergoing a close encounter or not
-      procedure :: setup           => rmvs_setup_tp               !! Constructor method - Allocates space for number of particles
+      procedure :: setup           => rmvs_setup_tp               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: append          => rmvs_util_append_tp         !! Appends elements from one structure to another
       procedure :: fill            => rmvs_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize          => rmvs_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -93,7 +93,7 @@ module rmvs_classes
       class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric            !! Planetocentric version of the massive body objects (one for each massive body)
       logical                                             :: lplanetocentric = .false. !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
-      procedure :: setup     => rmvs_setup_pl               !! Constructor method - Allocates space for number of particles
+      procedure :: setup     => rmvs_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: append    => rmvs_util_append_pl         !! Appends elements from one structure to another
       procedure :: fill      => rmvs_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize    => rmvs_util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.

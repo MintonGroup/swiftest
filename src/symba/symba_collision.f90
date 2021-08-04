@@ -208,8 +208,8 @@ contains
       fam_size = 2 + sum(nchild(:))
       allocate(family(fam_size))
       family = [parent_child_index_array(1)%idx(:),parent_child_index_array(2)%idx(:)]
-      fam_size = count(pl%status(family(:)) == ACTIVE)
-      family = pack(family(:), pl%status(family(:)) == ACTIVE)
+      fam_size = count(pl%status(family(:)) == COLLISION)
+      family = pack(family(:), pl%status(family(:)) == COLLISION)
       L_spin(:,:) = 0.0_DP
       Ip(:,:) = 0.0_DP
 
@@ -423,12 +423,12 @@ contains
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
       class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
       ! Internals
-      integer(I4B) :: i
-      logical      :: lgoodcollision
-      integer(I4B),    dimension(:),     allocatable :: family           !! List of indices of all bodies inovlved in the collision
-      integer(I4B),    dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
-      real(DP),        dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
-      real(DP),        dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
+      integer(I4B), dimension(:),     allocatable :: family           !! List of indices of all bodies inovlved in the collision
+      integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
+      real(DP),     dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),     dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
+      logical                                     :: lgoodcollision
+      integer(I4B)                                :: i, status
 
       associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
          select type(pl => system%pl)
@@ -439,7 +439,7 @@ contains
                lgoodcollision = symba_collision_consolidate_familes(pl, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
                if (.not. lgoodcollision) cycle
                if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
-               !call symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+               status = symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
             end do
          end select
       end associate

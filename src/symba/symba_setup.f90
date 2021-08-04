@@ -35,6 +35,32 @@ contains
    end subroutine symba_setup_initialize_system
 
 
+   module subroutine symba_setup_merger(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate SyMBA test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine symba_setup.f90
+      implicit none
+      ! Arguments
+      class(symba_merger),        intent(inout) :: self  !! SyMBA merger list object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      ! Internals
+      integer(I4B) :: i
+
+      !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
+      call symba_setup_pl(self, n, param) 
+      if (n <= 0) return
+
+      if (allocated(self%ncomp)) deallocate(self%ncomp)
+      allocate(self%ncomp(n))
+      self%ncomp(:) = 0
+
+      return
+   end subroutine symba_setup_merger
+
+
    module subroutine symba_setup_pl(self, n, param)
       !! author: David A. Minton
       !!

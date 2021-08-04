@@ -46,7 +46,7 @@ module whm_classes
       procedure :: sort        => whm_util_sort_pl           !! Sort a WHM massive body object in-place. 
       procedure :: rearrange   => whm_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill       => whm_util_spill_pl          !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: setup       => whm_setup_pl               !! Constructor method - Allocates space for number of particles
+      procedure :: setup       => whm_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: step        => whm_step_pl                !! Steps the body forward one stepsize
    end type whm_pl
 

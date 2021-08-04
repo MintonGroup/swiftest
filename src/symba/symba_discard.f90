@@ -153,6 +153,7 @@ contains
                call symba_discard_nonplpl(self, system, param)
                call plplenc_list%scrub_non_collision(system, param)
                if (plplenc_list%nenc == 0) return ! No collisions to resolve
+               write(*, *) "Collision detected at time t = ",param%t
 
                call pl%h2b(system%cb) 
                if (param%lfragmentation) then
