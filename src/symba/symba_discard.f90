@@ -3,24 +3,17 @@ submodule (symba_classes) s_symba_discard
 contains
 
    module subroutine symba_discard_pl(self, system, param)
+      !! author: David A. Minton
+      !!
+      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colling with the central body, 
+      !! escaping the system, or colliding with each other.
       implicit none
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
     
-      ! First check for collisions with the central body
-      associate(pl => self, npl => self%nbody, cb => system%cb)
-         if (npl == 0) return 
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
-             (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
-            call pl%h2b(cb) 
-         end if
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-            call symba_discard_cb_pl(pl, system, param)
-         end if
-         if (param%qmin >= 0.0_DP .and. npl > 0) call symba_discard_peri_pl(pl, system, param)
-      end associate
+      call symba_discard_nonplpl(self, system, param)
 
       select type(param)
       class is (symba_parameters)
@@ -33,6 +26,37 @@ contains
       return
    end subroutine symba_discard_pl
 
+   subroutine symba_discard_nonplpl(pl, system, param)
+      !! author: David A. Minton
+      !!
+      !! Check to see if planets should be discarded based on their positions or because they are unbound
+      !s
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_pl.f90
+      !! Adapted from Hal Levison's Swift routine discard_massive5.f 
+      implicit none
+      ! Arguments
+      class(symba_pl),              intent(inout) :: pl     !! SyMBA test particle object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+    
+      ! First check for collisions with the central body
+      associate(npl => pl%nbody, cb => system%cb)
+         if (npl == 0) return 
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
+             (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
+            call pl%h2b(cb) 
+         end if
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
+            call symba_discard_cb_pl(pl, system, param)
+         end if
+         if (param%qmin >= 0.0_DP .and. npl > 0) call symba_discard_peri_pl(pl, system, param)
+      end associate
+
+      return
+   end subroutine symba_discard_nonplpl
+
+
 
    subroutine symba_discard_cb_pl(pl, system, param)
       !! author: David A. Minton
@@ -42,7 +66,7 @@ contains
       !! its collisional status will be revoked. Discards due to colliding with or escaping the central body take precedence 
       !! over pl-pl collisions
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_cb.f90
+      !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_sun.f90
       !! Adapted from Hal Levison's Swift routine discard_massive5.f
       implicit none
       ! Arguments

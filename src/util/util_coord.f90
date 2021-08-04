@@ -18,6 +18,7 @@ contains
       real(DP)      :: msys
       real(DP), dimension(NDIM) :: xtmp, vtmp
 
+      if (self%nbody == 0) return
       associate(pl => self, npl => self%nbody)
          msys = cb%Gmass
          xtmp(:) = 0.0_DP
@@ -51,6 +52,7 @@ contains
       class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb), intent(in) :: cb   !! Swiftest central body object
 
+      if (self%nbody == 0) return
       associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, status => self%status, &
                xb => self%xb, xh => self%xh, vb => self%vb, vh => self%vh)
 
@@ -83,6 +85,8 @@ contains
       ! Internals
       integer(I4B)          :: i
 
+      if (self%nbody == 0) return
+
       associate(npl => self%nbody, xbcb => cb%xb, vbcb => cb%vb, xb => self%xb, xh => self%xh, &
                vb => self%vb, vh => self%vh)
          do i = 1, NDIM
@@ -106,6 +110,8 @@ contains
       ! Arguments
       class(swiftest_tp),     intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),  intent(in)    :: cb   !! Swiftest central body object
+
+      if (self%nbody == 0) return
 
       associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, xb => self%xb, xh => self%xh, &
                vb => self%vb, vh => self%vh, status => self%status)

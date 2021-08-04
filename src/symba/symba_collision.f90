@@ -142,6 +142,7 @@ contains
       return
    end function symba_collision_check_one
 
+
    module subroutine symba_collision_make_family_pl(self, idx)
       !! author: Jennifer L.L. Pouplin, Carlisle A. wishard, and David A. Minton
       !!

@@ -38,6 +38,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
 
+      if (self%nbody == 0) return
       self%ldiscard(:) = .false.
 
       return
@@ -58,17 +59,17 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
 
       associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
-         if (ntp == 0) return 
+         if ((ntp == 0) .or. (npl ==0)) return 
+
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
              (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
-            if (npl > 0) call pl%h2b(cb) 
-            if (ntp > 0) call tp%h2b(cb) 
+            call pl%h2b(cb) 
+            call tp%h2b(cb) 
          end if
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-            if (ntp > 0) call discard_cb_tp(tp, system, param)
-         end if
-         if (param%qmin >= 0.0_DP .and. ntp > 0) call discard_peri_tp(tp, system, param)
-         if (param%lclose .and. ntp > 0) call discard_pl_tp(tp, system, param)
+
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call discard_cb_tp(tp, system, param)
+         if (param%qmin >= 0.0_DP) call discard_peri_tp(tp, system, param)
+         if (param%lclose) call discard_pl_tp(tp, system, param)
          if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard, ldestructive=.true.)
       end associate
 
