@@ -183,12 +183,8 @@ contains
          ! Therefore we need to set the nbody values for both the keeps and discareds
          discards%nbody = count(lspill_list(:))
          keeps%nbody = count(.not.lspill_list(:)) 
-         if (allocated(keeps%ldiscard)) deallocate(keeps%ldiscard)
-         if (allocated(discards%ldiscard)) deallocate(discards%ldiscard)
-         allocate(keeps%ldiscard(keeps%nbody))
-         allocate(discards%ldiscard(discards%nbody))
-         keeps%ldiscard = .false.
-         discards%ldiscard = .true.
+         if (keeps%nbody > size(keeps%status)) keeps%status(keeps%nbody+1:size(keeps%status)) = INACTIVE
+
       end associate
      
       return
@@ -222,6 +218,7 @@ contains
          ! Therefore we need to set the nenc values for both the keeps and discareds
          discards%nenc = count(lspill_list(:))
          keeps%nenc = count(.not.lspill_list(:)) 
+         if (keeps%nenc > size(keeps%status)) keeps%status(keeps%nenc+1:size(keeps%status)) = INACTIVE
       end associate
    
       return
