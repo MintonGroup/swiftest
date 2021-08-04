@@ -114,7 +114,7 @@ module rmvs_classes
          implicit none
          class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine rmvs_discard_tp
 
       module function rmvs_encounter_check_tp(self, system, dt) result(lencounter)

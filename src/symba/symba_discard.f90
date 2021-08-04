@@ -90,25 +90,25 @@ contains
          ! Add planet mass to central body accumulator
          if (lescape_body) then
             system%Mescape = system%Mescape + pl%mass(ipl)
-            do i = 1, npl
+            do i = 1, pl%nbody
                if (i == ipl) cycle
-               pe = pe - pl%mass(i) * pl%mass(ipl) / norm2(xb(:, ipl) - xb(:, i))
+               pe = pe - pl%mass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
             end do
    
             Ltot(:) = 0.0_DP
-            do i = 1, npl
-               Lpl(:) = mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+            do i = 1, pl%nbody
+               Lpl(:) = pL%mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
                Ltot(:) = Ltot(:) + Lpl(:)
             end do
             Ltot(:) = Ltot(:) + cb%mass * cb%xb(:) .cross. cb%vb(:)
             call pl%b2h(cb)
-            oldstat = status(ipl)
+            oldstat = pl%status(ipl)
             pl%status(ipl) = INACTIVE
             call pl%h2b(cb)
             pl%status(ipl) = oldstat
-            do i = 1, npl
+            do i = 1, pl%nbody
                if (i == ipl) cycle
-               Lpl(:) = mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Lpl(:) = pl%mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
                Ltot(:) = Ltot(:) - Lpl(:) 
             end do 
             Ltot(:) = Ltot(:) - cb%mass * cb%xb(:) .cross. cb%vb(:)
@@ -198,9 +198,9 @@ contains
       !! we need to track the conserved quantities with the system bookkeeping terms.
       implicit none
       ! Arguments
-      class(symba_pl),              intent(inout) :: pl     !! SyMBA test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(symba_pl),           intent(inout) :: pl     !! SyMBA test particle object
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B)                            :: i, ndiscard, dstat
       logical                                 :: lescape
@@ -284,7 +284,7 @@ contains
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
    
       select type(system)
       class is (symba_nbody_system)
@@ -310,7 +310,7 @@ contains
 
                if (any(pl%ldiscard(:))) then
                   call symba_discard_nonplpl_conservation(self, system, param)
-                  call pl%rearray(self, system, param)
+                  !call pl%rearray(self, system, param)
                end if
 
             end associate

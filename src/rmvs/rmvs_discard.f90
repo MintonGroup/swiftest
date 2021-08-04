@@ -13,7 +13,7 @@ contains
       ! Arguments
       class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B)                                 :: i
 

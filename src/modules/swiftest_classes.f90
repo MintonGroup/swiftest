@@ -308,7 +308,7 @@ module swiftest_classes
          import swiftest_body, swiftest_nbody_system, swiftest_parameters
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine abstract_discard_body
 
       subroutine abstract_accel(self, system, param, t, lbeg)
@@ -384,20 +384,20 @@ module swiftest_classes
          implicit none
          class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
       end subroutine discard_pl
 
       module subroutine discard_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine discard_system
 
       module subroutine discard_tp(self, system, param)
          implicit none
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       end subroutine discard_tp
 
       module pure subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)

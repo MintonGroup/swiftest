@@ -219,7 +219,7 @@ module symba_classes
          implicit none
          class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine symba_discard_pl
 
       module subroutine symba_drift_pl(self, system, param, dt)

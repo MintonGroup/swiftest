@@ -10,7 +10,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       logical :: lany_discards
 
@@ -36,7 +36,7 @@ contains
       ! Arguments
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
 
       if (self%nbody == 0) return
       self%ldiscard(:) = .false.
@@ -56,7 +56,7 @@ contains
       ! Arguments
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
 
       associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
          if ((ntp == 0) .or. (npl ==0)) return 
