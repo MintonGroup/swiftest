@@ -131,8 +131,7 @@ cbfile.close()
 
 plfile = FortranFile(swiftest_pl, 'w')
 plfile.write_record(npl)
-
-plfile.write_record(np.array([plid1, plid2]))
+plfile.write_record(np.array([plid1, plid2], dtype=np.int32))
 plfile.write_record(np.vstack([p_pl1[0],p_pl2[0]]))
 plfile.write_record(np.vstack([p_pl1[1],p_pl2[1]]))
 plfile.write_record(np.vstack([p_pl1[2],p_pl2[2]]))
