@@ -133,7 +133,7 @@ module symba_classes
       procedure :: encounter_check => symba_encounter_check_pltpenc !! Checks if massive bodies are going through close encounters with each other
       procedure :: kick            => symba_kick_pltpenc            !! Kick barycentric velocities of active test particles within SyMBA recursion
       procedure :: setup           => symba_setup_pltpenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: copy            => symba_util_copy_pltpenc       !! Copies all elements of one pltpenc list to another
+      procedure :: spill           => symba_util_spill_pltpenc      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -447,13 +447,6 @@ module symba_classes
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
          logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_tp
-
-      module subroutine symba_util_copy_pltpenc(self, source)
-         use swiftest_classes, only : swiftest_encounter
-         implicit none
-         class(symba_pltpenc),      intent(inout) :: self   !! SyMBA pl-tp encounter list 
-         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
-      end subroutine symba_util_copy_pltpenc
    end interface 
 
    interface util_fill
@@ -579,6 +572,15 @@ module symba_classes
          logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine symba_util_spill_pl
+
+      module subroutine symba_util_spill_pltpenc(self, discards, lspill_list, ldestructive)
+         use swiftest_classes, only : swiftest_encounter
+         implicit none
+         class(symba_pltpenc),      intent(inout) :: self         !! SyMBA pl-tp encounter list
+         class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      end subroutine symba_util_spill_pltpenc
 
       module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_body

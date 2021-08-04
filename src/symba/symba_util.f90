@@ -142,25 +142,6 @@ contains
       return
    end subroutine symba_util_append_tp
 
-   module subroutine symba_util_copy_pltpenc(self, source)
-      !! author: David A. Minton
-      !!
-      !! Copies elements from the source encounter list into self.
-      implicit none
-      ! Arguments
-      class(symba_pltpenc),      intent(inout) :: self   !! SyMBA pl-tp encounter list 
-      class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
-
-      call util_copy_encounter(self, source)
-      associate(n => source%nenc)
-         select type(source)
-         class is (symba_pltpenc)
-            self%level(1:n)  = source%level(1:n)
-         end select
-      end associate
-
-      return
-   end subroutine symba_util_copy_pltpenc
 
    module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
       !! author: David A. Minton
@@ -728,6 +709,35 @@ contains
      
       return
    end subroutine symba_util_spill_pl
+
+
+   module subroutine symba_util_spill_pltpenc(self, discards, lspill_list, ldestructive)
+      !! author: David A. Minton
+      !!
+      !! Move spilled (discarded) SyMBA encounter structure from active list to discard list
+      !! Note: Because the symba_plplenc currently does not contain any additional variable components, this method can recieve it as an input as well.
+      implicit none
+      ! Arguments
+      class(symba_pltpenc),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
+      class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
+      logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+      logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      ! Internals
+      integer(I4B) :: i
+  
+      associate(keeps => self)
+         select type(discards)
+         class is (symba_pltpenc)
+            call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
+            call util_spill_encounter(keeps, discards, lspill_list, ldestructive)
+         class default
+            write(*,*) "Invalid object passed to the spill method. Source must be of class symba_pltpenc or its descendents!"
+            call util_exit(FAILURE)
+         end select
+      end associate
+   
+      return
+   end subroutine symba_util_spill_pltpenc
 
 
    module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)

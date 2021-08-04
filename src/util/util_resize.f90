@@ -211,6 +211,9 @@ contains
       !! author: David A. Minton
       !!
       !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
+      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
+      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
       implicit none
       ! Arguments
       class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter list 

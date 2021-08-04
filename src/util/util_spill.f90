@@ -194,6 +194,39 @@ contains
       return
    end subroutine util_spill_body
 
+   module subroutine util_spill_encounter(self, discards, lspill_list, ldestructive)
+      !! author: David A. Minton
+      !!
+      !! Move spilled (discarded) Swiftest encounter structure from active list to discard list
+      implicit none
+      ! Arguments
+      class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list 
+      class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
+      logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+      logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      ! Internals
+      integer(I4B) :: i
+  
+      associate(keeps => self)
+   
+         call util_spill(keeps%lvdotr, discards%lvdotr, lspill_list, ldestructive)
+         call util_spill(keeps%status, discards%status, lspill_list, ldestructive)
+         call util_spill(keeps%index1, discards%index1, lspill_list, ldestructive)
+         call util_spill(keeps%index2, discards%index2, lspill_list, ldestructive)
+         call util_spill(keeps%x1, discards%x1, lspill_list, ldestructive)
+         call util_spill(keeps%x2, discards%x2, lspill_list, ldestructive)
+         call util_spill(keeps%v1, discards%v1, lspill_list, ldestructive)
+         call util_spill(keeps%v2, discards%v2, lspill_list, ldestructive)
+
+         ! This is the base class, so will be the last to be called in the cascade. 
+         ! Therefore we need to set the nenc values for both the keeps and discareds
+         discards%nenc = count(lspill_list(:))
+         keeps%nenc = count(.not.lspill_list(:)) 
+      end associate
+   
+      return
+   end subroutine util_spill_encounter
+
 
    module subroutine util_spill_pl(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton

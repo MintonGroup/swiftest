@@ -297,9 +297,10 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
       real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
    contains
-      procedure :: copy   => util_copy_encounter
-      procedure :: resize => util_resize_encounter
-      procedure :: setup  => setup_encounter
+      procedure :: setup  => setup_encounter       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: copy   => util_copy_encounter   !! Copies elements from the source encounter list into self.
+      procedure :: spill  => util_spill_encounter  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: resize => util_resize_encounter !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
    end type swiftest_encounter
 
    abstract interface
@@ -1151,6 +1152,14 @@ module swiftest_classes
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_body
+
+      module subroutine util_spill_encounter(self, discards, lspill_list, ldestructive)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list 
+         class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      end subroutine util_spill_encounter
 
       module subroutine util_spill_pl(self, discards, lspill_list, ldestructive)
          implicit none
