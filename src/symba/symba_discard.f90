@@ -78,7 +78,7 @@ contains
       class is (symba_cb)
    
          ! Add the potential and kinetic energy of the lost body to the records
-         pe = -cb%mass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, 1))
+         pe = -cb%mass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - cb%xb(:))
          ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
          if (param%lrotation) then
             ke_spin  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
