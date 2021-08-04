@@ -271,6 +271,92 @@ contains
    end subroutine symba_util_fill_tp
 
 
+   module subroutine symba_util_peri_pl(self, system, param)
+      !! author: David A. Minton
+      !!
+      !! Determine system pericenter passages for planets in SyMBA
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: symba_peri.f90
+      !! Adapted from Hal Levison's Swift routine util_mass_peri.f
+      implicit none
+      ! Arguments
+      class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+      integer(I4B)       :: i
+      real(DP)           :: vdotr, e
+
+      associate(pl => self, npl => self%nbody)
+         if (pl%lfirst) then
+            if (param%qmin_coord == "HELIO") then
+               do i = 1, npl
+                  if (pl%status(i) == ACTIVE) then
+                     vdotr = dot_product(pl%xh(:,i), pl%vh(:,i))
+                     if (vdotr > 0.0_DP) then
+                        pl%isperi(i) = 1
+                     else
+                        pl%isperi(i) = -1
+                     end if
+                  end if
+               end do
+            else
+               do i = 1, npl
+                  if (pl%status(i) == ACTIVE) then
+                     vdotr = dot_product(pl%xb(:,i), pl%vb(:,i))
+                     if (vdotr > 0.0_DP) then
+                        pl%isperi(i) = 1
+                     else
+                        pl%isperi(i) = -1
+                     end if
+                  end if
+               end do
+            end if
+         else
+            if (param%qmin_coord == "HELIO") then
+               do i = 1, npl
+                  if (pl%status(i) == ACTIVE) then
+                     vdotr = dot_product(pl%xh(:,i), pl%vh(:,i))
+                     if (pl%isperi(i) == -1) then
+                        if (vdotr >= 0.0_DP) then
+                           pl%isperi(i) = 0
+                           CALL orbel_xv2aeq(pl%mu(i), pl%xh(:,i), pl%vh(:,i), pl%atp(i), e, pl%peri(i))
+                        end if
+                     else
+                        if (vdotr > 0.0_DP) then
+                           pl%isperi(i) = 1
+                        else
+                           pl%isperi(i) = -1
+                        end if
+                     end if
+                  end if
+               end do
+            else
+               do i = 1, npl
+                  if (pl%status(i) == ACTIVE) then
+                     vdotr = dot_product(pl%xb(:,i), pl%vb(:,i))
+                     if (pl%isperi(i) == -1) then
+                        if (vdotr >= 0.0_DP) then
+                           pl%isperi(i) = 0
+                           CALL orbel_xv2aeq(system%Gmtot, pl%xb(:,i), pl%vb(:,i), pl%atp(i), e, pl%peri(i))
+                        end if
+                     else
+                        if (vdotr > 0.0_DP) then
+                           pl%isperi(i) = 1
+                        else
+                           pl%isperi(i) = -1
+                        end if
+                     end if
+                  end if
+               end do
+            end if
+         end if
+      end associate
+ 
+     return
+   end subroutine symba_util_peri_pl
+
+
    module subroutine symba_util_resize_arr_info(arr, nnew)
       !! author: David A. Minton
       !!
@@ -384,6 +470,7 @@ contains
 
       return
    end subroutine symba_util_resize_tp
+
 
    module subroutine symba_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton

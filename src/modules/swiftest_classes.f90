@@ -259,7 +259,7 @@ module swiftest_classes
       class(swiftest_pl),            allocatable :: pl                   !! Massive body data structure
       class(swiftest_tp),            allocatable :: tp                   !! Test particle data structure
       class(swiftest_tp),            allocatable :: tp_discards          !! Discarded test particle data structure
-      real(DP)                                   :: msys = 0.0_DP        !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                                   :: Gmtot = 0.0_DP        !! Total system mass - used for barycentric coordinate conversion
       real(DP)                                   :: ke = 0.0_DP          !! System kinetic energy
       real(DP)                                   :: pe = 0.0_DP          !! System potential energy
       real(DP)                                   :: te = 0.0_DP          !! System total energy

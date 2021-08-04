@@ -15,21 +15,21 @@ contains
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i
-      real(DP)      :: msys
+      real(DP)      :: Gmtot
       real(DP), dimension(NDIM) :: xtmp, vtmp
 
       if (self%nbody == 0) return
       associate(pl => self, npl => self%nbody)
-         msys = cb%Gmass
+         Gmtot = cb%Gmass
          xtmp(:) = 0.0_DP
          vtmp(:) = 0.0_DP
          do i = 1, npl
-            msys = msys + pl%Gmass(i)
+            Gmtot = Gmtot + pl%Gmass(i)
             xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%xh(:,i)
             vtmp(:) = vtmp(:) + pl%Gmass(i) * pl%vh(:,i)
          end do
-         cb%xb(:) = -xtmp(:) / msys
-         cb%vb(:) = -vtmp(:) / msys
+         cb%xb(:) = -xtmp(:) / Gmtot
+         cb%vb(:) = -vtmp(:) / Gmtot
          do i = 1, npl
             pl%xb(:,i) = pl%xh(:,i) + cb%xb(:)
             pl%vb(:,i) = pl%vh(:,i) + cb%vb(:)

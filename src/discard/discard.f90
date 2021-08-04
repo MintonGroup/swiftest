@@ -94,7 +94,7 @@ contains
       integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
 
-      associate(ntp => tp%nbody, cb => system%cb, t => param%t, msys => system%msys)
+      associate(ntp => tp%nbody, cb => system%cb, t => param%t, Gmtot => system%Gmtot)
          rmin2 = max(param%rmin * param%rmin, cb%radius * cb%radius)
          rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
@@ -114,7 +114,7 @@ contains
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
                   vb2 = dot_product(tp%vb(:, i), tp%vb(:, i))
-                  energy = 0.5_DP * vb2 - msys / sqrt(rb2)
+                  energy = 0.5_DP * vb2 - Gmtot / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      tp%status(i) = DISCARDED_RMAXU
                      write(*, *) "Particle ", tp%id(i), " is unbound and too far from barycenter at t = ", t

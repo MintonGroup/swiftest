@@ -62,7 +62,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest nobdy system object
 
-      self%msys = self%cb%Gmass + sum(self%pl%Gmass(1:self%pl%nbody), self%pl%status(1:self%pl%nbody) /= INACTIVE)
+      self%Gmtot = self%cb%Gmass + sum(self%pl%Gmass(1:self%pl%nbody), self%pl%status(1:self%pl%nbody) /= INACTIVE)
 
       return
    end subroutine util_set_msys
