@@ -142,6 +142,7 @@ module symba_classes
    !> SyMBA class for tracking pl-pl close encounters in a step
    type, extends(symba_pltpenc) :: symba_plplenc
    contains
+      procedure :: scrub_non_collision => symba_collision_encounter_scrub !! Processes the pl-pl encounter list remove only those encounters that led to a collisio
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -174,6 +175,13 @@ module symba_classes
          real(DP),                   intent(in)    :: dt     !! step size
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine symba_collision_check_pltpenc
+
+      module subroutine symba_collision_encounter_scrub(self, system, param)
+         implicit none
+         class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
+         class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameterss
+      end subroutine
 
       module subroutine symba_collision_make_family_pl(self,idx)
          implicit none
@@ -259,7 +267,7 @@ module symba_classes
    
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
-         class(symba_parameters), intent(inout) :: self       !! Collection of parameters
+         class(symba_parameters), intent(inout) :: self       !! Collection of SyMBA parameters
          integer,                 intent(in)    :: unit       !! File unit number
          character(len=*),        intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                               !!    If you do not include a char-literal-constant, the iotype argument contains only DT.

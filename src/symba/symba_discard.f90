@@ -144,15 +144,11 @@ contains
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-    
-      call symba_discard_nonplpl(self, system, param)
-
-      select type(param)
-      class is (symba_parameters)
-         if (param%lfragmentation) then
-
-         end if
-
+   
+      select type(system)
+      class is (symba_nbody_system)
+         call symba_discard_nonplpl(self, system, param)
+         call system%plplenc_list%scrub_non_collision(system, param)
       end select
 
       return

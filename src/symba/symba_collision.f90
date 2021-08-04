@@ -204,4 +204,20 @@ contains
       return
    end subroutine symba_collision_make_family_pl
 
+   module subroutine symba_collision_encounter_scrub(self, system, param)
+      !! author: David A. Minton
+      !! 
+      !! Processes the pl-pl encounter list remove only those encounters that led to a collision
+      !!
+      implicit none
+      ! Arguments
+      class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
+      class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+
+      return
+   end subroutine
+
+
 end submodule s_symba_collision
