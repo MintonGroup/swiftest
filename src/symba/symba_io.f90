@@ -252,7 +252,7 @@ contains
             nsub = mergesub_list%ncomp(isub)
             do j = 1, nadd
                if (iadd <= mergeadd_list%nbody) then
-                  write(LUN, NAMEFMT) SUB, mergesub_list%id(iadd), mergesub_list%status(iadd)
+                  write(LUN, NAMEFMT) ADD, mergesub_list%id(iadd), mergesub_list%status(iadd)
                   write(LUN, VECFMT) mergeadd_list%xh(1, iadd), mergeadd_list%xh(2, iadd), mergeadd_list%xh(3, iadd)
                   write(LUN, VECFMT) mergeadd_list%vh(1, iadd), mergeadd_list%vh(2, iadd), mergeadd_list%vh(3, iadd)
                else 
