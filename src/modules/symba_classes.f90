@@ -283,7 +283,7 @@ module symba_classes
    
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
-         class(symba_parameters), intent(inout) :: self       !! Collection of SyMBA parameters
+         class(symba_parameters), intent(inout) :: self       !! Current run configuration parameters with SyMBA additionss
          integer,                 intent(in)    :: unit       !! File unit number
          character(len=*),        intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                               !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
@@ -294,7 +294,7 @@ module symba_classes
    
       module subroutine symba_io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
-         class(symba_parameters),intent(in)    :: self      !! Collection of SyMBA parameters
+         class(symba_parameters),intent(in)    :: self      !! Current run configuration parameters with SyMBA additions
          integer,                intent(in)    :: unit      !! File unit number
          character(len=*),       intent(in)    :: iotype    !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                             !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
