@@ -2,7 +2,7 @@
 #
 #  Unit Name   : Makefile.Defines
 #  Unit Type   : makefile
-#  Project     : SWIFTER
+#  Project     : SWIFTEST
 #  Package     : N/A
 #  Language    : GNU makefile syntax
 #
@@ -34,56 +34,52 @@ RANLIB          = ranlib
 INSTALL         = install
 INSTALL_PROGRAM = $(INSTALL) -m 755
 INSTALL_DATA    = $(INSTALL) -m 644
-
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 # Swifter definitions
 
-SWIFTER_HOME    = /home/daminton/git/swifter-omp
+SWIFTEST_HOME    = $(ROOT_DIR)
 USER_MODULES    =
+COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
 # Compiler definitions
 
 # DO NOT include in FFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
+ADVIXE_DIR = /apps/cent7/intel/advisor_2019
+ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vec -vecabi=cmdtarget -simd -shared-intel -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -fp-model no-except -mp1 -xhost -traceback 
 
-FORTRAN         = ifort
-FFLAGS          = -O3 -qopenmp -132 -align all -pad -ip -fp-model strict -prec-div -prec-sqrt -ftz -assume protect-parens 
-#FORTRAN         = gfortran
-#FFLAGS          = -O3 -fopenmp
+VTUNE_FLAGS = -g -O2 -vec -simd -shared-intel -qopenmp -debug inline-debug-info -parallel-source-info=2 -parallel -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -qopenmp -fp-model no-except -mp1 -xhost -traceback 
+#Be sure to set the environment variable KMP_FORKJOIN_FRAMES=1 for OpenMP debuging in vtune
+
+IDEBUG = -O0 -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin -init=snan,arrays 
+STRICTREAL = -fp-model strict -fp-model no-except -prec-div -prec-sqrt -assume protect-parens 
+SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -prec-div -prec-sqrt -assume protect-parens
+PAR = -parallel -qopenmp 
+HEAPARR = -heap-arrays 1048576 
+OPTIMIZE = -qopt-report=5 
+
+#gfortran flags
+GDEBUG = -g -O0 -fbacktrace -fbounds-check 
+GPRODUCTION = -O3
+GPAR = -fopenmp -ftree-parallelize-loops=4
+GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
+GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
+
+FFLAGS  = $(IDEBUG) $(HEAPARR)
+#FFLAGS  = -init=snan,arrays -no-wrap-margin -O3 $(STRICTREAL) $(SIMDVEC) $(PAR) 
+FORTRAN = ifort
+#AR     = xiar
+
+#FORTRAN = gfortran
+#FFLAGS =  -ffree-line-length-none $(GDEBUG) $(GMEM)
+AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
 
-CC              = cc
-CFLAGS          = -O3 -w -m64 
+CC              = icc
+#CC              = cc
+CFLAGS          = -O3 -w -m64 -std=c99
 
 64_BIT_REALS    = -r8
 
-# FXDR Makefile compatibility - DO NOT ALTER
-
-F77CMD          = $(FORTRAN)
-F77OPTS         = $(FFLAGS)
-CCCMD           = $(CC)
-CCOPTS          = $(CFLAGS)
-
-#******************************************************************************
-#
-#  Author(s)   : David E. Kaufmann
-#
-#  Revision Control System (RCS) Information
-#
-#  Source File : $RCSfile: Makefile.Defines,v $
-#  Full Path   : $Source: /d1/kaufmann/development/RCS/Makefile.Defines,v $
-#  Revision    : $Revision: 0.1 $
-#  Date        : $Date: 2003/04/15 22:56:57 $
-#  Programmer  : $Author: kaufmann $
-#  Locked By   : $Locker:  $
-#  State       : $State: Exp $
-#
-#  Modification History:
-#
-#  $Log: Makefile.Defines,v $
-#  Revision 0.1  2003/04/15 22:56:57  kaufmann
-#  Initial implementation
-#
-#
-#******************************************************************************

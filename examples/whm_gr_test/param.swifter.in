@@ -1,0 +1,27 @@
+! VERSION        Swifter parameter file converted from Swiftest
+T0               0.0
+TSTOP            1000.0
+DT               0.0006844626967830253
+ISTEP_OUT        1461
+ISTEP_DUMP       1461
+OUT_FORM         EL
+OUT_TYPE         REAL8
+OUT_STAT         UNKNOWN
+IN_TYPE          ASCII
+PL_IN            pl.swifter.in
+TP_IN            tp.swifter.in
+BIN_OUT          bin.swifter.dat
+ENC_OUT          enc.swifter.dat
+CHK_QMIN         0.004650467260962157
+CHK_RMIN         0.004650467260962157
+CHK_RMAX         1000.0
+CHK_EJECT        1000.0
+CHK_QMIN_COORD   HELIO
+CHK_QMIN_RANGE   0.004650467260962157 1000.0
+EXTRA_FORCE      NO
+BIG_DISCARD      NO
+CHK_CLOSE        YES
+C                63241.07708426628
+J2               4.7535806948127355e-12
+J4               -2.2473967953572827e-18
+RHILL_PRESENT    YES
