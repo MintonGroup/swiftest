@@ -1,0 +1,32 @@
+T0             0.0e0
+TSTOP          0.000100            ! simulation length in seconds = 100 years
+DT             0.0000001              ! stepsize in seconds
+CB_IN          cb.in
+PL_IN          disruption_headon.in
+TP_IN          tp.in
+IN_TYPE        ASCII
+ISTEP_OUT      1                 ! output cadence every year
+BIN_OUT        bin.disruption_headon.dat
+PARTICLE_FILE  particle.disruption_headon.dat
+OUT_TYPE       REAL8             ! double precision real output
+OUT_FORM       XV                ! osculating element output
+OUT_STAT       REPLACE
+ISTEP_DUMP     1                 ! system dump cadence
+CHK_CLOSE      yes               ! check for planetary close encounters
+CHK_RMIN       0.005
+CHK_RMAX       1e6
+CHK_EJECT      -1.0              ! ignore this check
+CHK_QMIN       -1.0              ! ignore this check
+!CHK_QMIN_COORD HELIO            ! commented out here
+!CHK_QMIN_RANGE 1.0 1000.0       ! commented out here
+ENC_OUT        enc.disruption_headon.dat
+EXTRA_FORCE    no                ! no extra user-defined forces
+BIG_DISCARD    no                ! output all planets if anything discarded
+RHILL_PRESENT  yes               ! Hill's sphere radii in input file
+MTINY          1.0e-16
+FRAGMENTATION  yes
+MU2KG          1.98908e30
+TU2S           3.1556925e7
+DU2M           1.49598e11
+ENERGY         yes
+ROTATION       yes
