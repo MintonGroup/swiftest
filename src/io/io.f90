@@ -803,12 +803,12 @@ contains
                select type (self)
                class is (swiftest_pl)
                   if (param%lrotation) then
-                     read(iu, iostat=ierr, err=100) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
-                     read(iu, iostat=ierr, err=100) self%rot(1, i), self%rot(2, i), self%rot(3, i)
+                     read(iu, *, iostat=ierr, err=100) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
+                     read(iu, *, iostat=ierr, err=100) self%rot(1, i), self%rot(2, i), self%rot(3, i)
                   end if
                   if (param%ltides) then
-                     read(iu, iostat=ierr, err=100) self%k2(i)
-                     read(iu, iostat=ierr, err=100) self%Q(i)
+                     read(iu, *, iostat=ierr, err=100) self%k2(i)
+                     read(iu, *, iostat=ierr, err=100) self%Q(i)
                   end if
                end select
                self%status(i) = ACTIVE
@@ -870,8 +870,8 @@ contains
          read(iu, *, iostat = ierr) self%j2rp2
          read(iu, *, iostat = ierr) self%j4rp4
          if (param%lrotation) then
-            read(iu, *, iostat = ierr) self%Ip
-            read(iu, *, iostat = ierr) self%rot
+            read(iu, *, iostat = ierr) self%Ip(1), self%Ip(2), self%Ip(3)
+            read(iu, *, iostat = ierr) self%rot(1), self%rot(2), self%rot(3)
          end if
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
