@@ -794,6 +794,13 @@ contains
                   end if
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
+               class is (swiftest_tp)
+                  read(iu, *, iostat=ierr, err=100) self%id(i)
+               end select
+               read(iu, *, iostat=ierr, err=100) self%xh(1, i), self%xh(2, i), self%xh(3, i)
+               read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
+               select type (self)
+               class is (swiftest_pl)
                   if (param%lclose) read(iu, *, iostat=ierr, err=100) self%radius(i)
                   if (param%lrotation) then
                      read(iu, iostat=ierr, err=100) self%Ip(:, i)
@@ -803,11 +810,7 @@ contains
                      read(iu, iostat=ierr, err=100) self%k2(i)
                      read(iu, iostat=ierr, err=100) self%Q(i)
                   end if
-               class is (swiftest_tp)
-                  read(iu, *, iostat=ierr, err=100) self%id(i)
                end select
-               read(iu, *, iostat=ierr, err=100) self%xh(1, i), self%xh(2, i), self%xh(3, i)
-               read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                self%status(i) = ACTIVE
                self%lmask(i) = .true.
             end do
@@ -883,7 +886,6 @@ contains
 
       return
    end subroutine io_read_cb_in
-
 
 
    function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
