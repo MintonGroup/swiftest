@@ -1,0 +1,5423 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West (someday, hopefully)">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>rmvs_pl &ndash; swiftest </title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/swiftest_driver.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/swiftest_driver.html">Program</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>rmvs_pl
+    <small>Derived Type</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title="<p> 3.1% of total for derived types.</p>Including implementation: 17 statements,  2.4% of total for derived types.">17 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/rmvs_classes.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+     <li><a href='../sourcefile/rmvs_classes.f90.html'>rmvs_classes.f90</a></li>
+    
+     <li><a href='../module/rmvs_classes.html'>rmvs_classes</a></li>
+    
+  
+     <li class="active">rmvs_pl</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-0">Variables</a></h3></div>
+  <div id="vars-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-lintegrate">lintegrate</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-lfirst">lfirst</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-nbody">nbody</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-name~2">name</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-id~2">id</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-status">status</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ldiscard">ldiscard</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-lmask">lmask</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-mu">mu</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xh">xh</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-vh">vh</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xb~2">xb</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-vb~2">vb</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ah">ah</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-aobl~3">aobl</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-atide~3">atide</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-agr~2">agr</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ir3h">ir3h</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-a">a</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-e">e</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-inc">inc</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-capom">capom</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-omega">omega</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-capm">capm</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-mass~2">mass</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-gmass~2">Gmass</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-rhill">rhill</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-radius~2">radius</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xbeg~2">xbeg</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xend~2">xend</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-vbeg~2">vbeg</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-density~2">density</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ip~2">Ip</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-rot~2">rot</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-k2~2">k2</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-q~2">Q</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-tlag~2">tlag</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-k_plpl">k_plpl</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-nplpl">nplpl</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-eta">eta</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xj">xj</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-vj">vj</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-muj">muj</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ir3j">ir3j</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-nenc">nenc</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-tpenc1p">tpenc1P</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-plind">plind</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-outer~2">outer</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-inner~2">inner</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-planetocentric">planetocentric</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-lplanetocentric~4">lplanetocentric</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#boundprocs-0">Type-Bound Procedures</a></h3></div>
+  <div id="boundprocs-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-dump~2">dump</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-v2pv">v2pv</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-pv2v">pv2v</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-initialize~3">initialize</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-read_frame~3">read_frame</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-write_frame~3">write_frame</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-el2xv">el2xv</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-xv2el">xv2el</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_user">accel_user</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-discard~3">discard</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-eucl_index">eucl_index</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_int~2">accel_int</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_obl~2">accel_obl</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_tides">accel_tides</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-h2b~2">h2b</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-b2h~2">b2h</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-set_beg_end">set_beg_end</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-set_rhill">set_rhill</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-h2j">h2j</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-j2h">j2h</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-vh2vj">vh2vj</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-drift~2">drift</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_gr~2">accel_gr</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-gr_pos_kick~2">gr_pos_kick</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel~2">accel</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-kick~2">kick</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-set_ir3~2">set_ir3</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-set_mu~2">set_mu</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-step~3">step</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-setup~2">setup</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-append~2">append</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-fill~2">fill</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-resize~2">resize</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-sort~2">sort</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-rearrange~2">rearrange</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-spill~2">spill</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+</div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+      <h2>type, public, extends(<a href='../type/whm_pl.html'>whm_pl</a>) :: rmvs_pl</h2>
+    <p>RMVS massive body particle class</p>
+    <br>
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Inherits</h3>
+      </div>
+      <div class="panel-body">
+    <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: type~~rmvs_pl~~InheritsGraph Pages: 1 -->
+<svg id="typermvs_plInheritsGraph" width="641pt" height="91pt"
+ viewBox="0.00 0.00 641.00 90.56" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="type~~rmvs_pl~~InheritsGraph" class="graph" transform="scale(0.59 0.59) rotate(0) translate(4 149)">
+<title>type~~rmvs_pl~~InheritsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-149 1079,-149 1079,4 -4,4"/>
+<!-- type~rmvs_pl -->
+<g id="type~~rmvs_pl~~InheritsGraph_node1" class="node">
+<title>type~rmvs_pl</title>
+<polygon fill="none" stroke="black" points="1075,-105 1021,-105 1021,-81 1075,-81 1075,-105"/>
+<text text-anchor="middle" x="1048" y="-90.6" font-family="Helvetica,sans-Serif" font-size="10.50">rmvs_pl</text>
+</g>
+<!-- type~rmvs_nbody_system -->
+<g id="type~~rmvs_pl~~InheritsGraph_node2" class="node">
+<title>type~rmvs_nbody_system</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node2"><a xlink:href=".././type/rmvs_nbody_system.html" xlink:title="rmvs_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="925,-105 814,-105 814,-81 925,-81 925,-105"/>
+<text text-anchor="middle" x="869.5" y="-90.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_pl&#45;&gt;type~rmvs_nbody_system -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge2" class="edge">
+<title>type~rmvs_pl&#45;&gt;type~rmvs_nbody_system</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1020.96,-93C998.48,-93 965.06,-93 935.42,-93"/>
+<polygon fill="#000000" stroke="#000000" points="935.11,-89.5 925.11,-93 935.11,-96.5 935.11,-89.5"/>
+<text text-anchor="middle" x="973" y="-95.4" font-family="Helvetica,sans-Serif" font-size="9.50">planetocentric</text>
+</g>
+<!-- type~whm_pl -->
+<g id="type~~rmvs_pl~~InheritsGraph_node3" class="node">
+<title>type~whm_pl</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node3"><a xlink:href=".././type/whm_pl.html" xlink:title="whm_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="796,-145 742,-145 742,-121 796,-121 796,-145"/>
+<text text-anchor="middle" x="769" y="-130.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_pl</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_pl&#45;&gt;type~whm_pl -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge3" class="edge">
+<title>type~rmvs_pl&#45;&gt;type~whm_pl</title>
+<path fill="none" stroke="#000000" d="M1020.7,-102.3C1014.93,-104.08 1008.8,-105.77 1003,-107 934.3,-121.61 852.35,-128.34 806.23,-131.17"/>
+<polygon fill="#000000" stroke="#000000" points="805.9,-127.68 796.13,-131.76 806.31,-134.67 805.9,-127.68"/>
+</g>
+<!-- type~rmvs_interp -->
+<g id="type~~rmvs_pl~~InheritsGraph_node4" class="node">
+<title>type~rmvs_interp</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node4"><a xlink:href=".././type/rmvs_interp.html" xlink:title="rmvs_interp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="904,-63 835,-63 835,-39 904,-39 904,-63"/>
+<text text-anchor="middle" x="869.5" y="-48.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_interp</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_pl&#45;&gt;type~rmvs_interp -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge1" class="edge">
+<title>type~rmvs_pl&#45;&gt;type~rmvs_interp</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1020.6,-84.13C1014.83,-82.32 1008.74,-80.51 1003,-79 973.6,-71.24 940.09,-64.17 914.12,-59.08"/>
+<polygon fill="#000000" stroke="#000000" points="914.69,-55.62 904.21,-57.16 913.36,-62.5 914.69,-55.62"/>
+<text text-anchor="middle" x="973" y="-81.4" font-family="Helvetica,sans-Serif" font-size="9.50">outer, inner</text>
+</g>
+<!-- type~whm_nbody_system -->
+<g id="type~~rmvs_pl~~InheritsGraph_node5" class="node">
+<title>type~whm_nbody_system</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node5"><a xlink:href=".././type/whm_nbody_system.html" xlink:title="whm_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="724,-103 614,-103 614,-79 724,-79 724,-103"/>
+<text text-anchor="middle" x="669" y="-88.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_nbody_system&#45;&gt;type~whm_nbody_system -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge4" class="edge">
+<title>type~rmvs_nbody_system&#45;&gt;type~whm_nbody_system</title>
+<path fill="none" stroke="#000000" d="M814,-92.45C789.27,-92.2 759.87,-91.91 734.09,-91.65"/>
+<polygon fill="#000000" stroke="#000000" points="734.07,-88.15 724.04,-91.54 734,-95.15 734.07,-88.15"/>
+</g>
+<!-- type~swiftest_pl -->
+<g id="type~~rmvs_pl~~InheritsGraph_node6" class="node">
+<title>type~swiftest_pl</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node6"><a xlink:href=".././type/swiftest_pl.html" xlink:title="swiftest_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="354.5,-138 292.5,-138 292.5,-114 354.5,-114 354.5,-138"/>
+<text text-anchor="middle" x="323.5" y="-123.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_pl</text>
+</a>
+</g>
+</g>
+<!-- type~whm_pl&#45;&gt;type~swiftest_pl -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge5" class="edge">
+<title>type~whm_pl&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" d="M741.91,-132.59C667.52,-131.41 453.97,-128.04 364.59,-126.63"/>
+<polygon fill="#000000" stroke="#000000" points="364.63,-123.13 354.58,-126.47 364.52,-130.13 364.63,-123.13"/>
+</g>
+<!-- type~swiftest_nbody_system -->
+<g id="type~~rmvs_pl~~InheritsGraph_node8" class="node">
+<title>type~swiftest_nbody_system</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node8"><a xlink:href=".././type/swiftest_nbody_system.html" xlink:title="swiftest_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="577,-89 454,-89 454,-65 577,-65 577,-89"/>
+<text text-anchor="middle" x="515.5" y="-74.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~whm_nbody_system&#45;&gt;type~swiftest_nbody_system -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge6" class="edge">
+<title>type~whm_nbody_system&#45;&gt;type~swiftest_nbody_system</title>
+<path fill="none" stroke="#000000" d="M613.73,-85.99C605.1,-85.19 596.05,-84.35 587.11,-83.52"/>
+<polygon fill="#000000" stroke="#000000" points="587.35,-80.03 577.07,-82.6 586.71,-87 587.35,-80.03"/>
+</g>
+<!-- type~swiftest_body -->
+<g id="type~~rmvs_pl~~InheritsGraph_node7" class="node">
+<title>type~swiftest_body</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node7"><a xlink:href=".././type/swiftest_body.html" xlink:title="swiftest_body">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="191,-96 114,-96 114,-72 191,-72 191,-96"/>
+<text text-anchor="middle" x="152.5" y="-81.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_body</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_pl&#45;&gt;type~swiftest_body -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge7" class="edge">
+<title>type~swiftest_pl&#45;&gt;type~swiftest_body</title>
+<path fill="none" stroke="#000000" d="M292.49,-115.98C277.64,-111.57 259.33,-106.96 242.5,-105"/>
+</g>
+<!-- type~swiftest_base -->
+<g id="type~~rmvs_pl~~InheritsGraph_node11" class="node">
+<title>type~swiftest_base</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node11"><a xlink:href=".././type/swiftest_base.html" xlink:title="swiftest_base">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="77,-56 0,-56 0,-32 77,-32 77,-56"/>
+<text text-anchor="middle" x="38.5" y="-41.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_base</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_body&#45;&gt;type~swiftest_base -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge8" class="edge">
+<title>type~swiftest_body&#45;&gt;type~swiftest_base</title>
+<path fill="none" stroke="#000000" d="M133.43,-71.77C127.22,-67.48 120.26,-62.6 114,-58 105.83,-52 105.99,-45.7 96,-44"/>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_pl -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge10" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M460.88,-89.03C434.33,-95.2 401.87,-103.08 373,-111 370.21,-111.77 367.34,-112.58 364.45,-113.42"/>
+<polygon fill="#000000" stroke="#000000" points="363.26,-110.12 354.68,-116.34 365.27,-116.83 363.26,-110.12"/>
+<text text-anchor="middle" x="404.5" y="-113.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl</text>
+</g>
+<!-- type~swiftest_cb -->
+<g id="type~~rmvs_pl~~InheritsGraph_node9" class="node">
+<title>type~swiftest_cb</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node9"><a xlink:href=".././type/swiftest_cb.html" xlink:title="swiftest_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="274,-24 209,-24 209,0 274,0 274,-24"/>
+<text text-anchor="middle" x="241.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_cb</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_cb -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge9" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_cb</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M502.52,-64.72C488.18,-50.94 462.73,-29.29 436,-20 386,-2.61 324.32,-3.59 284.23,-6.91"/>
+<polygon fill="#000000" stroke="#000000" points="283.67,-3.45 274.03,-7.85 284.31,-10.42 283.67,-3.45"/>
+<text text-anchor="middle" x="404.5" y="-22.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb</text>
+</g>
+<!-- type~swiftest_tp -->
+<g id="type~~rmvs_pl~~InheritsGraph_node10" class="node">
+<title>type~swiftest_tp</title>
+<g id="a_type~~rmvs_pl~~InheritsGraph_node10"><a xlink:href=".././type/swiftest_tp.html" xlink:title="swiftest_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="355,-96 292,-96 292,-72 355,-72 355,-96"/>
+<text text-anchor="middle" x="323.5" y="-81.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_tp</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_tp -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge11" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_tp</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M453.85,-75.89C428.8,-75.83 399.48,-76.27 373,-78 370.48,-78.16 367.89,-78.37 365.29,-78.61"/>
+<polygon fill="#000000" stroke="#000000" points="364.82,-75.14 355.24,-79.65 365.55,-82.1 364.82,-75.14"/>
+<text text-anchor="middle" x="404.5" y="-80.4" font-family="Helvetica,sans-Serif" font-size="9.50">tp, tp_discards</text>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_base -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge12" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_base</title>
+<path fill="none" stroke="#000000" d="M455.1,-65C383.56,-52.06 259.75,-34.53 153.5,-44"/>
+</g>
+<!-- type~swiftest_cb&#45;&gt;type~swiftest_base -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge13" class="edge">
+<title>type~swiftest_cb&#45;&gt;type~swiftest_base</title>
+<path fill="none" stroke="#000000" d="M151.5,-44C126.93,-46.19 120.32,-48.14 96,-44"/>
+<path fill="none" stroke="#000000" d="M95,-44C92.51,-43.58 89.94,-43.24 87.34,-42.97"/>
+<polygon fill="#000000" stroke="#000000" points="87.47,-39.47 77.26,-42.29 87,-46.46 87.47,-39.47"/>
+<path fill="none" stroke="#000000" d="M218.01,-24.01C200.88,-32.21 176.42,-41.96 153.5,-44"/>
+</g>
+<!-- type~swiftest_tp&#45;&gt;type~swiftest_body -->
+<g id="type~~rmvs_pl~~InheritsGraph_edge14" class="edge">
+<title>type~swiftest_tp&#45;&gt;type~swiftest_body</title>
+<path fill="none" stroke="#000000" d="M240.5,-105C227.59,-103.5 213.83,-100.74 201.15,-97.7"/>
+<polygon fill="#000000" stroke="#000000" points="201.8,-94.25 191.25,-95.22 200.11,-101.04 201.8,-94.25"/>
+<path fill="none" stroke="#000000" d="M296.19,-96.09C280.76,-101.87 260.76,-107.12 242.5,-105"/>
+</g>
+</g>
+</svg>
+</div><script>var pantypermvs_plInheritsGraph = svgPanZoom('#typermvs_plInheritsGraph', {zoomEnabled: true,controlIconsEnabled: true, fit: true, center: true,}); </script><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="178pt" height="32pt"
+ viewBox="0.00 0.00 177.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 173.5,-28 173.5,4 -4,4"/>
+<!-- Type -->
+<g id="node1" class="node">
+<title>Type</title>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="169.5,-24 72.5,-24 72.5,0 169.5,0 169.5,-24"/>
+<text text-anchor="middle" x="121" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a derived type to the parent type which it
+    extends. Dashed arrows point from a derived type to the other
+    types it contains as a components, with a label listing the name(s) of
+    said component(s).
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+    
+    
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-1">Variables</a></h3></div>
+  <div id="vars-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-lintegrate">lintegrate</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-lfirst">lfirst</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-nbody">nbody</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-name~2">name</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-id~2">id</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-status">status</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ldiscard">ldiscard</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-lmask">lmask</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-mu">mu</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xh">xh</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-vh">vh</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xb~2">xb</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-vb~2">vb</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ah">ah</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-aobl~3">aobl</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-atide~3">atide</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-agr~2">agr</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ir3h">ir3h</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-a">a</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-e">e</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-inc">inc</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-capom">capom</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-omega">omega</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-capm">capm</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-mass~2">mass</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-gmass~2">Gmass</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-rhill">rhill</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-radius~2">radius</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xbeg~2">xbeg</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xend~2">xend</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-vbeg~2">vbeg</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-density~2">density</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ip~2">Ip</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-rot~2">rot</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-k2~2">k2</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-q~2">Q</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-tlag~2">tlag</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-k_plpl">k_plpl</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-nplpl">nplpl</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-eta">eta</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-xj">xj</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-vj">vj</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-muj">muj</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-ir3j">ir3j</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-nenc">nenc</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-tpenc1p">tpenc1P</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-plind">plind</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-outer~2">outer</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-inner~2">inner</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-planetocentric">planetocentric</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#variable-lplanetocentric~4">lplanetocentric</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#boundprocs-1">Type-Bound Procedures</a></h3></div>
+  <div id="boundprocs-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-dump~2">dump</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-v2pv">v2pv</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-pv2v">pv2v</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-initialize~3">initialize</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-read_frame~3">read_frame</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-write_frame~3">write_frame</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-el2xv">el2xv</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-xv2el">xv2el</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_user">accel_user</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-discard~3">discard</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-eucl_index">eucl_index</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_int~2">accel_int</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_obl~2">accel_obl</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_tides">accel_tides</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-h2b~2">h2b</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-b2h~2">b2h</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-set_beg_end">set_beg_end</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-set_rhill">set_rhill</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-h2j">h2j</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-j2h">j2h</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-vh2vj">vh2vj</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-drift~2">drift</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel_gr~2">accel_gr</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-gr_pos_kick~2">gr_pos_kick</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-accel~2">accel</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-kick~2">kick</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-set_ir3~2">set_ir3</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-set_mu~2">set_mu</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-step~3">step</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-setup~2">setup</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-append~2">append</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-fill~2">fill</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-resize~2">resize</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-sort~2">sort</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-rearrange~2">rearrange</a>
+      
+      <a class="list-group-item" href="../type/rmvs_pl.html#boundprocedure-spill~2">spill</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    
+    <section>
+    <h2>Components</h2>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lfirst"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lfirst</strong></td><td> =</td><td>.true.</td><td><p>Run the current step as a first</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nbody"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>nbody</strong></td><td> =</td><td>0</td><td><p>Number of bodies</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-name~2"></span>character(len=STRMAX),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>name</strong></td><td></td><td></td><td><p>Non-unique name</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-id~2"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>id</strong></td><td></td><td></td><td><p>External identifier (unique)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-status"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>status</strong></td><td></td><td></td><td><p>An integrator-specific status indicator </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ldiscard"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>ldiscard</strong></td><td></td><td></td><td><p>Body should be discarded</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lmask"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>lmask</strong></td><td></td><td></td><td><p>Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mu"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>mu</strong></td><td></td><td></td><td><p>G * (Mcb + [m])</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xh</strong></td><td></td><td></td><td><p>Heliocentric position</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vh</strong></td><td></td><td></td><td><p>Heliocentric velocity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xb~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xb</strong></td><td></td><td></td><td><p>Barycentric position</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vb~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vb</strong></td><td></td><td></td><td><p>Barycentric velocity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ah"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>ah</strong></td><td></td><td></td><td><p>Total heliocentric acceleration</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-aobl~3"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>aobl</strong></td><td></td><td></td><td><p>Barycentric accelerations of bodies due to central body oblatenes</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-atide~3"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>atide</strong></td><td></td><td></td><td><p>Tanngential component of acceleration of bodies due to tides</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-agr~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>agr</strong></td><td></td><td></td><td><p>Acceleration due to post-Newtonian correction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ir3h"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>ir3h</strong></td><td></td><td></td><td><p>Inverse heliocentric radius term (1/rh**3)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-a"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>a</strong></td><td></td><td></td><td><p>Semimajor axis (pericentric distance for a parabolic orbit)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-e"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>e</strong></td><td></td><td></td><td><p>Eccentricity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-inc"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>inc</strong></td><td></td><td></td><td><p>Inclination</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-capom"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>capom</strong></td><td></td><td></td><td><p>Longitude of ascending node</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-omega"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>omega</strong></td><td></td><td></td><td><p>Argument of pericenter</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-capm"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>capm</strong></td><td></td><td></td><td><p>Mean anomaly
+ Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
+    component list, such as setup_body and util_spill</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mass~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>mass</strong></td><td></td><td></td><td><p>Body mass (units MU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gmass~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>Gmass</strong></td><td></td><td></td><td><p>Mass gravitational term G * mass (units GU * MU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rhill"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rhill</strong></td><td></td><td></td><td><p>Body mass (units MU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-radius~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>radius</strong></td><td></td><td></td><td><p>Body radius (units DU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xbeg~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xbeg</strong></td><td></td><td></td><td><p>Position at beginning of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xend~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xend</strong></td><td></td><td></td><td><p>Position at end of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vbeg~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vbeg</strong></td><td></td><td></td><td><p>Velocity at beginning of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-density~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>density</strong></td><td></td><td></td><td><p>Body mass density - calculated internally (units MU / DU**3)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ip~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>Ip</strong></td><td></td><td></td><td><p>Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rot~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>rot</strong></td><td></td><td></td><td><p>Body rotation vector in inertial coordinate frame (units rad / TU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-k2~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>k2</strong></td><td></td><td></td><td><p>Tidal Love number</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-q~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>Q</strong></td><td></td><td></td><td><p>Tidal quality factor</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tlag~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>tlag</strong></td><td></td><td></td><td><p>Tidal phase lag</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-k_plpl"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>k_plpl</strong></td><td></td><td></td><td><p>Index array used to convert flattened the body-body comparison upper triangular matrix</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nplpl"></span>integer(kind=I8B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>nplpl</strong></td><td></td><td></td><td><p>Number of body-body comparisons in the flattened upper triangular matrix
+ Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
+    component list, such as setup_pl and util_spill_pl</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-eta"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>eta</strong></td><td></td><td></td><td><p>Jacobi mass</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xj"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xj</strong></td><td></td><td></td><td><p>Jacobi position</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vj"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vj</strong></td><td></td><td></td><td><p>Jacobi velocity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-muj"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>muj</strong></td><td></td><td></td><td><p>Jacobi mu: GMcb * eta(i) / eta(i - 1) </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ir3j"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>ir3j</strong></td><td></td><td></td><td><p>Third term of heliocentric acceleration
+ Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+    component list, such as whm_setup_pl and whm_util_spill_pl</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nenc"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>nenc</strong></td><td></td><td></td><td><p>number of test particles encountering planet this full rmvs time step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tpenc1p"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>tpenc1P</strong></td><td></td><td></td><td><p>index of first test particle encountering planet</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-plind"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>plind</strong></td><td></td><td></td><td><p>Connects the planetocentric indices back to the heliocentric planet list</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-outer~2"></span>type(<a href='../type/rmvs_interp.html'>rmvs_interp</a>),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>outer</strong></td><td></td><td></td><td><p>interpolated heliocentric central body position for outer encounters</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-inner~2"></span>type(<a href='../type/rmvs_interp.html'>rmvs_interp</a>),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>inner</strong></td><td></td><td></td><td><p>interpolated heliocentric central body position for inner encounters</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-planetocentric"></span>class(<a href='../type/rmvs_nbody_system.html'>rmvs_nbody_system</a>),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>planetocentric</strong></td><td></td><td></td><td><p>Planetocentric version of the massive body objects (one for each massive body)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lplanetocentric~4"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lplanetocentric</strong></td><td> =</td><td>.false.</td><td><p>Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    </section>
+    <br>
+    
+    
+    
+    
+    
+    
+     
+    <section>
+    <h2>Type-Bound Procedures</h2>
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-dump~2"></span><h3>procedure, public :: <strong>dump</strong>  => <a href='../interface/io_dump_swiftest.html'>io_dump_swiftest</a> 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine io_dump_swiftest(self, param, msg)
+    
+    
+   
+   <a href='../proc/io_dump_swiftest.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_base.html'>swiftest_base</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest base object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>character(len=*),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>msg</strong></td><td><p>Message to display with dump operation</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-v2pv"></span><h3>procedure, public :: <strong>v2pv</strong>  => <a href='../interface/gr_vh2pv_body.html'>gr_vh2pv_body</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Converts from velocity to psudeovelocity for GR calculations using symplectic integrators</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public pure module subroutine gr_vh2pv_body(self, param)
+    
+    
+   
+   <a href='../proc/gr_vh2pv_body.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-pv2v"></span><h3>procedure, public :: <strong>pv2v</strong>  => <a href='../interface/gr_pv2vh_body.html'>gr_pv2vh_body</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Converts from psudeovelocity to velocity for GR calculations using symplectic integrators</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public pure module subroutine gr_pv2vh_body(self, param)
+    
+    
+   
+   <a href='../proc/gr_pv2vh_body.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-initialize~3"></span><h3>procedure, public :: <strong>initialize</strong>  => <a href='../interface/io_read_body_in.html'>io_read_body_in</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Read in body initial conditions from a file</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine io_read_body_in(self, param)
+    
+    
+   
+   <a href='../proc/io_read_body_in.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-read_frame~3"></span><h3>procedure, public :: <strong>read_frame</strong>  => <a href='../interface/io_read_frame_body.html'>io_read_frame_body</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>I/O routine for writing out a single frame of time-series data for the central body</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine io_read_frame_body(self, iu, param, form, ierr)
+    
+    
+   
+   <a href='../proc/io_read_frame_body.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>iu</strong></td><td><p>Unit number for the output file to write frame to</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>character(len=*),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>form</strong></td><td><p>Input format code ("XV" or "EL")</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>ierr</strong></td><td><p>Error code</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-write_frame~3"></span><h3>procedure, public :: <strong>write_frame</strong>  => <a href='../interface/io_write_frame_body.html'>io_write_frame_body</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>I/O routine for writing out a single frame of time-series data for the central body</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine io_write_frame_body(self, iu, param)
+    
+    
+   
+   <a href='../proc/io_write_frame_body.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>iu</strong></td><td><p>Unit number for the output file to write frame to</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-el2xv"></span><h3>procedure, public :: <strong>el2xv</strong>  => <a href='../interface/orbel_el2xv_vec.html'>orbel_el2xv_vec</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Convert orbital elements to position and velocity vectors</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine orbel_el2xv_vec(self, cb)
+    
+    
+   
+   <a href='../proc/orbel_el2xv_vec.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-xv2el"></span><h3>procedure, public :: <strong>xv2el</strong>  => <a href='../interface/orbel_xv2el_vec.html'>orbel_xv2el_vec</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Convert position and velocity vectors to orbital  elements </p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine orbel_xv2el_vec(self, cb)
+    
+    
+   
+   <a href='../proc/orbel_xv2el_vec.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-accel_user"></span><h3>procedure, public :: <strong>accel_user</strong>  => <a href='../interface/user_kick_getacch_body.html'>user_kick_getacch_body</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Add user-supplied heliocentric accelerations to planets</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine user_kick_getacch_body(self, system, param, t, lbeg)
+    
+    
+   
+   <a href='../proc/user_kick_getacch_body.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody_system_object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Optional argument that determines whether or not this is the beginning or end of the step</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-discard~3"></span><h3>procedure, public :: <strong>discard</strong>  => <a href='../interface/discard_pl.html'>discard_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Placeholder method for discarding massive bodies </p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine discard_pl(self, system, param)
+    
+    
+   
+   <a href='../proc/discard_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameter</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-eucl_index"></span><h3>procedure, public :: <strong>eucl_index</strong>  => <a href='../interface/eucl_dist_index_plpl.html'>eucl_dist_index_plpl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Sets up the (i, j) -&gt; k indexing used for the single-loop blocking Euclidean distance matrix</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine eucl_dist_index_plpl(self)
+    
+    
+   
+   <a href='../proc/eucl_dist_index_plpl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-accel_int~2"></span><h3>procedure, public :: <strong>accel_int</strong>  => <a href='../interface/kick_getacch_int_pl.html'>kick_getacch_int_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Compute direct cross (third) term heliocentric accelerations of massive bodies</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public pure module subroutine kick_getacch_int_pl(self)
+    
+    
+   
+   <a href='../proc/kick_getacch_int_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-accel_obl~2"></span><h3>procedure, public :: <strong>accel_obl</strong>  => <a href='../interface/obl_acc_pl.html'>obl_acc_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Compute the barycentric accelerations of bodies due to the oblateness of the central body</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine obl_acc_pl(self, system)
+    
+    
+   
+   <a href='../proc/obl_acc_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-accel_tides"></span><h3>procedure, public :: <strong>accel_tides</strong>  => <a href='../interface/tides_kick_getacch_pl.html'>tides_kick_getacch_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Compute the accelerations of bodies due to tidal interactions with the central body</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine tides_kick_getacch_pl(self, system)
+    
+    
+   
+   <a href='../proc/tides_kick_getacch_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-h2b~2"></span><h3>procedure, public :: <strong>h2b</strong>  => <a href='../interface/util_coord_h2b_pl.html'>util_coord_h2b_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine util_coord_h2b_pl(self, cb)
+    
+    
+   
+   <a href='../proc/util_coord_h2b_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-b2h~2"></span><h3>procedure, public :: <strong>b2h</strong>  => <a href='../interface/util_coord_b2h_pl.html'>util_coord_b2h_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine util_coord_b2h_pl(self, cb)
+    
+    
+   
+   <a href='../proc/util_coord_b2h_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-set_beg_end"></span><h3>procedure, public :: <strong>set_beg_end</strong>  => <a href='../interface/util_set_beg_end_pl.html'>util_set_beg_end_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Sets the beginning and ending positions and velocities of planets.</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
+    
+    
+   
+   <a href='../proc/util_set_beg_end_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>xbeg</strong></td><td><p>Position vectors at beginning of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>xend</strong></td><td><p>Positions vectors at end of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>vbeg</strong></td><td><p>vbeg is an unused variable to keep this method forward compatible with RMVS</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-set_rhill"></span><h3>procedure, public :: <strong>set_rhill</strong>  => <a href='../interface/util_set_rhill.html'>util_set_rhill</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Calculates the Hill's radii for each body</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine util_set_rhill(self, cb)
+    
+    
+   
+   <a href='../proc/util_set_rhill.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-h2j"></span><h3>procedure, public :: <strong>h2j</strong>  => <a href='../interface/whm_coord_h2j_pl.html'>whm_coord_h2j_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Convert position and velcoity vectors from heliocentric to Jacobi coordinates </p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_coord_h2j_pl(self, cb)
+    
+    
+   
+   <a href='../proc/whm_coord_h2j_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body particle data structuree</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-j2h"></span><h3>procedure, public :: <strong>j2h</strong>  => <a href='../interface/whm_coord_j2h_pl.html'>whm_coord_j2h_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Convert position and velcoity vectors from Jacobi to helliocentric coordinates </p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_coord_j2h_pl(self, cb)
+    
+    
+   
+   <a href='../proc/whm_coord_j2h_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body particle data structuree</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-vh2vj"></span><h3>procedure, public :: <strong>vh2vj</strong>  => <a href='../interface/whm_coord_vh2vj_pl.html'>whm_coord_vh2vj_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Convert velocity vectors from heliocentric to Jacobi coordinates </p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_coord_vh2vj_pl(self, cb)
+    
+    
+   
+   <a href='../proc/whm_coord_vh2vj_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body particle data structuree</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-drift~2"></span><h3>procedure, public :: <strong>drift</strong>  => <a href='../interface/whm_drift_pl.html'>whm_drift_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Loop through massive bodies and call Danby drift routine to jacobi coordinates</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_drift_pl(self, system, param, dt)
+    
+    
+   
+   <a href='../proc/whm_drift_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>WHM nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-accel_gr~2"></span><h3>procedure, public :: <strong>accel_gr</strong>  => <a href='../interface/whm_gr_kick_getacch_pl.html'>whm_gr_kick_getacch_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Acceleration term arising from the post-Newtonian correction</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_gr_kick_getacch_pl(self, param)
+    
+    
+   
+   <a href='../proc/whm_gr_kick_getacch_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-gr_pos_kick~2"></span><h3>procedure, public :: <strong>gr_pos_kick</strong>  => <a href='../interface/whm_gr_p4_pl.html'>whm_gr_p4_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Position kick due to p**4 term in the post-Newtonian correction</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public pure module subroutine whm_gr_p4_pl(self, param, dt)
+    
+    
+   
+   <a href='../proc/whm_gr_p4_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Step size</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-accel~2"></span><h3>procedure, public :: <strong>accel</strong>  => <a href='../interface/whm_kick_getacch_pl.html'>whm_kick_getacch_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Compute heliocentric accelerations of massive bodies</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_kick_getacch_pl(self, system, param, t, lbeg)
+    
+    
+   
+   <a href='../proc/whm_kick_getacch_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+
+
+
+<p>Get heliocentric accelration of massive bodies</p>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>WHM nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current simulation time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Logical flag that determines whether or not this is the beginning or end of the step</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-kick~2"></span><h3>procedure, public :: <strong>kick</strong>  => <a href='../interface/whm_kick_vh_pl.html'>whm_kick_vh_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Kick heliocentric velocities of massive bodies</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_kick_vh_pl(self, system, param, t, dt, lbeg)
+    
+    
+   
+   <a href='../proc/whm_kick_vh_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Logical flag indicating whether this is the beginning of the half step or not. </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-set_ir3~2"></span><h3>procedure, public :: <strong>set_ir3</strong>  => <a href='../interface/whm_util_set_ir3j.html'>whm_util_set_ir3j</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Sets both the heliocentric and jacobi inverse radius terms (1/rj<strong>3 and 1/rh</strong>3)</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_util_set_ir3j(self)
+    
+    
+   
+   <a href='../proc/whm_util_set_ir3j.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-set_mu~2"></span><h3>procedure, public :: <strong>set_mu</strong>  => <a href='../interface/whm_util_set_mu_eta_pl.html'>whm_util_set_mu_eta_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Sets the Jacobi mass value for all massive bodies.</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_util_set_mu_eta_pl(self, cb)
+    
+    
+   
+   <a href='../proc/whm_util_set_mu_eta_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-step~3"></span><h3>procedure, public :: <strong>step</strong>  => <a href='../interface/whm_step_pl.html'>whm_step_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Steps the body forward one stepsize</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine whm_step_pl(self, system, param, t, dt)
+    
+    
+   
+   <a href='../proc/whm_step_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/whm_pl.html'>whm_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>WHM massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Simulation time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Current stepsize</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-setup~2"></span><h3>procedure, public :: <strong>setup</strong>  => <a href='../interface/rmvs_setup_pl.html'>rmvs_setup_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Constructor method - Allocates space for the input number of bodiess</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine rmvs_setup_pl(self, n, param)
+    
+    
+   
+   <a href='../proc/rmvs_setup_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/rmvs_pl.html'>rmvs_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>RMVS massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>n</strong></td><td><p>Number of particles to allocate space for</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-append~2"></span><h3>procedure, public :: <strong>append</strong>  => <a href='../interface/rmvs_util_append_pl.html'>rmvs_util_append_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Appends elements from one structure to another</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine rmvs_util_append_pl(self, source, lsource_mask)
+    
+    
+   
+   <a href='../proc/rmvs_util_append_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/rmvs_pl.html'>rmvs_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>RMVS massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_body),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>source</strong></td><td><p>Source object to append</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>lsource_mask</strong></td><td><p>Logical mask indicating which elements to append to</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-fill~2"></span><h3>procedure, public :: <strong>fill</strong>  => <a href='../interface/rmvs_util_fill_pl.html'>rmvs_util_fill_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>"Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
+    
+    
+   
+   <a href='../proc/rmvs_util_fill_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/rmvs_pl.html'>rmvs_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>RMVS massive body object </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_body),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>inserts</strong></td><td><p>Inserted object </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>lfill_list</strong></td><td><p>Logical array of bodies to merge into the keeps</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-resize~2"></span><h3>procedure, public :: <strong>resize</strong>  => <a href='../interface/rmvs_util_resize_pl.html'>rmvs_util_resize_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine rmvs_util_resize_pl(self, nnew)
+    
+    
+   
+   <a href='../proc/rmvs_util_resize_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/rmvs_pl.html'>rmvs_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>RMVS massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>nnew</strong></td><td><p>New size neded</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-sort~2"></span><h3>procedure, public :: <strong>sort</strong>  => <a href='../interface/rmvs_util_sort_pl.html'>rmvs_util_sort_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Sorts body arrays by a sortable componen</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine rmvs_util_sort_pl(self, sortby, ascending)
+    
+    
+   
+   <a href='../proc/rmvs_util_sort_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/rmvs_pl.html'>rmvs_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>RMVS massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>character(len=*),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>sortby</strong></td><td><p>Sorting attribute</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>ascending</strong></td><td><p>Logical flag indicating whether or not the sorting should be in ascending or descending order</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-rearrange~2"></span><h3>procedure, public :: <strong>rearrange</strong>  => <a href='../interface/rmvs_util_sort_rearrange_pl.html'>rmvs_util_sort_rearrange_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Rearranges the order of array elements of body based on an input index array. Used in sorting methods</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine rmvs_util_sort_rearrange_pl(self, ind)
+    
+    
+   
+   <a href='../proc/rmvs_util_sort_rearrange_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/rmvs_pl.html'>rmvs_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>RMVS massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>ind</strong></td><td><p>Index array used to restructure the body (should contain all 1:n index values in the desired order)</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-spill~2"></span><h3>procedure, public :: <strong>spill</strong>  => <a href='../interface/rmvs_util_spill_pl.html'>rmvs_util_spill_pl</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine rmvs_util_spill_pl(self, discards, lspill_list, ldestructive)
+    
+    
+   
+   <a href='../proc/rmvs_util_spill_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/rmvs_pl.html'>rmvs_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>RMVS massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_body),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>discards</strong></td><td><p>Discarded object </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>lspill_list</strong></td><td><p>Logical array of bodies to spill into the discards</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>ldestructive</strong></td><td><p>Logical flag indicating whether or not this operation should alter the keeps array or not</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+    </section>
+    
+    
+    
+    
+    </div>
+  </div>
+
+
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>

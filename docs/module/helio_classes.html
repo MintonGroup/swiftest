@@ -1,0 +1,5801 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West (someday, hopefully)">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>helio_classes &ndash; swiftest</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/swiftest_driver.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/swiftest_driver.html">Program</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>helio_classes 
+    <small>Module</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     <li><i class="fa fa-pencil"></i> The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</li>
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 1.5% of total for modules and submodules.">192 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/helio_classes.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+     <li><a href='../sourcefile/helio_classes.f90.html'>helio_classes.f90</a></li>
+    
+  
+     <li class="active">helio_classes</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#inters-0">Interfaces</a></h3></div>
+  <div id="inters-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vb2vh_pl">helio_coord_vb2vh_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vb2vh_tp">helio_coord_vb2vh_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vh2vb_pl">helio_coord_vh2vb_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vh2vb_tp">helio_coord_vh2vb_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_body">helio_drift_body</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_pl">helio_drift_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_tp">helio_drift_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_linear_pl">helio_drift_linear_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_linear_tp">helio_drift_linear_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_gr_kick_getacch_pl">helio_gr_kick_getacch_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_gr_kick_getacch_tp">helio_gr_kick_getacch_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_gr_p4_pl">helio_gr_p4_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_gr_p4_tp">helio_gr_p4_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_getacch_pl">helio_kick_getacch_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_getacch_tp">helio_kick_getacch_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_vb_pl">helio_kick_vb_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_vb_tp">helio_kick_vb_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_step_pl">helio_step_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_step_system">helio_step_system</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_step_tp">helio_step_tp</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#types-0">Derived Types</a></h3></div>
+  <div id="types-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/helio_classes.html#type-helio_nbody_system">helio_nbody_system</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#type-helio_cb">helio_cb</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#type-helio_pl">helio_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#type-helio_tp">helio_tp</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <p>Definition of classes and methods specific to the Democratic Heliocentric Method
+ Adapted from David E. Kaufmann's Swifter routine: helio.f90</p>
+<hr>
+<p>helio_nbody_system class definitions and method interfaces</p>
+<hr>
+<hr>
+<p>helio_cb class definitions and method interfaces</p>
+<hr>
+<hr>
+<div class="codehilite"><pre><span></span><code><span class="err">                                helio_pl class definitions and method interfaces</span>
+</code></pre></div>
+
+
+<hr>
+<p>Helio massive body particle class</p>
+<hr>
+<div class="codehilite"><pre><span></span><code><span class="err">                                helio_tp class definitions and method interfaces</span>
+</code></pre></div>
+
+
+<hr>
+<p>Helio test particle class</p>
+      <br>
+    
+  
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+      
+      <li class="list-group-item">
+  <ul class="list-inline">
+    
+    <li><a href='../module/swiftest_globals.html'>swiftest_globals</a></li>
+    
+    <li><a href='../module/swiftest_classes.html'>swiftest_classes</a></li>
+    
+    <li><a href='../module/whm_classes.html'>whm_classes</a></li>
+    
+  </ul>
+      </li>
+      
+      
+      
+      <li class="list-group-item">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: module~~helio_classes~~UsesGraph Pages: 1 -->
+<svg id="modulehelio_classesUsesGraph" width="568pt" height="72pt"
+ viewBox="0.00 0.00 568.00 72.49" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~helio_classes~~UsesGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 68.49)">
+<title>module~~helio_classes~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-68.49 564,-68.49 564,4 -4,4"/>
+<!-- module~helio_classes -->
+<g id="module~~helio_classes~~UsesGraph_node1" class="node">
+<title>module~helio_classes</title>
+<polygon fill="none" stroke="black" points="560,-52.05 484,-52.05 484,-28.05 560,-28.05 560,-52.05"/>
+<text text-anchor="middle" x="522" y="-37.65" font-family="Helvetica,sans-Serif" font-size="10.50">helio_classes</text>
+</g>
+<!-- module~swiftest_classes -->
+<g id="module~~helio_classes~~UsesGraph_node2" class="node">
+<title>module~swiftest_classes</title>
+<g id="a_module~~helio_classes~~UsesGraph_node2"><a xlink:href=".././module/swiftest_classes.html" xlink:title="swiftest_classes">
+<polygon fill="#337ab7" stroke="#337ab7" points="336,-52.05 247,-52.05 247,-28.05 336,-28.05 336,-52.05"/>
+<text text-anchor="middle" x="291.5" y="-37.65" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_classes</text>
+</a>
+</g>
+</g>
+<!-- module~helio_classes&#45;&gt;module~swiftest_classes -->
+<g id="module~~helio_classes~~UsesGraph_edge1" class="edge">
+<title>module~helio_classes&#45;&gt;module~swiftest_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M486.53,-52.11C474.49,-55.74 460.8,-59.24 448,-61.05 414.55,-65.76 405.5,-65.39 372,-61.05 361.49,-59.68 350.38,-57.34 339.92,-54.7"/>
+<polygon fill="#000000" stroke="#000000" points="340.68,-51.29 330.11,-52.11 338.89,-58.05 340.68,-51.29"/>
+</g>
+<!-- module~whm_classes -->
+<g id="module~~helio_classes~~UsesGraph_node3" class="node">
+<title>module~whm_classes</title>
+<g id="a_module~~helio_classes~~UsesGraph_node3"><a xlink:href=".././module/whm_classes.html" xlink:title="whm_classes">
+<polygon fill="#337ab7" stroke="#337ab7" points="448,-52.05 372,-52.05 372,-28.05 448,-28.05 448,-52.05"/>
+<text text-anchor="middle" x="410" y="-37.65" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_classes</text>
+</a>
+</g>
+</g>
+<!-- module~helio_classes&#45;&gt;module~whm_classes -->
+<g id="module~~helio_classes~~UsesGraph_edge2" class="edge">
+<title>module~helio_classes&#45;&gt;module~whm_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M483.76,-40.05C475.61,-40.05 466.87,-40.05 458.38,-40.05"/>
+<polygon fill="#000000" stroke="#000000" points="458.2,-36.55 448.2,-40.05 458.2,-43.55 458.2,-36.55"/>
+</g>
+<!-- module~swiftest_globals -->
+<g id="module~~helio_classes~~UsesGraph_node4" class="node">
+<title>module~swiftest_globals</title>
+<g id="a_module~~helio_classes~~UsesGraph_node4"><a xlink:href=".././module/swiftest_globals.html" xlink:title="swiftest_globals">
+<polygon fill="#337ab7" stroke="#337ab7" points="211,-32.05 123,-32.05 123,-8.05 211,-8.05 211,-32.05"/>
+<text text-anchor="middle" x="167" y="-17.65" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_globals</text>
+</a>
+</g>
+</g>
+<!-- module~helio_classes&#45;&gt;module~swiftest_globals -->
+<g id="module~~helio_classes~~UsesGraph_edge3" class="edge">
+<title>module~helio_classes&#45;&gt;module~swiftest_globals</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M290.5,-0.05C267.53,0.05 242.44,-3.41 220.99,-7.47"/>
+<polygon fill="#000000" stroke="#000000" points="220.22,-4.05 211.09,-9.43 221.58,-10.92 220.22,-4.05"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M483.77,-28.1C472.38,-24.79 459.76,-21.44 448,-19.05 379.77,-5.16 362.12,-0.32 292.5,-0.05"/>
+</g>
+<!-- module~swiftest_classes&#45;&gt;module~swiftest_globals -->
+<g id="module~~helio_classes~~UsesGraph_edge4" class="edge">
+<title>module~swiftest_classes&#45;&gt;module~swiftest_globals</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M246.97,-32.94C238.66,-31.58 229.88,-30.15 221.31,-28.75"/>
+<polygon fill="#000000" stroke="#000000" points="221.83,-25.29 211.39,-27.13 220.7,-32.2 221.83,-25.29"/>
+</g>
+<!-- module~whm_classes&#45;&gt;module~swiftest_classes -->
+<g id="module~~helio_classes~~UsesGraph_edge5" class="edge">
+<title>module~whm_classes&#45;&gt;module~swiftest_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.82,-40.05C363.68,-40.05 354.91,-40.05 346.27,-40.05"/>
+<polygon fill="#000000" stroke="#000000" points="346.24,-36.55 336.24,-40.05 346.24,-43.55 346.24,-36.55"/>
+</g>
+<!-- module~whm_classes&#45;&gt;module~swiftest_globals -->
+<g id="module~~helio_classes~~UsesGraph_edge6" class="edge">
+<title>module~whm_classes&#45;&gt;module~swiftest_globals</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M387.43,-27.88C364.59,-16.16 327.14,-0.18 292.5,-0.05"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~helio_classes~~UsesGraph_node5" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~helio_classes~~UsesGraph_node5"><a xlink:href="http://fortranwiki.org/fortran/show/ISO_FORTRAN_ENV" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="87,-32.05 0,-32.05 0,-8.05 87,-8.05 87,-32.05"/>
+<text text-anchor="middle" x="43.5" y="-17.65" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~swiftest_globals&#45;&gt;iso_fortran_env -->
+<g id="module~~helio_classes~~UsesGraph_edge7" class="edge">
+<title>module~swiftest_globals&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M122.82,-20.05C114.58,-20.05 105.86,-20.05 97.36,-20.05"/>
+<polygon fill="#000000" stroke="#000000" points="97.13,-16.55 87.13,-20.05 97.13,-23.55 97.13,-16.55"/>
+</g>
+</g>
+</svg>
+</div><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="490pt" height="32pt"
+ viewBox="0.00 0.00 489.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 485.5,-28 485.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="139.5,-24 72.5,-24 72.5,0 139.5,0 139.5,-24"/>
+<text text-anchor="middle" x="106" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="222,-24 158,-24 158,0 222,0 222,-24"/>
+<text text-anchor="middle" x="190" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="294,-24 240,-24 240,0 294,0 294,-24"/>
+<text text-anchor="middle" x="267" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="366,-24 312,-24 312,0 366,0 366,-24"/>
+<text text-anchor="middle" x="339" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="481.5,-24 384.5,-24 384.5,0 481.5,0 481.5,-24"/>
+<text text-anchor="middle" x="433" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a submodule to the (sub)module which it is
+    descended from. Dashed arrows point from a module or program unit to 
+    modules which it uses.
+    </p>
+    </div></div></div></div>
+      </li>
+      
+      </ul>
+    </div>
+    
+
+    
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Used by</h3>
+      </div>
+      <ul class="list-group">
+  
+  <li class="list-group-item">  
+    <ul class="list-inline">
+      <li><h5>Descendants:</h5></li>
+      
+      <li><a href='../module/s_helio_coord.html'>s_helio_coord</a></li>
+      
+      <li><a href='../module/s_helio_drift.html'>s_helio_drift</a></li>
+      
+      <li><a href='../module/s_helio_gr.html'>s_helio_gr</a></li>
+      
+      <li><a href='../module/s_helio_kick.html'>s_helio_kick</a></li>
+      
+      <li><a href='../module/s_helio_step.html'>s_helio_step</a></li>
+      
+    </ul>
+  </li>
+  
+  
+  <li class="list-group-item">
+    <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: module~~helio_classes~~UsedByGraph Pages: 1 -->
+<svg id="modulehelio_classesUsedByGraph" width="488pt" height="2510pt"
+ viewBox="0.00 0.00 488.00 2510.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~helio_classes~~UsedByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 2506)">
+<title>module~~helio_classes~~UsedByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-2506 484,-2506 484,4 -4,4"/>
+<!-- module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_node1" class="node">
+<title>module~helio_classes</title>
+<polygon fill="none" stroke="black" points="76,-1241 0,-1241 0,-1217 76,-1217 76,-1241"/>
+<text text-anchor="middle" x="38" y="-1226.6" font-family="Helvetica,sans-Serif" font-size="10.50">helio_classes</text>
+</g>
+<!-- module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_node2" class="node">
+<title>module~swiftest</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node2"><a xlink:href=".././module/swiftest.html" xlink:title="swiftest">
+<polygon fill="#337ab7" stroke="#337ab7" points="287,-1221 233,-1221 233,-1197 287,-1197 287,-1221"/>
+<text text-anchor="middle" x="260" y="-1206.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest</text>
+</a>
+</g>
+</g>
+<!-- module~swiftest&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge2" class="edge">
+<title>module~swiftest&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M232.65,-1200.24C209.43,-1194.34 176.18,-1190.61 155.5,-1209"/>
+</g>
+<!-- module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_node5" class="node">
+<title>module~symba_classes</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node5"><a xlink:href=".././module/symba_classes.html" xlink:title="symba_classes">
+<polygon fill="#337ab7" stroke="#337ab7" points="197,-1261 112,-1261 112,-1237 197,-1237 197,-1261"/>
+<text text-anchor="middle" x="154.5" y="-1246.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_classes</text>
+</a>
+</g>
+</g>
+<!-- module~swiftest&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge68" class="edge">
+<title>module~swiftest&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M232.88,-1219.09C221.83,-1223.37 208.68,-1228.45 196.39,-1233.2"/>
+<polygon fill="#000000" stroke="#000000" points="194.84,-1230.04 186.77,-1236.91 197.36,-1236.57 194.84,-1230.04"/>
+</g>
+<!-- module~s_helio_kick -->
+<g id="module~~helio_classes~~UsedByGraph_node3" class="node">
+<title>module~s_helio_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node3"><a xlink:href=".././module/s_helio_kick.html" xlink:title="s_helio_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-2082 366.5,-2082 366.5,-2058 436.5,-2058 436.5,-2082"/>
+<text text-anchor="middle" x="401.5" y="-2067.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_kick</text>
+</a>
+</g>
+</g>
+<!-- module~s_helio_kick&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge3" class="edge">
+<title>module~s_helio_kick&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" d="M366.38,-2068.91C350.99,-2066.59 333.87,-2061.16 323,-2049 196.18,-1907.06 297.72,-1082.49 155.5,-1209"/>
+</g>
+<!-- module~s_helio_kick&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge11" class="edge">
+<title>module~s_helio_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.18,-2069.47C350.55,-2067.3 333.28,-2061.84 323,-2049 266.41,-1978.33 323.49,-1317.86 287,-1235 286.08,-1232.91 284.91,-1230.9 283.58,-1228.98"/>
+<polygon fill="#000000" stroke="#000000" points="286.13,-1226.58 276.97,-1221.25 280.81,-1231.13 286.13,-1226.58"/>
+</g>
+<!-- module~s_helio_gr -->
+<g id="module~~helio_classes~~UsedByGraph_node4" class="node">
+<title>module~s_helio_gr</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node4"><a xlink:href=".././module/s_helio_gr.html" xlink:title="s_helio_gr">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432.5,-150 370.5,-150 370.5,-126 432.5,-126 432.5,-150"/>
+<text text-anchor="middle" x="401.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_gr</text>
+</a>
+</g>
+</g>
+<!-- module~s_helio_gr&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge4" class="edge">
+<title>module~s_helio_gr&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" d="M370.2,-130.25C355.83,-126.46 338.47,-121.71 323,-117 295.17,-108.52 281.02,-74.89 261,-96"/>
+</g>
+<!-- module~s_helio_gr&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge37" class="edge">
+<title>module~s_helio_gr&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.19,-138.12C353.63,-139.9 334.26,-145.15 323,-159 255.99,-241.43 259.57,-1041.56 260.78,-1186.53"/>
+<polygon fill="#000000" stroke="#000000" points="257.28,-1186.88 260.87,-1196.84 264.28,-1186.81 257.28,-1186.88"/>
+</g>
+<!-- module~symba_classes&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge1" class="edge">
+<title>module~symba_classes&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M111.84,-1241.72C103.57,-1240.28 94.82,-1238.75 86.37,-1237.27"/>
+<polygon fill="#000000" stroke="#000000" points="86.72,-1233.78 76.27,-1235.51 85.52,-1240.68 86.72,-1233.78"/>
+</g>
+<!-- module~s_helio_step -->
+<g id="module~~helio_classes~~UsedByGraph_node6" class="node">
+<title>module~s_helio_step</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node6"><a xlink:href=".././module/s_helio_step.html" xlink:title="s_helio_step">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-108 365,-108 365,-84 438,-84 438,-108"/>
+<text text-anchor="middle" x="401.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_step</text>
+</a>
+</g>
+</g>
+<!-- module~s_helio_step&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge5" class="edge">
+<title>module~s_helio_step&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" d="M367.01,-83.97C334.9,-74.83 287.5,-68.06 261,-96"/>
+</g>
+<!-- module~s_helio_step&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge15" class="edge">
+<title>module~s_helio_step&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.66,-96.82C349.47,-99.14 333.01,-104.66 323,-117 288.06,-160.08 265.25,-1034.27 261.54,-1186.49"/>
+<polygon fill="#000000" stroke="#000000" points="258.03,-1186.81 261.28,-1196.89 265.03,-1186.98 258.03,-1186.81"/>
+</g>
+<!-- module~s_helio_coord -->
+<g id="module~~helio_classes~~UsedByGraph_node7" class="node">
+<title>module~s_helio_coord</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node7"><a xlink:href=".././module/s_helio_coord.html" xlink:title="s_helio_coord">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-66 362,-66 362,-42 441,-42 441,-66"/>
+<text text-anchor="middle" x="401.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_coord</text>
+</a>
+</g>
+</g>
+<!-- module~s_helio_coord&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge6" class="edge">
+<title>module~s_helio_coord&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" d="M361.98,-55.48C330.52,-58.79 287.11,-68.47 261,-96"/>
+</g>
+<!-- module~s_helio_coord&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge16" class="edge">
+<title>module~s_helio_coord&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.84,-55.28C347.46,-57.83 332.38,-63.41 323,-75 286.7,-119.86 264.94,-1031.27 261.48,-1186.59"/>
+<polygon fill="#000000" stroke="#000000" points="257.98,-1186.73 261.26,-1196.8 264.98,-1186.88 257.98,-1186.73"/>
+</g>
+<!-- module~s_helio_drift -->
+<g id="module~~helio_classes~~UsedByGraph_node8" class="node">
+<title>module~s_helio_drift</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node8"><a xlink:href=".././module/s_helio_drift.html" xlink:title="s_helio_drift">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-24 366.5,-24 366.5,0 436.5,0 436.5,-24"/>
+<text text-anchor="middle" x="401.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_drift</text>
+</a>
+</g>
+</g>
+<!-- module~s_helio_drift&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge7" class="edge">
+<title>module~s_helio_drift&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" d="M259,-96C88.05,-276.22 353.55,-1059.07 155.5,-1209"/>
+<path fill="none" stroke="#000000" d="M153.5,-1209C134.54,-1223.35 108.78,-1228.73 86.49,-1230.35"/>
+<polygon fill="#000000" stroke="#000000" points="86.01,-1226.87 76.2,-1230.86 86.36,-1233.86 86.01,-1226.87"/>
+<path fill="none" stroke="#000000" d="M366.16,-17.24C352.11,-20.39 336.12,-25.33 323,-33 289.08,-52.83 288.04,-67.5 261,-96"/>
+</g>
+<!-- module~s_helio_drift&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge46" class="edge">
+<title>module~s_helio_drift&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.23,-12.57C350.61,-14.74 333.34,-20.2 323,-33 285.32,-79.64 264.63,-1028.56 261.44,-1186.74"/>
+<polygon fill="#000000" stroke="#000000" points="257.94,-1186.67 261.24,-1196.74 264.94,-1186.81 257.94,-1186.67"/>
+</g>
+<!-- module~s_obl -->
+<g id="module~~helio_classes~~UsedByGraph_node9" class="node">
+<title>module~s_obl</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node9"><a xlink:href=".././module/s_obl.html" xlink:title="s_obl">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-2040 374.5,-2040 374.5,-2016 428.5,-2016 428.5,-2040"/>
+<text text-anchor="middle" x="401.5" y="-2025.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_obl</text>
+</a>
+</g>
+</g>
+<!-- module~s_obl&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge8" class="edge">
+<title>module~s_obl&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.33,-2028.32C356.94,-2027 335.13,-2022.11 323,-2007 269.25,-1940.03 321.7,-1313.55 287,-1235 286.08,-1232.91 284.91,-1230.9 283.57,-1228.98"/>
+<polygon fill="#000000" stroke="#000000" points="286.12,-1226.58 276.96,-1221.26 280.8,-1231.13 286.12,-1226.58"/>
+</g>
+<!-- module~s_util_solve -->
+<g id="module~~helio_classes~~UsedByGraph_node10" class="node">
+<title>module~s_util_solve</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node10"><a xlink:href=".././module/s_util_solve.html" xlink:title="s_util_solve">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="435.5,-1998 367.5,-1998 367.5,-1974 435.5,-1974 435.5,-1998"/>
+<text text-anchor="middle" x="401.5" y="-1983.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_solve</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_solve&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge9" class="edge">
+<title>module~s_util_solve&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M367.4,-1985.6C351.47,-1983.55 333.58,-1978.14 323,-1965 272.08,-1901.74 319.92,-1309.24 287,-1235 286.07,-1232.91 284.9,-1230.9 283.57,-1228.99"/>
+<polygon fill="#000000" stroke="#000000" points="286.11,-1226.58 276.95,-1221.26 280.8,-1231.13 286.11,-1226.58"/>
+</g>
+<!-- module~s_util_spill -->
+<g id="module~~helio_classes~~UsedByGraph_node11" class="node">
+<title>module~s_util_spill</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node11"><a xlink:href=".././module/s_util_spill.html" xlink:title="s_util_spill">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-1956 371,-1956 371,-1932 432,-1932 432,-1956"/>
+<text text-anchor="middle" x="401.5" y="-1941.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_spill</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_spill&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge10" class="edge">
+<title>module~s_util_spill&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.93,-1943.99C354.19,-1942.3 334.38,-1937.1 323,-1923 274.91,-1863.44 318.13,-1304.93 287,-1235 286.07,-1232.92 284.9,-1230.91 283.56,-1228.99"/>
+<polygon fill="#000000" stroke="#000000" points="286.11,-1226.58 276.94,-1221.26 280.79,-1231.14 286.11,-1226.58"/>
+</g>
+<!-- module~s_util_append -->
+<g id="module~~helio_classes~~UsedByGraph_node12" class="node">
+<title>module~s_util_append</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node12"><a xlink:href=".././module/s_util_append.html" xlink:title="s_util_append">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-1914 362,-1914 362,-1890 441,-1890 441,-1914"/>
+<text text-anchor="middle" x="401.5" y="-1899.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_append</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_append&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge12" class="edge">
+<title>module~s_util_append&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.84,-1900.72C347.47,-1898.16 332.39,-1892.59 323,-1881 277.74,-1825.14 316.35,-1300.63 287,-1235 286.05,-1232.87 284.84,-1230.82 283.46,-1228.86"/>
+<polygon fill="#000000" stroke="#000000" points="285.85,-1226.28 276.66,-1221 280.56,-1230.86 285.85,-1226.28"/>
+</g>
+<!-- module~s_discard -->
+<g id="module~~helio_classes~~UsedByGraph_node13" class="node">
+<title>module~s_discard</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node13"><a xlink:href=".././module/s_discard.html" xlink:title="s_discard">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="430.5,-1872 372.5,-1872 372.5,-1848 430.5,-1848 430.5,-1872"/>
+<text text-anchor="middle" x="401.5" y="-1857.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_discard</text>
+</a>
+</g>
+</g>
+<!-- module~s_discard&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge13" class="edge">
+<title>module~s_discard&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M372.12,-1860.08C355.16,-1858.49 334.7,-1853.38 323,-1839 238.15,-1734.69 342.13,-1357.64 287,-1235 286.04,-1232.87 284.83,-1230.82 283.45,-1228.87"/>
+<polygon fill="#000000" stroke="#000000" points="285.84,-1226.28 276.65,-1221.01 280.55,-1230.86 285.84,-1226.28"/>
+</g>
+<!-- module~drift_implementation -->
+<g id="module~~helio_classes~~UsedByGraph_node14" class="node">
+<title>module~drift_implementation</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node14"><a xlink:href=".././module/drift_implementation.html" xlink:title="drift_implementation">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="456,-1830 347,-1830 347,-1806 456,-1806 456,-1830"/>
+<text text-anchor="middle" x="401.5" y="-1815.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">drift_implementation</text>
+</a>
+</g>
+</g>
+<!-- module~drift_implementation&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge14" class="edge">
+<title>module~drift_implementation&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346.99,-1812.82C337.77,-1809.55 329.17,-1804.56 323,-1797 243.82,-1700.09 338.56,-1349.03 287,-1235 286.04,-1232.87 284.82,-1230.82 283.44,-1228.87"/>
+<polygon fill="#000000" stroke="#000000" points="285.83,-1226.28 276.63,-1221.02 280.54,-1230.87 285.83,-1226.28"/>
+</g>
+<!-- module~s_whm_gr -->
+<g id="module~~helio_classes~~UsedByGraph_node15" class="node">
+<title>module~s_whm_gr</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node15"><a xlink:href=".././module/s_whm_gr.html" xlink:title="s_whm_gr">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432.5,-1788 370.5,-1788 370.5,-1764 432.5,-1764 432.5,-1788"/>
+<text text-anchor="middle" x="401.5" y="-1773.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_gr</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_gr&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge62" class="edge">
+<title>module~s_whm_gr&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.24,-1775.84C353.7,-1774.04 334.33,-1768.79 323,-1755 249.48,-1665.49 335,-1340.42 287,-1235 286.03,-1232.88 284.81,-1230.83 283.43,-1228.88"/>
+<polygon fill="#000000" stroke="#000000" points="285.81,-1226.28 276.62,-1221.02 280.52,-1230.87 285.81,-1226.28"/>
+</g>
+<!-- module~s_rmvs_util -->
+<g id="module~~helio_classes~~UsedByGraph_node16" class="node">
+<title>module~s_rmvs_util</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node16"><a xlink:href=".././module/s_rmvs_util.html" xlink:title="s_rmvs_util">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="435,-1746 368,-1746 368,-1722 435,-1722 435,-1746"/>
+<text text-anchor="middle" x="401.5" y="-1731.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_util</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_util&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge17" class="edge">
+<title>module~s_rmvs_util&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M367.93,-1733.54C351.94,-1731.49 333.83,-1726.11 323,-1713 255.14,-1630.89 331.43,-1331.81 287,-1235 286.03,-1232.88 284.8,-1230.83 283.41,-1228.88"/>
+<polygon fill="#000000" stroke="#000000" points="285.8,-1226.29 276.6,-1221.03 280.51,-1230.88 285.8,-1226.29"/>
+</g>
+<!-- module~s_util_resize -->
+<g id="module~~helio_classes~~UsedByGraph_node17" class="node">
+<title>module~s_util_resize</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node17"><a xlink:href=".././module/s_util_resize.html" xlink:title="s_util_resize">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="437.5,-1704 365.5,-1704 365.5,-1680 437.5,-1680 437.5,-1704"/>
+<text text-anchor="middle" x="401.5" y="-1689.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_resize</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_resize&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge18" class="edge">
+<title>module~s_util_resize&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M365.2,-1691.12C349.94,-1688.81 333.26,-1683.32 323,-1671 260.8,-1596.29 327.87,-1323.21 287,-1235 286.02,-1232.88 284.79,-1230.84 283.4,-1228.89"/>
+<polygon fill="#000000" stroke="#000000" points="285.78,-1226.29 276.57,-1221.04 280.49,-1230.89 285.78,-1226.29"/>
+</g>
+<!-- module~s_operator_cross -->
+<g id="module~~helio_classes~~UsedByGraph_node18" class="node">
+<title>module~s_operator_cross</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node18"><a xlink:href=".././module/s_operator_cross.html" xlink:title="s_operator_cross">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="449.5,-1662 353.5,-1662 353.5,-1638 449.5,-1638 449.5,-1662"/>
+<text text-anchor="middle" x="401.5" y="-1647.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_operator_cross</text>
+</a>
+</g>
+</g>
+<!-- module~s_operator_cross&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge19" class="edge">
+<title>module~s_operator_cross&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M353.16,-1646.55C341.73,-1643.44 330.62,-1638.07 323,-1629 266.45,-1561.68 324.31,-1314.61 287,-1235 286.01,-1232.89 284.77,-1230.85 283.38,-1228.9"/>
+<polygon fill="#000000" stroke="#000000" points="285.75,-1226.3 276.54,-1221.06 280.47,-1230.9 285.75,-1226.3"/>
+</g>
+<!-- module~s_user_kick_getacch -->
+<g id="module~~helio_classes~~UsedByGraph_node19" class="node">
+<title>module~s_user_kick_getacch</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node19"><a xlink:href=".././module/s_user_kick_getacch.html" xlink:title="s_user_kick_getacch">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="457.5,-1620 345.5,-1620 345.5,-1596 457.5,-1596 457.5,-1620"/>
+<text text-anchor="middle" x="401.5" y="-1605.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_user_kick_getacch</text>
+</a>
+</g>
+</g>
+<!-- module~s_user_kick_getacch&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge20" class="edge">
+<title>module~s_user_kick_getacch&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M345.25,-1601.91C336.75,-1598.66 328.87,-1593.91 323,-1587 272.1,-1527.07 320.75,-1306.02 287,-1235 286,-1232.89 284.75,-1230.86 283.35,-1228.91"/>
+<polygon fill="#000000" stroke="#000000" points="285.72,-1226.31 276.51,-1221.07 280.45,-1230.91 285.72,-1226.31"/>
+</g>
+<!-- module~s_symba_collision -->
+<g id="module~~helio_classes~~UsedByGraph_node20" class="node">
+<title>module~s_symba_collision</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node20"><a xlink:href=".././module/s_symba_collision.html" xlink:title="s_symba_collision">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="451,-2166 352,-2166 352,-2142 451,-2142 451,-2166"/>
+<text text-anchor="middle" x="401.5" y="-2151.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_collision</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_collision&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge64" class="edge">
+<title>module~s_symba_collision&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M351.8,-2150.34C340.8,-2147.17 330.25,-2141.84 323,-2133 264.14,-2061.18 261.02,-1366.53 260.97,-1231.63"/>
+<polygon fill="#000000" stroke="#000000" points="264.47,-1231.29 260.98,-1221.29 257.47,-1231.29 264.47,-1231.29"/>
+</g>
+<!-- module~s_symba_collision&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge75" class="edge">
+<title>module~s_symba_collision&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M351.97,-2160.43C341.6,-2163.56 331.28,-2168.18 323,-2175 274.83,-2214.68 307.28,-2342.87 261,-2301"/>
+</g>
+<!-- module~s_eucl -->
+<g id="module~~helio_classes~~UsedByGraph_node21" class="node">
+<title>module~s_eucl</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node21"><a xlink:href=".././module/s_eucl.html" xlink:title="s_eucl">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1578 374.5,-1578 374.5,-1554 428.5,-1554 428.5,-1578"/>
+<text text-anchor="middle" x="401.5" y="-1563.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_eucl</text>
+</a>
+</g>
+</g>
+<!-- module~s_eucl&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge22" class="edge">
+<title>module~s_eucl&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.28,-1566.02C357.09,-1564.54 335.55,-1559.58 323,-1545 277.75,-1492.45 317.2,-1297.43 287,-1235 285.98,-1232.9 284.73,-1230.87 283.32,-1228.93"/>
+<polygon fill="#000000" stroke="#000000" points="285.68,-1226.31 276.46,-1221.09 280.42,-1230.92 285.68,-1226.31"/>
+</g>
+<!-- module~s_rmvs_discard -->
+<g id="module~~helio_classes~~UsedByGraph_node22" class="node">
+<title>module~s_rmvs_discard</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node22"><a xlink:href=".././module/s_rmvs_discard.html" xlink:title="s_rmvs_discard">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="445.5,-1536 357.5,-1536 357.5,-1512 445.5,-1512 445.5,-1536"/>
+<text text-anchor="middle" x="401.5" y="-1521.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_discard</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_discard&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge23" class="edge">
+<title>module~s_rmvs_discard&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M357.46,-1521.34C344.65,-1518.42 331.73,-1512.96 323,-1503 243.77,-1412.64 340.3,-1342.72 287,-1235 285.96,-1232.91 284.7,-1230.88 283.28,-1228.95"/>
+<polygon fill="#000000" stroke="#000000" points="285.63,-1226.33 276.41,-1221.12 280.37,-1230.95 285.63,-1226.33"/>
+</g>
+<!-- module~s_util_coord -->
+<g id="module~~helio_classes~~UsedByGraph_node23" class="node">
+<title>module~s_util_coord</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node23"><a xlink:href=".././module/s_util_coord.html" xlink:title="s_util_coord">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-1494 366.5,-1494 366.5,-1470 436.5,-1470 436.5,-1494"/>
+<text text-anchor="middle" x="401.5" y="-1479.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_coord</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_coord&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge24" class="edge">
+<title>module~s_util_coord&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.41,-1480.88C351.03,-1478.56 333.9,-1473.13 323,-1461 255.02,-1385.35 333.22,-1325.6 287,-1235 285.94,-1232.92 284.65,-1230.91 283.22,-1228.98"/>
+<polygon fill="#000000" stroke="#000000" points="285.57,-1226.34 276.33,-1221.16 280.32,-1230.98 285.57,-1226.34"/>
+</g>
+<!-- module~s_symba_fragmentation -->
+<g id="module~~helio_classes~~UsedByGraph_node24" class="node">
+<title>module~s_symba_fragmentation</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node24"><a xlink:href=".././module/s_symba_fragmentation.html" xlink:title="s_symba_fragmentation">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="465,-2124 338,-2124 338,-2100 465,-2100 465,-2124"/>
+<text text-anchor="middle" x="401.5" y="-2109.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_fragmentation</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_fragmentation&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge25" class="edge">
+<title>module~s_symba_fragmentation&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M337.83,-2102.79C332.18,-2099.8 327.07,-2095.95 323,-2091 266.81,-2022.66 261.54,-1362.11 261.05,-1231.41"/>
+<polygon fill="#000000" stroke="#000000" points="264.55,-1231.04 261.02,-1221.05 257.55,-1231.06 264.55,-1231.04"/>
+</g>
+<!-- module~s_symba_fragmentation&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge70" class="edge">
+<title>module~s_symba_fragmentation&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M259,-2301C179.75,-2229.3 159.03,-1417.13 155.94,-1271.34"/>
+<polygon fill="#000000" stroke="#000000" points="159.44,-1271.25 155.73,-1261.33 152.44,-1271.4 159.44,-1271.25"/>
+<path fill="none" stroke="#000000" d="M337.63,-2123.21C332.31,-2125.83 327.32,-2129.05 323,-2133 264.28,-2186.72 320.02,-2354.4 261,-2301"/>
+</g>
+<!-- module~s_whm_kick -->
+<g id="module~~helio_classes~~UsedByGraph_node25" class="node">
+<title>module~s_whm_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node25"><a xlink:href=".././module/s_whm_kick.html" xlink:title="s_whm_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-1452 366.5,-1452 366.5,-1428 436.5,-1428 436.5,-1452"/>
+<text text-anchor="middle" x="401.5" y="-1437.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_kick</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_kick&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge26" class="edge">
+<title>module~s_whm_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.2,-1438.65C350.96,-1436.26 334.02,-1430.84 323,-1419 266.22,-1358.01 326.17,-1308.55 287,-1235 285.9,-1232.94 284.59,-1230.94 283.14,-1229.02"/>
+<polygon fill="#000000" stroke="#000000" points="285.47,-1226.37 276.21,-1221.22 280.24,-1231.02 285.47,-1226.37"/>
+</g>
+<!-- module~s_util_valid -->
+<g id="module~~helio_classes~~UsedByGraph_node26" class="node">
+<title>module~s_util_valid</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node26"><a xlink:href=".././module/s_util_valid.html" xlink:title="s_util_valid">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="434,-1410 369,-1410 369,-1386 434,-1386 434,-1410"/>
+<text text-anchor="middle" x="401.5" y="-1395.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_valid</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_valid&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge27" class="edge">
+<title>module~s_util_valid&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.83,-1396.73C353.09,-1394.46 334.93,-1389.12 323,-1377 277.34,-1330.59 319.17,-1291.6 287,-1235 285.73,-1232.77 284.22,-1230.59 282.57,-1228.51"/>
+<polygon fill="#000000" stroke="#000000" points="285.09,-1226.09 275.77,-1221.05 279.92,-1230.8 285.09,-1226.09"/>
+</g>
+<!-- module~s_util_set -->
+<g id="module~~helio_classes~~UsedByGraph_node27" class="node">
+<title>module~s_util_set</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node27"><a xlink:href=".././module/s_util_set.html" xlink:title="s_util_set">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="430.5,-1368 372.5,-1368 372.5,-1344 430.5,-1344 430.5,-1368"/>
+<text text-anchor="middle" x="401.5" y="-1353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_set</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_set&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge28" class="edge">
+<title>module~s_util_set&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M372.34,-1354.67C356.1,-1352.51 336.32,-1347.29 323,-1335 288.27,-1302.98 312.31,-1274.88 287,-1235 285.62,-1232.83 284.04,-1230.7 282.34,-1228.65"/>
+<polygon fill="#000000" stroke="#000000" points="284.83,-1226.19 275.47,-1221.23 279.7,-1230.95 284.83,-1226.19"/>
+</g>
+<!-- module~s_util_exit -->
+<g id="module~~helio_classes~~UsedByGraph_node28" class="node">
+<title>module~s_util_exit</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node28"><a xlink:href=".././module/s_util_exit.html" xlink:title="s_util_exit">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="431.5,-1326 371.5,-1326 371.5,-1302 431.5,-1302 431.5,-1326"/>
+<text text-anchor="middle" x="401.5" y="-1311.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_exit</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_exit&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge29" class="edge">
+<title>module~s_util_exit&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.37,-1311.31C355.78,-1308.66 336.98,-1303.41 323,-1293 298.66,-1274.88 305.85,-1258.77 287,-1235 285.33,-1232.9 283.52,-1230.79 281.64,-1228.73"/>
+<polygon fill="#000000" stroke="#000000" points="283.78,-1225.9 274.31,-1221.15 278.74,-1230.77 283.78,-1225.9"/>
+</g>
+<!-- program~swiftest_driver -->
+<g id="module~~helio_classes~~UsedByGraph_node29" class="node">
+<title>program~swiftest_driver</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node29"><a xlink:href=".././program/swiftest_driver.html" xlink:title="swiftest_driver">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="442,-1284 361,-1284 361,-1260 442,-1260 442,-1284"/>
+<text text-anchor="middle" x="401.5" y="-1269.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_driver</text>
+</a>
+</g>
+</g>
+<!-- program~swiftest_driver&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge30" class="edge">
+<title>program~swiftest_driver&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M360.98,-1263.98C348.52,-1260.75 334.91,-1256.46 323,-1251 309.25,-1244.69 295.19,-1235.45 283.95,-1227.23"/>
+<polygon fill="#000000" stroke="#000000" points="286.04,-1224.43 275.95,-1221.22 281.84,-1230.02 286.04,-1224.43"/>
+</g>
+<!-- module~s_rmvs_kick -->
+<g id="module~~helio_classes~~UsedByGraph_node30" class="node">
+<title>module~s_rmvs_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node30"><a xlink:href=".././module/s_rmvs_kick.html" xlink:title="s_rmvs_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="437,-1242 366,-1242 366,-1218 437,-1218 437,-1242"/>
+<text text-anchor="middle" x="401.5" y="-1227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_kick</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_kick&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge31" class="edge">
+<title>module~s_rmvs_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M365.66,-1224.75C344.71,-1221.6 318.11,-1217.6 296.97,-1214.41"/>
+<polygon fill="#000000" stroke="#000000" points="297.49,-1210.95 287.08,-1212.93 296.44,-1217.88 297.49,-1210.95"/>
+</g>
+<!-- module~s_whm_step -->
+<g id="module~~helio_classes~~UsedByGraph_node31" class="node">
+<title>module~s_whm_step</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node31"><a xlink:href=".././module/s_whm_step.html" xlink:title="s_whm_step">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-1200 365,-1200 365,-1176 438,-1176 438,-1200"/>
+<text text-anchor="middle" x="401.5" y="-1185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_step</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_step&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge32" class="edge">
+<title>module~s_whm_step&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.94,-1193.35C344.22,-1196.47 318.16,-1200.4 297.31,-1203.53"/>
+<polygon fill="#000000" stroke="#000000" points="296.61,-1200.1 287.25,-1205.05 297.66,-1207.02 296.61,-1200.1"/>
+</g>
+<!-- module~s_setup -->
+<g id="module~~helio_classes~~UsedByGraph_node32" class="node">
+<title>module~s_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node32"><a xlink:href=".././module/s_setup.html" xlink:title="s_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1158 374.5,-1158 374.5,-1134 428.5,-1134 428.5,-1158"/>
+<text text-anchor="middle" x="401.5" y="-1143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_setup</text>
+</a>
+</g>
+</g>
+<!-- module~s_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge34" class="edge">
+<title>module~s_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.27,-1150.84C358.9,-1154.23 339.35,-1159.5 323,-1167 309.25,-1173.31 295.19,-1182.55 283.95,-1190.77"/>
+<polygon fill="#000000" stroke="#000000" points="281.84,-1187.98 275.95,-1196.78 286.04,-1193.57 281.84,-1187.98"/>
+</g>
+<!-- module~s_util_get_energy_momentum -->
+<g id="module~~helio_classes~~UsedByGraph_node33" class="node">
+<title>module~s_util_get_energy_momentum</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node33"><a xlink:href=".././module/s_util_get_energy_momentum.html" xlink:title="s_util_get_energy_momentum">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="480,-1116 323,-1116 323,-1092 480,-1092 480,-1116"/>
+<text text-anchor="middle" x="401.5" y="-1101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_get_energy_momentum</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_get_energy_momentum&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge35" class="edge">
+<title>module~s_util_get_energy_momentum&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M339.9,-1116.07C333.93,-1118.51 328.18,-1121.46 323,-1125 299.58,-1141.02 281.62,-1168.86 271.2,-1188.07"/>
+<polygon fill="#000000" stroke="#000000" points="268.08,-1186.48 266.57,-1196.97 274.29,-1189.71 268.08,-1186.48"/>
+</g>
+<!-- module~s_tides_kick_getacch -->
+<g id="module~~helio_classes~~UsedByGraph_node34" class="node">
+<title>module~s_tides_kick_getacch</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node34"><a xlink:href=".././module/s_tides_kick_getacch.html" xlink:title="s_tides_kick_getacch">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="458.5,-1074 344.5,-1074 344.5,-1050 458.5,-1050 458.5,-1074"/>
+<text text-anchor="middle" x="401.5" y="-1059.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_tides_kick_getacch</text>
+</a>
+</g>
+</g>
+<!-- module~s_tides_kick_getacch&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge36" class="edge">
+<title>module~s_tides_kick_getacch&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M344.33,-1071.03C336.63,-1073.97 329.24,-1077.86 323,-1083 290.13,-1110.08 273.25,-1158.87 265.84,-1187.13"/>
+<polygon fill="#000000" stroke="#000000" points="262.44,-1186.33 263.45,-1196.87 269.24,-1187.99 262.44,-1186.33"/>
+</g>
+<!-- module~s_symba_kick -->
+<g id="module~~helio_classes~~UsedByGraph_node35" class="node">
+<title>module~s_symba_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node35"><a xlink:href=".././module/s_symba_kick.html" xlink:title="s_symba_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-2502 362,-2502 362,-2478 441,-2478 441,-2502"/>
+<text text-anchor="middle" x="401.5" y="-2487.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_kick</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_kick&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge63" class="edge">
+<title>module~s_symba_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.8,-2488.75C347.43,-2486.2 332.35,-2480.62 323,-2469 282.64,-2418.86 264.12,-1398.08 261.37,-1231.8"/>
+<polygon fill="#000000" stroke="#000000" points="264.86,-1231.28 261.19,-1221.33 257.86,-1231.39 264.86,-1231.28"/>
+</g>
+<!-- module~s_symba_kick&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge74" class="edge">
+<title>module~s_symba_kick&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M361.89,-2486.85C348.21,-2483.98 333.59,-2478.69 323,-2469 264.28,-2415.28 320.02,-2354.4 261,-2301"/>
+</g>
+<!-- module~s_orbel -->
+<g id="module~~helio_classes~~UsedByGraph_node36" class="node">
+<title>module~s_orbel</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node36"><a xlink:href=".././module/s_orbel.html" xlink:title="s_orbel">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1032 374.5,-1032 374.5,-1008 428.5,-1008 428.5,-1032"/>
+<text text-anchor="middle" x="401.5" y="-1017.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_orbel</text>
+</a>
+</g>
+</g>
+<!-- module~s_orbel&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge39" class="edge">
+<title>module~s_orbel&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.23,-1021.13C357.68,-1023.15 336.89,-1028.3 323,-1041 280.38,-1079.99 266.97,-1150.86 262.82,-1186.81"/>
+<polygon fill="#000000" stroke="#000000" points="259.33,-1186.47 261.8,-1196.78 266.3,-1187.18 259.33,-1186.47"/>
+</g>
+<!-- module~s_symba_drift -->
+<g id="module~~helio_classes~~UsedByGraph_node37" class="node">
+<title>module~s_symba_drift</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node37"><a xlink:href=".././module/s_symba_drift.html" xlink:title="s_symba_drift">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-2460 362,-2460 362,-2436 441,-2436 441,-2460"/>
+<text text-anchor="middle" x="401.5" y="-2445.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_drift</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_drift&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge40" class="edge">
+<title>module~s_symba_drift&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.81,-2446.74C347.44,-2444.19 332.36,-2438.61 323,-2427 283.99,-2378.61 264.37,-1393.83 261.4,-1231.55"/>
+<polygon fill="#000000" stroke="#000000" points="264.9,-1231.24 261.21,-1221.31 257.9,-1231.37 264.9,-1231.24"/>
+</g>
+<!-- module~s_symba_drift&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge76" class="edge">
+<title>module~s_symba_drift&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M361.62,-2444.07C348.22,-2441.11 333.87,-2435.95 323,-2427 274.83,-2387.32 307.28,-2342.87 261,-2301"/>
+</g>
+<!-- module~s_whm_setup -->
+<g id="module~~helio_classes~~UsedByGraph_node38" class="node">
+<title>module~s_whm_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node38"><a xlink:href=".././module/s_whm_setup.html" xlink:title="s_whm_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-990 362,-990 362,-966 441,-966 441,-990"/>
+<text text-anchor="middle" x="401.5" y="-975.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_setup</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge41" class="edge">
+<title>module~s_whm_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.94,-980.7C348.1,-983.5 333.37,-988.86 323,-999 270.48,-1050.35 261.92,-1143.83 260.88,-1186.58"/>
+<polygon fill="#000000" stroke="#000000" points="257.38,-1186.72 260.76,-1196.76 264.38,-1186.8 257.38,-1186.72"/>
+</g>
+<!-- module~s_io -->
+<g id="module~~helio_classes~~UsedByGraph_node39" class="node">
+<title>module~s_io</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node39"><a xlink:href=".././module/s_io.html" xlink:title="s_io">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-948 374.5,-948 374.5,-924 428.5,-924 428.5,-948"/>
+<text text-anchor="middle" x="401.5" y="-933.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_io</text>
+</a>
+</g>
+</g>
+<!-- module~s_io&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge42" class="edge">
+<title>module~s_io&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.48,-936.54C357.6,-938.29 336.35,-943.34 323,-957 290.75,-990.02 270.41,-1131.6 263.57,-1186.82"/>
+<polygon fill="#000000" stroke="#000000" points="260.07,-1186.59 262.35,-1196.94 267.02,-1187.43 260.07,-1186.59"/>
+</g>
+<!-- module~s_util_version -->
+<g id="module~~helio_classes~~UsedByGraph_node40" class="node">
+<title>module~s_util_version</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node40"><a xlink:href=".././module/s_util_version.html" xlink:title="s_util_version">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="440.5,-906 362.5,-906 362.5,-882 440.5,-882 440.5,-906"/>
+<text text-anchor="middle" x="401.5" y="-891.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_version</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_version&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge43" class="edge">
+<title>module~s_util_version&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M362.31,-896.12C348.18,-898.81 333.15,-904.26 323,-915 285.65,-954.53 268.01,-1124.72 262.75,-1186.49"/>
+<polygon fill="#000000" stroke="#000000" points="259.24,-1186.46 261.91,-1196.71 266.22,-1187.03 259.24,-1186.46"/>
+</g>
+<!-- module~s_util_fill -->
+<g id="module~~helio_classes~~UsedByGraph_node41" class="node">
+<title>module~s_util_fill</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node41"><a xlink:href=".././module/s_util_fill.html" xlink:title="s_util_fill">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-864 374.5,-864 374.5,-840 428.5,-840 428.5,-864"/>
+<text text-anchor="middle" x="401.5" y="-849.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_fill</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_fill&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge44" class="edge">
+<title>module~s_util_fill&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.22,-852.29C357.22,-853.93 335.94,-858.95 323,-873 280.45,-919.19 265.87,-1118.85 262.1,-1186.49"/>
+<polygon fill="#000000" stroke="#000000" points="258.59,-1186.68 261.55,-1196.85 265.58,-1187.05 258.59,-1186.68"/>
+</g>
+<!-- module~s_util_peri -->
+<g id="module~~helio_classes~~UsedByGraph_node42" class="node">
+<title>module~s_util_peri</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node42"><a xlink:href=".././module/s_util_peri.html" xlink:title="s_util_peri">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-822 371,-822 371,-798 432,-798 432,-822"/>
+<text text-anchor="middle" x="401.5" y="-807.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_peri</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_peri&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge45" class="edge">
+<title>module~s_util_peri&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.72,-810.57C354.33,-812.51 334.96,-817.76 323,-831 275.2,-883.95 263.97,-1113.59 261.59,-1186.62"/>
+<polygon fill="#000000" stroke="#000000" points="258.08,-1186.84 261.28,-1196.94 265.08,-1187.05 258.08,-1186.84"/>
+</g>
+<!-- module~s_fragmentation -->
+<g id="module~~helio_classes~~UsedByGraph_node43" class="node">
+<title>module~s_fragmentation</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node43"><a xlink:href=".././module/s_fragmentation.html" xlink:title="s_fragmentation">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="446.5,-780 356.5,-780 356.5,-756 446.5,-756 446.5,-780"/>
+<text text-anchor="middle" x="401.5" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fragmentation</text>
+</a>
+</g>
+</g>
+<!-- module~s_fragmentation&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge47" class="edge">
+<title>module~s_fragmentation&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M356.32,-771.01C343.92,-774 331.52,-779.41 323,-789 269.93,-848.74 262.28,-1108.6 261.18,-1186.71"/>
+<polygon fill="#000000" stroke="#000000" points="257.68,-1186.83 261.06,-1196.87 264.68,-1186.91 257.68,-1186.83"/>
+</g>
+<!-- proc~solve_wbs -->
+<g id="module~~helio_classes~~UsedByGraph_node44" class="node">
+<title>proc~solve_wbs</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node44"><a xlink:href=".././proc/solve_wbs.html" xlink:title="solve_wbs">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="432.5,-738 370.5,-738 370.5,-714 432.5,-714 432.5,-738"/>
+<text text-anchor="middle" x="401.5" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">solve_wbs</text>
+</a>
+</g>
+</g>
+<!-- proc~solve_wbs&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge48" class="edge">
+<title>proc~solve_wbs&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.19,-726.48C353.84,-728.42 334.67,-733.69 323,-747 264.6,-813.61 260.74,-1104.2 260.85,-1186.94"/>
+<polygon fill="#000000" stroke="#000000" points="257.35,-1187 260.89,-1196.99 264.35,-1186.98 257.35,-1187"/>
+</g>
+<!-- module~s_whm_coord -->
+<g id="module~~helio_classes~~UsedByGraph_node45" class="node">
+<title>module~s_whm_coord</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node45"><a xlink:href=".././module/s_whm_coord.html" xlink:title="s_whm_coord">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-696 362,-696 362,-672 441,-672 441,-696"/>
+<text text-anchor="middle" x="401.5" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_coord</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_coord&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge49" class="edge">
+<title>module~s_whm_coord&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.83,-685.68C347.63,-688.32 332.68,-693.84 323,-705 259.37,-778.38 259.34,-1098.82 260.57,-1186.66"/>
+<polygon fill="#000000" stroke="#000000" points="257.07,-1186.89 260.73,-1196.83 264.07,-1186.78 257.07,-1186.89"/>
+</g>
+<!-- module~s_tides_step_spin -->
+<g id="module~~helio_classes~~UsedByGraph_node46" class="node">
+<title>module~s_tides_step_spin</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node46"><a xlink:href=".././module/s_tides_step_spin.html" xlink:title="s_tides_step_spin">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="450.5,-654 352.5,-654 352.5,-630 450.5,-630 450.5,-654"/>
+<text text-anchor="middle" x="401.5" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_tides_step_spin</text>
+</a>
+</g>
+</g>
+<!-- module~s_tides_step_spin&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge50" class="edge">
+<title>module~s_tides_step_spin&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M352.49,-645.78C341.34,-648.93 330.54,-654.22 323,-663 288.32,-703.38 266.99,-1088.27 262.09,-1186.35"/>
+<polygon fill="#000000" stroke="#000000" points="258.58,-1186.45 261.58,-1196.61 265.57,-1186.79 258.58,-1186.45"/>
+</g>
+<!-- module~s_symba_io -->
+<g id="module~~helio_classes~~UsedByGraph_node47" class="node">
+<title>module~s_symba_io</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node47"><a xlink:href=".././module/s_symba_io.html" xlink:title="s_symba_io">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-2418 366.5,-2418 366.5,-2394 436.5,-2394 436.5,-2418"/>
+<text text-anchor="middle" x="401.5" y="-2403.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_io</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_io&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge51" class="edge">
+<title>module~s_symba_io&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.23,-2405.43C350.61,-2403.26 333.34,-2397.8 323,-2385 285.32,-2338.36 264.63,-1389.44 261.44,-1231.26"/>
+<polygon fill="#000000" stroke="#000000" points="264.94,-1231.19 261.24,-1221.26 257.94,-1231.33 264.94,-1231.19"/>
+</g>
+<!-- module~s_symba_io&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge69" class="edge">
+<title>module~s_symba_io&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M366.37,-2401.83C352.04,-2398.84 335.77,-2393.73 323,-2385 284.7,-2358.81 295.41,-2332.13 261,-2301"/>
+</g>
+<!-- module~s_util_sort -->
+<g id="module~~helio_classes~~UsedByGraph_node48" class="node">
+<title>module~s_util_sort</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node48"><a xlink:href=".././module/s_util_sort.html" xlink:title="s_util_sort">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-612 371,-612 371,-588 432,-588 432,-612"/>
+<text text-anchor="middle" x="401.5" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_sort</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_sort&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge52" class="edge">
+<title>module~s_util_sort&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.81,-600.27C354.25,-602.09 334.66,-607.31 323,-621 285.58,-664.92 266.07,-1085.2 261.87,-1186.91"/>
+<polygon fill="#000000" stroke="#000000" points="258.37,-1186.84 261.46,-1196.97 265.36,-1187.12 258.37,-1186.84"/>
+</g>
+<!-- module~s_util_minimize_bfgs -->
+<g id="module~~helio_classes~~UsedByGraph_node49" class="node">
+<title>module~s_util_minimize_bfgs</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node49"><a xlink:href=".././module/s_util_minimize_bfgs.html" xlink:title="s_util_minimize_bfgs">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="457.5,-570 345.5,-570 345.5,-546 457.5,-546 457.5,-570"/>
+<text text-anchor="middle" x="401.5" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_minimize_bfgs</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_minimize_bfgs&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge53" class="edge">
+<title>module~s_util_minimize_bfgs&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M345.22,-564.07C336.73,-567.32 328.85,-572.08 323,-579 282.94,-626.36 265.32,-1080.2 261.71,-1186.71"/>
+<polygon fill="#000000" stroke="#000000" points="258.21,-1186.82 261.37,-1196.93 265.2,-1187.05 258.21,-1186.82"/>
+</g>
+<!-- module~s_whm_util -->
+<g id="module~~helio_classes~~UsedByGraph_node50" class="node">
+<title>module~s_whm_util</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node50"><a xlink:href=".././module/s_whm_util.html" xlink:title="s_whm_util">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="434.5,-528 368.5,-528 368.5,-504 434.5,-504 434.5,-528"/>
+<text text-anchor="middle" x="401.5" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_util</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_util&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge54" class="edge">
+<title>module~s_whm_util&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.42,-516.49C352.36,-518.52 334.03,-523.88 323,-537 280.26,-587.83 264.59,-1075.73 261.57,-1186.64"/>
+<polygon fill="#000000" stroke="#000000" points="258.06,-1186.88 261.3,-1196.97 265.06,-1187.06 258.06,-1186.88"/>
+</g>
+<!-- module~s_util_copy -->
+<g id="module~~helio_classes~~UsedByGraph_node51" class="node">
+<title>module~s_util_copy</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node51"><a xlink:href=".././module/s_util_copy.html" xlink:title="s_util_copy">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="434.5,-486 368.5,-486 368.5,-462 434.5,-462 434.5,-486"/>
+<text text-anchor="middle" x="401.5" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_copy</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_copy&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge55" class="edge">
+<title>module~s_util_copy&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.39,-474.46C352.32,-476.48 334,-481.85 323,-495 277.57,-549.33 263.91,-1071.73 261.44,-1186.7"/>
+<polygon fill="#000000" stroke="#000000" points="257.94,-1186.72 261.23,-1196.79 264.94,-1186.87 257.94,-1186.72"/>
+</g>
+<!-- proc~ge_wpp -->
+<g id="module~~helio_classes~~UsedByGraph_node52" class="node">
+<title>proc~ge_wpp</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node52"><a xlink:href=".././proc/ge_wpp.html" xlink:title="ge_wpp">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="428.5,-444 374.5,-444 374.5,-420 428.5,-420 428.5,-444"/>
+<text text-anchor="middle" x="401.5" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ge_wpp</text>
+</a>
+</g>
+</g>
+<!-- proc~ge_wpp&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge56" class="edge">
+<title>proc~ge_wpp&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.5,-431.82C357.18,-433.19 335.39,-438.11 323,-453 274.86,-510.86 263.25,-1068.34 261.32,-1186.9"/>
+<polygon fill="#000000" stroke="#000000" points="257.82,-1186.92 261.17,-1196.97 264.82,-1187.03 257.82,-1186.92"/>
+</g>
+<!-- module~s_rmvs_chk -->
+<g id="module~~helio_classes~~UsedByGraph_node53" class="node">
+<title>module~s_rmvs_chk</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node53"><a xlink:href=".././module/s_rmvs_chk.html" xlink:title="s_rmvs_chk">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-402 366.5,-402 366.5,-378 436.5,-378 436.5,-402"/>
+<text text-anchor="middle" x="401.5" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_chk</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_chk&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge57" class="edge">
+<title>module~s_rmvs_chk&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.37,-390.69C350.78,-392.88 333.49,-398.33 323,-411 272.17,-472.35 262.65,-1064.23 261.22,-1186.84"/>
+<polygon fill="#000000" stroke="#000000" points="257.72,-1186.88 261.11,-1196.92 264.72,-1186.96 257.72,-1186.88"/>
+</g>
+<!-- module~s_kick -->
+<g id="module~~helio_classes~~UsedByGraph_node54" class="node">
+<title>module~s_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node54"><a xlink:href=".././module/s_kick.html" xlink:title="s_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-360 374.5,-360 374.5,-336 428.5,-336 428.5,-360"/>
+<text text-anchor="middle" x="401.5" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_kick</text>
+</a>
+</g>
+</g>
+<!-- module~s_kick&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge58" class="edge">
+<title>module~s_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.46,-347.78C357.12,-349.15 335.33,-354.05 323,-369 269.47,-433.87 262.08,-1060.52 261.13,-1186.87"/>
+<polygon fill="#000000" stroke="#000000" points="257.63,-1186.89 261.06,-1196.91 264.63,-1186.93 257.63,-1186.89"/>
+</g>
+<!-- module~s_rmvs_setup -->
+<g id="module~~helio_classes~~UsedByGraph_node55" class="node">
+<title>module~s_rmvs_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node55"><a xlink:href=".././module/s_rmvs_setup.html" xlink:title="s_rmvs_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-318 362,-318 362,-294 441,-294 441,-318"/>
+<text text-anchor="middle" x="401.5" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_setup</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge59" class="edge">
+<title>module~s_rmvs_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.93,-307.35C347.57,-309.92 332.47,-315.48 323,-327 266.81,-395.34 261.54,-1055.89 261.05,-1186.59"/>
+<polygon fill="#000000" stroke="#000000" points="257.55,-1186.94 261.02,-1196.95 264.55,-1186.96 257.55,-1186.94"/>
+</g>
+<!-- module~whm_drift -->
+<g id="module~~helio_classes~~UsedByGraph_node56" class="node">
+<title>module~whm_drift</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node56"><a xlink:href=".././module/whm_drift.html" xlink:title="whm_drift">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="431,-276 372,-276 372,-252 431,-252 431,-276"/>
+<text text-anchor="middle" x="401.5" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_drift</text>
+</a>
+</g>
+</g>
+<!-- module~whm_drift&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge60" class="edge">
+<title>module~whm_drift&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.78,-263.99C354.9,-265.63 334.66,-270.77 323,-285 264.14,-356.82 261.02,-1051.47 260.97,-1186.37"/>
+<polygon fill="#000000" stroke="#000000" points="257.47,-1186.71 260.98,-1196.71 264.47,-1186.71 257.47,-1186.71"/>
+</g>
+<!-- module~s_symba_setup -->
+<g id="module~~helio_classes~~UsedByGraph_node57" class="node">
+<title>module~s_symba_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node57"><a xlink:href=".././module/s_symba_setup.html" xlink:title="s_symba_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="445.5,-2376 357.5,-2376 357.5,-2352 445.5,-2352 445.5,-2376"/>
+<text text-anchor="middle" x="401.5" y="-2361.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_setup</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge33" class="edge">
+<title>module~s_symba_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M357.39,-2361.83C344.42,-2358.96 331.42,-2353.4 323,-2343 286.7,-2298.14 264.94,-1386.73 261.48,-1231.41"/>
+<polygon fill="#000000" stroke="#000000" points="264.98,-1231.12 261.26,-1221.2 257.98,-1231.27 264.98,-1231.12"/>
+</g>
+<!-- module~s_symba_setup&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge72" class="edge">
+<title>module~s_symba_setup&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M357.37,-2355.02C345.93,-2351.91 333.77,-2347.94 323,-2343 292.75,-2329.12 285.68,-2323.33 261,-2301"/>
+</g>
+<!-- module~s_symba_discard -->
+<g id="module~~helio_classes~~UsedByGraph_node58" class="node">
+<title>module~s_symba_discard</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node58"><a xlink:href=".././module/s_symba_discard.html" xlink:title="s_symba_discard">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="449.5,-2334 353.5,-2334 353.5,-2310 449.5,-2310 449.5,-2334"/>
+<text text-anchor="middle" x="401.5" y="-2319.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_discard</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_discard&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge21" class="edge">
+<title>module~s_symba_discard&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M353.35,-2318.84C341.78,-2315.74 330.55,-2310.31 323,-2301 288.06,-2257.92 265.25,-1383.73 261.54,-1231.51"/>
+<polygon fill="#000000" stroke="#000000" points="265.03,-1231.02 261.28,-1221.11 258.03,-1231.19 265.03,-1231.02"/>
+</g>
+<!-- module~s_symba_discard&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge73" class="edge">
+<title>module~s_symba_discard&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M353.23,-2327.22C323.25,-2327.84 285.61,-2323.26 261,-2301"/>
+</g>
+<!-- module~s_gr -->
+<g id="module~~helio_classes~~UsedByGraph_node59" class="node">
+<title>module~s_gr</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node59"><a xlink:href=".././module/s_gr.html" xlink:title="s_gr">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-234 374.5,-234 374.5,-210 428.5,-210 428.5,-234"/>
+<text text-anchor="middle" x="401.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_gr</text>
+</a>
+</g>
+</g>
+<!-- module~s_gr&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge61" class="edge">
+<title>module~s_gr&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.42,-221.75C357.06,-223.09 335.26,-228 323,-243 261.39,-318.39 260.52,-1048.85 260.9,-1186.64"/>
+<polygon fill="#000000" stroke="#000000" points="257.41,-1186.84 260.94,-1196.83 264.41,-1186.82 257.41,-1186.84"/>
+</g>
+<!-- module~s_rmvs_step -->
+<g id="module~~helio_classes~~UsedByGraph_node60" class="node">
+<title>module~s_rmvs_step</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node60"><a xlink:href=".././module/s_rmvs_step.html" xlink:title="s_rmvs_step">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-192 365,-192 365,-168 438,-168 438,-192"/>
+<text text-anchor="middle" x="401.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_step</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_step&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge38" class="edge">
+<title>module~s_rmvs_step&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.68,-180.85C349.51,-183.17 333.04,-188.68 323,-201 258.69,-279.9 260.04,-1045.1 260.84,-1186.57"/>
+<polygon fill="#000000" stroke="#000000" points="257.34,-1187.01 260.91,-1196.99 264.34,-1186.97 257.34,-1187.01"/>
+</g>
+<!-- module~s_symba_encounter_check -->
+<g id="module~~helio_classes~~UsedByGraph_node61" class="node">
+<title>module~s_symba_encounter_check</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node61"><a xlink:href=".././module/s_symba_encounter_check.html" xlink:title="s_symba_encounter_check">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="473,-2292 330,-2292 330,-2268 473,-2268 473,-2292"/>
+<text text-anchor="middle" x="401.5" y="-2277.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_encounter_check</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_encounter_check&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge65" class="edge">
+<title>module~s_symba_encounter_check&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M332.79,-2267.85C329.14,-2265.39 325.81,-2262.46 323,-2259 255.99,-2176.57 259.57,-1376.44 260.78,-1231.47"/>
+<polygon fill="#000000" stroke="#000000" points="264.28,-1231.19 260.87,-1221.16 257.28,-1231.12 264.28,-1231.19"/>
+</g>
+<!-- module~s_symba_encounter_check&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge71" class="edge">
+<title>module~s_symba_encounter_check&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M347.13,-2292.02C310.56,-2299.58 267.52,-2306.89 261,-2301"/>
+</g>
+<!-- module~s_symba_util -->
+<g id="module~~helio_classes~~UsedByGraph_node62" class="node">
+<title>module~s_symba_util</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node62"><a xlink:href=".././module/s_symba_util.html" xlink:title="s_symba_util">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="439,-2250 364,-2250 364,-2226 439,-2226 439,-2250"/>
+<text text-anchor="middle" x="401.5" y="-2235.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_util</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_util&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge66" class="edge">
+<title>module~s_symba_util&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M363.88,-2237.03C348.93,-2234.64 332.86,-2229.1 323,-2217 258.69,-2138.1 260.04,-1372.9 260.84,-1231.43"/>
+<polygon fill="#000000" stroke="#000000" points="264.34,-1231.03 260.91,-1221.01 257.34,-1230.99 264.34,-1231.03"/>
+</g>
+<!-- module~s_symba_util&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge77" class="edge">
+<title>module~s_symba_util&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M363.75,-2245.32C350.56,-2248.62 335.8,-2253.13 323,-2259 292.75,-2272.88 285.68,-2323.33 261,-2301"/>
+</g>
+<!-- module~s_symba_step -->
+<g id="module~~helio_classes~~UsedByGraph_node63" class="node">
+<title>module~s_symba_step</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node63"><a xlink:href=".././module/s_symba_step.html" xlink:title="s_symba_step">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="442.5,-2208 360.5,-2208 360.5,-2184 442.5,-2184 442.5,-2208"/>
+<text text-anchor="middle" x="401.5" y="-2193.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_step</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_step&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge67" class="edge">
+<title>module~s_symba_step&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M360.28,-2194.38C346.41,-2191.69 332.09,-2186.12 323,-2175 261.39,-2099.61 260.52,-1369.15 260.9,-1231.36"/>
+<polygon fill="#000000" stroke="#000000" points="264.41,-1231.18 260.94,-1221.17 257.41,-1231.16 264.41,-1231.18"/>
+</g>
+<!-- module~s_symba_step&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge78" class="edge">
+<title>module~s_symba_step&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M360.47,-2201.5C347.71,-2204.6 334.05,-2209.45 323,-2217 284.7,-2243.19 295.41,-2332.13 261,-2301"/>
+</g>
+</g>
+</svg>
+</div><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="490pt" height="32pt"
+ viewBox="0.00 0.00 489.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 485.5,-28 485.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="139.5,-24 72.5,-24 72.5,0 139.5,0 139.5,-24"/>
+<text text-anchor="middle" x="106" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="222,-24 158,-24 158,0 222,0 222,-24"/>
+<text text-anchor="middle" x="190" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="294,-24 240,-24 240,0 294,0 294,-24"/>
+<text text-anchor="middle" x="267" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="366,-24 312,-24 312,0 366,0 366,-24"/>
+<text text-anchor="middle" x="339" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="481.5,-24 384.5,-24 384.5,0 481.5,0 481.5,-24"/>
+<text text-anchor="middle" x="433" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a submodule to the (sub)module which it is
+    descended from. Dashed arrows point from a module or program unit to 
+    modules which it uses.
+    </p>
+    </div></div></div></div>
+  </li>
+  
+      </ul>
+    </div>
+    
+
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#inters-1">Interfaces</a></h3></div>
+  <div id="inters-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vb2vh_pl">helio_coord_vb2vh_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vb2vh_tp">helio_coord_vb2vh_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vh2vb_pl">helio_coord_vh2vb_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vh2vb_tp">helio_coord_vh2vb_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_body">helio_drift_body</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_pl">helio_drift_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_tp">helio_drift_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_linear_pl">helio_drift_linear_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_linear_tp">helio_drift_linear_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_gr_kick_getacch_pl">helio_gr_kick_getacch_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_gr_kick_getacch_tp">helio_gr_kick_getacch_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_gr_p4_pl">helio_gr_p4_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_gr_p4_tp">helio_gr_p4_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_getacch_pl">helio_kick_getacch_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_getacch_tp">helio_kick_getacch_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_vb_pl">helio_kick_vb_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_vb_tp">helio_kick_vb_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_step_pl">helio_step_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_step_system">helio_step_system</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_step_tp">helio_step_tp</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#types-1">Derived Types</a></h3></div>
+  <div id="types-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/helio_classes.html#type-helio_nbody_system">helio_nbody_system</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#type-helio_cb">helio_cb</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#type-helio_pl">helio_pl</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#type-helio_tp">helio_tp</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    
+
+    
+    
+    
+    
+    
+    <section>
+   <h2>Interfaces</h2>
+   
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_coord_vb2vh_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_coord_vb2vh_pl(self, cb)
+    
+    
+   
+   <a href='../proc/helio_coord_vb2vh_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_coord_vb2vh_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_coord_vb2vh_tp(self, vbcb)
+    
+    
+   
+   <a href='../proc/helio_coord_vb2vh_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>vbcb</strong></td><td><p>Barycentric velocity of the central body</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_coord_vh2vb_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_coord_vh2vb_pl(self, cb)
+    
+    
+   
+   <a href='../proc/helio_coord_vh2vb_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_coord_vh2vb_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_coord_vh2vb_tp(self, vbcb)
+    
+    
+   
+   <a href='../proc/helio_coord_vh2vb_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>vbcb</strong></td><td><p>Barycentric velocity of the central body</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_drift_body"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_drift_body(self, system, param, dt)
+    
+    
+   
+   <a href='../proc/helio_drift_body.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_body),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_drift_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_drift_pl(self, system, param, dt)
+    
+    
+   
+   <a href='../proc/helio_drift_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_drift_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_drift_tp(self, system, param, dt)
+    
+    
+   
+   <a href='../proc/helio_drift_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_drift_linear_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
+    
+    
+   
+   <a href='../proc/helio_drift_linear_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_cb.html'>helio_cb</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Helio central body</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Argument that determines whether or not this is the beginning or end of the step</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_drift_linear_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_drift_linear_tp(self, cb, dt, lbeg)
+    
+    
+   
+   <a href='../proc/helio_drift_linear_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio test particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_cb.html'>helio_cb</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>cb</strong></td><td><p>Helio central body</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Argument that determines whether or not this is the beginning or end of the step</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_gr_kick_getacch_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_gr_kick_getacch_pl(self, param)
+    
+    
+   
+   <a href='../proc/helio_gr_kick_getacch_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_gr_kick_getacch_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_gr_kick_getacch_tp(self, param)
+    
+    
+   
+   <a href='../proc/helio_gr_kick_getacch_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_gr_p4_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public pure module subroutine helio_gr_p4_pl(self, param, dt)
+    
+    
+   
+   <a href='../proc/helio_gr_p4_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Step size</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_gr_p4_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public pure module subroutine helio_gr_p4_tp(self, param, dt)
+    
+    
+   
+   <a href='../proc/helio_gr_p4_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Step size</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_kick_getacch_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
+    
+    
+   
+   <a href='../proc/helio_kick_getacch_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current simulation time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Logical flag that determines whether or not this is the beginning or end of the step</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_kick_getacch_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_kick_getacch_tp(self, system, param, t, lbeg)
+    
+    
+   
+   <a href='../proc/helio_kick_getacch_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio test particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Logical flag that determines whether or not this is the beginning or end of the step</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_kick_vb_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_kick_vb_pl(self, system, param, t, dt, lbeg)
+    
+    
+   
+   <a href='../proc/helio_kick_vb_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Logical flag indicating whether this is the beginning of the half step or not. </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_kick_vb_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_kick_vb_tp(self, system, param, t, dt, lbeg)
+    
+    
+   
+   <a href='../proc/helio_kick_vb_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio test particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>logical,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td><p>Logical flag indicating whether this is the beginning of the half step or not. </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_step_pl"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_step_pl(self, system, param, t, dt)
+    
+    
+   
+   <a href='../proc/helio_step_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio massive body particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nboody system</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current simulation time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsize</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_step_system"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_step_system(self, param, t, dt)
+    
+    
+   
+   <a href='../proc/helio_step_system.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_nbody_system.html'>helio_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Simulation time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Current stepsize</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_step_tp"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_step_tp(self, system, param, t, dt)
+    
+    
+   
+   <a href='../proc/helio_step_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio test particle object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>system</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>t</strong></td><td><p>Current simulation time</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td><p>Stepsizee</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+    </section>
+  <br>
+    
+
+    
+    
+    
+    <section>
+     <h2>Derived Types</h2>
+   
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-helio_nbody_system"></span><h3>type, public, extends(<a href='../type/whm_nbody_system.html'>whm_nbody_system</a>) :: <a href='../type/helio_nbody_system.html'>helio_nbody_system</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-cb"></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>cb</strong></td><td></td><td></td><td><p>Central body data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-pl"></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>pl</strong></td><td></td><td></td><td><p>Massive body data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tp"></span>class(<a href='../type/swiftest_tp.html'>swiftest_tp</a>),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>tp</strong></td><td></td><td></td><td><p>Test particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tp_discards"></span>class(<a href='../type/swiftest_tp.html'>swiftest_tp</a>),</td>
+  
+  <td>public,</td>
+  <td>allocatable</td><td>::</td>
+  <td><strong>tp_discards</strong></td><td></td><td></td><td><p>Discarded test particle data structure</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gmtot"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>Gmtot</strong></td><td> =</td><td>0.0_DP</td><td><p>Total system mass - used for barycentric coordinate conversion</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ke_orbit"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ke_orbit</strong></td><td> =</td><td>0.0_DP</td><td><p>System orbital kinetic energy</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ke_spin"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ke_spin</strong></td><td> =</td><td>0.0_DP</td><td><p>System spin kinetic energy</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-pe"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>pe</strong></td><td> =</td><td>0.0_DP</td><td><p>System potential energy</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-te"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>te</strong></td><td> =</td><td>0.0_DP</td><td><p>System total energy</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lorbit"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>Lorbit</strong></td><td> =</td><td>0.0_DP</td><td><p>System orbital angular momentum vector</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lspin"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>Lspin</strong></td><td> =</td><td>0.0_DP</td><td><p>System spin angular momentum vector</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lescape"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>Lescape</strong></td><td> =</td><td>0.0_DP</td><td><p>Angular momentum of bodies that escaped the system (used for bookeeping)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mescape"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>Mescape</strong></td><td> =</td><td>0.0_DP</td><td><p>Mass of bodies that escaped the system (used for bookeeping)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ecollisions"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>Ecollisions</strong></td><td> =</td><td>0.0_DP</td><td><p>Energy lost from system due to collisions</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-euntracked"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>Euntracked</strong></td><td> =</td><td>0.0_DP</td><td><p>Energy gained from system due to escaped bodies</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lbeg"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lbeg</strong></td><td></td><td></td><td><p>True if this is the beginning of a step. This is used so that test particle steps can be calculated 
+    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
+    the test particles</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-maxid"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>maxid</strong></td><td> =</td><td>-1</td><td><p>The current maximum particle id number </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+     <h4>Type-Bound Procedures</h4>
+      <table class="table table-striped varlist">
+      <tbody>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-discard'>discard</a></strong>  => discard_system </td>
+       <td><p>Perform a discard step on the system</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-conservation_report'>conservation_report</a></strong>  => io_conservation_report </td>
+       <td><p>Compute energy and momentum and print out the change with time</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-dump'>dump</a></strong>  => io_dump_system </td>
+       <td><p>Dump the state of the system to a file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-read_frame'>read_frame</a></strong>  => io_read_frame_system </td>
+       <td><p>Read in a frame of input data from file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-write_discard'>write_discard</a></strong>  => io_write_discard </td>
+       <td><p>Write out information about discarded test particles</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-write_frame'>write_frame</a></strong>  => io_write_frame_system </td>
+       <td><p>Append a frame of output data to file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-step_spin'>step_spin</a></strong>  => tides_step_spin_system </td>
+       <td><p>Steps the spins of the massive &amp; central bodies due to tides.</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-set_msys'>set_msys</a></strong>  => util_set_msys </td>
+       <td><p>Sets the value of msys from the masses of system bodies.</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-get_energy_and_momentum'>get_energy_and_momentum</a></strong>  => util_get_energy_momentum_system </td>
+       <td><p>Calculates the total system energy and momentum</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/whm_nbody_system.html#boundprocedure-initialize~4'>initialize</a></strong>  => whm_setup_initialize_system </td>
+       <td><p>Replace the abstract procedures with concrete ones
+ Performs WHM-specific initilization steps, like calculating the Jacobi masses</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_nbody_system.html#boundprocedure-step~4'>step</a></strong>  => helio_step_system </td>
+       <td><p>Advance the Helio nbody system forward in time by one step</p></td></tr>
+      
+       </tbody>
+       </table>
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-helio_cb"></span><h3>type, public, extends(<a href='../type/swiftest_cb.html'>swiftest_cb</a>) :: <a href='../type/helio_cb.html'>helio_cb</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+    
+    <p>Helio central body particle class</p>
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-name"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>name</strong></td><td></td><td></td><td><p>Non-unique name</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-id"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>id</strong></td><td> =</td><td>0</td><td><p>External identifier (unique)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mass"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>mass</strong></td><td> =</td><td>0.0_DP</td><td><p>Central body mass (units MU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gmass"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>Gmass</strong></td><td> =</td><td>0.0_DP</td><td><p>Central mass gravitational term G * mass (units GU * MU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-radius"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>radius</strong></td><td> =</td><td>0.0_DP</td><td><p>Central body radius (units DU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-density"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>density</strong></td><td> =</td><td>1.0_DP</td><td><p>Central body mass density - calculated internally (units MU / DU**3)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-j2rp2"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>j2rp2</strong></td><td> =</td><td>0.0_DP</td><td><p>J2*R^2 term for central body</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-j4rp4"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>j4rp4</strong></td><td> =</td><td>0.0_DP</td><td><p>J4*R^2 term for central body</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-aobl~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>aobl</strong></td><td> =</td><td>0.0_DP</td><td><p>Barycentric acceleration due to central body oblatenes</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-atide~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>atide</strong></td><td> =</td><td>0.0_DP</td><td><p>Barycentric acceleration due to central body oblatenes</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-aoblbeg"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>aoblbeg</strong></td><td> =</td><td>0.0_DP</td><td><p>Barycentric acceleration due to central body oblatenes at beginning of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-aoblend"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>aoblend</strong></td><td> =</td><td>0.0_DP</td><td><p>Barycentric acceleration due to central body oblatenes at end of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-atidebeg"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>atidebeg</strong></td><td> =</td><td>0.0_DP</td><td><p>Barycentric acceleration due to central body oblatenes at beginning of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-atideend"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>atideend</strong></td><td> =</td><td>0.0_DP</td><td><p>Barycentric acceleration due to central body oblatenes at end of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xb"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>xb</strong></td><td> =</td><td>0.0_DP</td><td><p>Barycentric position (units DU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vb"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>vb</strong></td><td> =</td><td>0.0_DP</td><td><p>Barycentric velocity (units DU / TU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-agr"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>agr</strong></td><td> =</td><td>0.0_DP</td><td><p>Acceleration due to post-Newtonian correction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ip"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>Ip</strong></td><td> =</td><td>0.0_DP</td><td><p>Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rot"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>rot</strong></td><td> =</td><td>0.0_DP</td><td><p>Body rotation vector in inertial coordinate frame (units rad / TU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-k2"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>k2</strong></td><td> =</td><td>0.0_DP</td><td><p>Tidal Love number</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-q"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>Q</strong></td><td> =</td><td>0.0_DP</td><td><p>Tidal quality factor</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tlag"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>tlag</strong></td><td> =</td><td>0.0_DP</td><td><p>Tidal phase lag angle</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-l0"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>L0</strong></td><td> =</td><td>0.0_DP</td><td><p>Initial angular momentum of the central body</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dl"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>dL</strong></td><td> =</td><td>0.0_DP</td><td><p>Change in angular momentum of the central body</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ptbeg"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>ptbeg</strong></td><td></td><td></td><td><p>negative barycentric velocity of the central body at the beginning of time step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ptend"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>ptend</strong></td><td></td><td></td><td><p>negative barycentric velocity of the central body at the end of time step</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+     <h4>Type-Bound Procedures</h4>
+      <table class="table table-striped varlist">
+      <tbody>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_swiftest </td>
+       <td></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_cb.html#boundprocedure-initialize~2'>initialize</a></strong>  => io_read_cb_in </td>
+       <td><p>I/O routine for reading in central body data</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_cb.html#boundprocedure-read_frame~2'>read_frame</a></strong>  => io_read_frame_cb </td>
+       <td><p>I/O routine for reading out a single frame of time-series data for the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_cb.html#boundprocedure-write_frame~2'>write_frame</a></strong>  => io_write_frame_cb </td>
+       <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
+      
+       </tbody>
+       </table>
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-helio_pl"></span><h3>type, public, extends(<a href='../type/swiftest_pl.html'>swiftest_pl</a>) :: <a href='../type/helio_pl.html'>helio_pl</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lfirst"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lfirst</strong></td><td> =</td><td>.true.</td><td><p>Run the current step as a first</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nbody"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>nbody</strong></td><td> =</td><td>0</td><td><p>Number of bodies</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-name~2"></span>character(len=STRMAX),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>name</strong></td><td></td><td></td><td><p>Non-unique name</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-id~2"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>id</strong></td><td></td><td></td><td><p>External identifier (unique)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-status"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>status</strong></td><td></td><td></td><td><p>An integrator-specific status indicator </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ldiscard"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>ldiscard</strong></td><td></td><td></td><td><p>Body should be discarded</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lmask"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>lmask</strong></td><td></td><td></td><td><p>Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mu"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>mu</strong></td><td></td><td></td><td><p>G * (Mcb + [m])</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xh</strong></td><td></td><td></td><td><p>Heliocentric position</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vh</strong></td><td></td><td></td><td><p>Heliocentric velocity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xb~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xb</strong></td><td></td><td></td><td><p>Barycentric position</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vb~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vb</strong></td><td></td><td></td><td><p>Barycentric velocity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ah"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>ah</strong></td><td></td><td></td><td><p>Total heliocentric acceleration</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-aobl~3"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>aobl</strong></td><td></td><td></td><td><p>Barycentric accelerations of bodies due to central body oblatenes</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-atide~3"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>atide</strong></td><td></td><td></td><td><p>Tanngential component of acceleration of bodies due to tides</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-agr~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>agr</strong></td><td></td><td></td><td><p>Acceleration due to post-Newtonian correction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ir3h"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>ir3h</strong></td><td></td><td></td><td><p>Inverse heliocentric radius term (1/rh**3)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-a"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>a</strong></td><td></td><td></td><td><p>Semimajor axis (pericentric distance for a parabolic orbit)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-e"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>e</strong></td><td></td><td></td><td><p>Eccentricity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-inc"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>inc</strong></td><td></td><td></td><td><p>Inclination</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-capom"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>capom</strong></td><td></td><td></td><td><p>Longitude of ascending node</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-omega"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>omega</strong></td><td></td><td></td><td><p>Argument of pericenter</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-capm"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>capm</strong></td><td></td><td></td><td><p>Mean anomaly
+ Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
+    component list, such as setup_body and util_spill</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mass~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>mass</strong></td><td></td><td></td><td><p>Body mass (units MU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-gmass~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>Gmass</strong></td><td></td><td></td><td><p>Mass gravitational term G * mass (units GU * MU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rhill"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rhill</strong></td><td></td><td></td><td><p>Body mass (units MU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-radius~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>radius</strong></td><td></td><td></td><td><p>Body radius (units DU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xbeg~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xbeg</strong></td><td></td><td></td><td><p>Position at beginning of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xend~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xend</strong></td><td></td><td></td><td><p>Position at end of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vbeg~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vbeg</strong></td><td></td><td></td><td><p>Velocity at beginning of step</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-density~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>density</strong></td><td></td><td></td><td><p>Body mass density - calculated internally (units MU / DU**3)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ip~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>Ip</strong></td><td></td><td></td><td><p>Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-rot~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>rot</strong></td><td></td><td></td><td><p>Body rotation vector in inertial coordinate frame (units rad / TU)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-k2~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>k2</strong></td><td></td><td></td><td><p>Tidal Love number</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-q~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>Q</strong></td><td></td><td></td><td><p>Tidal quality factor</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tlag~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>tlag</strong></td><td></td><td></td><td><p>Tidal phase lag</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-k_plpl"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>k_plpl</strong></td><td></td><td></td><td><p>Index array used to convert flattened the body-body comparison upper triangular matrix</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nplpl"></span>integer(kind=I8B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>nplpl</strong></td><td></td><td></td><td><p>Number of body-body comparisons in the flattened upper triangular matrix
+ Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
+    component list, such as setup_pl and util_spill_pl</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+     <h4>Type-Bound Procedures</h4>
+      <table class="table table-striped varlist">
+      <tbody>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_swiftest </td>
+       <td></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-v2pv'>v2pv</a></strong>  => gr_vh2pv_body </td>
+       <td><p>Converts from velocity to psudeovelocity for GR calculations using symplectic integrators</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-pv2v'>pv2v</a></strong>  => gr_pv2vh_body </td>
+       <td><p>Converts from psudeovelocity to velocity for GR calculations using symplectic integrators</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-initialize~3'>initialize</a></strong>  => io_read_body_in </td>
+       <td><p>Read in body initial conditions from a file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-read_frame~3'>read_frame</a></strong>  => io_read_frame_body </td>
+       <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-write_frame~3'>write_frame</a></strong>  => io_write_frame_body </td>
+       <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-el2xv'>el2xv</a></strong>  => orbel_el2xv_vec </td>
+       <td><p>Convert orbital elements to position and velocity vectors</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-xv2el'>xv2el</a></strong>  => orbel_xv2el_vec </td>
+       <td><p>Convert position and velocity vectors to orbital  elements </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-accel_user'>accel_user</a></strong>  => user_kick_getacch_body </td>
+       <td><p>Add user-supplied heliocentric accelerations to planets</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-set_ir3'>set_ir3</a></strong>  => util_set_ir3h </td>
+       <td><p>Sets the inverse heliocentric radius term (1/rh**3)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-discard~3'>discard</a></strong>  => discard_pl </td>
+       <td><p>Placeholder method for discarding massive bodies </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-eucl_index'>eucl_index</a></strong>  => eucl_dist_index_plpl </td>
+       <td><p>Sets up the (i, j) -&gt; k indexing used for the single-loop blocking Euclidean distance matrix</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-accel_int~2'>accel_int</a></strong>  => kick_getacch_int_pl </td>
+       <td><p>Compute direct cross (third) term heliocentric accelerations of massive bodies</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-accel_obl~2'>accel_obl</a></strong>  => obl_acc_pl </td>
+       <td><p>Compute the barycentric accelerations of bodies due to the oblateness of the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-setup~3'>setup</a></strong>  => setup_pl </td>
+       <td><p>A base constructor that sets the number of bodies and allocates and initializes all arrays  </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-accel_tides'>accel_tides</a></strong>  => tides_kick_getacch_pl </td>
+       <td><p>Compute the accelerations of bodies due to tidal interactions with the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-append~3'>append</a></strong>  => util_append_pl </td>
+       <td><p>Appends elements from one structure to another</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-h2b~2'>h2b</a></strong>  => util_coord_h2b_pl </td>
+       <td><p>Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-b2h~2'>b2h</a></strong>  => util_coord_b2h_pl </td>
+       <td><p>Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-fill~3'>fill</a></strong>  => util_fill_pl </td>
+       <td><p>"Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-resize~3'>resize</a></strong>  => util_resize_pl </td>
+       <td><p>Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-set_beg_end'>set_beg_end</a></strong>  => util_set_beg_end_pl </td>
+       <td><p>Sets the beginning and ending positions and velocities of planets.</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-set_mu~3'>set_mu</a></strong>  => util_set_mu_pl </td>
+       <td><p>Method used to construct the vectorized form of the central body mass</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-set_rhill'>set_rhill</a></strong>  => util_set_rhill </td>
+       <td><p>Calculates the Hill's radii for each body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-sort~3'>sort</a></strong>  => util_sort_pl </td>
+       <td><p>Sorts body arrays by a sortable component</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-rearrange~3'>rearrange</a></strong>  => util_sort_rearrange_pl </td>
+       <td><p>Rearranges the order of array elements of body based on an input index array. Used in sorting methods</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-spill~3'>spill</a></strong>  => util_spill_pl </td>
+       <td><p>"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-vh2vb'>vh2vb</a></strong>  => helio_coord_vh2vb_pl </td>
+       <td><p>Convert massive bodies from heliocentric to barycentric coordinates (velocity only)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-vb2vh'>vb2vh</a></strong>  => helio_coord_vb2vh_pl </td>
+       <td><p>Convert massive bodies from barycentric to heliocentric coordinates (velocity only)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-drift~3'>drift</a></strong>  => helio_drift_pl </td>
+       <td><p>Method for Danby drift in Democratic Heliocentric coordinates </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-lindrift'>lindrift</a></strong>  => helio_drift_linear_pl </td>
+       <td><p>Method for linear drift of massive bodies due to barycentric momentum of Sun</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-accel_gr~3'>accel_gr</a></strong>  => helio_gr_kick_getacch_pl </td>
+       <td><p>Acceleration term arising from the post-Newtonian correction</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-gr_pos_kick~3'>gr_pos_kick</a></strong>  => helio_gr_p4_pl </td>
+       <td><p>Position kick due to p**4 term in the post-Newtonian correction</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-accel~3'>accel</a></strong>  => helio_kick_getacch_pl </td>
+       <td><p>Compute heliocentric accelerations of massive bodies</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-kick~3'>kick</a></strong>  => helio_kick_vb_pl </td>
+       <td><p>Kicks the barycentric velocities</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-step~5'>step</a></strong>  => helio_step_pl </td>
+       <td><p>Steps the body forward one stepsize</p></td></tr>
+      
+       </tbody>
+       </table>
+     
+  </div>
+</div>
+
+     
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="type-helio_tp"></span><h3>type, public, extends(<a href='../type/swiftest_tp.html'>swiftest_tp</a>) :: <a href='../type/helio_tp.html'>helio_tp</a>
+    
+  </h3></div>
+  <div class="panel-body">
+    
+     
+     <h4>Components</h4>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lfirst"></span>logical,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>lfirst</strong></td><td> =</td><td>.true.</td><td><p>Run the current step as a first</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nbody"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>nbody</strong></td><td> =</td><td>0</td><td><p>Number of bodies</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-name~2"></span>character(len=STRMAX),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>name</strong></td><td></td><td></td><td><p>Non-unique name</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-id~2"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>id</strong></td><td></td><td></td><td><p>External identifier (unique)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-status"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>status</strong></td><td></td><td></td><td><p>An integrator-specific status indicator </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ldiscard"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>ldiscard</strong></td><td></td><td></td><td><p>Body should be discarded</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-lmask"></span>logical,</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>lmask</strong></td><td></td><td></td><td><p>Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mu"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>mu</strong></td><td></td><td></td><td><p>G * (Mcb + [m])</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xh</strong></td><td></td><td></td><td><p>Heliocentric position</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vh</strong></td><td></td><td></td><td><p>Heliocentric velocity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-xb~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>xb</strong></td><td></td><td></td><td><p>Barycentric position</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-vb~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>vb</strong></td><td></td><td></td><td><p>Barycentric velocity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ah"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>ah</strong></td><td></td><td></td><td><p>Total heliocentric acceleration</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-aobl~3"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>aobl</strong></td><td></td><td></td><td><p>Barycentric accelerations of bodies due to central body oblatenes</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-atide~3"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>atide</strong></td><td></td><td></td><td><p>Tanngential component of acceleration of bodies due to tides</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-agr~2"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>agr</strong></td><td></td><td></td><td><p>Acceleration due to post-Newtonian correction</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-ir3h"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>ir3h</strong></td><td></td><td></td><td><p>Inverse heliocentric radius term (1/rh**3)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-a"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>a</strong></td><td></td><td></td><td><p>Semimajor axis (pericentric distance for a parabolic orbit)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-e"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>e</strong></td><td></td><td></td><td><p>Eccentricity</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-inc"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>inc</strong></td><td></td><td></td><td><p>Inclination</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-capom"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>capom</strong></td><td></td><td></td><td><p>Longitude of ascending node</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-omega"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>omega</strong></td><td></td><td></td><td><p>Argument of pericenter</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-capm"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>capm</strong></td><td></td><td></td><td><p>Mean anomaly
+ Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
+    component list, such as setup_body and util_spill</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-isperi"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>isperi</strong></td><td></td><td></td><td><p>Perihelion passage flag</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-peri"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>peri</strong></td><td></td><td></td><td><p>Perihelion distance</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-atp"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>atp</strong></td><td></td><td></td><td><p>Semimajor axis following perihelion passage
+ Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
+    component list, such as setup_tp and util_spill_tp</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+     
+     
+          
+     
+     <h4>Type-Bound Procedures</h4>
+      <table class="table table-striped varlist">
+      <tbody>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_swiftest </td>
+       <td></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-v2pv'>v2pv</a></strong>  => gr_vh2pv_body </td>
+       <td><p>Converts from velocity to psudeovelocity for GR calculations using symplectic integrators</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-pv2v'>pv2v</a></strong>  => gr_pv2vh_body </td>
+       <td><p>Converts from psudeovelocity to velocity for GR calculations using symplectic integrators</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-initialize~3'>initialize</a></strong>  => io_read_body_in </td>
+       <td><p>Read in body initial conditions from a file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-read_frame~3'>read_frame</a></strong>  => io_read_frame_body </td>
+       <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-write_frame~3'>write_frame</a></strong>  => io_write_frame_body </td>
+       <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-el2xv'>el2xv</a></strong>  => orbel_el2xv_vec </td>
+       <td><p>Convert orbital elements to position and velocity vectors</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-xv2el'>xv2el</a></strong>  => orbel_xv2el_vec </td>
+       <td><p>Convert position and velocity vectors to orbital  elements </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-accel_user'>accel_user</a></strong>  => user_kick_getacch_body </td>
+       <td><p>Add user-supplied heliocentric accelerations to planets</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-set_ir3'>set_ir3</a></strong>  => util_set_ir3h </td>
+       <td><p>Sets the inverse heliocentric radius term (1/rh**3)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-discard~4'>discard</a></strong>  => discard_tp </td>
+       <td><p>Check to see if test particles should be discarded based on their positions relative to the massive bodies</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-accel_int'>accel_int</a></strong>  => kick_getacch_int_tp </td>
+       <td><p>Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-accel_obl'>accel_obl</a></strong>  => obl_acc_tp </td>
+       <td><p>Compute the barycentric accelerations of bodies due to the oblateness of the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-setup~4'>setup</a></strong>  => setup_tp </td>
+       <td><p>A base constructor that sets the number of bodies and </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-append~4'>append</a></strong>  => util_append_tp </td>
+       <td><p>Appends elements from one structure to another</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-h2b'>h2b</a></strong>  => util_coord_h2b_tp </td>
+       <td><p>Convert test particles from heliocentric to barycentric coordinates (position and velocity)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-b2h'>b2h</a></strong>  => util_coord_b2h_tp </td>
+       <td><p>Convert test particles from barycentric to heliocentric coordinates (position and velocity)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-fill~4'>fill</a></strong>  => util_fill_tp </td>
+       <td><p>"Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-get_peri'>get_peri</a></strong>  => util_peri_tp </td>
+       <td><p>Determine system pericenter passages for test particles </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-resize~4'>resize</a></strong>  => util_resize_tp </td>
+       <td><p>Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-set_mu'>set_mu</a></strong>  => util_set_mu_tp </td>
+       <td><p>Method used to construct the vectorized form of the central body mass</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-sort~4'>sort</a></strong>  => util_sort_tp </td>
+       <td><p>Sorts body arrays by a sortable component</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-rearrange~4'>rearrange</a></strong>  => util_sort_rearrange_tp </td>
+       <td><p>Rearranges the order of array elements of body based on an input index array. Used in sorting methods</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-spill~4'>spill</a></strong>  => util_spill_tp </td>
+       <td><p>"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-vh2vb~2'>vh2vb</a></strong>  => helio_coord_vh2vb_tp </td>
+       <td><p>Convert test particles from heliocentric to barycentric coordinates (velocity only)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-vb2vh~2'>vb2vh</a></strong>  => helio_coord_vb2vh_tp </td>
+       <td><p>Convert test particles from barycentric to heliocentric coordinates (velocity only)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-lindrift~2'>lindrift</a></strong>  => helio_drift_linear_tp </td>
+       <td><p>Method for linear drift of massive bodies due to barycentric momentum of Sun</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-drift~4'>drift</a></strong>  => helio_drift_tp </td>
+       <td><p>Method for Danby drift in Democratic Heliocentric coordinates </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-accel_gr~4'>accel_gr</a></strong>  => helio_gr_kick_getacch_tp </td>
+       <td><p>Acceleration term arising from the post-Newtonian correction</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-gr_pos_kick~4'>gr_pos_kick</a></strong>  => helio_gr_p4_tp </td>
+       <td><p>Position kick due to p**4 term in the post-Newtonian correction</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-accel~4'>accel</a></strong>  => helio_kick_getacch_tp </td>
+       <td><p>Compute heliocentric accelerations of massive bodies</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-kick~4'>kick</a></strong>  => helio_kick_vb_tp </td>
+       <td><p>Kicks the barycentric velocities</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-step~6'>step</a></strong>  => helio_step_tp </td>
+       <td><p>Steps the body forward one stepsize</p></td></tr>
+      
+       </tbody>
+       </table>
+     
+  </div>
+</div>
+
+     
+    </section>
+  <br>
+    
+    
+    
+
+    
+    
+    
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>
