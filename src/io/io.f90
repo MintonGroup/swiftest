@@ -1350,12 +1350,12 @@ contains
             write(iu) pl%rhill(1:n)
             write(iu) pl%radius(1:n)
             if (param%lrotation) then
-               write(iu) pl%rot(1, 1:n)
-               write(iu) pl%rot(2, 1:n)
-               write(iu) pl%rot(3, 1:n)
                write(iu) pl%Ip(1, 1:n)
                write(iu) pl%Ip(2, 1:n)
                write(iu) pl%Ip(3, 1:n)
+               write(iu) pl%rot(1, 1:n)
+               write(iu) pl%rot(2, 1:n)
+               write(iu) pl%rot(3, 1:n)
             end if
             if (param%ltides) then
                write(iu) pl%k2(1:n)
@@ -1389,12 +1389,12 @@ contains
          write(iu) cb%j2rp2 
          write(iu) cb%j4rp4 
          if (param%lrotation) then
-            write(iu) cb%rot(1)
-            write(iu) cb%rot(2)
-            write(iu) cb%rot(3)
             write(iu) cb%Ip(1)
             write(iu) cb%Ip(2)
             write(iu) cb%Ip(3)
+            write(iu) cb%rot(1)
+            write(iu) cb%rot(2)
+            write(iu) cb%rot(3)
          end if
          if (param%ltides) then
             write(iu) cb%k2

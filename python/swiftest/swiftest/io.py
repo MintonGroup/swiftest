@@ -470,8 +470,7 @@ def swiftest_stream(f, param):
         npl = f.read_ints()
         ntp = f.read_ints()
         iout_form = f.read_reals('c')
-        #cbid = f.read_ints()
-        cbid = np.array([0])
+        cbid = f.read_ints()
         Mcb = f.read_reals(np.float64)
         Rcb = f.read_reals(np.float64)
         J2cb = f.read_reals(np.float64)
@@ -495,6 +494,7 @@ def swiftest_stream(f, param):
             p5 = f.read_reals(np.float64)
             p6 = f.read_reals(np.float64)
             Mpl = f.read_reals(np.float64)
+            Rhill = f.read_reals(np.float64)
             Rpl = f.read_reals(np.float64)
             if param['RHILL_PRESENT'] == 'YES':
                 Rhill = f.read_reals(np.float64)
