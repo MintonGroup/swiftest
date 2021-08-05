@@ -112,7 +112,7 @@ contains
                Ltot(:) = Ltot(:) - Lpl(:) 
             end do 
             Ltot(:) = Ltot(:) - cb%mass * cb%xb(:) .cross. cb%vb(:)
-            system%Lescape(:) = system%Lescape(:) + system%Ltot(:) 
+            system%Lescape(:) = system%Lescape(:) + Ltot(:)
             if (param%lrotation) system%Lescape(:) = system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
    
          else

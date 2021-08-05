@@ -39,7 +39,12 @@ contains
                write(EGYIU,EGYHEADER)
             end if
          end if
-         call system%get_energy_and_momentum(param, ke_orbit_now, ke_spin_now, pe_now, Lorbit_now, Lspin_now)
+         call system%get_energy_and_momentum(param) 
+         ke_orbit_now = system%ke_orbit
+         ke_spin_now = system%ke_spin
+         pe_now = system%pe
+         Lorbit_now = system%Lorbit
+         Lspin_now = system%Lspin
          Eorbit_now = ke_orbit_now + ke_spin_now + pe_now
          Ltot_now(:) = Lorbit_now(:) + Lspin_now(:) + Lescape(:)
          Mtot_now = cb%mass + sum(pl%mass(1:npl)) + system%Mescape

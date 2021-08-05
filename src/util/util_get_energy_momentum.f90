@@ -1,7 +1,7 @@
 submodule (swiftest_classes) s_util_get_energy_momentum
    use swiftest
 contains   
-   module subroutine util_get_energy_momentum_system(self, param, ke_orbit, ke_spin, pe, Lorbit, Lspin)
+   module subroutine util_get_energy_momentum_system(self, param)
       !! author: David A. Minton
       !!
       !! Compute total system angular momentum vector and kinetic, potential and total system energy
@@ -12,11 +12,6 @@ contains
       implicit none
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
-      real(DP),                     intent(out)   :: ke_orbit !! Orbital kinetic energy
-      real(DP),                     intent(out)   :: ke_spin  !! Spin kinetic energy
-      real(DP),                     intent(out)   :: pe       !! Potential energy
-      real(DP), dimension(:),       intent(out)   :: Lorbit   !! Orbital angular momentum
-      real(DP), dimension(:),       intent(out)   :: Lspin    !! Spin angular momentum
       ! Internals
       integer(I4B) :: i, j
       integer(I8B) :: k
@@ -28,11 +23,12 @@ contains
       logical, dimension(self%pl%nplpl) :: lstatpl
       logical, dimension(self%pl%nbody) :: lstatus
 
-      Lorbit(:) = 0.0_DP
-      Lspin(:) = 0.0_DP
-      ke_orbit = 0.0_DP
-      ke_spin = 0.0_DP
       associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+         system%Lorbit(:) = 0.0_DP
+         system%Lspin(:) = 0.0_DP
+         system%ke_orbit = 0.0_DP
+         system%ke_spin = 0.0_DP
+
          kepl(:) = 0.0_DP
          Lplorbitx(:) = 0.0_DP
          Lplorbity(:) = 0.0_DP
@@ -56,6 +52,7 @@ contains
             ! Kinetic energy from orbit and spin
             kepl(i) = pl%mass(i) * v2
          end do
+
          if (param%lrotation) then
             do i = 1, npl
                rot2 = dot_product(pl%rot(:,i), pl%rot(:,i))
@@ -90,10 +87,10 @@ contains
             end associate
          end do
    
-         ke_orbit = 0.5_DP * sum(kepl(1:npl), lstatus(:))
-         if (param%lrotation) ke_spin = 0.5_DP * sum(kespinpl(1:npl), lstatus(:))
+         system%ke_orbit = 0.5_DP * sum(kepl(1:npl), lstatus(:))
+         if (param%lrotation) system%ke_spin = 0.5_DP * sum(kespinpl(1:npl), lstatus(:))
    
-         pe = sum(pepl(:), lstatpl(:)) + sum(pecb(2:npl), lstatus(2:npl))
+         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(2:npl), lstatus(2:npl))
    
          ! Potential energy from the oblateness term
          if (param%loblatecb) then
@@ -102,17 +99,16 @@ contains
                irh(i) = 1.0_DP / norm2(pl%xh(:,i))
             end do
             call obl_pot(npl, cb%mass, pl%mass, cb%j2rp2, cb%j4rp4, pl%xh, irh, oblpot)
-            pe = pe + oblpot
+            system%pe = system%pe + oblpot
          end if
    
-         Lorbit(1) = sum(Lplorbitx(1:npl), lstatus(1:npl)) 
-         Lorbit(2) = sum(Lplorbity(1:npl), lstatus(1:npl)) 
-         Lorbit(3) = sum(Lplorbitz(1:npl), lstatus(1:npl)) 
+         system%Lorbit(1) = sum(Lplorbitx(1:npl), lstatus(1:npl)) 
+         system%Lorbit(2) = sum(Lplorbity(1:npl), lstatus(1:npl)) 
+         system%Lorbit(3) = sum(Lplorbitz(1:npl), lstatus(1:npl)) 
    
-         Lspin(1) = sum(Lplspinx(1:npl), lstatus(1:npl)) 
-         Lspin(2) = sum(Lplspiny(1:npl), lstatus(1:npl)) 
-         Lspin(3) = sum(Lplspinz(1:npl), lstatus(1:npl)) 
-   
+         system%Lspin(1) = sum(Lplspinx(1:npl), lstatus(1:npl)) 
+         system%Lspin(2) = sum(Lplspiny(1:npl), lstatus(1:npl)) 
+         system%Lspin(3) = sum(Lplspinz(1:npl), lstatus(1:npl)) 
       end associate
 
       return

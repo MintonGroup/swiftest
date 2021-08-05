@@ -276,10 +276,12 @@ module swiftest_classes
       class(swiftest_tp),            allocatable :: tp                   !! Test particle data structure
       class(swiftest_tp),            allocatable :: tp_discards          !! Discarded test particle data structure
       real(DP)                                   :: Gmtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                                   :: ke = 0.0_DP          !! System kinetic energy
+      real(DP)                                   :: ke_orbit = 0.0_DP    !! System orbital kinetic energy
+      real(DP)                                   :: ke_spin = 0.0_DP     !! System spin kinetic energy
       real(DP)                                   :: pe = 0.0_DP          !! System potential energy
       real(DP)                                   :: te = 0.0_DP          !! System total energy
-      real(DP), dimension(NDIM)                  :: Ltot = 0.0_DP        !! System angular momentum vector
+      real(DP), dimension(NDIM)                  :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
+      real(DP), dimension(NDIM)                  :: Lspin = 0.0_DP       !! System spin angular momentum vector
       real(DP), dimension(NDIM)                  :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
       real(DP)                                   :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                                   :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
@@ -1019,15 +1021,10 @@ module swiftest_classes
          integer(I4B),       intent(in)    :: nnew !! New size neded
       end subroutine util_resize_tp
 
-      module subroutine util_get_energy_momentum_system(self, param, ke_orbit, ke_spin, pe, Lorbit, Lspin)
+      module subroutine util_get_energy_momentum_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
-         real(DP),                     intent(out)   :: ke_orbit !! Orbital kinetic energy
-         real(DP),                     intent(out)   :: ke_spin  !! Spin kinetic energy
-         real(DP),                     intent(out)   :: pe       !! Potential energy
-         real(DP), dimension(:),       intent(out)   :: Lorbit   !! Orbital angular momentum
-         real(DP), dimension(:),       intent(out)   :: Lspin    !! Spin angular momentum
       end subroutine util_get_energy_momentum_system
 
       module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
