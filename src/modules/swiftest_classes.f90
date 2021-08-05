@@ -966,12 +966,56 @@ module swiftest_classes
    end interface
 
    interface
+      module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
+         use lambda_function
+         implicit none
+         integer(I4B),           intent(in)    :: N
+         class(lambda_obj),      intent(inout) :: f
+         real(DP), dimension(:), intent(in)    :: x0
+         real(DP),               intent(in)    :: eps
+         logical,                intent(out)   :: lerr
+         real(DP), dimension(:), allocatable :: x1
+      end function util_minimize_bfgs
+
       module subroutine util_peri_tp(self, system, param) 
          implicit none
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
+   end interface
+
+   interface util_solve_linear_system
+      module function util_solve_linear_system_d(A,b,n,lerr) result(x)
+         implicit none
+         integer(I4B),             intent(in)  :: n
+         real(DP), dimension(:,:), intent(in)  :: A
+         real(DP), dimension(:),   intent(in)  :: b
+         logical,                  intent(out) :: lerr
+         real(DP), dimension(n)                :: x
+      end function util_solve_linear_system_d
+
+      module function util_solve_linear_system_q(A,b,n,lerr) result(x)
+         implicit none
+         integer(I4B),             intent(in)  :: n
+         real(QP), dimension(:,:), intent(in)  :: A
+         real(QP), dimension(:),   intent(in)  :: b
+         logical,                  intent(out) :: lerr
+         real(QP), dimension(n)                :: x
+      end function util_solve_linear_system_q
+   end interface
+
+   interface
+      module function util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
+         use lambda_function
+         implicit none
+         class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
+         real(DP), dimension(:), intent(in)    :: y0in !! Initial value at t=0
+         real(DP),               intent(in)    :: t1   !! Final time
+         real(DP),               intent(in)    :: dt0  !! Initial step size guess
+         real(DP),               intent(in)    :: tol  !! Tolerance on solution
+         real(DP), dimension(:), allocatable   :: y1  !! Final result
+      end function util_solve_rkf45
    end interface
 
    interface util_resize
