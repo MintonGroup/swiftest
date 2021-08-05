@@ -795,19 +795,22 @@ contains
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
                   if (param%lclose) read(iu, *, iostat=ierr, err=100) self%radius(i)
-                  if (param%lrotation) then
-                     read(iu, iostat=ierr, err=100) self%Ip(:, i)
-                     read(iu, iostat=ierr, err=100) self%rot(:, i)
-                  end if
-                  if (param%ltides) then
-                     read(iu, iostat=ierr, err=100) self%k2(i)
-                     read(iu, iostat=ierr, err=100) self%Q(i)
-                  end if
                class is (swiftest_tp)
                   read(iu, *, iostat=ierr, err=100) self%id(i)
                end select
                read(iu, *, iostat=ierr, err=100) self%xh(1, i), self%xh(2, i), self%xh(3, i)
                read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
+               select type (self)
+               class is (swiftest_pl)
+                  if (param%lrotation) then
+                     read(iu, *, iostat=ierr, err=100) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
+                     read(iu, *, iostat=ierr, err=100) self%rot(1, i), self%rot(2, i), self%rot(3, i)
+                  end if
+                  if (param%ltides) then
+                     read(iu, *, iostat=ierr, err=100) self%k2(i)
+                     read(iu, *, iostat=ierr, err=100) self%Q(i)
+                  end if
+               end select
                self%status(i) = ACTIVE
                self%lmask(i) = .true.
             end do
@@ -859,7 +862,7 @@ contains
       is_ascii = (param%in_type == 'ASCII') 
       if (is_ascii) then
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
-         !read(iu, *, iostat = ierr) self%id
+         read(iu, *, iostat = ierr) self%id
          read(iu, *, iostat = ierr) val 
          self%Gmass = real(val, kind=DP)
          self%mass = real(val / param%GU, kind=DP)
@@ -867,8 +870,8 @@ contains
          read(iu, *, iostat = ierr) self%j2rp2
          read(iu, *, iostat = ierr) self%j4rp4
          if (param%lrotation) then
-            read(iu, *, iostat = ierr) self%Ip
-            read(iu, *, iostat = ierr) self%rot
+            read(iu, *, iostat = ierr) self%Ip(1), self%Ip(2), self%Ip(3)
+            read(iu, *, iostat = ierr) self%rot(1), self%rot(2), self%rot(3)
          end if
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
@@ -883,7 +886,6 @@ contains
 
       return
    end subroutine io_read_cb_in
-
 
 
    function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
@@ -1348,12 +1350,12 @@ contains
             write(iu) pl%rhill(1:n)
             write(iu) pl%radius(1:n)
             if (param%lrotation) then
-               write(iu) pl%rot(1, 1:n)
-               write(iu) pl%rot(2, 1:n)
-               write(iu) pl%rot(3, 1:n)
                write(iu) pl%Ip(1, 1:n)
                write(iu) pl%Ip(2, 1:n)
                write(iu) pl%Ip(3, 1:n)
+               write(iu) pl%rot(1, 1:n)
+               write(iu) pl%rot(2, 1:n)
+               write(iu) pl%rot(3, 1:n)
             end if
             if (param%ltides) then
                write(iu) pl%k2(1:n)
@@ -1387,12 +1389,12 @@ contains
          write(iu) cb%j2rp2 
          write(iu) cb%j4rp4 
          if (param%lrotation) then
-            write(iu) cb%rot(1)
-            write(iu) cb%rot(2)
-            write(iu) cb%rot(3)
             write(iu) cb%Ip(1)
             write(iu) cb%Ip(2)
             write(iu) cb%Ip(3)
+            write(iu) cb%rot(1)
+            write(iu) cb%rot(2)
+            write(iu) cb%rot(3)
          end if
          if (param%ltides) then
             write(iu) cb%k2

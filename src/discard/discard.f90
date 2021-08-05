@@ -57,6 +57,8 @@ contains
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
+      ! Internals
+      logical, dimension(:), allocatable :: ldiscard
 
       associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
          if ((ntp == 0) .or. (npl ==0)) return 
@@ -70,7 +72,10 @@ contains
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call discard_cb_tp(tp, system, param)
          if (param%qmin >= 0.0_DP) call discard_peri_tp(tp, system, param)
          if (param%lclose) call discard_pl_tp(tp, system, param)
-         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard, ldestructive=.true.)
+         if (any(tp%ldiscard)) then
+            allocate(ldiscard, source=tp%ldiscard)
+            call tp%spill(system%tp_discards, ldiscard, ldestructive=.true.)
+         end if
       end associate
 
       return
