@@ -2,6 +2,54 @@ submodule (symba_classes) s_symba_fragmentation
    use swiftest
 contains
 
+   module function symba_fragmentation_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
+      !!
+      !! Create the fragments resulting from a non-catastrophic disruption collision
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
+      class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+      integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
+      real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
+      real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
+      ! Result
+      integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+      ! Internals
+
+      status = DISRUPTION
+
+      return
+   end function symba_fragmentation_casedisruption
+
+
+   module function symba_fragmentation_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
+      !!
+      !! Create the fragments resulting from a non-catastrophic hit-and-run collision
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
+      class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+      integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
+      real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
+      real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
+      ! Result
+      integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+      ! Internals
+
+      status = HIT_AND_RUN
+
+      return
+   end function symba_fragmentation_casehitandrun
+
+
    module function symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
@@ -133,5 +181,29 @@ contains
       return 
 
    end function symba_fragmentation_casemerge
+
+
+   module function symba_fragmentation_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
+      !!
+      !! Create the fragments resulting from a supercatastrophic collision
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
+      class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+      integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
+      real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
+      real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
+      ! Result
+      integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+      ! Internals
+
+      status = SUPERCATASTROPHIC
+
+      return
+   end function symba_fragmentation_casesupercatastrophic
 
 end submodule s_symba_fragmentation

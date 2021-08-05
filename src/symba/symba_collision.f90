@@ -420,7 +420,7 @@ contains
       real(DP), dimension(NDIM)                   :: x1_si, v1_si, x2_si, v2_si
       real(DP)                                    :: mlr, mslr, mtot, dentot, msys, msys_new, Qloss, impact_parameter
       integer(I4B), parameter                     :: NRES = 3   !! Number of collisional product results
-      real(DP), dimension(NRES)                   :: mass_res
+      real(DP), dimension(NRES)                   :: mass_res   
 
       associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, cb => system%cb)
          select type(pl => system%pl)
@@ -468,11 +468,11 @@ contains
 
                select case (regime)
                case (COLLRESOLVE_REGIME_DISRUPTION)
-                  !status = symba_fragmentation_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                  status = symba_fragmentation_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                  !status = symba_fragmentation_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                  status = symba_fragmentation_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                  !status = symba_fragmentation_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                  status = symba_fragmentation_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
                   status = symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                case default 
