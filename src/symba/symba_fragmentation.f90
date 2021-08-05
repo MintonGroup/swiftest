@@ -22,13 +22,14 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                            :: i, istart, nfrag, ibiggest, nstart, nend
+      integer(I4B)                            :: i, istart, nfrag, ibiggest, nfamily, nstart, nend
       real(DP)                                :: mtot, avg_dens
       real(DP), dimension(NDIM)               :: xcom, vcom, Ip_new
       real(DP), dimension(2)                  :: vol
       real(DP), dimension(:, :), allocatable  :: vb_frag, xb_frag, rot_frag, Ip_frag
       real(DP), dimension(:), allocatable     :: m_frag, rad_frag
       logical                                 :: lfailure
+      logical,  dimension(system%pl%nbody)    :: lmask
       class(symba_pl), allocatable            :: plnew
    
       select type(pl => system%pl)
@@ -84,6 +85,18 @@ contains
                ! Populate the list of new bodies
                write(*,'("Generating ",I2.0," fragments")') nfrag
                status = DISRUPTION
+
+               ! Add the family bodies to the subtraction list
+               nfamily = size(family(:))
+               lmask(:) = .false.
+               lmask(family(:)) = .true.
+               pl%status(family(:)) = MERGED
+               nstart = mergesub_list%nbody + 1
+               nend = mergesub_list%nbody + nfamily
+               call mergesub_list%append(pl, lmask)
+               ! Record how many bodies were subtracted in this event
+               mergesub_list%ncomp(nstart:nend) = nfamily 
+
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
     
@@ -153,8 +166,140 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
+      integer(I4B)                            :: i, nfrag, jproj, jtarg, idstart, ibiggest, nfamily, nstart, nend
+      real(DP)                                :: mtot, avg_dens
+      real(DP), dimension(NDIM)               :: xcom, vcom
+      real(DP), dimension(2)                  :: vol
+      real(DP), dimension(:, :), allocatable  :: vb_frag, xb_frag, rot_frag, Ip_frag
+      real(DP), dimension(:), allocatable     :: m_frag, rad_frag
+      integer(I4B), dimension(:), allocatable :: id_frag
+      logical                                 :: lpure
+      logical,  dimension(system%pl%nbody)    :: lmask
+      class(symba_pl), allocatable            :: plnew
+   
+      select type(pl => system%pl)
+      class is (symba_pl)
+         associate(mergeadd_list => system%mergeadd_list, mergesub_list => system%mergesub_list, cb => system%cb)
+            mtot = sum(mass(:))
+            xcom(:) = (mass(1) * x(:,1) + mass(2) * x(:,2)) / mtot
+            vcom(:) = (mass(1) * v(:,1) + mass(2) * v(:,2)) / mtot
+            lpure = .false.
+         
+            ! The largest body will stay untouched
+            if (mass(1) > mass(2)) then
+               jtarg = 1
+               jproj = 2
+            else
+               jtarg = 2
+               jproj = 1
+            end if
+         
+            if (mass_res(2) > 0.9_DP * mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
+               write(*,*) 'Pure hit and run. No new fragments generated.'
+               nfrag = 0
+               lpure = .true.
+            else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
+               nfrag = NFRAG_DISRUPT - 1
+               lpure = .false.
+               allocate(m_frag(nfrag))
+               allocate(id_frag(nfrag))
+               allocate(rad_frag(nfrag))
+               allocate(xb_frag(NDIM, nfrag))
+               allocate(vb_frag(NDIM, nfrag))
+               allocate(rot_frag(NDIM, nfrag))
+               allocate(Ip_frag(NDIM, nfrag))
+               m_frag(1) = mass(jtarg)
+               ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
+               id_frag(1) = pl%id(ibiggest)
+               rad_frag(1) = radius(jtarg)
+               xb_frag(:, 1) = x(:, jtarg) 
+               vb_frag(:, 1) = v(:, jtarg)
+               Ip_frag(:,1) = Ip(:, jtarg)
+         
+               ! Get mass weighted mean of Ip and average density
+               vol(:) = 4._DP / 3._DP * pi * radius(:)**3
+               avg_dens = mass(jproj) / vol(jproj)
+               m_frag(2:nfrag) = (mtot - m_frag(1)) / (nfrag - 1) 
+               rad_frag(2:nfrag) = (3 * m_frag(2:nfrag) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
+               m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
+         
+               do i = 1, nfrag
+                  Ip_frag(:, i) = Ip(:, jproj)
+               end do
+         
+               ! Put the fragments on the circle surrounding the center of mass of the system
+               call fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &
+                                 nfrag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, Qloss, lpure)
+               if (lpure) then
+                  write(*,*) 'Should have been a pure hit and run instead'
+                  nfrag = 0
+               else
+                  write(*,'("Generating ",I2.0," fragments")') nfrag
+               end if
+            end if
+            if (lpure) then
+               status = ACTIVE
+            else
+               status = HIT_AND_RUN
 
-      status = HIT_AND_RUN
+               ! Add the family bodies to the subtraction list
+               nfamily = size(family(:))
+               lmask(:) = .false.
+               lmask(family(:)) = .true.
+               pl%status(family(:)) = MERGED
+               nstart = mergesub_list%nbody + 1
+               nend = mergesub_list%nbody + nfamily
+               call mergesub_list%append(pl, lmask)
+               ! Record how many bodies were subtracted in this event
+               mergesub_list%ncomp(nstart:nend) = nfamily 
+   
+               allocate(plnew, mold=pl)
+               call plnew%setup(nfrag, param)
+    
+               plnew%id(:) = [(i, i = system%maxid + 1, system%maxid + nfrag)]
+               system%maxid = system%maxid + nfrag
+               plnew%status(:) = ACTIVE
+               plnew%lcollision(:) = .false.
+               plnew%ldiscard(:) = .false.
+               plnew%xb(:,:) = xb_frag(:, :) 
+               plnew%vb(:,:) = vb_frag(:, :)
+               do i = 1, nfrag
+                  plnew%xh(:,i) = xb_frag(:, i) - cb%xb(:)
+                  plnew%vh(:,i) = vb_frag(:, i) - cb%vb(:)
+               end do
+               plnew%mass(:) = m_frag(:)
+               plnew%Gmass(:) = param%GU * m_frag(:)
+               plnew%density(:) = avg_dens
+               plnew%radius(:) = rad_frag(:)
+               plnew%info(:)%origin_type = "Hit and run fragment"
+               plnew%info(:)%origin_time = param%t
+               do i = 1, nfrag
+                  plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
+                  plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
+               end do
+               if (param%lrotation) then
+                  plnew%Ip(:,:) = Ip_frag(:,:)
+                  plnew%rot(:,:) = rot_frag(:,:)
+               end if
+               if (param%ltides) then
+                  ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
+                  plnew%Q = pl%Q(ibiggest)
+                  plnew%k2 = pl%k2(ibiggest)
+                  plnew%tlag = pl%tlag(ibiggest)
+               end if
+   
+               ! Append the new merged body to the list and record how many we made
+               nstart = mergeadd_list%nbody + 1
+               nend = mergeadd_list%nbody + plnew%nbody
+               call mergeadd_list%append(plnew)
+               mergeadd_list%ncomp(nstart:nend) = plnew%nbody
+    
+               call plnew%setup(0, param)
+               deallocate(plnew)
+
+            end if
+         end associate
+      end select
 
       return
    end function symba_fragmentation_casehitandrun
@@ -310,7 +455,7 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                            :: i, nfrag, ibiggest, nstart, nend
+      integer(I4B)                            :: i, nfrag, ibiggest, nfamily, nstart, nend
       real(DP)                                :: mtot, avg_dens, min_frag_mass
       real(DP), dimension(NDIM)               :: xcom, vcom
       real(DP), dimension(2)                  :: vol
@@ -318,6 +463,7 @@ contains
       real(DP), dimension(:, :), allocatable  :: vb_frag, xb_frag, rot_frag, Ip_frag
       real(DP), dimension(:), allocatable     :: m_frag, rad_frag
       logical                                 :: lfailure
+      logical,  dimension(system%pl%nbody)    :: lmask
       class(symba_pl), allocatable            :: plnew
     
       select type(pl => system%pl)
@@ -369,6 +515,18 @@ contains
                ! Populate the list of new bodies
                write(*,'("Generating ",I2.0," fragments")') nfrag
                status = SUPERCATASTROPHIC
+
+               ! Add the family bodies to the subtraction list
+               nfamily = size(family(:))
+               lmask(:) = .false.
+               lmask(family(:)) = .true.
+               pl%status(family(:)) = MERGED
+               nstart = mergesub_list%nbody + 1
+               nend = mergesub_list%nbody + nfamily
+               call mergesub_list%append(pl, lmask)
+               ! Record how many bodies were subtracted in this event
+               mergesub_list%ncomp(nstart:nend) = nfamily 
+
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
     
@@ -387,7 +545,7 @@ contains
                plnew%Gmass(:) = param%GU * m_frag(:)
                plnew%density(:) = avg_dens
                plnew%radius(:) = rad_frag(:)
-               plnew%info(:)%origin_type = "Disruption"
+               plnew%info(:)%origin_type = "Supercatastrophic"
                plnew%info(:)%origin_time = param%t
                do i = 1, nfrag
                   plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
