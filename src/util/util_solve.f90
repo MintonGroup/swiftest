@@ -51,7 +51,6 @@ contains
       !! Uses Gaussian elimination, so will have issues if system is ill-conditioned.
       !! Uses quad precision intermidiate values, so works best on small arrays.
       use, intrinsic :: ieee_exceptions
-      use swiftest
       implicit none
       ! Arguments
       integer(I4B),             intent(in) :: n
