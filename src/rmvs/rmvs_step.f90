@@ -442,6 +442,7 @@ contains
                      tpenci%cb_heliocentric = cb
                      tpenci%ipleP = i
                      tpenci%lmask(:) = .true.
+                     tpenci%status(:) = ACTIVE
                      ! Grab all the encountering test particles and convert them to a planetocentric frame
                      tpenci%id(:) = pack(tp%id(:), encmask(:)) 
                      do j = 1, NDIM 
@@ -538,7 +539,7 @@ contains
                         call orbel_xv2aqt(mu, xpc(:, i), vpc(:, i), a, peri, capm, tperi)
                         r2 = dot_product(xpc(:, i), xpc(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)
-                        if (param%encounter_file /= "") then
+                        if (param%enc_out /= "") then
                            id1 = pl%id(ipleP)
                            rpl = pl%radius(ipleP)
                            xh1(:) = pl%inner(inner_index)%x(:, ipleP)
@@ -547,7 +548,7 @@ contains
                            xh2(:) = xpc(:, i) + xh1(:)
                            vh2(:) = xpc(:, i) + vh1(:)
                            call io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),  &
-                              param%encounter_file, param%out_type)
+                              param%enc_out, param%out_type)
                         end if
                         if (tp%lperi(i)) then
                            if (peri < tp%peri(i)) then

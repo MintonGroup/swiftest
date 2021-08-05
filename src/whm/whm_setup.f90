@@ -18,6 +18,12 @@ contains
       call setup_pl(self, n, param) 
       if (n <= 0) return
 
+      if (allocated(self%eta)) deallocate(self%eta)
+      if (allocated(self%muj)) deallocate(self%muj)
+      if (allocated(self%xj)) deallocate(self%xj)
+      if (allocated(self%vj)) deallocate(self%vj)
+      if (allocated(self%ir3j)) deallocate(self%ir3j)
+
       allocate(self%eta(n))
       allocate(self%muj(n))
       allocate(self%xj(NDIM, n))

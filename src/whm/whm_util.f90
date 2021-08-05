@@ -2,48 +2,33 @@ submodule(whm_classes) s_whm_util
    use swiftest
 contains
 
-   module subroutine whm_util_spill_pl(self, discards, lspill_list)
+   module subroutine whm_util_append_pl(self, source, lsource_mask)
       !! author: David A. Minton
       !!
-      !! Move spilled (discarded) WHM test particle structure from active list to discard list
-      !! 
-      !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
+      !! Append components from one massive body object to another. 
+      !! This method will automatically resize the destination body if it is too small
       implicit none
-      ! Arguments
-      class(whm_pl),                         intent(inout) :: self        !! WHM massive body object
-      class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-      ! Internals
-      integer(I4B)                                         :: i
-      associate(keeps => self)
-         select type(discards)
-         class is (whm_pl)
-            discards%eta(:) = pack(keeps%eta(:),       lspill_list(:))
-            discards%muj(:) = pack(keeps%muj(:),       lspill_list(:))
-            discards%ir3j(:) = pack(keeps%ir3j(:),       lspill_list(:))
-            do i = 1, NDIM
-               discards%xj(i, :) = pack(keeps%xj(i, :),       lspill_list(:))
-               discards%vj(i, :) = pack(keeps%vj(i, :),       lspill_list(:))
-            end do
+      !! Arguments
+      class(whm_pl),                   intent(inout) :: self         !! WHM massive body object
+      class(swiftest_body),            intent(in)    :: source       !! Source object to append
+      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
-            if (count(.not.lspill_list(:))  > 0) then 
-               keeps%eta(:)    = pack(keeps%eta(:), .not. lspill_list(:))
-               keeps%muj(:)    = pack(keeps%muj(:), .not. lspill_list(:))
-               keeps%ir3j(:)    = pack(keeps%ir3j(:), .not. lspill_list(:))
-               do i = 1, NDIM
-                  keeps%xj(i, :)    = pack(keeps%xj(i, :), .not. lspill_list(:))
-                  keeps%vj(i, :)    = pack(keeps%vj(i, :), .not. lspill_list(:))
-               end do
-            end if
-            call util_spill_pl(keeps, discards, lspill_list)
-         class default
-            write(*,*) 'Error! spill method called for incompatible return type on whm_pl'
-         end select
-      end associate
+      select type(source)
+      class is (whm_pl)
+         call util_append_pl(self, source, lsource_mask)
+
+         call util_append(self%eta, source%eta, lsource_mask)
+         call util_append(self%muj, source%muj, lsource_mask)
+         call util_append(self%ir3j, source%ir3j, lsource_mask)
+         call util_append(self%xj, source%xj, lsource_mask)
+         call util_append(self%vj, source%vj, lsource_mask)
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class whm_pl or its descendents"
+         call util_exit(FAILURE)
+      end select
 
       return
-   end subroutine whm_util_spill_pl
-
+   end subroutine whm_util_append_pl
 
    module subroutine whm_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
@@ -55,7 +40,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                      intent(inout) :: self       !! WHM massive body object
-      class(swiftest_body),               intent(inout) :: inserts    !! inserted object 
+      class(swiftest_body),               intent(in)    :: inserts    !! inserted object 
       logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       ! Internals
       integer(I4B)                                      :: i
@@ -63,31 +48,42 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (whm_pl)
-            keeps%eta(:)  = unpack(keeps%eta(:),  .not.lfill_list(:), keeps%eta(:))
-            keeps%eta(:)  = unpack(inserts%eta(:),  lfill_list(:), keeps%eta(:))
-            
-            keeps%muj(:)  = unpack(keeps%muj(:),  .not.lfill_list(:), keeps%muj(:))
-            keeps%muj(:)  = unpack(inserts%muj(:),  lfill_list(:), keeps%muj(:))
-            
-            keeps%ir3j(:) = unpack(keeps%ir3j(:), .not.lfill_list(:), keeps%ir3j(:))
-            keeps%ir3j(:) = unpack(inserts%ir3j(:), lfill_list(:), keeps%ir3j(:))
-            
-   
-            do i = 1, NDIM
-               keeps%xj(i, :) = unpack(keeps%xj(i, :), .not.lfill_list(:), keeps%xj(i, :))
-               keeps%xj(i, :) = unpack(inserts%xj(i, :), lfill_list(:), keeps%xj(i, :))
-            
-               keeps%vj(i, :) = unpack(keeps%vj(i, :), .not.lfill_list(:), keeps%vj(i, :))
-               keeps%vj(i, :) = unpack(inserts%vj(i, :), lfill_list(:), keeps%vj(i, :))
-            end do
+            call util_fill(keeps%eta, inserts%eta, lfill_list)
+            call util_fill(keeps%muj, inserts%muj, lfill_list)
+            call util_fill(keeps%ir3j, inserts%ir3j, lfill_list)
+            call util_fill(keeps%xj, inserts%xj, lfill_list)
+            call util_fill(keeps%vj, inserts%vj, lfill_list)
+
             call util_fill_pl(keeps, inserts, lfill_list)
          class default
-            write(*,*) 'Error! fill method called for incompatible return type on whm_pl'
+            write(*,*) "Invalid object passed to the fill method. Inserts must be of class whm_pl or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
    
       return
    end subroutine whm_util_fill_pl
+
+
+   module subroutine whm_util_resize_pl(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a massive body against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(whm_pl), intent(inout) :: self  !! WHM massive body object
+      integer(I4B),  intent(in)    :: nnew  !! New size neded
+
+      call util_resize_pl(self, nnew)
+
+      call util_resize(self%eta, nnew)
+      call util_resize(self%xj, nnew)
+      call util_resize(self%vj, nnew)
+      call util_resize(self%muj, nnew)
+      call util_resize(self%ir3j, nnew)
+
+      return
+   end subroutine whm_util_resize_pl
 
 
    module subroutine whm_util_set_ir3j(self)
@@ -176,15 +172,49 @@ contains
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange_pl(pl,ind)
          allocate(pl_sorted, source=self)
-         pl%eta(1:npl) = pl_sorted%eta(ind(1:npl))
-         pl%xj(:,1:npl) = pl_sorted%xj(:,ind(1:npl))
-         pl%vj(:,1:npl) = pl_sorted%vj(:,ind(1:npl))
-         pl%muj(1:npl) = pl_sorted%muj(ind(1:npl))
-         pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
+         if (allocated(pl%eta))  pl%eta(1:npl) = pl_sorted%eta(ind(1:npl))
+         if (allocated(pl%xj))   pl%xj(:,1:npl) = pl_sorted%xj(:,ind(1:npl))
+         if (allocated(pl%vj))   pl%vj(:,1:npl) = pl_sorted%vj(:,ind(1:npl))
+         if (allocated(pl%muj))  pl%muj(1:npl) = pl_sorted%muj(ind(1:npl))
+         if (allocated(pl%ir3j)) pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
          deallocate(pl_sorted)
       end associate
 
       return
    end subroutine whm_util_sort_rearrange_pl
+
+
+   module subroutine whm_util_spill_pl(self, discards, lspill_list, ldestructive)
+      !! author: David A. Minton
+      !!
+      !! Move spilled (discarded) WHM test particle structure from active list to discard list
+      !! 
+      !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
+      implicit none
+      ! Arguments
+      class(whm_pl),                         intent(inout) :: self        !! WHM massive body object
+      class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
+      logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B)                                         :: i
+      associate(keeps => self)
+         select type(discards)
+         class is (whm_pl)
+            call util_spill(keeps%eta, discards%eta, lspill_list, ldestructive)
+            call util_spill(keeps%muj, discards%muj, lspill_list, ldestructive)
+            call util_spill(keeps%ir3j, discards%ir3j, lspill_list, ldestructive)
+            call util_spill(keeps%xj, discards%xj, lspill_list, ldestructive)
+            call util_spill(keeps%vj, discards%vj, lspill_list, ldestructive)
+
+            call util_spill_pl(keeps, discards, lspill_list, ldestructive)
+         class default
+            write(*,*) "Invalid object passed to the spill method. Source must be of class whm_pl or its descendents!"
+            call util_exit(FAILURE)
+         end select
+      end associate
+
+      return
+   end subroutine whm_util_spill_pl
    
 end submodule s_whm_util

@@ -2,6 +2,66 @@ submodule(rmvs_classes) s_rmvs_util
    use swiftest
 contains
 
+   module subroutine rmvs_util_append_pl(self, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append components from one massive body object to another. 
+      !! This method will automatically resize the destination body if it is too small
+      implicit none
+      !! Arguments
+      class(rmvs_pl),                  intent(inout) :: self         !! RMVS massive body object
+      class(swiftest_body),            intent(in)    :: source       !! Source object to append
+      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+
+      select type(source)
+      class is (rmvs_pl)
+         call whm_util_append_pl(self, source, lsource_mask)
+
+         call util_append(self%nenc, source%nenc, lsource_mask)
+         call util_append(self%tpenc1P, source%tpenc1P, lsource_mask)
+         call util_append(self%plind, source%plind, lsource_mask)
+
+         ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
+         ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
+         !call util_append(self%outer, source%outer, lsource_mask)
+         !call util_append(self%inner, source%inner, lsource_mask)
+         !call util_append(self%planetocentric, source%planetocentric, lsource_mask)
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_pl or its descendents!"
+         call util_exit(FAILURE)
+      end select
+
+      return
+   end subroutine rmvs_util_append_pl
+
+
+   module subroutine rmvs_util_append_tp(self, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append components from test particle object to another. 
+      !! This method will automatically resize the destination body if it is too small
+      implicit none
+      !! Arguments
+      class(rmvs_tp),                  intent(inout) :: self         !! RMVS test particle object
+      class(swiftest_body),            intent(in)    :: source       !! Source object to append
+      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+
+      select type(source)
+      class is (rmvs_tp)
+         call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
+
+         call util_append(self%lperi, source%lperi, lsource_mask)
+         call util_append(self%plperP, source%plperP, lsource_mask)
+         call util_append(self%plencP, source%plencP, lsource_mask)
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents!"
+         call util_exit(FAILURE)
+      end select
+
+      return
+   end subroutine rmvs_util_append_tp
+
+
    module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -11,7 +71,7 @@ contains
       implicit none
       ! Arguments
       class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
-      class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       ! Internals
       integer(I4B) :: i
@@ -19,13 +79,20 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (rmvs_pl)
+            call util_fill(keeps%nenc, inserts%nenc, lfill_list)
+            call util_fill(keeps%tpenc1P, inserts%tpenc1P, lfill_list)
+            call util_fill(keeps%plind, inserts%plind, lfill_list)
 
-            keeps%nenc(:)    = unpack(keeps%nenc(:),    .not.lfill_list(:), keeps%nenc(:))
-            keeps%nenc(:)    = unpack(inserts%nenc(:),    lfill_list(:), keeps%nenc(:))
-            
+            ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
+            ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
+            !call util_fill(keeps%outer, inserts%outer, lfill_list)
+            !call util_fill(keeps%inner, inserts%inner, lfill_list)
+            !call util_fill(keeps%planetocentric, inserts%planetocentric, lfill_list)
+
             call whm_util_fill_pl(keeps, inserts, lfill_list)
          class default
-            write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
+            write(*,*) "Invalid object passed to the fill method. Source must be of class rmvs_pl or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
 
@@ -42,30 +109,71 @@ contains
       implicit none
       ! Arguments
       class(rmvs_tp),        intent(inout) :: self       !! RMVS test particle object
-      class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
          select type(inserts)
          class is (rmvs_tp)
-
-            keeps%lperi(:)  = unpack(keeps%lperi(:),  .not.lfill_list(:), keeps%lperi(:))
-            keeps%lperi(:)  = unpack(inserts%lperi(:),  lfill_list(:), keeps%lperi(:))
+            call util_fill(keeps%lperi, inserts%lperi, lfill_list)
+            call util_fill(keeps%plperP, inserts%plperP, lfill_list)
+            call util_fill(keeps%plencP, inserts%plencP, lfill_list)
             
-            keeps%plperP(:) = unpack(keeps%plperP(:), .not.lfill_list(:), keeps%plperP(:))
-            keeps%plperP(:) = unpack(inserts%plperP(:), lfill_list(:), keeps%plperP(:))
-            
-            keeps%plencP(:) = unpack(keeps%plencP(:), .not.lfill_list(:), keeps%plencP(:))
-            keeps%plencP(:) = unpack(inserts%plencP(:), lfill_list(:), keeps%plencP(:))
-            
-            call util_fill_tp(keeps, inserts, lfill_list)
+            call util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back to the base class
          class default
-            write(*,*) 'Error! fill method called for incompatible return type on rmvs_tp'
+            write(*,*) "Invalid object passed to the fill method. Source must be of class rmvs_tp or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
 
       return
    end subroutine rmvs_util_fill_tp
+
+
+   module subroutine rmvs_util_resize_pl(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a massive body object against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(rmvs_pl), intent(inout) :: self  !! RMVS massive body object
+      integer(I4B),   intent(in)    :: nnew  !! New size neded
+
+      call whm_util_resize_pl(self, nnew)
+
+      call util_resize(self%nenc, nnew)
+      call util_resize(self%tpenc1P, nnew)
+      call util_resize(self%plind, nnew)
+
+      ! The following are not implemented as RMVS doesn't make use of resize operations on pl type
+      ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
+      !call util_resize(self%outer, nnew)
+      !call util_resize(self%inner, nnew)
+      !call util_resize(self%planetocentric, nnew)
+
+      return
+   end subroutine rmvs_util_resize_pl
+
+
+   module subroutine rmvs_util_resize_tp(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of a test particle object against the requested size and resizes it if it is too small.
+      implicit none
+      ! Arguments
+      class(rmvs_tp), intent(inout) :: self  !! RMVS test particle object
+      integer(I4B),   intent(in)    :: nnew  !! New size neded
+
+      call util_resize_tp(self, nnew)
+
+      call util_resize(self%lperi, nnew)
+      call util_resize(self%plperP, nnew)
+      call util_resize(self%plencP, nnew)
+      call util_resize(self%xheliocentric, nnew)
+
+      return
+   end subroutine rmvs_util_resize_tp
+
 
    module subroutine rmvs_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
@@ -166,11 +274,9 @@ contains
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange_pl(pl,ind)
          allocate(pl_sorted, source=self)
-         pl%eta(1:npl) = pl_sorted%eta(ind(1:npl))
-         pl%xj(:,1:npl) = pl_sorted%xj(:,ind(1:npl))
-         pl%vj(:,1:npl) = pl_sorted%vj(:,ind(1:npl))
-         pl%muj(1:npl) = pl_sorted%muj(ind(1:npl))
-         pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
+         if (allocated(pl%nenc))    pl%nenc(1:npl) = pl_sorted%nenc(ind(1:npl))
+         if (allocated(pl%tpenc1P)) pl%tpenc1P(1:npl) = pl_sorted%tpenc1P(ind(1:npl))
+         if (allocated(pl%plind))   pl%plind(1:npl) = pl_sorted%plind(ind(1:npl))
          deallocate(pl_sorted)
       end associate
 
@@ -195,10 +301,10 @@ contains
       associate(tp => self, ntp => self%nbody)
          call util_sort_rearrange_tp(tp,ind)
          allocate(tp_sorted, source=self)
-         tp%lperi(1:ntp) = tp_sorted%lperi(ind(1:ntp))
-         tp%plperP(1:ntp) = tp_sorted%plperP(ind(1:ntp))
-         tp%plencP(1:ntp) = tp_sorted%plencP(ind(1:ntp))
-         tp%xheliocentric(:,1:ntp) = tp_sorted%xheliocentric(:,ind(1:ntp))
+         if (allocated(tp%lperi))         tp%lperi(1:ntp) = tp_sorted%lperi(ind(1:ntp))
+         if (allocated(tp%plperP))        tp%plperP(1:ntp) = tp_sorted%plperP(ind(1:ntp))
+         if (allocated(tp%plencP))        tp%plencP(1:ntp) = tp_sorted%plencP(ind(1:ntp))
+         if (allocated(tp%xheliocentric)) tp%xheliocentric(:,1:ntp) = tp_sorted%xheliocentric(:,ind(1:ntp))
          deallocate(tp_sorted)
       end associate
 
@@ -206,7 +312,7 @@ contains
    end subroutine rmvs_util_sort_rearrange_tp
    
 
-   module subroutine rmvs_util_spill_pl(self, discards, lspill_list)
+   module subroutine rmvs_util_spill_pl(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -214,22 +320,24 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine discard_discard_spill.f90
       implicit none
       ! Arguments
-      class(rmvs_pl),        intent(inout) :: self        !! RMVS massive body body object
-      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      class(rmvs_pl),        intent(inout) :: self         !! RMVS massive body body object
+      class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: i
 
       associate(keeps => self)
          select type(discards)
          class is (rmvs_pl)
-            discards%nenc(:)    = pack(keeps%nenc(:),         lspill_list(:))
-            if (count(.not.lspill_list(:))  > 0) then
-               keeps%nenc(:)       = pack(keeps%nenc(:),   .not. lspill_list(:))
-            end if
-            call whm_util_spill_pl(keeps, discards, lspill_list)
+            call util_spill(keeps%nenc, discards%nenc, lspill_list, ldestructive)
+            call util_spill(keeps%tpenc1P, discards%tpenc1P, lspill_list, ldestructive)
+            call util_spill(keeps%plind, discards%plind, lspill_list, ldestructive)
+
+            call whm_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
-            write(*,*) 'Error! spill method called for incompatible return type on rmvs_pl'
+            write(*,*) "Invalid object passed to the spill method. Source must be of class rmvs_pl or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
 
@@ -237,7 +345,7 @@ contains
    end subroutine rmvs_util_spill_pl
 
    
-   module subroutine rmvs_util_spill_tp(self, discards, lspill_list)
+   module subroutine rmvs_util_spill_tp(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) RMVS test particle structure from active list to discard list
@@ -248,24 +356,21 @@ contains
       class(rmvs_tp),        intent(inout) :: self        !! RMVS test particle object
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: i
 
       associate(keeps => self)
          select type(discards)
          class is (rmvs_tp)
-            discards%lperi(:)  = pack(keeps%lperi(:),       lspill_list(:))
-            discards%plperP(:) = pack(keeps%plperP(:),       lspill_list(:))
-            discards%plencP(:) = pack(keeps%plencP(:),       lspill_list(:))
-            if (count(.not.lspill_list(:))  > 0) then
-               keeps%lperi(:)     = pack(keeps%lperi(:), .not. lspill_list(:))
-               keeps%plperP(:)    = pack(keeps%plperP(:), .not. lspill_list(:))
-               keeps%plencP(:)    = pack(keeps%plencP(:), .not. lspill_list(:))
-            end if
+            call util_spill(keeps%lperi, discards%lperi, lspill_list, ldestructive)
+            call util_spill(keeps%plperP, discards%plperP, lspill_list, ldestructive)
+            call util_spill(keeps%plencP, discards%plencP, lspill_list, ldestructive)
 
-            call util_spill_tp(keeps, discards, lspill_list)
+            call util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
-            write(*,*) 'Error! spill method called for incompatible return type on rmvs_tp'
+            write(*,*) "Invalid object passed to the spill method. Source must be of class rmvs_tp or its descendents!"
+            call util_exit(FAILURE)
          end select
       end associate
 

@@ -18,8 +18,6 @@ contains
       ! Call parent method
       associate(system => self)
          call whm_setup_initialize_system(system, param)
-         call system%mergeadd_list%setup(1, param)
-         call system%mergesub_list%setup(1, param)
          call system%pltpenc_list%setup(0)
          call system%plplenc_list%setup(0)
          select type(pl => system%pl)
@@ -35,6 +33,32 @@ contains
 
       return
    end subroutine symba_setup_initialize_system
+
+
+   module subroutine symba_setup_merger(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate SyMBA test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine symba_setup.f90
+      implicit none
+      ! Arguments
+      class(symba_merger),        intent(inout) :: self  !! SyMBA merger list object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      ! Internals
+      integer(I4B) :: i
+
+      !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
+      call symba_setup_pl(self, n, param) 
+      if (n <= 0) return
+
+      if (allocated(self%ncomp)) deallocate(self%ncomp)
+      allocate(self%ncomp(n))
+      self%ncomp(:) = 0
+
+      return
+   end subroutine symba_setup_merger
 
 
    module subroutine symba_setup_pl(self, n, param)
@@ -54,6 +78,19 @@ contains
       !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
       call setup_pl(self, n, param) 
       if (n <= 0) return
+
+      if (allocated(self%lcollision)) deallocate(self%lcollision)
+      if (allocated(self%lencounter)) deallocate(self%lencounter)
+      if (allocated(self%lmtiny)) deallocate(self%lmtiny)
+      if (allocated(self%nplenc)) deallocate(self%nplenc)
+      if (allocated(self%ntpenc)) deallocate(self%ntpenc)
+      if (allocated(self%levelg)) deallocate(self%levelg)
+      if (allocated(self%levelm)) deallocate(self%levelm)
+      if (allocated(self%isperi)) deallocate(self%isperi)
+      if (allocated(self%peri)) deallocate(self%peri)
+      if (allocated(self%atp)) deallocate(self%atp)
+      if (allocated(self%kin)) deallocate(self%kin)
+      if (allocated(self%info)) deallocate(self%info)
 
       allocate(self%lcollision(n))
       allocate(self%lencounter(n))
@@ -94,57 +131,16 @@ contains
       class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
       integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
 
-      self%nenc = n
+      call setup_encounter(self, n)
       if (n == 0) return
 
-      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
-      if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%level)) deallocate(self%level)
-      if (allocated(self%index1)) deallocate(self%index1)
-      if (allocated(self%index2)) deallocate(self%index2)
-      allocate(self%lvdotr(n))
-      allocate(self%status(n))
       allocate(self%level(n))
-      allocate(self%index1(n))
-      allocate(self%index2(n))
-      self%lvdotr(:) = .false.
-      self%status(:) = INACTIVE
+
       self%level(:) = -1
-      self%index1(:) = 0
-      self%index2(:) = 0
 
       return
    end subroutine symba_setup_pltpenc
-
-
-   module subroutine symba_setup_plplenc(self, n)
-      !! author: David A. Minton
-      !!
-      !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      !
-      implicit none
-      ! Arguments
-      class(symba_plplenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
-      integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
-
-      call symba_setup_pltpenc(self, n)
-      if (n == 0) return
-
-      if (allocated(self%xh1)) deallocate(self%xh1)
-      if (allocated(self%xh2)) deallocate(self%xh2)
-      if (allocated(self%vb1)) deallocate(self%vb1)
-      if (allocated(self%vb2)) deallocate(self%vb2)
-      allocate(self%xh1(NDIM,n))
-      allocate(self%xh2(NDIM,n))
-      allocate(self%vb1(NDIM,n))
-      allocate(self%vb2(NDIM,n))
-      self%xh1(:,:) = 0.0_DP
-      self%xh2(:,:) = 0.0_DP
-      self%vb1(:,:) = 0.0_DP
-      self%vb2(:,:) = 0.0_DP
-
-      return
-   end subroutine symba_setup_plplenc
 
 
    module subroutine symba_setup_tp(self, n, param)
@@ -163,9 +159,14 @@ contains
       call setup_tp(self, n, param) 
       if (n <= 0) return
 
+      if (allocated(self%nplenc)) deallocate(self%nplenc)
+      if (allocated(self%levelg)) deallocate(self%levelg)
+      if (allocated(self%levelm)) deallocate(self%levelm)
+
       allocate(self%nplenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))
+
       self%nplenc(:) = 0
       self%levelg(:) = -1
       self%levelm(:) = -1

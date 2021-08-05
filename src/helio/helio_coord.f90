@@ -68,14 +68,14 @@ contains
       class(swiftest_cb),     intent(inout) :: cb   !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i
-      real(DP)      :: msys
+      real(DP)      :: Gmtot
 
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
-         msys = cb%Gmass + sum(pl%Gmass(1:npl))
+         Gmtot = cb%Gmass + sum(pl%Gmass(1:npl))
          do i = 1, NDIM
-            cb%vb(i) = -sum(pl%Gmass(1:npl) * pl%vh(i, 1:npl)) / msys
+            cb%vb(i) = -sum(pl%Gmass(1:npl) * pl%vh(i, 1:npl)) / Gmtot
             pl%vb(i, 1:npl) = pl%vh(i, 1:npl) + cb%vb(i)
          end do
       end associate

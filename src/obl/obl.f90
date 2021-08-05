@@ -106,5 +106,45 @@ contains
 
    end subroutine obl_acc_tp
 
+   module subroutine obl_pot(npl, Mcb, Mpl, j2rp2, j4rp4, xh, irh, oblpot)
+      !! author: David A. Minton
+      !!
+      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      !!    Returned value does not include monopole term or terms higher than J4
+      !!
+      !!    Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: obl_pot.f90 
+      !! Adapted from Hal Levison's Swift routine obl_pot.f 
+      implicit none
+      ! Arguments
+      integer(I4B), intent(in) :: npl
+      real(DP), intent(in) :: Mcb
+      real(DP), dimension(:), intent(in) :: Mpl
+      real(DP), intent(in) :: j2rp2, j4rp4
+      real(DP), dimension(:), intent(in)         :: irh
+      real(DP), dimension(:, :), intent(in)      :: xh
+      real(DP), intent(out)                      :: oblpot
+         
+      ! Internals
+      integer(I4B)              :: i
+      real(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4, mu
+         
+      oblpot = 0.0_DP
+      mu = Mcb
+      do i = 1, npl
+         rinv2 = irh(i)**2
+         t0 = mu * Mpl(i) * rinv2 * irh(i)
+         t1 = j2rp2
+         t2 = xh(3, i) * xh(3, i) * rinv2
+         t3 = j4rp4 * rinv2
+         p2 = 0.5_DP * (3 * t2 - 1.0_DP)
+         p4 = 0.125_DP * ((35 * t2 - 30.0_DP) * t2 + 3.0_DP)
+         oblpot = oblpot + t0 * (t1 * p2 + t3 * p4)
+      end do
+         
+      return
+   end subroutine obl_pot
+
 
 end submodule s_obl

@@ -53,10 +53,9 @@ contains
             allocate(symba_cb :: system%cb)
             allocate(symba_pl :: system%pl)
             allocate(symba_tp :: system%tp)
-            allocate(symba_pl :: system%pl_discards)
             allocate(symba_tp :: system%tp_discards)
-            allocate(symba_pl :: system%mergeadd_list)
-            allocate(symba_pl :: system%mergesub_list)
+            allocate(symba_merger :: system%mergeadd_list)
+            allocate(symba_merger :: system%mergesub_list)
             allocate(symba_plplenc :: system%plplenc_list)
             allocate(symba_pltpenc :: system%pltpenc_list)
          end select
@@ -69,6 +68,50 @@ contains
 
       return
    end subroutine setup_construct_system
+
+
+   module subroutine setup_encounter(self, n)
+      !! author: David A. Minton
+      !!
+      !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
+      integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
+
+      self%nenc = n
+      if (n == 0) return
+
+      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
+      if (allocated(self%status)) deallocate(self%status)
+      if (allocated(self%index1)) deallocate(self%index1)
+      if (allocated(self%index2)) deallocate(self%index2)
+      if (allocated(self%x1)) deallocate(self%x1)
+      if (allocated(self%x2)) deallocate(self%x2)
+      if (allocated(self%v1)) deallocate(self%v1)
+      if (allocated(self%v2)) deallocate(self%v2)
+
+      allocate(self%lvdotr(n))
+      allocate(self%status(n))
+      allocate(self%index1(n))
+      allocate(self%index2(n))
+      allocate(self%x1(NDIM,n))
+      allocate(self%x2(NDIM,n))
+      allocate(self%v1(NDIM,n))
+      allocate(self%v2(NDIM,n))
+
+      self%lvdotr(:) = .false.
+      self%status(:) = INACTIVE
+      self%index1(:) = 0
+      self%index2(:) = 0
+      self%x1(:,:) = 0.0_DP
+      self%x2(:,:) = 0.0_DP
+      self%v1(:,:) = 0.0_DP
+      self%v2(:,:) = 0.0_DP
+
+      return
+   end subroutine setup_encounter
 
 
    module subroutine setup_initialize_system(self, param)
@@ -110,6 +153,19 @@ contains
       if (n <= 0) return
       self%lfirst = .true.
 
+      if (allocated(self%id)) deallocate(self%id)
+      if (allocated(self%name)) deallocate(self%name)
+      if (allocated(self%status)) deallocate(self%status)
+      if (allocated(self%ldiscard)) deallocate(self%ldiscard)
+      if (allocated(self%xh)) deallocate(self%xh)
+      if (allocated(self%vh)) deallocate(self%vh)
+      if (allocated(self%xb)) deallocate(self%xb)
+      if (allocated(self%vb)) deallocate(self%vb)
+      if (allocated(self%ah)) deallocate(self%ah)
+      if (allocated(self%ir3h)) deallocate(self%ir3h)
+      if (allocated(self%mu)) deallocate(self%mu)
+      if (allocated(self%lmask)) deallocate(self%lmask)
+
       allocate(self%id(n))
       allocate(self%name(n))
       allocate(self%status(n))
@@ -137,14 +193,17 @@ contains
       self%mu(:)     = 0.0_DP
 
       if (param%loblatecb) then
+         if (allocated(self%aobl)) deallocate(self%aobl)
          allocate(self%aobl(NDIM, n))
          self%aobl(:,:) = 0.0_DP
       end if
       if (param%ltides) then
+         if (allocated(self%atide)) deallocate(self%lmask)
          allocate(self%atide(NDIM, n))
          self%atide(:,:) = 0.0_DP
       end if
       if (param%lgr) then
+         if (allocated(self%agr)) deallocate(self%lmask)
          allocate(self%agr(NDIM, n))
          self%agr(:,:) = 0.0_DP
       end if
@@ -169,6 +228,10 @@ contains
       call setup_body(self, n, param)
       if (n <= 0) return 
 
+      if (allocated(self%mass)) deallocate(self%mass)
+      if (allocated(self%Gmass)) deallocate(self%Gmass)
+      if (allocated(self%rhill)) deallocate(self%rhill)
+
       allocate(self%mass(n))
       allocate(self%Gmass(n))
       allocate(self%rhill(n))
@@ -180,6 +243,8 @@ contains
       self%nplpl = 0   
 
       if (param%lclose) then
+         if (allocated(self%radius)) deallocate(self%radius)
+         if (allocated(self%density)) deallocate(self%density)
          allocate(self%radius(n))
          allocate(self%density(n))
          self%radius(:) = 0.0_DP
@@ -187,6 +252,8 @@ contains
       end if
 
       if (param%lrotation) then
+         if (allocated(self%rot)) deallocate(self%rhill)
+         if (allocated(self%Ip)) deallocate(self%rhill)
          allocate(self%rot(NDIM, n))
          allocate(self%Ip(NDIM, n))
          self%rot(:,:) = 0.0_DP
@@ -194,6 +261,9 @@ contains
       end if
 
       if (param%ltides) then
+         if (allocated(self%k2)) deallocate(self%rhill)
+         if (allocated(self%Q)) deallocate(self%rhill)
+         if (allocated(self%tlag)) deallocate(self%rhill)
          allocate(self%k2(n))
          allocate(self%Q(n))
          allocate(self%tlag(n))
@@ -221,6 +291,10 @@ contains
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call setup_body(self, n, param)
       if (n <= 0) return
+
+      if (allocated(self%isperi)) deallocate(self%isperi)
+      if (allocated(self%peri)) deallocate(self%peri)
+      if (allocated(self%atp)) deallocate(self%atp)
 
       allocate(self%isperi(n))
       allocate(self%peri(n))

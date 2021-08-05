@@ -15,20 +15,21 @@ contains
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i
-      real(DP)      :: msys
+      real(DP)      :: Gmtot
       real(DP), dimension(NDIM) :: xtmp, vtmp
 
+      if (self%nbody == 0) return
       associate(pl => self, npl => self%nbody)
-         msys = cb%Gmass
+         Gmtot = cb%Gmass
          xtmp(:) = 0.0_DP
          vtmp(:) = 0.0_DP
          do i = 1, npl
-            msys = msys + pl%Gmass(i)
+            Gmtot = Gmtot + pl%Gmass(i)
             xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%xh(:,i)
             vtmp(:) = vtmp(:) + pl%Gmass(i) * pl%vh(:,i)
          end do
-         cb%xb(:) = -xtmp(:) / msys
-         cb%vb(:) = -vtmp(:) / msys
+         cb%xb(:) = -xtmp(:) / Gmtot
+         cb%vb(:) = -vtmp(:) / Gmtot
          do i = 1, npl
             pl%xb(:,i) = pl%xh(:,i) + cb%xb(:)
             pl%vb(:,i) = pl%vh(:,i) + cb%vb(:)
@@ -51,10 +52,11 @@ contains
       class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb), intent(in) :: cb   !! Swiftest central body object
 
+      if (self%nbody == 0) return
       associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, status => self%status, &
                xb => self%xb, xh => self%xh, vb => self%vb, vh => self%vh)
 
-         where(status(1:ntp) == ACTIVE)
+         where(status(1:ntp) /= INACTIVE)
             xb(1, 1:ntp) = xh(1, 1:ntp) + xbcb(1)
             xb(2, 1:ntp) = xh(2, 1:ntp) + xbcb(2)
             xb(3, 1:ntp) = xh(3, 1:ntp) + xbcb(3)
@@ -83,6 +85,8 @@ contains
       ! Internals
       integer(I4B)          :: i
 
+      if (self%nbody == 0) return
+
       associate(npl => self%nbody, xbcb => cb%xb, vbcb => cb%vb, xb => self%xb, xh => self%xh, &
                vb => self%vb, vh => self%vh)
          do i = 1, NDIM
@@ -107,9 +111,11 @@ contains
       class(swiftest_tp),     intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),  intent(in)    :: cb   !! Swiftest central body object
 
+      if (self%nbody == 0) return
+
       associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, xb => self%xb, xh => self%xh, &
                vb => self%vb, vh => self%vh, status => self%status)
-         where(status(1:ntp) == ACTIVE)
+         where(status(1:ntp) /= INACTIVE)
             xh(1, 1:ntp) = xb(1, 1:ntp) - xbcb(1)
             xh(2, 1:ntp) = xb(2, 1:ntp) - xbcb(2)
             xh(3, 1:ntp) = xb(3, 1:ntp) - xbcb(3)

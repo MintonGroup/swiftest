@@ -10,7 +10,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       logical :: lany_discards
 
@@ -36,8 +36,9 @@ contains
       ! Arguments
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
 
+      if (self%nbody == 0) return
       self%ldiscard(:) = .false.
 
       return
@@ -55,28 +56,28 @@ contains
       ! Arguments
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
 
       associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
-         if (ntp == 0) return 
+         if ((ntp == 0) .or. (npl ==0)) return 
+
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
              (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
-            if (npl > 0) call pl%h2b(cb) 
-            if (ntp > 0) call tp%h2b(cb) 
+            call pl%h2b(cb) 
+            call tp%h2b(cb) 
          end if
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-            if (ntp > 0) call discard_sun_tp(tp, system, param)
-         end if
-         if (param%qmin >= 0.0_DP .and. ntp > 0) call discard_peri_tp(tp, system, param)
-         if (param%lclose .and. ntp > 0) call discard_pl_tp(tp, system, param)
-         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard)
+
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call discard_cb_tp(tp, system, param)
+         if (param%qmin >= 0.0_DP) call discard_peri_tp(tp, system, param)
+         if (param%lclose) call discard_pl_tp(tp, system, param)
+         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard, ldestructive=.true.)
       end associate
 
       return
    end subroutine discard_tp
 
 
-   subroutine discard_sun_tp(tp, system, param)
+   subroutine discard_cb_tp(tp, system, param)
       !! author: David A. Minton
       !!
       !!  Check to see if test particles should be discarded based on their positions relative to the Sun
@@ -93,7 +94,7 @@ contains
       integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
 
-      associate(ntp => tp%nbody, cb => system%cb, t => param%t, msys => system%msys)
+      associate(ntp => tp%nbody, cb => system%cb, t => param%t, Gmtot => system%Gmtot)
          rmin2 = max(param%rmin * param%rmin, cb%radius * cb%radius)
          rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
@@ -113,7 +114,7 @@ contains
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
                   vb2 = dot_product(tp%vb(:, i), tp%vb(:, i))
-                  energy = 0.5_DP * vb2 - msys / sqrt(rb2)
+                  energy = 0.5_DP * vb2 - Gmtot / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      tp%status(i) = DISCARDED_RMAXU
                      write(*, *) "Particle ", tp%id(i), " is unbound and too far from barycenter at t = ", t
@@ -126,7 +127,7 @@ contains
       end associate
 
       return
-   end subroutine discard_sun_tp
+   end subroutine discard_cb_tp
 
 
    subroutine discard_peri_tp(tp, system, param)

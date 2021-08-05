@@ -38,14 +38,16 @@ module swiftest_classes
       character(STRMAX)    :: qmin_coord     = 'HELIO'            !! Coordinate frame to use for qmin
       real(DP)             :: qmin_alo       = -1.0_DP            !! Minimum semimajor axis for qmin
       real(DP)             :: qmin_ahi       = -1.0_DP            !! Maximum semimajor axis for qmin
-      character(STRMAX)    :: encounter_file = ENC_OUTFILE        !! Name of output file for encounters
+      character(STRMAX)    :: enc_out        = ""                 !! Name of output file for encounters
+      character(STRMAX)    :: discard_out    = ""                 !! Name of output file for discards
       real(QP)             :: MU2KG          = -1.0_QP            !! Converts mass units to grams
       real(QP)             :: TU2S           = -1.0_QP            !! Converts time units to seconds
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
+      character(STRMAX)    :: ennergy_out    = ""                 !! Name of output energy and momentum report file
 
-      !Logical flags to turn on or off various features of the code
+      ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
@@ -54,6 +56,16 @@ module swiftest_classes
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
+
+      ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
+      real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
+      real(DP)                  :: Mtot_orig = 0.0_DP     !! Initial system mass
+      real(DP)                  :: Lmag_orig = 0.0_DP     !! Initial total angular momentum magnitude
+      real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
+      real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
+      real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
+      logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
+      logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
@@ -74,7 +86,7 @@ module swiftest_classes
       logical :: lintegrate = .false.  !! Flag indicating that this object should be integrated in the current step 
    contains
       !! The minimal methods that all systems must have
-      procedure                                         :: dump => io_dump_swiftest 
+      procedure                                 :: dump => io_dump_swiftest 
       procedure(abstract_initialize),  deferred :: initialize
       procedure(abstract_read_frame),  deferred :: read_frame
       procedure(abstract_write_frame), deferred :: write_frame
@@ -85,7 +97,7 @@ module swiftest_classes
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, abstract, extends(swiftest_base) :: swiftest_cb           
-      character(len=STRMAX)     :: name             !! Non-unique name
+      character(len=STRMAX)     :: name              !! Non-unique name
       integer(I4B)              :: id       = 0      !! External identifier (unique)
       real(DP)                  :: mass     = 0.0_DP !! Central body mass (units MU)
       real(DP)                  :: Gmass    = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
@@ -127,6 +139,8 @@ module swiftest_classes
       integer(I4B),          dimension(:),   allocatable :: id              !! External identifier (unique)
       integer(I4B),          dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
       logical,               dimension(:),   allocatable :: ldiscard        !! Body should be discarded
+      logical,               dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
+      real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
       real(DP),              dimension(:,:), allocatable :: xh              !! Heliocentric position
       real(DP),              dimension(:,:), allocatable :: vh              !! Heliocentric velocity
       real(DP),              dimension(:,:), allocatable :: xb              !! Barycentric position
@@ -142,8 +156,6 @@ module swiftest_classes
       real(DP),              dimension(:),   allocatable :: capom           !! Longitude of ascending node
       real(DP),              dimension(:),   allocatable :: omega           !! Argument of pericenter
       real(DP),              dimension(:),   allocatable :: capm            !! Mean anomaly
-      real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      logical,               dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and util_spill
    contains
@@ -164,7 +176,9 @@ module swiftest_classes
       procedure :: xv2el       => orbel_xv2el_vec          !! Convert position and velocity vectors to orbital  elements 
       procedure :: setup       => setup_body               !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user  => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
-      procedure :: fill        => util_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: append      => util_append_body         !! Appends elements from one structure to another
+      procedure :: fill        => util_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize      => util_resize_body         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_ir3     => util_set_ir3h            !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure :: sort        => util_sort_body           !! Sorts body arrays by a sortable componen
       procedure :: rearrange   => util_sort_rearrange_body !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
@@ -203,9 +217,11 @@ module swiftest_classes
       procedure :: accel_obl    => obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup        => setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       procedure :: accel_tides  => tides_kick_getacch_pl  !! Compute the accelerations of bodies due to tidal interactions with the central body
+      procedure :: append       => util_append_pl         !! Appends elements from one structure to another
       procedure :: h2b          => util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
-      procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
       procedure :: set_mu       => util_set_mu_pl         !! Method used to construct the vectorized form of the central body mass
       procedure :: set_rhill    => util_set_rhill         !! Calculates the Hill's radii for each body
@@ -228,18 +244,20 @@ module swiftest_classes
    contains
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure :: discard    => discard_tp             !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
-      procedure :: accel_int  => kick_getacch_int_tp    !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
-      procedure :: accel_obl  => obl_acc_tp             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure :: setup      => setup_tp               !! A base constructor that sets the number of bodies and 
-      procedure :: h2b        => util_coord_h2b_tp      !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
-      procedure :: b2h        => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
-      procedure :: fill       => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
-      procedure :: get_peri   => util_peri_tp           !! Determine system pericenter passages for test particles 
-      procedure :: set_mu     => util_set_mu_tp         !! Method used to construct the vectorized form of the central body mass
-      procedure :: sort       => util_sort_tp           !! Sorts body arrays by a sortable component
-      procedure :: rearrange  => util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill      => util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: discard   => discard_tp             !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
+      procedure :: accel_int => kick_getacch_int_tp    !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
+      procedure :: accel_obl => obl_acc_tp             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure :: setup     => setup_tp               !! A base constructor that sets the number of bodies and 
+      procedure :: append    => util_append_tp         !! Appends elements from one structure to another
+      procedure :: h2b       => util_coord_h2b_tp      !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
+      procedure :: b2h       => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
+      procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
+      procedure :: resize    => util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
+      procedure :: set_mu    => util_set_mu_tp         !! Method used to construct the vectorized form of the central body mass
+      procedure :: sort      => util_sort_tp           !! Sorts body arrays by a sortable component
+      procedure :: rearrange => util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill     => util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type swiftest_tp
 
    !********************************************************************************************************************************
@@ -252,7 +270,7 @@ module swiftest_classes
       class(swiftest_pl),            allocatable :: pl                   !! Massive body data structure
       class(swiftest_tp),            allocatable :: tp                   !! Test particle data structure
       class(swiftest_tp),            allocatable :: tp_discards          !! Discarded test particle data structure
-      real(DP)                                   :: msys = 0.0_DP        !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                                   :: Gmtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
       real(DP)                                   :: ke = 0.0_DP          !! System kinetic energy
       real(DP)                                   :: pe = 0.0_DP          !! System potential energy
       real(DP)                                   :: te = 0.0_DP          !! System total energy
@@ -269,22 +287,41 @@ module swiftest_classes
       procedure(abstract_step_system), deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure :: discard       => discard_system          !! Perform a discard step on the system
-      procedure :: dump          => io_dump_system          !! Dump the state of the system to a file
-      procedure :: read_frame    => io_read_frame_system    !! Append a frame of output data to file
-      procedure :: write_discard => io_write_discard        !! Append a frame of output data to file
-      procedure :: write_frame   => io_write_frame_system   !! Append a frame of output data to file
-      procedure :: initialize    => setup_initialize_system !! Initialize the system from input files
-      procedure :: step_spin     => tides_step_spin_system  !! Steps the spins of the massive & central bodies due to tides.
-      procedure :: set_msys      => util_set_msys           !! Sets the value of msys from the masses of system bodies.
+      procedure :: discard                 => discard_system                  !! Perform a discard step on the system
+      procedure :: conservation_report     => io_conservation_report          !! Compute energy and momentum and print out the change with time
+      procedure :: dump                    => io_dump_system                  !! Dump the state of the system to a file
+      procedure :: read_frame              => io_read_frame_system            !! Read in a frame of input data from file
+      procedure :: write_discard           => io_write_discard                !! Write out information about discarded test particles
+      procedure :: write_frame             => io_write_frame_system           !! Append a frame of output data to file
+      procedure :: initialize              => setup_initialize_system         !! Initialize the system from input files
+      procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
+      procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
+      procedure :: get_energy_and_momentum => util_get_energy_momentum_system !! Calculates the total system energy and momentum
    end type swiftest_nbody_system
+
+   type :: swiftest_encounter
+      integer(I4B)                              :: nenc   !! Total number of encounters
+      logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
+      integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
+      integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
+      integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
+      real(DP),     dimension(:,:), allocatable :: x1     !! the position of body 1 in the encounter
+      real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
+      real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
+      real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
+   contains
+      procedure :: setup  => setup_encounter       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: copy   => util_copy_encounter   !! Copies elements from the source encounter list into self.
+      procedure :: spill  => util_spill_encounter  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: resize => util_resize_encounter !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+   end type swiftest_encounter
 
    abstract interface
       subroutine abstract_discard_body(self, system, param) 
          import swiftest_body, swiftest_nbody_system, swiftest_parameters
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine abstract_discard_body
 
       subroutine abstract_accel(self, system, param, t, lbeg)
@@ -360,20 +397,20 @@ module swiftest_classes
          implicit none
          class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
       end subroutine discard_pl
 
       module subroutine discard_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine discard_system
 
       module subroutine discard_tp(self, system, param)
          implicit none
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       end subroutine discard_tp
 
       module pure subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
@@ -462,6 +499,13 @@ module swiftest_classes
          class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine gr_vh2pv_body
+
+      module subroutine io_conservation_report(self, param, lterminal)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self      !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param     !! Input colleciton of user-defined parameters
+         logical,                      intent(in)    :: lterminal !! Indicates whether to output information to the terminal screen
+      end subroutine io_conservation_report
 
       module subroutine io_dump_param(self, param_file_name)
          implicit none
@@ -578,12 +622,12 @@ module swiftest_classes
       end subroutine io_toupper
 
       module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                           xh1, xh2, vh1, vh2, encounter_file, out_type)
+                                           xh1, xh2, vh1, vh2, enc_out, out_type)
          implicit none
          integer(I4B),           intent(in) :: name1, name2
          real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
          real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
-         character(*),           intent(in) :: encounter_file, out_type
+         character(*),           intent(in) :: enc_out, out_type
       end subroutine io_write_encounter
 
       module subroutine io_write_frame_body(self, iu, param)
@@ -638,6 +682,17 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       end subroutine obl_acc_tp
 
+      module subroutine obl_pot(npl, Mcb, Mpl, j2rp2, j4rp4, xh, irh, oblpot)
+         implicit none
+         integer(I4B), intent(in) :: npl
+         real(DP), intent(in) :: Mcb
+         real(DP), dimension(:), intent(in) :: Mpl
+         real(DP), intent(in) :: j2rp2, j4rp4
+         real(DP), dimension(:), intent(in)         :: irh
+         real(DP), dimension(:, :), intent(in)      :: xh
+         real(DP), intent(out)                      :: oblpot
+      end subroutine obl_pot
+
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
          class(swiftest_body),         intent(inout) :: self !! Swiftest body object
@@ -690,6 +745,12 @@ module swiftest_classes
          class(swiftest_parameters),                  intent(in)    :: param  !! Current run configuration parameters
       end subroutine setup_construct_system
 
+      module subroutine setup_encounter(self, n)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
+         integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
+      end subroutine setup_encounter
+
       module subroutine setup_initialize_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
@@ -732,6 +793,66 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine user_kick_getacch_body
+   end interface
+
+   interface util_append
+      module subroutine util_append_arr_char_string(arr, source, lsource_mask)
+         implicit none
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         logical,               dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_char_string
+
+      module subroutine util_append_arr_DP(arr, source, lsource_mask)
+         implicit none
+         real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         logical,  dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_DP
+
+      module subroutine util_append_arr_DPvec(arr, source, lsource_mask)
+         implicit none
+         real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
+         real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
+         logical,  dimension(:),   optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_DPvec
+
+      module subroutine util_append_arr_I4B(arr, source, lsource_mask)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         logical,      dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_I4B
+
+      module subroutine util_append_arr_logical(arr, source, lsource_mask)
+         implicit none
+         logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         logical, dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_logical
+   end interface
+
+   interface
+      module subroutine util_append_body(self, source, lsource_mask)
+         implicit none
+         class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
+         class(swiftest_body),            intent(in)    :: source !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
+      end subroutine util_append_body
+
+      module subroutine util_append_pl(self, source, lsource_mask)
+         implicit none
+         class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_pl
+   
+      module subroutine util_append_tp(self, source, lsource_mask)
+         implicit none
+         class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_tp
 
       module subroutine util_coord_b2h_pl(self, cb)
          implicit none
@@ -757,6 +878,12 @@ module swiftest_classes
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
 
+      module subroutine util_copy_encounter(self, source)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self   !! Encounter list 
+         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
+      end subroutine util_copy_encounter
+
       module subroutine util_exit(code)
          implicit none
          integer(I4B), intent(in) :: code !! Failure exit code
@@ -765,30 +892,138 @@ module swiftest_classes
       module subroutine util_fill_body(self, inserts, lfill_list)
          implicit none
          class(swiftest_body),  intent(inout) :: self       !! Swiftest body object
-         class(swiftest_body),  intent(inout) :: inserts    !! Swiftest body object to be inserted
+         class(swiftest_body),  intent(in)    :: inserts    !! Swiftest body object to be inserted
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_body
 
       module subroutine util_fill_pl(self, inserts, lfill_list)
          implicit none
          class(swiftest_pl),    intent(inout) :: self       !! Swiftest massive body object
-         class(swiftest_body),  intent(inout) :: inserts    !! Swiftest body object to be inserted
+         class(swiftest_body),  intent(in)    :: inserts    !! Swiftest body object to be inserted
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_pl
 
       module subroutine util_fill_tp(self, inserts, lfill_list)
          implicit none
          class(swiftest_tp),    intent(inout) :: self       !! Swiftest test particle object
-         class(swiftest_body),  intent(inout) :: inserts    !! Swiftest body object to be inserted
+         class(swiftest_body),  intent(in)    :: inserts    !! Swiftest body object to be inserted
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_tp
+   end interface
 
+   interface util_fill
+      module subroutine util_fill_arr_char_string(keeps, inserts, lfill_list)
+         implicit none
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_char_string
+
+      module subroutine util_fill_arr_DP(keeps, inserts, lfill_list)
+         implicit none
+         real(DP), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         real(DP), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,  dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_DP
+
+      module subroutine util_fill_arr_DPvec(keeps, inserts, lfill_list)
+         implicit none
+         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         real(DP), dimension(:,:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,  dimension(:),                intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_DPvec
+
+      module subroutine util_fill_arr_I4B(keeps, inserts, lfill_list)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         integer(I4B), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_I4B
+
+      module subroutine util_fill_arr_logical(keeps, inserts, lfill_list)
+         implicit none
+         logical, dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         logical, dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_logical
+   end interface
+
+   interface
       module subroutine util_peri_tp(self, system, param) 
          implicit none
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
+   end interface
+
+   interface util_resize
+      module subroutine util_resize_arr_char_string(arr, nnew)
+         implicit none
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                                     intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_char_string
+
+      module subroutine util_resize_arr_DP(arr, nnew)
+         implicit none
+         real(DP), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                        intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_DP
+
+      module subroutine util_resize_arr_DPvec(arr, nnew)
+         implicit none
+         real(DP), dimension(:,:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                          intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_DPvec
+
+      module subroutine util_resize_arr_I4B(arr, nnew)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                            intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_I4B
+
+      module subroutine util_resize_arr_logical(arr, nnew)
+         implicit none
+         logical, dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                       intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_logical
+   end interface
+
+   interface
+      module subroutine util_resize_body(self, nnew)
+         implicit none
+         class(swiftest_body), intent(inout) :: self !! Swiftest body object
+         integer(I4B),         intent(in)    :: nnew !! New size neded
+      end subroutine util_resize_body
+
+      module subroutine util_resize_encounter(self, nnew)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter list 
+         integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      end subroutine util_resize_encounter
+
+      module subroutine util_resize_pl(self, nnew)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         integer(I4B),       intent(in)    :: nnew !! New size neded
+      end subroutine util_resize_pl
+
+      module subroutine util_resize_tp(self, nnew)
+         implicit none
+         class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
+         integer(I4B),       intent(in)    :: nnew !! New size neded
+      end subroutine util_resize_tp
+
+      module subroutine util_get_energy_momentum_system(self, param, ke_orbit, ke_spin, pe, Lorbit, Lspin)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
+         real(DP),                     intent(out)   :: ke_orbit !! Orbital kinetic energy
+         real(DP),                     intent(out)   :: ke_spin  !! Spin kinetic energy
+         real(DP),                     intent(out)   :: pe       !! Potential energy
+         real(DP), dimension(:),       intent(out)   :: Lorbit   !! Orbital angular momentum
+         real(DP), dimension(:),       intent(out)   :: Lspin    !! Spin angular momentum
+      end subroutine util_get_energy_momentum_system
 
       module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
          implicit none
@@ -907,26 +1142,81 @@ module swiftest_classes
          character(*),       intent(in)    :: sortby  !! Sorting attribute
          logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine util_sort_tp
-   
-      module subroutine util_spill_body(self, discards, lspill_list)
+   end interface
+
+   interface util_spill
+      module subroutine util_spill_arr_char_string(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,               dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine util_spill_arr_char_string
+
+      module subroutine util_spill_arr_DP(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         real(DP), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         real(DP), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,  dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine util_spill_arr_DP
+
+      module subroutine util_spill_arr_DPvec(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         real(DP), dimension(:,:), allocatable, intent(inout) :: discards     !! Array discards
+         logical,  dimension(:),                intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine util_spill_arr_DPvec
+
+      module subroutine util_spill_arr_I4B(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         integer(I4B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine util_spill_arr_I4B
+
+      module subroutine util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         logical, dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         logical, dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical, dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine util_spill_arr_logical
+   end interface
+
+   interface 
+      module subroutine util_spill_body(self, discards, lspill_list, ldestructive)
          implicit none
          class(swiftest_body),  intent(inout) :: self        !! Swiftest body object
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_body
 
-      module subroutine util_spill_pl(self, discards, lspill_list)
+      module subroutine util_spill_encounter(self, discards, lspill_list, ldestructive)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list 
+         class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      end subroutine util_spill_encounter
+
+      module subroutine util_spill_pl(self, discards, lspill_list, ldestructive)
          implicit none
          class(swiftest_pl),    intent(inout) :: self        !! Swiftest massive body object
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_pl
 
-      module subroutine util_spill_tp(self, discards, lspill_list)
+      module subroutine util_spill_tp(self, discards, lspill_list, ldestructive)
          implicit none
          class(swiftest_tp),    intent(inout) :: self        !! Swiftest test particle object
          class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_tp
 
       module subroutine util_valid(pl, tp)

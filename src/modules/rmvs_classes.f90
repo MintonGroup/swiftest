@@ -70,8 +70,10 @@ module rmvs_classes
       procedure :: encounter_check => rmvs_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => rmvs_kick_getacch_tp        !! Calculates either the standard or modified version of the acceleration depending if the
                                                                   !!    if the test particle is undergoing a close encounter or not
-      procedure :: setup           => rmvs_setup_tp               !! Constructor method - Allocates space for number of particles
-      procedure :: fill            => rmvs_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
+      procedure :: setup           => rmvs_setup_tp               !! Constructor method - Allocates space for the input number of bodiess
+      procedure :: append          => rmvs_util_append_tp         !! Appends elements from one structure to another
+      procedure :: fill            => rmvs_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize          => rmvs_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort            => rmvs_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => rmvs_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => rmvs_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
@@ -91,10 +93,12 @@ module rmvs_classes
       class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric            !! Planetocentric version of the massive body objects (one for each massive body)
       logical                                             :: lplanetocentric = .false. !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
-      procedure :: setup     => rmvs_setup_pl               !! Constructor method - Allocates space for number of particles
+      procedure :: setup     => rmvs_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
+      procedure :: append    => rmvs_util_append_pl         !! Appends elements from one structure to another
+      procedure :: fill      => rmvs_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize    => rmvs_util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort      => rmvs_util_sort_pl           !! Sorts body arrays by a sortable componen
       procedure :: rearrange => rmvs_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: fill      => rmvs_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the MERGE intrinsic)
       procedure :: spill     => rmvs_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type rmvs_pl
 
@@ -110,7 +114,7 @@ module rmvs_classes
          implicit none
          class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine rmvs_discard_tp
 
       module function rmvs_encounter_check_tp(self, system, dt) result(lencounter)
@@ -154,11 +158,27 @@ module rmvs_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parametere
       end subroutine rmvs_setup_tp
 
+      module subroutine rmvs_util_append_pl(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(rmvs_pl),                  intent(inout) :: self         !! RMVS massive body object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine rmvs_util_append_pl
+
+      module subroutine rmvs_util_append_tp(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(rmvs_tp),                  intent(inout) :: self         !! RMVS test particle object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine rmvs_util_append_tp
+
       module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
          class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object 
-         class(swiftest_body),  intent(inout) :: inserts    !! Inserted object 
+         class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine rmvs_util_fill_pl
 
@@ -166,9 +186,21 @@ module rmvs_classes
          use swiftest_classes, only : swiftest_body
          implicit none
          class(rmvs_tp),        intent(inout) :: self        !! RMVS massive body object
-         class(swiftest_body),  intent(inout) :: inserts     !!  Inserted object 
+         class(swiftest_body),  intent(in)    :: inserts     !!  Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine rmvs_util_fill_tp
+
+      module subroutine rmvs_util_resize_pl(self, nnew)
+         implicit none
+         class(rmvs_pl), intent(inout) :: self  !! RMVS massive body object
+         integer(I4B),   intent(in)    :: nnew  !! New size neded
+      end subroutine rmvs_util_resize_pl
+
+      module subroutine rmvs_util_resize_tp(self, nnew)
+         implicit none
+         class(rmvs_tp), intent(inout) :: self  !! RMVS test particle object
+         integer(I4B),   intent(in)    :: nnew  !! New size neded
+      end subroutine rmvs_util_resize_tp
 
       module subroutine rmvs_util_sort_pl(self, sortby, ascending)
          implicit none
@@ -196,20 +228,22 @@ module rmvs_classes
          integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine rmvs_util_sort_rearrange_tp
 
-      module subroutine rmvs_util_spill_pl(self, discards, lspill_list)
+      module subroutine rmvs_util_spill_pl(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_body
          implicit none
-         class(rmvs_pl),        intent(inout) :: self        !! RMVS massive body object
-         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         class(rmvs_pl),        intent(inout) :: self         !! RMVS massive body object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine rmvs_util_spill_pl
 
-      module subroutine rmvs_util_spill_tp(self, discards, lspill_list)
+      module subroutine rmvs_util_spill_tp(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_body
          implicit none
-         class(rmvs_tp),        intent(inout) :: self       !! RMVS test particle object
-         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         class(rmvs_tp),        intent(inout) :: self         !! RMVS test particle object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine rmvs_util_spill_tp
 
       module subroutine rmvs_step_system(self, param, t, dt)

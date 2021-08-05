@@ -147,10 +147,16 @@ contains
       call setup_tp(self, n, param) 
       if (n <= 0) return
 
+      if (allocated(self%lperi)) deallocate(self%lperi)
+      if (allocated(self%plperP)) deallocate(self%plperP)
+      if (allocated(self%plencP)) deallocate(self%plencP)
+
       allocate(self%lperi(n))
       allocate(self%plperP(n))
       allocate(self%plencP(n))
+
       if (self%lplanetocentric) then
+         if (allocated(self%xheliocentric)) deallocate(self%xheliocentric)
          allocate(self%xheliocentric(NDIM, n))
       end if
 

@@ -265,8 +265,8 @@ contains
                pltpenc_list%nenc = 0
                end if
 
-               mergeadd_list%nbody = 0
-               mergesub_list%nbody = 0
+               call mergeadd_list%resize(0)
+               call mergesub_list%resize(0)
             end select
          end select
       end associate

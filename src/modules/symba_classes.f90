@@ -4,7 +4,7 @@ module symba_classes
    !! Definition of classes and methods specific to the Democratic SyMBAcentric Method
    !! Adapted from David E. Kaufmann's Swifter routine: helio.f90
    use swiftest_globals
-   use swiftest_classes, only : swiftest_parameters, swiftest_base
+   use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use rmvs_classes,     only : rmvs_chk_ind
    implicit none
@@ -91,10 +91,24 @@ module symba_classes
       procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
       procedure :: accel           => symba_kick_getacch_pl          !! Compute heliocentric accelerations of massive bodies
-      procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for number of particle
+      procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for the input number of bodies
+      procedure :: append          => symba_util_append_pl           !! Appends elements from one structure to another
+      procedure :: fill            => symba_util_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: get_peri        => symba_util_peri_pl             !! Determine system pericenter passages for massive bodies
+      procedure :: rearray         => symba_util_rearray_pl          !! Clean up the massive body structures to remove discarded bodies and add new bodies
+      procedure :: resize          => symba_util_resize_pl           !! Checks the current size of a SyMBA massive body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill           => symba_util_spill_pl            !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_pl
+
+   type, extends(symba_pl) :: symba_merger
+      integer(I4B), dimension(:), allocatable :: ncomp
+   contains
+      procedure :: append          => symba_util_append_merger       !! Appends elements from one structure to another
+      procedure :: resize          => symba_util_resize_merger       !! Checks the current size of a SyMBA merger list against the requested size and resizes it if it is too small.
+      procedure :: setup           => symba_setup_merger             !! Constructor method - Allocates space for the input number of bodies
+   end type symba_merger
 
    !********************************************************************************************************************************
    !                                    symba_tp class definitions and method interfaces
@@ -108,29 +122,27 @@ module symba_classes
       procedure :: drift           => symba_drift_tp               !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
-      procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for number of particle
+      procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for the input number of bodies
+      procedure :: append          => symba_util_append_tp         !! Appends elements from one structure to another
+      procedure :: fill            => symba_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize          => symba_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill           => symba_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_tp
 
    !********************************************************************************************************************************
    !                                    symba_pltpenc class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-tp close encounters in a step
-   type :: symba_pltpenc
-      integer(I4B)                              :: nenc   !! Total number of encounters
-      logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
-      integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
+   type, extends(swiftest_encounter) :: symba_pltpenc
       integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
-      integer(I4B), dimension(:),   allocatable :: index1 !! position of the planet in encounter
-      integer(I4B), dimension(:),   allocatable :: index2 !! position of the test particle in encounter
    contains
       procedure :: collision_check => symba_collision_check_pltpenc !! Checks if a test particle is going to collide with a massive body
       procedure :: encounter_check => symba_encounter_check_pltpenc !! Checks if massive bodies are going through close encounters with each other
       procedure :: kick            => symba_kick_pltpenc            !! Kick barycentric velocities of active test particles within SyMBA recursion
       procedure :: setup           => symba_setup_pltpenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: copy            => symba_util_copy_pltpenc       !! Copies all elements of one pltpenc list to another
-      procedure :: resize          => symba_util_resize_pltpenc     !! Checks the current size of the pltpenc_list against the required size and extends it by a factor of 2 more than requested if it is too small 
+      procedure :: spill           => symba_util_spill_pltpenc      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -138,33 +150,29 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-pl close encounters in a step
    type, extends(symba_pltpenc) :: symba_plplenc
-      real(DP), dimension(:,:), allocatable :: xh1 !! the heliocentric position of parent 1 in encounter
-      real(DP), dimension(:,:), allocatable :: xh2 !! the heliocentric position of parent 2 in encounter
-      real(DP), dimension(:,:), allocatable :: vb1 !! the barycentric velocity of parent 1 in encounter
-      real(DP), dimension(:,:), allocatable :: vb2 !! the barycentric velocity of parent 2 in encounter
    contains
-      procedure :: collision_check => symba_collision_check_plplenc !! Checks if two massive bodies are going to collide 
-      procedure :: setup           => symba_setup_plplenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: copy            => symba_util_copy_plplenc       !! Copies all elements of one plplenc list to another
+      procedure :: scrub_non_collision    => symba_collision_encounter_scrub        !! Processes the pl-pl encounter list remove only those encounters that led to a collision
+      procedure :: resolve_fragmentations => symba_collision_resolve_fragmentations !! Process list of collisions, determine the collisional regime, and then create fragments
+      procedure :: resolve_mergers        => symba_collision_resolve_mergers        !! Process list of collisions and merge colliding bodies together
    end type symba_plplenc
 
    !********************************************************************************************************************************
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_pl),      allocatable :: mergeadd_list !! List of added bodies in mergers or collisions
-      class(symba_pl),      allocatable :: mergesub_list !! List of subtracted bodies in mergers or collisions
+      class(symba_merger),  allocatable :: mergeadd_list !! List of added bodies in mergers or collisions
+      class(symba_merger),  allocatable :: mergesub_list !! List of subtracted bodies in mergers or collisions
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
-      class(symba_pl),      allocatable :: pl_discards   !! Discarded test particle data structure
       integer(I4B)                      :: irec          !! System recursion level
    contains
-      procedure :: initialize       => symba_setup_initialize_system        !! Performs SyMBA-specific initilization steps
-      procedure :: step             => symba_step_system                    !! Advance the SyMBA nbody system forward in time by one step
-      procedure :: interp           => symba_step_interp_system             !! Perform an interpolation step on the SymBA nbody system 
-      procedure :: set_recur_levels => symba_step_set_recur_levels_system   !! Sets recursion levels of bodies and encounter lists to the current system level
-      procedure :: recursive_step   => symba_step_recur_system              !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
-      procedure :: reset            => symba_step_reset_system              !! Resets pl, tp,and encounter structures at the start of a new step 
+      procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
+      procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
+      procedure :: step             => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
+      procedure :: interp           => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
+      procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
+      procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
+      procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
    end type symba_nbody_system
 
    interface
@@ -179,16 +187,12 @@ module symba_classes
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine symba_collision_check_pltpenc
 
-      module subroutine symba_collision_check_plplenc(self, system, param, t, dt, irec)
-         use swiftest_classes, only : swiftest_parameters
+      module subroutine symba_collision_encounter_scrub(self, system, param)
          implicit none
-         class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list object
+         class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t      !! current time
-         real(DP),                   intent(in)    :: dt     !! step size
-         integer(I4B),               intent(in)    :: irec   !! Current recursion level
-      end subroutine symba_collision_check_plplenc
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameterss
+      end subroutine
 
       module subroutine symba_collision_make_family_pl(self,idx)
          implicit none
@@ -196,12 +200,26 @@ module symba_classes
          integer(I4B), dimension(2), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision
       end subroutine symba_collision_make_family_pl
 
+      module subroutine symba_collision_resolve_fragmentations(self, system, param)
+         implicit none
+         class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      end subroutine symba_collision_resolve_fragmentations
+   
+      module subroutine symba_collision_resolve_mergers(self, system, param)
+         implicit none
+         class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      end subroutine symba_collision_resolve_mergers
+
       module subroutine symba_discard_pl(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine symba_discard_pl
 
       module subroutine symba_drift_pl(self, system, param, dt)
@@ -257,6 +275,70 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
+      module function symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
+         implicit none
+         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
+         class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
+         real(DP),        dimension(:,:), intent(in)    :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
+         real(DP),        dimension(:),   intent(in)    :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collisio
+         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+      end function symba_fragmentation_casemerge
+
+      module subroutine symba_io_write_discard(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      end subroutine symba_io_write_discard
+
+      module subroutine symba_io_dump_particle_info(self, param, msg) 
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_particle_info), intent(inout) :: self  !! Swiftest base object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         character(*), optional,     intent(in)    :: msg   !! Message to display with dump operation
+      end subroutine symba_io_dump_particle_info
+   
+      module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
+         implicit none
+         class(symba_parameters), intent(inout) :: self       !! Current run configuration parameters with SyMBA additionss
+         integer,                 intent(in)    :: unit       !! File unit number
+         character(len=*),        intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+                                                              !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+         integer,                 intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
+         integer,                 intent(out)   :: iostat     !! IO status code
+         character(len=*),        intent(inout) :: iomsg      !! Message to pass if iostat /= 0
+      end subroutine symba_io_param_reader
+   
+      module subroutine symba_io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
+         implicit none
+         class(symba_parameters),intent(in)    :: self      !! Current run configuration parameters with SyMBA additions
+         integer,                intent(in)    :: unit      !! File unit number
+         character(len=*),       intent(in)    :: iotype    !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+                                                            !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+         integer,                intent(in)    :: v_list(:) !! Not used in this procedure
+         integer,                intent(out)   :: iostat    !! IO status code
+         character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
+      end subroutine symba_io_param_writer
+   
+      module subroutine symba_io_initialize_particle_info(self, param) 
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine symba_io_initialize_particle_info
+
+      module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
+         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+         character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
+         integer(I4B),               intent(out)   :: ierr  !! Error code
+      end subroutine symba_io_read_frame_info
+
       module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
@@ -286,53 +368,6 @@ module symba_classes
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_pltpenc
 
-      module subroutine symba_io_dump_particle_info(self, param, msg) 
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_particle_info), intent(inout) :: self  !! Swiftest base object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         character(*), optional,     intent(in)    :: msg   !! Message to display with dump operation
-      end subroutine symba_io_dump_particle_info
-   
-      module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
-         implicit none
-         class(symba_parameters), intent(inout) :: self       !! Collection of parameters
-         integer,                 intent(in)    :: unit       !! File unit number
-         character(len=*),        intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                              !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer,                 intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
-         integer,                 intent(out)   :: iostat     !! IO status code
-         character(len=*),        intent(inout) :: iomsg      !! Message to pass if iostat /= 0
-      end subroutine symba_io_param_reader
-   
-      module subroutine symba_io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
-         implicit none
-         class(symba_parameters),intent(in)    :: self      !! Collection of SyMBA parameters
-         integer,                intent(in)    :: unit      !! File unit number
-         character(len=*),       intent(in)    :: iotype    !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                            !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer,                intent(in)    :: v_list(:) !! Not used in this procedure
-         integer,                intent(out)   :: iostat    !! IO status code
-         character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
-      end subroutine symba_io_param_writer
-   
-      module subroutine symba_io_initialize_particle_info(self, param) 
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine symba_io_initialize_particle_info
-
-      module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
-         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr  !! Error code
-      end subroutine symba_io_read_frame_info
-
       module subroutine symba_io_write_frame_info(self, iu, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -341,11 +376,26 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine symba_io_write_frame_info 
 
+      module subroutine symba_setup_initialize_system(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA system object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine symba_setup_initialize_system
+
+      module subroutine symba_setup_merger(self, n, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_merger),        intent(inout) :: self  !! SyMBA merger list object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      end subroutine symba_setup_merger
+
       module subroutine symba_setup_pl(self, n, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_pl),           intent(inout) :: self  !! SyMBA massive body object
-         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine symba_setup_pl
 
@@ -354,19 +404,6 @@ module symba_classes
          class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
          integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine symba_setup_pltpenc
-
-      module subroutine symba_setup_plplenc(self,n)
-         implicit none
-         class(symba_plplenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
-         integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
-      end subroutine symba_setup_plplenc
-
-      module subroutine symba_setup_initialize_system(self, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA system object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine symba_setup_initialize_system
 
       module subroutine symba_setup_tp(self, n, param)
          use swiftest_classes, only : swiftest_parameters
@@ -413,24 +450,131 @@ module symba_classes
          implicit none
          class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
       end subroutine symba_step_reset_system
+   end interface
 
-      module subroutine symba_util_copy_pltpenc(self, source)
+   interface util_append
+      module subroutine symba_util_append_arr_info(arr, source, lsource_mask)
          implicit none
-         class(symba_pltpenc), intent(inout) :: self   !! SyMBA pl-tp encounter list 
-         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
-      end subroutine symba_util_copy_pltpenc
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         logical,                   dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_arr_info
+     
+      module subroutine symba_util_append_arr_kin(arr, source, lsource_mask)
+         implicit none
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         logical,             dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_arr_kin
+   end interface
 
-      module subroutine symba_util_copy_plplenc(self, source)
+   interface
+      module subroutine symba_util_append_merger(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
          implicit none
-         class(symba_plplenc), intent(inout) :: self   !! SyMBA pl-pl encounter list 
-         class(symba_pltpenc), intent(in)    :: source !! Source object to copy into
-      end subroutine symba_util_copy_plplenc
+         class(symba_merger),             intent(inout) :: self         !! SyMBA massive body object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_merger
 
-      module subroutine symba_util_resize_pltpenc(self, nrequested)
+      module subroutine symba_util_append_pl(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
          implicit none
-         class(symba_pltpenc), intent(inout) :: self       !! SyMBA pl-tp encounter list 
-         integer(I4B),         intent(in)    :: nrequested !! New size of list needed
-      end subroutine symba_util_resize_pltpenc
+         class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_pl
+
+      module subroutine symba_util_append_tp(self, source, lsource_mask)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_tp),                 intent(inout) :: self        !! SyMBA test particle object
+         class(swiftest_body),            intent(in)    :: source       !! Source object to append
+         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_tp
+   end interface 
+
+   interface util_fill
+      module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
+         implicit none
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         type(symba_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine symba_util_fill_arr_info
+
+      module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
+         implicit none
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         type(symba_kinship), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine symba_util_fill_arr_kin
+   end interface
+
+   interface
+      module subroutine symba_util_fill_pl(self, inserts, lfill_list)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_pl),       intent(inout) :: self       !! SyMBA massive body object
+         class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
+         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine symba_util_fill_pl
+
+      module subroutine symba_util_fill_tp(self, inserts, lfill_list)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_tp),       intent(inout) :: self       !! SyMBA test particle object
+         class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
+         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine symba_util_fill_tp
+
+      module subroutine symba_util_peri_pl(self, system, param)
+         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      end subroutine symba_util_peri_pl
+
+      module subroutine symba_util_rearray_pl(self, system, param)
+         implicit none
+         class(symba_pl),           intent(inout) :: self   !! SyMBA massive body object
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      end subroutine symba_util_rearray_pl
+   end interface
+
+   interface util_resize
+      module subroutine symba_util_resize_arr_info(arr, nnew)
+         implicit none
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                                         intent(in)    :: nnew !! New size
+      end subroutine symba_util_resize_arr_info
+
+      module subroutine symba_util_resize_arr_kin(arr, nnew)
+         implicit none
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                                   intent(in)    :: nnew !! New size
+      end subroutine symba_util_resize_arr_kin
+   end interface
+   
+   interface
+      module subroutine symba_util_resize_merger(self, nnew)
+         implicit none
+         class(symba_merger), intent(inout) :: self  !! SyMBA merger list object
+         integer(I4B),        intent(in)    :: nnew  !! New size neded
+      end subroutine symba_util_resize_merger
+
+      module subroutine symba_util_resize_pl(self, nnew)
+         implicit none
+         class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
+         integer(I4B),    intent(in)    :: nnew  !! New size neded
+      end subroutine symba_util_resize_pl
+
+      module subroutine symba_util_resize_tp(self, nnew)
+         implicit none
+         class(symba_tp), intent(inout) :: self  !! SyMBA massive body object
+         integer(I4B),    intent(in)    :: nnew  !! New size neded
+      end subroutine symba_util_resize_tp
 
       module subroutine symba_util_sort_pl(self, sortby, ascending)
          implicit none
@@ -457,7 +601,53 @@ module symba_classes
          class(symba_tp),               intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine symba_util_sort_rearrange_tp
+   end interface
 
+   interface util_spill
+      module subroutine symba_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,                    dimension(:),             intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                              intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine symba_util_spill_arr_info
+
+      module subroutine symba_util_spill_arr_kin(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         type(symba_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,               dimension(:),            intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                        intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine symba_util_spill_arr_kin
+   end interface
+
+   interface
+      module subroutine symba_util_spill_pl(self, discards, lspill_list, ldestructive)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_pl),       intent(inout) :: self         !! SyMBA massive body object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine symba_util_spill_pl
+
+      module subroutine symba_util_spill_pltpenc(self, discards, lspill_list, ldestructive)
+         use swiftest_classes, only : swiftest_encounter
+         implicit none
+         class(symba_pltpenc),      intent(inout) :: self         !! SyMBA pl-tp encounter list
+         class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      end subroutine symba_util_spill_pltpenc
+
+      module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
+         use swiftest_classes, only : swiftest_body
+         implicit none
+         class(symba_tp),       intent(inout) :: self         !! SyMBA test particle object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine symba_util_spill_tp
    end interface
 
 end module symba_classes

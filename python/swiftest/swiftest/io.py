@@ -5,7 +5,7 @@ import xarray as xr
 import sys
 import tempfile
 
-newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP" )
+newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP")
 
 def real2float(realstr):
     """
@@ -279,6 +279,7 @@ def write_labeled_param(param, param_file_name):
                'CB_IN',
                'BIN_OUT',
                'ENC_OUT',
+               'DISCARD_OUT',
                'CHK_QMIN',
                'CHK_RMIN',
                'CHK_RMAX',
@@ -889,7 +890,7 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
         swifter_param['ENC_OUT'] = input("ENC_OUT: Encounter file name: [enc.dat]> ")
         if swifter_param['ENC_OUT'] == '':
             swifter_param['ENC_OUT'] = "enc.dat"
-        
+
     intxt = conversion_questions.get('EXTRA_FORCE', None)
     if not intxt:
         intxt = input("EXTRA_FORCE: Use additional user-specified force routines? (y/N)> ")
@@ -1228,6 +1229,13 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
     swiftest_param.pop('J2', None)
     swiftest_param.pop('J4', None)
     swiftest_param.pop('RHILL_PRESENT', None)
+
+    swiftest_param['DISCARD_OUT'] = conversion_questions.get('DISCARD_OUT', '')
+    if not swiftest_param['DISCARD_OUT']:
+        swiftest_param['DISCARD_OUT'] = input("DISCARD_OUT: Discard file name: [discard.out]> ")
+        if swiftest_param['DISCARD_OUT'] == '':
+            swiftest_param['DISCARD_OUT'] = "discard.out"
+
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swifter"
     return swiftest_param
 

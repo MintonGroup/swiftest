@@ -207,7 +207,77 @@ contains
 
       ierr = 0
    end subroutine symba_io_read_frame_info
-   
+
+
+   module subroutine symba_io_write_discard(self, param)
+      implicit none
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      ! Internals
+      integer(I4B), parameter   :: LUN = 40
+      integer(I4B)          :: iadd, isub, j, ierr, nsub, nadd
+      logical, save :: lfirst = .true. 
+      real(DP), dimension(:,:), allocatable :: vh
+      character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
+      character(*), parameter :: NAMEFMT   = '(A, 2(1X, I8))'
+      character(*), parameter :: VECFMT    = '(3(E23.16, 1X))'
+      character(*), parameter :: NPLFMT    = '(I8)'
+      character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
+      class(swiftest_body), allocatable :: pltemp
+
+      associate(pl => self%pl, npl => self%pl%nbody, mergesub_list => self%mergesub_list, mergeadd_list => self%mergeadd_list)
+         if (self%tp_discards%nbody > 0) call io_write_discard(self, param)
+
+         if (mergesub_list%nbody == 0) return
+         select case(param%out_stat)
+         case('APPEND')
+            open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
+         case('NEW', 'REPLACE', 'UNKNOWN')
+            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
+         case default
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+            call util_exit(FAILURE)
+         end select
+         lfirst = .false.
+         if (param%lgr) then
+            call mergesub_list%pv2v(param) 
+            call mergeadd_list%pv2v(param) 
+         end if
+
+         write(LUN, HDRFMT) param%t, mergesub_list%nbody, param%lbig_discard
+         iadd = 1
+         isub = 1
+         do while (iadd <= mergeadd_list%nbody)
+            nadd = mergeadd_list%ncomp(iadd)
+            nsub = mergesub_list%ncomp(isub)
+            do j = 1, nadd
+               if (iadd <= mergeadd_list%nbody) then
+                  write(LUN, NAMEFMT) ADD, mergesub_list%id(iadd), mergesub_list%status(iadd)
+                  write(LUN, VECFMT) mergeadd_list%xh(1, iadd), mergeadd_list%xh(2, iadd), mergeadd_list%xh(3, iadd)
+                  write(LUN, VECFMT) mergeadd_list%vh(1, iadd), mergeadd_list%vh(2, iadd), mergeadd_list%vh(3, iadd)
+               else 
+                  exit
+               end if
+               iadd = iadd + 1
+            end do
+            do j = 1, nsub
+               if (isub <= mergesub_list%nbody) then
+                  write(LUN, NAMEFMT) SUB, mergesub_list%id(isub), mergesub_list%status(isub)
+                  write(LUN, VECFMT) mergesub_list%xh(1, isub), mergesub_list%xh(2, isub), mergesub_list%xh(3, isub)
+                  write(LUN, VECFMT) mergesub_list%vh(1, isub), mergesub_list%vh(2, isub), mergesub_list%vh(3, isub)
+               else
+                  exit
+               end if
+               isub = isub + 1
+            end do
+         end do
+
+         close(LUN)
+      end associate
+
+      return
+   end subroutine symba_io_write_discard
+
 
    module subroutine symba_io_write_frame_info(self, iu, param)
       implicit none
@@ -215,7 +285,6 @@ contains
       integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
    end subroutine symba_io_write_frame_info 
-
 
 end submodule s_symba_io
 
