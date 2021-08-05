@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_version
    use swiftest
 contains
+
    module subroutine util_version()
       !! author: David A. Minton
       !!

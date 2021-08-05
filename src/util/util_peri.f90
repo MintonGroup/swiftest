@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_peri
    use swiftest
 contains
+
    module subroutine util_peri_tp(self, system, param) 
       !! author: David A. Minton
       !!
@@ -44,7 +45,7 @@ contains
                if (tp%isperi(i) == -1) then
                   if (vdotr(i) >= 0.0_DP) then
                      tp%isperi(i) = 0
-                     call orbel_xv2aeq(system%msys, tp%xb(:, i), tp%vb(:, i), tp%atp(i), e, tp%peri(i))
+                     call orbel_xv2aeq(system%Gmtot, tp%xb(:, i), tp%vb(:, i), tp%atp(i), e, tp%peri(i))
                   end if
                else
                   if (vdotr(i) > 0.0_DP) then
@@ -56,7 +57,8 @@ contains
             end do
          end if
       end associate
-      return
 
+      return
    end subroutine util_peri_tp
+
 end submodule s_util_peri

@@ -1,6 +1,7 @@
 submodule(rmvs_classes) s_rmvs_step
    use swiftest
 contains
+
    module subroutine rmvs_step_system(self, param, t, dt)
       !! author: David A. Minton
       !!
@@ -35,7 +36,6 @@ contains
                   lencounter = tp%encounter_check(system, dt)
                   if (lencounter) then
                      lfirstpl = pl%lfirst
-                     lfirsttp = tp%lfirst
                      pl%outer(0)%x(:,:) = xbeg(:,:)
                      pl%outer(0)%v(:,:) = vbeg(:,:)
                      call pl%step(system, param, t, dt) 
@@ -43,13 +43,14 @@ contains
                      pl%outer(NTENC)%v(:,:) = pl%vh(:,:)
                      call rmvs_interp_out(cb, pl, dt)
                      call rmvs_step_out(cb, pl, tp, system, param, t, dt) 
-                     call tp%reverse_status()
+                     tp%lmask(1:ntp) = .not. tp%lmask(1:ntp)
                      call pl%set_beg_end(xbeg = xbeg, xend = xend)
                      tp%lfirst = .true.
                      call tp%step(system, param, t, dt)
-                     where (tp%status(:) == INACTIVE) tp%status(:) = ACTIVE
+                     tp%lmask(1:ntp) = .true.
                      pl%lfirst = lfirstpl
-                     tp%lfirst = lfirsttp
+                     tp%lfirst = .true.
+                     if (param%ltides) call system%step_spin(param, t, dt)
                   else
                      call whm_step_system(system, param, t, dt)
                   end if
@@ -58,8 +59,8 @@ contains
          end select
       end select
       return
-
    end subroutine rmvs_step_system 
+
 
    subroutine rmvs_interp_out(cb, pl, dt)
       !! author: David A. Minton
@@ -137,8 +138,8 @@ contains
       end associate
 
       return
-
    end subroutine rmvs_interp_out   
+
 
    subroutine rmvs_step_out(cb, pl, tp, system, param, t, dt)
       !! author: David A. Minton
@@ -165,7 +166,7 @@ contains
       associate(npl => pl%nbody, ntp => tp%nbody)
          dto = dt / NTENC
          where(tp%plencP(:) == 0)
-            tp%status(:) = INACTIVE
+            tp%lmask(:) = .false.
          elsewhere  
             tp%lperi(:) = .false.
          end where
@@ -175,7 +176,7 @@ contains
                                 vbeg = pl%outer(outer_index - 1)%v(:, :), &
                                 xend = pl%outer(outer_index    )%x(:, :))
             system%rts = RHPSCALE
-            lencounter = tp%encounter_check(system, dt) 
+            lencounter = tp%encounter_check(system, dto) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region
                call rmvs_interp_in(cb, pl, system, param, dto, outer_index) 
@@ -190,13 +191,17 @@ contains
             end if
             do j = 1, npl
                if (pl%nenc(j) == 0) cycle
-               where((tp%plencP(:) == j) .and. (tp%status(:) == INACTIVE)) tp%status(:) = ACTIVE
+               tp%lfirst = .true.
+               where((tp%plencP(:) == j) .and. (.not.tp%lmask(:)))
+                  tp%lmask(:) = .true.
+               end where 
             end do
          end do
       end associate
-      return
 
+      return
    end subroutine rmvs_step_out
+
 
    subroutine rmvs_interp_in(cb, pl, system, param, dt, outer_index)
       !! author: David A. Minton
@@ -239,17 +244,24 @@ contains
          GMcb(:) = cb%Gmass
          xtmp(:, :) = pl%inner(0)%x(:, :)
          vtmp(:, :) = pl%inner(0)%v(:, :)
-         if (param%loblatecb) then
-            allocate(xh_original,source=pl%xh)
+
+         if ((param%loblatecb) .or. (param%ltides)) then
+            allocate(xh_original, source=pl%xh)
             pl%xh(:, :) = xtmp(:, :) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
+         end if
+         if (param%loblatecb) then
             call pl%accel_obl(system)
             pl%inner(0)%aobl(:, :) = pl%aobl(:, :) ! Save the oblateness acceleration on the planet for this substep
+         end if
+         if (param%ltides) then
+            call pl%accel_tides(system)
+            pl%inner(0)%atide(:, :) = pl%atide(:, :) ! Save the oblateness acceleration on the planet for this substep
          end if
 
          do inner_index = 1, NTPHENC - 1
             call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
-                                       vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
-                                       dti(1:npl), iflag(1:npl))
+                                        vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
+                                        dti(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /=0) then
@@ -272,8 +284,8 @@ contains
 
          do inner_index = NTPHENC - 1, 1, -1
             call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
-                                       vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
-                                       -dti(1:npl), iflag(1:npl))
+                                        vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
+                                        -dti(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /=0) then
@@ -295,19 +307,28 @@ contains
                call pl%accel_obl(system)
                pl%inner(inner_index)%aobl(:, :) = pl%aobl(:, :) 
             end if
+            if (param%ltides) then 
+               call pl%accel_tides(system)
+               pl%inner(inner_index)%atide(:, :) = pl%atide(:, :)  
+            end if
          end do
          if (param%loblatecb) then
             ! Calculate the final value of oblateness accelerations at the final inner substep
             pl%xh(:,:) = pl%inner(NTPHENC)%x(:, :)
             call pl%accel_obl(system)
             pl%inner(NTPHENC)%aobl(:, :) = pl%aobl(:, :) 
-            ! Put the planet positions back into place
-            call move_alloc(xh_original, pl%xh)
          end if
+         if (param%ltides) then
+            call pl%accel_tides(system)
+            pl%inner(NTPHENC)%atide(:, :) = pl%atide(:, :) 
+         end if
+         ! Put the planet positions back into place 
+         if (allocated(xh_original)) call move_alloc(xh_original, pl%xh)
       end associate
       return
 
    end subroutine rmvs_interp_in
+
 
    subroutine rmvs_step_in(cb, pl, tp, param, outer_time, dto)
       !! author: David A. Minton
@@ -331,7 +352,7 @@ contains
 
       associate(npl => pl%nbody)
          dti = dto / NTPHENC
-         call rmvs_make_planetocentric(cb, pl, tp)
+         call rmvs_make_planetocentric(param, cb, pl, tp)
          do i = 1, npl
             if (pl%nenc(i) == 0) cycle
             select type(planetocen_system => pl%planetocentric(i))
@@ -353,8 +374,16 @@ contains
                               plenci%xh(:,:) = plenci%inner(inner_index - 1)%x(:,:)
                               call plenci%set_beg_end(xbeg = plenci%inner(inner_index - 1)%x, &
                                                       xend = plenci%inner(inner_index)%x)
-                              call cbenci%set_beg_end(aoblbeg = cbenci%inner(inner_index - 1)%aobl(:, 1), &
-                                                      aoblend = cbenci%inner(inner_index    )%aobl(:, 1))
+
+                              if (param%loblatecb) then
+                                 cbenci%aoblbeg = cbenci%inner(inner_index - 1)%aobl(:, 1)
+                                 cbenci%aoblend = cbenci%inner(inner_index    )%aobl(:, 1)
+                              end if
+                              if (param%ltides) then
+                                 cbenci%atidebeg = cbenci%inner(inner_index - 1)%atide(:, 1)
+                                 cbenci%atideend = cbenci%inner(inner_index    )%atide(:, 1)
+                              end if
+
                               call tpenci%step(planetocen_system, param, inner_time, dti)
                               do j = 1, pl%nenc(i)
                                  tpenci%xheliocentric(:, j) = tpenci%xh(:, j) + pl%inner(inner_index)%x(:,i)
@@ -362,7 +391,7 @@ contains
                               inner_time = outer_time + j * dti
                               call rmvs_peri_tp(tpenci, pl, inner_time, dti, .false., inner_index, i, param) 
                            end do
-                           where(tpenci%status(:) == ACTIVE) tpenci%status(:) = INACTIVE
+                           tpenci%lmask(:) = .false.
                         end associate
                      end select
                   end select
@@ -374,7 +403,8 @@ contains
       return
    end subroutine rmvs_step_in
 
-   subroutine rmvs_make_planetocentric(cb, pl, tp)
+
+   subroutine rmvs_make_planetocentric(param, cb, pl, tp)
       !! author: David A. Minton
       !!
       !! When encounters are detected, this method will call the interpolation methods for the planets and 
@@ -383,13 +413,14 @@ contains
       !!
       implicit none
       ! Arguments
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration paramete
       class(rmvs_cb),             intent(inout) :: cb     !! RMVS central body object
       class(rmvs_pl),             intent(inout) :: pl     !! RMVS massive body object
       class(rmvs_tp),             intent(inout) :: tp     !! RMVS test particle object
 
       ! Internals
-      integer(I4B)                                   :: i, j, inner_index, ipc2hc
-      logical, dimension(:), allocatable             :: encmask
+      integer(I4B)                        :: i, j, inner_index, ipc2hc
+      logical, dimension(:), allocatable  :: encmask
 
       associate (npl => pl%nbody, ntp => tp%nbody)
          do i = 1, npl
@@ -407,9 +438,10 @@ contains
                   select type(tpenci => pl%planetocentric(i)%tp)
                   class is (rmvs_tp)
                      tpenci%lplanetocentric = .true.
-                     call tpenci%setup(pl%nenc(i))
+                     call tpenci%setup(pl%nenc(i), param)
                      tpenci%cb_heliocentric = cb
                      tpenci%ipleP = i
+                     tpenci%lmask(:) = .true.
                      tpenci%status(:) = ACTIVE
                      ! Grab all the encountering test particles and convert them to a planetocentric frame
                      tpenci%id(:) = pack(tp%id(:), encmask(:)) 
@@ -425,15 +457,25 @@ contains
                      do inner_index = 0, NTPHENC 
                         allocate(plenci%inner(inner_index)%x, mold=pl%inner(inner_index)%x)
                         allocate(plenci%inner(inner_index)%v, mold=pl%inner(inner_index)%x)
-                        allocate(plenci%inner(inner_index)%aobl, mold=pl%inner(inner_index)%aobl)
                         allocate(cbenci%inner(inner_index)%x(NDIM,1))
                         allocate(cbenci%inner(inner_index)%v(NDIM,1))
-                        allocate(cbenci%inner(inner_index)%aobl(NDIM,1))
                         cbenci%inner(inner_index)%x(:,1)    =  pl%inner(inner_index)%x(:, i) 
                         cbenci%inner(inner_index)%v(:,1)    =  pl%inner(inner_index)%v(:, i) 
-                        cbenci%inner(inner_index)%aobl(:,1) =  pl%inner(inner_index)%aobl(:, i) 
                         plenci%inner(inner_index)%x(:,1)    = -cbenci%inner(inner_index)%x(:,1)
                         plenci%inner(inner_index)%v(:,1)    = -cbenci%inner(inner_index)%v(:,1)
+
+                        if (param%loblatecb) then
+                           allocate(plenci%inner(inner_index)%aobl, mold=pl%inner(inner_index)%aobl)
+                           allocate(cbenci%inner(inner_index)%aobl(NDIM,1))
+                           cbenci%inner(inner_index)%aobl(:,1) =  pl%inner(inner_index)%aobl(:, i) 
+                        end if
+
+                        if (param%ltides) then  
+                           allocate(plenci%inner(inner_index)%atide, mold=pl%inner(inner_index)%atide)
+                           allocate(cbenci%inner(inner_index)%atide(NDIM,1))
+                           cbenci%inner(inner_index)%atide(:,1) =  pl%inner(inner_index)%atide(:, i) 
+                        end if
+
                         do j = 2, npl
                            ipc2hc = plenci%plind(j)
                            plenci%inner(inner_index)%x(:,j) = pl%inner(inner_index)%x(:, ipc2hc) - cbenci%inner(inner_index)%x(:,1)
@@ -446,8 +488,10 @@ contains
             end select
          end do
       end associate
+
       return
    end subroutine rmvs_make_planetocentric
+
 
    subroutine rmvs_peri_tp(tp, pl, t, dt, lfirst, inner_index, ipleP, param)
       !! author: David A. Minton
@@ -458,25 +502,25 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_peri.f90
       implicit none
       ! Arguments
-      class(rmvs_tp),                intent(inout) :: tp        !! RMVS test particle object (planetocentric) 
-      class(rmvs_pl),                intent(inout) :: pl        !! RMVS massive body object (heliocentric)
-      real(DP),                      intent(in)    :: t         !! current time
-      real(DP),                      intent(in)    :: dt        !! step size
-      logical,                       intent(in)    :: lfirst    !! Logical flag indicating whether current invocation is the first
-      integer(I4B),                  intent(in)    :: inner_index !! Outer substep number within current set
-      integer(I4B),                  intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
+      class(rmvs_tp),             intent(inout) :: tp        !! RMVS test particle object (planetocentric) 
+      class(rmvs_pl),             intent(inout) :: pl        !! RMVS massive body object (heliocentric)
+      real(DP),                   intent(in)    :: t         !! current time
+      real(DP),                   intent(in)    :: dt        !! step size
+      logical,                    intent(in)    :: lfirst    !! Logical flag indicating whether current invocation is the first
+      integer(I4B),               intent(in)    :: inner_index !! Outer substep number within current set
+      integer(I4B),               intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
       class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B)                                 :: i, id1, id2
-      real(DP)                                     :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
-      real(DP), dimension(NDIM)                    :: xh1, xh2, vh1, vh2
+      integer(I4B)              :: i, id1, id2
+      real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
+      real(DP), dimension(NDIM) :: xh1, xh2, vh1, vh2
 
       rhill2 = pl%rhill(ipleP)**2
       mu = pl%Gmass(ipleP)
       associate(nenc => tp%nbody, xpc => tp%xh, vpc => tp%vh)
          if (lfirst) then
             do i = 1, nenc
-               if (tp%status(i) == ACTIVE) then
+               if (tp%lmask(i)) then
                   vdotr = dot_product(xpc(:, i), vpc(:, i))
                   if (vdotr > 0.0_DP) then
                      tp%isperi(i) = 1
@@ -487,7 +531,7 @@ contains
             end do
          else
             do i = 1, nenc
-               if (tp%status(i) == ACTIVE) then
+               if (tp%lmask(i)) then
                   vdotr = dot_product(xpc(:, i), vpc(:, i))
                   if (tp%isperi(i) == -1) then
                      if (vdotr >= 0.0_DP) then
@@ -495,7 +539,7 @@ contains
                         call orbel_xv2aqt(mu, xpc(:, i), vpc(:, i), a, peri, capm, tperi)
                         r2 = dot_product(xpc(:, i), xpc(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)
-                        if (param%encounter_file /= "") then
+                        if (param%enc_out /= "") then
                            id1 = pl%id(ipleP)
                            rpl = pl%radius(ipleP)
                            xh1(:) = pl%inner(inner_index)%x(:, ipleP)
@@ -504,7 +548,7 @@ contains
                            xh2(:) = xpc(:, i) + xh1(:)
                            vh2(:) = xpc(:, i) + vh1(:)
                            call io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),  &
-                              param%encounter_file, param%out_type)
+                              param%enc_out, param%out_type)
                         end if
                         if (tp%lperi(i)) then
                            if (peri < tp%peri(i)) then
@@ -532,6 +576,7 @@ contains
 
    end subroutine rmvs_peri_tp
 
+
    subroutine rmvs_end_planetocentric(pl, tp)
       !! author: David A. Minton
       !!
@@ -539,8 +584,8 @@ contains
       !!
       implicit none
       ! Arguments
-      class(rmvs_pl),             intent(inout) :: pl     !! RMVS massive body object
-      class(rmvs_tp),             intent(inout) :: tp     !! RMVS test particle objec
+      class(rmvs_pl), intent(inout) :: pl     !! RMVS massive body object
+      class(rmvs_tp), intent(inout) :: tp     !! RMVS test particle objec
       ! Internals
       integer(I4B) :: i, j, inner_index
       integer(I4B), dimension(:), allocatable :: tpind
@@ -565,6 +610,7 @@ contains
             
                      ! Copy the results of the integration back over and shift back to heliocentric reference
                      tp%status(tpind(1:pl%nenc(i))) = tpenci%status(1:pl%nenc(i)) 
+                     tp%lmask(tpind(1:pl%nenc(i))) = tpenci%lmask(1:pl%nenc(i)) 
                      do j = 1, NDIM
                         tp%xh(j, tpind(1:pl%nenc(i))) = tpenci%xh(j,1:pl%nenc(i)) + pl%inner(NTPHENC)%x(j, i)
                         tp%vh(j, tpind(1:pl%nenc(i))) = tpenci%vh(j,1:pl%nenc(i)) + pl%inner(NTPHENC)%v(j, i)
@@ -576,7 +622,8 @@ contains
                      do inner_index = 0, NTPHENC 
                         deallocate(plenci%inner(inner_index)%x) 
                         deallocate(plenci%inner(inner_index)%v) 
-                        deallocate(plenci%inner(inner_index)%aobl)
+                        if (allocated(plenci%inner(inner_index)%aobl))  deallocate(plenci%inner(inner_index)%aobl)
+                        if (allocated(plenci%inner(inner_index)%atide)) deallocate(plenci%inner(inner_index)%atide)
                      end do
                   end select
                end select

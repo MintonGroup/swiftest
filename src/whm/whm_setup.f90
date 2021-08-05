@@ -1,7 +1,8 @@
 submodule(whm_classes) s_whm_setup
    use swiftest
 contains
-   module subroutine whm_setup_pl(self,n)
+
+   module subroutine whm_setup_pl(self, n, param)
       !! author: David A. Minton
       !!
       !! Allocate WHM planet structure
@@ -9,11 +10,19 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self !! Swiftest test particle object
-      integer(I4B),                     intent(in) :: n    !! Number of test particles to allocate
+      class(whm_pl),             intent(inout) :: self  !! Swiftest test particle object
+      integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+
       !> Call allocation method for parent class
-      call setup_pl(self, n) 
+      call setup_pl(self, n, param) 
       if (n <= 0) return
+
+      if (allocated(self%eta)) deallocate(self%eta)
+      if (allocated(self%muj)) deallocate(self%muj)
+      if (allocated(self%xj)) deallocate(self%xj)
+      if (allocated(self%vj)) deallocate(self%vj)
+      if (allocated(self%ir3j)) deallocate(self%ir3j)
 
       allocate(self%eta(n))
       allocate(self%muj(n))
@@ -30,22 +39,6 @@ contains
       return
    end subroutine whm_setup_pl 
 
-   module subroutine whm_setup_tp(self,n)
-      !! author: David A. Minton
-      !!
-      !! Allocate WHM test particle structure
-      !!
-      !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_setup.f90
-      implicit none
-      ! Arguments
-      class(whm_tp),                 intent(inout) :: self   !! WHM test particle data structure
-      integer,                       intent(in)    :: n      !! Number of test particles to allocate
-      !> Call allocation method for parent class
-      call setup_tp(self, n) 
-      if (n <= 0) return
-
-      return
-   end subroutine whm_setup_tp
 
    module subroutine whm_util_set_mu_eta_pl(self, cb)
       !! author: David A. Minton
@@ -53,8 +46,8 @@ contains
       !! Sets the Jacobi mass value eta for all massive bodies
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self    !! Swiftest system object
-      class(swiftest_cb),            intent(inout) :: cb     !! Swiftest central body particle data structure
+      class(whm_pl),      intent(inout) :: self   !! WHM system object
+      class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body object
       ! Internals
       integer(I4B)                                 :: i
 
@@ -69,9 +62,11 @@ contains
          end do
       end associate
 
+      return
    end subroutine whm_util_set_mu_eta_pl
 
-   module subroutine whm_setup_system(self, param)
+
+   module subroutine whm_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
       !! Initialize a WHM nbody system from files
@@ -79,11 +74,15 @@ contains
       implicit none
       ! Arguments
       class(whm_nbody_system),    intent(inout) :: self    !! Swiftest system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
-      call io_read_initialize_system(self, param)
+      call setup_initialize_system(self, param)
+      ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
+      call util_set_ir3h(self%pl)
+      call self%pl%sort("ir3h", ascending=.false.)
+
       ! Make sure that the discard list gets allocated initially
-      call self%tp_discards%setup(self%tp%nbody)
+      call self%tp_discards%setup(self%tp%nbody, param)
       call self%pl%set_mu(self%cb)
       call self%tp%set_mu(self%cb)
       if (param%lgr) then
@@ -91,29 +90,7 @@ contains
          call self%tp%v2pv(param)
       end if
 
-   end subroutine whm_setup_system
-
-   module subroutine whm_setup_set_ir3j(self)
-      !! author: David A. Minton
-      !!
-      !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
-      implicit none
-      ! Arguments
-      class(whm_pl),                 intent(inout) :: self    !! WHM massive body object
-      ! Internals
-      integer(I4B)                                 :: i
-      real(DP)                                     :: r2, ir
-
-      if (self%nbody > 0) then
-         do i = 1, self%nbody
-            r2 = dot_product(self%xh(:, i), self%xh(:, i))
-            ir = 1.0_DP / sqrt(r2)
-            self%ir3h(i) = ir / r2
-            r2 = dot_product(self%xj(:, i), self%xj(:, i))
-            ir = 1.0_DP / sqrt(r2)
-            self%ir3j(i) = ir / r2
-         end do
-      end if
-   end subroutine whm_setup_set_ir3j
+      return
+   end subroutine whm_setup_initialize_system
 
 end submodule s_whm_setup

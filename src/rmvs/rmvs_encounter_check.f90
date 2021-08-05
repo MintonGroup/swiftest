@@ -1,6 +1,7 @@
 submodule (rmvs_classes) s_rmvs_chk
    use swiftest
 contains
+
    module function rmvs_encounter_check_tp(self, system, dt) result(lencounter)
       !! author: David A. Minton
       !!
@@ -22,6 +23,8 @@ contains
       real(DP), dimension(system%pl%nbody)    :: r2crit
       logical                                 :: lflag
 
+      if (self%nbody == 0) return
+
       select type(pl => system%pl)
       class is (rmvs_pl)
          associate(tp => self, ntp => self%nbody, npl => pl%nbody, rts => system%rts)
@@ -29,7 +32,7 @@ contains
             tp%plencP(:) = 0
             do j = 1, npl
                do i = 1, ntp
-                  if ((tp%status(i) /= ACTIVE).or.(tp%plencP(i) /= 0)) cycle
+                  if ((.not.tp%lmask(i)).or.(tp%plencP(i) /= 0)) cycle
                   xr(:) = tp%xh(:, i) - pl%xbeg(:, j)
                   vr(:) = tp%vh(:, i) - pl%vbeg(:, j)
                   r2 = dot_product(xr(:), xr(:))
@@ -46,7 +49,8 @@ contains
       return
    end function rmvs_encounter_check_tp
 
-   elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
+
+   module elemental function rmvs_chk_ind(r2, v2, vdotr, dt, r2crit) result(lflag)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -77,6 +81,6 @@ contains
       end if
 
       return
-
    end function rmvs_chk_ind
+
 end submodule s_rmvs_chk

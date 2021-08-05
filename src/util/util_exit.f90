@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_exit
    use swiftest
 contains
+
    module subroutine util_exit(code)
       !! author: David A. Minton
       !!
@@ -25,9 +26,11 @@ contains
       case default
          write(*, FAIL_MSG) VERSION_NUMBER
          write(*, BAR)
+         error stop
       end select
 
       stop
 
    end subroutine util_exit
+   
 end submodule s_util_exit

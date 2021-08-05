@@ -10,14 +10,15 @@ program swiftest_driver
    implicit none
 
    class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
-   type(swiftest_parameters)               :: param
+   class(swiftest_parameters),   allocatable  :: param            !! Run configuration parameters
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable               :: param_file_name !! Name of the file containing user-defined parameters
+   character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
    integer(I4B)                               :: ierr             !! I/O error code 
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
-   integer(I8B), parameter                    :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
+   !integer(I8B), parameter                    :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
+   integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    real(DP)                                   :: start_wall_time  !! Wall clock time at start of execution
    real(DP)                                   :: finish_wall_time !! Wall clock time when execution has finished
    integer(I4B)                               :: iu               !! Unit number of binary file
@@ -31,6 +32,12 @@ program swiftest_driver
    end if
    !$ start_wall_time = omp_get_wtime()
    !> Read in the user-defined parameters file and the initial conditions of the system
+   select case(integrator)
+   case(symba)
+      allocate(symba_parameters :: param)
+   case default
+      allocate(swiftest_parameters :: param)
+   end select
    param%integrator = integrator
    call setup_construct_system(nbody_system, param)
    call param%read_from_file(param_file_name)
@@ -45,6 +52,7 @@ program swiftest_driver
       iloop = 0
       iout = istep_out
       idump = istep_dump
+      nloops = ceiling(tstop / dt)
       if (istep_out > 0) call nbody_system%write_frame(iu, param)
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
@@ -53,13 +61,13 @@ program swiftest_driver
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
       write(*, *) " *************** Main Loop *************** "
-      do iloop = 1, LOOPMAX 
+      do iloop = 1, nloops
          !> Step the system forward in time
          call nbody_system%step(param, t, dt)
 
          t = t0 + iloop * dt
 
-         !> Evaluate any discards or mergers
+         !> Evaluate any discards or collisional outcomes
          call nbody_system%discard(param)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
@@ -79,7 +87,7 @@ program swiftest_driver
                idump = istep_dump
             end if
          end if
-         if (t > tstop) exit 
+         !if (t >= tstop) exit 
       end do
 
       !> Dump the final state of the system to file
@@ -90,5 +98,4 @@ program swiftest_driver
    call util_exit(SUCCESS)
 
    stop
-
 end program swiftest_driver

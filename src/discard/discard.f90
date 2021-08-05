@@ -1,22 +1,31 @@
 submodule (swiftest_classes) s_discard
    use swiftest
 contains
+
    module subroutine discard_system(self, param)
       !! author: David A. Minton
       !!
       !! Calls the discard methods for each body class and then the write method if any discards were detected
       !!
       implicit none
+      ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+      ! Internals
+      logical :: lany_discards
 
       associate(system => self, tp => self%tp, pl => self%pl)
-         call tp%discard(system, param)
+         lany_discards = .false.
          call pl%discard(system, param)
-         if (any(tp%ldiscard(:) .or. any(pl%ldiscard(:)))) call system%write_discard(param)
+         call tp%discard(system, param)
+         if (tp%nbody > 0) lany_discards = lany_discards .or.  any(tp%ldiscard(:))
+         if (pl%nbody > 0) lany_discards = lany_discards .or.  any(pl%ldiscard(:))
+         if (lany_discards) call system%write_discard(param)
       end associate
+
       return
    end subroutine discard_system
+
 
    module subroutine discard_pl(self, system, param)
       !! author: David A. Minton
@@ -27,10 +36,14 @@ contains
       ! Arguments
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
+
+      if (self%nbody == 0) return
       self%ldiscard(:) = .false.
+
       return
    end subroutine discard_pl
+
 
    module subroutine discard_tp(self, system, param)
       !! author: David A. Minton
@@ -43,26 +56,28 @@ contains
       ! Arguments
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameter
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
 
       associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
-         if (ntp == 0) return 
+         if ((ntp == 0) .or. (npl ==0)) return 
+
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
              (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
-            if (npl > 0) call pl%h2b(cb) 
-            if (ntp > 0) call tp%h2b(cb) 
+            call pl%h2b(cb) 
+            call tp%h2b(cb) 
          end if
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-            if (ntp > 0) call discard_sun_tp(tp, system, param)
-         end if
-         if (param%qmin >= 0.0_DP .and. ntp > 0) call discard_peri_tp(tp, system, param)
-         if (param%lclose .and. ntp > 0) call discard_pl_tp(tp, system, param)
-         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard)
+
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call discard_cb_tp(tp, system, param)
+         if (param%qmin >= 0.0_DP) call discard_peri_tp(tp, system, param)
+         if (param%lclose) call discard_pl_tp(tp, system, param)
+         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard, ldestructive=.true.)
       end associate
+
       return
    end subroutine discard_tp
 
-   subroutine discard_sun_tp(tp, system, param)
+
+   subroutine discard_cb_tp(tp, system, param)
       !! author: David A. Minton
       !!
       !!  Check to see if test particles should be discarded based on their positions relative to the Sun
@@ -79,7 +94,7 @@ contains
       integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
 
-      associate(ntp => tp%nbody, cb => system%cb, t => param%t, msys => system%msys)
+      associate(ntp => tp%nbody, cb => system%cb, t => param%t, Gmtot => system%Gmtot)
          rmin2 = max(param%rmin * param%rmin, cb%radius * cb%radius)
          rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
@@ -90,18 +105,21 @@ contains
                   tp%status(i) = DISCARDED_RMAX
                   write(*, *) "Particle ", tp%id(i), " too far from sun at t = ", t
                   tp%ldiscard(i) = .true.
+                  tp%lmask(i) = .false.
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   tp%status(i) = DISCARDED_RMIN
                   write(*, *) "Particle ", tp%id(i), " too close to sun at t = ", t
                   tp%ldiscard(i) = .true.
+                  tp%lmask(i) = .false.
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
                   vb2 = dot_product(tp%vb(:, i), tp%vb(:, i))
-                  energy = 0.5_DP * vb2 - msys / sqrt(rb2)
+                  energy = 0.5_DP * vb2 - Gmtot / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      tp%status(i) = DISCARDED_RMAXU
                      write(*, *) "Particle ", tp%id(i), " is unbound and too far from barycenter at t = ", t
                      tp%ldiscard(i) = .true.
+                     tp%lmask(i) = .false.
                   end if
                end if
             end if
@@ -109,7 +127,8 @@ contains
       end associate
 
       return
-   end subroutine discard_sun_tp
+   end subroutine discard_cb_tp
+
 
    subroutine discard_peri_tp(tp, system, param)
       !! author: David A. Minton
@@ -153,9 +172,10 @@ contains
             end if
          end do
       end associate
+
       return
-   
    end subroutine discard_peri_tp
+
 
    subroutine discard_pl_tp(tp, system, param)
       !! author: David A. Minton
@@ -184,6 +204,7 @@ contains
                   call discard_pl_close(dx(:), dv(:), dt, radius**2, isp, r2min)
                   if (isp /= 0) then
                      tp%status(i) = DISCARDED_PLR
+                     tp%lmask(i) = .false.
                      pl%ldiscard(j) = .true.
                      write(*, *) "Particle ", tp%id(i), " too close to massive body ", pl%id(j), " at t = ", t
                      tp%ldiscard(i) = .true.
@@ -192,11 +213,11 @@ contains
                end do
             end if
          end do
-   
       end associate
+
       return
-   
    end subroutine discard_pl_tp
+   
 
    subroutine discard_pl_close(dx, dv, dt, r2crit, iflag, r2min)
       !! author: David A. Minton

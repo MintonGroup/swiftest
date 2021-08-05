@@ -1,10 +1,14 @@
 submodule(helio_classes) s_helio_step
    use swiftest
 contains
+
    module subroutine helio_step_system(self, param, t, dt)
       !! author: David A. Minton
       !!
-      !! Step massive bodies and and active test particles ahead in heliocentric coordinates
+      !! Step massive bodies and and active test particles ahead in heliocentric coordinates.
+      !!
+      !! Currently there's no difference between this and the WHM system stepper, so this is just
+      !! a wrapper function to keep the method calls consistent for inherited types.
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk.f
       !! Adapted from David E. Kaufmann's Swifter routine helio_step.f90
@@ -15,14 +19,11 @@ contains
       real(DP),                   intent(in)    :: t      !! Simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsize
 
-      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
-         tp%lfirst = pl%lfirst
-         call pl%set_rhill(cb)
-         call pl%step(system, param, t, dt)
-         call tp%step(system, param, t, dt)
-      end associate
+      call whm_step_system(self, param, t, dt)
+
       return
    end subroutine helio_step_system 
+
 
    module subroutine helio_step_pl(self, system, param, t, dt)
       !! author: David A. Minton
@@ -39,10 +40,10 @@ contains
       real(DP),                     intent(in)    :: t      !! Current simulation time
       real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals 
-      integer(I4B)     :: i
-      real(DP)         :: dth, msys
+      real(DP) :: dth   !! Half step size 
 
       if (self%nbody == 0) return
+
       associate(pl => self)
          select type(cb => system%cb)
          class is (helio_cb)
@@ -52,21 +53,19 @@ contains
                pl%lfirst = .false.
             end if
             call pl%lindrift(cb, dth, lbeg=.true.)
-            call pl%accel(system, param, t)
-            call pl%kick(dth)
-            call pl%set_beg_end(xbeg = pl%xh)
+            call pl%kick(system, param, t, dth, lbeg=.true.)
+            if (param%lgr) call pl%gr_pos_kick(param, dth)
             call pl%drift(system, param, dt)
-            call pl%set_beg_end(xend = pl%xh)
-            call pl%accel(system, param, t + dt)
-            call pl%kick(dth)
+            call pl%kick(system, param, t + dt, dth, lbeg=.false.)
+            if (param%lgr) call pl%gr_pos_kick(param, dth)
             call pl%lindrift(cb, dth, lbeg=.false.)
             call pl%vb2vh(cb)
          end select
       end associate
    
       return
-   
    end subroutine helio_step_pl
+
 
    module subroutine helio_step_tp(self, system, param, t, dt)
 
@@ -82,9 +81,9 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nboody system
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
-      real(DP),                     intent(in)    :: dt     !! Stepsiz
+      real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals
-      real(DP) :: dth   !! Half step size
+      real(DP) :: dth   !! Half step size 
    
       if (self%nbody == 0) return
 
@@ -97,18 +96,17 @@ contains
                tp%lfirst = .false.
             end if
             call tp%lindrift(cb, dth, lbeg=.true.)
-            call tp%accel(system, param, t, lbeg=.true.)
-            call tp%kick(dth)
+            call tp%kick(system, param, t, dth, lbeg=.true.)
+            if (param%lgr) call tp%gr_pos_kick(param, dth)
             call tp%drift(system, param, dt)
-            call tp%accel(system, param, t + dt, lbeg=.false.)
-            call tp%kick(dth)
+            call tp%kick(system, param, t + dt, dth, lbeg=.false.)
+            if (param%lgr) call tp%gr_pos_kick(param, dth)
             call tp%lindrift(cb, dth, lbeg=.false.)
             call tp%vb2vh(vbcb = -cb%ptend)
          end select
       end associate
    
       return
-   
    end subroutine helio_step_tp
 
 end submodule s_helio_step

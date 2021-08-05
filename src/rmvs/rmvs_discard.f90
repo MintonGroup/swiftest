@@ -1,6 +1,7 @@
 submodule(rmvs_classes) s_rmvs_discard
    use swiftest
 contains  
+
    module subroutine rmvs_discard_tp(self, system, param)
       !! author: David A. Minton
       !!
@@ -12,9 +13,11 @@ contains
       ! Arguments
       class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B)                                 :: i
+
+      if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, t => param%t)
          do i = 1, ntp
@@ -24,6 +27,7 @@ contains
                      tp%status(i) = DISCARDED_PLQ
                      write(*, *) "Particle ",tp%id(i)," q with respect to Planet ",pl%id(iplperP)," is too small at t = ",t
                      tp%ldiscard(i) = .true.
+                     tp%lmask(i) = .false.
                   end if
                end if
             end associate
@@ -33,4 +37,5 @@ contains
       end associate
 
    end subroutine rmvs_discard_tp
+
 end submodule s_rmvs_discard

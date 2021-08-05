@@ -86,6 +86,7 @@ module swiftest_globals
    integer(I4B), parameter :: SUPERCATASTROPHIC  = -10
    integer(I4B), parameter :: GRAZE_AND_MERGE    = -11
    integer(I4B), parameter :: HIT_AND_RUN        = -12
+   integer(I4B), parameter :: COLLISION          = -13
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
@@ -100,10 +101,10 @@ module swiftest_globals
 
    !> Standard file names
    integer(I4B), parameter :: NDUMPFILES = 2
-   character(*), dimension(2), parameter :: DUMP_CB_FILE     = (/ 'dump_cb1.bin',     'dump_cb2.bin'    /)
-   character(*), dimension(2), parameter :: DUMP_PL_FILE     = (/ 'dump_pl1.bin',     'dump_pl2.bin'    /)
-   character(*), dimension(2), parameter :: DUMP_TP_FILE     = (/ 'dump_tp1.bin',     'dump_tp2.bin'    /)
-   character(*), dimension(2), parameter :: DUMP_PARAM_FILE = (/ 'dump_param1.dat', 'dump_param2.dat' /) 
+   character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'   ]
+   character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'   ]
+   character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'   ]
+   character(*), dimension(2), parameter :: DUMP_PARAM_FILE = ['dump_param1.dat', 'dump_param2.dat']
 
    !> Default file names that can be changed by the user in the parameters file
    character(*), parameter :: ENC_OUTFILE  = 'encounter.out'
@@ -116,11 +117,11 @@ module swiftest_globals
    integer(I4B), parameter :: BINUNIT      = 20 !! File unit number for the binary output file
 
    !> Miscellaneous constants:
-   integer(I4B), parameter :: NDIM    = 3          !! Number of dimensions in our reality
-   integer(I4B), parameter :: NDIM2   = 2 * NDIM   !! 2x the number of dimensions
-   real(DP),     parameter :: VSMALL    = 4.0E-15_DP
+   integer(I4B), parameter :: NDIM   = 3                  !! Number of dimensions in our reality
+   integer(I4B), parameter :: NDIM2  = 2 * NDIM           !! 2x the number of dimensions
+   real(DP),     parameter :: VSMALL = 2 * epsilon(1._DP) !! Very small number used to prevent floating underflow
 
-   real(DP), parameter :: GC       = 6.6743E-11_DP   !! Universal gravitational constant in SI units
+   real(DP), parameter :: GC        = 6.6743E-11_DP   !! Universal gravitational constant in SI units
    real(DP), parameter :: einsteinC = 299792458.0_DP  !! Speed of light in SI units
 
 end module swiftest_globals

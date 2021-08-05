@@ -1,6 +1,7 @@
 submodule (whm_classes) s_whm_coord
    use swiftest
 contains
+
    module subroutine whm_coord_h2j_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -19,9 +20,10 @@ contains
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: sumx, sumv, cap, capv
 
+      if (self%nbody == 0) return
+
       associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
-         if (npl == 0) return
          xj(:, 1) = xh(:, 1)
          vj(:, 1) = vh(:, 1)
          sumx(:) = 0.0_DP
@@ -38,6 +40,7 @@ contains
     
       return
    end subroutine whm_coord_h2j_pl
+
 
    module subroutine whm_coord_j2h_pl(self, cb)
       !! author: David A. Minton
@@ -58,9 +61,10 @@ contains
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: sumx, sumv
 
+      if (self%nbody == 0) return
+
       associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
-         if (npl == 0) return
          xh(:, 1) = xj(:, 1)
          vh(:, 1) = vj(:, 1)
          sumx(:) = 0.0_DP
@@ -75,6 +79,7 @@ contains
     
       return
    end subroutine whm_coord_j2h_pl
+
 
    module subroutine whm_coord_vh2vj_pl(self, cb)
       !! author: David A. Minton
@@ -94,8 +99,9 @@ contains
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: sumv, capv
 
+      if (self%nbody == 0) return
+
       associate(npl => self%nbody, GMpl => self%Gmass, vh => self%vh, vj => self%vj, eta => self%eta)
-         if (npl == 0) return
          vj(:, 1) = vh(:, 1)
          sumv(:) = 0.0_DP
          do i = 2, npl
@@ -107,5 +113,6 @@ contains
     
       return
    end subroutine whm_coord_vh2vj_pl
+
 end submodule s_whm_coord
 

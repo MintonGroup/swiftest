@@ -9,6 +9,82 @@ submodule (swiftest_classes) drift_implementation
    integer(I2B), parameter :: NLAG2    = 40
 
 contains
+
+   module subroutine drift_body(self, system, param, dt)
+      !! author: David A. Minton
+      !!
+      !! Loop bodies and call Danby drift routine on the heliocentric position and velocities.
+      !!
+      !! Adapted from Hal Levison's Swift routine drift_tp.f 
+      !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
+      implicit none
+      ! Arguments
+      class(swiftest_body),         intent(inout) :: self   !! Swiftest test particle data structure
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      ! Internals
+      integer(I4B)                              :: i   
+      integer(I4B), dimension(:), allocatable   :: iflag
+
+      associate(n => self%nbody)
+         allocate(iflag(n))
+         iflag(:) = 0
+         call drift_all(self%mu, self%xh, self%vh, self%nbody, param, dt, self%lmask, iflag)
+         if (any(iflag(1:n) /= 0)) then
+            where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
+            do i = 1, n
+               if (iflag(i) /= 0) write(*, *) " Body ", self%id(i), " lost due to error in Danby drift"
+            end do
+         end if
+      end associate
+
+      return
+   end subroutine drift_body
+
+
+   module pure subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
+      !! author: David A. Minton
+      !!
+      !! Loop bodies and call Danby drift routine on all bodies for the given position and velocity vector.
+      !!
+      !! Adapted from Hal Levison's Swift routine drift_tp.f 
+      !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f9
+      implicit none
+      ! Arguments
+      real(DP), dimension(:),     intent(in)    :: mu    !! Vector of gravitational constants
+      real(DP), dimension(:,:),   intent(inout) :: x, v  !! Position and velocity vectors
+      integer(I4B),               intent(in)    :: n     !! number of bodies
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      real(DP),                   intent(in)    :: dt    !! Stepsize
+      logical, dimension(:),      intent(in)    :: mask  !! Logical mask of size self%nbody that determines which bodies to drift.
+      integer(I4B), dimension(:), intent(out)   :: iflag !! Vector of error flags. 0 means no problem
+      ! Internals
+      integer(I4B)                              :: i   
+      real(DP)                                  :: energy, vmag2, rmag  !! Variables used in GR calculation
+      real(DP), dimension(:), allocatable       :: dtp
+
+      if (n == 0) return
+
+      allocate(dtp(n))
+      if (param%lgr) then
+         do concurrent(i = 1:n, mask(i))
+            rmag = norm2(x(:, i))
+            vmag2 = dot_product(v(:, i), v(:, i))
+            energy = 0.5_DP * vmag2 - mu(i) / rmag
+            dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
+         end do
+      else
+         where(mask(1:n)) dtp(1:n) = dt
+      end if 
+      do concurrent(i = 1:n, mask(i))
+         call drift_one(mu(i), x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), dtp(i), iflag(i))
+      end do
+
+      return
+   end subroutine drift_all
+
+
    module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -43,6 +119,7 @@ contains
    
       return
    end subroutine drift_one
+
 
    pure subroutine drift_dan(mu, x0, v0, dt0, iflag)
       !! author: David A. Minton
@@ -110,8 +187,10 @@ contains
          x0(:) = x(:)
          v0(:) = v(:)
       end if
+
       return
    end subroutine drift_dan
+
 
    pure subroutine drift_kepmd(dm, es, ec, x, s, c)
       !! author: David A. Minton
@@ -151,6 +230,7 @@ contains
       return
    end subroutine drift_kepmd
 
+
    pure subroutine drift_kepu(dt,r0,mu,alpha,u,fp,c1,c2,c3,iflag)
       !! author: David A. Minton
       !!
@@ -178,6 +258,7 @@ contains
       return
    end subroutine drift_kepu
 
+
    pure subroutine drift_kepu_fchk(dt, r0, mu, alpha, u, s, f)
       !! author: David A. Minton
       !!
@@ -199,6 +280,7 @@ contains
 
       return
    end subroutine drift_kepu_fchk
+
 
    pure subroutine drift_kepu_guess(dt, r0, mu, alpha, u, s)
       !! author: David A. Minton
@@ -236,6 +318,7 @@ contains
 
       return
    end subroutine drift_kepu_guess
+
 
    pure subroutine drift_kepu_lag(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
       !! author: David A. Minton
@@ -281,6 +364,7 @@ contains
       return
    end subroutine drift_kepu_lag
 
+
    pure subroutine drift_kepu_new(s, dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
       !! author: David A. Minton
       !!
@@ -321,6 +405,7 @@ contains
    
       return
    end subroutine drift_kepu_new
+
 
    pure subroutine drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
       !! author: David A. Minton
@@ -364,6 +449,7 @@ contains
 
       return
    end subroutine drift_kepu_p3solve
+   
 
    pure subroutine drift_kepu_stumpff(x, c0, c1, c2, c3)
       !! author: David A. Minton
@@ -405,5 +491,6 @@ contains
 
       return
    end subroutine drift_kepu_stumpff
+
 
 end submodule drift_implementation

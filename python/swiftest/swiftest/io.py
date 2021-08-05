@@ -5,7 +5,7 @@ import xarray as xr
 import sys
 import tempfile
 
-newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP" )
+newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP")
 
 def real2float(realstr):
     """
@@ -71,6 +71,7 @@ def read_swiftest_param(param_file_name, param):
         param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
         param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
         param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
+        param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
         param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
         param['ROTATION'] = param['ROTATION'].upper()
         param['TIDES'] = param['TIDES'].upper()
@@ -278,6 +279,7 @@ def write_labeled_param(param, param_file_name):
                'CB_IN',
                'BIN_OUT',
                'ENC_OUT',
+               'DISCARD_OUT',
                'CHK_QMIN',
                'CHK_RMIN',
                'CHK_RMAX',
@@ -401,6 +403,8 @@ def make_swiftest_labels(param):
     plab = tlab.copy()
     plab.append('Mass')
     plab.append('Radius')
+    if param['RHILL_PRESENT'] == 'YES':
+        plab.append('Rhill')
     clab = ['Mass', 'Radius', 'J_2', 'J_4']
     if param['ROTATION'] == 'YES':
         clab.append('Ip_x')
@@ -492,6 +496,8 @@ def swiftest_stream(f, param):
             p6 = f.read_reals(np.float64)
             Mpl = f.read_reals(np.float64)
             Rpl = f.read_reals(np.float64)
+            if param['RHILL_PRESENT'] == 'YES':
+                Rhill = f.read_reals(np.float64)
             if param['ROTATION'] == 'YES':
                 Ipplx = f.read_reals(np.float64)
                 Ipply = f.read_reals(np.float64)
@@ -524,6 +530,9 @@ def swiftest_stream(f, param):
             tvec = np.empty((6, 0))
             tpid = np.empty(0)
         cvec = np.array([Mcb, Rcb, J2cb, J4cb])
+        if param['RHILL_PRESENT'] == 'YES':
+           if npl > 0:
+              pvec = np.vstack([pvec, Rhill])
         if param['ROTATION'] == 'YES':
             cvec = np.vstack([cvec, Ipcbx, Ipcby, Ipcbz, rotcbx, rotcby, rotcbz])
             if npl > 0:
@@ -671,7 +680,10 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         print(pl.id.count().values, file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
-            print(i.values, pli['Mass'].values, file=plfile)
+            if param['RHILL_PRESENT'] == 'YES':
+               print(i.values, pli['Mass'].values, pli['Rhill'].values, file=plfile)
+            else:
+               print(i.values, pli['Mass'].values, file=plfile)
             print(pli['Radius'].values, file=plfile)
             print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
             print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
@@ -690,36 +702,55 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         # Now make Swiftest files
         cbfile = FortranFile(param['CB_IN'], 'w')
         cbfile.write_record(cbid)
-        MSun = np.double(1.0)
         cbfile.write_record(np.double(GMSun))
-        cbfile.write_record(np.double(rmin))
+        cbfile.write_record(np.double(RSun))
         cbfile.write_record(np.double(J2))
         cbfile.write_record(np.double(J4))
         cbfile.close()
         
         plfile = FortranFile(param['PL_IN'], 'w')
-        plfile.write_record(npl)
+        npl = pl.id.count().values
+        plid = pl.id.values
+        px = pl['px'].values  
+        py = pl['py'].values  
+        pz = pl['pz'].values  
+        vx = pl['vx'].values  
+        vy = pl['vy'].values  
+        vz = pl['vz'].values  
+        mass = pl['Mass'].values  
+        radius = pl['Radius'].values  
         
+        plfile.write_record(npl)
         plfile.write_record(plid)
-        plfile.write_record(p_pl[0])
-        plfile.write_record(p_pl[1])
-        plfile.write_record(p_pl[2])
-        plfile.write_record(v_pl[0])
-        plfile.write_record(v_pl[1])
-        plfile.write_record(v_pl[2])
+        plfile.write_record(px)
+        plfile.write_record(py)
+        plfile.write_record(pz)
+        plfile.write_record(vx)
+        plfile.write_record(vy)
+        plfile.write_record(vz)
         plfile.write_record(mass)
+        if param['RHILL_PRESENT'] == 'YES':
+            rhill = pl['Rhill'].values
+            plfile.write_record(rhill)
         plfile.write_record(radius)
         plfile.close()
         tpfile = FortranFile(param['TP_IN'], 'w')
-        ntp = 1
+        ntp = tp.id.count().values
+        tpid = tp.id.values
+        px = tp['px'].values  
+        py = tp['py'].values  
+        pz = tp['pz'].values  
+        vx = tp['vx'].values  
+        vy = tp['vy'].values  
+        vz = tp['vz'].values 
         tpfile.write_record(ntp)
         tpfile.write_record(tpid)
-        tpfile.write_record(p_tp[0])
-        tpfile.write_record(p_tp[1])
-        tpfile.write_record(p_tp[2])
-        tpfile.write_record(v_tp[0])
-        tpfile.write_record(v_tp[1])
-        tpfile.write_record(v_tp[2])
+        tpfile.write_record(px)
+        tpfile.write_record(py)
+        tpfile.write_record(pz)
+        tpfile.write_record(vx)
+        tpfile.write_record(vy)
+        tpfile.write_record(vz)
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
 
@@ -860,7 +891,7 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
         swifter_param['ENC_OUT'] = input("ENC_OUT: Encounter file name: [enc.dat]> ")
         if swifter_param['ENC_OUT'] == '':
             swifter_param['ENC_OUT'] = "enc.dat"
-        
+
     intxt = conversion_questions.get('EXTRA_FORCE', None)
     if not intxt:
         intxt = input("EXTRA_FORCE: Use additional user-specified force routines? (y/N)> ")
@@ -1022,9 +1053,13 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
             for n in range(1, npl):  # Loop over planets
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                name = int(i_list[0])
+                idnum = int(i_list[0])
                 GMpl = real2float(i_list[1])
-                print(name, GMpl, file=plnew)
+                if swifter_param['RHILL_PRESENT'] == 'YES':
+                   Rhill = real2float(i_list[2])
+                   print(idnum, GMpl, Rhill, file=plnew)
+                else:
+                   print(idnum, GMpl, file=plnew)
                 if swifter_param['CHK_CLOSE'] == 'YES':
                     line = plold.readline()
                     i_list = [i for i in line.split(" ") if i.strip()]
@@ -1195,6 +1230,13 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
     swiftest_param.pop('J2', None)
     swiftest_param.pop('J4', None)
     swiftest_param.pop('RHILL_PRESENT', None)
+
+    swiftest_param['DISCARD_OUT'] = conversion_questions.get('DISCARD_OUT', '')
+    if not swiftest_param['DISCARD_OUT']:
+        swiftest_param['DISCARD_OUT'] = input("DISCARD_OUT: Discard file name: [discard.out]> ")
+        if swiftest_param['DISCARD_OUT'] == '':
+            swiftest_param['DISCARD_OUT'] = "discard.out"
+
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swifter"
     return swiftest_param
 
@@ -1238,7 +1280,6 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
        tmp = swifter_param.pop(key, None)
     swifter_param['J2'] = J2
     swifter_param['J4'] = J4
-    swifter_param['RHILL_PRESENT'] = "YES"
     swifter_param['CHK_CLOSE'] = "YES"
     if swifter_param['OUT_STAT'] == "REPLACE":
         swifter_param['OUT_STAT'] = "UNKNOWN"

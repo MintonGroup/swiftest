@@ -39,6 +39,7 @@ class Simulation:
             'EXTRA_FORCE': "NO",
             'BIG_DISCARD': "NO",
             'CHK_CLOSE': "YES",
+            'RHILL_PRESENT': "YES",
             'FRAGMENTATION': "NO",
             'ROTATION': "NO",
             'TIDES': "NO",

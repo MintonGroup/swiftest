@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_valid
    use swiftest
 contains
+
    module subroutine util_valid(pl, tp)
       !! author: David A. Minton
       !!
@@ -32,10 +33,9 @@ contains
                call util_exit(FAILURE)
             end if
          end do
-         deallocate(idarr)
       end associate
 
       return
-
    end subroutine util_valid
+
 end submodule s_util_valid

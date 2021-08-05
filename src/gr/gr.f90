@@ -1,7 +1,8 @@
 submodule(swiftest_classes) s_gr
    use swiftest
 contains
-   module pure subroutine gr_getaccb_ns_body(self, system, param) 
+
+   module pure subroutine gr_kick_getaccb_ns_body(self, system, param) 
       !! author: David A. Minton
       !!
       !! Add relativistic correction acceleration for non-symplectic integrators.
@@ -11,7 +12,7 @@ contains
       !!    Quinn, T.R., Tremaine, S., Duncan, M., 1991. A three million year integration of the earth’s orbit. 
       !!       AJ 101, 2287–2305. https://doi.org/10.1086/115850
       !!
-      !! Adapted from David A. Minton's Swifter routine routine gr_getaccb_ns.f90
+      !! Adapted from David A. Minton's Swifter routine routine gr_kick_getaccb_ns.f90
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
@@ -36,12 +37,41 @@ contains
                cb%agr(i) = -sum(self%Gmass(1:n) * self%agr(1:n, i) / cb%Gmass)
             end do
          end select
-
       end associate 
 
       return
+   end subroutine gr_kick_getaccb_ns_body
 
-   end subroutine gr_getaccb_ns_body
+
+   module subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
+      !! author: David A. Minton
+      !!
+      !! Compute relativisitic accelerations of massive bodies
+      !!    Based on Saha & Tremaine (1994) Eq. 28
+      !!
+      !! Adapted from David A. Minton's Swifter routine routine gr_whm_kick_getacch.f90
+      implicit none
+      ! Arguments
+      real(DP), dimension(:),     intent(in)    :: mu     !! Gravitational constant
+      real(DP), dimension(:,:),   intent(in)    :: x      !! Position vectors
+      logical,  dimension(:),     intent(in)    :: lmask  !! Logical mask indicating which bodies to compute
+      integer(I4B),               intent(in)    :: n      !! Total number of bodies
+      real(DP),                   intent(in)    :: inv_c2 !! Inverse speed of light squared: 1 / c**2
+      real(DP), dimension(:,:),   intent(out)   :: agr    !! Accelerations
+      ! Internals
+      integer(I4B)                              :: i
+      real(DP)                                  :: beta, rjmag4
+     
+      agr(:,:) = 0.0_DP
+      do concurrent (i = 1:n, lmask(i))
+         rjmag4 = (dot_product(x(:, i), x(:, i)))**2
+         beta = -mu(i)**2 * inv_c2 
+         agr(:, i) = 2 * beta * x(:, i) / rjmag4
+      end do
+
+      return
+   end subroutine gr_kick_getacch
+
 
    module pure subroutine gr_p4_pos_kick(param, x, v, dt)
       !! author: David A. Minton
@@ -71,6 +101,7 @@ contains
       return
    end subroutine gr_p4_pos_kick
 
+
    module pure subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
       !! author: David A. Minton
       !!
@@ -98,8 +129,10 @@ contains
          grterm = 1.0_DP - inv_c2 * (0.5_DP * vmag2 + 3 * mu / rmag)
          vh(:) = pv(:) * grterm
       end associate
+
       return
    end subroutine gr_pseudovel2vel
+
 
    module pure subroutine gr_pv2vh_body(self, param)
       !! author: David A. Minton
@@ -108,7 +141,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                              :: i
       real(DP), dimension(:,:), allocatable     :: vh    !! Temporary holder of pseudovelocity for in-place conversion
@@ -121,8 +154,10 @@ contains
          end do
          call move_alloc(vh, self%vh)
       end associate
+
       return
    end subroutine gr_pv2vh_body
+
 
    module pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
       !! author: David A. Minton
@@ -200,6 +235,7 @@ contains
       return
    end subroutine gr_vel2pseudovel
 
+
    module pure subroutine gr_vh2pv_body(self, param)
       !! author: David A. Minton
       !!
@@ -207,7 +243,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
@@ -220,8 +256,8 @@ contains
          end do
          call move_alloc(pv, self%vh)
       end associate
+
       return
    end subroutine gr_vh2pv_body
-
 
 end submodule s_gr

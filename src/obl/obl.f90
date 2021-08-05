@@ -17,9 +17,11 @@ contains
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
 
+      if (self%nbody == 0) return
+
       associate(n => self%nbody, cb => system%cb)
          self%aobl(:,:) = 0.0_DP
-         do i = 1, n 
+         do concurrent(i = 1:n, self%lmask(i))
             r2 = dot_product(self%xh(:, i), self%xh(:, i))
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
@@ -37,6 +39,7 @@ contains
 
    end subroutine obl_acc_body
 
+
    module subroutine obl_acc_pl(self, system)
       !! author: David A. Minton
       !!
@@ -51,20 +54,23 @@ contains
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(pl => self, npl => self%nbody, cb => system%cb)
          call obl_acc_body(pl, system)
          do i = 1, NDIM
-            cb%aobl(i) = -sum(pl%Gmass(1:npl) * pl%aobl(i, 1:npl)) / cb%Gmass
+            cb%aobl(i) = -sum(pl%Gmass(1:npl) * pl%aobl(i, 1:npl), pl%lmask(1:npl)) / cb%Gmass
          end do
 
-         do i = 1, NDIM
-            pl%ah(i, 1:npl) = pl%ah(i, 1:npl) + pl%aobl(i, 1:npl) - cb%aobl(i)
+         do concurrent(i = 1:npl, pl%lmask(i))
+            pl%ah(:, i) = pl%ah(:, i) + pl%aobl(:, i) - cb%aobl(:)
          end do
       end associate
 
       return
 
    end subroutine obl_acc_pl
+
 
    module subroutine obl_acc_tp(self, system)
       !! author: David A. Minton
@@ -81,6 +87,8 @@ contains
       real(DP), dimension(NDIM)                   :: aoblcb
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       associate(tp => self, ntp => self%nbody, cb => system%cb)
          call obl_acc_body(tp, system)
          if (system%lbeg) then
@@ -89,14 +97,54 @@ contains
             aoblcb = cb%aoblend
          end if
 
-         do i = 1, NDIM
-            tp%ah(i, 1:ntp) = tp%ah(i, 1:ntp) + tp%aobl(i, 1:ntp) - aoblcb(i)
+         do concurrent(i = 1:ntp, tp%lmask(i))
+            tp%ah(:, i) = tp%ah(:, i) + tp%aobl(:, i) - aoblcb(:)
          end do
 
       end associate
       return
 
    end subroutine obl_acc_tp
+
+   module subroutine obl_pot(npl, Mcb, Mpl, j2rp2, j4rp4, xh, irh, oblpot)
+      !! author: David A. Minton
+      !!
+      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      !!    Returned value does not include monopole term or terms higher than J4
+      !!
+      !!    Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: obl_pot.f90 
+      !! Adapted from Hal Levison's Swift routine obl_pot.f 
+      implicit none
+      ! Arguments
+      integer(I4B), intent(in) :: npl
+      real(DP), intent(in) :: Mcb
+      real(DP), dimension(:), intent(in) :: Mpl
+      real(DP), intent(in) :: j2rp2, j4rp4
+      real(DP), dimension(:), intent(in)         :: irh
+      real(DP), dimension(:, :), intent(in)      :: xh
+      real(DP), intent(out)                      :: oblpot
+         
+      ! Internals
+      integer(I4B)              :: i
+      real(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4, mu
+         
+      oblpot = 0.0_DP
+      mu = Mcb
+      do i = 1, npl
+         rinv2 = irh(i)**2
+         t0 = mu * Mpl(i) * rinv2 * irh(i)
+         t1 = j2rp2
+         t2 = xh(3, i) * xh(3, i) * rinv2
+         t3 = j4rp4 * rinv2
+         p2 = 0.5_DP * (3 * t2 - 1.0_DP)
+         p4 = 0.125_DP * ((35 * t2 - 30.0_DP) * t2 + 3.0_DP)
+         oblpot = oblpot + t0 * (t1 * p2 + t3 * p4)
+      end do
+         
+      return
+   end subroutine obl_pot
 
 
 end submodule s_obl

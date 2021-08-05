@@ -12,16 +12,19 @@ contains
       implicit none
       ! Arguments
       class(whm_nbody_system),    intent(inout) :: self  !! WHM nbody system object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters of on parameters 
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! Current simulation time
       real(DP),                   intent(in)    :: dt    !! Current stepsize
 
       associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+         tp%lfirst = pl%lfirst
          call pl%step(system, param, t, dt)
          call tp%step(system, param, t, dt)
+         if (param%ltides) call system%step_spin(param, t, dt)
       end associate
       return
    end subroutine whm_step_system 
+
 
    module subroutine whm_step_pl(self, system, param, t, dt)
       !! author: David A. Minton
@@ -45,24 +48,18 @@ contains
 
       associate(pl => self, cb => system%cb)
          dth = 0.5_DP * dt
-         if (pl%lfirst) then
-            call pl%h2j(cb)
-            call pl%accel(system, param, t)
-            pl%lfirst = .false.
-         end if
-         call pl%set_beg_end(xbeg = pl%xh)
-         call pl%kick(dth)
+         call pl%kick(system, param, t, dth,lbeg=.true.)
          call pl%vh2vj(cb) 
          if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%drift(system, param, dt)
          if (param%lgr) call pl%gr_pos_kick(param, dth)
          call pl%j2h(cb)
-         call pl%accel(system, param, t + dt)
-         call pl%kick(dth)
-         call pl%set_beg_end(xend = pl%xh)
+         call pl%kick(system, param, t + dt, dth, lbeg=.false.)
       end associate
+
       return
    end subroutine whm_step_pl
+
 
    module subroutine whm_step_tp(self, system, param, t, dt)
       !! author: David A. Minton
@@ -87,18 +84,14 @@ contains
       class is (whm_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl)
             dth = 0.5_DP * dt
-            if (tp%lfirst) then
-               call tp%accel(system, param, t, lbeg=.true.)
-               tp%lfirst = .false.
-            end if
-            call tp%kick(dth)
+            call tp%kick(system, param, t, dth, lbeg=.true.)
             if (param%lgr) call tp%gr_pos_kick(param, dth)
             call tp%drift(system, param, dt)
             if (param%lgr) call tp%gr_pos_kick(param, dth)
-            call tp%accel(system, param, t + dt, lbeg=.false.)
-            call tp%kick(dth)
+            call tp%kick(system, param, t + dt, dth, lbeg=.false.)
          end associate
       end select
+
       return
    end subroutine whm_step_tp   
 

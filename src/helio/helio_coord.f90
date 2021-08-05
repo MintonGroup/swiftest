@@ -1,6 +1,7 @@
 submodule (helio_classes) s_helio_coord
    use swiftest
 contains
+
    module subroutine helio_coord_vb2vh_pl(self, cb)
       !! author: David A. Minton
       !!
@@ -15,16 +16,18 @@ contains
       ! Internals
       integer(I4B)              :: i
 
-      associate(npl => self%nbody, vbcb => cb%vb, xh => self%xh, vb => self%vb, &
-                vh => self%vh, Mcb => cb%Gmass, Mpl => self%Gmass)
+      if (self%nbody == 0) return
+
+      associate(pl => self, npl => self%nbody)
          do i = 1, NDIM
-            vbcb(i) = -sum(Mpl(1:npl) * vb(i, 1:npl)) / Mcb
-            vh(i, 1:npl) = vb(i, 1:npl) - vbcb(i)
+            cb%vb(i) = -sum(pl%Gmass(1:npl) * pl%vb(i, 1:npl)) / cb%Gmass
+            pl%vh(i, 1:npl) = pl%vb(i, 1:npl) - cb%vb(i)
          end do
       end associate
 
       return
    end subroutine helio_coord_vb2vh_pl
+
 
    module subroutine helio_coord_vb2vh_tp(self, vbcb)
       !! author: David A. Minton
@@ -38,16 +41,19 @@ contains
       class(helio_tp),              intent(inout) :: self !! Helio massive body object
       real(DP), dimension(:),       intent(in)    :: vbcb  !! Barycentric velocity of the central body
 
-      associate(ntp => self%nbody, vb => self%vb, vh => self%vh, status => self%status)
-         where (status(1:ntp) == ACTIVE)
-            vh(1, 1:ntp) = vb(1, 1:ntp) - vbcb(1)
-            vh(2, 1:ntp) = vb(2, 1:ntp) - vbcb(2)
-            vh(3, 1:ntp) = vb(3, 1:ntp) - vbcb(3)
+      if (self%nbody == 0) return
+
+      associate(tp => self, ntp => self%nbody)
+         where (tp%lmask(1:ntp))
+            tp%vh(1, 1:ntp) = tp%vb(1, 1:ntp) - vbcb(1)
+            tp%vh(2, 1:ntp) = tp%vb(2, 1:ntp) - vbcb(2)
+            tp%vh(3, 1:ntp) = tp%vb(3, 1:ntp) - vbcb(3)
          end where
       end associate
 
       return
    end subroutine helio_coord_vb2vh_tp
+
 
    module subroutine helio_coord_vh2vb_pl(self, cb)
       !! author: David A. Minton
@@ -62,19 +68,21 @@ contains
       class(swiftest_cb),     intent(inout) :: cb   !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i
-      real(DP)      :: msys
+      real(DP)      :: Gmtot
 
-      associate(npl => self%nbody, vbcb => cb%vb, vb => self%vb, vh => self%vh, &
-                Mcb => cb%Gmass, Mpl => self%Gmass)
-         msys = Mcb + sum(Mpl(1:npl))
+      if (self%nbody == 0) return
+
+      associate(pl => self, npl => self%nbody)
+         Gmtot = cb%Gmass + sum(pl%Gmass(1:npl))
          do i = 1, NDIM
-            vbcb(i) = -sum(Mpl(1:npl) * vh(i, 1:npl)) / msys
-            vb(i, 1:npl) = vh(i, 1:npl) + vbcb(i)
+            cb%vb(i) = -sum(pl%Gmass(1:npl) * pl%vh(i, 1:npl)) / Gmtot
+            pl%vb(i, 1:npl) = pl%vh(i, 1:npl) + cb%vb(i)
          end do
       end associate
 
       return
    end subroutine helio_coord_vh2vb_pl
+
 
    module subroutine helio_coord_vh2vb_tp(self, vbcb)
       !! author: David A. Minton
@@ -88,15 +96,18 @@ contains
       class(helio_tp),        intent(inout) :: self !! Helio massive body object
       real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
 
-      associate(ntp => self%nbody, vb => self%vb, vh => self%vh, status => self%status)
-         where (status(1:ntp) == ACTIVE)
-            vb(1, 1:ntp) = vh(1, 1:ntp) + vbcb(1)
-            vb(2, 1:ntp) = vh(2, 1:ntp) + vbcb(2)
-            vb(3, 1:ntp) = vh(3, 1:ntp) + vbcb(3)
+      if (self%nbody == 0) return
+
+      associate(tp => self, ntp => self%nbody)
+         where (tp%lmask(1:ntp))
+            tp%vb(1, 1:ntp) = tp%vh(1, 1:ntp) + vbcb(1)
+            tp%vb(2, 1:ntp) = tp%vh(2, 1:ntp) + vbcb(2)
+            tp%vb(3, 1:ntp) = tp%vh(3, 1:ntp) + vbcb(3)
          end where
       end associate
 
       return
    end subroutine helio_coord_vh2vb_tp
+   
 end submodule s_helio_coord
 
