@@ -39,7 +39,12 @@ contains
                write(EGYIU,EGYHEADER)
             end if
          end if
-         call system%get_energy_and_momentum(param, ke_orbit_now, ke_spin_now, pe_now, Lorbit_now, Lspin_now)
+         call system%get_energy_and_momentum(param) 
+         ke_orbit_now = system%ke_orbit
+         ke_spin_now = system%ke_spin
+         pe_now = system%pe
+         Lorbit_now = system%Lorbit
+         Lspin_now = system%Lspin
          Eorbit_now = ke_orbit_now + ke_spin_now + pe_now
          Ltot_now(:) = Lorbit_now(:) + Lspin_now(:) + Lescape(:)
          Mtot_now = cb%mass + sum(pl%mass(1:npl)) + system%Mescape
@@ -69,10 +74,6 @@ contains
                write(*,*) 'dke_spin : ',(ke_spin_now - ke_spin_last) / abs(Eorbit_orig)
                write(*,*) 'dpe      : ',(pe_now - pe_last) / abs(Eorbit_orig)
                write(*,*)
-            end if
-            if (Lerror > 1e-6) then
-               write(*,*) 'Something has gone wrong! Angular momentum is too high!'
-               write(*,*) 'Lerror: ', Lerror
             end if
          end if
          ke_orbit_last = ke_orbit_now
@@ -135,7 +136,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       character(*), optional,     intent(in)    :: msg  !! Message to display with dump operation
       ! Internals
       integer(I4B)                   :: ierr    !! Error code
@@ -173,7 +174,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       character(*), optional,       intent(in)    :: msg   !! Message to display with dump operation
       ! Internals
       class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
@@ -203,6 +204,7 @@ contains
       ! Print the status message (format code passed in from main driver)
       tfrac = (param%t - param%t0) / (param%tstop - param%t0)
       write(*,msg) param%t, tfrac, self%pl%nbody, self%tp%nbody
+      if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       return
    end subroutine io_dump_system
@@ -335,270 +337,315 @@ contains
       class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
       integer, intent(in)                       :: unit       !! File unit number
       character(len=*), intent(in)              :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                                 !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+                                                              !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
       integer, intent(in)                       :: v_list(:)  !! The first element passes the integrator code to the reader
       integer, intent(out)                      :: iostat     !! IO status code
       character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
-      logical                        :: t0_set = .false.        !! Is the initial time set in the input file?
-      logical                        :: tstop_set = .false.     !! Is the final time set in the input file?
-      logical                        :: dt_set = .false.        !! Is the step size set in the input file?
-      logical                        :: mtiny_set = .false.     !! Is the mtiny value set?
-      integer(I4B)                   :: ilength, ifirst, ilast  !! Variables used to parse input file
-      character(STRMAX)              :: line                    !! Line of the input file
+      logical                        :: t0_set = .false.                  !! Is the initial time set in the input file?
+      logical                        :: tstop_set = .false.               !! Is the final time set in the input file?
+      logical                        :: dt_set = .false.                  !! Is the step size set in the input file?
+      integer(I4B)                   :: ilength, ifirst, ilast, i         !! Variables used to parse input file
+      character(STRMAX)              :: line                              !! Line of the input file
       character (len=:), allocatable :: line_trim,param_name, param_value !! Strings used to parse the param file
-      character(*),parameter         :: linefmt = '(A)'         !! Format code for simple text string
+      character(*),parameter         :: linefmt = '(A)'                   !! Format code for simple text string
 
       ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
-      
-      do
-         read(unit = unit, fmt = linefmt, iostat = iostat, end = 1) line
-         line_trim = trim(adjustl(line))
-         ilength = len(line_trim)
-         if ((ilength /= 0)) then 
-            ifirst = 1
-            ! Read the pair of tokens. The first one is the parameter name, the second is the value.
-            param_name = io_get_token(line_trim, ifirst, ilast, iostat)
-            if (param_name == '') cycle ! No parameter name (usually because this line is commented out)
-            call io_toupper(param_name)
-            ifirst = ilast + 1
-            param_value = io_get_token(line_trim, ifirst, ilast, iostat)
-            select case (param_name)
-            case ("T0")
-               read(param_value, *) self%t0
-               t0_set = .true.
-            case ("TSTOP")
-               read(param_value, *) self%tstop
-               tstop_set = .true.
-            case ("DT")
-               read(param_value, *) self%dt
-               dt_set = .true.
-            case ("CB_IN")
-               self%incbfile = param_value
-            case ("PL_IN")
-               self%inplfile = param_value
-            case ("TP_IN")
-               self%intpfile = param_value
-            case ("IN_TYPE")
-               call io_toupper(param_value)
-               self%in_type = param_value
-            case ("ISTEP_OUT")
-               read(param_value, *) self%istep_out
-            case ("BIN_OUT")
-               self%outfile = param_value
-            case ("OUT_TYPE")
-               call io_toupper(param_value)
-               self%out_type = param_value
-            case ("OUT_FORM")
-               call io_toupper(param_value)
-               self%out_form = param_value
-            case ("OUT_STAT")
-               call io_toupper(param_value)
-               self%out_stat = param_value
-            case ("ISTEP_DUMP")
-               read(param_value, *) self%istep_dump
-            case ("CHK_CLOSE")
-               call io_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%lclose = .true.
-            case ("CHK_RMIN")
-               read(param_value, *) self%rmin
-            case ("CHK_RMAX")
-               read(param_value, *) self%rmax
-            case ("CHK_EJECT")
-               read(param_value, *) self%rmaxu
-            case ("CHK_QMIN")
-               read(param_value, *) self%qmin
-            case ("CHK_QMIN_COORD")
-               call io_toupper(param_value)
-               self%qmin_coord = param_value
-            case ("CHK_QMIN_RANGE")
-               read(param_value, *) self%qmin_alo
+      associate(param => self) 
+         do
+            read(unit = unit, fmt = linefmt, iostat = iostat, end = 1) line
+            line_trim = trim(adjustl(line))
+            ilength = len(line_trim)
+            if ((ilength /= 0)) then 
+               ifirst = 1
+               ! Read the pair of tokens. The first one is the parameter name, the second is the value.
+               param_name = io_get_token(line_trim, ifirst, ilast, iostat)
+               if (param_name == '') cycle ! No parameter name (usually because this line is commented out)
+               call io_toupper(param_name)
                ifirst = ilast + 1
-               param_value = io_get_token(line, ifirst, ilast, iostat)
-               read(param_value, *) self%qmin_ahi
-            case ("ENC_OUT")
-               self%enc_out = param_value
-            case ("DISCARD_OUT")
-               self%discard_out = param_value
-            case ("EXTRA_FORCE")
-               call io_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%lextra_force = .true.
-            case ("BIG_DISCARD")
-               call io_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T' ) self%lbig_discard = .true.
-            case ("RHILL_PRESENT")
-               call io_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T' ) self%lrhill_present = .true.
-            case ("MU2KG")
-               read(param_value, *) self%MU2KG
-            case ("TU2S")
-               read(param_value, *) self%TU2S
-            case ("DU2M")
-               read(param_value, *) self%DU2M
-            case ("ENERGY")
-               call io_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%lenergy = .true.
-            case ("GR")
-               call io_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%lgr = .true. 
-            case ("ROTATION")
-               call io_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%lrotation = .true. 
-            case ("TIDES")
-               call io_toupper(param_value)
-               if (param_value == "YES" .or. param_value == 'T') self%ltides = .true. 
-            case ("NPLMAX", "NTPMAX", "MTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
-            case default
-               write(iomsg,*) "Unknown parameter -> ",param_name
+               param_value = io_get_token(line_trim, ifirst, ilast, iostat)
+               select case (param_name)
+               case ("T0")
+                  read(param_value, *) param%t0
+                  t0_set = .true.
+               case ("TSTOP")
+                  read(param_value, *) param%tstop
+                  tstop_set = .true.
+               case ("DT")
+                  read(param_value, *) param%dt
+                  dt_set = .true.
+               case ("CB_IN")
+                  param%incbfile = param_value
+               case ("PL_IN")
+                  param%inplfile = param_value
+               case ("TP_IN")
+                  param%intpfile = param_value
+               case ("IN_TYPE")
+                  call io_toupper(param_value)
+                  param%in_type = param_value
+               case ("ISTEP_OUT")
+                  read(param_value, *) param%istep_out
+               case ("BIN_OUT")
+                  param%outfile = param_value
+               case ("OUT_TYPE")
+                  call io_toupper(param_value)
+                  param%out_type = param_value
+               case ("OUT_FORM")
+                  call io_toupper(param_value)
+                  param%out_form = param_value
+               case ("OUT_STAT")
+                  call io_toupper(param_value)
+                  param%out_stat = param_value
+               case ("ISTEP_DUMP")
+                  read(param_value, *) param%istep_dump
+               case ("CHK_CLOSE")
+                  call io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lclose = .true.
+               case ("CHK_RMIN")
+                  read(param_value, *) param%rmin
+               case ("CHK_RMAX")
+                  read(param_value, *) param%rmax
+               case ("CHK_EJECT")
+                  read(param_value, *) param%rmaxu
+               case ("CHK_QMIN")
+                  read(param_value, *) param%qmin
+               case ("CHK_QMIN_COORD")
+                  call io_toupper(param_value)
+                  param%qmin_coord = param_value
+               case ("CHK_QMIN_RANGE")
+                  read(param_value, *) param%qmin_alo
+                  ifirst = ilast + 1
+                  param_value = io_get_token(line, ifirst, ilast, iostat)
+                  read(param_value, *) param%qmin_ahi
+               case ("ENC_OUT")
+                  param%enc_out = param_value
+               case ("DISCARD_OUT")
+                  param%discard_out = param_value
+               case ("EXTRA_FORCE")
+                  call io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.
+               case ("BIG_DISCARD")
+                  call io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T' ) param%lbig_discard = .true.
+               case ("RHILL_PRESENT")
+                  call io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T' ) param%lrhill_present = .true.
+               case ("MU2KG")
+                  read(param_value, *) param%MU2KG
+               case ("TU2S")
+                  read(param_value, *) param%TU2S
+               case ("DU2M")
+                  read(param_value, *) param%DU2M
+               case ("ENERGY")
+                  call io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lenergy = .true.
+               case ("GR")
+                  call io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lgr = .true. 
+               case ("ROTATION")
+                  call io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lrotation = .true. 
+               case ("TIDES")
+                  call io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
+               case ("FIRSTKICK")
+                  call io_toupper(param_value)
+                  if (param_value == "NO" .or. param_value == 'F') param%lfirstkick = .false. 
+               case ("FIRSTENERGY")
+                  call io_toupper(param_value)
+                  if (param_value == "NO" .or. param_value == 'F') param%lfirstenergy = .false. 
+               case("EORBIT_ORIG")
+                  read(param_value, *) param%Eorbit_orig 
+               case("MTOT_ORIG")
+                  read(param_value, *) param%Mtot_orig 
+               case("LTOT_ORIG")
+                  read(param_value, *) param%Ltot_orig(1)
+                  do i = 2, NDIM
+                     ifirst = ilast + 1
+                     param_value = io_get_token(line, ifirst, ilast, iostat) 
+                     read(param_value, *) param%Ltot_orig(i)
+                  end do
+                     param%Lmag_orig = norm2(param%Ltot_orig(:))
+               case("LORBIT_ORIG")
+                  read(param_value, *) param%Lorbit_orig(1)
+                  do i = 2, NDIM
+                     ifirst = ilast + 1
+                     param_value = io_get_token(line, ifirst, ilast, iostat) 
+                     read(param_value, *) param%Lorbit_orig(i)
+                  end do
+               case("LSPIN_ORIG")
+                  read(param_value, *) param%Lspin_orig(1)
+                  do i = 2, NDIM
+                     ifirst = ilast + 1
+                     param_value = io_get_token(line, ifirst, ilast, iostat) 
+                     read(param_value, *) param%Lspin_orig(i)
+                  end do
+               case("LESCAPE")
+                  read(param_value, *) param%Lescape(1)
+                  do i = 2, NDIM
+                     ifirst = ilast + 1
+                     param_value = io_get_token(line, ifirst, ilast, iostat) 
+                     read(param_value, *) param%Lescape(i)
+                  end do
+               case("MESCAPE")
+                  read(param_value, *) param%Mescape 
+               case("ECOLLISIONS")
+                  read(param_value, *) param%Ecollisions
+               case("EUNTRACKED")
+                  read(param_value, *) param%Euntracked
+               case ("NPLMAX", "NTPMAX", "MTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case default
+                  write(iomsg,*) "Unknown parameter -> ",param_name
+                  iostat = -1
+                  return
+               end select
+            end if
+         end do
+         1 continue
+         iostat = 0
+
+         !! Do basic sanity checks on the input values
+         if ((.not. t0_set) .or. (.not. tstop_set) .or. (.not. dt_set)) then
+            write(iomsg,*) 'Valid simulation time not set'
+            iostat = -1
+            return
+         end if
+         if (param%dt <= 0.0_DP) then
+            write(iomsg,*) 'Invalid timestep: '
+            iostat = -1
+            return
+         end if
+         if (param%inplfile == "") then
+            write(iomsg,*) 'No valid massive body file in input file'
+            iostat = -1
+            return
+         end if
+         if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII")) then
+            write(iomsg,*) 'Invalid input file type:',trim(adjustl(param%in_type))
+            iostat = -1
+            return
+         end if
+         if ((param%istep_out <= 0) .and. (param%istep_dump <= 0)) then
+            write(iomsg,*) 'Invalid istep'
+            iostat = -1
+            return
+         end if
+         if ((param%istep_out > 0) .and. (param%outfile == "")) then
+            write(iomsg,*) 'Invalid outfile'
+            iostat = -1
+            return
+         end if
+         if (param%outfile /= "") then
+            if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
+                  (param%out_type /= SWIFTER_REAL4_TYPE)  .and. (param%out_type /= SWIFTER_REAL8_TYPE)) then
+               write(iomsg,*) 'Invalid out_type: ',trim(adjustl(param%out_type))
                iostat = -1
                return
-            end select
-         end if
-      end do
-      1 continue
-      iostat = 0
-
-      !! Do basic sanity checks on the input values
-      if ((.not. t0_set) .or. (.not. tstop_set) .or. (.not. dt_set)) then
-         write(iomsg,*) 'Valid simulation time not set'
-         iostat = -1
-         return
-      end if
-      if (self%dt <= 0.0_DP) then
-         write(iomsg,*) 'Invalid timestep: '
-         iostat = -1
-         return
-      end if
-      if (self%inplfile == "") then
-         write(iomsg,*) 'No valid massive body file in input file'
-         iostat = -1
-         return
-      end if
-      if ((self%in_type /= REAL8_TYPE) .and. (self%in_type /= "ASCII")) then
-         write(iomsg,*) 'Invalid input file type:',trim(adjustl(self%in_type))
-         iostat = -1
-         return
-      end if
-      if ((self%istep_out <= 0) .and. (self%istep_dump <= 0)) then
-         write(iomsg,*) 'Invalid istep'
-         iostat = -1
-         return
-      end if
-      if ((self%istep_out > 0) .and. (self%outfile == "")) then
-         write(iomsg,*) 'Invalid outfile'
-         iostat = -1
-         return
-      end if
-      if (self%outfile /= "") then
-         if ((self%out_type /= REAL4_TYPE) .and. (self%out_type /= REAL8_TYPE) .and. &
-               (self%out_type /= SWIFTER_REAL4_TYPE)  .and. (self%out_type /= SWIFTER_REAL8_TYPE)) then
-            write(iomsg,*) 'Invalid out_type: ',trim(adjustl(self%out_type))
-            iostat = -1
-            return
-         end if
-         if ((self%out_form /= "EL") .and. (self%out_form /= "XV")) then
-            write(iomsg,*) 'Invalid out_form: ',trim(adjustl(self%out_form))
-            iostat = -1
-            return
-         end if
-         if ((self%out_stat /= "NEW") .and. (self%out_stat /= "REPLACE") .and. (self%out_stat /= "APPEND")  .and. (self%out_stat /= "UNKNOWN")) then
-            write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(self%out_stat))
-            iostat = -1
-            return
-         end if
-      end if
-      if (self%qmin > 0.0_DP) then
-         if ((self%qmin_coord /= "HELIO") .and. (self%qmin_coord /= "BARY")) then
-            write(iomsg,*) 'Invalid qmin_coord: ',trim(adjustl(self%qmin_coord))
-            iostat = -1
-            return
-         end if
-         if ((self%qmin_alo <= 0.0_DP) .or. (self%qmin_ahi <= 0.0_DP)) then
-            write(iomsg,*) 'Invalid qmin vals'
-            iostat = -1
-            return
-         end if
-      end if
-      if (self%ltides .and. .not. self%lrotation) then
-         write(iomsg,*) 'Tides require rotation to be turned on'
-         iostat = -1
-         return
-      end if
-
-      write(*,*) "T0             = ",self%t0
-      write(*,*) "TSTOP          = ",self%tstop
-      write(*,*) "DT             = ",self%dt
-      write(*,*) "CB_IN          = ",trim(adjustl(self%incbfile))
-      write(*,*) "PL_IN          = ",trim(adjustl(self%inplfile))
-      write(*,*) "TP_IN          = ",trim(adjustl(self%intpfile))
-      write(*,*) "IN_TYPE        = ",trim(adjustl(self%in_type))
-      write(*,*) "ISTEP_OUT      = ",self%istep_out
-      write(*,*) "BIN_OUT        = ",trim(adjustl(self%outfile))
-      write(*,*) "OUT_TYPE       = ",trim(adjustl(self%out_type))
-      write(*,*) "OUT_FORM       = ",trim(adjustl(self%out_form))
-      write(*,*) "OUT_STAT       = ",trim(adjustl(self%out_stat))
-      write(*,*) "ISTEP_DUMP     = ",self%istep_dump
-      write(*,*) "CHK_CLOSE      = ",self%lclose
-      write(*,*) "CHK_RMIN       = ",self%rmin
-      write(*,*) "CHK_RMAX       = ",self%rmax
-      write(*,*) "CHK_EJECT      = ",self%rmaxu
-      write(*,*) "CHK_QMIN       = ",self%qmin
-      write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(self%qmin_coord))
-      write(*,*) "CHK_QMIN_RANGE = ",self%qmin_alo, self%qmin_ahi
-      write(*,*) "EXTRA_FORCE    = ",self%lextra_force
-      write(*,*) "RHILL_PRESENT  = ",self%lrhill_present
-      write(*,*) "ROTATION      = ", self%lrotation
-      write(*,*) "TIDES         = ", self%ltides
-      write(*,*) "ENERGY         = ",self%lenergy
-      write(*,*) "MU2KG          = ",self%MU2KG       
-      write(*,*) "TU2S           = ",self%TU2S        
-      write(*,*) "DU2M           = ",self%DU2M        
-      if (trim(adjustl(self%enc_out)) /= "") then
-         write(*,*) "ENC_OUT        = ",trim(adjustl(self%enc_out))
-      else
-         write(*,*) "! ENC_OUT not set: Encounters will not be recorded to file"
-      end if
-      if (trim(adjustl(self%discard_out)) /= "") then
-         write(*,*) "DISCARD_OUT    = ",trim(adjustl(self%discard_out))
-         write(*,*) "BIG_DISCARD    = ",self%lbig_discard
-      else
-         write(*,*) "! DISCARD_OUT not set: Discards will not be recorded to file"
-         write(*,*) "! BIG_DISCARD    = ",self%lbig_discard
-      end if
-
-      if ((self%MU2KG < 0.0_DP) .or. (self%TU2S < 0.0_DP) .or. (self%DU2M < 0.0_DP)) then
-         write(iomsg,*) 'Invalid unit conversion factor'
-         iostat = -1
-         return
-      end if
-
-      ! Calculate the G for the system units
-      self%GU = GC / (self%DU2M**3 / (self%MU2KG * self%TU2S**2))
-
-      ! Calculate the inverse speed of light in the system units
-      self%inv_c2 = einsteinC * self%TU2S / self%DU2M
-      self%inv_c2 = (self%inv_c2)**(-2)
-
-      associate(integrator => v_list(1))
-         if (integrator == RMVS) then
-            if (.not.self%lclose) then
-               write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
+            end if
+            if ((param%out_form /= "EL") .and. (param%out_form /= "XV")) then
+               write(iomsg,*) 'Invalid out_form: ',trim(adjustl(param%out_form))
+               iostat = -1
+               return
+            end if
+            if ((param%out_stat /= "NEW") .and. (param%out_stat /= "REPLACE") .and. (param%out_stat /= "APPEND")  .and. (param%out_stat /= "UNKNOWN")) then
+               write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(param%out_stat))
                iostat = -1
                return
             end if
          end if
-   
-         ! Determine if the GR flag is set correctly for this integrator
-         select case(integrator)
-         case(WHM, RMVS, HELIO, SYMBA)
-            write(*,*) "GR             = ", self%lgr
-         case default   
-            if (self%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
-            self%lgr = .false.
-         end select
-      end associate
+         if (param%qmin > 0.0_DP) then
+            if ((param%qmin_coord /= "HELIO") .and. (param%qmin_coord /= "BARY")) then
+               write(iomsg,*) 'Invalid qmin_coord: ',trim(adjustl(param%qmin_coord))
+               iostat = -1
+               return
+            end if
+            if ((param%qmin_alo <= 0.0_DP) .or. (param%qmin_ahi <= 0.0_DP)) then
+               write(iomsg,*) 'Invalid qmin vals'
+               iostat = -1
+               return
+            end if
+         end if
+         if (param%ltides .and. .not. param%lrotation) then
+            write(iomsg,*) 'Tides require rotation to be turned on'
+            iostat = -1
+            return
+         end if
 
-      iostat = 0
+         write(*,*) "T0             = ",param%t0
+         write(*,*) "TSTOP          = ",param%tstop
+         write(*,*) "DT             = ",param%dt
+         write(*,*) "CB_IN          = ",trim(adjustl(param%incbfile))
+         write(*,*) "PL_IN          = ",trim(adjustl(param%inplfile))
+         write(*,*) "TP_IN          = ",trim(adjustl(param%intpfile))
+         write(*,*) "IN_TYPE        = ",trim(adjustl(param%in_type))
+         write(*,*) "ISTEP_OUT      = ",param%istep_out
+         write(*,*) "BIN_OUT        = ",trim(adjustl(param%outfile))
+         write(*,*) "OUT_TYPE       = ",trim(adjustl(param%out_type))
+         write(*,*) "OUT_FORM       = ",trim(adjustl(param%out_form))
+         write(*,*) "OUT_STAT       = ",trim(adjustl(param%out_stat))
+         write(*,*) "ISTEP_DUMP     = ",param%istep_dump
+         write(*,*) "CHK_CLOSE      = ",param%lclose
+         write(*,*) "CHK_RMIN       = ",param%rmin
+         write(*,*) "CHK_RMAX       = ",param%rmax
+         write(*,*) "CHK_EJECT      = ",param%rmaxu
+         write(*,*) "CHK_QMIN       = ",param%qmin
+         write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(param%qmin_coord))
+         write(*,*) "CHK_QMIN_RANGE = ",param%qmin_alo, param%qmin_ahi
+         write(*,*) "EXTRA_FORCE    = ",param%lextra_force
+         write(*,*) "RHILL_PRESENT  = ",param%lrhill_present
+         write(*,*) "ROTATION      = ", param%lrotation
+         write(*,*) "TIDES         = ", param%ltides
+         write(*,*) "ENERGY         = ",param%lenergy
+         write(*,*) "MU2KG          = ",param%MU2KG       
+         write(*,*) "TU2S           = ",param%TU2S        
+         write(*,*) "DU2M           = ",param%DU2M        
+         if (trim(adjustl(param%enc_out)) /= "") then
+            write(*,*) "ENC_OUT        = ",trim(adjustl(param%enc_out))
+         else
+            write(*,*) "! ENC_OUT not set: Encounters will not be recorded to file"
+         end if
+         if (trim(adjustl(param%discard_out)) /= "") then
+            write(*,*) "DISCARD_OUT    = ",trim(adjustl(param%discard_out))
+            write(*,*) "BIG_DISCARD    = ",param%lbig_discard
+         else
+            write(*,*) "! DISCARD_OUT not set: Discards will not be recorded to file"
+            write(*,*) "! BIG_DISCARD    = ",param%lbig_discard
+         end if
+
+         if ((param%MU2KG < 0.0_DP) .or. (param%TU2S < 0.0_DP) .or. (param%DU2M < 0.0_DP)) then
+            write(iomsg,*) 'Invalid unit conversion factor'
+            iostat = -1
+            return
+         end if
+
+         ! Calculate the G for the system units
+         param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
+
+         ! Calculate the inverse speed of light in the system units
+         param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+         param%inv_c2 = (param%inv_c2)**(-2)
+
+         associate(integrator => v_list(1))
+            if (integrator == RMVS) then
+               if (.not.param%lclose) then
+                  write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
+                  iostat = -1
+                  return
+               end if
+            end if
+      
+            ! Determine if the GR flag is set correctly for this integrator
+            select case(integrator)
+            case(WHM, RMVS, HELIO, SYMBA)
+               write(*,*) "GR             = ", param%lgr
+            case default   
+               if (param%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
+               param%lgr = .false.
+            end select
+         end associate
+
+         iostat = 0
+      end associate
 
       return 
    end subroutine io_param_reader
@@ -673,6 +720,24 @@ contains
          write(param_name, Afmt) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+
+         if (param%lenergy) then
+            write(param_name, Afmt) "FIRSTENERGY"; write(param_value, Lfmt) param%lfirstenergy; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "EORBIT_ORIG"; write(param_value, Rfmt) param%Eorbit_orig; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "MTOT_ORIG"; write(param_value, Rfmt) param%Mtot_orig; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(unit, '("LTOT_ORIG  ",3(1X,ES25.17))') param%Ltot_orig(:)
+            write(unit, '("LORBIT_ORIG",3(1X,ES25.17))') param%Lorbit_orig(:)
+            write(unit, '("LSPIN_ORIG ",3(1X,ES25.17))') param%Lspin_orig(:)
+            write(unit, '("LESCAPE ",3(1X,ES25.17))') param%Lescape(:)
+   
+            write(param_name, Afmt) "MESCAPE"; write(param_value, Rfmt) param%Mescape; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "ECOLLISIONS"; write(param_value, Rfmt) param%Ecollisions; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         end if
+         write(param_name, Afmt) "FIRSTKICK"; write(param_value, Lfmt) param%lfirstkick; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+   
+
+
          iostat = 0
          iomsg = "UDIO not implemented"
       end associate

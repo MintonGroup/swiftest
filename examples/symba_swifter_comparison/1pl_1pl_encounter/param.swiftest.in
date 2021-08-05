@@ -24,6 +24,7 @@ EXTRA_FORCE    no
 BIG_DISCARD    no
 DISCARD_OUT    discard.swiftest.out
 ROTATION       no
+ENERGY         yes
 GR             no
 MU2KG          1.988409870698051e+30
 DU2M           149597870700.0

@@ -64,6 +64,11 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM) :: Ltot = 0.0_DP        !! System angular momentum vector
+      real(DP), dimension(NDIM) :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
+      real(DP)                  :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
       logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
 
@@ -271,10 +276,12 @@ module swiftest_classes
       class(swiftest_tp),            allocatable :: tp                   !! Test particle data structure
       class(swiftest_tp),            allocatable :: tp_discards          !! Discarded test particle data structure
       real(DP)                                   :: Gmtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                                   :: ke = 0.0_DP          !! System kinetic energy
+      real(DP)                                   :: ke_orbit = 0.0_DP    !! System orbital kinetic energy
+      real(DP)                                   :: ke_spin = 0.0_DP     !! System spin kinetic energy
       real(DP)                                   :: pe = 0.0_DP          !! System potential energy
       real(DP)                                   :: te = 0.0_DP          !! System total energy
-      real(DP), dimension(NDIM)                  :: Ltot = 0.0_DP        !! System angular momentum vector
+      real(DP), dimension(NDIM)                  :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
+      real(DP), dimension(NDIM)                  :: Lspin = 0.0_DP       !! System spin angular momentum vector
       real(DP), dimension(NDIM)                  :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
       real(DP)                                   :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                                   :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
@@ -282,6 +289,7 @@ module swiftest_classes
       logical                                    :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                                          !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                                          !!    the test particles
+      integer(I4B)                               :: maxid = -1           !! The current maximum particle id number 
    contains
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), deferred :: step
@@ -445,6 +453,31 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
       end subroutine
 
+      module subroutine fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &
+         nfrag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, Qloss, lfailure)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: system
+         class(swiftest_parameters), intent(in)  :: param 
+         integer(I4B), dimension(:), intent(in)  :: family
+         real(DP), dimension(:,:), intent(inout) :: x, v, L_spin, Ip
+         real(DP), dimension(:),   intent(inout) :: mass, radius
+         integer(I4B), intent(inout)             :: nfrag
+         real(DP), dimension(:), allocatable,   intent(inout) :: m_frag, rad_frag
+         real(DP), dimension(:,:), allocatable, intent(inout) :: Ip_frag
+         real(DP), dimension(:,:), allocatable, intent(inout) :: xb_frag, vb_frag, rot_frag
+         logical, intent(out)                    :: lfailure ! Answers the question: Should this have been a merger instead?
+         real(DP), intent(inout)                 :: Qloss
+      end subroutine fragmentation_initialize
+
+      module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)
+         implicit none
+         integer(I4B), intent(out)         :: regime
+         real(DP), intent(out)          :: Mlr, Mslr
+         real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
+         real(DP), dimension(:), intent(in)   :: xh1, xh2, vb1, vb2
+         real(DP), intent(out)          :: Qloss !! The residual energy after the collision 
+      end subroutine fragmentation_regime
+
       module pure subroutine gr_kick_getaccb_ns_body(self, system, param)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
@@ -516,14 +549,14 @@ module swiftest_classes
       module subroutine io_dump_swiftest(self, param, msg) 
          implicit none
          class(swiftest_base),          intent(inout) :: self  !! Swiftest base object
-         class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
          character(*), optional,        intent(in)    :: msg   !! Message to display with dump operation
       end subroutine io_dump_swiftest
 
       module subroutine io_dump_system(self, param, msg)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_parameters),    intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
          character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       end subroutine io_dump_system
 
@@ -949,12 +982,56 @@ module swiftest_classes
    end interface
 
    interface
+      module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
+         use lambda_function
+         implicit none
+         integer(I4B),           intent(in)    :: N
+         class(lambda_obj),      intent(inout) :: f
+         real(DP), dimension(:), intent(in)    :: x0
+         real(DP),               intent(in)    :: eps
+         logical,                intent(out)   :: lerr
+         real(DP), dimension(:), allocatable :: x1
+      end function util_minimize_bfgs
+
       module subroutine util_peri_tp(self, system, param) 
          implicit none
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
+   end interface
+
+   interface util_solve_linear_system
+      module function util_solve_linear_system_d(A,b,n,lerr) result(x)
+         implicit none
+         integer(I4B),             intent(in)  :: n
+         real(DP), dimension(:,:), intent(in)  :: A
+         real(DP), dimension(:),   intent(in)  :: b
+         logical,                  intent(out) :: lerr
+         real(DP), dimension(n)                :: x
+      end function util_solve_linear_system_d
+
+      module function util_solve_linear_system_q(A,b,n,lerr) result(x)
+         implicit none
+         integer(I4B),             intent(in)  :: n
+         real(QP), dimension(:,:), intent(in)  :: A
+         real(QP), dimension(:),   intent(in)  :: b
+         logical,                  intent(out) :: lerr
+         real(QP), dimension(n)                :: x
+      end function util_solve_linear_system_q
+   end interface
+
+   interface
+      module function util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
+         use lambda_function
+         implicit none
+         class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
+         real(DP), dimension(:), intent(in)    :: y0in !! Initial value at t=0
+         real(DP),               intent(in)    :: t1   !! Final time
+         real(DP),               intent(in)    :: dt0  !! Initial step size guess
+         real(DP),               intent(in)    :: tol  !! Tolerance on solution
+         real(DP), dimension(:), allocatable   :: y1  !! Final result
+      end function util_solve_rkf45
    end interface
 
    interface util_resize
@@ -1014,15 +1091,10 @@ module swiftest_classes
          integer(I4B),       intent(in)    :: nnew !! New size neded
       end subroutine util_resize_tp
 
-      module subroutine util_get_energy_momentum_system(self, param, ke_orbit, ke_spin, pe, Lorbit, Lspin)
+      module subroutine util_get_energy_momentum_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
-         real(DP),                     intent(out)   :: ke_orbit !! Orbital kinetic energy
-         real(DP),                     intent(out)   :: ke_spin  !! Spin kinetic energy
-         real(DP),                     intent(out)   :: pe       !! Potential energy
-         real(DP), dimension(:),       intent(out)   :: Lorbit   !! Orbital angular momentum
-         real(DP), dimension(:),       intent(out)   :: Lspin    !! Spin angular momentum
       end subroutine util_get_energy_momentum_system
 
       module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
