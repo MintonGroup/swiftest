@@ -803,8 +803,8 @@ contains
                select type (self)
                class is (swiftest_pl)
                   if (param%lrotation) then
-                     read(iu, iostat=ierr, err=100) self%Ip(:, i)
-                     read(iu, iostat=ierr, err=100) self%rot(:, i)
+                     read(iu, iostat=ierr, err=100) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
+                     read(iu, iostat=ierr, err=100) self%rot(1, i), self%rot(2, i), self%rot(3, i)
                   end if
                   if (param%ltides) then
                      read(iu, iostat=ierr, err=100) self%k2(i)
