@@ -128,6 +128,7 @@ contains
       call self%pl%initialize(param)
       call self%tp%initialize(param)
       call util_valid(self%pl, self%tp)
+      self%maxid = maxval([self%pl%id(:), self%tp%id(:)])
       call self%set_msys()
       call self%pl%set_mu(self%cb) 
       call self%tp%set_mu(self%cb) 

@@ -289,6 +289,7 @@ module swiftest_classes
       logical                                    :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                                          !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                                          !!    the test particles
+      integer(I4B)                               :: maxid = -1           !! The current maximum particle id number 
    contains
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), deferred :: step
