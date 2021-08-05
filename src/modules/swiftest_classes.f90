@@ -452,6 +452,15 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
       end subroutine
 
+      module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)
+         implicit none
+         integer(I4B), intent(out)         :: regime
+         real(DP), intent(out)          :: Mlr, Mslr
+         real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
+         real(DP), dimension(:), intent(in)   :: xh1, xh2, vb1, vb2
+         real(DP), intent(out)          :: Qloss !! The residual energy after the collision 
+      end subroutine fragmentation_regime
+
       module pure subroutine gr_kick_getaccb_ns_body(self, system, param)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object

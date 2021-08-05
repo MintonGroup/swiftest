@@ -408,6 +408,68 @@ contains
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
       class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
       ! Internals
+      ! Internals
+      integer(I4B), dimension(:),     allocatable :: family           !! List of indices of all bodies inovlved in the collision
+      integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
+      real(DP),     dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
+      real(DP),     dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
+      logical                                     :: lgoodcollision
+      integer(I4B)                                :: i, status, jtarg, jproj, regime
+      real(DP), dimension(2)                      :: radius_si, mass_si, density_si
+      real(DP)                                    :: mtiny_si, Mcb_si
+      real(DP), dimension(NDIM)                   :: x1_si, v1_si, x2_si, v2_si
+      real(DP)                                    :: mlr, mslr, mtot, dentot, msys, msys_new, Qloss, impact_parameter
+      integer(I4B), parameter                     :: NRES = 3   !! Number of collisional product results
+      real(DP), dimension(NRES)                   :: mass_res
+
+      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, cb => system%cb)
+         select type(pl => system%pl)
+         class is (symba_pl)
+            do i = 1, ncollisions
+               idx_parent(1) = pl%kin(idx1(i))%parent
+               idx_parent(2) = pl%kin(idx2(i))%parent
+               lgoodcollision = symba_collision_consolidate_familes(pl, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
+               if (.not. lgoodcollision) cycle
+               if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
+
+               ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them 
+               ! to symba_regime
+               if (mass(1) > mass(2)) then
+                  jtarg = 1
+                  jproj = 2
+               else
+                  jtarg = 2
+                  jproj = 1
+               end if
+               mass_si(:)    = (mass(:)) * param%MU2KG                              !! The collective mass of the parent and its children
+               radius_si(:)  = radius(:) * param%DU2M                               !! The collective radius of the parent and its children
+               x1_si(:)      = plpl_collisions%x1(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
+               v1_si(:)      = plpl_collisions%v1(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
+               x2_si(:)      = plpl_collisions%x2(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
+               v2_si(:)      = plpl_collisions%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
+               density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The collective density of the parent and its children
+               Mcb_si        = cb%mass * param%MU2KG 
+               mtiny_si      = (param%MTINY / param%GU) * param%MU2KG
+            
+               mass_res(:) = 0.0_DP
+         
+               mtot = sum(mass_si(:)) 
+               dentot = sum(mass_si(:) * density_si(:)) / mtot 
+
+               !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
+               call fragmentation_regime(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), x1_si(:), x2_si(:),& 
+                     v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), regime, mlr, mslr, mtiny_si, Qloss)
+
+               mass_res(1) = min(max(mlr, 0.0_DP), mtot)
+               mass_res(2) = min(max(mslr, 0.0_DP), mtot)
+               mass_res(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
+               mass_res(:) = (mass_res(:) / param%MU2KG) * param%GU
+               Qloss = Qloss * (param%GU / param%MU2KG) * (param%TU2S / param%DU2M)**2
+
+               !status = symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+            end do
+         end select
+      end associate
 
       return
    end subroutine symba_collision_resolve_fragmentations
