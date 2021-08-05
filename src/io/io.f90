@@ -794,6 +794,7 @@ contains
                   end if
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
+                  if (param%lclose) read(iu, *, iostat=ierr, err=100) self%radius(i)
                class is (swiftest_tp)
                   read(iu, *, iostat=ierr, err=100) self%id(i)
                end select
@@ -801,7 +802,6 @@ contains
                read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                select type (self)
                class is (swiftest_pl)
-                  if (param%lclose) read(iu, *, iostat=ierr, err=100) self%radius(i)
                   if (param%lrotation) then
                      read(iu, iostat=ierr, err=100) self%Ip(:, i)
                      read(iu, iostat=ierr, err=100) self%rot(:, i)
