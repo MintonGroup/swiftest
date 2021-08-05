@@ -866,6 +866,10 @@ contains
          read(iu, *, iostat = ierr) self%radius
          read(iu, *, iostat = ierr) self%j2rp2
          read(iu, *, iostat = ierr) self%j4rp4
+         if (param%lrotation) then
+            read(iu, *, iostat = ierr) self%Ip
+            read(iu, *, iostat = ierr) self%rot
+         end if
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
          call self%read_frame(iu, param, XV, ierr)
