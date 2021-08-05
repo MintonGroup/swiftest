@@ -45,8 +45,9 @@ module swiftest_classes
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
+      character(STRMAX)    :: ennergy_out    = ""                 !! Name of output energy and momentum report file
 
-      !Logical flags to turn on or off various features of the code
+      ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
@@ -55,6 +56,16 @@ module swiftest_classes
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
+
+      ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
+      real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
+      real(DP)                  :: Mtot_orig = 0.0_DP     !! Initial system mass
+      real(DP)                  :: Lmag_orig = 0.0_DP     !! Initial total angular momentum magnitude
+      real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
+      real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
+      real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
+      logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
+      logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
@@ -259,7 +270,7 @@ module swiftest_classes
       class(swiftest_pl),            allocatable :: pl                   !! Massive body data structure
       class(swiftest_tp),            allocatable :: tp                   !! Test particle data structure
       class(swiftest_tp),            allocatable :: tp_discards          !! Discarded test particle data structure
-      real(DP)                                   :: Gmtot = 0.0_DP        !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                                   :: Gmtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
       real(DP)                                   :: ke = 0.0_DP          !! System kinetic energy
       real(DP)                                   :: pe = 0.0_DP          !! System potential energy
       real(DP)                                   :: te = 0.0_DP          !! System total energy
@@ -276,14 +287,16 @@ module swiftest_classes
       procedure(abstract_step_system), deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure :: discard       => discard_system          !! Perform a discard step on the system
-      procedure :: dump          => io_dump_system          !! Dump the state of the system to a file
-      procedure :: read_frame    => io_read_frame_system    !! Read in a frame of input data from file
-      procedure :: write_discard => io_write_discard        !! Write out information about discarded test particles
-      procedure :: write_frame   => io_write_frame_system   !! Append a frame of output data to file
-      procedure :: initialize    => setup_initialize_system !! Initialize the system from input files
-      procedure :: step_spin     => tides_step_spin_system  !! Steps the spins of the massive & central bodies due to tides.
-      procedure :: set_msys      => util_set_msys           !! Sets the value of msys from the masses of system bodies.
+      procedure :: discard                 => discard_system                  !! Perform a discard step on the system
+      procedure :: conservation_report     => io_conservation_report          !! Compute energy and momentum and print out the change with time
+      procedure :: dump                    => io_dump_system                  !! Dump the state of the system to a file
+      procedure :: read_frame              => io_read_frame_system            !! Read in a frame of input data from file
+      procedure :: write_discard           => io_write_discard                !! Write out information about discarded test particles
+      procedure :: write_frame             => io_write_frame_system           !! Append a frame of output data to file
+      procedure :: initialize              => setup_initialize_system         !! Initialize the system from input files
+      procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
+      procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
+      procedure :: get_energy_and_momentum => util_get_energy_momentum_system !! Calculates the total system energy and momentum
    end type swiftest_nbody_system
 
    type :: swiftest_encounter
@@ -487,6 +500,13 @@ module swiftest_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine gr_vh2pv_body
 
+      module subroutine io_conservation_report(self, param, lterminal)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self      !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param     !! Input colleciton of user-defined parameters
+         logical,                      intent(in)    :: lterminal !! Indicates whether to output information to the terminal screen
+      end subroutine io_conservation_report
+
       module subroutine io_dump_param(self, param_file_name)
          implicit none
          class(swiftest_parameters),intent(in)    :: self            !! Output collection of parameters
@@ -661,6 +681,17 @@ module swiftest_classes
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       end subroutine obl_acc_tp
+
+      module subroutine obl_pot(npl, Mcb, Mpl, j2rp2, j4rp4, xh, irh, oblpot)
+         implicit none
+         integer(I4B), intent(in) :: npl
+         real(DP), intent(in) :: Mcb
+         real(DP), dimension(:), intent(in) :: Mpl
+         real(DP), intent(in) :: j2rp2, j4rp4
+         real(DP), dimension(:), intent(in)         :: irh
+         real(DP), dimension(:, :), intent(in)      :: xh
+         real(DP), intent(out)                      :: oblpot
+      end subroutine obl_pot
 
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none
@@ -982,6 +1013,17 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          integer(I4B),       intent(in)    :: nnew !! New size neded
       end subroutine util_resize_tp
+
+      module subroutine util_get_energy_momentum_system(self, param, ke_orbit, ke_spin, pe, Lorbit, Lspin)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
+         real(DP),                     intent(out)   :: ke_orbit !! Orbital kinetic energy
+         real(DP),                     intent(out)   :: ke_spin  !! Spin kinetic energy
+         real(DP),                     intent(out)   :: pe       !! Potential energy
+         real(DP), dimension(:),       intent(out)   :: Lorbit   !! Orbital angular momentum
+         real(DP), dimension(:),       intent(out)   :: Lspin    !! Spin angular momentum
+      end subroutine util_get_energy_momentum_system
 
       module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
          implicit none
