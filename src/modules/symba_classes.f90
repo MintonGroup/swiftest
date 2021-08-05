@@ -296,7 +296,7 @@ module symba_classes
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_particle_info), intent(inout) :: self  !! Swiftest base object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
          character(*), optional,     intent(in)    :: msg   !! Message to display with dump operation
       end subroutine symba_io_dump_particle_info
    

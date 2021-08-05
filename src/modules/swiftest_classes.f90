@@ -516,14 +516,14 @@ module swiftest_classes
       module subroutine io_dump_swiftest(self, param, msg) 
          implicit none
          class(swiftest_base),          intent(inout) :: self  !! Swiftest base object
-         class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
          character(*), optional,        intent(in)    :: msg   !! Message to display with dump operation
       end subroutine io_dump_swiftest
 
       module subroutine io_dump_system(self, param, msg)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
-         class(swiftest_parameters),    intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
          character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       end subroutine io_dump_system
 

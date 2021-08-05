@@ -70,10 +70,6 @@ contains
                write(*,*) 'dpe      : ',(pe_now - pe_last) / abs(Eorbit_orig)
                write(*,*)
             end if
-            if (Lerror > 1e-6) then
-               write(*,*) 'Something has gone wrong! Angular momentum is too high!'
-               write(*,*) 'Lerror: ', Lerror
-            end if
          end if
          ke_orbit_last = ke_orbit_now
          ke_spin_last = ke_spin_now
@@ -135,7 +131,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       character(*), optional,     intent(in)    :: msg  !! Message to display with dump operation
       ! Internals
       integer(I4B)                   :: ierr    !! Error code
@@ -173,7 +169,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       character(*), optional,       intent(in)    :: msg   !! Message to display with dump operation
       ! Internals
       class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
@@ -203,6 +199,7 @@ contains
       ! Print the status message (format code passed in from main driver)
       tfrac = (param%t - param%t0) / (param%tstop - param%t0)
       write(*,msg) param%t, tfrac, self%pl%nbody, self%tp%nbody
+      if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       return
    end subroutine io_dump_system
