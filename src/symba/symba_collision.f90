@@ -466,7 +466,19 @@ contains
                mass_res(:) = (mass_res(:) / param%MU2KG) * param%GU
                Qloss = Qloss * (param%GU / param%MU2KG) * (param%TU2S / param%DU2M)**2
 
-               !status = symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+               select case (regime)
+               case (COLLRESOLVE_REGIME_DISRUPTION)
+                  !status = symba_fragmentation_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+               case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+                  !status = symba_fragmentation_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+               case (COLLRESOLVE_REGIME_HIT_AND_RUN)
+                  !status = symba_fragmentation_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+               case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+                  status = symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+               case default 
+                  write(*,*) "Error in symba_collision, unrecognized collision regime"
+                  call util_exit(FAILURE)
+               end select
             end do
          end select
       end associate
