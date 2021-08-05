@@ -453,6 +453,22 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
       end subroutine
 
+      module subroutine fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &
+         nfrag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, Qloss, lfailure)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: system
+         class(swiftest_parameters), intent(in)  :: param 
+         integer(I4B), dimension(:), intent(in)  :: family
+         real(DP), dimension(:,:), intent(inout) :: x, v, L_spin, Ip
+         real(DP), dimension(:),   intent(inout) :: mass, radius
+         integer(I4B), intent(inout)             :: nfrag
+         real(DP), dimension(:), allocatable,   intent(inout) :: m_frag, rad_frag
+         real(DP), dimension(:,:), allocatable, intent(inout) :: Ip_frag
+         real(DP), dimension(:,:), allocatable, intent(inout) :: xb_frag, vb_frag, rot_frag
+         logical, intent(out)                    :: lfailure ! Answers the question: Should this have been a merger instead?
+         real(DP), intent(inout)                 :: Qloss
+      end subroutine fragmentation_initialize
+
       module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)
          implicit none
          integer(I4B), intent(out)         :: regime

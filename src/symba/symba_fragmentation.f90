@@ -73,8 +73,8 @@ contains
                Ip_frag(:, i) = Ip_new(:)
             end do
          
-            !call fragmentation_initialize(pl, param, family, x, v, L_spin, Ip, mass, radius, &
-            !                              nfrag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, Qloss, lfailure)
+            call fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &
+                                          nfrag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, Qloss, lfailure)
          
             if (lfailure) then
                write(*,*) 'No fragment solution found, so treat as a pure hit-and-run'
@@ -83,6 +83,7 @@ contains
             else
                ! Populate the list of new bodies
                write(*,'("Generating ",I2.0," fragments")') nfrag
+               status = DISRUPTION
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
     
@@ -309,8 +310,112 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
+      integer(I4B)                            :: i, nfrag, ibiggest, nstart, nend
+      real(DP)                                :: mtot, avg_dens, min_frag_mass
+      real(DP), dimension(NDIM)               :: xcom, vcom
+      real(DP), dimension(2)                  :: vol
+      real(DP), dimension(NDIM)               :: Ip_new
+      real(DP), dimension(:, :), allocatable  :: vb_frag, xb_frag, rot_frag, Ip_frag
+      real(DP), dimension(:), allocatable     :: m_frag, rad_frag
+      logical                                 :: lfailure
+      class(symba_pl), allocatable            :: plnew
+    
+      select type(pl => system%pl)
+      class is (symba_pl)
+         associate(mergeadd_list => system%mergeadd_list, mergesub_list => system%mergesub_list, cb => system%cb)
+            ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
+            nfrag = NFRAG_SUPERCAT
+            allocate(m_frag(nfrag))
+            allocate(rad_frag(nfrag))
+            allocate(xb_frag(NDIM, nfrag))
+            allocate(vb_frag(NDIM, nfrag))
+            allocate(rot_frag(NDIM, nfrag))
+            allocate(Ip_frag(NDIM, nfrag))
+         
+            mtot = sum(mass(:))
+            xcom(:) = (mass(1) * x(:,1) + mass(2) * x(:,2)) / mtot
+            vcom(:) = (mass(1) * v(:,1) + mass(2) * v(:,2)) / mtot
+         
+            ! Get mass weighted mean of Ip and average density
+            Ip_new(:) = (mass(1) * Ip(:,1) + mass(2) * Ip(:,2)) / mtot
+            vol(:) = 4._DP / 3._DP * pi * radius(:)**3
+            avg_dens = mtot / sum(vol(:))
+         
+            ! If we are adding the first and largest fragment (lr), check to see if its mass is SMALLER than an equal distribution of 
+            ! mass between all fragments. If so, we will just distribute the mass equally between the fragments
+            min_frag_mass = mtot / nfrag
+            if (mass_res(1) < min_frag_mass) then
+               m_frag(:) = min_frag_mass
+            else
+               m_frag(1) = mass_res(1)
+               m_frag(2:nfrag) = (mtot - mass_res(1)) / (nfrag - 1)
+            end if
+            ! Distribute any residual mass if there is any and set the radius
+            m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
+            rad_frag(:) = (3 * m_frag(:) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
+         
+            do i = 1, nfrag
+               Ip_frag(:, i) = Ip_new(:)
+            end do
 
-      status = SUPERCATASTROPHIC
+            call fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &
+                                          nfrag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, Qloss, lfailure)
+         
+            if (lfailure) then
+               write(*,*) 'No fragment solution found, so treat as a pure hit-and-run'
+               status = ACTIVE 
+               nfrag = 0
+            else
+               ! Populate the list of new bodies
+               write(*,'("Generating ",I2.0," fragments")') nfrag
+               status = SUPERCATASTROPHIC
+               allocate(plnew, mold=pl)
+               call plnew%setup(nfrag, param)
+    
+               plnew%id(:) = [(i, i = system%maxid + 1, system%maxid + nfrag)]
+               system%maxid = system%maxid + nfrag
+               plnew%status(:) = ACTIVE
+               plnew%lcollision(:) = .false.
+               plnew%ldiscard(:) = .false.
+               plnew%xb(:,:) = xb_frag(:, :) 
+               plnew%vb(:,:) = vb_frag(:, :)
+               do i = 1, nfrag
+                  plnew%xh(:,i) = xb_frag(:, i) - cb%xb(:)
+                  plnew%vh(:,i) = vb_frag(:, i) - cb%vb(:)
+               end do
+               plnew%mass(:) = m_frag(:)
+               plnew%Gmass(:) = param%GU * m_frag(:)
+               plnew%density(:) = avg_dens
+               plnew%radius(:) = rad_frag(:)
+               plnew%info(:)%origin_type = "Disruption"
+               plnew%info(:)%origin_time = param%t
+               do i = 1, nfrag
+                  plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
+                  plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
+               end do
+               if (param%lrotation) then
+                  plnew%Ip(:,:) = Ip_frag(:,:)
+                  plnew%rot(:,:) = rot_frag(:,:)
+               end if
+               if (param%ltides) then
+                  ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
+                  plnew%Q = pl%Q(ibiggest)
+                  plnew%k2 = pl%k2(ibiggest)
+                  plnew%tlag = pl%tlag(ibiggest)
+               end if
+   
+               ! Append the new merged body to the list and record how many we made
+               nstart = mergeadd_list%nbody + 1
+               nend = mergeadd_list%nbody + plnew%nbody
+               call mergeadd_list%append(plnew)
+               mergeadd_list%ncomp(nstart:nend) = plnew%nbody
+    
+               call plnew%setup(0, param)
+               deallocate(plnew)
+            end if
+
+         end associate
+      end select
 
       return
    end function symba_fragmentation_casesupercatastrophic

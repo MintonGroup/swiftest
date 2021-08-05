@@ -2,7 +2,7 @@ submodule(swiftest_classes) s_fragmentation
    use swiftest
 contains
 
-   subroutine fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &
+   module subroutine fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &
                            nfrag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, Qloss, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
