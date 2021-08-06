@@ -984,7 +984,7 @@ contains
             read(iu, iostat=ierr, err=100) pl%Gmass(:)
             pl%mass(:) = pl%Gmass(:) / param%GU 
             if (param%lrhill_present) read(iu, iostat=ierr, err=100) pl%rhill(:)
-            read(iu, iostat=ierr, err=100) pl%radius(:)
+            if (param%lclose) read(iu, iostat=ierr, err=100) pl%radius(:)
             if (param%lrotation) then
                read(iu, iostat=ierr, err=100) pl%rot(1, :)
                read(iu, iostat=ierr, err=100) pl%rot(2, :)
@@ -1347,8 +1347,8 @@ contains
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu) pl%Gmass(1:n)
-            write(iu) pl%rhill(1:n)
-            write(iu) pl%radius(1:n)
+            if (param%lrhill_present) write(iu) pl%rhill(1:n)
+            if (param%lclose) write(iu) pl%radius(1:n)
             if (param%lrotation) then
                write(iu) pl%Ip(1, 1:n)
                write(iu) pl%Ip(2, 1:n)
