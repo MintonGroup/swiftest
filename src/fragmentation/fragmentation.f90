@@ -336,15 +336,11 @@ contains
             call setup_construct_system(tmpsys, param)
             deallocate(tmpsys%cb)
             allocate(tmpsys%cb, source=cb)
-            allocate(ltmp, mold=pl%ldiscard)
+            allocate(ltmp(npl_new))
             ltmp(:) = .false.
             ltmp(1:npl) = .true.
-            write(*,*) 'npl    : ',npl
-            write(*,*) 'npl_new: ',npl_new
-            write(*,*) 'ltmp: ',ltmp
             call tmpsys%pl%setup(npl_new, param)
             call tmpsys%pl%fill(pl, ltmp)
-            deallocate(ltmp)
       
             if (linclude_fragments) then ! Append the fragments if they are included
                ! Energy calculation requires the fragments to be in the system barcyentric frame, s
@@ -359,7 +355,6 @@ contains
                   tmpsys%pl%rot(:,npl+1:npl_new) = rot_frag(:,1:nfrag)
                end if
                call tmpsys%pl%b2h(tmpsys%cb)
-               allocate(ltmp(npl_new))
                ltmp(1:npl) = lexclude(1:npl)
                ltmp(npl+1:npl_new) = .false.
                call move_alloc(ltmp, lexclude)
