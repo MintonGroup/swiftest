@@ -19,6 +19,7 @@ swiftest_pl    = "pl.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
 swiftest_bin   = "bin.swiftest.dat"
 swiftest_enc   = "enc.swiftest.dat"
+swiftest_dis  = "discard.swiftest.dat"
 
 sim = swiftest.Simulation()
 
@@ -125,6 +126,7 @@ sim.param['TP_IN'] = tpin
 sim.param['CB_IN'] = swiftest_cb
 sim.param['BIN_OUT'] = swiftest_bin
 sim.param['ENC_OUT'] = swiftest_enc
+sim.param['DISCARD_OUT'] = swiftest_dis  
 sim.save(swiftest_input)
 
 sim.param['PL_IN'] = swifter_pl
