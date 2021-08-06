@@ -37,6 +37,7 @@ contains
          Lplspiny(:) = 0.0_DP
          Lplspinz(:) = 0.0_DP
          lstatus(1:npl) = pl%status(1:npl) /= INACTIVE
+         call pl%h2b(cb)
          !!$omp simd private(v2, rot2, hx, hy, hz)
          do i = 1, npl
             v2 = dot_product(pl%vb(:,i), pl%vb(:,i))
@@ -82,7 +83,7 @@ contains
          ! Do the potential energy between pairs of massive bodies
          do k = 1, pl%nplpl
             associate(ik => pl%k_plpl(1, k), jk => pl%k_plpl(2, k))
-               pepl(k) = -pl%mass(ik) * pl%mass(jk) / norm2(pl%xb(:, jk) - pl%xb(:, ik)) 
+               pepl(k) = -pl%mass(ik) * pl%mass(jk) / norm2(pl%xh(:, jk) - pl%xh(:, ik)) 
                lstatpl(k) = (lstatus(ik) .and. lstatus(jk))
             end associate
          end do
