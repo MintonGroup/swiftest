@@ -1266,6 +1266,7 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     swifter_param = swiftest_param
     CBIN = swifter_param.pop("CB_IN", None)
     MTINY = swifter_param.pop("MTINY", None)
+    DISCARD_OUT = swifter_param.pop("DISCARD_OUT", None)
     MU2KG = swifter_param.pop("MU2KG", 1.0)
     DU2M = swifter_param.pop("DU2M", 1.0)
     TU2S = swifter_param.pop("TU2S", 1.0)
