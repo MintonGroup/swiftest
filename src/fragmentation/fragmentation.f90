@@ -10,17 +10,17 @@ contains
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: system
-      class(swiftest_parameters), intent(in)  :: param 
-      integer(I4B), dimension(:), intent(in)  :: family
-      real(DP), dimension(:,:), intent(inout) :: x, v, L_spin, Ip
-      real(DP), dimension(:),   intent(inout) :: mass, radius
-      integer(I4B), intent(inout)             :: nfrag
-      real(DP), dimension(:), allocatable,   intent(inout) :: m_frag, rad_frag
-      real(DP), dimension(:,:), allocatable, intent(inout) :: Ip_frag
-      real(DP), dimension(:,:), allocatable, intent(inout) :: xb_frag, vb_frag, rot_frag
-      logical, intent(out)                    :: lfailure ! Answers the question: Should this have been a merger instead?
-      real(DP), intent(inout)                 :: Qloss
+      class(swiftest_nbody_system),                              intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),                                intent(in)    :: param  !! Current run configuration parameters 
+      integer(I4B),                 dimension(:),                intent(in)    :: family !! Index of bodies involved in the collision
+      real(DP),                     dimension(:,:),              intent(inout) :: x, v, L_spin, Ip !! Two-body equivalent position, vector, spin momentum, and rotational inertia values for the collision
+      real(DP),                     dimension(:),                intent(inout) :: mass, radius     !! Two-body equivalent mass and radii for the bodies in the collision
+      integer(I4B),                                              intent(inout) :: nfrag            !! Number of fragments to generate
+      real(DP),                     dimension(:),   allocatable, intent(inout) :: m_frag, rad_frag !! Distribution of fragment mass and radii
+      real(DP),                     dimension(:,:), allocatable, intent(inout) :: Ip_frag          !! Fragment rotational inertia vectors
+      real(DP),                     dimension(:,:), allocatable, intent(inout) :: xb_frag, vb_frag, rot_frag !! Fragment barycentric position, barycentric velocity, and rotation vectors
+      real(DP),                                                  intent(inout) :: Qloss !! Energy lost during the collision
+      logical,                                                   intent(out)   :: lfailure !! Answers the question: Should this have been a merger instead?
       ! Internals
       real(DP)                                :: mscale, rscale, vscale, tscale, Lscale, Escale ! Scale factors that reduce quantities to O(~1) in the collisional system
       real(DP)                                :: mtot 
@@ -856,7 +856,7 @@ contains
       ! Arguments
       integer(I4B), intent(out)         :: regime
       real(DP), intent(out)          :: Mlr, Mslr
-      real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, Gmtiny 
+      real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
       real(DP), dimension(:), intent(in)   :: xh1, xh2, vb1, vb2
       real(DP), intent(out)          :: Qloss !! The residual energy after the collision 
       ! Constants
