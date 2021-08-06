@@ -306,6 +306,7 @@ module swiftest_classes
       procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system !! Calculates the total system energy and momentum
+      procedure :: validate_ids            => util_valid_id_system            !! Validate the numerical ids passed to the system and save the maximum value
    end type swiftest_nbody_system
 
    type :: swiftest_encounter
@@ -1292,11 +1293,11 @@ module swiftest_classes
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_tp
 
-      module subroutine util_valid(pl, tp)
+      module subroutine util_valid_id_system(self, param)
          implicit none
-         class(swiftest_pl), intent(in) :: pl
-         class(swiftest_tp), intent(in) :: tp
-      end subroutine util_valid
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+      end subroutine util_valid_id_system
 
       module subroutine util_version()
          implicit none

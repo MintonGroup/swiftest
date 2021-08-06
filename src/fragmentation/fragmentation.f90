@@ -336,8 +336,12 @@ contains
             call setup_construct_system(tmpsys, param)
             deallocate(tmpsys%cb)
             allocate(tmpsys%cb, source=cb)
-            allocate(ltmp(npl))
-            ltmp(:) = .true.
+            allocate(ltmp, mold=pl%ldiscard)
+            ltmp(:) = .false.
+            ltmp(1:npl) = .true.
+            write(*,*) 'npl    : ',npl
+            write(*,*) 'npl_new: ',npl_new
+            write(*,*) 'ltmp: ',ltmp
             call tmpsys%pl%setup(npl_new, param)
             call tmpsys%pl%fill(pl, ltmp)
             deallocate(ltmp)
