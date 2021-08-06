@@ -32,4 +32,4 @@ ROTATION         NO
 TIDES            NO
 ENERGY           NO
 GR               NO
-MTINY            1e-12
+GMTINY           1e-12

@@ -10,17 +10,17 @@ contains
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: system
-      class(swiftest_parameters), intent(in)  :: param 
-      integer(I4B), dimension(:), intent(in)  :: family
-      real(DP), dimension(:,:), intent(inout) :: x, v, L_spin, Ip
-      real(DP), dimension(:),   intent(inout) :: mass, radius
-      integer(I4B), intent(inout)             :: nfrag
-      real(DP), dimension(:), allocatable,   intent(inout) :: m_frag, rad_frag
-      real(DP), dimension(:,:), allocatable, intent(inout) :: Ip_frag
-      real(DP), dimension(:,:), allocatable, intent(inout) :: xb_frag, vb_frag, rot_frag
-      logical, intent(out)                    :: lfailure ! Answers the question: Should this have been a merger instead?
-      real(DP), intent(inout)                 :: Qloss
+      class(swiftest_nbody_system),                              intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),                                intent(in)    :: param  !! Current run configuration parameters 
+      integer(I4B),                 dimension(:),                intent(in)    :: family !! Index of bodies involved in the collision
+      real(DP),                     dimension(:,:),              intent(inout) :: x, v, L_spin, Ip !! Two-body equivalent position, vector, spin momentum, and rotational inertia values for the collision
+      real(DP),                     dimension(:),                intent(inout) :: mass, radius     !! Two-body equivalent mass and radii for the bodies in the collision
+      integer(I4B),                                              intent(inout) :: nfrag            !! Number of fragments to generate
+      real(DP),                     dimension(:),   allocatable, intent(inout) :: m_frag, rad_frag !! Distribution of fragment mass and radii
+      real(DP),                     dimension(:,:), allocatable, intent(inout) :: Ip_frag          !! Fragment rotational inertia vectors
+      real(DP),                     dimension(:,:), allocatable, intent(inout) :: xb_frag, vb_frag, rot_frag !! Fragment barycentric position, barycentric velocity, and rotation vectors
+      real(DP),                                                  intent(inout) :: Qloss !! Energy lost during the collision
+      logical,                                                   intent(out)   :: lfailure !! Answers the question: Should this have been a merger instead?
       ! Internals
       real(DP)                                :: mscale, rscale, vscale, tscale, Lscale, Escale ! Scale factors that reduce quantities to O(~1) in the collisional system
       real(DP)                                :: mtot 
@@ -165,10 +165,9 @@ contains
          vcom(:) = (mass(1) * v(:,1) + mass(2) * v(:,2)) / mtot
 
          ! Set scale factors
-         !! Because of the implied G, mass is actually G*mass with units of distance**3 / time**2
          Escale = 0.5_DP * (mass(1) * dot_product(v(:,1), v(:,1)) + mass(2) * dot_product(v(:,2), v(:,2)))
          rscale = sum(radius(:))
-         mscale = sqrt(Escale * rscale) 
+         mscale = sqrt(Escale * rscale / param%GU) 
          vscale = sqrt(Escale / mscale) 
          tscale = rscale / vscale 
          Lscale = mscale * rscale * vscale
@@ -337,15 +336,16 @@ contains
             call setup_construct_system(tmpsys, param)
             deallocate(tmpsys%cb)
             allocate(tmpsys%cb, source=cb)
-            allocate(ltmp(npl))
-            ltmp(:) = .true.
+            allocate(ltmp(npl_new))
+            ltmp(:) = .false.
+            ltmp(1:npl) = .true.
             call tmpsys%pl%setup(npl_new, param)
             call tmpsys%pl%fill(pl, ltmp)
-            deallocate(ltmp)
       
             if (linclude_fragments) then ! Append the fragments if they are included
                ! Energy calculation requires the fragments to be in the system barcyentric frame, s
                tmpsys%pl%mass(npl+1:npl_new) = m_frag(1:nfrag)
+               tmpsys%pl%Gmass(npl+1:npl_new) = param%GU * m_frag(1:nfrag)
                tmpsys%pl%radius(npl+1:npl_new) = rad_frag(1:nfrag)
                tmpsys%pl%xb(:,npl+1:npl_new) =  xb_frag(:,1:nfrag)
                tmpsys%pl%vb(:,npl+1:npl_new) =  vb_frag(:,1:nfrag)
@@ -355,7 +355,6 @@ contains
                   tmpsys%pl%rot(:,npl+1:npl_new) = rot_frag(:,1:nfrag)
                end if
                call tmpsys%pl%b2h(tmpsys%cb)
-               allocate(ltmp(npl_new))
                ltmp(1:npl) = lexclude(1:npl)
                ltmp(npl+1:npl_new) = .false.
                call move_alloc(ltmp, lexclude)
@@ -369,7 +368,7 @@ contains
             class is (symba_pl)
                select type(param)
                class is (symba_parameters)
-                  plwksp%nplm = count(plwksp%Gmass > param%mtiny / mscale)
+                  plwksp%nplm = count(plwksp%Gmass > param%Gmtiny / mscale)
                end select
             end select
             call tmpsys%pl%eucl_index()
@@ -381,7 +380,7 @@ contains
             class is (symba_pl)
                select type(param)
                class is (symba_parameters)
-                  nplm = count(pl%mass > param%mtiny)
+                  nplm = count(pl%Gmass > param%Gmtiny)
                end select
             end select
             if (lk_plpl) call pl%eucl_index()
@@ -833,7 +832,6 @@ contains
 
 
    end subroutine fragmentation_initialize
-
 
 
    module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)

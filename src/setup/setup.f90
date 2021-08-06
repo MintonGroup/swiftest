@@ -54,8 +54,8 @@ contains
             allocate(symba_pl :: system%pl)
             allocate(symba_tp :: system%tp)
             allocate(symba_tp :: system%tp_discards)
-            allocate(symba_merger :: system%mergeadd_list)
-            allocate(symba_merger :: system%mergesub_list)
+            allocate(symba_merger :: system%pl_adds)
+            allocate(symba_merger :: system%pl_discards)
             allocate(symba_plplenc :: system%plplenc_list)
             allocate(symba_pltpenc :: system%pltpenc_list)
          end select
@@ -127,14 +127,12 @@ contains
       call self%cb%initialize(param)
       call self%pl%initialize(param)
       call self%tp%initialize(param)
-      call util_valid(self%pl, self%tp)
-      self%maxid = maxval([self%pl%id(:), self%tp%id(:)])
+      call self%validate_ids(param)
       call self%set_msys()
       call self%pl%set_mu(self%cb) 
       call self%tp%set_mu(self%cb) 
       call self%pl%eucl_index()
       if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
-      !if (param%lfirstenergy) then
       return
    end subroutine setup_initialize_system
 

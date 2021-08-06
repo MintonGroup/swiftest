@@ -369,7 +369,7 @@ contains
             class is (symba_pl)
                select type(param)
                class is (symba_parameters)
-                  plwksp%nplm = count(plwksp%Gmass > param%mtiny / mscale)
+                  plwksp%nplm = count(plwksp%Gmass > param%Gmtiny / mscale)
                end select
             end select
             call tmpsys%pl%eucl_index()
@@ -381,7 +381,7 @@ contains
             class is (symba_pl)
                select type(param)
                class is (symba_parameters)
-                  nplm = count(pl%mass > param%mtiny)
+                  nplm = count(pl%mass > param%Gmtiny)
                end select
             end select
             if (lk_plpl) call pl%eucl_index()
@@ -836,7 +836,7 @@ contains
 
 
 
-   module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)
+   module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, Gmtiny, Qloss)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Determine the collisional regime of two colliding bodies. 
@@ -857,7 +857,7 @@ contains
       ! Arguments
       integer(I4B), intent(out)         :: regime
       real(DP), intent(out)          :: Mlr, Mslr
-      real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
+      real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, Gmtiny 
       real(DP), dimension(:), intent(in)   :: xh1, xh2, vb1, vb2
       real(DP), intent(out)          :: Qloss !! The residual energy after the collision 
       ! Constants
@@ -931,7 +931,7 @@ contains
       Qloss = 0.0_DP
       U_binding = (3.0_DP * Mtot) / (5.0_DP * Rp) ! LS12 eq. 27
 
-      if ((m1 < mtiny).or.(m2 < mtiny)) then 
+      if ((m1 < Gmtiny).or.(m2 < Gmtiny)) then 
          regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
          Mlr = Mtot
          Mslr = 0.0_DP

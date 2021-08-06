@@ -83,7 +83,7 @@ contains
          ! Do the potential energy between pairs of massive bodies
          do k = 1, pl%nplpl
             associate(ik => pl%k_plpl(1, k), jk => pl%k_plpl(2, k))
-               pepl(k) = -pl%mass(ik) * pl%mass(jk) / norm2(pl%xh(:, jk) - pl%xh(:, ik)) 
+               pepl(k) = -param%GU * pl%mass(ik) * pl%mass(jk) / norm2(pl%xh(:, jk) - pl%xh(:, ik)) 
                lstatpl(k) = (lstatus(ik) .and. lstatus(jk))
             end associate
          end do
