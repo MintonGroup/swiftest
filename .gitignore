@@ -50,11 +50,9 @@ collresolve/config.h
 
 
 #Documentation
-#Disable for now
-docs/
-#!docs/*
-#!docs/*/*
-#!docs/*/*/*
+!docs/*
+!docs/*/*
+!docs/*/*/*
 
 
 python/swiftest/tests/convert_code_type/swift2swifter/pl.swift2swifter.in

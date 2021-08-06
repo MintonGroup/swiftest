@@ -494,9 +494,9 @@ def swiftest_stream(f, param):
             p5 = f.read_reals(np.float64)
             p6 = f.read_reals(np.float64)
             Mpl = f.read_reals(np.float64)
-            Rpl = f.read_reals(np.float64)
             if param['RHILL_PRESENT'] == 'YES':
                 Rhill = f.read_reals(np.float64)
+            Rpl = f.read_reals(np.float64)
             if param['ROTATION'] == 'YES':
                 Ipplx = f.read_reals(np.float64)
                 Ipply = f.read_reals(np.float64)
@@ -781,7 +781,6 @@ def swifter_xr2infile(ds, param, framenum=-1):
     RSun = np.double(cb['Radius'])
     param['J2'] = np.double(cb['J_2'])
     param['J4'] = np.double(cb['J_4'])
-    param['RHILL_PRESENT'] = "YES"
     
     if param['IN_TYPE'] == 'ASCII':
         # Swiftest Central body file
@@ -1228,7 +1227,6 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         swiftest_param.pop('C', None)
     swiftest_param.pop('J2', None)
     swiftest_param.pop('J4', None)
-    swiftest_param.pop('RHILL_PRESENT', None)
 
     swiftest_param['DISCARD_OUT'] = conversion_questions.get('DISCARD_OUT', '')
     if not swiftest_param['DISCARD_OUT']:
@@ -1279,7 +1277,6 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
        tmp = swifter_param.pop(key, None)
     swifter_param['J2'] = J2
     swifter_param['J4'] = J4
-    swifter_param['CHK_CLOSE'] = "YES"
     if swifter_param['OUT_STAT'] == "REPLACE":
         swifter_param['OUT_STAT'] = "UNKNOWN"
     swifter_param['! VERSION'] = "Swifter parameter file converted from Swiftest"

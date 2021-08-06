@@ -12,15 +12,27 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      logical :: lany_discards
+      logical :: lany_discards, lpl_discards, ltp_discards, lpl_check, ltp_check
 
-      associate(system => self, tp => self%tp, pl => self%pl)
-         lany_discards = .false.
-         call pl%discard(system, param)
-         call tp%discard(system, param)
-         if (tp%nbody > 0) lany_discards = lany_discards .or.  any(tp%ldiscard(:))
-         if (pl%nbody > 0) lany_discards = lany_discards .or.  any(pl%ldiscard(:))
-         if (lany_discards) call system%write_discard(param)
+      lpl_check = allocated(self%pl_discards)
+      ltp_check = allocated(self%tp_discards)
+
+      associate(system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%tp_discards)
+         lpl_discards = .false.
+         ltp_discards = .false.
+         if (lpl_check) then
+            call pl%discard(system, param)
+            lpl_discards = (pl_discards%nbody > 0)
+         end if
+            
+         if (ltp_check) then
+            call tp%discard(system, param)
+            ltp_discards = (tp_discards%nbody > 0)
+         end if
+
+         if (lpl_discards .or. ltp_discards) call system%write_discard(param)
+         if (lpl_check) call pl_discards%setup(0,param) 
+         if (ltp_check) call tp_discards%setup(0,param) 
       end associate
 
       return
@@ -57,6 +69,8 @@ contains
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
+      ! Internals
+      logical, dimension(:), allocatable :: ldiscard
 
       associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
          if ((ntp == 0) .or. (npl ==0)) return 
@@ -70,7 +84,10 @@ contains
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call discard_cb_tp(tp, system, param)
          if (param%qmin >= 0.0_DP) call discard_peri_tp(tp, system, param)
          if (param%lclose) call discard_pl_tp(tp, system, param)
-         if (any(tp%ldiscard)) call tp%spill(system%tp_discards, tp%ldiscard, ldestructive=.true.)
+         if (any(tp%ldiscard)) then
+            allocate(ldiscard, source=tp%ldiscard)
+            call tp%spill(system%tp_discards, ldiscard, ldestructive=.true.)
+         end if
       end associate
 
       return

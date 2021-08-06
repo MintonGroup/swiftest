@@ -20,6 +20,7 @@ sim.param['ISTEP_DUMP'] = 1
 sim.param['OUT_FORM'] = "XV"
 sim.param['OUT_STAT'] = "UNKNOWN"
 sim.param['GR'] = 'NO'
+sim.param['RHILL_PRESENT'] = 'NO'
 
 bodyid = {
    "Sun": 0,
