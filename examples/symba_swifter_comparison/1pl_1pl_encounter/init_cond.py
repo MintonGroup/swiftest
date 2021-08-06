@@ -180,7 +180,7 @@ print(f'MU2KG          {MU2KG}')
 print(f'DU2M           {DU2M}')
 print(f'TU2S           {TU2S}')
 print(f'RHILL_PRESENT  yes')
-print(f'MTINY          1e-12')
+print(f'GMTINY          1e-12')
 
 
 

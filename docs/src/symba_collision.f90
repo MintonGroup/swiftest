@@ -449,7 +449,7 @@ contains
                v2_si(:)      = plpl_collisions%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
                density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The collective density of the parent and its children
                Mcb_si        = cb%mass * param%MU2KG 
-               mtiny_si      = (param%MTINY / param%GU) * param%MU2KG
+               mtiny_si      = (param%GMTINY / param%GU) * param%MU2KG
             
                mass_res(:) = 0.0_DP
          

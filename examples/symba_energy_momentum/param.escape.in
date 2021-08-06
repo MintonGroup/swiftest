@@ -19,13 +19,11 @@ CHK_RMIN       0.00465047       ! check for close solar encounters in AU
 CHK_RMAX       10000.0          ! discard outside of
 CHK_EJECT      -1.0              ! ignore this check
 CHK_QMIN       -1.0              ! ignore this check
-!CHK_QMIN_COORD HELIO            ! commented out here
-!CHK_QMIN_RANGE 1.0 1000.0       ! commented out here
 ENC_OUT        enc.escape.dat
 EXTRA_FORCE    no                ! no extra user-defined forces
 BIG_DISCARD    no                ! output all planets if anything discarded
 RHILL_PRESENT  no                ! Hill's sphere radii in input file
-MTINY          1.0e-16
+GMTINY          1.0e-16
 FRAGMENTATION  yes
 MU2KG          1.98908e30
 TU2S           3.1556925e7

@@ -76,8 +76,8 @@ def read_swiftest_param(param_file_name, param):
         param['TIDES'] = param['TIDES'].upper()
         param['ENERGY'] = param['ENERGY'].upper()
         param['GR'] = param['GR'].upper()
-        if 'MTINY' in param:
-            param['MTINY'] = real2float(param['MTINY'])
+        if 'GMTINY' in param:
+            param['GMTINY'] = real2float(param['GMTINY'])
     except IOError:
         print(f"{param_file_name} not found.")
     return param
@@ -900,7 +900,7 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
 
     intxt = conversion_questions.get('BIG_DISCARD', None)
     if not intxt:
-        intxt = input("BIG_DISCARD: include data for all bodies > MTINY for each discard record? (y/N)> ")
+        intxt = input("BIG_DISCARD: include data for all bodies > GMTINY for each discard record? (y/N)> ")
     if intxt.upper() == 'Y':
         swifter_param['BIG_DISCARD'] = 'YES'
     else:
@@ -1215,11 +1215,11 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         print(f"Cannot write to file {swiftest_param['CB_IN']}")
         return swifter_param
    
-    MTINY = conversion_questions.get('MTINY', None)
-    if not MTINY:
-        MTINY = input(f"Value of MTINY if this is a SyMBA simulation (enter nothing if this is not a SyMBA parameter file)> ")
-    if MTINY != '' and real2float(MTINY.strip()) > 0:
-        swiftest_param['MTINY'] = real2float(MTINY.strip())
+    GMTINY = conversion_questions.get('GMTINY', None)
+    if not GMTINY:
+        GMTINY = input(f"Value of GMTINY if this is a SyMBA simulation (enter nothing if this is not a SyMBA parameter file)> ")
+    if GMTINY != '' and real2float(GMTINY.strip()) > 0:
+        swiftest_param['GMTINY'] = real2float(GMTINY.strip())
         
     # Remove the unneeded parameters
     if 'C' in swiftest_param:
@@ -1265,7 +1265,7 @@ def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_ques
 def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     swifter_param = swiftest_param
     CBIN = swifter_param.pop("CB_IN", None)
-    MTINY = swifter_param.pop("MTINY", None)
+    GMTINY = swifter_param.pop("GMTINY", None)
     DISCARD_OUT = swifter_param.pop("DISCARD_OUT", None)
     MU2KG = swifter_param.pop("MU2KG", 1.0)
     DU2M = swifter_param.pop("DU2M", 1.0)

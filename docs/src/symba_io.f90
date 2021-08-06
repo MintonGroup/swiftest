@@ -71,8 +71,8 @@ contains
                case ("FRAGMENTATION")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
-               case ("MTINY")
-                  read(param_value, *) param%mtiny
+               case ("GMTINY")
+                  read(param_value, *) param%Gmtiny
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -111,12 +111,12 @@ contains
             write(*,*) "SEED: N,VAL    = ",size(param%seed), param%seed(:)
          end if
 
-         if (self%mtiny < 0.0_DP) then
-            write(iomsg,*) "MTINY invalid or not set: ", self%mtiny
+         if (self%Gmtiny < 0.0_DP) then
+            write(iomsg,*) "GMTINY invalid or not set: ", self%Gmtiny
             iostat = -1
             return
          else
-            write(*,*) "MTINY          = ", self%mtiny   
+            write(*,*) "GMTINY          = ", self%Gmtiny   
          end if
 
          if (.not.self%lclose) then
@@ -167,7 +167,7 @@ contains
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
          write(param_name, Afmt) "PARTICLE_FILE"; write(param_value, Afmt) trim(adjustl(param%particle_file)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "MTINY"; write(param_value, Rfmt) param%mtiny; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%Gmtiny; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          if (param%lfragmentation) then
             write(param_name, Afmt) "SEED"

@@ -392,7 +392,7 @@ contains
          ! If there are still bodies in the system, sort by mass in descending order and re-index
          if (pl%nbody > 0) then
             call pl%sort("mass", ascending=.false.)
-            pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
+            pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
             pl%nplm = count(pl%lmtiny(:))
             call pl%eucl_index()
          end if
