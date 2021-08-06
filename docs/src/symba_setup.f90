@@ -25,7 +25,7 @@ contains
             call pl%sort("mass", ascending=.false.)
             select type(param)
             class is (symba_parameters)
-               pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
+               pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
                pl%nplm = count(pl%lmtiny(:))
             end select
          end select

@@ -22,7 +22,7 @@ contains
       logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
       integer(I4B)                              :: k
-      real(DP)                                  :: rlim, mtot
+      real(DP)                                  :: rlim, Gmtot
       logical                                   :: isplpl
 
       if (self%nenc == 0) return
@@ -55,8 +55,8 @@ contains
                      xr(:) = pl%xh(:, ind1(k)) - pl%xh(:, ind2(k)) 
                      vr(:) = pl%vb(:, ind1(k)) - pl%vb(:, ind2(k))
                      rlim = pl%radius(ind1(k)) + pl%radius(ind2(k))
-                     mtot = pl%Gmass(ind1(k)) + pl%Gmass(ind2(k))
-                     lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), mtot, rlim, dt, self%lvdotr(k))
+                     Gmtot = pl%Gmass(ind1(k)) + pl%Gmass(ind2(k))
+                     lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k))
                   end do
                else
                   do concurrent(k = 1:nenc, lmask(k))
@@ -359,7 +359,7 @@ contains
          p2 = pl%kin(idx(2))%parent
          if (p1 == p2) return ! This is a collision between to children of a shared parent. We will ignore it.
 
-         if (pl%Gmass(p1) > pl%Gmass(p2)) then
+         if (pl%mass(p1) > pl%mass(p2)) then
             index_parent = p1
             index_child = p2
          else
@@ -449,7 +449,7 @@ contains
                v2_si(:)      = plpl_collisions%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
                density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The collective density of the parent and its children
                Mcb_si        = cb%mass * param%MU2KG 
-               mtiny_si      = (param%MTINY / param%GU) * param%MU2KG
+               mtiny_si      = (param%GMTINY / param%GU) * param%MU2KG
             
                mass_res(:) = 0.0_DP
          
@@ -463,8 +463,8 @@ contains
                mass_res(1) = min(max(mlr, 0.0_DP), mtot)
                mass_res(2) = min(max(mslr, 0.0_DP), mtot)
                mass_res(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
-               mass_res(:) = (mass_res(:) / param%MU2KG) * param%GU
-               Qloss = Qloss * (param%GU / param%MU2KG) * (param%TU2S / param%DU2M)**2
+               mass_res(:) = (mass_res(:) / param%MU2KG) 
+               Qloss = Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
 
                select case (regime)
                case (COLLRESOLVE_REGIME_DISRUPTION)

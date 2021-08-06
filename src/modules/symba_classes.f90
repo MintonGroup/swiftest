@@ -19,7 +19,7 @@ module symba_classes
 
    type, extends(swiftest_parameters) :: symba_parameters
       character(STRMAX)                       :: particle_file  = PARTICLE_OUTFILE !! Name of output particle information file
-      real(DP)                                :: MTINY          = -1.0_DP          !! Smallest mass that is fully gravitating
+      real(DP)                                :: GMTINY          = -1.0_DP          !! Smallest mass that is fully gravitating
       integer(I4B), dimension(:), allocatable :: seed                              !! Random seeds
       logical                                 :: lfragmentation = .false.          !! Do fragmentation modeling instead of simple merger.
    contains
@@ -73,9 +73,9 @@ module symba_classes
    type, extends(helio_pl) :: symba_pl
       logical,                   dimension(:), allocatable :: lcollision !! flag indicating whether body has merged with another this time step
       logical,                   dimension(:), allocatable :: lencounter !! flag indicating whether body is part of an encounter this time step
-      logical,                   dimension(:), allocatable :: lmtiny     !! flag indicating whether this body is below the MTINY cutoff value
-      integer(I4B)                                         :: nplm       !! number of bodies above the MTINY limit
-      integer(I8B)                                         :: nplplm     !! Number of body (all massive)-body (only those above MTINY) comparisons in the flattened upper triangular matrix 
+      logical,                   dimension(:), allocatable :: lmtiny     !! flag indicating whether this body is below the GMTINY cutoff value
+      integer(I4B)                                         :: nplm       !! number of bodies above the GMTINY limit
+      integer(I8B)                                         :: nplplm     !! Number of body (all massive)-body (only those above GMTINY) comparisons in the flattened upper triangular matrix 
       integer(I4B),              dimension(:), allocatable :: nplenc     !! number of encounters with other planets this time step
       integer(I4B),              dimension(:), allocatable :: ntpenc     !! number of encounters with test particles this time step
       integer(I4B),              dimension(:), allocatable :: levelg     !! level at which this body should be moved
@@ -160,8 +160,7 @@ module symba_classes
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_merger),  allocatable :: mergeadd_list !! List of added bodies in mergers or collisions
-      class(symba_merger),  allocatable :: mergesub_list !! List of subtracted bodies in mergers or collisions
+      class(symba_merger),  allocatable :: pl_adds !! List of added bodies in mergers or collisions
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
       integer(I4B)                      :: irec          !! System recursion level

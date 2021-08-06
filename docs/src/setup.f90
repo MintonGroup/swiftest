@@ -54,8 +54,8 @@ contains
             allocate(symba_pl :: system%pl)
             allocate(symba_tp :: system%tp)
             allocate(symba_tp :: system%tp_discards)
-            allocate(symba_merger :: system%mergeadd_list)
-            allocate(symba_merger :: system%mergesub_list)
+            allocate(symba_merger :: system%pl_adds)
+            allocate(symba_merger :: system%pl_discards)
             allocate(symba_plplenc :: system%plplenc_list)
             allocate(symba_pltpenc :: system%pltpenc_list)
          end select

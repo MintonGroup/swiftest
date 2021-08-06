@@ -469,11 +469,11 @@ module swiftest_classes
          real(DP), intent(inout)                 :: Qloss
       end subroutine fragmentation_initialize
 
-      module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)
+      module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, Gmtiny, Qloss)
          implicit none
          integer(I4B), intent(out)         :: regime
          real(DP), intent(out)          :: Mlr, Mslr
-         real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
+         real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, Gmtiny 
          real(DP), dimension(:), intent(in)   :: xh1, xh2, vb1, vb2
          real(DP), intent(out)          :: Qloss !! The residual energy after the collision 
       end subroutine fragmentation_regime

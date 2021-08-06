@@ -71,8 +71,8 @@ contains
                case ("FRAGMENTATION")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
-               case ("MTINY")
-                  read(param_value, *) param%mtiny
+               case ("GMTINY")
+                  read(param_value, *) param%Gmtiny
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -111,12 +111,12 @@ contains
             write(*,*) "SEED: N,VAL    = ",size(param%seed), param%seed(:)
          end if
 
-         if (self%mtiny < 0.0_DP) then
-            write(iomsg,*) "MTINY invalid or not set: ", self%mtiny
+         if (self%Gmtiny < 0.0_DP) then
+            write(iomsg,*) "GMTINY invalid or not set: ", self%Gmtiny
             iostat = -1
             return
          else
-            write(*,*) "MTINY          = ", self%mtiny   
+            write(*,*) "GMTINY          = ", self%Gmtiny   
          end if
 
          if (.not.self%lclose) then
@@ -167,7 +167,7 @@ contains
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
          write(param_name, Afmt) "PARTICLE_FILE"; write(param_value, Afmt) trim(adjustl(param%particle_file)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "MTINY"; write(param_value, Rfmt) param%mtiny; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%Gmtiny; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          if (param%lfragmentation) then
             write(param_name, Afmt) "SEED"
@@ -225,10 +225,10 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
-      associate(pl => self%pl, npl => self%pl%nbody, mergesub_list => self%mergesub_list, mergeadd_list => self%mergeadd_list)
+      associate(pl => self%pl, npl => self%pl%nbody, pl_discards => self%pl_discards, pl_adds => self%pl_adds)
          if (self%tp_discards%nbody > 0) call io_write_discard(self, param)
 
-         if (mergesub_list%nbody == 0) return
+         if (pl_discards%nbody == 0) return
          select case(param%out_stat)
          case('APPEND')
             open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
@@ -240,31 +240,31 @@ contains
          end select
          lfirst = .false.
          if (param%lgr) then
-            call mergesub_list%pv2v(param) 
-            call mergeadd_list%pv2v(param) 
+            call pl_discards%pv2v(param) 
+            call pl_adds%pv2v(param) 
          end if
 
-         write(LUN, HDRFMT) param%t, mergesub_list%nbody, param%lbig_discard
+         write(LUN, HDRFMT) param%t, pl_discards%nbody, param%lbig_discard
          iadd = 1
          isub = 1
-         do while (iadd <= mergeadd_list%nbody)
-            nadd = mergeadd_list%ncomp(iadd)
-            nsub = mergesub_list%ncomp(isub)
+         do while (iadd <= pl_adds%nbody)
+            nadd = pl_adds%ncomp(iadd)
+            nsub = pl_discards%ncomp(isub)
             do j = 1, nadd
-               if (iadd <= mergeadd_list%nbody) then
-                  write(LUN, NAMEFMT) ADD, mergesub_list%id(iadd), mergesub_list%status(iadd)
-                  write(LUN, VECFMT) mergeadd_list%xh(1, iadd), mergeadd_list%xh(2, iadd), mergeadd_list%xh(3, iadd)
-                  write(LUN, VECFMT) mergeadd_list%vh(1, iadd), mergeadd_list%vh(2, iadd), mergeadd_list%vh(3, iadd)
+               if (iadd <= pl_adds%nbody) then
+                  write(LUN, NAMEFMT) ADD, pl_discards%id(iadd), pl_discards%status(iadd)
+                  write(LUN, VECFMT) pl_adds%xh(1, iadd), pl_adds%xh(2, iadd), pl_adds%xh(3, iadd)
+                  write(LUN, VECFMT) pl_adds%vh(1, iadd), pl_adds%vh(2, iadd), pl_adds%vh(3, iadd)
                else 
                   exit
                end if
                iadd = iadd + 1
             end do
             do j = 1, nsub
-               if (isub <= mergesub_list%nbody) then
-                  write(LUN, NAMEFMT) SUB, mergesub_list%id(isub), mergesub_list%status(isub)
-                  write(LUN, VECFMT) mergesub_list%xh(1, isub), mergesub_list%xh(2, isub), mergesub_list%xh(3, isub)
-                  write(LUN, VECFMT) mergesub_list%vh(1, isub), mergesub_list%vh(2, isub), mergesub_list%vh(3, isub)
+               if (isub <= pl_discards%nbody) then
+                  write(LUN, NAMEFMT) SUB, pl_discards%id(isub), pl_discards%status(isub)
+                  write(LUN, VECFMT) pl_discards%xh(1, isub), pl_discards%xh(2, isub), pl_discards%xh(3, isub)
+                  write(LUN, VECFMT) pl_discards%vh(1, isub), pl_discards%vh(2, isub), pl_discards%vh(3, isub)
                else
                   exit
                end if

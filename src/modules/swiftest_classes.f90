@@ -306,6 +306,7 @@ module swiftest_classes
       procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system !! Calculates the total system energy and momentum
+      procedure :: validate_ids            => util_valid_id_system            !! Validate the numerical ids passed to the system and save the maximum value
    end type swiftest_nbody_system
 
    type :: swiftest_encounter
@@ -457,26 +458,26 @@ module swiftest_classes
       module subroutine fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &
          nfrag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, Qloss, lfailure)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: system
-         class(swiftest_parameters), intent(in)  :: param 
-         integer(I4B), dimension(:), intent(in)  :: family
-         real(DP), dimension(:,:), intent(inout) :: x, v, L_spin, Ip
-         real(DP), dimension(:),   intent(inout) :: mass, radius
-         integer(I4B), intent(inout)             :: nfrag
-         real(DP), dimension(:), allocatable,   intent(inout) :: m_frag, rad_frag
-         real(DP), dimension(:,:), allocatable, intent(inout) :: Ip_frag
-         real(DP), dimension(:,:), allocatable, intent(inout) :: xb_frag, vb_frag, rot_frag
-         logical, intent(out)                    :: lfailure ! Answers the question: Should this have been a merger instead?
-         real(DP), intent(inout)                 :: Qloss
+         class(swiftest_nbody_system),                              intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),                                intent(in)    :: param  !! Current run configuration parameters 
+         integer(I4B),                 dimension(:),                intent(in)    :: family !! Index of bodies involved in the collision
+         real(DP),                     dimension(:,:),              intent(inout) :: x, v, L_spin, Ip !! Two-body equivalent position, vector, spin momentum, and rotational inertia values for the collision
+         real(DP),                     dimension(:),                intent(inout) :: mass, radius     !! Two-body equivalent mass and radii for the bodies in the collision
+         integer(I4B),                                              intent(inout) :: nfrag            !! Number of fragments to generate
+         real(DP),                     dimension(:),   allocatable, intent(inout) :: m_frag, rad_frag !! Distribution of fragment mass and radii
+         real(DP),                     dimension(:,:), allocatable, intent(inout) :: Ip_frag          !! Fragment rotational inertia vectors
+         real(DP),                     dimension(:,:), allocatable, intent(inout) :: xb_frag, vb_frag, rot_frag !! Fragment barycentric position, barycentric velocity, and rotation vectors
+         real(DP),                                                  intent(inout) :: Qloss !! Energy lost during the collision
+         logical,                                                   intent(out)   :: lfailure !! Answers the question: Should this have been a merger instead?
       end subroutine fragmentation_initialize
 
       module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)
          implicit none
-         integer(I4B), intent(out)         :: regime
-         real(DP), intent(out)          :: Mlr, Mslr
-         real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
-         real(DP), dimension(:), intent(in)   :: xh1, xh2, vb1, vb2
-         real(DP), intent(out)          :: Qloss !! The residual energy after the collision 
+         integer(I4B),               intent(out) :: regime
+         real(DP),                   intent(out) :: Mlr, Mslr
+         real(DP),                   intent(in)  :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
+         real(DP),     dimension(:), intent(in)  :: xh1, xh2, vb1, vb2
+         real(DP),                   intent(out) :: Qloss !! Energy lost during the collision
       end subroutine fragmentation_regime
 
       module pure subroutine gr_kick_getaccb_ns_body(self, system, param)
@@ -1292,11 +1293,11 @@ module swiftest_classes
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_tp
 
-      module subroutine util_valid(pl, tp)
+      module subroutine util_valid_id_system(self, param)
          implicit none
-         class(swiftest_pl), intent(in) :: pl
-         class(swiftest_tp), intent(in) :: tp
-      end subroutine util_valid
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+      end subroutine util_valid_id_system
 
       module subroutine util_version()
          implicit none
