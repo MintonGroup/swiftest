@@ -76,7 +76,7 @@ contains
          !$omp simd 
          do i = 1, npl
             associate(px => pl%xh(1,i), py => pl%xh(2,i), pz => pl%xh(3,i))
-               pecb(i) = -cb%mass * pl%mass(i) / sqrt(px**2 + py**2 + pz**2)
+               pecb(i) = -param%GU * cb%mass * pl%mass(i) / sqrt(px**2 + py**2 + pz**2)
             end associate
          end do
    
@@ -100,7 +100,7 @@ contains
                irh(i) = 1.0_DP / norm2(pl%xh(:,i))
             end do
             call obl_pot(npl, cb%mass, pl%mass, cb%j2rp2, cb%j4rp4, pl%xh, irh, oblpot)
-            system%pe = system%pe + oblpot
+            system%pe = system%pe + param%GU * oblpot
          end if
    
          system%Lorbit(1) = sum(Lplorbitx(1:npl), lstatus(1:npl)) 
