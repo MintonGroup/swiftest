@@ -17,9 +17,8 @@ CHK_RMIN       0.005
 CHK_RMAX       1e6
 CHK_EJECT      -1.0              ! ignore this check
 CHK_QMIN       -1.0              ! ignore this check
-!CHK_QMIN_COORD HELIO            ! commented out here
-!CHK_QMIN_RANGE 1.0 1000.0       ! commented out here
 ENC_OUT        enc.disruption_off_axis.dat
+DISCARD_OUT    discard.disruption_off_axis.out
 EXTRA_FORCE    no                ! no extra user-defined forces
 BIG_DISCARD    no                ! output all planets if anything discarded
 RHILL_PRESENT  yes               ! Hill's sphere radii in input file

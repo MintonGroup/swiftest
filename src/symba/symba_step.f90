@@ -237,7 +237,7 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      associate(system => self, pltpenc_list => self%pltpenc_list, plplenc_list => self%plplenc_list, mergeadd_list => self%mergeadd_list, mergesub_list => self%mergesub_list)
+      associate(system => self, pltpenc_list => self%pltpenc_list, plplenc_list => self%plplenc_list, pl_adds => self%pl_adds, pl_discards => self%pl_discards)
          select type(pl => system%pl)
          class is (symba_pl)
             select type(tp => system%tp)
@@ -265,8 +265,8 @@ contains
                pltpenc_list%nenc = 0
                end if
 
-               call mergeadd_list%resize(0)
-               call mergesub_list%resize(0)
+               call pl_adds%resize(0)
+               call pl_discards%resize(0)
             end select
          end select
       end associate
