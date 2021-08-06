@@ -494,10 +494,9 @@ def swiftest_stream(f, param):
             p5 = f.read_reals(np.float64)
             p6 = f.read_reals(np.float64)
             Mpl = f.read_reals(np.float64)
-            Rhill = f.read_reals(np.float64)
-            Rpl = f.read_reals(np.float64)
             if param['RHILL_PRESENT'] == 'YES':
                 Rhill = f.read_reals(np.float64)
+            Rpl = f.read_reals(np.float64)
             if param['ROTATION'] == 'YES':
                 Ipplx = f.read_reals(np.float64)
                 Ipply = f.read_reals(np.float64)
