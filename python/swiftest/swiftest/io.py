@@ -64,7 +64,6 @@ def read_swiftest_param(param_file_name, param):
         param['CHK_RMAX'] = real2float(param['CHK_RMAX'])
         param['CHK_EJECT'] = real2float(param['CHK_EJECT'])
         param['CHK_QMIN'] = real2float(param['CHK_QMIN'])
-        param['MTINY'] = real2float(param['MTINY'])
         param['DU2M'] = real2float(param['DU2M'])
         param['MU2KG'] = real2float(param['MU2KG'])
         param['TU2S'] = real2float(param['TU2S'])
@@ -77,7 +76,8 @@ def read_swiftest_param(param_file_name, param):
         param['TIDES'] = param['TIDES'].upper()
         param['ENERGY'] = param['ENERGY'].upper()
         param['GR'] = param['GR'].upper()
-        param['YORP'] = param['YORP'].upper()
+        if 'MTINY' in param:
+            param['MTINY'] = real2float(param['MTINY'])
     except IOError:
         print(f"{param_file_name} not found.")
     return param

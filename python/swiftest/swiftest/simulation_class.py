@@ -45,9 +45,6 @@ class Simulation:
             'TIDES': "NO",
             'ENERGY': "NO",
             'GR': "NO",
-            'YARKOVSKY': "NO",
-            'YORP': "NO",
-            'MTINY' : "0.0"
         }
         self.codename = codename
         if param_file != "" :
