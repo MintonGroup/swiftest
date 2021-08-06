@@ -167,7 +167,7 @@ contains
          ! Set scale factors
          Escale = 0.5_DP * (mass(1) * dot_product(v(:,1), v(:,1)) + mass(2) * dot_product(v(:,2), v(:,2)))
          rscale = sum(radius(:))
-         mscale = sqrt(Escale * rscale / param%GU) 
+         mscale = sqrt(Escale * rscale) / param%GU
          vscale = sqrt(Escale / mscale) 
          tscale = rscale / vscale 
          Lscale = mscale * rscale * vscale
