@@ -24,3 +24,6 @@ GR             no
 MU2KG          1.988409870698051e+30
 DU2M           149597870700.0
 TU2S           86400.0000
+RHILL_PRESENT  no   
+DISCARD_OUT    discard.swiftest.out
+BIG_DISCARD    yes                 ! output all planets if anything discarded         

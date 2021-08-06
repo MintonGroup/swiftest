@@ -1211,16 +1211,20 @@ contains
 
       associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
          if (nsp == 0) return
-         select case(param%out_stat)
-         case('APPEND')
+         if (lfirst) then
+            select case(param%out_stat)
+            case('APPEND')
+               open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
+            case('NEW', 'REPLACE', 'UNKNOWN')
+               open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
+            case default
+               write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+               call util_exit(FAILURE)
+            end select
+            lfirst = .false.
+         else
             open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
-         case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
-         case default
-            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
-            call util_exit(FAILURE)
-         end select
-         lfirst = .false.
+         end if
          if (param%lgr) call tp_discards%pv2v(param) 
 
          write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
