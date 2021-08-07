@@ -167,7 +167,7 @@ contains
          ! Set scale factors
          Escale = 0.5_DP * (mass(1) * dot_product(v(:,1), v(:,1)) + mass(2) * dot_product(v(:,2), v(:,2)))
          rscale = sum(radius(:))
-         mscale = sqrt(Escale * rscale) / param%GU
+         mscale = sqrt(Escale * rscale / param%GU) 
          vscale = sqrt(Escale / mscale) 
          tscale = rscale / vscale 
          Lscale = mscale * rscale * vscale
@@ -341,11 +341,25 @@ contains
             ltmp(1:npl) = .true.
             call tmpsys%pl%setup(npl_new, param)
             call tmpsys%pl%fill(pl, ltmp)
+            tmpsys%pl%mass(1:npl) = tmpsys%pl%mass(1:npl) / mscale
+            tmpsys%pl%Gmass(1:npl) = tmpsys%pl%Gmass(1:npl) * tscale**2 / rscale**3
+            tmpsys%cb%mass = tmpsys%cb%mass / mscale
+            tmpsys%cb%Gmass = tmpsys%cb%Gmass * tscale**2 / rscale**3
+            tmpsys%cb%radius = tmpsys%cb%radius / rscale
+            tmpsys%pl%radius(1:npl) = tmpsys%pl%radius(1:npl) / rscale
+            tmpsys%pl%xh(:,1:npl) = tmpsys%pl%xh(:,1:npl) / rscale
+            tmpsys%pl%vh(:,1:npl) = tmpsys%pl%vh(:,1:npl) / vscale
+            tmpsys%pl%xb(:,1:npl) = tmpsys%pl%xb(:,1:npl) / rscale
+            tmpsys%pl%vb(:,1:npl) = tmpsys%pl%vb(:,1:npl) / vscale
+            tmpsys%pl%rot(:,1:npl) = tmpsys%pl%rot(:,1:npl) * tscale
+            tmpsys%cb%xb(:) = tmpsys%cb%xb(:) / rscale
+            tmpsys%cb%vb(:) = tmpsys%cb%vb(:) / vscale
+
       
             if (linclude_fragments) then ! Append the fragments if they are included
                ! Energy calculation requires the fragments to be in the system barcyentric frame, s
                tmpsys%pl%mass(npl+1:npl_new) = m_frag(1:nfrag)
-               tmpsys%pl%Gmass(npl+1:npl_new) = param%GU * m_frag(1:nfrag)
+               tmpsys%pl%Gmass(npl+1:npl_new) = m_frag(1:nfrag) * param%GU * rscale**3 * mscale / tscale**2 
                tmpsys%pl%radius(npl+1:npl_new) = rad_frag(1:nfrag)
                tmpsys%pl%xb(:,npl+1:npl_new) =  xb_frag(:,1:nfrag)
                tmpsys%pl%vb(:,npl+1:npl_new) =  vb_frag(:,1:nfrag)

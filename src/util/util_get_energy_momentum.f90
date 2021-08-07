@@ -76,14 +76,14 @@ contains
          !$omp simd 
          do i = 1, npl
             associate(px => pl%xh(1,i), py => pl%xh(2,i), pz => pl%xh(3,i))
-               pecb(i) = -param%GU * cb%mass * pl%mass(i) / sqrt(px**2 + py**2 + pz**2)
+               pecb(i) = -cb%Gmass * pl%mass(i) / sqrt(px**2 + py**2 + pz**2)
             end associate
          end do
    
          ! Do the potential energy between pairs of massive bodies
          do k = 1, pl%nplpl
             associate(ik => pl%k_plpl(1, k), jk => pl%k_plpl(2, k))
-               pepl(k) = -param%GU * pl%mass(ik) * pl%mass(jk) / norm2(pl%xh(:, jk) - pl%xh(:, ik)) 
+               pepl(k) = -pl%Gmass(ik) * pl%mass(jk) / norm2(pl%xh(:, jk) - pl%xh(:, ik)) 
                lstatpl(k) = (lstatus(ik) .and. lstatus(jk))
             end associate
          end do
@@ -99,8 +99,8 @@ contains
             do i = 1, npl
                irh(i) = 1.0_DP / norm2(pl%xh(:,i))
             end do
-            call obl_pot(npl, cb%mass, pl%mass, cb%j2rp2, cb%j4rp4, pl%xh, irh, oblpot)
-            system%pe = system%pe + param%GU * oblpot
+            call obl_pot(npl, cb%Gmass, pl%mass, cb%j2rp2, cb%j4rp4, pl%xh, irh, oblpot)
+            system%pe = system%pe + oblpot
          end if
    
          system%Lorbit(1) = sum(Lplorbitx(1:npl), lstatus(1:npl)) 
