@@ -314,6 +314,7 @@ contains
          logical, dimension(:), allocatable :: ltmp
          logical :: lk_plpl
          class(swiftest_nbody_system), allocatable :: tmpsys
+         class(swiftest_parameters), allocatable :: tmpparam
 
          ! Because we're making a copy of symba_pl with the excludes/fragments appended, we need to deallocate the
          ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
@@ -334,27 +335,16 @@ contains
                npl_new  = npl
             end if
             call setup_construct_system(tmpsys, param)
+            call tmpsys%tp%setup(0, param)
             deallocate(tmpsys%cb)
             allocate(tmpsys%cb, source=cb)
+            allocate(tmpparam, source=param)
             allocate(ltmp(npl_new))
             ltmp(:) = .false.
             ltmp(1:npl) = .true.
             call tmpsys%pl%setup(npl_new, param)
             call tmpsys%pl%fill(pl, ltmp)
-            tmpsys%pl%mass(1:npl) = tmpsys%pl%mass(1:npl) / mscale
-            tmpsys%pl%Gmass(1:npl) = tmpsys%pl%Gmass(1:npl) * tscale**2 / rscale**3
-            tmpsys%cb%mass = tmpsys%cb%mass / mscale
-            tmpsys%cb%Gmass = tmpsys%cb%Gmass * tscale**2 / rscale**3
-            tmpsys%cb%radius = tmpsys%cb%radius / rscale
-            tmpsys%pl%radius(1:npl) = tmpsys%pl%radius(1:npl) / rscale
-            tmpsys%pl%xh(:,1:npl) = tmpsys%pl%xh(:,1:npl) / rscale
-            tmpsys%pl%vh(:,1:npl) = tmpsys%pl%vh(:,1:npl) / vscale
-            tmpsys%pl%xb(:,1:npl) = tmpsys%pl%xb(:,1:npl) / rscale
-            tmpsys%pl%vb(:,1:npl) = tmpsys%pl%vb(:,1:npl) / vscale
-            tmpsys%pl%rot(:,1:npl) = tmpsys%pl%rot(:,1:npl) * tscale
-            tmpsys%cb%xb(:) = tmpsys%cb%xb(:) / rscale
-            tmpsys%cb%vb(:) = tmpsys%cb%vb(:) / vscale
-
+            call tmpsys%rescale(tmpparam, mscale, rscale, tscale)
       
             if (linclude_fragments) then ! Append the fragments if they are included
                ! Energy calculation requires the fragments to be in the system barcyentric frame, s
