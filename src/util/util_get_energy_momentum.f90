@@ -75,7 +75,7 @@ contains
          ! Do the central body potential energy component first
          !$omp simd 
          do i = 1, npl
-            associate(px => pl%xh(1,i), py => pl%xh(2,i), pz => pl%xh(3,i))
+            associate(px => pl%xb(1,i), py => pl%xb(2,i), pz => pl%xb(3,i))
                pecb(i) = -cb%Gmass * pl%mass(i) / sqrt(px**2 + py**2 + pz**2)
             end associate
          end do
@@ -83,7 +83,7 @@ contains
          ! Do the potential energy between pairs of massive bodies
          do k = 1, pl%nplpl
             associate(ik => pl%k_plpl(1, k), jk => pl%k_plpl(2, k))
-               pepl(k) = -pl%Gmass(ik) * pl%mass(jk) / norm2(pl%xh(:, jk) - pl%xh(:, ik)) 
+               pepl(k) = -pl%Gmass(ik) * pl%mass(jk) / norm2(pl%xb(:, jk) - pl%xb(:, ik)) 
                lstatpl(k) = (lstatus(ik) .and. lstatus(jk))
             end associate
          end do
@@ -91,7 +91,7 @@ contains
          system%ke_orbit = 0.5_DP * sum(kepl(1:npl), lstatus(:))
          if (param%lrotation) system%ke_spin = 0.5_DP * sum(kespinpl(1:npl), lstatus(:))
    
-         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(2:npl), lstatus(2:npl))
+         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lstatus(1:npl))
    
          ! Potential energy from the oblateness term
          if (param%loblatecb) then

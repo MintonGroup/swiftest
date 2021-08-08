@@ -168,7 +168,7 @@ contains
          ! Set scale factors
          Escale = 0.5_DP * (mass(1) * dot_product(v(:,1), v(:,1)) + mass(2) * dot_product(v(:,2), v(:,2)))
          dscale = sum(radius(:))
-         mscale = sqrt(Escale * dscale / param%GU) 
+         mscale = mtot
          vscale = sqrt(Escale / mscale) 
          tscale = dscale / vscale 
          Lscale = mscale * dscale * vscale
@@ -338,6 +338,7 @@ contains
             call tmpsys%tp%setup(0, param)
             deallocate(tmpsys%cb)
             allocate(tmpsys%cb, source=cb)
+            if (allocated(tmpparam)) deallocate(tmpparam) 
             allocate(tmpparam, source=param)
             allocate(ltmp(npl_new))
             ltmp(:) = .false.
@@ -347,13 +348,14 @@ contains
             call tmpsys%rescale(tmpparam, mscale, dscale, tscale)
       
             if (linclude_fragments) then ! Append the fragments if they are included
-               ! Energy calculation requires the fragments to be in the system barcyentric frame, s
+               ! Energy calculation requires the fragments to be in the system barcyentric frame
+
                tmpsys%pl%mass(npl+1:npl_new) = m_frag(1:nfrag)
-               tmpsys%pl%Gmass(npl+1:npl_new) = m_frag(1:nfrag) * param%GU * dscale**3 * mscale / tscale**2 
+               tmpsys%pl%Gmass(npl+1:npl_new) = m_frag(1:nfrag) * tmpparam%GU
                tmpsys%pl%radius(npl+1:npl_new) = rad_frag(1:nfrag)
                tmpsys%pl%xb(:,npl+1:npl_new) =  xb_frag(:,1:nfrag)
                tmpsys%pl%vb(:,npl+1:npl_new) =  vb_frag(:,1:nfrag)
-               tmpsys%pl%status(npl+1:npl_new) = COLLISION
+               tmpsys%pl%status(npl+1:npl_new) = ACTIVE
                if (param%lrotation) then
                   tmpsys%pl%Ip(:,npl+1:npl_new) = Ip_frag(:,1:nfrag)
                   tmpsys%pl%rot(:,npl+1:npl_new) = rot_frag(:,1:nfrag)
@@ -529,21 +531,21 @@ contains
 
          call calculate_system_energy(linclude_fragments=.true.)
          ke_frag_budget = -dEtot - Qloss
-         write(*,*) '***************************************************'
-         write(*,*) 'Original dis   : ',norm2(x(:,2) - x(:,1))
-         write(*,*) 'r_max          : ',r_max
-         write(*,*) 'f_spin         : ',f_spin
-         write(*,*) '***************************************************'
-         write(*,*) 'Energy balance so far: '
-         write(*,*) 'ke_frag_budget : ',ke_frag_budget
-         write(*,*) 'ke_orbit_before: ',ke_orbit_before 
-         write(*,*) 'ke_orbit_after : ',ke_orbit_after  
-         write(*,*) 'ke_spin_before : ',ke_spin_before 
-         write(*,*) 'ke_spin_after  : ',ke_spin_after  
-         write(*,*) 'pe_before      : ',pe_before 
-         write(*,*) 'pe_after       : ',pe_after  
-         write(*,*) 'Qloss          : ',Qloss
-         write(*,*) '***************************************************'
+         !write(*,*) '***************************************************'
+         !write(*,*) 'Original dis   : ',norm2(x(:,2) - x(:,1))
+         !write(*,*) 'r_max          : ',r_max
+         !write(*,*) 'f_spin         : ',f_spin
+         !write(*,*) '***************************************************'
+         !write(*,*) 'Energy balance so far: '
+         !write(*,*) 'ke_frag_budget : ',ke_frag_budget
+         !write(*,*) 'ke_orbit_before: ',ke_orbit_before 
+         !write(*,*) 'ke_orbit_after : ',ke_orbit_after  
+         !write(*,*) 'ke_spin_before : ',ke_spin_before 
+         !write(*,*) 'ke_spin_after  : ',ke_spin_after  
+         !write(*,*) 'pe_before      : ',pe_before 
+         !write(*,*) 'pe_after       : ',pe_after  
+         !write(*,*) 'Qloss          : ',Qloss
+         !write(*,*) '***************************************************'
          if (ke_frag_budget < 0.0_DP) then
             write(*,*) 'Negative ke_frag_budget: ',ke_frag_budget
             r_max_start = r_max_start / 2 
@@ -608,11 +610,11 @@ contains
 
          ! If we are over the energy budget, flag this as a failure so we can try again
          lerr = (ke_radial < 0.0_DP)
-         write(*,*) 'Tangential'
-         write(*,*) 'ke_frag_budget: ',ke_frag_budget
-         write(*,*) 'ke_frag_orbit : ',ke_frag_orbit
-         write(*,*) 'ke_frag_spin  : ',ke_frag_spin
-         write(*,*) 'ke_radial     : ',ke_radial
+         !write(*,*) 'Tangential'
+         !write(*,*) 'ke_frag_budget: ',ke_frag_budget
+         !write(*,*) 'ke_frag_orbit : ',ke_frag_orbit
+         !write(*,*) 'ke_frag_spin  : ',ke_frag_spin
+         !write(*,*) 'ke_radial     : ',ke_radial
 
          return
 
