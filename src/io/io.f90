@@ -1318,51 +1318,100 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
+      use netcdf
       implicit none
       ! Arguments
       class(swiftest_body),       intent(in)    :: self   !! Swiftest particle object
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+
+      integer(I4B)                              :: ncid         !! NetCDF ID for the output file
+      integer(I4B)                              :: dimids(2)    !! Dimensions of the NetCDF file
+      integer(I4B)                              :: time_dimid   !! NetCDF ID for the time dimension 
+      integer(I4B)                              :: name_dimid   !! NetCDF ID for the particle name dimension
+      integer(I4B)                              :: noutput      !! Number of output events covering the total simulation time
+      integer(I4B)                              :: a_varid      !! NetCDF ID for the semimajor axis variable 
+      integer(I4B)                              :: e_varid      !! NetCDF ID for the eccentricity variable 
+      integer(I4B)                              :: inc_varid    !! NetCDF ID for the inclination variable 
+      integer(I4B)                              :: capom_varid  !! NetCDF ID for the long. asc. node variable 
+      integer(I4B)                              :: omega_varid  !! NetCDF ID for the arg. periapsis variable 
+      integer(I4B)                              :: capm_varid   !! NetCDF ID for the mean anomaly variable 
+      integer(I4B)                              :: xhx_varid    !! NetCDF ID for the heliocentric position x variable 
+      integer(I4B)                              :: xhy_varid    !! NetCDF ID for the heliocentric position y variable 
+      integer(I4B)                              :: xhz_varid    !! NetCDF ID for the heliocentric position z variable 
+      integer(I4B)                              :: vhx_varid    !! NetCDF ID for the heliocentric velocity x variable 
+      integer(I4B)                              :: vhy_varid    !! NetCDF ID for the heliocentric velocity y variable 
+      integer(I4B)                              :: vhz_varid    !! NetCDF ID for the heliocentric velocity z variable 
+      integer(I4B)                              :: Gmass_varid  !! NetCDF ID for the mass variable
+      integer(I4B)                              :: rhill_varid  !! NetCDF ID for the hill radius variable
+      integer(I4B)                              :: radius_varid !! NetCDF ID for the radius variable
+      integer(I4B)                              :: Ip1_varid    !! NetCDF ID for the axis 1 principal moment of inertial variable
+      integer(I4B)                              :: Ip2_varid    !! NetCDF ID for the axis 2 principal moment of inertial variable
+      integer(I4B)                              :: Ip3_varid    !! NetCDF ID for the axis 3 principal moment of inertial variable
+      integer(I4B)                              :: rotx_varid   !! NetCDF ID for the rotation x variable
+      integer(I4B)                              :: roty_varid   !! NetCDF ID for the rotation y variable
+      integer(I4B)                              :: rotz_varid   !! NetCDF ID for the rotation z variable
+      integer(I4B)                              :: k2_varid     !! NetCDF ID for the Love number variable
+      integer(I4B)                              :: Q_varid      !! NetCDF ID for the energy dissipation variable
+
+      !! Open the netCDF file
+      call check( nf90_open(param%outfile, nf90_write, ncid) )
 
       associate(n => self%nbody)
          if (n == 0) return
-         write(iu) self%id(1:n)
-         !write(iu) self%name(1:n)
+
          select case (param%out_form)
          case (EL) 
-            write(iu) self%a(1:n)
-            write(iu) self%e(1:n)
-            write(iu) self%inc(1:n)
-            write(iu) self%capom(1:n)
-            write(iu) self%omega(1:n)
-            write(iu) self%capm(1:n)
+            do i = 1, npl
+               call check( nf90_put_var(ncid, a_varid, self%a(self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, e_varid, self%e(self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, inc_varid, self%inc(self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, capom_varid, self%capom(self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, omega_varid, self%omega(self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, capm_varid, self%capm(self%id = i), start=(/self%id, param%t/)) )
+            end do 
          case (XV)
-            write(iu) self%xh(1, 1:n)
-            write(iu) self%xh(2, 1:n)
-            write(iu) self%xh(3, 1:n)
-            write(iu) self%vh(1, 1:n)
-            write(iu) self%vh(2, 1:n)
-            write(iu) self%vh(3, 1:n)
+            call check( nf90_put_var(ncid, xhx_varid, self%xh(1, self%id = i), start=(/self%id, param%t/)) )
+            call check( nf90_put_var(ncid, xhy_varid, self%xh(2, self%id = i), start=(/self%id, param%t/)) )
+            call check( nf90_put_var(ncid, xhz_varid, self%xh(3, self%id = i), start=(/self%id, param%t/)) )
+            call check( nf90_put_var(ncid, vhx_varid, self%vh(1, self%id = i), start=(/self%id, param%t/)) )
+            call check( nf90_put_var(ncid, vhy_varid, self%vh(2, self%id = i), start=(/self%id, param%t/)) )
+            call check( nf90_put_var(ncid, vhz_varid, self%vh(3, self%id = i), start=(/self%id, param%t/)) )
          end select
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            write(iu) pl%Gmass(1:n)
-            if (param%lrhill_present) write(iu) pl%rhill(1:n)
-            if (param%lclose) write(iu) pl%radius(1:n)
+            call check( nf90_put_var(ncid, Gmass_varid, pl%Gmass(self%id = i), start=(/self%id, param%t/)) )
+            if (param%lrhill_present) call check( nf90_put_var(ncid, rhill_varid, pl%rhill(self%id = i), start=(/self%id, param%t/)) )
+            if (param%lclose) call check( nf90_put_var(ncid, radius_varid, pl%radius(self%id = i), start=(/self%id, param%t/)) )
             if (param%lrotation) then
-               write(iu) pl%Ip(1, 1:n)
-               write(iu) pl%Ip(2, 1:n)
-               write(iu) pl%Ip(3, 1:n)
-               write(iu) pl%rot(1, 1:n)
-               write(iu) pl%rot(2, 1:n)
-               write(iu) pl%rot(3, 1:n)
+               call check( nf90_put_var(ncid, Ip1_varid, pl%Ip(1, self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, Ip2_varid, pl%Ip(2, self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, Ip3_varid, pl%Ip(3, self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, rotx_varid, pl%rot(1, self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, roty_varid, pl%rot(2, self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, rotz_varid, pl%rot(3, self%id = i), start=(/self%id, param%t/)) )
             end if
             if (param%ltides) then
-               write(iu) pl%k2(1:n)
-               write(iu) pl%Q(1:n)
+               call check( nf90_put_var(ncid, k2_varid, pl%k2(self%id = i), start=(/self%id, param%t/)) )
+               call check( nf90_put_var(ncid, Q_varid, pl%Q(self%id = i), start=(/self%id, param%t/)) )
             end if
          end select
       end associate
+
+      !! Close the netCDF file
+      call check( nf90_close(ncid) )
+
+      contains
+
+      !! Checks the status of all NetCDF operations to catch errors
+      subroutine check(status)
+         integer, intent ( in) :: status
+
+         if(status /= nf90_noerr) then
+            print *, trim(nf90_strerror(status))
+            stop "NetCDF Error: Stopped"
+         end if
+      end subroutine check
 
       return
    end subroutine io_write_frame_body
