@@ -39,6 +39,7 @@ contains
                write(EGYIU,EGYHEADER)
             end if
          end if
+         call pl%h2b(cb)
          call system%get_energy_and_momentum(param) 
          ke_orbit_now = system%ke_orbit
          ke_spin_now = system%ke_spin

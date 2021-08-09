@@ -38,7 +38,7 @@ contains
          Lplspiny(:) = 0.0_DP
          Lplspinz(:) = 0.0_DP
          lstatus(1:npl) = pl%status(1:npl) /= INACTIVE
-         call pl%h2b(cb)
+
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
          hx = cb%xb(2) * cb%vb(3) - cb%xb(3) * cb%vb(2)
          hy = cb%xb(3) * cb%vb(1) - cb%xb(1) * cb%vb(3)
@@ -108,10 +108,10 @@ contains
             end associate
          end do
    
+         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lstatus(1:npl))
+
          system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), lstatus(:)))
          if (param%lrotation) system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), lstatus(:)))
-   
-         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lstatus(1:npl))
    
          ! Potential energy from the oblateness term
          if (param%loblatecb) then
