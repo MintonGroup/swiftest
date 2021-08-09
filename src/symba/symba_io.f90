@@ -253,7 +253,7 @@ contains
                nsub = pl_discards%ncomp(isub)
                do j = 1, nadd
                   if (iadd <= pl_adds%nbody) then
-                     write(LUN, NAMEFMT) ADD, pl_discards%id(iadd), pl_discards%status(iadd)
+                     write(LUN, NAMEFMT) ADD, pl_adds%id(iadd), pl_adds%status(iadd)
                      write(LUN, VECFMT) pl_adds%xh(1, iadd), pl_adds%xh(2, iadd), pl_adds%xh(3, iadd)
                      write(LUN, VECFMT) pl_adds%vh(1, iadd), pl_adds%vh(2, iadd), pl_adds%vh(3, iadd)
                   else 
