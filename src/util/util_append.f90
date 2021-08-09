@@ -10,17 +10,13 @@ contains
       ! Arguments
       character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      logical,               dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical,               dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: narr, nsrc
 
       if (.not. allocated(source)) return
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
-      else
-         nsrc = size(source)
-      end if
+      nsrc = count(lsource_mask)
 
       if (allocated(arr)) then
          narr = size(arr)
@@ -31,11 +27,7 @@ contains
 
       call util_resize(arr, narr + nsrc)
 
-      if (present(lsource_mask)) then
-         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr + 1:narr + nsrc) = source(:)
-      end if
+      arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
 
       return
    end subroutine util_append_arr_char_string
@@ -49,17 +41,13 @@ contains
       ! Arguments
       real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      logical,  dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical,  dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: narr, nsrc
 
       if (.not. allocated(source)) return
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
-      else
-         nsrc = size(source)
-      end if
+      nsrc = count(lsource_mask)
 
       if (allocated(arr)) then
          narr = size(arr)
@@ -70,11 +58,7 @@ contains
 
       call util_resize(arr, narr + nsrc)
 
-      if (present(lsource_mask)) then
-         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr + 1:narr + nsrc) = source(:)
-      end if
+      arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
 
       return
    end subroutine util_append_arr_DP
@@ -88,17 +72,13 @@ contains
       ! Arguments
       real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
       real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
-      logical,  dimension(:),   optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical,  dimension(:),                intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: narr, nsrc
 
       if (.not. allocated(source)) return
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
-      else
-         nsrc = size(source, dim=2)
-      end if
+      nsrc = count(lsource_mask)
 
       if (allocated(arr)) then
          narr = size(arr, dim=2)
@@ -109,13 +89,9 @@ contains
 
       call util_resize(arr, narr + nsrc)
 
-      if (present(lsource_mask)) then
-         arr(1, narr + 1:narr + nsrc) = pack(source(1,:), lsource_mask(:))
-         arr(2, narr + 1:narr + nsrc) = pack(source(2,:), lsource_mask(:))
-         arr(3, narr + 1:narr + nsrc) = pack(source(3,:), lsource_mask(:))
-      else
-         arr(:, narr + 1:narr + nsrc) = source(:,:)
-      end if
+      arr(1, narr + 1:narr + nsrc) = pack(source(1,:), lsource_mask(:))
+      arr(2, narr + 1:narr + nsrc) = pack(source(2,:), lsource_mask(:))
+      arr(3, narr + 1:narr + nsrc) = pack(source(3,:), lsource_mask(:))
 
       return
    end subroutine util_append_arr_DPvec
@@ -129,17 +105,13 @@ contains
       ! Arguments
       integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      logical,      dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: narr, nsrc
 
       if (.not. allocated(source)) return
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
-      else
-         nsrc = size(source)
-      end if
+      nsrc = count(lsource_mask)
 
       if (allocated(arr)) then
          narr = size(arr)
@@ -150,11 +122,7 @@ contains
 
       call util_resize(arr, narr + nsrc)
 
-      if (present(lsource_mask)) then
-         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr + 1:narr + nsrc) = source(:)
-      end if
+      arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
 
       return
    end subroutine util_append_arr_I4B
@@ -168,7 +136,7 @@ contains
       ! Arguments
       logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      logical, dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: narr, nsrc
 
@@ -181,19 +149,11 @@ contains
          narr = 0
       end if
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
-      else
-         nsrc = size(source)
-      end if
+      nsrc = count(lsource_mask)
 
       call util_resize(arr, narr + nsrc)
 
-      if (present(lsource_mask)) then
-         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr + 1:narr + nsrc) = source(:)
-      end if
+      arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
 
       return
    end subroutine util_append_arr_logical
@@ -208,7 +168,7 @@ contains
       ! Arguments
       class(swiftest_body),            intent(inout) :: self         !! Swiftest body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       call util_append(self%name, source%name, lsource_mask)
       call util_append(self%id, source%id, lsource_mask)
@@ -247,7 +207,7 @@ contains
       ! Arguments
       class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
 
       select type(source)
@@ -287,7 +247,7 @@ contains
       ! Arguments
       class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (swiftest_tp)

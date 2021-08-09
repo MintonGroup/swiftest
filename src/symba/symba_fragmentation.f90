@@ -133,11 +133,13 @@ contains
                      plnew%k2 = pl%k2(ibiggest)
                      plnew%tlag = pl%tlag(ibiggest)
                   end if
+                  call plnew%set_mu(cb)
+                  pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
       
                   ! Append the new merged body to the list and record how many we made
                   nstart = pl_adds%nbody + 1
                   nend = pl_adds%nbody + plnew%nbody
-                  call pl_adds%append(plnew)
+                  call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
                   pl_adds%ncomp(nstart:nend) = plnew%nbody
       
                   call plnew%setup(0, param)
@@ -291,11 +293,13 @@ contains
                      plnew%k2 = pl%k2(ibiggest)
                      plnew%tlag = pl%tlag(ibiggest)
                   end if
+                  call plnew%set_mu(cb)
+                  pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
       
                   ! Append the new merged body to the list and record how many we made
                   nstart = pl_adds%nbody + 1
                   nend = pl_adds%nbody + plnew%nbody
-                  call pl_adds%append(plnew)
+                  call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
                   pl_adds%ncomp(nstart:nend) = plnew%nbody
       
                   call plnew%setup(0, param)
@@ -427,11 +431,13 @@ contains
                   plnew%k2 = pl%k2(ibiggest)
                   plnew%tlag = pl%tlag(ibiggest)
                end if
+               call plnew%set_mu(cb)
+               pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
 
                ! Append the new merged body to the list and record how many we made
                nstart = pl_adds%nbody + 1
                nend = pl_adds%nbody + plnew%nbody
-               call pl_adds%append(plnew)
+               call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
                pl_adds%ncomp(nstart:nend) = plnew%nbody
 
                call plnew%setup(0, param)
@@ -570,11 +576,13 @@ contains
                      plnew%k2 = pl%k2(ibiggest)
                      plnew%tlag = pl%tlag(ibiggest)
                   end if
+                  call plnew%set_mu(cb)
+                  pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
       
                   ! Append the new merged body to the list and record how many we made
                   nstart = pl_adds%nbody + 1
                   nend = pl_adds%nbody + plnew%nbody
-                  call pl_adds%append(plnew)
+                  call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
                   pl_adds%ncomp(nstart:nend) = plnew%nbody
       
                   call plnew%setup(0, param)

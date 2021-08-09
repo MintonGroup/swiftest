@@ -492,14 +492,14 @@ module symba_classes
          implicit none
          type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,                   dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_arr_info
      
       module subroutine symba_util_append_arr_kin(arr, source, lsource_mask)
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,             dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_arr_kin
    end interface
 
@@ -509,7 +509,7 @@ module symba_classes
          implicit none
          class(symba_merger),             intent(inout) :: self         !! SyMBA massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_merger
 
       module subroutine symba_util_append_pl(self, source, lsource_mask)
@@ -517,7 +517,7 @@ module symba_classes
          implicit none
          class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_pl
 
       module subroutine symba_util_append_tp(self, source, lsource_mask)
@@ -525,7 +525,7 @@ module symba_classes
          implicit none
          class(symba_tp),                 intent(inout) :: self        !! SyMBA test particle object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_tp
    end interface 
 

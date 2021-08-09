@@ -49,7 +49,6 @@ contains
       class(swiftest_nbody_system), allocatable :: tmpsys
       class(swiftest_parameters), allocatable   :: tmpparam
 
-
       if (nfrag < NFRAG_MIN) then
          write(*,*) "symba_frag_pos needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
          lfailure = .true.
@@ -114,10 +113,9 @@ contains
             if (lfailure) write(*,*) 'Failed to find radial velocities'
             if (.not.lfailure) then
                call calculate_system_energy(linclude_fragments=.true.)
-
-               write(*,*) 'Qloss : ',Qloss
-               write(*,*) '-dEtot: ',-dEtot
-               write(*,*) 'delta : ',abs((dEtot + Qloss)) 
+               ! write(*,*) 'Qloss : ',Qloss
+               ! write(*,*) '-dEtot: ',-dEtot
+               ! write(*,*) 'delta : ',abs((dEtot + Qloss)) 
                if ((abs(dEtot + Qloss) > Etol) .or. (dEtot > 0.0_DP)) then
                   write(*,*) 'Failed due to high energy error: ',dEtot, abs(dEtot + Qloss) / Etol
                   lfailure = .true.
@@ -132,6 +130,10 @@ contains
          call restructure_failed_fragments()
          try = try + 1
       end do
+      call restore_scale_factors()
+      call calculate_system_energy(linclude_fragments=.true.)
+
+
       write(*,        "(' -------------------------------------------------------------------------------------')")
       write(*,        "('  Final diagnostic')")
       write(*,        "(' -------------------------------------------------------------------------------------')")
@@ -151,7 +153,6 @@ contains
       end if
       write(*,        "(' -------------------------------------------------------------------------------------')")
 
-      call restore_scale_factors()
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
       return 
@@ -247,6 +248,11 @@ contains
             ke_orbit_after = ke_orbit_after * Escale
             Ltot_after = Ltot_after * Lscale
             Lmag_after = Lmag_after * Lscale 
+
+            dLmag = norm2(Ltot_after(:) - Ltot_before(:)) 
+            dEtot = Etot_after - Etot_before
+
+            call tmpsys%rescale(tmpparam, mscale**(-1), dscale**(-1), tscale**(-1))
 
             mscale = 1.0_DP
             dscale = 1.0_DP

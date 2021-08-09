@@ -11,7 +11,7 @@ contains
       !! Arguments
       class(rmvs_pl),                  intent(inout) :: self         !! RMVS massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (rmvs_pl)
@@ -44,7 +44,7 @@ contains
       !! Arguments
       class(rmvs_tp),                  intent(inout) :: self         !! RMVS test particle object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (rmvs_tp)

@@ -94,19 +94,22 @@ contains
    
          ! Do the central body potential energy component first
          !$omp simd 
-         do i = 1, npl
-            associate(px => pl%xb(1,i), py => pl%xb(2,i), pz => pl%xb(3,i))
-               pecb(i) = -cb%Gmass * pl%mass(i) / sqrt(px**2 + py**2 + pz**2)
-            end associate
-         end do
+         associate(px => pl%xb(1,:), py => pl%xb(2,:), pz => pl%xb(3,:))
+            do concurrent(i = 1:npl, lstatus(i))
+               pecb(i) = -cb%Gmass * pl%mass(i) / sqrt(px(i)**2 + py(i)**2 + pz(i)**2)
+            end do
+         end associate
    
          ! Do the potential energy between pairs of massive bodies
-         do k = 1, pl%nplpl
-            associate(ik => pl%k_plpl(1, k), jk => pl%k_plpl(2, k))
-               pepl(k) = -pl%Gmass(ik) * pl%mass(jk) / norm2(pl%xb(:, jk) - pl%xb(:, ik)) 
-               lstatpl(k) = (lstatus(ik) .and. lstatus(jk))
-            end associate
-         end do
+         associate(indi => pl%k_plpl(1, :), indj => pl%k_plpl(2, :))
+            do concurrent (k = 1:pl%nplpl)
+               lstatpl(k) = (lstatus(indi(k)) .and. lstatus(indj(k)))
+            end do
+
+            do concurrent (k = 1:pl%nplpl, lstatpl(k))
+               pepl(k) = -pl%Gmass(indi(k)) * pl%mass(indj(k)) / norm2(pl%xb(:, indi(k)) - pl%xb(:, indj(k))) 
+            end do
+         end associate
    
          system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lstatus(1:npl))
 
@@ -116,7 +119,7 @@ contains
          ! Potential energy from the oblateness term
          if (param%loblatecb) then
             !$omp simd 
-            do i = 1, npl
+            do concurrent(i = 1:npl, lstatus(i))
                irh(i) = 1.0_DP / norm2(pl%xh(:,i))
             end do
             call obl_pot(npl, cb%Gmass, pl%mass, cb%j2rp2, cb%j4rp4, pl%xh, irh, oblpot)

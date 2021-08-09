@@ -10,17 +10,13 @@ contains
       ! Arguments
       type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      logical,                   dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: narr, nsrc
 
       if (.not. allocated(source)) return
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
-      else
-         nsrc = size(source)
-      end if
+      nsrc = count(lsource_mask)
 
       if (allocated(arr)) then
          narr = size(arr)
@@ -31,11 +27,7 @@ contains
 
       call util_resize(arr, narr + nsrc)
 
-      if (present(lsource_mask)) then
-         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr + 1:narr + nsrc) = source(:)
-      end if
+      arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
 
       return
    end subroutine symba_util_append_arr_info
@@ -49,17 +41,13 @@ contains
       ! Arguments
       type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      logical,             dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: narr, nsrc
 
       if (.not. allocated(source)) return
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
-      else
-         nsrc = size(source)
-      end if
+      nsrc = count(lsource_mask)
 
       if (allocated(arr)) then
          narr = size(arr)
@@ -70,11 +58,7 @@ contains
 
       call util_resize(arr, narr + nsrc)
 
-      if (present(lsource_mask)) then
-         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr + 1:narr + nsrc) = source(:)
-      end if
+      arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
 
       return
    end subroutine symba_util_append_arr_kin
@@ -89,7 +73,7 @@ contains
       !! Arguments
       class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (symba_pl)
@@ -125,7 +109,7 @@ contains
       ! Arguments
       class(symba_merger),             intent(inout) :: self         !! SyMBA massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B), dimension(:), allocatable        :: ncomp_tmp    !! Temporary placeholder for ncomp incase we are appending a symba_pl object to a symba_merger
 
@@ -156,7 +140,7 @@ contains
       !! Arguments
       class(symba_tp),                 intent(inout) :: self         !! SyMBA test particle object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (symba_tp)
@@ -380,11 +364,15 @@ contains
       class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
+      integer(I4B) :: i
+      logical, dimension(:), allocatable :: lmask
 
       associate(pl => self, pl_adds => system%pl_adds)
          allocate(tmp, mold=pl)
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
-         call pl%spill(tmp, lspill_list=(pl%ldiscard(:) .or. pl%status(:) == INACTIVE), ldestructive=.true.)
+         allocate(lmask, source=pl%ldiscard(:))
+         lmask(:) = lmask(:) .or. pl%status(:) == INACTIVE
+         call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
          call tmp%setup(0,param)
          deallocate(tmp)
 
@@ -393,7 +381,7 @@ contains
          if (allocated(pl%xend)) deallocate(pl%xend)
 
          ! Add in any new bodies
-         call pl%append(pl_adds)
+         call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
 
          ! If there are still bodies in the system, sort by mass in descending order and re-index
          if (pl%nbody > 0) then

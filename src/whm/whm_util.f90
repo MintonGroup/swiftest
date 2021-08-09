@@ -11,7 +11,7 @@ contains
       !! Arguments
       class(whm_pl),                   intent(inout) :: self         !! WHM massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (whm_pl)
