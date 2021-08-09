@@ -1465,48 +1465,50 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(in)    :: self   !! Swiftest system object
-      integer(I4B),                 intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_nbody_system), intent(in)    :: self            !! Swiftest system object
+      integer(I4B),                 intent(inout) :: iu              !! Unit number for the output file to write frame to
+      class(swiftest_parameters),   intent(in)    :: param           !! Current run configuration parameters 
       ! Internals
-      logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
-      integer(I4B)                     :: ierr            !! I/O error code
+      logical, save                               :: lfirst = .true. !! Flag to determine if this is the first call of this method
+      integer(I4B)                                :: ierr            !! I/O error code
 
-      class(swiftest_cb), allocatable  :: cb         !! Temporary local version of pl structure used for non-destructive conversions
-      class(swiftest_pl), allocatable  :: pl         !! Temporary local version of pl structure used for non-destructive conversions
-      class(swiftest_tp), allocatable  :: tp          !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_cb), allocatable             :: cb              !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_pl), allocatable             :: pl              !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_tp), allocatable             :: tp              !! Temporary local version of pl structure used for non-destructive conversions
+      
+      integer(I4B)                                :: ncid            !! NetCDF ID for the output file
+      integer(I4B)                                :: dimids(2)       !! Dimensions of the NetCDF file
+      integer(I4B)                                :: time_dimid      !! NetCDF ID for the time dimension 
+      integer(I4B)                                :: name_dimid      !! NetCDF ID for the particle name dimension
+      integer(I4B)                                :: noutput         !! Number of output events covering the total simulation time
+      integer(I4B)                                :: a_varid         !! NetCDF ID for the semimajor axis variable 
+      integer(I4B)                                :: e_varid         !! NetCDF ID for the eccentricity variable 
+      integer(I4B)                                :: inc_varid       !! NetCDF ID for the inclination variable 
+      integer(I4B)                                :: capom_varid     !! NetCDF ID for the long. asc. node variable 
+      integer(I4B)                                :: omega_varid     !! NetCDF ID for the arg. periapsis variable 
+      integer(I4B)                                :: capm_varid      !! NetCDF ID for the mean anomaly variable 
+      integer(I4B)                                :: xhx_varid       !! NetCDF ID for the heliocentric position x variable 
+      integer(I4B)                                :: xhy_varid       !! NetCDF ID for the heliocentric position y variable 
+      integer(I4B)                                :: xhz_varid       !! NetCDF ID for the heliocentric position z variable 
+      integer(I4B)                                :: vhx_varid       !! NetCDF ID for the heliocentric velocity x variable 
+      integer(I4B)                                :: vhy_varid       !! NetCDF ID for the heliocentric velocity y variable 
+      integer(I4B)                                :: vhz_varid       !! NetCDF ID for the heliocentric velocity z variable 
+      integer(I4B)                                :: Gmass_varid     !! NetCDF ID for the mass variable
+      integer(I4B)                                :: rhill_varid     !! NetCDF ID for the hill radius variable
+      integer(I4B)                                :: radius_varid    !! NetCDF ID for the radius variable
+      integer(I4B)                                :: Ip1_varid       !! NetCDF ID for the axis 1 principal moment of inertial variable
+      integer(I4B)                                :: Ip2_varid       !! NetCDF ID for the axis 2 principal moment of inertial variable
+      integer(I4B)                                :: Ip3_varid       !! NetCDF ID for the axis 3 principal moment of inertial variable
+      integer(I4B)                                :: rotx_varid      !! NetCDF ID for the rotation x variable
+      integer(I4B)                                :: roty_varid      !! NetCDF ID for the rotation y variable
+      integer(I4B)                                :: rotz_varid      !! NetCDF ID for the rotation z variable
+      integer(I4B)                                :: k2_varid        !! NetCDF ID for the Love number variable
+      integer(I4B)                                :: Q_varid         !! NetCDF ID for the energy dissipation variable
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)
       allocate(tp, source = self%tp)
       iu = BINUNIT
-
-      if (lfirst) then
-         select case(param%out_stat)
-         case('APPEND')
-            open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
-         case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit = iu, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
-         case default
-            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
-            call util_exit(FAILURE)
-         end select
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error: io_write_frame_system - first", ierr
-            write(*, *) "   Binary output file " // trim(adjustl(param%outfile)) // " already exists or cannot be accessed"
-            write(*, *) "   OUT_STAT: " // trim(adjustl(param%out_stat))
-            call util_exit(FAILURE)
-         end if
-         lfirst = .false.
-      else
-         open(unit = iu, file = param%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error: io_write_frame_system"
-            write(*, *) "   Unable to open binary output file for APPEND"
-            call util_exit(FAILURE)
-         end if
-      end if
-      call io_write_hdr(iu, param%t, pl%nbody, tp%nbody, param%out_form, param%out_type)
 
       if (param%lgr) then
          call pl%pv2v(param)
@@ -1517,15 +1519,102 @@ contains
          call pl%xv2el(cb)
          call tp%xv2el(cb)
       end if
-      
-      ! Write out each data type frame
-      call cb%write_frame(iu, param)
-      call pl%write_frame(iu, param)
-      call tp%write_frame(iu, param)
 
+      if (lfirst) then
+         select case(param%out_stat)
+         case('APPEND')
+            !open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+
+            call cb%write_frame(iu, param)
+            call pl%write_frame(iu, param)
+            call tp%write_frame(iu, param)
+         case('NEW', 'REPLACE', 'UNKNOWN')
+            !open(unit = iu, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
+         
+            !! Create the new output file, deleting any previously existing output file of the same name
+            call check( nf90_create(param%outfile, NF90_CLOBBER, ncid) )
+
+            !! Calculate the number of outputs needed to cover the entire simulation time
+            noutput = (param%tstop / param%dt) / param%istep_out
+
+            !! Define the NetCDF dimensions with particle name as the record dimension
+            call check( nf90_def_dim(ncid, "Time", noutput, time_dimid) )
+            call check( nf90_def_dim(ncid, "Particle Name", NF90_UNLIMITED, name_dimid) )
+            dimids = (/ name_dimid, time_dimid /)
+
+            !! Define the variables
+            select case (param%out_form)
+            case (EL)
+               call check( nf90_def_var(ncid, "a", NF90_FLOAT, dimids, a_varid) )
+               call check( nf90_def_var(ncid, "e", NF90_FLOAT, dimids, e_varid) )
+               call check( nf90_def_var(ncid, "inc", NF90_FLOAT, dimids, inc_varid) )
+               call check( nf90_def_var(ncid, "capom", NF90_FLOAT, dimids, capom_varid) )
+               call check( nf90_def_var(ncid, "omega", NF90_FLOAT, dimids, omega_varid) )
+               call check( nf90_def_var(ncid, "capm", NF90_FLOAT, dimids, capm_varid) )
+            case (XV)
+               call check( nf90_def_var(ncid, "xhx", NF90_FLOAT, dimids, xhx_varid) )
+               call check( nf90_def_var(ncid, "xhy", NF90_FLOAT, dimids, xhy_varid) )
+               call check( nf90_def_var(ncid, "xhz", NF90_FLOAT, dimids, xhz_varid) )
+               call check( nf90_def_var(ncid, "vhx", NF90_FLOAT, dimids, vhx_varid) )
+               call check( nf90_def_var(ncid, "vhy", NF90_FLOAT, dimids, vhy_varid) )
+               call check( nf90_def_var(ncid, "vhz", NF90_FLOAT, dimids, vhz_varid) )
+            end select
+            select type(pl => self)
+            class is (swiftest_pl)
+               call check( nf90_def_var(ncid, "Gmass", NF90_FLOAT, dimids, Gmass_varid) )
+               if (param%lrhill_present) call check( nf90_def_var(ncid, "rhill", NF90_FLOAT, dimids, rhill_varid) )
+               if (param%lclose) call check( nf90_def_var(ncid, "radius", NF90_FLOAT, dimids, radius_varid) )
+               if (param%lrotation) then
+                  call check( nf90_def_var(ncid, "Ip1", NF90_FLOAT, dimids, Ip1_varid) )
+                  call check( nf90_def_var(ncid, "Ip2", NF90_FLOAT, dimids, Ip3_varid) )
+                  call check( nf90_def_var(ncid, "Ip3", NF90_FLOAT, dimids, Ip3_varid) )
+                  call check( nf90_def_var(ncid, "rotx", NF90_FLOAT, dimids, rotx_varid) )
+                  call check( nf90_def_var(ncid, "roty", NF90_FLOAT, dimids, roty_varid) )
+                  call check( nf90_def_var(ncid, "rotz", NF90_FLOAT, dimids, rotz_varid) )
+               end if
+               if (param%ltides) then
+                  call check( nf90_def_var(ncid, "k2", NF90_FLOAT, dimids, k2_varid) )
+                  call check( nf90_def_var(ncid, "Q", NF90_FLOAT, dimids, Q_varid) )
+               end if
+            end select
+
+            !! Exit define mode 
+            call check( nf90_enddef(ncid) )
+
+            !! Close the netCDF file
+            call check( nf90_close(ncid) )
+
+            !! Write the first frame of the output 
+            call cb%write_frame(iu, param)
+            call pl%write_frame(iu, param)
+            call tp%write_frame(iu, param)
+
+         case default
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+            call util_exit(FAILURE)
+         end select
+
+         lfirst = .false.
+         
+      else
+         call cb%write_frame(iu, param)
+         call pl%write_frame(iu, param)
+         call tp%write_frame(iu, param)
+      end if
+      
       deallocate(cb, pl, tp)
 
-      close(iu)
+   contains
+
+   !! Checks the status of all NetCDF operations to catch errors
+   subroutine check(status)
+      integer, intent ( in) :: status
+
+      if(status /= nf90_noerr) then
+         print *, trim(nf90_strerror(status))
+         stop "NetCDF Error: Stopped"
+      end if
+   end subroutine check
 
       return
    end subroutine io_write_frame_system
