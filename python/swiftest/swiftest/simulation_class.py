@@ -37,6 +37,7 @@ class Simulation:
             'TU2S': constants.JD2S,
             'DU2M': constants.AU2M,
             'EXTRA_FORCE': "NO",
+            'DISCARD_OUT': "discard.out",
             'BIG_DISCARD': "NO",
             'CHK_CLOSE': "YES",
             'RHILL_PRESENT': "YES",
