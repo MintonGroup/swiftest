@@ -71,7 +71,7 @@ FORTRAN = ifort
 #AR     = xiar
 
 #FORTRAN = gfortran
-#FFLAGS =  -ffree-line-length-none $(GDEBUG) $(GMEM)
+#FFLAGS =  -ffree-line-length-none $(GDEBUG) #$(GMEM)
 AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only

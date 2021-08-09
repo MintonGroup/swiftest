@@ -16,6 +16,7 @@ contains
       integer(I4B) :: i, j
       integer(I8B) :: k
       real(DP) :: rmag, v2, rot2, oblpot, hx, hy, hz, hsx, hsy, hsz
+      real(DP) :: kecb, kespincb, Lcborbitx, Lcborbity, Lcborbitz, Lcbspinx, Lcbspiny, Lcbspinz
       real(DP), dimension(self%pl%nbody) :: irh, kepl, kespinpl, pecb
       real(DP), dimension(self%pl%nbody) :: Lplorbitx, Lplorbity, Lplorbitz
       real(DP), dimension(self%pl%nbody) :: Lplspinx, Lplspiny, Lplspinz
@@ -38,6 +39,13 @@ contains
          Lplspinz(:) = 0.0_DP
          lstatus(1:npl) = pl%status(1:npl) /= INACTIVE
          call pl%h2b(cb)
+         kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
+         hx = cb%xb(2) * cb%vb(3) - cb%xb(3) * cb%vb(2)
+         hy = cb%xb(3) * cb%vb(1) - cb%xb(1) * cb%vb(3)
+         hz = cb%xb(1) * cb%vb(2) - cb%xb(2) * cb%vb(1) 
+         Lcborbitx = cb%mass * hx
+         Lcborbity = cb%mass * hy
+         Lcborbitz = cb%mass * hz
          !!$omp simd private(v2, rot2, hx, hy, hz)
          do i = 1, npl
             v2 = dot_product(pl%vb(:,i), pl%vb(:,i))
@@ -55,6 +63,17 @@ contains
          end do
 
          if (param%lrotation) then
+            kespincb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
+            ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
+            hsx = cb%Ip(3) * cb%radius**2 * cb%rot(1) 
+            hsy = cb%Ip(3) * cb%radius**2 * cb%rot(2) 
+            hsz = cb%Ip(3) * cb%radius**2 * cb%rot(3) 
+
+            ! Angular momentum from spin
+            Lcbspinx = cb%mass * hsx
+            Lcbspiny = cb%mass * hsy
+            Lcbspinz = cb%mass * hsz
+
             do i = 1, npl
                rot2 = dot_product(pl%rot(:,i), pl%rot(:,i))
                ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
@@ -69,29 +88,30 @@ contains
                kespinpl(i) = pl%mass(i) * pl%Ip(3, i) * pl%radius(i)**2 * rot2
             end do
          else
+            kespincb = 0.0_DP
             kespinpl(:) = 0.0_DP
          end if
    
          ! Do the central body potential energy component first
          !$omp simd 
          do i = 1, npl
-            associate(px => pl%xh(1,i), py => pl%xh(2,i), pz => pl%xh(3,i))
-               pecb(i) = -cb%mass * pl%mass(i) / sqrt(px**2 + py**2 + pz**2)
+            associate(px => pl%xb(1,i), py => pl%xb(2,i), pz => pl%xb(3,i))
+               pecb(i) = -cb%Gmass * pl%mass(i) / sqrt(px**2 + py**2 + pz**2)
             end associate
          end do
    
          ! Do the potential energy between pairs of massive bodies
          do k = 1, pl%nplpl
             associate(ik => pl%k_plpl(1, k), jk => pl%k_plpl(2, k))
-               pepl(k) = -param%GU * pl%mass(ik) * pl%mass(jk) / norm2(pl%xh(:, jk) - pl%xh(:, ik)) 
+               pepl(k) = -pl%Gmass(ik) * pl%mass(jk) / norm2(pl%xb(:, jk) - pl%xb(:, ik)) 
                lstatpl(k) = (lstatus(ik) .and. lstatus(jk))
             end associate
          end do
    
-         system%ke_orbit = 0.5_DP * sum(kepl(1:npl), lstatus(:))
-         if (param%lrotation) system%ke_spin = 0.5_DP * sum(kespinpl(1:npl), lstatus(:))
+         system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), lstatus(:)))
+         if (param%lrotation) system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), lstatus(:)))
    
-         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(2:npl), lstatus(2:npl))
+         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lstatus(1:npl))
    
          ! Potential energy from the oblateness term
          if (param%loblatecb) then
@@ -99,17 +119,19 @@ contains
             do i = 1, npl
                irh(i) = 1.0_DP / norm2(pl%xh(:,i))
             end do
-            call obl_pot(npl, cb%mass, pl%mass, cb%j2rp2, cb%j4rp4, pl%xh, irh, oblpot)
+            call obl_pot(npl, cb%Gmass, pl%mass, cb%j2rp2, cb%j4rp4, pl%xh, irh, oblpot)
             system%pe = system%pe + oblpot
          end if
    
-         system%Lorbit(1) = sum(Lplorbitx(1:npl), lstatus(1:npl)) 
-         system%Lorbit(2) = sum(Lplorbity(1:npl), lstatus(1:npl)) 
-         system%Lorbit(3) = sum(Lplorbitz(1:npl), lstatus(1:npl)) 
-   
-         system%Lspin(1) = sum(Lplspinx(1:npl), lstatus(1:npl)) 
-         system%Lspin(2) = sum(Lplspiny(1:npl), lstatus(1:npl)) 
-         system%Lspin(3) = sum(Lplspinz(1:npl), lstatus(1:npl)) 
+         system%Lorbit(1) = Lcborbitx + sum(Lplorbitx(1:npl), lstatus(1:npl)) 
+         system%Lorbit(2) = Lcborbity + sum(Lplorbity(1:npl), lstatus(1:npl)) 
+         system%Lorbit(3) = Lcborbitz + sum(Lplorbitz(1:npl), lstatus(1:npl)) 
+  
+         if (param%lrotation) then
+            system%Lspin(1) = Lcbspinx + sum(Lplspinx(1:npl), lstatus(1:npl)) 
+            system%Lspin(2) = Lcbspiny + sum(Lplspiny(1:npl), lstatus(1:npl)) 
+            system%Lspin(3) = Lcbspinz + sum(Lplspinz(1:npl), lstatus(1:npl)) 
+         end if
       end associate
 
       return

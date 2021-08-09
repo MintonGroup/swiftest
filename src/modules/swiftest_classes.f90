@@ -306,6 +306,7 @@ module swiftest_classes
       procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system !! Calculates the total system energy and momentum
+      procedure :: rescale                 => util_rescale_system             !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system            !! Validate the numerical ids passed to the system and save the maximum value
    end type swiftest_nbody_system
 
@@ -984,6 +985,13 @@ module swiftest_classes
    end interface
 
    interface
+      module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
+         real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
+      end subroutine util_rescale_system
+
       module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
          use lambda_function
          implicit none
@@ -1003,38 +1011,6 @@ module swiftest_classes
       end subroutine util_peri_tp
    end interface
 
-   interface util_solve_linear_system
-      module function util_solve_linear_system_d(A,b,n,lerr) result(x)
-         implicit none
-         integer(I4B),             intent(in)  :: n
-         real(DP), dimension(:,:), intent(in)  :: A
-         real(DP), dimension(:),   intent(in)  :: b
-         logical,                  intent(out) :: lerr
-         real(DP), dimension(n)                :: x
-      end function util_solve_linear_system_d
-
-      module function util_solve_linear_system_q(A,b,n,lerr) result(x)
-         implicit none
-         integer(I4B),             intent(in)  :: n
-         real(QP), dimension(:,:), intent(in)  :: A
-         real(QP), dimension(:),   intent(in)  :: b
-         logical,                  intent(out) :: lerr
-         real(QP), dimension(n)                :: x
-      end function util_solve_linear_system_q
-   end interface
-
-   interface
-      module function util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
-         use lambda_function
-         implicit none
-         class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
-         real(DP), dimension(:), intent(in)    :: y0in !! Initial value at t=0
-         real(DP),               intent(in)    :: t1   !! Final time
-         real(DP),               intent(in)    :: dt0  !! Initial step size guess
-         real(DP),               intent(in)    :: tol  !! Tolerance on solution
-         real(DP), dimension(:), allocatable   :: y1  !! Final result
-      end function util_solve_rkf45
-   end interface
 
    interface util_resize
       module subroutine util_resize_arr_char_string(arr, nnew)
@@ -1140,6 +1116,39 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_rhill_approximate
+   end interface
+
+   interface util_solve_linear_system
+      module function util_solve_linear_system_d(A,b,n,lerr) result(x)
+         implicit none
+         integer(I4B),             intent(in)  :: n
+         real(DP), dimension(:,:), intent(in)  :: A
+         real(DP), dimension(:),   intent(in)  :: b
+         logical,                  intent(out) :: lerr
+         real(DP), dimension(n)                :: x
+      end function util_solve_linear_system_d
+
+      module function util_solve_linear_system_q(A,b,n,lerr) result(x)
+         implicit none
+         integer(I4B),             intent(in)  :: n
+         real(QP), dimension(:,:), intent(in)  :: A
+         real(QP), dimension(:),   intent(in)  :: b
+         logical,                  intent(out) :: lerr
+         real(QP), dimension(n)                :: x
+      end function util_solve_linear_system_q
+   end interface
+
+   interface
+      module function util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
+         use lambda_function
+         implicit none
+         class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
+         real(DP), dimension(:), intent(in)    :: y0in !! Initial value at t=0
+         real(DP),               intent(in)    :: t1   !! Final time
+         real(DP),               intent(in)    :: dt0  !! Initial step size guess
+         real(DP),               intent(in)    :: tol  !! Tolerance on solution
+         real(DP), dimension(:), allocatable   :: y1  !! Final result
+      end function util_solve_rkf45
    end interface
 
    interface util_sort

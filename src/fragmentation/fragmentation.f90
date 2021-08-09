@@ -22,7 +22,7 @@ contains
       real(DP),                                                  intent(inout) :: Qloss !! Energy lost during the collision
       logical,                                                   intent(out)   :: lfailure !! Answers the question: Should this have been a merger instead?
       ! Internals
-      real(DP)                                :: mscale, rscale, vscale, tscale, Lscale, Escale ! Scale factors that reduce quantities to O(~1) in the collisional system
+      real(DP)                                :: mscale, dscale, vscale, tscale, Lscale, Escale ! Scale factors that reduce quantities to O(~1) in the collisional system
       real(DP)                                :: mtot 
       real(DP), dimension(NDIM)               :: xcom, vcom
       integer(I4B)                            :: ii
@@ -46,6 +46,7 @@ contains
       integer(I4B), parameter                 :: MAXTRY = 3000
       integer(I4B), parameter                 :: TANTRY = 3
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes, fpe_quiet_modes
+      class(swiftest_parameters), allocatable :: tmpparam
 
       if (nfrag < NFRAG_MIN) then
          write(*,*) "symba_frag_pos needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
@@ -59,7 +60,7 @@ contains
 
       f_spin = 0.05_DP
       mscale = 1.0_DP
-      rscale = 1.0_DP
+      dscale = 1.0_DP
       vscale = 1.0_DP
       tscale = 1.0_DP
       Lscale = 1.0_DP
@@ -166,19 +167,19 @@ contains
 
          ! Set scale factors
          Escale = 0.5_DP * (mass(1) * dot_product(v(:,1), v(:,1)) + mass(2) * dot_product(v(:,2), v(:,2)))
-         rscale = sum(radius(:))
-         mscale = sqrt(Escale * rscale / param%GU) 
+         dscale = sum(radius(:))
+         mscale = mtot
          vscale = sqrt(Escale / mscale) 
-         tscale = rscale / vscale 
-         Lscale = mscale * rscale * vscale
+         tscale = dscale / vscale 
+         Lscale = mscale * dscale * vscale
 
-         xcom(:) = xcom(:) / rscale
+         xcom(:) = xcom(:) / dscale
          vcom(:) = vcom(:) / vscale
 
          mtot = mtot / mscale
          mass = mass / mscale
-         radius = radius / rscale
-         x = x / rscale
+         radius = radius / dscale
+         x = x / dscale
          v = v / vscale
          L_spin = L_spin / Lscale
          do i = 1, 2
@@ -186,7 +187,7 @@ contains
          end do
 
          m_frag = m_frag / mscale
-         rad_frag = rad_frag / rscale
+         rad_frag = rad_frag / dscale
          Qloss = Qloss / Escale
 
          return
@@ -201,13 +202,13 @@ contains
 
          call ieee_set_halting_mode(IEEE_ALL,.false.)
          ! Restore scale factors
-         xcom(:) = xcom(:) * rscale
+         xcom(:) = xcom(:) * dscale
          vcom(:) = vcom(:) * vscale
 
          mtot = mtot * mscale
          mass = mass * mscale
-         radius = radius * rscale
-         x = x * rscale
+         radius = radius * dscale
+         x = x * dscale
          v = v * vscale
          L_spin = L_spin * Lscale
          do i = 1, 2
@@ -215,9 +216,9 @@ contains
          end do
 
          m_frag = m_frag * mscale
-         rad_frag = rad_frag * rscale
+         rad_frag = rad_frag * dscale
          rot_frag = rot_frag / tscale
-         x_frag = x_frag * rscale
+         x_frag = x_frag * dscale
          v_frag = v_frag * vscale
          Qloss = Qloss * Escale
 
@@ -240,7 +241,7 @@ contains
          Lmag_after = Lmag_after * Lscale 
 
          mscale = 1.0_DP
-         rscale = 1.0_DP
+         dscale = 1.0_DP
          vscale = 1.0_DP
          tscale = 1.0_DP
          Lscale = 1.0_DP
@@ -334,22 +335,27 @@ contains
                npl_new  = npl
             end if
             call setup_construct_system(tmpsys, param)
+            call tmpsys%tp%setup(0, param)
             deallocate(tmpsys%cb)
             allocate(tmpsys%cb, source=cb)
+            if (allocated(tmpparam)) deallocate(tmpparam) 
+            allocate(tmpparam, source=param)
             allocate(ltmp(npl_new))
             ltmp(:) = .false.
             ltmp(1:npl) = .true.
             call tmpsys%pl%setup(npl_new, param)
             call tmpsys%pl%fill(pl, ltmp)
+            call tmpsys%rescale(tmpparam, mscale, dscale, tscale)
       
             if (linclude_fragments) then ! Append the fragments if they are included
-               ! Energy calculation requires the fragments to be in the system barcyentric frame, s
+               ! Energy calculation requires the fragments to be in the system barcyentric frame
+
                tmpsys%pl%mass(npl+1:npl_new) = m_frag(1:nfrag)
-               tmpsys%pl%Gmass(npl+1:npl_new) = param%GU * m_frag(1:nfrag)
+               tmpsys%pl%Gmass(npl+1:npl_new) = m_frag(1:nfrag) * tmpparam%GU
                tmpsys%pl%radius(npl+1:npl_new) = rad_frag(1:nfrag)
                tmpsys%pl%xb(:,npl+1:npl_new) =  xb_frag(:,1:nfrag)
                tmpsys%pl%vb(:,npl+1:npl_new) =  vb_frag(:,1:nfrag)
-               tmpsys%pl%status(npl+1:npl_new) = COLLISION
+               tmpsys%pl%status(npl+1:npl_new) = ACTIVE
                if (param%lrotation) then
                   tmpsys%pl%Ip(:,npl+1:npl_new) = Ip_frag(:,1:nfrag)
                   tmpsys%pl%rot(:,npl+1:npl_new) = rot_frag(:,1:nfrag)

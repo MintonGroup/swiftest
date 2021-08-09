@@ -388,6 +388,10 @@ contains
          call tmp%setup(0,param)
          deallocate(tmp)
 
+         ! Deallocate any temporary variables
+         if (allocated(pl%xbeg)) deallocate(pl%xbeg)
+         if (allocated(pl%xend)) deallocate(pl%xend)
+
          ! Add in any new bodies
          call pl%append(pl_adds)
 
