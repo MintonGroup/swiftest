@@ -75,21 +75,6 @@ contains
       return
    end subroutine symba_io_dump_particle_info
 
-
-   module subroutine symba_io_initialize_particle_info(system, param) 
-      !! author: David A. Minton
-      !!
-      !! Initializes a particle info data structure, either starting a new one or reading one in 
-      !! from a file if it is a restarted run
-      implicit none
-      ! Argumets
-      class(symba_nbody_system), intent(inout) :: system  !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param !! Current run configuration parameters with SyMBA extensions
-
-      return
-   end subroutine symba_io_initialize_particle_info
-
-
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -260,19 +245,16 @@ contains
    end subroutine symba_io_param_writer
 
 
-   !module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
-   !   !! author: David A. Minton
-   !   !!
-   !   !! Reads a single frame of a particle info data from a file.
-   !   implicit none
-   !   class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
-   !   integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-   !   class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-   !   character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
-   !   integer(I4B),               intent(out)   :: ierr  !! Error code
-!
-!      ierr = 0
-!   end subroutine symba_io_read_frame_info
+   module subroutine symba_io_read_particle(system, param)
+      !! author: David A. Minton
+      !!
+      !! Reads an old particle information file for a restartd run
+      implicit none
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system file
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
+
+      return
+   end subroutine symba_io_read_particle
 
 
    module subroutine symba_io_write_discard(self, param)

@@ -2,6 +2,18 @@ submodule(symba_classes) s_symba_setup
    use swiftest
 contains
 
+   module subroutine symba_setup_initialize_particle_info(system, param) 
+      !! author: David A. Minton
+      !!
+      !! Initializes a new particle information data structure with initial conditions recorded
+      implicit none
+      ! Argumets
+      class(symba_nbody_system), intent(inout) :: system  !! SyMBA nbody system object
+      class(symba_parameters),   intent(inout) :: param !! Current run configuration parameters with SyMBA extensions
+
+      return
+   end subroutine symba_setup_initialize_particle_info
+
    module subroutine symba_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -27,6 +39,11 @@ contains
             class is (symba_parameters)
                pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
                pl%nplm = count(pl%lmtiny(:))
+               if (param%lrestart) then
+                  call symba_io_read_particle(system, param)
+               else
+                  call symba_setup_initialize_particle_info(system, param) 
+               end if
             end select
          end select
       end associate

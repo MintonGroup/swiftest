@@ -354,22 +354,12 @@ module symba_classes
          integer,                intent(out)   :: iostat    !! IO status code
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine symba_io_param_writer
-   
-      module subroutine symba_io_initialize_particle_info(system, param) 
-         implicit none
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
-      end subroutine symba_io_initialize_particle_info
 
-      !module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
-      !   use swiftest_classes, only : swiftest_parameters
-      !   implicit none
-      !   class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
-      !   integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-      !   class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      !   character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
-      !   integer(I4B),               intent(out)   :: ierr  !! Error code
-      !end subroutine symba_io_read_frame_info
+      module subroutine symba_io_read_particle(system, param)
+         implicit none
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system file
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
+      end subroutine symba_io_read_particle
 
       module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
@@ -399,6 +389,12 @@ module symba_classes
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_pltpenc
+   
+      module subroutine symba_setup_initialize_particle_info(system, param) 
+         implicit none
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
+      end subroutine symba_setup_initialize_particle_info
 
       module subroutine symba_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters

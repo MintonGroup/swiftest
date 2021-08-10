@@ -64,13 +64,14 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: Ltot = 0.0_DP        !! System angular momentum vector
-      real(DP), dimension(NDIM) :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
-      real(DP)                  :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+      real(DP), dimension(NDIM) :: Ltot = 0.0_DP          !! System angular momentum vector
+      real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Mescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
+      real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
       logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
+      logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR

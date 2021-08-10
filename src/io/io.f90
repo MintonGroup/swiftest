@@ -540,6 +540,7 @@ contains
             iostat = -1
             return
          end if
+         param%lrestart = (param%out_stat == "APPEND")
          if (param%outfile /= "") then
             if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
                   (param%out_type /= SWIFTER_REAL4_TYPE)  .and. (param%out_type /= SWIFTER_REAL8_TYPE)) then
@@ -557,6 +558,7 @@ contains
                iostat = -1
                return
             end if
+         
          end if
          if (param%qmin > 0.0_DP) then
             if ((param%qmin_coord /= "HELIO") .and. (param%qmin_coord /= "BARY")) then
