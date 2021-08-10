@@ -18,7 +18,7 @@ module symba_classes
    integer(I4B),          parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
 
    type, extends(swiftest_parameters) :: symba_parameters
-      character(STRMAX)                       :: particle_file  = PARTICLE_OUTFILE !! Name of output particle information file
+      character(STRMAX)                       :: particle_out  = PARTICLE_OUTFILE !! Name of output particle information file
       real(DP)                                :: GMTINY          = -1.0_DP          !! Smallest mass that is fully gravitating
       integer(I4B), dimension(:), allocatable :: seed                              !! Random seeds
       logical                                 :: lfragmentation = .false.          !! Do fragmentation modeling instead of simple merger.
@@ -325,10 +325,11 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine symba_io_write_discard
 
-      module subroutine symba_io_dump_particle_info(system, param, tpidx, plidx) 
+      module subroutine symba_io_dump_particle_info(system, param, lincludecb, tpidx, plidx) 
          implicit none
          class(symba_nbody_system),             intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),               intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
+         class(symba_parameters),               intent(in)    :: param  !! Current run configuration parameters with SyMBA extensions
+         logical,                     optional, intent(in)    :: lincludecb  !! Set to true to include the central body (default is false)
          integer(I4B), dimension(:),  optional, intent(in)    :: tpidx  !! Array of test particle indices to append to the particle file
          integer(I4B), dimension(:),  optional, intent(in)    :: plidx  !! Array of massive body indices to append to the particle file
       end subroutine symba_io_dump_particle_info

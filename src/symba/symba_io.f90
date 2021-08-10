@@ -2,7 +2,7 @@ submodule (symba_classes) s_symba_io
    use swiftest
 contains
 
-   module subroutine symba_io_dump_particle_info(system, param, tpidx, plidx) 
+   module subroutine symba_io_dump_particle_info(system, param, lincludecb, tpidx, plidx) 
       !! author: David A. Minton
       !!
       !! Dumps the particle information data to a file. 
@@ -10,21 +10,22 @@ contains
       implicit none
       ! Arguments
       class(symba_nbody_system),             intent(inout) :: system !! SyMBA nbody system object
-      class(symba_parameters),               intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
+      class(symba_parameters),               intent(in)    :: param  !! Current run configuration parameters with SyMBA extensions
+      logical,                     optional, intent(in)    :: lincludecb  !! Set to true to include the central body (default is false)
       integer(I4B), dimension(:),  optional, intent(in)    :: tpidx  !! Array of test particle indices to append to the particle file
       integer(I4B), dimension(:),  optional, intent(in)    :: plidx  !! Array of massive body indices to append to the particle file
       ! Internals
       logical, save             :: lfirst = .true.
-      integer(I4B), parameter   :: iu = 22
+      integer(I4B), parameter   :: LUN = 22
       integer(I4B)              :: i, ierr
 
       if (.not.present(tpidx) .and. .not.present(plidx)) return
       if (lfirst) then
          select case(param%out_stat)
          case('APPEND')
-            open(unit = iu, file = param%particle_file, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+            open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
          case('NEW', 'UNKNOWN', 'REPLACE')
-            open(unit = iu, file = param%particle_file, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
+            open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
          case default
             write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
@@ -37,7 +38,7 @@ contains
 
          lfirst = .false.
       else
-         open(unit = iu, file = param%particle_file, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
+         open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
          if (ierr /= 0) then
             write(*, *) "Swiftest error:"
             write(*, *) "   unable to open binary output file for APPEND"
@@ -45,12 +46,22 @@ contains
          end if
       end if
 
+      if (present(lincludecb)) then
+         if (lincludecb) then
+            select type(cb => system%cb)
+            class is (symba_cb)
+               write(LUN) cb%id
+               write(LUN) cb%info
+            end select
+         end if
+      end if
+
       if (present(plidx) .and. (system%pl%nbody > 0) .and. size(plidx) > 0) then
          select type(pl => system%pl)
          class is (symba_pl)
             do i = 1, size(plidx)
-               write(iu) pl%id(plidx(i))
-               write(iu) pl%info(plidx(i))
+               write(LUN) pl%id(plidx(i))
+               write(LUN) pl%info(plidx(i))
             end do
          end select
       end if
@@ -59,13 +70,13 @@ contains
          select type(tp => system%tp)
          class is (symba_tp)
             do i = 1, size(tpidx)
-               write(iu) tp%id(tpidx(i))
-               write(iu) tp%info(tpidx(i))
+               write(LUN) tp%id(tpidx(i))
+               write(LUN) tp%info(tpidx(i))
             end do
          end select
       end if
 
-      close(unit = iu, iostat = ierr)
+      close(unit = LUN, iostat = ierr)
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
          write(*, *) "   unable to close particle output file"
@@ -74,6 +85,7 @@ contains
 
       return
    end subroutine symba_io_dump_particle_info
+
 
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -119,6 +131,8 @@ contains
                ifirst = ilast + 1
                param_value = io_get_token(line_trim, ifirst, ilast, iostat)
                select case (param_name)
+               case ("PARTICLE_OUT")
+                  param%particle_out = param_value
                case ("FRAGMENTATION")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
@@ -217,7 +231,7 @@ contains
 
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
-         write(param_name, Afmt) "PARTICLE_FILE"; write(param_value, Afmt) trim(adjustl(param%particle_file)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "PARTICLE_OUT"; write(param_value, Afmt) trim(adjustl(param%particle_out)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%Gmtiny; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          if (param%lfragmentation) then
@@ -259,7 +273,7 @@ contains
       logical                 :: lmatch  
       type(symba_particle_info) :: tmpinfo
 
-      open(unit = LUN, file = param%particle_file, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+      open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
       if (ierr /= 0) then
          write(*, *) "Swiftest error:"
          write(*, *) "   unable to open binary particle file for reading"

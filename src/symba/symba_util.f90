@@ -381,7 +381,10 @@ contains
          if (allocated(pl%xend)) deallocate(pl%xend)
 
          ! Add in any new bodies
-         call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
+         if (pl_adds%nbody > 0) then
+            call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
+            call symba_io_dump_particle_info(system, param, plidx=[(i, i = 1, pl%nbody)])
+         end if 
 
          ! If there are still bodies in the system, sort by mass in descending order and re-index
          if (pl%nbody > 0) then

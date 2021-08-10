@@ -12,6 +12,7 @@ contains
       class(symba_parameters),   intent(inout) :: param !! Current run configuration parameters with SyMBA extensions
       ! Internals
       integer(I4B) :: i
+      integer(I4B), dimension(:), allocatable :: idx
 
       select type(cb => system%cb)
       class is (symba_cb)
@@ -19,6 +20,7 @@ contains
          cb%info%origin_time = param%t0
          cb%info%origin_xh(:) = 0.0_DP
          cb%info%origin_vh(:) = 0.0_DP
+         call symba_io_dump_particle_info(system, param, lincludecb=.true.)
       end select
 
       select type(pl => system%pl)
@@ -29,6 +31,11 @@ contains
             pl%info(i)%origin_xh(:) = pl%xh(:,i)
             pl%info(i)%origin_vh(:) = pl%vh(:,i)
          end do
+         if (pl%nbody > 0) then
+            allocate(idx(pl%nbody))
+            call symba_io_dump_particle_info(system, param, plidx=[(i, i=1, pl%nbody)])
+            deallocate(idx)
+         end if
       end select
 
       select type(tp => system%tp)
@@ -38,8 +45,14 @@ contains
             tp%info(i)%origin_time = param%t0
             tp%info(i)%origin_xh(:) = tp%xh(:,i)
             tp%info(i)%origin_vh(:) = tp%vh(:,i)
-        end do
+         end do
+         if (tp%nbody > 0) then
+            allocate(idx(tp%nbody))
+            call symba_io_dump_particle_info(system, param, tpidx=[(i, i=1, tp%nbody)])
+            deallocate(idx)
+         end if
       end select
+
 
       return
    end subroutine symba_setup_initialize_particle_info

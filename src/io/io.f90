@@ -498,7 +498,7 @@ contains
                   read(param_value, *) param%Ecollisions
                case("EUNTRACKED")
                   read(param_value, *) param%Euntracked
-               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_OUT", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(iomsg,*) "Unknown parameter -> ",param_name
                   iostat = -1

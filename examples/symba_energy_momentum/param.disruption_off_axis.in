@@ -7,7 +7,7 @@ TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1                 ! output cadence every year
 BIN_OUT        bin.disruption_off_axis.dat
-PARTICLE_FILE  particle.disruption_off_axis.dat
+PARTICLE_OUT   particle.disruption_off_axis.dat
 OUT_TYPE       REAL8             ! double precision real output
 OUT_FORM       XV                ! osculating element output
 OUT_STAT       REPLACE
