@@ -31,11 +31,11 @@ contains
                Euntracked => self%Euntracked, Eorbit_orig => param%Eorbit_orig, Mtot_orig => param%Mtot_orig, &
                Ltot_orig => param%Ltot_orig(:), Lmag_orig => param%Lmag_orig, Lorbit_orig => param%Lorbit_orig(:), Lspin_orig => param%Lspin_orig(:), &
                lfirst => param%lfirstenergy)
-         if (lfirst) then
-            if (param%out_stat == "OLD") then
-               open(unit = EGYIU, file = ENERGY_FILE, form = "formatted", status = "old", action = "write", position = "append")
-            else 
-               open(unit = EGYIU, file = ENERGY_FILE, form = "formatted", status = "replace", action = "write")
+         if (param%energy_out /= "") then
+            if (lfirst .and. (param%out_stat /= "OLD")) then
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write")
+            else
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append")
                write(EGYIU,EGYHEADER)
             end if
          end if
@@ -59,8 +59,10 @@ contains
             lfirst = .false.
          end if
 
-         write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
-         flush(EGYIU)
+         if (param%energy_out /= "") then
+            write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
+            close(EGYIU)
+         end if
          if (.not.lfirst .and. lterminal) then 
             Lmag_now = norm2(Ltot_now)
             Lerror = norm2(Ltot_now - Ltot_orig) / Lmag_orig
@@ -422,6 +424,8 @@ contains
                   param%enc_out = param_value
                case ("DISCARD_OUT")
                   param%discard_out = param_value
+               case ("ENERGY_OUT")
+                  param%energy_out = param_value
                case ("EXTRA_FORCE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.

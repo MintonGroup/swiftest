@@ -144,6 +144,7 @@ contains
             call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
             call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
             call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+            call util_append(self%info, source%info, nold, nsrc, lsource_mask)
 
             call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
          end associate
@@ -253,6 +254,7 @@ contains
             call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
+            call util_fill(keeps%info, inserts%info, lfill_list)
             
             call util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
@@ -520,6 +522,7 @@ contains
       call util_resize(self%nplenc, nnew)
       call util_resize(self%levelg, nnew)
       call util_resize(self%levelm, nnew)
+      call util_resize(self%info, nnew)
 
       call util_resize_tp(self, nnew)
 
@@ -679,6 +682,7 @@ contains
          if (allocated(tp%nplenc)) tp%nplenc(1:ntp) = tp_sorted%nplenc(ind(1:ntp))
          if (allocated(tp%levelg)) tp%levelg(1:ntp) = tp_sorted%levelg(ind(1:ntp))
          if (allocated(tp%levelm)) tp%levelm(1:ntp) = tp_sorted%levelm(ind(1:ntp))
+         if (allocated(tp%info))   tp%info(1:ntp)   = tp_sorted%info(ind(1:ntp))
          deallocate(tp_sorted)
       end associate
       
@@ -836,6 +840,7 @@ contains
             call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
             call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
             call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
+            call util_spill(keeps%info, discards%info, lspill_list, ldestructive)
 
             call util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default

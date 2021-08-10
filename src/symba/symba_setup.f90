@@ -162,10 +162,12 @@ contains
       if (allocated(self%nplenc)) deallocate(self%nplenc)
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
+      if (allocated(self%info)) deallocate(self%info)
 
       allocate(self%nplenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))
+      allocate(self%info(n))
 
       self%nplenc(:) = 0
       self%levelg(:) = -1
