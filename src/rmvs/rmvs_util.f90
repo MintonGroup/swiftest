@@ -16,8 +16,6 @@ contains
       select type(source)
       class is (rmvs_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call whm_util_append_pl(self, source, lsource_mask)
-
             call util_append(self%nenc, source%nenc, nold, nsrc, lsource_mask)
             call util_append(self%tpenc1P, source%tpenc1P, nold, nsrc, lsource_mask)
             call util_append(self%plind, source%plind, nold, nsrc, lsource_mask)
@@ -27,6 +25,8 @@ contains
             !call util_append(self%outer, source%outer, nold, nsrc, lsource_mask)
             !call util_append(self%inner, source%inner, nold, nsrc, lsource_mask)
             !call util_append(self%planetocentric, source%planetocentric, nold, nsrc, lsource_mask)
+
+            call whm_util_append_pl(self, source, lsource_mask)
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_pl or its descendents!"
@@ -51,11 +51,11 @@ contains
       select type(source)
       class is (rmvs_tp)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
-
             call util_append(self%lperi, source%lperi, nold, nsrc, lsource_mask)
             call util_append(self%plperP, source%plperP, nold, nsrc, lsource_mask)
             call util_append(self%plencP, source%plencP, nold, nsrc, lsource_mask)
+
+            call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents!"
@@ -143,8 +143,6 @@ contains
       class(rmvs_pl), intent(inout) :: self  !! RMVS massive body object
       integer(I4B),   intent(in)    :: nnew  !! New size neded
 
-      call whm_util_resize_pl(self, nnew)
-
       call util_resize(self%nenc, nnew)
       call util_resize(self%tpenc1P, nnew)
       call util_resize(self%plind, nnew)
@@ -155,6 +153,7 @@ contains
       !call util_resize(self%inner, nnew)
       !call util_resize(self%planetocentric, nnew)
 
+      call whm_util_resize_pl(self, nnew)
       return
    end subroutine rmvs_util_resize_pl
 
@@ -168,12 +167,12 @@ contains
       class(rmvs_tp), intent(inout) :: self  !! RMVS test particle object
       integer(I4B),   intent(in)    :: nnew  !! New size neded
 
-      call util_resize_tp(self, nnew)
-
       call util_resize(self%lperi, nnew)
       call util_resize(self%plperP, nnew)
       call util_resize(self%plencP, nnew)
       call util_resize(self%xheliocentric, nnew)
+
+      call util_resize_tp(self, nnew)
 
       return
    end subroutine rmvs_util_resize_tp

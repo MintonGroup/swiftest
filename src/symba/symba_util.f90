@@ -66,8 +66,6 @@ contains
       select type(source)
       class is (symba_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
-
             call util_append(self%lcollision, source%lcollision, nold, nsrc, lsource_mask)
             call util_append(self%lencounter, source%lencounter, nold, nsrc, lsource_mask)
             call util_append(self%lmtiny, source%lmtiny, nold, nsrc, lsource_mask)
@@ -80,6 +78,8 @@ contains
             call util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
             call util_append(self%kin, source%kin, nold, nsrc, lsource_mask)
             call util_append(self%info, source%info, nold, nsrc, lsource_mask)
+
+            call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
@@ -102,22 +102,26 @@ contains
       logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B), dimension(:), allocatable        :: ncomp_tmp    !! Temporary placeholder for ncomp incase we are appending a symba_pl object to a symba_merger
+      integer(I4B) :: nold, nsrc
 
-      associate(nold => self%nbody, nsrc => source%nbody)
-         select type(source)
-         class is (symba_merger)
-            call symba_util_append_pl(self, source, lsource_mask) 
-            call util_append(self%ncomp, source%ncomp, nold, nsrc, lsource_mask)
-         class is (symba_pl)
-            call symba_util_append_pl(self, source, lsource_mask) 
-            allocate(ncomp_tmp, mold=source%id)
-            ncomp_tmp(:) = 0
-            call util_append(self%ncomp, ncomp_tmp, nold, nsrc, lsource_mask)
-         class default
-            write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
-            call util_exit(FAILURE)
-         end select
-      end associate
+      nold = self%nbody
+      nsrc = source%nbody
+      select type(source)
+      class is (symba_merger)
+         call util_append(self%ncomp, source%ncomp, nold, nsrc, lsource_mask)
+         call symba_util_append_pl(self, source, lsource_mask) 
+      class is (symba_pl)
+         allocate(ncomp_tmp, mold=source%id)
+         ncomp_tmp(:) = 0
+         call util_append(self%ncomp, ncomp_tmp, nold, nsrc, lsource_mask)
+         call symba_util_append_pl(self, source, lsource_mask) 
+      class default
+         write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
+         call util_exit(FAILURE)
+      end select
+
+      ! Save the number of appended bodies 
+      self%ncomp(nold+1:nold+nsrc) = nsrc
 
       return
    end subroutine symba_util_append_merger
@@ -137,11 +141,11 @@ contains
       select type(source)
       class is (symba_tp)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
-
             call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
             call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
             call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+
+            call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
@@ -468,9 +472,9 @@ contains
       class(symba_merger), intent(inout) :: self  !! SyMBA massive body object
       integer(I4B),        intent(in)    :: nnew  !! New size neded
 
-      call symba_util_resize_pl(self, nnew)
-
       call util_resize(self%ncomp, nnew)
+
+      call symba_util_resize_pl(self, nnew)
 
       return
    end subroutine symba_util_resize_merger
@@ -485,8 +489,6 @@ contains
       class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
       integer(I4B),    intent(in)    :: nnew  !! New size neded
 
-      call util_resize_pl(self, nnew)
-
       call util_resize(self%lcollision, nnew)
       call util_resize(self%lencounter, nnew)
       call util_resize(self%lmtiny, nnew)
@@ -499,6 +501,8 @@ contains
       call util_resize(self%atp, nnew)
       call util_resize(self%kin, nnew)
       call util_resize(self%info, nnew)
+
+      call util_resize_pl(self, nnew)
 
       return
    end subroutine symba_util_resize_pl
@@ -513,11 +517,11 @@ contains
       class(symba_tp), intent(inout) :: self  !! SyMBA test particle object
       integer(I4B),    intent(in)    :: nnew  !! New size neded
 
-      call util_resize_tp(self, nnew)
-
       call util_resize(self%nplenc, nnew)
       call util_resize(self%levelg, nnew)
       call util_resize(self%levelm, nnew)
+
+      call util_resize_tp(self, nnew)
 
       return
    end subroutine symba_util_resize_tp

@@ -185,8 +185,6 @@ contains
       select type(source)
       class is (swiftest_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append_body(self, source, lsource_mask)
-
             call util_append(self%mass, source%mass, nold, nsrc, lsource_mask)
             call util_append(self%Gmass, source%Gmass, nold, nsrc, lsource_mask)
             call util_append(self%rhill, source%rhill, nold, nsrc, lsource_mask)
@@ -200,6 +198,8 @@ contains
             call util_append(self%k2, source%k2, nold, nsrc, lsource_mask)
             call util_append(self%Q, source%Q, nold, nsrc, lsource_mask)
             call util_append(self%tlag, source%tlag, nold, nsrc, lsource_mask)
+
+            call util_append_body(self, source, lsource_mask)
          end associate
 
          call self%eucl_index()
@@ -226,11 +226,11 @@ contains
       select type(source)
       class is (swiftest_tp)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append_body(self, source, lsource_mask)
-
             call util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
             call util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
             call util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
+
+            call util_append_body(self, source, lsource_mask)
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_tp or its descendents"
