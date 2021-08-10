@@ -24,6 +24,7 @@ def real2float(realstr):
     """
     return float(realstr.replace('d', 'E').replace('D', 'E'))
 
+
 def read_swiftest_param(param_file_name, param):
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
@@ -81,6 +82,7 @@ def read_swiftest_param(param_file_name, param):
     except IOError:
         print(f"{param_file_name} not found.")
     return param
+
 
 def read_swifter_param(param_file_name):
     """
@@ -164,6 +166,7 @@ def read_swifter_param(param_file_name):
         print(f"{param_file_name} not found.")
 
     return param
+
 
 def read_swift_param(param_file_name, startfile="swift.in"):
     """
@@ -251,6 +254,7 @@ def read_swift_param(param_file_name, startfile="swift.in"):
     
     return param
 
+
 def write_swift_param(param, param_file_name):
     outfile = open(param_file_name, 'w')
     print(param['T0'], param['TSTOP'], param['DT'], file=outfile)
@@ -261,6 +265,7 @@ def write_swift_param(param, param_file_name):
     print(param['STATUS_FLAG_FOR_OPEN_STATEMENTS'], file=outfile)
     outfile.close()
     return
+
 
 def write_labeled_param(param, param_file_name):
     outfile = open(param_file_name, 'w')
@@ -299,6 +304,7 @@ def write_labeled_param(param, param_file_name):
         print(f"{key:<16} {val}", file=outfile)
     outfile.close()
     return
+
 
 def swifter_stream(f, param):
     """
@@ -544,6 +550,7 @@ def swiftest_stream(f, param):
               npl, plid, pvec.T, plab, \
               ntp, tpid, tvec.T, tlab
 
+
 def swifter2xr(param):
     """
     Converts a Swifter binary data file into an xarray DataSet.
@@ -585,6 +592,7 @@ def swifter2xr(param):
         ds = xr.combine_by_coords([plds, tpds])
         print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
+
 
 def swiftest2xr(param):
     """
@@ -635,6 +643,35 @@ def swiftest2xr(param):
     ds = xr.combine_by_coords([cbds, plds, tpds])
     print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
+
+
+def swiftest_particle_2xr(ds, param):
+   """Reads in the Swiftest PARTICLE_OUT  and converts it to an xarray Dataset"""
+   veclab = ['time_origin', 'px_origin', 'py_origin', 'pz_origin', 'vx_origin', 'vy_origin', 'vz_origin']
+   id_list = []
+   origin_type_list = []
+   origin_vec_list = []
+
+   with FortranFile(param['PARTICLE_OUT'], 'r') as f:
+      for plid, origin_type, origin_vec in swiftest_particle_stream(f):
+         id_list.append(plid)
+
+         origin_type_list.append(origin_type)
+         origin_vec_list.append(origin_vec)
+
+   id_list =  np.asarray(id_list)[:,0]
+   origin_type_list = np.asarray(origin_type_list)
+   origin_vec_list = np.vstack(origin_vec_list)
+
+   typeda = xr.DataArray(origin_type_list, dims=['id'], coords={'id' : id_list})
+   vecda = xr.DataArray(origin_vec_list, dims=['id', 'vec'], coords={'id' : id_list, 'vec' : veclab})
+
+   infoxr = vecda.to_dataset(dim='vec')
+   infoxr['origin_type'] = typeda
+
+   print('\nAdding particle info to Dataset')
+   ds = xr.merge([ds, infoxr])
+   return ds
 
 def swiftest_xr2infile(ds, param, framenum=-1):
     """
