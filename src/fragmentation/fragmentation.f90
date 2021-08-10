@@ -133,25 +133,24 @@ contains
       call restore_scale_factors()
       call calculate_system_energy(linclude_fragments=.true.)
 
-
-      write(*,        "(' -------------------------------------------------------------------------------------')")
-      write(*,        "('  Final diagnostic')")
-      write(*,        "(' -------------------------------------------------------------------------------------')")
-      if (lfailure) then
-         write(*,*) "symba_frag_pos failed after: ",try," tries"
-         do ii = 1, nfrag
-            vb_frag(:, ii) = vcom(:)
-         end do
-      else
-         write(*,*) "symba_frag_pos succeeded after: ",try," tries"
-         write(*,        "(' dL_tot should be very small' )")
-         write(*,fmtlabel) ' dL_tot      |', dLmag / Lmag_before
-         write(*,        "(' dE_tot should be negative and equal to Qloss' )")
-         write(*,fmtlabel) ' dE_tot      |', dEtot / abs(Etot_before)
-         write(*,fmtlabel) ' Qloss       |', -Qloss / abs(Etot_before)
-         write(*,fmtlabel) ' dE - Qloss  |', (Etot_after - Etot_before + Qloss) / abs(Etot_before)
-      end if
-      write(*,        "(' -------------------------------------------------------------------------------------')")
+      ! write(*,        "(' -------------------------------------------------------------------------------------')")
+      ! write(*,        "('  Final diagnostic')")
+      ! write(*,        "(' -------------------------------------------------------------------------------------')")
+      ! if (lfailure) then
+      !    write(*,*) "symba_frag_pos failed after: ",try," tries"
+      !    do ii = 1, nfrag
+      !       vb_frag(:, ii) = vcom(:)
+      !    end do
+      ! else
+      !    write(*,*) "symba_frag_pos succeeded after: ",try," tries"
+      !    write(*,        "(' dL_tot should be very small' )")
+      !    write(*,fmtlabel) ' dL_tot      |', dLmag / Lmag_before
+      !    write(*,        "(' dE_tot should be negative and equal to Qloss' )")
+      !    write(*,fmtlabel) ' dE_tot      |', dEtot / abs(Etot_before)
+      !    write(*,fmtlabel) ' Qloss       |', -Qloss / abs(Etot_before)
+      !    write(*,fmtlabel) ' dE - Qloss  |', (Etot_after - Etot_before + Qloss) / abs(Etot_before)
+      ! end if
+      ! write(*,        "(' -------------------------------------------------------------------------------------')")
 
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
