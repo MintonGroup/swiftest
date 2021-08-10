@@ -10,9 +10,40 @@ contains
       ! Argumets
       class(symba_nbody_system), intent(inout) :: system  !! SyMBA nbody system object
       class(symba_parameters),   intent(inout) :: param !! Current run configuration parameters with SyMBA extensions
+      ! Internals
+      integer(I4B) :: i
+
+      select type(cb => system%cb)
+      class is (symba_cb)
+         cb%info%origin_type = "Central body"
+         cb%info%origin_time = param%t0
+         cb%info%origin_xh(:) = 0.0_DP
+         cb%info%origin_vh(:) = 0.0_DP
+      end select
+
+      select type(pl => system%pl)
+      class is (symba_pl)
+         do i = 1, pl%nbody
+            pl%info(i)%origin_type = "Initial conditions"
+            pl%info(i)%origin_time = param%t0
+            pl%info(i)%origin_xh(:) = pl%xh(:,i)
+            pl%info(i)%origin_vh(:) = pl%vh(:,i)
+         end do
+      end select
+
+      select type(tp => system%tp)
+      class is (symba_tp)
+         do i = 1, tp%nbody
+            tp%info(i)%origin_type = "Initial conditions"
+            tp%info(i)%origin_time = param%t0
+            tp%info(i)%origin_xh(:) = tp%xh(:,i)
+            tp%info(i)%origin_vh(:) = tp%vh(:,i)
+        end do
+      end select
 
       return
    end subroutine symba_setup_initialize_particle_info
+
 
    module subroutine symba_setup_initialize_system(self, param)
       !! author: David A. Minton
