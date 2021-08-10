@@ -129,6 +129,8 @@ contains
             system%Lspin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), lstatus(1:npl)) 
             system%Lspin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), lstatus(1:npl)) 
          end if
+
+         system%te = system%ke_orbit + system%ke_spin + system%pe
       end associate
 
       return
