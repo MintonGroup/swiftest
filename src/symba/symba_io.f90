@@ -19,7 +19,6 @@ contains
       integer(I4B), parameter   :: LUN = 22
       integer(I4B)              :: i, ierr
 
-      if (.not.present(tpidx) .and. .not.present(plidx)) return
       if (lfirst) then
          select case(param%out_stat)
          case('APPEND')
