@@ -253,6 +253,64 @@ contains
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system file
       class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
 
+      ! Internals
+      integer(I4B), parameter :: LUN = 22
+      integer(I4B)            :: i, ierr, id, idx
+      logical                 :: lmatch  
+      type(symba_particle_info) :: tmpinfo
+
+      open(unit = LUN, file = param%particle_file, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+      if (ierr /= 0) then
+         write(*, *) "Swiftest error:"
+         write(*, *) "   unable to open binary particle file for reading"
+         call util_exit(FAILURE)
+      end if
+
+      select type(cb => system%cb)
+      class is (symba_cb)
+         select type(pl => system%pl)
+         class is (symba_pl)
+            select type(tp => system%tp)
+            class is (symba_tp)
+               do 
+                  lmatch = .false.
+                  read(LUN, iostat=ierr) id
+                  if (ierr /=0) exit
+
+                  if (idx == cb%id) then
+                     read(LUN) cb%info
+                     lmatch = .true.
+                  else 
+                     if (pl%nbody > 0) then
+                        idx = findloc(pl%id(:), id, dim=1)
+                        if (idx /= 0) then
+                           read(LUN) pl%info(idx)
+                           lmatch = .true.
+                        end if
+                     end if
+                     if (.not.lmatch .and. tp%nbody > 0) then
+                        idx = findloc(tp%id(:), id, dim=1)
+                        if (idx /= 0) then
+                           read(LUN) tp%info(idx)
+                           lmatch = .true.
+                        end if
+                     end if
+                  end if
+                  if (.not.lmatch) then
+                     write(*,*) 'Particle id ',id,' not found. Skipping'
+                     read(LUN) tmpinfo
+                  end if
+               end do
+               close(unit = LUN, iostat = ierr)
+            end select
+         end select
+      end select
+      if (ierr /= 0) then
+         write(*, *) "Swiftest error:"
+         write(*, *) "   unable to close particle output file"
+         call util_exit(FAILURE)
+      end if
+
       return
    end subroutine symba_io_read_particle
 
