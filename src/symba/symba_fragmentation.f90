@@ -140,6 +140,9 @@ contains
                   nstart = pl_adds%nbody + 1
                   nend = pl_adds%nbody + plnew%nbody
                   call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
+                  do i = 1, plnew%nbody
+                     write(*,*) i, pl_adds%xb(:,i)
+                  end do
                   pl_adds%ncomp(nstart:nend) = plnew%nbody
       
                   call plnew%setup(0, param)

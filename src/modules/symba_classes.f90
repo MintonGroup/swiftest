@@ -488,17 +488,19 @@ module symba_classes
    end interface
 
    interface util_append
-      module subroutine symba_util_append_arr_info(arr, source, lsource_mask)
+      module subroutine symba_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
          implicit none
          type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         integer(I4B),                                         intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
          logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_arr_info
      
-      module subroutine symba_util_append_arr_kin(arr, source, lsource_mask)
+      module subroutine symba_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
          logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_arr_kin
    end interface

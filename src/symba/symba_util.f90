@@ -2,7 +2,7 @@ submodule(symba_classes) s_symba_util
    use swiftest
 contains
 
-   module subroutine symba_util_append_arr_info(arr, source, lsource_mask)
+   module subroutine symba_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
@@ -10,30 +10,24 @@ contains
       ! Arguments
       type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+      integer(I4B),                                         intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: narr, nsrc
 
       if (.not. allocated(source)) return
 
-      nsrc = count(lsource_mask)
-
-      if (allocated(arr)) then
-         narr = size(arr)
+      if (.not.allocated(arr)) then
+         allocate(arr(nold+nsrc))
       else
-         allocate(arr(nsrc))
-         narr = 0
+         call util_resize(arr, nold + nsrc)
       end if
 
-      call util_resize(arr, narr + nsrc)
-
-      arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
+      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine symba_util_append_arr_info
 
 
-   module subroutine symba_util_append_arr_kin(arr, source, lsource_mask)
+   module subroutine symba_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append a single array of kinship type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
@@ -41,24 +35,18 @@ contains
       ! Arguments
       type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+      integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: narr, nsrc
 
       if (.not. allocated(source)) return
 
-      nsrc = count(lsource_mask)
-
-      if (allocated(arr)) then
-         narr = size(arr)
+      if (.not.allocated(arr)) then
+         allocate(arr(nold+nsrc))
       else
-         allocate(arr(nsrc))
-         narr = 0
+         call util_resize(arr, nold + nsrc)
       end if
 
-      call util_resize(arr, narr + nsrc)
-
-      arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
+      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine symba_util_append_arr_kin
@@ -77,20 +65,22 @@ contains
 
       select type(source)
       class is (symba_pl)
-         call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
+         associate(nold => self%nbody, nsrc => source%nbody)
+            call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
 
-         call util_append(self%lcollision, source%lcollision, lsource_mask)
-         call util_append(self%lencounter, source%lencounter, lsource_mask)
-         call util_append(self%lmtiny, source%lmtiny, lsource_mask)
-         call util_append(self%nplenc, source%nplenc, lsource_mask)
-         call util_append(self%ntpenc, source%ntpenc, lsource_mask)
-         call util_append(self%levelg, source%levelg, lsource_mask)
-         call util_append(self%levelm, source%levelm, lsource_mask)
-         call util_append(self%isperi, source%isperi, lsource_mask)
-         call util_append(self%peri, source%peri, lsource_mask)
-         call util_append(self%atp, source%atp, lsource_mask)
-         call util_append(self%kin, source%kin, lsource_mask)
-         call util_append(self%info, source%info, lsource_mask)
+            call util_append(self%lcollision, source%lcollision, nold, nsrc, lsource_mask)
+            call util_append(self%lencounter, source%lencounter, nold, nsrc, lsource_mask)
+            call util_append(self%lmtiny, source%lmtiny, nold, nsrc, lsource_mask)
+            call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
+            call util_append(self%ntpenc, source%ntpenc, nold, nsrc, lsource_mask)
+            call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
+            call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+            call util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
+            call util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
+            call util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
+            call util_append(self%kin, source%kin, nold, nsrc, lsource_mask)
+            call util_append(self%info, source%info, nold, nsrc, lsource_mask)
+         end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
          call util_exit(FAILURE)
@@ -113,19 +103,21 @@ contains
       ! Internals
       integer(I4B), dimension(:), allocatable        :: ncomp_tmp    !! Temporary placeholder for ncomp incase we are appending a symba_pl object to a symba_merger
 
-      select type(source)
-      class is (symba_merger)
-         call symba_util_append_pl(self, source, lsource_mask) 
-         call util_append(self%ncomp, source%ncomp, lsource_mask)
-      class is (symba_pl)
-         call symba_util_append_pl(self, source, lsource_mask) 
-         allocate(ncomp_tmp, mold=source%id)
-         ncomp_tmp(:) = 0
-         call util_append(self%ncomp, ncomp_tmp, lsource_mask)
-      class default
-         write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
-         call util_exit(FAILURE)
-      end select
+      associate(nold => self%nbody, nsrc => source%nbody)
+         select type(source)
+         class is (symba_merger)
+            call symba_util_append_pl(self, source, lsource_mask) 
+            call util_append(self%ncomp, source%ncomp, nold, nsrc, lsource_mask)
+         class is (symba_pl)
+            call symba_util_append_pl(self, source, lsource_mask) 
+            allocate(ncomp_tmp, mold=source%id)
+            ncomp_tmp(:) = 0
+            call util_append(self%ncomp, ncomp_tmp, nold, nsrc, lsource_mask)
+         class default
+            write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
+            call util_exit(FAILURE)
+         end select
+      end associate
 
       return
    end subroutine symba_util_append_merger
@@ -144,11 +136,13 @@ contains
 
       select type(source)
       class is (symba_tp)
-         call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
+         associate(nold => self%nbody, nsrc => source%nbody)
+            call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
 
-         call util_append(self%nplenc, source%nplenc, lsource_mask)
-         call util_append(self%levelg, source%levelg, lsource_mask)
-         call util_append(self%levelm, source%levelm, lsource_mask)
+            call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
+            call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
+            call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+         end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
          call util_exit(FAILURE)

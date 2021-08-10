@@ -15,17 +15,19 @@ contains
 
       select type(source)
       class is (rmvs_pl)
-         call whm_util_append_pl(self, source, lsource_mask)
+         associate(nold => self%nbody, nsrc => source%nbody)
+            call whm_util_append_pl(self, source, lsource_mask)
 
-         call util_append(self%nenc, source%nenc, lsource_mask)
-         call util_append(self%tpenc1P, source%tpenc1P, lsource_mask)
-         call util_append(self%plind, source%plind, lsource_mask)
+            call util_append(self%nenc, source%nenc, nold, nsrc, lsource_mask)
+            call util_append(self%tpenc1P, source%tpenc1P, nold, nsrc, lsource_mask)
+            call util_append(self%plind, source%plind, nold, nsrc, lsource_mask)
 
-         ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
-         ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
-         !call util_append(self%outer, source%outer, lsource_mask)
-         !call util_append(self%inner, source%inner, lsource_mask)
-         !call util_append(self%planetocentric, source%planetocentric, lsource_mask)
+            ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
+            ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
+            !call util_append(self%outer, source%outer, nold, nsrc, lsource_mask)
+            !call util_append(self%inner, source%inner, nold, nsrc, lsource_mask)
+            !call util_append(self%planetocentric, source%planetocentric, nold, nsrc, lsource_mask)
+         end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_pl or its descendents!"
          call util_exit(FAILURE)
@@ -48,11 +50,13 @@ contains
 
       select type(source)
       class is (rmvs_tp)
-         call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
+         associate(nold => self%nbody, nsrc => source%nbody)
+            call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
 
-         call util_append(self%lperi, source%lperi, lsource_mask)
-         call util_append(self%plperP, source%plperP, lsource_mask)
-         call util_append(self%plencP, source%plencP, lsource_mask)
+            call util_append(self%lperi, source%lperi, nold, nsrc, lsource_mask)
+            call util_append(self%plperP, source%plperP, nold, nsrc, lsource_mask)
+            call util_append(self%plencP, source%plencP, nold, nsrc, lsource_mask)
+         end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents!"
          call util_exit(FAILURE)
