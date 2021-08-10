@@ -11,16 +11,15 @@ xmax = 20.0
 ymin = -20.0
 ymax = 20.0
 
-#cases = ['supercat_head', 'supercat_off', 'disruption_head', 'disruption_off']
-cases = ['disruption_off']
+cases = ['supercat_head', 'supercat_off', 'disruption_head', 'disruption_off']
 
-def scale_sim(ds, param):
+def scale_sim(ds):
 
-    dsscale = ds
+    dsscale = ds.where(ds.id > 0, drop=True) # Remove the central body
 
     GMtot = dsscale['GMass'].sum(skipna=True, dim="id").isel(time=0)
-    rscale = sum(ds['Radius'].sel(id=[2, 3], time=0)).item()
-    ds['Radius'] /= rscale
+    rscale = ds['Radius'].sel(id=1, time=0)
+    dsscale['Radius'] /= rscale
 
     dsscale['radmarker'] = dsscale['Radius'].fillna(0)
 
@@ -68,7 +67,7 @@ class AnimatedScatter(object):
 
         frame = 0
         nframes = ds['time'].size
-        self.ds = scale_sim(ds, param)
+        self.ds = scale_sim(ds)
         self.param = param
         self.rot_angle = {}
 
@@ -80,9 +79,20 @@ class AnimatedScatter(object):
 
         self.stream = self.data_stream(frame)
         # Setup the figure and axes...
-        self.fig, self.ax = plt.subplots(figsize=(8,8))
+        fig = plt.figure(figsize=(8,8), dpi=300)
+        plt.tight_layout(pad=0)
+        # set up the figure
+        self.ax = plt.Axes(fig, [0., 0., 1., 1.])
+        self.ax.set_xlim(xmin, xmax)
+        self.ax.set_ylim(ymin, ymax)
+        self.ax.set_axis_off()
+        self.ax.set_aspect(1)
+        self.ax.get_xaxis().set_visible(False)
+        self.ax.get_yaxis().set_visible(False)
+        fig.add_axes(self.ax)
+        
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=nframes,
+        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes,
                                           init_func=self.setup_plot, blit=False)
         self.ani.save(animfile, fps=60, dpi=300,
                       extra_args=['-vcodec', 'libx264'])
@@ -187,13 +197,6 @@ class AnimatedScatter(object):
         t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(0))
 
         cval = self.origin_to_color(origin)
-        # set up the figure
-        self.ax = plt.axes(xlim=(xmin, xmax), ylim=(ymin, ymax))
-        plt.axis('off')
-        plt.tight_layout(pad=0)
-        self.ax.set_aspect(1)
-        self.ax.get_xaxis().set_visible(False)
-        self.ax.get_yaxis().set_visible(False)
 
         # Scale markers to the size of the system
         self.v_length = 0.50  # Length of arrow as fraction of velocity
@@ -219,7 +222,7 @@ class AnimatedScatter(object):
         """Update the scatter plot."""
         t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(frame))
         cval = self.origin_to_color(origin)
-        #varrowend, varrowtip = self.velocity_vectors(pl, radmarker)
+        varrowend, varrowtip = self.velocity_vectors(pl, radmarker)
         sarrowend, sarrowtip = self.spin_arrows(pl, name, radmarker)
         for i, p in enumerate(self.patches):
             p.set_center((pl[i, 0], pl[i,1]))
