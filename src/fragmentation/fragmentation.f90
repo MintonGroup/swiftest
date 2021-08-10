@@ -133,24 +133,24 @@ contains
       call restore_scale_factors()
       call calculate_system_energy(linclude_fragments=.true.)
 
-      ! write(*,        "(' -------------------------------------------------------------------------------------')")
-      ! write(*,        "('  Final diagnostic')")
-      ! write(*,        "(' -------------------------------------------------------------------------------------')")
-      ! if (lfailure) then
-      !    write(*,*) "symba_frag_pos failed after: ",try," tries"
-      !    do ii = 1, nfrag
-      !       vb_frag(:, ii) = vcom(:)
-      !    end do
-      ! else
-      !    write(*,*) "symba_frag_pos succeeded after: ",try," tries"
-      !    write(*,        "(' dL_tot should be very small' )")
-      !    write(*,fmtlabel) ' dL_tot      |', dLmag / Lmag_before
-      !    write(*,        "(' dE_tot should be negative and equal to Qloss' )")
-      !    write(*,fmtlabel) ' dE_tot      |', dEtot / abs(Etot_before)
-      !    write(*,fmtlabel) ' Qloss       |', -Qloss / abs(Etot_before)
-      !    write(*,fmtlabel) ' dE - Qloss  |', (Etot_after - Etot_before + Qloss) / abs(Etot_before)
-      ! end if
-      ! write(*,        "(' -------------------------------------------------------------------------------------')")
+      write(*,        "(' -------------------------------------------------------------------------------------')")
+      write(*,        "('  Final diagnostic')")
+      write(*,        "(' -------------------------------------------------------------------------------------')")
+      if (lfailure) then
+         write(*,*) "symba_frag_pos failed after: ",try," tries"
+         do ii = 1, nfrag
+            vb_frag(:, ii) = vcom(:)
+         end do
+      else
+         write(*,*) "symba_frag_pos succeeded after: ",try," tries"
+         write(*,        "(' dL_tot should be very small' )")
+         write(*,fmtlabel) ' dL_tot      |', dLmag / Lmag_before
+         write(*,        "(' dE_tot should be negative and equal to Qloss' )")
+         write(*,fmtlabel) ' dE_tot      |', dEtot / abs(Etot_before)
+         write(*,fmtlabel) ' Qloss       |', -Qloss / abs(Etot_before)
+         write(*,fmtlabel) ' dE - Qloss  |', (Etot_after - Etot_before + Qloss) / abs(Etot_before)
+      end if
+      write(*,        "(' -------------------------------------------------------------------------------------')")
 
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
@@ -592,7 +592,6 @@ contains
             type(lambda_obj_err)                 :: objective_function
             real(DP), dimension(NDIM) :: L_frag_spin, L_remainder, Li, rot_L, rot_ke
 
-            ! Initialize the fragments with 0 velocity and spin so we can divide up the balance between the tangential, radial, and spin components while conserving momentum
             lerr = .false.
 
             if (ke_frag_budget < 0.0_DP) then
@@ -661,11 +660,12 @@ contains
 
             ! If we are over the energy budget, flag this as a failure so we can try again
             lerr = (ke_radial < 0.0_DP)
-            ! write(*,*) 'Tangential'
-            ! write(*,*) 'ke_frag_budget: ',ke_frag_budget
-            ! write(*,*) 'ke_frag_orbit : ',ke_frag_orbit
-            ! write(*,*) 'ke_frag_spin  : ',ke_frag_spin
-            ! write(*,*) 'ke_radial     : ',ke_radial
+            write(*,*) 'Tangential'
+            write(*,*) 'Failure? ',lerr
+            write(*,*) 'ke_frag_budget: ',ke_frag_budget
+            write(*,*) 'ke_frag_spin  : ',ke_frag_spin
+            write(*,*) 'ke_tangential : ',ke_frag_orbit
+            write(*,*) 'ke_remainder  : ',ke_radial
 
             return
          end subroutine set_fragment_tan_vel
@@ -790,12 +790,12 @@ contains
             end do
             ke_frag_orbit = 0.5_DP * sum(kearr(:))
             ke_frag_spin = 0.5_DP * sum(kespinarr(:))
-            ! write(*,*) 'Radial'
-            ! write(*,*) 'Failure? ',lerr 
-            ! write(*,*) 'ke_frag_budget: ',ke_frag_budget
-            ! write(*,*) 'ke_frag_orbit : ',ke_frag_orbit
-            ! write(*,*) 'ke_frag_spin  : ',ke_frag_spin
-            ! write(*,*) 'ke_remainder  : ',ke_frag_budget - (ke_frag_orbit + ke_frag_spin)
+            write(*,*) 'Radial'
+            write(*,*) 'Failure? ',lerr 
+            write(*,*) 'ke_frag_budget: ',ke_frag_budget
+            write(*,*) 'ke_frag_spin  : ',ke_frag_spin
+            write(*,*) 'ke_frag_orbit : ',ke_frag_orbit
+            write(*,*) 'ke_remainder  : ',ke_frag_budget - (ke_frag_orbit + ke_frag_spin)
             lerr = .false.
 
             return
