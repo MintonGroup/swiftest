@@ -38,6 +38,7 @@ class Simulation:
             'DU2M': constants.AU2M,
             'EXTRA_FORCE': "NO",
             'DISCARD_OUT': "discard.out",
+            'PARTICLE_OUT' : "",
             'BIG_DISCARD': "NO",
             'CHK_CLOSE': "YES",
             'RHILL_PRESENT': "YES",

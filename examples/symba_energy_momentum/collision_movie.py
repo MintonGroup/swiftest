@@ -260,7 +260,7 @@ class AnimatedScatter(object):
             vx = np.nan_to_num(vx, copy=False)
             vy = np.nan_to_num(vy, copy=False)
             radmarker = np.nan_to_num(radmarker, copy=False)
-            GMass = np.nan_to_num(Mass, copy=False)
+            GMass = np.nan_to_num(GMass, copy=False)
             Radius = np.nan_to_num(Radius, copy=False)
             rotx = np.nan_to_num(rotx, copy=False)
             roty = np.nan_to_num(roty, copy=False)
