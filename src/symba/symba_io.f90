@@ -55,7 +55,7 @@ contains
          end if
       end if
 
-      if (present(plidx) .and. (system%pl%nbody > 0) .and. size(plidx) > 0) then
+      if (present(plidx) .and. (system%pl%nbody > 0)) then
          select type(pl => system%pl)
          class is (symba_pl)
             do i = 1, size(plidx)
@@ -65,7 +65,7 @@ contains
          end select
       end if
 
-      if (present(tpidx) .and. (system%tp%nbody > 0) .and. size(tpidx) > 0) then
+      if (present(tpidx) .and. (system%tp%nbody > 0)) then
          select type(tp => system%tp)
          class is (symba_tp)
             do i = 1, size(tpidx)
