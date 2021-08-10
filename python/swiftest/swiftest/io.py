@@ -318,7 +318,7 @@ def swifter_stream(f, param):
     plid : int array
         IDs of massive bodies
     pvec : float array
-        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Mass, Radius, etc)
+        (npl,N) - vector of N quantities or each particle (6 of XV/EL + GMass, Radius, etc)
     plab : string list
         Labels for the pvec data
     ntp  : int
@@ -376,7 +376,7 @@ def swifter_stream(f, param):
             tlab.append('omega')
             tlab.append('capm')
         plab = tlab.copy()
-        plab.append('Mass')
+        plab.append('GMass')
         plab.append('Radius')
         pvec = np.vstack([pvec, Mpl, Rpl])
         
@@ -401,11 +401,11 @@ def make_swiftest_labels(param):
         tlab.append('omega')
         tlab.append('capm')
     plab = tlab.copy()
-    plab.append('Mass')
+    plab.append('GMass')
     plab.append('Radius')
     if param['RHILL_PRESENT'] == 'YES':
         plab.append('Rhill')
-    clab = ['Mass', 'Radius', 'J_2', 'J_4']
+    clab = ['GMass', 'Radius', 'J_2', 'J_4']
     if param['ROTATION'] == 'YES':
         clab.append('Ip_x')
         clab.append('Ip_y')
@@ -443,13 +443,13 @@ def swiftest_stream(f, param):
     cbid : int array
         ID of central body (always returns 0)
     cvec : float array
-        (npl,1) - vector of quantities for the massive body (Mass, Radius, J2, J4, etc)
+        (npl,1) - vector of quantities for the massive body (GMass, Radius, J2, J4, etc)
     npl  : int
         Number of massive bodies
     plid : int array
         IDs of massive bodies
     pvec : float array
-        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Mass, Radius, etc)
+        (npl,N) - vector of N quantities or each particle (6 of XV/EL + GMass, Radius, etc)
     plab : string list
         Labels for the pvec data
     ntp  : int
@@ -656,10 +656,10 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     frame = ds.isel(time=framenum)
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Mass'])), drop=True).drop_vars(['J_2', 'J_4'])
-    tp = frame.where(np.isnan(frame['Mass']), drop=True).drop_vars(['Mass', 'Radius', 'J_2', 'J_4'])
+    pl = pl.where(np.invert(np.isnan(pl['GMass'])), drop=True).drop_vars(['J_2', 'J_4'])
+    tp = frame.where(np.isnan(frame['GMass']), drop=True).drop_vars(['GMass', 'Radius', 'J_2', 'J_4'])
     
-    GMSun = np.double(cb['Mass'])
+    GMSun = np.double(cb['GMass'])
     RSun = np.double(cb['Radius'])
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
@@ -680,9 +680,9 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         for i in pl.id:
             pli = pl.sel(id=i)
             if param['RHILL_PRESENT'] == 'YES':
-               print(i.values, pli['Mass'].values, pli['Rhill'].values, file=plfile)
+               print(i.values, pli['GMass'].values, pli['Rhill'].values, file=plfile)
             else:
-               print(i.values, pli['Mass'].values, file=plfile)
+               print(i.values, pli['GMass'].values, file=plfile)
             print(pli['Radius'].values, file=plfile)
             print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
             print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
@@ -716,7 +716,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         vx = pl['vx'].values  
         vy = pl['vy'].values  
         vz = pl['vz'].values  
-        mass = pl['Mass'].values  
+        Gmass = pl['GMass'].values
         radius = pl['Radius'].values  
         
         plfile.write_record(npl)
@@ -727,7 +727,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         plfile.write_record(vx)
         plfile.write_record(vy)
         plfile.write_record(vz)
-        plfile.write_record(mass)
+        plfile.write_record(Gmass)
         if param['RHILL_PRESENT'] == 'YES':
             rhill = pl['Rhill'].values
             plfile.write_record(rhill)
@@ -774,10 +774,10 @@ def swifter_xr2infile(ds, param, framenum=-1):
     frame = ds.isel(time=framenum)
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Mass'])), drop=True).drop_vars(['J_2', 'J_4'])
-    tp = frame.where(np.isnan(frame['Mass']), drop=True).drop_vars(['Mass', 'Radius', 'J_2', 'J_4'])
+    pl = pl.where(np.invert(np.isnan(pl['GMass'])), drop=True).drop_vars(['J_2', 'J_4'])
+    tp = frame.where(np.isnan(frame['GMass']), drop=True).drop_vars(['GMass', 'Radius', 'J_2', 'J_4'])
     
-    GMSun = np.double(cb['Mass'])
+    GMSun = np.double(cb['GMass'])
     RSun = np.double(cb['Radius'])
     param['J2'] = np.double(cb['J_2'])
     param['J4'] = np.double(cb['J_4'])
@@ -786,15 +786,15 @@ def swifter_xr2infile(ds, param, framenum=-1):
         # Swiftest Central body file
         plfile = open(param['PL_IN'], 'w')
         print(pl.id.count().values + 1, file=plfile)
-        print(cb.id.values[0], cb['Mass'].values[0], file=plfile)
+        print(cb.id.values[0], cb['GMass'].values[0], file=plfile)
         print('0.0 0.0 0.0', file=plfile)
         print('0.0 0.0 0.0', file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
             if param['RHILL_PRESENT'] == "YES":
-                print(i.values, pli['Mass'].values, pli['Rhill'].values, file=plfile)
+                print(i.values, pli['GMass'].values, pli['Rhill'].values, file=plfile)
             else:
-                print(i.values, pli['Mass'].values, file=plfile)
+                print(i.values, pli['GMass'].values, file=plfile)
             if param['CHK_CLOSE'] == "YES":
                 print(pli['Radius'].values, file=plfile)
             print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
