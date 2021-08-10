@@ -73,6 +73,8 @@ def read_swiftest_param(param_file_name, param):
         param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
         param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
         param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
+        if param['FRAGMENTATION'] == 'YES' and param['PARTICLE_OUT'] == '':
+            param['PARTICLE_OUT'] = 'particle.dat'
         param['ROTATION'] = param['ROTATION'].upper()
         param['TIDES'] = param['TIDES'].upper()
         param['ENERGY'] = param['ENERGY'].upper()
@@ -612,26 +614,29 @@ def swiftest2xr(param):
     cb = []
     pl = []
     tp = []
-    with FortranFile(param['BIN_OUT'], 'r') as f:
-        for t, cbid, cvec, clab, \
-            npl, plid, pvec, plab, \
-            ntp, tpid, tvec, tlab in swiftest_stream(f, param):
-            # Prepare frames by adding an extra axis for the time coordinate
-            cbframe = np.expand_dims(cvec, axis=0)
-            plframe = np.expand_dims(pvec, axis=0)
-            tpframe = np.expand_dims(tvec, axis=0)
+    try:
+        with FortranFile(param['BIN_OUT'], 'r') as f:
+            for t, cbid, cvec, clab, \
+                npl, plid, pvec, plab, \
+                ntp, tpid, tvec, tlab in swiftest_stream(f, param):
+                # Prepare frames by adding an extra axis for the time coordinate
+                cbframe = np.expand_dims(cvec, axis=0)
+                plframe = np.expand_dims(pvec, axis=0)
+                tpframe = np.expand_dims(tvec, axis=0)
 
-            # Create xarray DataArrays out of each body type
-            cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
-            plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
-            tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
-            
-            cb.append(cbxr)
-            pl.append(plxr)
-            tp.append(tpxr)
-            sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
-            sys.stdout.flush()
-    
+                # Create xarray DataArrays out of each body type
+                cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
+                plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
+                tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
+                
+                cb.append(cbxr)
+                pl.append(plxr)
+                tp.append(tpxr)
+                sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
+                sys.stdout.flush()
+    except IOError:
+        print(f"Error encountered reading in {param['BIN_OUT']}")
+
     cbda = xr.concat(cb, dim='time')
     plda = xr.concat(pl, dim='time')
     tpda = xr.concat(tp, dim='time')
@@ -642,22 +647,59 @@ def swiftest2xr(param):
     print('\nCreating Dataset')
     ds = xr.combine_by_coords([cbds, plds, tpds])
     print(f"Successfully converted {ds.sizes['time']} output frames.")
+    if param['PARTICLE_OUT'] != "":
+       ds = swiftest_particle_2xr(ds, param)
+    
     return ds
 
 
+def swiftest_particle_stream(f):
+   """
+   Reads in a Swiftest particle.dat file and returns a single frame of particle data as a datastream
+
+   Parameters
+   ----------
+   f : file object
+   param : dict
+
+   Yields
+   -------
+   plid : int
+      ID of massive bodie
+   origin_type : string
+      The origin type for the body (Initial conditions, disruption, supercatastrophic, hit and run, etc)
+   origin_xh : float array
+      The origin heliocentric position vector
+   origin_vh : float array
+      The origin heliocentric velocity vector
+   """
+   while True:  # Loop until you read the end of file
+      try:
+         # Read multi-line header
+         plid = f.read_ints()  # Try first part of the header
+      except:
+         break
+      origin_rec = f.read_record(np.dtype('a32'), np.dtype(('<f8', (7))))
+      origin_type = np.char.strip(str(origin_rec[0], encoding='utf-8'))
+      origin_vec = origin_rec[1]
+      yield plid, origin_type, origin_vec
+
+
 def swiftest_particle_2xr(ds, param):
-   """Reads in the Swiftest PARTICLE_OUT  and converts it to an xarray Dataset"""
+   """Reads in the Swiftest SyMBA-generated PARTICLE_OUT  and converts it to an xarray Dataset"""
    veclab = ['time_origin', 'px_origin', 'py_origin', 'pz_origin', 'vx_origin', 'vy_origin', 'vz_origin']
    id_list = []
    origin_type_list = []
    origin_vec_list = []
 
-   with FortranFile(param['PARTICLE_OUT'], 'r') as f:
-      for plid, origin_type, origin_vec in swiftest_particle_stream(f):
-         id_list.append(plid)
-
-         origin_type_list.append(origin_type)
-         origin_vec_list.append(origin_vec)
+   try:
+      with FortranFile(param['PARTICLE_OUT'], 'r') as f:
+          for id, origin_type, origin_vec in swiftest_particle_stream(f):
+             id_list.append(id)
+             origin_type_list.append(origin_type)
+             origin_vec_list.append(origin_vec)
+   except IOError:
+       print(f"Error reading in {param['PARTICLE_OUT']} ")
 
    id_list =  np.asarray(id_list)[:,0]
    origin_type_list = np.asarray(origin_type_list)
@@ -672,6 +714,7 @@ def swiftest_particle_2xr(ds, param):
    print('\nAdding particle info to Dataset')
    ds = xr.merge([ds, infoxr])
    return ds
+
 
 def swiftest_xr2infile(ds, param, framenum=-1):
     """
@@ -1270,6 +1313,10 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         swiftest_param['DISCARD_OUT'] = input("DISCARD_OUT: Discard file name: [discard.out]> ")
         if swiftest_param['DISCARD_OUT'] == '':
             swiftest_param['DISCARD_OUT'] = "discard.out"
+
+    swiftest_param['PARTICLE_OUT'] = conversion_questions.get('PARTICLE_OUT', '')
+    if not swiftest_param['PARTICLE_OUT']:
+        swiftest_param['PARTICLE_OUT'] = input("PARTICLE_OUT: Particle info file name (Only used by SyMBA): []> ")
 
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swifter"
     return swiftest_param
