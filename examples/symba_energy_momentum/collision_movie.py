@@ -85,7 +85,7 @@ class AnimatedScatter(object):
         self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=nframes,
                                           init_func=self.setup_plot, blit=False)
         self.ani.save(animfile, fps=60, dpi=300,
-                      extra_args=['-vcodec', 'mpeg4'])
+                      extra_args=['-vcodec', 'libx264'])
 
     def plot_pl_circles(self, pl, radmarker):
         patches = []
