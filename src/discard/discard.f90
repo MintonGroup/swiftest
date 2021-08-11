@@ -17,7 +17,7 @@ contains
       lpl_check = allocated(self%pl_discards)
       ltp_check = allocated(self%tp_discards)
 
-      associate(system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%tp_discards)
+      associate(system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards)
          lpl_discards = .false.
          ltp_discards = .false.
          if (lpl_check) then
@@ -31,8 +31,10 @@ contains
          end if
 
          if (lpl_discards .or. ltp_discards) call system%write_discard(param)
+         if (lpl_discards .and. param%lenergy) call self%conservation_report(param, lterminal=.true.)
          if (lpl_check) call pl_discards%setup(0,param) 
          if (ltp_check) call tp_discards%setup(0,param) 
+         
       end associate
 
       return

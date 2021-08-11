@@ -1,6 +1,7 @@
 submodule (swiftest_classes) s_util_resize
    use swiftest
 contains
+
    module subroutine util_resize_arr_char_string(arr, nnew)
       !! author: David A. Minton
       !!

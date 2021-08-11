@@ -2,26 +2,88 @@ submodule (symba_classes) s_symba_io
    use swiftest
 contains
 
-   module subroutine symba_io_dump_particle_info(self, param, msg) 
+   module subroutine symba_io_dump_particle_info(system, param, lincludecb, tpidx, plidx) 
       !! author: David A. Minton
       !!
-      !! Dumps the particle information data to a file
+      !! Dumps the particle information data to a file. 
+      !! Pass a list of array indices for test particles (tpidx) and/or massive bodies (plidx) to append
       implicit none
-      class(symba_particle_info), intent(inout) :: self  !! Swiftest base object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      character(*), optional,     intent(in)    :: msg   !! Message to display with dump operation
+      ! Arguments
+      class(symba_nbody_system),             intent(inout) :: system !! SyMBA nbody system object
+      class(symba_parameters),               intent(in)    :: param  !! Current run configuration parameters with SyMBA extensions
+      logical,                     optional, intent(in)    :: lincludecb  !! Set to true to include the central body (default is false)
+      integer(I4B), dimension(:),  optional, intent(in)    :: tpidx  !! Array of test particle indices to append to the particle file
+      integer(I4B), dimension(:),  optional, intent(in)    :: plidx  !! Array of massive body indices to append to the particle file
+      ! Internals
+      logical, save             :: lfirst = .true.
+      integer(I4B), parameter   :: LUN = 22
+      integer(I4B)              :: i, ierr
+
+      if (lfirst) then
+         select case(param%out_stat)
+         case('APPEND')
+            open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+         case('NEW', 'UNKNOWN', 'REPLACE')
+            open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
+         case default
+            write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
+            call util_exit(FAILURE)
+         end select
+         if (ierr /= 0) then
+            write(*, *) "Swiftest error:"
+            write(*, *) "   particle output file already exists or cannot be accessed"
+            call util_exit(FAILURE)
+         end if
+
+         lfirst = .false.
+      else
+         open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
+         if (ierr /= 0) then
+            write(*, *) "Swiftest error:"
+            write(*, *) "   unable to open binary output file for APPEND"
+            call util_exit(FAILURE)
+         end if
+      end if
+
+      if (present(lincludecb)) then
+         if (lincludecb) then
+            select type(cb => system%cb)
+            class is (symba_cb)
+               write(LUN) cb%id
+               write(LUN) cb%info
+            end select
+         end if
+      end if
+
+      if (present(plidx) .and. (system%pl%nbody > 0)) then
+         select type(pl => system%pl)
+         class is (symba_pl)
+            do i = 1, size(plidx)
+               write(LUN) pl%id(plidx(i))
+               write(LUN) pl%info(plidx(i))
+            end do
+         end select
+      end if
+
+      if (present(tpidx) .and. (system%tp%nbody > 0)) then
+         select type(tp => system%tp)
+         class is (symba_tp)
+            do i = 1, size(tpidx)
+               write(LUN) tp%id(tpidx(i))
+               write(LUN) tp%info(tpidx(i))
+            end do
+         end select
+      end if
+
+      close(unit = LUN, iostat = ierr)
+      if (ierr /= 0) then
+         write(*, *) "Swiftest error:"
+         write(*, *) "   unable to close particle output file"
+         call util_exit(FAILURE)
+      end if
+
+      return
    end subroutine symba_io_dump_particle_info
-
-
-   module subroutine symba_io_initialize_particle_info(self, param) 
-      !! author: David A. Minton
-      !!
-      !! Initializes a particle info data structure, either starting a new one or reading one in 
-      !! from a file if it is a restarted run
-      implicit none
-      class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-   end subroutine symba_io_initialize_particle_info
 
 
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
@@ -68,6 +130,8 @@ contains
                ifirst = ilast + 1
                param_value = io_get_token(line_trim, ifirst, ilast, iostat)
                select case (param_name)
+               case ("PARTICLE_OUT")
+                  param%particle_out = param_value
                case ("FRAGMENTATION")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
@@ -166,7 +230,7 @@ contains
 
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
-         write(param_name, Afmt) "PARTICLE_FILE"; write(param_value, Afmt) trim(adjustl(param%particle_file)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "PARTICLE_OUT"; write(param_value, Afmt) trim(adjustl(param%particle_out)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%Gmtiny; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
          if (param%lfragmentation) then
@@ -194,19 +258,74 @@ contains
    end subroutine symba_io_param_writer
 
 
-   module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
+   module subroutine symba_io_read_particle(system, param)
       !! author: David A. Minton
       !!
-      !! Reads a single frame of a particle info data from a file.
+      !! Reads an old particle information file for a restartd run
       implicit none
-      class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
-      integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
-      integer(I4B),               intent(out)   :: ierr  !! Error code
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system file
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
 
-      ierr = 0
-   end subroutine symba_io_read_frame_info
+      ! Internals
+      integer(I4B), parameter :: LUN = 22
+      integer(I4B)            :: i, ierr, id, idx
+      logical                 :: lmatch  
+      type(symba_particle_info) :: tmpinfo
+
+      open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+      if (ierr /= 0) then
+         write(*, *) "Swiftest error:"
+         write(*, *) "   unable to open binary particle file for reading"
+         call util_exit(FAILURE)
+      end if
+
+      select type(cb => system%cb)
+      class is (symba_cb)
+         select type(pl => system%pl)
+         class is (symba_pl)
+            select type(tp => system%tp)
+            class is (symba_tp)
+               do 
+                  lmatch = .false.
+                  read(LUN, iostat=ierr) id
+                  if (ierr /=0) exit
+
+                  if (idx == cb%id) then
+                     read(LUN) cb%info
+                     lmatch = .true.
+                  else 
+                     if (pl%nbody > 0) then
+                        idx = findloc(pl%id(:), id, dim=1)
+                        if (idx /= 0) then
+                           read(LUN) pl%info(idx)
+                           lmatch = .true.
+                        end if
+                     end if
+                     if (.not.lmatch .and. tp%nbody > 0) then
+                        idx = findloc(tp%id(:), id, dim=1)
+                        if (idx /= 0) then
+                           read(LUN) tp%info(idx)
+                           lmatch = .true.
+                        end if
+                     end if
+                  end if
+                  if (.not.lmatch) then
+                     write(*,*) 'Particle id ',id,' not found. Skipping'
+                     read(LUN) tmpinfo
+                  end if
+               end do
+               close(unit = LUN, iostat = ierr)
+            end select
+         end select
+      end select
+      if (ierr /= 0) then
+         write(*, *) "Swiftest error:"
+         write(*, *) "   unable to close particle output file"
+         call util_exit(FAILURE)
+      end if
+
+      return
+   end subroutine symba_io_read_particle
 
 
    module subroutine symba_io_write_discard(self, param)
@@ -253,7 +372,7 @@ contains
                nsub = pl_discards%ncomp(isub)
                do j = 1, nadd
                   if (iadd <= pl_adds%nbody) then
-                     write(LUN, NAMEFMT) ADD, pl_discards%id(iadd), pl_discards%status(iadd)
+                     write(LUN, NAMEFMT) ADD, pl_adds%id(iadd), pl_adds%status(iadd)
                      write(LUN, VECFMT) pl_adds%xh(1, iadd), pl_adds%xh(2, iadd), pl_adds%xh(3, iadd)
                      write(LUN, VECFMT) pl_adds%vh(1, iadd), pl_adds%vh(2, iadd), pl_adds%vh(3, iadd)
                   else 
@@ -279,14 +398,6 @@ contains
 
       return
    end subroutine symba_io_write_discard
-
-
-   module subroutine symba_io_write_frame_info(self, iu, param)
-      implicit none
-      class(symba_particle_info), intent(in)    :: self  !! SyMBA particle info object
-      integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param   !! Current run configuration parameters 
-   end subroutine symba_io_write_frame_info 
 
 end submodule s_symba_io
 

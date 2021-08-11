@@ -7,7 +7,7 @@ TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1                 ! output cadence every year
 BIN_OUT        bin.escape.dat
-PARTICLE_FILE  particle.escape.dat
+PARTICLE_OUT   particle.escape.dat
 OUT_TYPE       REAL8             ! double precision real output
 OUT_FORM       XV                ! osculating element output
 OUT_STAT       REPLACE
@@ -30,3 +30,4 @@ TU2S           3.1556925e7
 DU2M           1.49598e11
 ENERGY         yes
 ROTATION       yes
+SEED           8 -1109809 -120983313 -335849874 123308005 -625127 322235652 -3405804 -113111354

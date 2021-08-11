@@ -232,7 +232,7 @@ module whm_classes
          implicit none
          class(whm_pl),                   intent(inout) :: self         !! WHM massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine whm_util_append_pl
 
       module subroutine whm_util_spill_pl(self, discards, lspill_list, ldestructive)

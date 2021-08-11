@@ -24,6 +24,7 @@ def real2float(realstr):
     """
     return float(realstr.replace('d', 'E').replace('D', 'E'))
 
+
 def read_swiftest_param(param_file_name, param):
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
@@ -72,6 +73,8 @@ def read_swiftest_param(param_file_name, param):
         param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
         param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
         param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
+        if param['FRAGMENTATION'] == 'YES' and param['PARTICLE_OUT'] == '':
+            param['PARTICLE_OUT'] = 'particle.dat'
         param['ROTATION'] = param['ROTATION'].upper()
         param['TIDES'] = param['TIDES'].upper()
         param['ENERGY'] = param['ENERGY'].upper()
@@ -81,6 +84,7 @@ def read_swiftest_param(param_file_name, param):
     except IOError:
         print(f"{param_file_name} not found.")
     return param
+
 
 def read_swifter_param(param_file_name):
     """
@@ -164,6 +168,7 @@ def read_swifter_param(param_file_name):
         print(f"{param_file_name} not found.")
 
     return param
+
 
 def read_swift_param(param_file_name, startfile="swift.in"):
     """
@@ -251,6 +256,7 @@ def read_swift_param(param_file_name, startfile="swift.in"):
     
     return param
 
+
 def write_swift_param(param, param_file_name):
     outfile = open(param_file_name, 'w')
     print(param['T0'], param['TSTOP'], param['DT'], file=outfile)
@@ -261,6 +267,7 @@ def write_swift_param(param, param_file_name):
     print(param['STATUS_FLAG_FOR_OPEN_STATEMENTS'], file=outfile)
     outfile.close()
     return
+
 
 def write_labeled_param(param, param_file_name):
     outfile = open(param_file_name, 'w')
@@ -300,6 +307,7 @@ def write_labeled_param(param, param_file_name):
     outfile.close()
     return
 
+
 def swifter_stream(f, param):
     """
     Reads in a Swifter bin.dat file and returns a single frame of data as a datastream
@@ -318,7 +326,7 @@ def swifter_stream(f, param):
     plid : int array
         IDs of massive bodies
     pvec : float array
-        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Mass, Radius, etc)
+        (npl,N) - vector of N quantities or each particle (6 of XV/EL + GMass, Radius, etc)
     plab : string list
         Labels for the pvec data
     ntp  : int
@@ -376,7 +384,7 @@ def swifter_stream(f, param):
             tlab.append('omega')
             tlab.append('capm')
         plab = tlab.copy()
-        plab.append('Mass')
+        plab.append('GMass')
         plab.append('Radius')
         pvec = np.vstack([pvec, Mpl, Rpl])
         
@@ -401,11 +409,11 @@ def make_swiftest_labels(param):
         tlab.append('omega')
         tlab.append('capm')
     plab = tlab.copy()
-    plab.append('Mass')
+    plab.append('GMass')
     plab.append('Radius')
     if param['RHILL_PRESENT'] == 'YES':
         plab.append('Rhill')
-    clab = ['Mass', 'Radius', 'J_2', 'J_4']
+    clab = ['GMass', 'Radius', 'J_2', 'J_4']
     if param['ROTATION'] == 'YES':
         clab.append('Ip_x')
         clab.append('Ip_y')
@@ -443,13 +451,13 @@ def swiftest_stream(f, param):
     cbid : int array
         ID of central body (always returns 0)
     cvec : float array
-        (npl,1) - vector of quantities for the massive body (Mass, Radius, J2, J4, etc)
+        (npl,1) - vector of quantities for the massive body (GMass, Radius, J2, J4, etc)
     npl  : int
         Number of massive bodies
     plid : int array
         IDs of massive bodies
     pvec : float array
-        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Mass, Radius, etc)
+        (npl,N) - vector of N quantities or each particle (6 of XV/EL + GMass, Radius, etc)
     plab : string list
         Labels for the pvec data
     ntp  : int
@@ -544,6 +552,7 @@ def swiftest_stream(f, param):
               npl, plid, pvec.T, plab, \
               ntp, tpid, tvec.T, tlab
 
+
 def swifter2xr(param):
     """
     Converts a Swifter binary data file into an xarray DataSet.
@@ -586,6 +595,7 @@ def swifter2xr(param):
         print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
+
 def swiftest2xr(param):
     """
     Converts a Swiftest binary data file into an xarray DataSet.
@@ -604,26 +614,29 @@ def swiftest2xr(param):
     cb = []
     pl = []
     tp = []
-    with FortranFile(param['BIN_OUT'], 'r') as f:
-        for t, cbid, cvec, clab, \
-            npl, plid, pvec, plab, \
-            ntp, tpid, tvec, tlab in swiftest_stream(f, param):
-            # Prepare frames by adding an extra axis for the time coordinate
-            cbframe = np.expand_dims(cvec, axis=0)
-            plframe = np.expand_dims(pvec, axis=0)
-            tpframe = np.expand_dims(tvec, axis=0)
+    try:
+        with FortranFile(param['BIN_OUT'], 'r') as f:
+            for t, cbid, cvec, clab, \
+                npl, plid, pvec, plab, \
+                ntp, tpid, tvec, tlab in swiftest_stream(f, param):
+                # Prepare frames by adding an extra axis for the time coordinate
+                cbframe = np.expand_dims(cvec, axis=0)
+                plframe = np.expand_dims(pvec, axis=0)
+                tpframe = np.expand_dims(tvec, axis=0)
 
-            # Create xarray DataArrays out of each body type
-            cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
-            plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
-            tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
-            
-            cb.append(cbxr)
-            pl.append(plxr)
-            tp.append(tpxr)
-            sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
-            sys.stdout.flush()
-    
+                # Create xarray DataArrays out of each body type
+                cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
+                plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
+                tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
+                
+                cb.append(cbxr)
+                pl.append(plxr)
+                tp.append(tpxr)
+                sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
+                sys.stdout.flush()
+    except IOError:
+        print(f"Error encountered reading in {param['BIN_OUT']}")
+
     cbda = xr.concat(cb, dim='time')
     plda = xr.concat(pl, dim='time')
     tpda = xr.concat(tp, dim='time')
@@ -634,7 +647,74 @@ def swiftest2xr(param):
     print('\nCreating Dataset')
     ds = xr.combine_by_coords([cbds, plds, tpds])
     print(f"Successfully converted {ds.sizes['time']} output frames.")
+    if param['PARTICLE_OUT'] != "":
+       ds = swiftest_particle_2xr(ds, param)
+    
     return ds
+
+
+def swiftest_particle_stream(f):
+   """
+   Reads in a Swiftest particle.dat file and returns a single frame of particle data as a datastream
+
+   Parameters
+   ----------
+   f : file object
+   param : dict
+
+   Yields
+   -------
+   plid : int
+      ID of massive bodie
+   origin_type : string
+      The origin type for the body (Initial conditions, disruption, supercatastrophic, hit and run, etc)
+   origin_xh : float array
+      The origin heliocentric position vector
+   origin_vh : float array
+      The origin heliocentric velocity vector
+   """
+   while True:  # Loop until you read the end of file
+      try:
+         # Read multi-line header
+         plid = f.read_ints()  # Try first part of the header
+      except:
+         break
+      origin_rec = f.read_record(np.dtype('a32'), np.dtype(('<f8', (7))))
+      origin_type = np.char.strip(str(origin_rec[0], encoding='utf-8'))
+      origin_vec = origin_rec[1]
+      yield plid, origin_type, origin_vec
+
+
+def swiftest_particle_2xr(ds, param):
+   """Reads in the Swiftest SyMBA-generated PARTICLE_OUT  and converts it to an xarray Dataset"""
+   veclab = ['time_origin', 'px_origin', 'py_origin', 'pz_origin', 'vx_origin', 'vy_origin', 'vz_origin']
+   id_list = []
+   origin_type_list = []
+   origin_vec_list = []
+
+   try:
+      with FortranFile(param['PARTICLE_OUT'], 'r') as f:
+          for id, origin_type, origin_vec in swiftest_particle_stream(f):
+             id_list.append(id)
+             origin_type_list.append(origin_type)
+             origin_vec_list.append(origin_vec)
+   except IOError:
+       print(f"Error reading in {param['PARTICLE_OUT']} ")
+
+   id_list =  np.asarray(id_list)[:,0]
+   origin_type_list = np.asarray(origin_type_list)
+   origin_vec_list = np.vstack(origin_vec_list)
+
+   typeda = xr.DataArray(origin_type_list, dims=['id'], coords={'id' : id_list})
+   vecda = xr.DataArray(origin_vec_list, dims=['id', 'vec'], coords={'id' : id_list, 'vec' : veclab})
+
+   infoxr = vecda.to_dataset(dim='vec')
+   infoxr['origin_type'] = typeda
+
+   print('\nAdding particle info to Dataset')
+   ds = xr.merge([ds, infoxr])
+   return ds
+
 
 def swiftest_xr2infile(ds, param, framenum=-1):
     """
@@ -656,10 +736,10 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     frame = ds.isel(time=framenum)
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Mass'])), drop=True).drop_vars(['J_2', 'J_4'])
-    tp = frame.where(np.isnan(frame['Mass']), drop=True).drop_vars(['Mass', 'Radius', 'J_2', 'J_4'])
+    pl = pl.where(np.invert(np.isnan(pl['GMass'])), drop=True).drop_vars(['J_2', 'J_4'])
+    tp = frame.where(np.isnan(frame['GMass']), drop=True).drop_vars(['GMass', 'Radius', 'J_2', 'J_4'])
     
-    GMSun = np.double(cb['Mass'])
+    GMSun = np.double(cb['GMass'])
     RSun = np.double(cb['Radius'])
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
@@ -680,9 +760,9 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         for i in pl.id:
             pli = pl.sel(id=i)
             if param['RHILL_PRESENT'] == 'YES':
-               print(i.values, pli['Mass'].values, pli['Rhill'].values, file=plfile)
+               print(i.values, pli['GMass'].values, pli['Rhill'].values, file=plfile)
             else:
-               print(i.values, pli['Mass'].values, file=plfile)
+               print(i.values, pli['GMass'].values, file=plfile)
             print(pli['Radius'].values, file=plfile)
             print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
             print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
@@ -716,7 +796,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         vx = pl['vx'].values  
         vy = pl['vy'].values  
         vz = pl['vz'].values  
-        mass = pl['Mass'].values  
+        Gmass = pl['GMass'].values
         radius = pl['Radius'].values  
         
         plfile.write_record(npl)
@@ -727,7 +807,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         plfile.write_record(vx)
         plfile.write_record(vy)
         plfile.write_record(vz)
-        plfile.write_record(mass)
+        plfile.write_record(Gmass)
         if param['RHILL_PRESENT'] == 'YES':
             rhill = pl['Rhill'].values
             plfile.write_record(rhill)
@@ -774,10 +854,10 @@ def swifter_xr2infile(ds, param, framenum=-1):
     frame = ds.isel(time=framenum)
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Mass'])), drop=True).drop_vars(['J_2', 'J_4'])
-    tp = frame.where(np.isnan(frame['Mass']), drop=True).drop_vars(['Mass', 'Radius', 'J_2', 'J_4'])
+    pl = pl.where(np.invert(np.isnan(pl['GMass'])), drop=True).drop_vars(['J_2', 'J_4'])
+    tp = frame.where(np.isnan(frame['GMass']), drop=True).drop_vars(['GMass', 'Radius', 'J_2', 'J_4'])
     
-    GMSun = np.double(cb['Mass'])
+    GMSun = np.double(cb['GMass'])
     RSun = np.double(cb['Radius'])
     param['J2'] = np.double(cb['J_2'])
     param['J4'] = np.double(cb['J_4'])
@@ -786,15 +866,15 @@ def swifter_xr2infile(ds, param, framenum=-1):
         # Swiftest Central body file
         plfile = open(param['PL_IN'], 'w')
         print(pl.id.count().values + 1, file=plfile)
-        print(cb.id.values[0], cb['Mass'].values[0], file=plfile)
+        print(cb.id.values[0], cb['GMass'].values[0], file=plfile)
         print('0.0 0.0 0.0', file=plfile)
         print('0.0 0.0 0.0', file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
             if param['RHILL_PRESENT'] == "YES":
-                print(i.values, pli['Mass'].values, pli['Rhill'].values, file=plfile)
+                print(i.values, pli['GMass'].values, pli['Rhill'].values, file=plfile)
             else:
-                print(i.values, pli['Mass'].values, file=plfile)
+                print(i.values, pli['GMass'].values, file=plfile)
             if param['CHK_CLOSE'] == "YES":
                 print(pli['Radius'].values, file=plfile)
             print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
@@ -1233,6 +1313,10 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         swiftest_param['DISCARD_OUT'] = input("DISCARD_OUT: Discard file name: [discard.out]> ")
         if swiftest_param['DISCARD_OUT'] == '':
             swiftest_param['DISCARD_OUT'] = "discard.out"
+
+    swiftest_param['PARTICLE_OUT'] = conversion_questions.get('PARTICLE_OUT', '')
+    if not swiftest_param['PARTICLE_OUT']:
+        swiftest_param['PARTICLE_OUT'] = input("PARTICLE_OUT: Particle info file name (Only used by SyMBA): []> ")
 
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swifter"
     return swiftest_param

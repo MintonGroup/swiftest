@@ -45,7 +45,7 @@ module swiftest_classes
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
-      character(STRMAX)    :: ennergy_out    = ""                 !! Name of output energy and momentum report file
+      character(STRMAX)    :: energy_out    = ""                  !! Name of output energy and momentum report file
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -64,13 +64,14 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: Ltot = 0.0_DP        !! System angular momentum vector
-      real(DP), dimension(NDIM) :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
-      real(DP)                  :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+      real(DP), dimension(NDIM) :: Ltot = 0.0_DP          !! System angular momentum vector
+      real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Mescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
+      real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
       logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
+      logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
@@ -306,6 +307,7 @@ module swiftest_classes
       procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system !! Calculates the total system energy and momentum
+      procedure :: rescale                 => util_rescale_system             !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system            !! Validate the numerical ids passed to the system and save the maximum value
    end type swiftest_nbody_system
 
@@ -831,39 +833,44 @@ module swiftest_classes
    end interface
 
    interface util_append
-      module subroutine util_append_arr_char_string(arr, source, lsource_mask)
+      module subroutine util_append_arr_char_string(arr, source, nold, nsrc, lsource_mask)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,               dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                                     intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,               dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_char_string
 
-      module subroutine util_append_arr_DP(arr, source, lsource_mask)
+      module subroutine util_append_arr_DP(arr, source, nold, nsrc, lsource_mask)
          implicit none
          real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,  dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                        intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,  dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_DP
 
-      module subroutine util_append_arr_DPvec(arr, source, lsource_mask)
+      module subroutine util_append_arr_DPvec(arr, source, nold, nsrc, lsource_mask)
          implicit none
          real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
          real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,  dimension(:),   optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                          intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,  dimension(:),                intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_DPvec
 
-      module subroutine util_append_arr_I4B(arr, source, lsource_mask)
+      module subroutine util_append_arr_I4B(arr, source, nold, nsrc, lsource_mask)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,      dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_I4B
 
-      module subroutine util_append_arr_logical(arr, source, lsource_mask)
+      module subroutine util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
          implicit none
          logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical, dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_logical
    end interface
 
@@ -871,22 +878,22 @@ module swiftest_classes
       module subroutine util_append_body(self, source, lsource_mask)
          implicit none
          class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
-         class(swiftest_body),            intent(in)    :: source !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
+         class(swiftest_body),            intent(in)    :: source  !! Source object to append
+         logical, dimension(:),           intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
 
       module subroutine util_append_pl(self, source, lsource_mask)
          implicit none
          class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_pl
    
       module subroutine util_append_tp(self, source, lsource_mask)
          implicit none
          class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_tp
 
       module subroutine util_coord_b2h_pl(self, cb)
@@ -984,6 +991,13 @@ module swiftest_classes
    end interface
 
    interface
+      module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
+         real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
+      end subroutine util_rescale_system
+
       module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
          use lambda_function
          implicit none
@@ -1003,38 +1017,6 @@ module swiftest_classes
       end subroutine util_peri_tp
    end interface
 
-   interface util_solve_linear_system
-      module function util_solve_linear_system_d(A,b,n,lerr) result(x)
-         implicit none
-         integer(I4B),             intent(in)  :: n
-         real(DP), dimension(:,:), intent(in)  :: A
-         real(DP), dimension(:),   intent(in)  :: b
-         logical,                  intent(out) :: lerr
-         real(DP), dimension(n)                :: x
-      end function util_solve_linear_system_d
-
-      module function util_solve_linear_system_q(A,b,n,lerr) result(x)
-         implicit none
-         integer(I4B),             intent(in)  :: n
-         real(QP), dimension(:,:), intent(in)  :: A
-         real(QP), dimension(:),   intent(in)  :: b
-         logical,                  intent(out) :: lerr
-         real(QP), dimension(n)                :: x
-      end function util_solve_linear_system_q
-   end interface
-
-   interface
-      module function util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
-         use lambda_function
-         implicit none
-         class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
-         real(DP), dimension(:), intent(in)    :: y0in !! Initial value at t=0
-         real(DP),               intent(in)    :: t1   !! Final time
-         real(DP),               intent(in)    :: dt0  !! Initial step size guess
-         real(DP),               intent(in)    :: tol  !! Tolerance on solution
-         real(DP), dimension(:), allocatable   :: y1  !! Final result
-      end function util_solve_rkf45
-   end interface
 
    interface util_resize
       module subroutine util_resize_arr_char_string(arr, nnew)
@@ -1140,6 +1122,39 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_rhill_approximate
+   end interface
+
+   interface util_solve_linear_system
+      module function util_solve_linear_system_d(A,b,n,lerr) result(x)
+         implicit none
+         integer(I4B),             intent(in)  :: n
+         real(DP), dimension(:,:), intent(in)  :: A
+         real(DP), dimension(:),   intent(in)  :: b
+         logical,                  intent(out) :: lerr
+         real(DP), dimension(n)                :: x
+      end function util_solve_linear_system_d
+
+      module function util_solve_linear_system_q(A,b,n,lerr) result(x)
+         implicit none
+         integer(I4B),             intent(in)  :: n
+         real(QP), dimension(:,:), intent(in)  :: A
+         real(QP), dimension(:),   intent(in)  :: b
+         logical,                  intent(out) :: lerr
+         real(QP), dimension(n)                :: x
+      end function util_solve_linear_system_q
+   end interface
+
+   interface
+      module function util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
+         use lambda_function
+         implicit none
+         class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
+         real(DP), dimension(:), intent(in)    :: y0in !! Initial value at t=0
+         real(DP),               intent(in)    :: t1   !! Final time
+         real(DP),               intent(in)    :: dt0  !! Initial step size guess
+         real(DP),               intent(in)    :: tol  !! Tolerance on solution
+         real(DP), dimension(:), allocatable   :: y1  !! Final result
+      end function util_solve_rkf45
    end interface
 
    interface util_sort

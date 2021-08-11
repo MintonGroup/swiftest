@@ -37,6 +37,8 @@ class Simulation:
             'TU2S': constants.JD2S,
             'DU2M': constants.AU2M,
             'EXTRA_FORCE': "NO",
+            'DISCARD_OUT': "discard.out",
+            'PARTICLE_OUT' : "",
             'BIG_DISCARD': "NO",
             'CHK_CLOSE': "YES",
             'RHILL_PRESENT': "YES",
@@ -50,6 +52,7 @@ class Simulation:
         if param_file != "" :
             self.read_param(param_file, codename)
         return
+    
     
     def add(self, plname, date=date.today().isoformat(), idval=None):
         """
@@ -68,6 +71,7 @@ class Simulation:
         self.ds = init_cond.solar_system_horizons(plname, idval, self.param, date, self.ds)
         return
     
+    
     def read_param(self, param_file, codename="Swiftest"):
         if codename == "Swiftest":
             self.param = io.read_swiftest_param(param_file, self.param)
@@ -83,6 +87,7 @@ class Simulation:
             self.codename = "Unknown"
         return
     
+    
     def write_param(self, param_file, param=None):
         if param is None:
             param = self.param
@@ -95,6 +100,7 @@ class Simulation:
         else:
             print('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
         return
+    
     
     def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in", cbname="cb.swiftest.in", conversion_questions={}):
         """
@@ -129,6 +135,7 @@ class Simulation:
             print(f"Conversion from {self.codename} to {newcodename} is not supported.")
         return oldparam
     
+    
     def bin2xr(self):
         if self.codename == "Swiftest":
             self.ds = io.swiftest2xr(self.param)
@@ -141,6 +148,7 @@ class Simulation:
         else:
             print('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
         return
+    
     
     def follow(self, codestyle="Swifter"):
         if self.ds is None:
@@ -162,9 +170,12 @@ class Simulation:
                 ifol = None
                 nskp = None
             fol = tool.follow_swift(self.ds, ifol=ifol, nskp=nskp)
+        else:
+            fol = None
         
         print('follow.out written')
         return fol
+    
     
     def save(self, param_file, framenum=-1, codename="Swiftest"):
         if codename == "Swiftest":

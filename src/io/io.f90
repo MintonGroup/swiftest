@@ -31,14 +31,15 @@ contains
                Euntracked => self%Euntracked, Eorbit_orig => param%Eorbit_orig, Mtot_orig => param%Mtot_orig, &
                Ltot_orig => param%Ltot_orig(:), Lmag_orig => param%Lmag_orig, Lorbit_orig => param%Lorbit_orig(:), Lspin_orig => param%Lspin_orig(:), &
                lfirst => param%lfirstenergy)
-         if (lfirst) then
-            if (param%out_stat == "OLD") then
-               open(unit = EGYIU, file = ENERGY_FILE, form = "formatted", status = "old", action = "write", position = "append")
-            else 
-               open(unit = EGYIU, file = ENERGY_FILE, form = "formatted", status = "replace", action = "write")
+         if (param%energy_out /= "") then
+            if (lfirst .and. (param%out_stat /= "OLD")) then
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write")
+            else
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append")
                write(EGYIU,EGYHEADER)
             end if
          end if
+         call pl%h2b(cb)
          call system%get_energy_and_momentum(param) 
          ke_orbit_now = system%ke_orbit
          ke_spin_now = system%ke_spin
@@ -58,8 +59,10 @@ contains
             lfirst = .false.
          end if
 
-         write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
-         flush(EGYIU)
+         if (param%energy_out /= "") then
+            write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
+            close(EGYIU)
+         end if
          if (.not.lfirst .and. lterminal) then 
             Lmag_now = norm2(Ltot_now)
             Lerror = norm2(Ltot_now - Ltot_orig) / Lmag_orig
@@ -421,6 +424,8 @@ contains
                   param%enc_out = param_value
                case ("DISCARD_OUT")
                   param%discard_out = param_value
+               case ("ENERGY_OUT")
+                  param%energy_out = param_value
                case ("EXTRA_FORCE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.
@@ -493,7 +498,7 @@ contains
                   read(param_value, *) param%Ecollisions
                case("EUNTRACKED")
                   read(param_value, *) param%Euntracked
-               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_OUT", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(iomsg,*) "Unknown parameter -> ",param_name
                   iostat = -1
@@ -535,6 +540,7 @@ contains
             iostat = -1
             return
          end if
+         param%lrestart = (param%out_stat == "APPEND")
          if (param%outfile /= "") then
             if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
                   (param%out_type /= SWIFTER_REAL4_TYPE)  .and. (param%out_type /= SWIFTER_REAL8_TYPE)) then
@@ -552,6 +558,7 @@ contains
                iostat = -1
                return
             end if
+         
          end if
          if (param%qmin > 0.0_DP) then
             if ((param%qmin_coord /= "HELIO") .and. (param%qmin_coord /= "BARY")) then
