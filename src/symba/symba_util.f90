@@ -12,16 +12,19 @@ contains
       type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
       integer(I4B),                                         intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
 
       if (.not. allocated(source)) return
 
+      nnew = count(lsource_mask(1:nsrc))
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nsrc))
+         allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nsrc)
+         call util_resize(arr, nold + nnew)
       end if
 
-      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine symba_util_append_arr_info
@@ -37,16 +40,19 @@ contains
       type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
       integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
 
       if (.not. allocated(source)) return
 
+      nnew = count(lsource_mask(1:nsrc))
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nsrc))
+         allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nsrc)
+         call util_resize(arr, nold + nnew)
       end if
 
-      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine symba_util_append_arr_kin
@@ -102,10 +108,12 @@ contains
       logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B), dimension(:), allocatable        :: ncomp_tmp    !! Temporary placeholder for ncomp incase we are appending a symba_pl object to a symba_merger
-      integer(I4B) :: nold, nsrc
+      integer(I4B) :: nold, nsrc, nnew
 
       nold = self%nbody
       nsrc = source%nbody
+      nnew = count(lsource_mask)
+
       select type(source)
       class is (symba_merger)
          call util_append(self%ncomp, source%ncomp, nold, nsrc, lsource_mask)
@@ -121,7 +129,7 @@ contains
       end select
 
       ! Save the number of appended bodies 
-      self%ncomp(nold+1:nold+nsrc) = nsrc
+      self%ncomp(nold+1:nold+nnew) = nnew
 
       return
    end subroutine symba_util_append_merger
