@@ -128,17 +128,20 @@ contains
                if (tp%nbody > 0) tp%lmask(:) = tp%status(:) /= INACTIVE
 
                irm1 = irec - 1
+
                if (sgn < 0) then
                   irecl = irec - 1
                else
                   irecl = irec
                end if
+
                if (isplpl) then
                   pl%ah(:,ind1(1:self%nenc)) = 0.0_DP
                   pl%ah(:,ind2(1:self%nenc)) = 0.0_DP
                else
                   tp%ah(:,ind2(1:self%nenc)) = 0.0_DP
                end if
+
                do k = 1, self%nenc
                   if (isplpl) then
                      lgoodlevel = (pl%levelg(ind1(k)) >= irm1) .and. (pl%levelg(ind2(k)) >= irm1)
@@ -182,7 +185,7 @@ contains
                      pl%vb(:,ind1(k)) = pl%vb(:,ind1(k)) + sgn * dt * pl%ah(:,ind1(k))
                      pl%vb(:,ind2(k)) = pl%vb(:,ind2(k)) + sgn * dt * pl%ah(:,ind2(k))
                      pl%ah(:,ind1(k)) = 0.0_DP
-                     pl%ah(:,ind1(k)) = 0.0_DP
+                     pl%ah(:,ind2(k)) = 0.0_DP
                   end do
                else
                   do k = 1, self%nenc
