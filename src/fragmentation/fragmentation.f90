@@ -104,23 +104,23 @@ contains
             !write(*,*) 'Trying new arrangement'
          end do
          ke_avg_deficit = ke_avg_deficit / subtry
-         if (lfailure) write(*,*) 'Failed to find tangential velocities'
+         !if (lfailure) write(*,*) 'Failed to find tangential velocities'
 
          if (.not.lfailure) then
             call calculate_system_energy(linclude_fragments=.true.)
             ke_radial = -dEtot - Qloss
             call set_fragment_radial_velocities(lfailure)
-            if (lfailure) write(*,*) 'Failed to find radial velocities'
+         !   if (lfailure) write(*,*) 'Failed to find radial velocities'
             if (.not.lfailure) then
                call calculate_system_energy(linclude_fragments=.true.)
                ! write(*,*) 'Qloss : ',Qloss
                ! write(*,*) '-dEtot: ',-dEtot
                ! write(*,*) 'delta : ',abs((dEtot + Qloss)) 
                if ((abs(dEtot + Qloss) > Etol) .or. (dEtot > 0.0_DP)) then
-                  write(*,*) 'Failed due to high energy error: ',dEtot, abs(dEtot + Qloss) / Etol
+                  !write(*,*) 'Failed due to high energy error: ',dEtot, abs(dEtot + Qloss) / Etol
                   lfailure = .true.
                else if (abs(dLmag) / Lmag_before > Ltol) then
-                  write(*,*) 'Failed due to high angular momentum error: ', dLmag / Lmag_before
+                  !write(*,*) 'Failed due to high angular momentum error: ', dLmag / Lmag_before
                   lfailure = .true.
                end if
             end if
