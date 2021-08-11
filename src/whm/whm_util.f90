@@ -11,17 +11,19 @@ contains
       !! Arguments
       class(whm_pl),                   intent(inout) :: self         !! WHM massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (whm_pl)
-         call util_append_pl(self, source, lsource_mask)
+         associate(nold => self%nbody, nsrc => source%nbody)
+            call util_append(self%eta, source%eta, nold, nsrc, lsource_mask)
+            call util_append(self%muj, source%muj, nold, nsrc, lsource_mask)
+            call util_append(self%ir3j, source%ir3j, nold, nsrc, lsource_mask)
+            call util_append(self%xj, source%xj, nold, nsrc, lsource_mask)
+            call util_append(self%vj, source%vj, nold, nsrc, lsource_mask)
 
-         call util_append(self%eta, source%eta, lsource_mask)
-         call util_append(self%muj, source%muj, lsource_mask)
-         call util_append(self%ir3j, source%ir3j, lsource_mask)
-         call util_append(self%xj, source%xj, lsource_mask)
-         call util_append(self%vj, source%vj, lsource_mask)
+            call util_append_pl(self, source, lsource_mask)
+         end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class whm_pl or its descendents"
          call util_exit(FAILURE)
@@ -74,13 +76,13 @@ contains
       class(whm_pl), intent(inout) :: self  !! WHM massive body object
       integer(I4B),  intent(in)    :: nnew  !! New size neded
 
-      call util_resize_pl(self, nnew)
-
       call util_resize(self%eta, nnew)
       call util_resize(self%xj, nnew)
       call util_resize(self%vj, nnew)
       call util_resize(self%muj, nnew)
       call util_resize(self%ir3j, nnew)
+
+      call util_resize_pl(self, nnew)
 
       return
    end subroutine whm_util_resize_pl

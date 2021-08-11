@@ -14,7 +14,7 @@ IN_TYPE        ASCII
 BIN_OUT        bin.swifter.dat
 OUT_TYPE       REAL8                ! double precision real output
 OUT_FORM       XV                  ! osculating element output
-OUT_STAT       NEW
+OUT_STAT       UNKNOWN
 J2             0.0               ! no J2 term
 J4             0.0               ! no J4 term
 CHK_CLOSE      yes                ! check for planetary close encounters

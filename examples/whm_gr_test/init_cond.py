@@ -24,6 +24,7 @@ sim.param['CHK_RMAX'] = 1000.0
 sim.param['CHK_EJECT'] = 1000.0
 sim.param['OUT_FORM'] = "EL"
 sim.param['OUT_STAT'] = "UNKNOWN"
+sim.param['RHILL_PRESENT'] = "YES"
 sim.param['GR'] = 'YES'
 
 bodyid = {

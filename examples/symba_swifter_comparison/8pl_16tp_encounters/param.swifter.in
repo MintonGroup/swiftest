@@ -22,5 +22,5 @@ EXTRA_FORCE      NO
 BIG_DISCARD      NO
 CHK_CLOSE        YES
 RHILL_PRESENT    YES
-J2               0.0
-J4               0.0
+J2               4.7535806948127355e-12
+J4               -2.2473967953572827e-18

@@ -34,7 +34,7 @@ contains
    
       select type(pl => system%pl)
       class is (symba_pl)
-         associate(mergeadd_list => system%mergeadd_list, mergesub_list => system%mergesub_list, cb => system%cb)
+         associate(pl_adds => system%pl_adds, pl_discards => system%pl_discards, cb => system%cb)
             ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
             nfrag = NFRAG_DISRUPT 
             allocate(m_frag(nfrag))
@@ -91,11 +91,11 @@ contains
                lmask(:) = .false.
                lmask(family(:)) = .true.
                pl%status(family(:)) = MERGED
-               nstart = mergesub_list%nbody + 1
-               nend = mergesub_list%nbody + nfamily
-               call mergesub_list%append(pl, lmask)
+               nstart = pl_discards%nbody + 1
+               nend = pl_discards%nbody + nfamily
+               call pl_discards%append(pl, lmask)
                ! Record how many bodies were subtracted in this event
-               mergesub_list%ncomp(nstart:nend) = nfamily 
+               pl_discards%ncomp(nstart:nend) = nfamily 
 
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
@@ -133,10 +133,10 @@ contains
                end if
    
                ! Append the new merged body to the list and record how many we made
-               nstart = mergeadd_list%nbody + 1
-               nend = mergeadd_list%nbody + plnew%nbody
-               call mergeadd_list%append(plnew)
-               mergeadd_list%ncomp(nstart:nend) = plnew%nbody
+               nstart = pl_adds%nbody + 1
+               nend = pl_adds%nbody + plnew%nbody
+               call pl_adds%append(plnew)
+               pl_adds%ncomp(nstart:nend) = plnew%nbody
     
                call plnew%setup(0, param)
                deallocate(plnew)
@@ -179,7 +179,7 @@ contains
    
       select type(pl => system%pl)
       class is (symba_pl)
-         associate(mergeadd_list => system%mergeadd_list, mergesub_list => system%mergesub_list, cb => system%cb)
+         associate(pl_adds => system%pl_adds, pl_discards => system%pl_discards, cb => system%cb)
             mtot = sum(mass(:))
             xcom(:) = (mass(1) * x(:,1) + mass(2) * x(:,2)) / mtot
             vcom(:) = (mass(1) * v(:,1) + mass(2) * v(:,2)) / mtot
@@ -247,11 +247,11 @@ contains
                lmask(:) = .false.
                lmask(family(:)) = .true.
                pl%status(family(:)) = MERGED
-               nstart = mergesub_list%nbody + 1
-               nend = mergesub_list%nbody + nfamily
-               call mergesub_list%append(pl, lmask)
+               nstart = pl_discards%nbody + 1
+               nend = pl_discards%nbody + nfamily
+               call pl_discards%append(pl, lmask)
                ! Record how many bodies were subtracted in this event
-               mergesub_list%ncomp(nstart:nend) = nfamily 
+               pl_discards%ncomp(nstart:nend) = nfamily 
    
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
@@ -289,10 +289,10 @@ contains
                end if
    
                ! Append the new merged body to the list and record how many we made
-               nstart = mergeadd_list%nbody + 1
-               nend = mergeadd_list%nbody + plnew%nbody
-               call mergeadd_list%append(plnew)
-               mergeadd_list%ncomp(nstart:nend) = plnew%nbody
+               nstart = pl_adds%nbody + 1
+               nend = pl_adds%nbody + plnew%nbody
+               call pl_adds%append(plnew)
+               pl_adds%ncomp(nstart:nend) = plnew%nbody
     
                call plnew%setup(0, param)
                deallocate(plnew)
@@ -334,7 +334,7 @@ contains
    
       select type(pl => system%pl)
       class is (symba_pl)
-         associate(mergeadd_list => system%mergeadd_list, mergesub_list => system%mergesub_list, cb => system%cb)
+         associate(pl_adds => system%pl_adds, pl_discards => system%pl_discards, cb => system%cb)
             status = MERGED
             write(*, '("Merging bodies ",99(I8,",",:))') pl%id(family(:))
             mass_new = sum(mass(:))
@@ -386,11 +386,11 @@ contains
             lmask(:) = .false.
             lmask(family(:)) = .true.
             pl%status(family(:)) = MERGED
-            nstart = mergesub_list%nbody + 1
-            nend = mergesub_list%nbody + nfamily
-            call mergesub_list%append(pl, lmask)
+            nstart = pl_discards%nbody + 1
+            nend = pl_discards%nbody + nfamily
+            call pl_discards%append(pl, lmask)
             ! Record how many bodies were subtracted in this event
-            mergesub_list%ncomp(nstart:nend) = nfamily 
+            pl_discards%ncomp(nstart:nend) = nfamily 
 
             ! Create the new merged body 
             allocate(plnew, mold=pl)
@@ -422,10 +422,10 @@ contains
             end if
 
             ! Append the new merged body to the list and record how many we made
-            nstart = mergeadd_list%nbody + 1
-            nend = mergeadd_list%nbody + plnew%nbody
-            call mergeadd_list%append(plnew)
-            mergeadd_list%ncomp(nstart:nend) = plnew%nbody
+            nstart = pl_adds%nbody + 1
+            nend = pl_adds%nbody + plnew%nbody
+            call pl_adds%append(plnew)
+            pl_adds%ncomp(nstart:nend) = plnew%nbody
 
             call plnew%setup(0, param)
             deallocate(plnew)
@@ -468,7 +468,7 @@ contains
     
       select type(pl => system%pl)
       class is (symba_pl)
-         associate(mergeadd_list => system%mergeadd_list, mergesub_list => system%mergesub_list, cb => system%cb)
+         associate(pl_adds => system%pl_adds, pl_discards => system%pl_discards, cb => system%cb)
             ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
             nfrag = NFRAG_SUPERCAT
             allocate(m_frag(nfrag))
@@ -521,11 +521,11 @@ contains
                lmask(:) = .false.
                lmask(family(:)) = .true.
                pl%status(family(:)) = MERGED
-               nstart = mergesub_list%nbody + 1
-               nend = mergesub_list%nbody + nfamily
-               call mergesub_list%append(pl, lmask)
+               nstart = pl_discards%nbody + 1
+               nend = pl_discards%nbody + nfamily
+               call pl_discards%append(pl, lmask)
                ! Record how many bodies were subtracted in this event
-               mergesub_list%ncomp(nstart:nend) = nfamily 
+               pl_discards%ncomp(nstart:nend) = nfamily 
 
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
@@ -563,10 +563,10 @@ contains
                end if
    
                ! Append the new merged body to the list and record how many we made
-               nstart = mergeadd_list%nbody + 1
-               nend = mergeadd_list%nbody + plnew%nbody
-               call mergeadd_list%append(plnew)
-               mergeadd_list%ncomp(nstart:nend) = plnew%nbody
+               nstart = pl_adds%nbody + 1
+               nend = pl_adds%nbody + plnew%nbody
+               call pl_adds%append(plnew)
+               pl_adds%ncomp(nstart:nend) = plnew%nbody
     
                call plnew%setup(0, param)
                deallocate(plnew)

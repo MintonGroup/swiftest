@@ -20,6 +20,7 @@ swiftest_tp    = "tp.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
 swiftest_bin   = "bin.swiftest.dat"
 swiftest_enc   = "enc.swiftest.dat"
+swiftest_dis  = "discard.swiftest.dat"
 
 MU2KG = swiftest.MSun
 TU2S = swiftest.YR2S
@@ -168,6 +169,7 @@ print(f'CHK_QMIN       {rmin}')
 print(f'CHK_QMIN_COORD HELIO')
 print(f'CHK_QMIN_RANGE {rmin} {rmax}')
 print(f'ENC_OUT        {swiftest_enc}')
+print(f'DISCARD_OUT    {swiftest_dis}')
 print(f'EXTRA_FORCE    no')
 print(f'BIG_DISCARD    no')
 print(f'ROTATION       no')
@@ -176,7 +178,7 @@ print(f'MU2KG          {MU2KG}')
 print(f'DU2M           {DU2M}')
 print(f'TU2S           {TU2S}')
 print(f'RHILL_PRESENT  yes')
-print(f'MTINY          1e-12')
+print(f'GMTINY          1e-12')
 
 
 

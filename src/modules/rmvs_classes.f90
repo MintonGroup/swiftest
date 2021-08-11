@@ -163,7 +163,7 @@ module rmvs_classes
          implicit none
          class(rmvs_pl),                  intent(inout) :: self         !! RMVS massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine rmvs_util_append_pl
 
       module subroutine rmvs_util_append_tp(self, source, lsource_mask)
@@ -171,7 +171,7 @@ module rmvs_classes
          implicit none
          class(rmvs_tp),                  intent(inout) :: self         !! RMVS test particle object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine rmvs_util_append_tp
 
       module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)

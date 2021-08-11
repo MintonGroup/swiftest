@@ -25,11 +25,9 @@ DU2M             149597870700.0
 EXTRA_FORCE      NO
 BIG_DISCARD      NO
 CHK_CLOSE        YES
+RHILL_PRESENT    YES
 FRAGMENTATION    NO
 ROTATION         NO
 TIDES            NO
 ENERGY           NO
 GR               NO
-YARKOVSKY        NO
-YORP             NO
-MTINY            0.0

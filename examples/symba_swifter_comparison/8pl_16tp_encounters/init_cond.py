@@ -19,6 +19,7 @@ swiftest_pl    = "pl.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
 swiftest_bin   = "bin.swiftest.dat"
 swiftest_enc   = "enc.swiftest.dat"
+swiftest_dis  = "discard.swiftest.dat"
 
 sim = swiftest.Simulation()
 
@@ -38,7 +39,7 @@ sim.param['OUT_STAT'] = "UNKNOWN"
 sim.param['GR'] = 'NO'
 sim.param['CHK_CLOSE'] = 'YES'
 sim.param['RHILL_PRESENT'] = 'YES'
-sim.param['MTINY'] = 1.0e-12
+sim.param['GMTINY'] = 1.0e-12
 
 sim.param['MU2KG'] = swiftest.MSun
 sim.param['TU2S'] = swiftest.JD2S
@@ -125,6 +126,7 @@ sim.param['TP_IN'] = tpin
 sim.param['CB_IN'] = swiftest_cb
 sim.param['BIN_OUT'] = swiftest_bin
 sim.param['ENC_OUT'] = swiftest_enc
+sim.param['DISCARD_OUT'] = swiftest_dis  
 sim.save(swiftest_input)
 
 sim.param['PL_IN'] = swifter_pl

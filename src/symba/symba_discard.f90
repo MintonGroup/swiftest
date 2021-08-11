@@ -271,7 +271,6 @@ contains
       pl%lfirst = lfirst_orig
    
       return
-   
    end subroutine symba_discard_peri_pl
 
 
@@ -285,6 +284,8 @@ contains
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      real(DP) :: Eorbit_before, Eorbit_after
    
       select type(system)
       class is (symba_nbody_system)
@@ -309,8 +310,17 @@ contains
                end if
 
                if (any(pl%ldiscard(:))) then
+                  if (param%lenergy) then
+                     call system%get_energy_and_momentum(param)
+                     Eorbit_before = system%te
+                  end if
                   call symba_discard_nonplpl_conservation(self, system, param)
                   call pl%rearray(system, param)
+                  if (param%lenergy) then
+                     call system%get_energy_and_momentum(param)
+                     Eorbit_after = system%te
+                     system%Ecollisions = Eorbit_after - Eorbit_before
+                  end if
                end if
 
             end associate

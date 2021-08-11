@@ -17,20 +17,14 @@ program swiftest_driver
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
-   !integer(I8B), parameter                    :: LOOPMAX = huge(iloop) !! Maximum loop value before resetting 
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
-   real(DP)                                   :: start_wall_time  !! Wall clock time at start of execution
-   real(DP)                                   :: finish_wall_time !! Wall clock time when execution has finished
    integer(I4B)                               :: iu               !! Unit number of binary file
-   character(*),parameter :: statusfmt  = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; ' // &
-                                             'Number of active pl, tp = ", I5, ", ", I5)'
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
       write(*,*) 'Error reading in arguments from the command line'
       call util_exit(FAILURE)
    end if
-   !$ start_wall_time = omp_get_wtime()
    !> Read in the user-defined parameters file and the initial conditions of the system
    select case(integrator)
    case(symba)
@@ -39,21 +33,26 @@ program swiftest_driver
       allocate(swiftest_parameters :: param)
    end select
    param%integrator = integrator
+
    call setup_construct_system(nbody_system, param)
    call param%read_from_file(param_file_name)
+
    associate(t          => param%t, &
              t0         => param%t0, &
              dt         => param%dt, &
              tstop      => param%tstop, &
              istep_out  => param%istep_out, &
              istep_dump => param%istep_dump)  
+
       call nbody_system%initialize(param)
       t = t0
       iloop = 0
       iout = istep_out
       idump = istep_dump
-      nloops = ceiling(tstop / dt)
+      nloops = ceiling(tstop / dt, kind=I8B)
       if (istep_out > 0) call nbody_system%write_frame(iu, param)
+      call nbody_system%dump(param)
+
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
       !$ nthreads = omp_get_max_threads() ! In the *parallel* case
@@ -83,18 +82,13 @@ program swiftest_driver
          if (istep_dump > 0) then
             idump = idump - 1
             if (idump == 0) then
-               call nbody_system%dump(param, statusfmt)
+               call nbody_system%dump(param)
                idump = istep_dump
             end if
          end if
-         !if (t >= tstop) exit 
       end do
-
-      !> Dump the final state of the system to file
-      !call nbody_system%dump(param, t, dt, statusfmt)
-      !$ finish_wall_time = omp_get_wtime()
-      !$ write(*,*) 'Time: ', finish_wall_time - start_wall_time
    end associate
+
    call util_exit(SUCCESS)
 
    stop

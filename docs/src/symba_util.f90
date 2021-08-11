@@ -381,23 +381,23 @@ contains
       ! Internals
       class(symba_pl), allocatable :: pl_discards !! The discarded body list.
 
-      associate(pl => self, mergeadd_list => system%mergeadd_list)
+      associate(pl => self, pl_adds => system%pl_adds)
          allocate(pl_discards, mold=pl)
          ! Remove the discards
          call pl%spill(pl_discards, lspill_list=(pl%ldiscard(:) .or. pl%status(:) == INACTIVE), ldestructive=.true.)
 
          ! Add in any new bodies
-         call pl%append(mergeadd_list)
+         call pl%append(pl_adds)
 
          ! If there are still bodies in the system, sort by mass in descending order and re-index
          if (pl%nbody > 0) then
             call pl%sort("mass", ascending=.false.)
-            pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
+            pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
             pl%nplm = count(pl%lmtiny(:))
             call pl%eucl_index()
          end if
 
-         ! Destroy the discarded body list, since we already have what we need in the mergesub_list
+         ! Destroy the discarded body list, since we already have what we need in the pl_discards
          call pl_discards%setup(0,param)
          deallocate(pl_discards)
       end associate

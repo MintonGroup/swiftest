@@ -2,6 +2,62 @@ submodule(symba_classes) s_symba_setup
    use swiftest
 contains
 
+   module subroutine symba_setup_initialize_particle_info(system, param) 
+      !! author: David A. Minton
+      !!
+      !! Initializes a new particle information data structure with initial conditions recorded
+      implicit none
+      ! Argumets
+      class(symba_nbody_system), intent(inout) :: system  !! SyMBA nbody system object
+      class(symba_parameters),   intent(inout) :: param !! Current run configuration parameters with SyMBA extensions
+      ! Internals
+      integer(I4B) :: i
+      integer(I4B), dimension(:), allocatable :: idx
+
+      select type(cb => system%cb)
+      class is (symba_cb)
+         cb%info%origin_type = "Central body"
+         cb%info%origin_time = param%t0
+         cb%info%origin_xh(:) = 0.0_DP
+         cb%info%origin_vh(:) = 0.0_DP
+         call symba_io_dump_particle_info(system, param, lincludecb=.true.)
+      end select
+
+      select type(pl => system%pl)
+      class is (symba_pl)
+         do i = 1, pl%nbody
+            pl%info(i)%origin_type = "Initial conditions"
+            pl%info(i)%origin_time = param%t0
+            pl%info(i)%origin_xh(:) = pl%xh(:,i)
+            pl%info(i)%origin_vh(:) = pl%vh(:,i)
+         end do
+         if (pl%nbody > 0) then
+            allocate(idx(pl%nbody))
+            call symba_io_dump_particle_info(system, param, plidx=[(i, i=1, pl%nbody)])
+            deallocate(idx)
+         end if
+      end select
+
+      select type(tp => system%tp)
+      class is (symba_tp)
+         do i = 1, tp%nbody
+            tp%info(i)%origin_type = "Initial conditions"
+            tp%info(i)%origin_time = param%t0
+            tp%info(i)%origin_xh(:) = tp%xh(:,i)
+            tp%info(i)%origin_vh(:) = tp%vh(:,i)
+         end do
+         if (tp%nbody > 0) then
+            allocate(idx(tp%nbody))
+            call symba_io_dump_particle_info(system, param, tpidx=[(i, i=1, tp%nbody)])
+            deallocate(idx)
+         end if
+      end select
+
+
+      return
+   end subroutine symba_setup_initialize_particle_info
+
+
    module subroutine symba_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -25,8 +81,13 @@ contains
             call pl%sort("mass", ascending=.false.)
             select type(param)
             class is (symba_parameters)
-               pl%lmtiny(:) = pl%Gmass(:) > param%MTINY
+               pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
                pl%nplm = count(pl%lmtiny(:))
+               if (param%lrestart) then
+                  call symba_io_read_particle(system, param)
+               else
+                  call symba_setup_initialize_particle_info(system, param) 
+               end if
             end select
          end select
       end associate
@@ -162,10 +223,12 @@ contains
       if (allocated(self%nplenc)) deallocate(self%nplenc)
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
+      if (allocated(self%info)) deallocate(self%info)
 
       allocate(self%nplenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))
+      allocate(self%info(n))
 
       self%nplenc(:) = 0
       self%levelg(:) = -1

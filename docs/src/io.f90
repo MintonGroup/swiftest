@@ -493,7 +493,7 @@ contains
                   read(param_value, *) param%Ecollisions
                case("EUNTRACKED")
                   read(param_value, *) param%Euntracked
-               case ("NPLMAX", "NTPMAX", "MTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(iomsg,*) "Unknown parameter -> ",param_name
                   iostat = -1
@@ -1211,16 +1211,20 @@ contains
 
       associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
          if (nsp == 0) return
-         select case(param%out_stat)
-         case('APPEND')
+         if (lfirst) then
+            select case(param%out_stat)
+            case('APPEND')
+               open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
+            case('NEW', 'REPLACE', 'UNKNOWN')
+               open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
+            case default
+               write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+               call util_exit(FAILURE)
+            end select
+            lfirst = .false.
+         else
             open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
-         case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
-         case default
-            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
-            call util_exit(FAILURE)
-         end select
-         lfirst = .false.
+         end if
          if (param%lgr) call tp_discards%pv2v(param) 
 
          write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
