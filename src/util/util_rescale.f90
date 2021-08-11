@@ -33,6 +33,7 @@ contains
          cb%radius = cb%radius / dscale
          cb%xb(:) = cb%xb(:) / dscale
          cb%vb(:) = cb%vb(:) / vscale
+         cb%rot(:) = cb%rot(:) * tscale
          pl%mass(1:npl) = pl%mass(1:npl) / mscale
          pl%Gmass(1:npl) = param%GU * pl%mass(1:npl) 
          pl%radius(1:npl) = pl%radius(1:npl) / dscale

@@ -390,11 +390,12 @@ contains
                nfrag   = size(m_frag(:))
                lmask(:) = .false.
                lmask(family(:)) = .true.
-               pl%status(family(:)) = INACTIVE
-
+               pl%status(family(:)) = MERGED
                nstart = pl_discards%nbody + 1
                nend = pl_discards%nbody + nfamily
                call pl_discards%append(pl, lmask)
+               pl%ldiscard(family(:)) = .true.
+               pl%lcollision(family(:)) = .true.
 
                ! Record how many bodies were subtracted in this event
                pl_discards%ncomp(nstart:nend) = nfamily 
