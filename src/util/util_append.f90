@@ -177,9 +177,8 @@ contains
          call util_append(self%capom, source%capom, nold, nsrc, lsource_mask)
          call util_append(self%omega, source%omega, nold, nsrc, lsource_mask)
          call util_append(self%capm, source%capm, nold, nsrc, lsource_mask)
+         self%nbody = nold + count(lsource_mask(:))
       end associate
-
-      self%nbody = count(self%status(:) /= INACTIVE)
 
       return
    end subroutine util_append_body
