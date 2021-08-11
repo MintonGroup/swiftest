@@ -45,7 +45,7 @@ module swiftest_classes
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
-      character(STRMAX)    :: ennergy_out    = ""                 !! Name of output energy and momentum report file
+      character(STRMAX)    :: energy_out    = ""                  !! Name of output energy and momentum report file
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -64,13 +64,14 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: Ltot = 0.0_DP        !! System angular momentum vector
-      real(DP), dimension(NDIM) :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
-      real(DP)                  :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+      real(DP), dimension(NDIM) :: Ltot = 0.0_DP          !! System angular momentum vector
+      real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Mescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
+      real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
       logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
+      logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
@@ -832,39 +833,44 @@ module swiftest_classes
    end interface
 
    interface util_append
-      module subroutine util_append_arr_char_string(arr, source, lsource_mask)
+      module subroutine util_append_arr_char_string(arr, source, nold, nsrc, lsource_mask)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,               dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                                     intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,               dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_char_string
 
-      module subroutine util_append_arr_DP(arr, source, lsource_mask)
+      module subroutine util_append_arr_DP(arr, source, nold, nsrc, lsource_mask)
          implicit none
          real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,  dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                        intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,  dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_DP
 
-      module subroutine util_append_arr_DPvec(arr, source, lsource_mask)
+      module subroutine util_append_arr_DPvec(arr, source, nold, nsrc, lsource_mask)
          implicit none
          real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
          real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,  dimension(:),   optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                          intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,  dimension(:),                intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_DPvec
 
-      module subroutine util_append_arr_I4B(arr, source, lsource_mask)
+      module subroutine util_append_arr_I4B(arr, source, nold, nsrc, lsource_mask)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,      dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_I4B
 
-      module subroutine util_append_arr_logical(arr, source, lsource_mask)
+      module subroutine util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
          implicit none
          logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical, dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_logical
    end interface
 
@@ -872,22 +878,22 @@ module swiftest_classes
       module subroutine util_append_body(self, source, lsource_mask)
          implicit none
          class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
-         class(swiftest_body),            intent(in)    :: source !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
+         class(swiftest_body),            intent(in)    :: source  !! Source object to append
+         logical, dimension(:),           intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
 
       module subroutine util_append_pl(self, source, lsource_mask)
          implicit none
          class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_pl
    
       module subroutine util_append_tp(self, source, lsource_mask)
          implicit none
          class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_tp
 
       module subroutine util_coord_b2h_pl(self, cb)

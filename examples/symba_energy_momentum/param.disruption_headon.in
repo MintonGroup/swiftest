@@ -7,7 +7,7 @@ TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1                 ! output cadence every year
 BIN_OUT        bin.disruption_headon.dat
-PARTICLE_FILE  particle.disruption_headon.dat
+PARTICLE_OUT   particle.disruption_headon.dat
 OUT_TYPE       REAL8             ! double precision real output
 OUT_FORM       XV                ! osculating element output
 OUT_STAT       REPLACE
@@ -28,3 +28,4 @@ TU2S           3.1556925e7
 DU2M           1.49598e11
 ENERGY         yes
 ROTATION       yes
+SEED           8 -223172604 -194186007 -2119403444 -114322815 -526658307 1075354356 2043693954 575062362 

@@ -7,7 +7,7 @@ TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1                 ! output cadence every year
 BIN_OUT        bin.supercatastrophic_headon.dat
-PARTICLE_FILE  particle.supercatastrophic_headon.dat
+PARTICLE_OUT   particle.supercatastrophic_headon.dat
 OUT_TYPE       REAL8             ! double precision real output
 OUT_FORM       XV                ! osculating element output
 OUT_STAT       REPLACE
@@ -28,3 +28,4 @@ TU2S           3.1556925e7
 DU2M           1.49598e11
 ENERGY         yes
 ROTATION       yes
+SEED           8 97 120384098 122231114 -1133345 112137 -239375422 120938114 -66674667 

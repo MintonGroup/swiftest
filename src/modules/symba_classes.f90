@@ -18,7 +18,7 @@ module symba_classes
    integer(I4B),          parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
 
    type, extends(swiftest_parameters) :: symba_parameters
-      character(STRMAX)                       :: particle_file  = PARTICLE_OUTFILE !! Name of output particle information file
+      character(STRMAX)                       :: particle_out  = PARTICLE_OUTFILE !! Name of output particle information file
       real(DP)                                :: GMTINY          = -1.0_DP          !! Smallest mass that is fully gravitating
       integer(I4B), dimension(:), allocatable :: seed                              !! Random seeds
       logical                                 :: lfragmentation = .false.          !! Do fragmentation modeling instead of simple merger.
@@ -28,32 +28,16 @@ module symba_classes
    end type symba_parameters
 
    !********************************************************************************************************************************
-   ! symba_cb class definitions and method interfaces
-   !*******************************************************************************************************************************
-   !> SyMBA central body particle class
-   type, extends(helio_cb) :: symba_cb
-      real(DP) :: M0  = 0.0_DP !! Initial mass of the central body
-      real(DP) :: dM  = 0.0_DP !! Change in mass of the central body
-      real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
-      real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
-   contains
-   end type symba_cb
-
-   !********************************************************************************************************************************
    !                                    symba_particle_info class definitions and method interfaces
    !*******************************************************************************************************************************
    !> Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
    !> of fragments produced in collisional events.
-   type, extends(swiftest_base) :: symba_particle_info
+   type :: symba_particle_info
+      sequence
       character(len=32)         :: origin_type !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP)                  :: origin_time !! The time of the particle's formation
       real(DP), dimension(NDIM) :: origin_xh   !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(NDIM) :: origin_vh   !! The heliocentric velocity vector at the time of the particle's formation
-   contains
-      procedure :: dump        => symba_io_dump_particle_info       !! I/O routine for dumping particle info to file
-      procedure :: initialize  => symba_io_initialize_particle_info !! I/O routine for reading in particle info data
-      procedure :: read_frame  => symba_io_read_frame_info          !! I/O routine for reading in a single frame of particle info
-      procedure :: write_frame => symba_io_write_frame_info         !! I/O routine for writing out a single frame of particle info
    end type symba_particle_info
 
    !********************************************************************************************************************************
@@ -65,6 +49,19 @@ module symba_classes
       integer(I4B)                            :: nchild !! number of children in merger list
       integer(I4B), dimension(:), allocatable :: child  !! Index of children particles
    end type symba_kinship
+
+   !********************************************************************************************************************************
+   ! symba_cb class definitions and method interfaces
+   !*******************************************************************************************************************************
+   !> SyMBA central body particle class
+   type, extends(helio_cb) :: symba_cb
+      real(DP) :: M0  = 0.0_DP !! Initial mass of the central body
+      real(DP) :: dM  = 0.0_DP !! Change in mass of the central body
+      real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
+      real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
+      type(symba_particle_info) :: info
+   contains
+   end type symba_cb
 
    !********************************************************************************************************************************
    !                                    symba_pl class definitions and method interfaces
@@ -118,6 +115,7 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: nplenc  !! number of encounters with planets this time step
       integer(I4B), dimension(:), allocatable :: levelg  !! level at which this particle should be moved
       integer(I4B), dimension(:), allocatable :: levelm  !! deepest encounter level achieved this time step
+      type(symba_particle_info), dimension(:), allocatable :: info
    contains
       procedure :: drift           => symba_drift_tp               !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
@@ -327,12 +325,13 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine symba_io_write_discard
 
-      module subroutine symba_io_dump_particle_info(self, param, msg) 
-         use swiftest_classes, only : swiftest_parameters
+      module subroutine symba_io_dump_particle_info(system, param, lincludecb, tpidx, plidx) 
          implicit none
-         class(symba_particle_info), intent(inout) :: self  !! Swiftest base object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         character(*), optional,     intent(in)    :: msg   !! Message to display with dump operation
+         class(symba_nbody_system),             intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),               intent(in)    :: param  !! Current run configuration parameters with SyMBA extensions
+         logical,                     optional, intent(in)    :: lincludecb  !! Set to true to include the central body (default is false)
+         integer(I4B), dimension(:),  optional, intent(in)    :: tpidx  !! Array of test particle indices to append to the particle file
+         integer(I4B), dimension(:),  optional, intent(in)    :: plidx  !! Array of massive body indices to append to the particle file
       end subroutine symba_io_dump_particle_info
    
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
@@ -356,23 +355,12 @@ module symba_classes
          integer,                intent(out)   :: iostat    !! IO status code
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine symba_io_param_writer
-   
-      module subroutine symba_io_initialize_particle_info(self, param) 
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine symba_io_initialize_particle_info
 
-      module subroutine symba_io_read_frame_info(self, iu, param, form, ierr)
-         use swiftest_classes, only : swiftest_parameters
+      module subroutine symba_io_read_particle(system, param)
          implicit none
-         class(symba_particle_info), intent(inout) :: self  !! SyMBA particle info object
-         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr  !! Error code
-      end subroutine symba_io_read_frame_info
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system file
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
+      end subroutine symba_io_read_particle
 
       module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
@@ -402,14 +390,12 @@ module symba_classes
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_pltpenc
-
-      module subroutine symba_io_write_frame_info(self, iu, param)
-         use swiftest_classes, only : swiftest_parameters
+   
+      module subroutine symba_setup_initialize_particle_info(system, param) 
          implicit none
-         class(symba_particle_info), intent(in)    :: self  !! SyMBA particle info object
-         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      end subroutine symba_io_write_frame_info 
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
+      end subroutine symba_setup_initialize_particle_info
 
       module subroutine symba_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters
@@ -488,18 +474,20 @@ module symba_classes
    end interface
 
    interface util_append
-      module subroutine symba_util_append_arr_info(arr, source, lsource_mask)
+      module subroutine symba_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
          implicit none
          type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,                   dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                                         intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_arr_info
      
-      module subroutine symba_util_append_arr_kin(arr, source, lsource_mask)
+      module subroutine symba_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,             dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_arr_kin
    end interface
 
@@ -509,7 +497,7 @@ module symba_classes
          implicit none
          class(symba_merger),             intent(inout) :: self         !! SyMBA massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_merger
 
       module subroutine symba_util_append_pl(self, source, lsource_mask)
@@ -517,7 +505,7 @@ module symba_classes
          implicit none
          class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_pl
 
       module subroutine symba_util_append_tp(self, source, lsource_mask)
@@ -525,7 +513,7 @@ module symba_classes
          implicit none
          class(symba_tp),                 intent(inout) :: self        !! SyMBA test particle object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_tp
    end interface 
 
