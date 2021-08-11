@@ -24,7 +24,7 @@ contains
       associate(npl => pl%nbody, cb => system%cb)
          call system%set_msys()
          rmin2 = param%rmin**2
-         rmax2 = param%rmax*2
+         rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
          do i = 1, npl
             if (pl%status(i) == ACTIVE) then
