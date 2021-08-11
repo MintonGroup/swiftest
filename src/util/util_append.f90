@@ -12,16 +12,19 @@ contains
       character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
       integer(I4B),                                     intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,               dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
 
       if (.not. allocated(source)) return
 
+      nnew = count(lsource_mask(1:nsrc))
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nsrc))
+         allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nsrc)
+         call util_resize(arr, nold + nnew)
       end if
 
-      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine util_append_arr_char_string
@@ -37,16 +40,19 @@ contains
       real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
       integer(I4B),                        intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,  dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
 
       if (.not. allocated(source)) return
 
+      nnew = count(lsource_mask(1:nsrc))
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nsrc))
+         allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nsrc)
+         call util_resize(arr, nold + nnew)
       end if
 
-      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine util_append_arr_DP
@@ -62,18 +68,21 @@ contains
       real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
       integer(I4B),                          intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,  dimension(:),                intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
 
       if (.not. allocated(source)) return
 
+      nnew = count(lsource_mask(1:nsrc))
       if (.not.allocated(arr)) then
-         allocate(arr(NDIM, nold+nsrc))
+         allocate(arr(NDIM,nold+nnew))
       else
-         call util_resize(arr, nold + nsrc)
+         call util_resize(arr, nold + nnew)
       end if
 
-      arr(1, nold + 1:nold + nsrc) = pack(source(1,1:nsrc), lsource_mask(1:nsrc))
-      arr(2, nold + 1:nold + nsrc) = pack(source(2,1:nsrc), lsource_mask(1:nsrc))
-      arr(3, nold + 1:nold + nsrc) = pack(source(3,1:nsrc), lsource_mask(1:nsrc))
+      arr(1, nold + 1:nold + nnew) = pack(source(1,1:nsrc), lsource_mask(1:nsrc))
+      arr(2, nold + 1:nold + nnew) = pack(source(2,1:nsrc), lsource_mask(1:nsrc))
+      arr(3, nold + 1:nold + nnew) = pack(source(3,1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine util_append_arr_DPvec
@@ -89,16 +98,19 @@ contains
       integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
       integer(I4B),                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
 
       if (.not. allocated(source)) return
 
+      nnew = count(lsource_mask(1:nsrc))
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nsrc))
+         allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nsrc)
+         call util_resize(arr, nold + nnew)
       end if
 
-      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine util_append_arr_I4B
@@ -114,16 +126,19 @@ contains
       logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
       integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
 
       if (.not. allocated(source)) return
 
+      nnew = count(lsource_mask(1:nsrc))
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nsrc))
+         allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nsrc)
+         call util_resize(arr, nold + nnew)
       end if
 
-      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine util_append_arr_logical
