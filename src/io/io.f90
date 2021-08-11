@@ -1519,20 +1519,20 @@ contains
       allocate(tp, source = self%tp)
       iu = BINUNIT
 
+      if (param%lgr) then
+         call pl%pv2v(param)
+         call tp%pv2v(param)
+      end if
+
+      if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
+         call pl%xv2el(cb)
+         call tp%xv2el(cb)
+      end if
+
       if (lfirst) then
          select case(param%out_stat)
          case('APPEND')
             !open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
-
-            if (param%lgr) then
-               call pl%pv2v(param)
-               call tp%pv2v(param)
-            end if
-
-            if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-               call pl%xv2el(cb)
-               call tp%xv2el(cb)
-            end if
 
             call cb%write_frame(iu, param)
             call pl%write_frame(iu, param)
@@ -1568,40 +1568,28 @@ contains
                call check( nf90_def_var(ncid, "vhy", NF90_FLOAT, dimids, vhy_varid) )
                call check( nf90_def_var(ncid, "vhz", NF90_FLOAT, dimids, vhz_varid) )
             end select
-            !select type(pl => self)
-            !class is (swiftest_pl)
-               call check( nf90_def_var(ncid, "Gmass", NF90_FLOAT, dimids, Gmass_varid) )
-               if (param%lrhill_present) call check( nf90_def_var(ncid, "rhill", NF90_FLOAT, dimids, rhill_varid) )
-               if (param%lclose) call check( nf90_def_var(ncid, "radius", NF90_FLOAT, dimids, radius_varid) )
-               if (param%lrotation) then
-                  call check( nf90_def_var(ncid, "Ip1", NF90_FLOAT, dimids, Ip1_varid) )
-                  call check( nf90_def_var(ncid, "Ip2", NF90_FLOAT, dimids, Ip3_varid) )
-                  call check( nf90_def_var(ncid, "Ip3", NF90_FLOAT, dimids, Ip3_varid) )
-                  call check( nf90_def_var(ncid, "rotx", NF90_FLOAT, dimids, rotx_varid) )
-                  call check( nf90_def_var(ncid, "roty", NF90_FLOAT, dimids, roty_varid) )
-                  call check( nf90_def_var(ncid, "rotz", NF90_FLOAT, dimids, rotz_varid) )
-               end if
-               if (param%ltides) then
-                  call check( nf90_def_var(ncid, "k2", NF90_FLOAT, dimids, k2_varid) )
-                  call check( nf90_def_var(ncid, "Q", NF90_FLOAT, dimids, Q_varid) )
-               end if
-            end select
+
+            call check( nf90_def_var(ncid, "Gmass", NF90_FLOAT, dimids, Gmass_varid) )
+            if (param%lrhill_present) call check( nf90_def_var(ncid, "rhill", NF90_FLOAT, dimids, rhill_varid) )
+            if (param%lclose) call check( nf90_def_var(ncid, "radius", NF90_FLOAT, dimids, radius_varid) )
+            if (param%lrotation) then
+               call check( nf90_def_var(ncid, "Ip1", NF90_FLOAT, dimids, Ip1_varid) )
+               call check( nf90_def_var(ncid, "Ip2", NF90_FLOAT, dimids, Ip3_varid) )
+               call check( nf90_def_var(ncid, "Ip3", NF90_FLOAT, dimids, Ip3_varid) )
+               call check( nf90_def_var(ncid, "rotx", NF90_FLOAT, dimids, rotx_varid) )
+               call check( nf90_def_var(ncid, "roty", NF90_FLOAT, dimids, roty_varid) )
+               call check( nf90_def_var(ncid, "rotz", NF90_FLOAT, dimids, rotz_varid) )
+            end if
+            if (param%ltides) then
+               call check( nf90_def_var(ncid, "k2", NF90_FLOAT, dimids, k2_varid) )
+               call check( nf90_def_var(ncid, "Q", NF90_FLOAT, dimids, Q_varid) )
+            end if
 
             !! Exit define mode 
             call check( nf90_enddef(ncid) )
 
             !! Close the netCDF file
             call check( nf90_close(ncid) )
-
-            if (param%lgr) then
-               call pl%pv2v(param)
-               call tp%pv2v(param)
-            end if
-
-            if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-               call pl%xv2el(cb)
-               call tp%xv2el(cb)
-            end if
 
             !! Write the first frame of the output 
             call cb%write_frame(iu, param)
@@ -1617,19 +1605,10 @@ contains
          
       else
 
-         if (param%lgr) then
-            call pl%pv2v(param)
-            call tp%pv2v(param)
-         end if
-
-         if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-            call pl%xv2el(cb)
-            call tp%xv2el(cb)
-         end if
-
          call cb%write_frame(iu, param)
          call pl%write_frame(iu, param)
          call tp%write_frame(iu, param)
+
       end if
       
       deallocate(cb, pl, tp)
