@@ -76,6 +76,7 @@ contains
          call whm_setup_initialize_system(system, param)
          call system%pltpenc_list%setup(0)
          call system%plplenc_list%setup(0)
+         call system%plplcollision_list%setup(0)
          select type(pl => system%pl)
          class is (symba_pl)
             call pl%sort("mass", ascending=.false.)

@@ -704,14 +704,25 @@ contains
       type(symba_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical,                   dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
       logical,                                              intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
 
-      discards(:) = pack(keeps(:), lspill_list(:))
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
-            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
          else
             deallocate(keeps)
          end if
@@ -732,14 +743,25 @@ contains
       type(symba_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical,             dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
       logical,                                        intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
 
-      discards(:) = pack(keeps(:), lspill_list(:))
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
-            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
          else
             deallocate(keeps)
          end if
@@ -806,7 +828,7 @@ contains
       ! Internals
       integer(I4B) :: i
   
-      associate(keeps => self)
+      associate(keeps => self, nenc => self%nenc)
          select type(discards)
          class is (symba_pltpenc)
             call util_spill(keeps%level, discards%level, lspill_list, ldestructive)

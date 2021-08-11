@@ -56,8 +56,9 @@ contains
             allocate(symba_tp :: system%tp_discards)
             allocate(symba_merger :: system%pl_adds)
             allocate(symba_merger :: system%pl_discards)
-            allocate(symba_plplenc :: system%plplenc_list)
             allocate(symba_pltpenc :: system%pltpenc_list)
+            allocate(symba_plplenc :: system%plplenc_list)
+            allocate(symba_plplenc :: system%plplcollision_list)
          end select
       case (RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'

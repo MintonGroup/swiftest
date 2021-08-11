@@ -574,7 +574,6 @@ contains
                iostat = -1
                return
             end if
-         
          end if
          if (param%qmin > 0.0_DP) then
             if ((param%qmin_coord /= "HELIO") .and. (param%qmin_coord /= "BARY")) then
@@ -622,6 +621,9 @@ contains
          write(*,*) "MU2KG          = ",param%MU2KG       
          write(*,*) "TU2S           = ",param%TU2S        
          write(*,*) "DU2M           = ",param%DU2M        
+         if (trim(adjustl(param%outfile)) == "") then
+            param%outfile = BIN_OUTFILE
+         end if
          if (trim(adjustl(param%enc_out)) /= "") then
             write(*,*) "ENC_OUT        = ",trim(adjustl(param%enc_out))
          else
@@ -632,6 +634,7 @@ contains
             write(*,*) "BIG_DISCARD    = ",param%lbig_discard
          else
             write(*,*) "! DISCARD_OUT not set: Discards will not be recorded to file"
+            param%lbig_discard = .false.
             write(*,*) "! BIG_DISCARD    = ",param%lbig_discard
          end if
 
@@ -643,10 +646,11 @@ contains
 
          ! Calculate the G for the system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
-
-         ! Calculate the inverse speed of light in the system units
-         param%inv_c2 = einsteinC * param%TU2S / param%DU2M
-         param%inv_c2 = (param%inv_c2)**(-2)
+         if (param%lgr) then
+            ! Calculate the inverse speed of light in the system units
+            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+            param%inv_c2 = (param%inv_c2)**(-2)
+         end if
 
          associate(integrator => v_list(1))
             if (integrator == RMVS) then
