@@ -299,6 +299,7 @@ contains
 
                ! Extract the pl-pl encounter list and return the plplcollision_list
                call plplenc_list%extract_collisions(system, param)
+               call plplenc_list%write(pl, pl, param)
 
                if ((plplcollision_list%nenc > 0) .and. any(pl%lcollision(:))) then 
                   write(*, *) "Collision between massive bodies detected at time t = ",param%t

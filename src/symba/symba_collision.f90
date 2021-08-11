@@ -66,32 +66,33 @@ contains
                   end do
                end if
 
-               if (any(lcollision(:))) then
-                  do k = 1, nenc
-                     if (.not.lcollision(k)) cycle 
-                     self%status(k) = COLLISION
-                     self%x1(:,k) = pl%xh(:,ind1(k)) 
-                     self%v1(:,k) = pl%vb(:,ind1(k)) 
-                     if (isplpl) then
-                        self%x2(:,k) = pl%xh(:,ind2(k))
-                        self%v2(:,k) = pl%vb(:,ind2(k))
-
+               do k = 1, nenc
+                  if (lcollision(k)) self%status(k) = COLLISION
+                  self%t(k) = t
+                  self%x1(:,k) = pl%xh(:,ind1(k)) 
+                  self%v1(:,k) = pl%vb(:,ind1(k)) - system%cb%vb(:)
+                  if (isplpl) then
+                     self%x2(:,k) = pl%xh(:,ind2(k))
+                     self%v2(:,k) = pl%vb(:,ind2(k)) - system%cb%vb(:)
+                     if (lcollision(k)) then
                         ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional family
                         if (pl%lcollision(ind1(k)) .or. pl%lcollision(ind2(k))) call pl%make_family([ind1(k),ind2(k)])
-
+   
                         ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                         pl%lcollision([ind1(k), ind2(k)]) = .true.
                         pl%ldiscard([ind1(k), ind2(k)]) = .true.
                         pl%status([ind1(k), ind2(k)]) = COLLISION
-                     else
-                        self%x2(:,k) = tp%xh(:,ind2(k))
-                        self%v2(:,k) = tp%vb(:,ind2(k))
+                     end if
+                  else
+                     self%x2(:,k) = tp%xh(:,ind2(k))
+                     self%v2(:,k) = tp%vb(:,ind2(k)) - system%cb%vb(:)
+                     if (lcollision(k)) then
                         tp%status(ind2(k)) = DISCARDED_PLR
                         tp%ldiscard(ind2(k)) = .true.
                         write(*,*) 'Test particle ',tp%id(ind2(k)), ' collided with massive body ',pl%id(ind1(k)), ' at time ',t
                      end if
-                  end do
-               end if
+                  end if
+               end do
             end associate
          end select
       end select
@@ -326,7 +327,7 @@ contains
             ! Create a mask that contains only the pl-pl encounters that did not result in a collision, and then discard them
             lplpl_collision(:) = .false.
             lplpl_collision(collision_idx(:)) = .true.
-            call plplenc_list%spill(system%plplcollision_list, lplpl_collision, ldestructive=.false.) ! Extract any encounters that are not collisions from the list.
+            call plplenc_list%spill(system%plplcollision_list, lplpl_collision, ldestructive=.true.) ! Extract any encounters that are not collisions from the list.
          end associate
       end select
 

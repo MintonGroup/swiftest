@@ -1301,7 +1301,7 @@ contains
       integer(I4B), parameter :: LUN = 30
       integer(I4B)            :: k, ierr
 
-      if (param%enc_out == "") return
+      if (param%enc_out == "" .or. self%nenc == 0) return
 
       open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
       if ((ierr /= 0) .and. lfirst) then
