@@ -1400,6 +1400,9 @@ contains
                      call check( nf90_inq_varid(ncid, "vhy", vhy_varid))
                      call check( nf90_inq_varid(ncid, "vhz", vhz_varid))
 
+                     write(*,*) "ioutput", ioutput
+                     write(*,*) "j", j
+
                      call check( nf90_put_var(ncid, xhx_varid, self%xh(1, j), start=(/ioutput, j/)) )
                      call check( nf90_put_var(ncid, xhy_varid, self%xh(2, j), start=(/ioutput, j/)) )
                      call check( nf90_put_var(ncid, xhz_varid, self%xh(3, j), start=(/ioutput, j/)) )
@@ -1600,6 +1603,7 @@ contains
 
             !! Calculate the number of outputs needed to cover the entire simulation time
             noutput = (param%tstop / param%dt) / param%istep_out
+            write(*,*) "noutput", noutput
 
             !! Define the NetCDF dimensions with particle name as the record dimension
             call check( nf90_def_dim(ncid, "Particle Name", NF90_UNLIMITED, name_dimid) ) !! x dimension
