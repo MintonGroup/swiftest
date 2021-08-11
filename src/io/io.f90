@@ -1519,20 +1519,20 @@ contains
       allocate(tp, source = self%tp)
       iu = BINUNIT
 
-      if (param%lgr) then
-         call pl%pv2v(param)
-         call tp%pv2v(param)
-      end if
-
-      if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-         call pl%xv2el(cb)
-         call tp%xv2el(cb)
-      end if
-
       if (lfirst) then
          select case(param%out_stat)
          case('APPEND')
             !open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+
+            if (param%lgr) then
+               call pl%pv2v(param)
+               call tp%pv2v(param)
+            end if
+
+            if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
+               call pl%xv2el(cb)
+               call tp%xv2el(cb)
+            end if
 
             call cb%write_frame(iu, param)
             call pl%write_frame(iu, param)
@@ -1568,8 +1568,8 @@ contains
                call check( nf90_def_var(ncid, "vhy", NF90_FLOAT, dimids, vhy_varid) )
                call check( nf90_def_var(ncid, "vhz", NF90_FLOAT, dimids, vhz_varid) )
             end select
-            select type(pl => self)
-            class is (swiftest_pl)
+            !select type(pl => self)
+            !class is (swiftest_pl)
                call check( nf90_def_var(ncid, "Gmass", NF90_FLOAT, dimids, Gmass_varid) )
                if (param%lrhill_present) call check( nf90_def_var(ncid, "rhill", NF90_FLOAT, dimids, rhill_varid) )
                if (param%lclose) call check( nf90_def_var(ncid, "radius", NF90_FLOAT, dimids, radius_varid) )
@@ -1593,6 +1593,16 @@ contains
             !! Close the netCDF file
             call check( nf90_close(ncid) )
 
+            if (param%lgr) then
+               call pl%pv2v(param)
+               call tp%pv2v(param)
+            end if
+
+            if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
+               call pl%xv2el(cb)
+               call tp%xv2el(cb)
+            end if
+
             !! Write the first frame of the output 
             call cb%write_frame(iu, param)
             call pl%write_frame(iu, param)
@@ -1606,6 +1616,17 @@ contains
          lfirst = .false.
          
       else
+
+         if (param%lgr) then
+            call pl%pv2v(param)
+            call tp%pv2v(param)
+         end if
+
+         if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
+            call pl%xv2el(cb)
+            call tp%xv2el(cb)
+         end if
+
          call cb%write_frame(iu, param)
          call pl%write_frame(iu, param)
          call tp%write_frame(iu, param)
