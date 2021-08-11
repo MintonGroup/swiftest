@@ -1369,6 +1369,15 @@ contains
             do j = 1, n
                do i = 1, n
                   if (self%id(i) == j) then
+
+                     !! Reassign all variable IDs
+                     call check( nf90_inq_varid(ncid, "a", a_varid))
+                     call check( nf90_inq_varid(ncid, "e", e_varid))
+                     call check( nf90_inq_varid(ncid, "inc", inc_varid))
+                     call check( nf90_inq_varid(ncid, "capom", capom_varid))
+                     call check( nf90_inq_varid(ncid, "omega", omega_varid))
+                     call check( nf90_inq_varid(ncid, "capm", capm_varid))
+
                      call check( nf90_put_var(ncid, a_varid, self%a(j), start=(/ioutput, j/)) )
                      call check( nf90_put_var(ncid, e_varid, self%e(j), start=(/ioutput, j/)) )
                      call check( nf90_put_var(ncid, inc_varid, self%inc(j), start=(/ioutput, j/)) )
@@ -1382,6 +1391,15 @@ contains
             do j = 1, n
                do i = 1, n 
                   if (self%id(i) == j) then
+
+                     !! Reassign all variable IDs
+                     call check( nf90_inq_varid(ncid, "xhx", xhx_varid))
+                     call check( nf90_inq_varid(ncid, "xhy", xhy_varid))
+                     call check( nf90_inq_varid(ncid, "xhz", xhz_varid))
+                     call check( nf90_inq_varid(ncid, "vhx", vhx_varid))
+                     call check( nf90_inq_varid(ncid, "vhy", vhy_varid))
+                     call check( nf90_inq_varid(ncid, "vhz", vhz_varid))
+
                      call check( nf90_put_var(ncid, xhx_varid, self%xh(1, j), start=(/ioutput, j/)) )
                      call check( nf90_put_var(ncid, xhy_varid, self%xh(2, j), start=(/ioutput, j/)) )
                      call check( nf90_put_var(ncid, xhz_varid, self%xh(3, j), start=(/ioutput, j/)) )
@@ -1397,10 +1415,30 @@ contains
             do j = 1, n
                do i = 1, n
                   if (self%id(i) == j) then
+
+                     !! Reassign all variable IDs
+                     call check( nf90_inq_varid(ncid, "Gmass", Gmass_varid))
                      call check( nf90_put_var(ncid, Gmass_varid, pl%Gmass(j), start=(/ioutput, j/)) )
-                     if (param%lrhill_present) call check( nf90_put_var(ncid, rhill_varid, pl%rhill(j), start=(/ioutput, j/)) )
-                     if (param%lclose) call check( nf90_put_var(ncid, radius_varid, pl%radius(j), start=(/ioutput, j/)) )
+                     if (param%lrhill_present) then 
+                        !! Reassign all variable IDs
+                        call check( nf90_inq_varid(ncid, "rhill", rhill_varid))
+                        call check( nf90_put_var(ncid, rhill_varid, pl%rhill(j), start=(/ioutput, j/)) )
+                     end if
+                     if (param%lclose) then
+                        !! Reassign all variable IDs
+                        call check( nf90_inq_varid(ncid, "radius", radius_varid))
+                        call check( nf90_put_var(ncid, radius_varid, pl%radius(j), start=(/ioutput, j/)) )
+                     end if
                      if (param%lrotation) then
+
+                        !! Reassign all variable IDs
+                        call check( nf90_inq_varid(ncid, "Ip1", Ip1_varid))
+                        call check( nf90_inq_varid(ncid, "Ip2", Ip2_varid))
+                        call check( nf90_inq_varid(ncid, "Ip3", Ip3_varid))
+                        call check( nf90_inq_varid(ncid, "rotx", rotx_varid))
+                        call check( nf90_inq_varid(ncid, "roty", roty_varid))
+                        call check( nf90_inq_varid(ncid, "rotz", rotz_varid))
+
                         call check( nf90_put_var(ncid, Ip1_varid, pl%Ip(1, j), start=(/ioutput, j/)) )
                         call check( nf90_put_var(ncid, Ip2_varid, pl%Ip(2, j), start=(/ioutput, j/)) )
                         call check( nf90_put_var(ncid, Ip3_varid, pl%Ip(3, j), start=(/ioutput, j/)) )
@@ -1409,6 +1447,11 @@ contains
                         call check( nf90_put_var(ncid, rotz_varid, pl%rot(3, j), start=(/ioutput, j/)) )
                      end if
                      if (param%ltides) then
+
+                        !! Reassign all variable IDs
+                        call check( nf90_inq_varid(ncid, "k2", k2_varid))
+                        call check( nf90_inq_varid(ncid, "Q", Q_varid))
+
                         call check( nf90_put_var(ncid, k2_varid, pl%k2(j), start=(/ioutput, j/)) )
                         call check( nf90_put_var(ncid, Q_varid, pl%Q(j), start=(/ioutput, j/)) )
                      end if
@@ -1428,7 +1471,6 @@ contains
          integer, intent ( in) :: status
 
          if(status /= nf90_noerr) then
-            print *, status
             print *, trim(nf90_strerror(status))
             stop "NetCDF Error: Stopped"
          end if
@@ -1633,7 +1675,6 @@ contains
       integer, intent ( in) :: status
 
       if(status /= nf90_noerr) then
-         print *, status
          print *, trim(nf90_strerror(status))
          stop "NetCDF Error: Stopped"
       end if
