@@ -31,14 +31,15 @@ contains
                Euntracked => self%Euntracked, Eorbit_orig => param%Eorbit_orig, Mtot_orig => param%Mtot_orig, &
                Ltot_orig => param%Ltot_orig(:), Lmag_orig => param%Lmag_orig, Lorbit_orig => param%Lorbit_orig(:), Lspin_orig => param%Lspin_orig(:), &
                lfirst => param%lfirstenergy)
-         if (lfirst) then
-            if (param%out_stat == "OLD") then
-               open(unit = EGYIU, file = ENERGY_FILE, form = "formatted", status = "old", action = "write", position = "append")
-            else 
-               open(unit = EGYIU, file = ENERGY_FILE, form = "formatted", status = "replace", action = "write")
+         if (param%energy_out /= "") then
+            if (lfirst .and. (param%out_stat /= "OLD")) then
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write")
+            else
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append")
                write(EGYIU,EGYHEADER)
             end if
          end if
+         call pl%h2b(cb)
          call system%get_energy_and_momentum(param) 
          ke_orbit_now = system%ke_orbit
          ke_spin_now = system%ke_spin
@@ -58,8 +59,10 @@ contains
             lfirst = .false.
          end if
 
-         write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
-         flush(EGYIU)
+         if (param%energy_out /= "") then
+            write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
+            close(EGYIU)
+         end if
          if (.not.lfirst .and. lterminal) then 
             Lmag_now = norm2(Ltot_now)
             Lerror = norm2(Ltot_now - Ltot_orig) / Lmag_orig
@@ -126,7 +129,7 @@ contains
    end subroutine io_dump_param
 
 
-   module subroutine io_dump_swiftest(self, param, msg) 
+   module subroutine io_dump_swiftest(self, param)
       !! author: David A. Minton
       !!
       !! Dump massive body data to files
@@ -137,7 +140,6 @@ contains
       ! Arguments
       class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      character(*), optional,     intent(in)    :: msg  !! Message to display with dump operation
       ! Internals
       integer(I4B)                   :: ierr    !! Error code
       integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
@@ -165,7 +167,7 @@ contains
    end subroutine io_dump_swiftest
 
 
-   module subroutine io_dump_system(self, param, msg)
+   module subroutine io_dump_system(self, param)
       !! author: David A. Minton
       !!
       !! Dumps the state of the system to files in case the simulation is interrupted.
@@ -175,35 +177,52 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      character(*), optional,       intent(in)    :: msg   !! Message to display with dump operation
       ! Internals
       class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
                                                             !! to dump file-specific values without changing the user-defined values
       integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
                                                             !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
-      real(DP) :: tfrac
-     
-      allocate(dump_param, source=param)
-      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
-      dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-      dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-      dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-      dump_param%out_form = XV
-      dump_param%out_stat = 'APPEND'
-      dump_param%T0 = param%t
-      call dump_param%dump(param_file_name)
+      real(DP)                      :: deltawall, wallperstep, tfrac
+      integer(I8B)                  :: clock_count, count_rate, count_max
+      character(*),     parameter   :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
+      character(len=*), parameter   :: walltimefmt = '("      Wall time (s): ", es12.5, "; Wall time/step in this interval (s):  ", es12.5)'
+      logical, save                 :: lfirst = .true.
+      real(DP), save                :: start, finish
+    
+      if (lfirst) then
+         call system_clock(clock_count, count_rate, count_max)
+         start = clock_count / (count_rate * 1.0_DP)
+         finish = start
+         lfirst = .false.
+      else
+         allocate(dump_param, source=param)
+         param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
+         dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
+         dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
+         dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
+         dump_param%out_form = XV
+         dump_param%out_stat = 'APPEND'
+         dump_param%T0 = param%t
+         call dump_param%dump(param_file_name)
 
-      call self%cb%dump(dump_param)
-      if (self%pl%nbody > 0) call self%pl%dump(dump_param)
-      if (self%tp%nbody > 0) call self%tp%dump(dump_param)
+         call self%cb%dump(dump_param)
+         if (self%pl%nbody > 0) call self%pl%dump(dump_param)
+         if (self%tp%nbody > 0) call self%tp%dump(dump_param)
 
-      idx = idx + 1
-      if (idx > NDUMPFILES) idx = 1
+         idx = idx + 1
+         if (idx > NDUMPFILES) idx = 1
 
-      ! Print the status message (format code passed in from main driver)
-      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
-      write(*,msg) param%t, tfrac, self%pl%nbody, self%tp%nbody
+         tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+         
+         call system_clock(clock_count, count_rate, count_max)
+         deltawall = clock_count / (count_rate * 1.0_DP) - finish
+         wallperstep = deltawall / param%istep_dump
+         finish = clock_count / (count_rate * 1.0_DP)
+      end if
+      write(*, statusfmt) param%t, tfrac, self%pl%nbody, self%tp%nbody
+      write(*, walltimefmt) finish - start, wallperstep
+
       if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       return
@@ -421,6 +440,8 @@ contains
                   param%enc_out = param_value
                case ("DISCARD_OUT")
                   param%discard_out = param_value
+               case ("ENERGY_OUT")
+                  param%energy_out = param_value
                case ("EXTRA_FORCE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.
@@ -493,7 +514,7 @@ contains
                   read(param_value, *) param%Ecollisions
                case("EUNTRACKED")
                   read(param_value, *) param%Euntracked
-               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_OUT", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(iomsg,*) "Unknown parameter -> ",param_name
                   iostat = -1
@@ -535,6 +556,7 @@ contains
             iostat = -1
             return
          end if
+         param%lrestart = (param%out_stat == "APPEND")
          if (param%outfile /= "") then
             if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
                   (param%out_type /= SWIFTER_REAL4_TYPE)  .and. (param%out_type /= SWIFTER_REAL8_TYPE)) then
@@ -552,6 +574,7 @@ contains
                iostat = -1
                return
             end if
+         
          end if
          if (param%qmin > 0.0_DP) then
             if ((param%qmin_coord /= "HELIO") .and. (param%qmin_coord /= "BARY")) then
@@ -795,19 +818,22 @@ contains
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
                   if (param%lclose) read(iu, *, iostat=ierr, err=100) self%radius(i)
-                  if (param%lrotation) then
-                     read(iu, iostat=ierr, err=100) self%Ip(:, i)
-                     read(iu, iostat=ierr, err=100) self%rot(:, i)
-                  end if
-                  if (param%ltides) then
-                     read(iu, iostat=ierr, err=100) self%k2(i)
-                     read(iu, iostat=ierr, err=100) self%Q(i)
-                  end if
                class is (swiftest_tp)
                   read(iu, *, iostat=ierr, err=100) self%id(i)
                end select
                read(iu, *, iostat=ierr, err=100) self%xh(1, i), self%xh(2, i), self%xh(3, i)
                read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
+               select type (self)
+               class is (swiftest_pl)
+                  if (param%lrotation) then
+                     read(iu, *, iostat=ierr, err=100) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
+                     read(iu, *, iostat=ierr, err=100) self%rot(1, i), self%rot(2, i), self%rot(3, i)
+                  end if
+                  if (param%ltides) then
+                     read(iu, *, iostat=ierr, err=100) self%k2(i)
+                     read(iu, *, iostat=ierr, err=100) self%Q(i)
+                  end if
+               end select
                self%status(i) = ACTIVE
                self%lmask(i) = .true.
             end do
@@ -859,13 +885,17 @@ contains
       is_ascii = (param%in_type == 'ASCII') 
       if (is_ascii) then
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
-         !read(iu, *, iostat = ierr) self%id
+         read(iu, *, iostat = ierr) self%id
          read(iu, *, iostat = ierr) val 
          self%Gmass = real(val, kind=DP)
          self%mass = real(val / param%GU, kind=DP)
          read(iu, *, iostat = ierr) self%radius
          read(iu, *, iostat = ierr) self%j2rp2
          read(iu, *, iostat = ierr) self%j4rp4
+         if (param%lrotation) then
+            read(iu, *, iostat = ierr) self%Ip(1), self%Ip(2), self%Ip(3)
+            read(iu, *, iostat = ierr) self%rot(1), self%rot(2), self%rot(3)
+         end if
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
          call self%read_frame(iu, param, XV, ierr)
@@ -879,7 +909,6 @@ contains
 
       return
    end subroutine io_read_cb_in
-
 
 
    function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
@@ -978,7 +1007,7 @@ contains
             read(iu, iostat=ierr, err=100) pl%Gmass(:)
             pl%mass(:) = pl%Gmass(:) / param%GU 
             if (param%lrhill_present) read(iu, iostat=ierr, err=100) pl%rhill(:)
-            read(iu, iostat=ierr, err=100) pl%radius(:)
+            if (param%lclose) read(iu, iostat=ierr, err=100) pl%radius(:)
             if (param%lrotation) then
                read(iu, iostat=ierr, err=100) pl%rot(1, :)
                read(iu, iostat=ierr, err=100) pl%rot(2, :)
@@ -1211,20 +1240,16 @@ contains
 
       associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
          if (nsp == 0) return
-         if (lfirst) then
-            select case(param%out_stat)
-            case('APPEND')
-               open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
-            case('NEW', 'REPLACE', 'UNKNOWN')
-               open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
-            case default
-               write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
-               call util_exit(FAILURE)
-            end select
-            lfirst = .false.
-         else
+         select case(param%out_stat)
+         case('APPEND')
             open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
-         end if
+         case('NEW', 'REPLACE', 'UNKNOWN')
+            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
+         case default
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+            call util_exit(FAILURE)
+         end select
+         lfirst = .false.
          if (param%lgr) call tp_discards%pv2v(param) 
 
          write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
@@ -1345,15 +1370,15 @@ contains
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu) pl%Gmass(1:n)
-            write(iu) pl%rhill(1:n)
-            write(iu) pl%radius(1:n)
+            if (param%lrhill_present) write(iu) pl%rhill(1:n)
+            if (param%lclose) write(iu) pl%radius(1:n)
             if (param%lrotation) then
-               write(iu) pl%rot(1, 1:n)
-               write(iu) pl%rot(2, 1:n)
-               write(iu) pl%rot(3, 1:n)
                write(iu) pl%Ip(1, 1:n)
                write(iu) pl%Ip(2, 1:n)
                write(iu) pl%Ip(3, 1:n)
+               write(iu) pl%rot(1, 1:n)
+               write(iu) pl%rot(2, 1:n)
+               write(iu) pl%rot(3, 1:n)
             end if
             if (param%ltides) then
                write(iu) pl%k2(1:n)
@@ -1387,12 +1412,12 @@ contains
          write(iu) cb%j2rp2 
          write(iu) cb%j4rp4 
          if (param%lrotation) then
-            write(iu) cb%rot(1)
-            write(iu) cb%rot(2)
-            write(iu) cb%rot(3)
             write(iu) cb%Ip(1)
             write(iu) cb%Ip(2)
             write(iu) cb%Ip(3)
+            write(iu) cb%rot(1)
+            write(iu) cb%rot(2)
+            write(iu) cb%rot(3)
          end if
          if (param%ltides) then
             write(iu) cb%k2
