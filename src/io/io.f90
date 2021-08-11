@@ -1378,12 +1378,12 @@ contains
                      call check( nf90_inq_varid(ncid, "omega", omega_varid))
                      call check( nf90_inq_varid(ncid, "capm", capm_varid))
 
-                     call check( nf90_put_var(ncid, a_varid, self%a(j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, e_varid, self%e(j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, inc_varid, self%inc(j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, capom_varid, self%capom(j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, omega_varid, self%omega(j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, capm_varid, self%capm(j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, a_varid, self%a(j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, e_varid, self%e(j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, inc_varid, self%inc(j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, capom_varid, self%capom(j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, omega_varid, self%omega(j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, capm_varid, self%capm(j), start=(/ioutput + 1, j/)) )
                   end if
                end do 
             end do 
@@ -1400,15 +1400,12 @@ contains
                      call check( nf90_inq_varid(ncid, "vhy", vhy_varid))
                      call check( nf90_inq_varid(ncid, "vhz", vhz_varid))
 
-                     write(*,*) "ioutput", ioutput
-                     write(*,*) "j", j
-
-                     call check( nf90_put_var(ncid, xhx_varid, self%xh(1, j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, xhy_varid, self%xh(2, j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, xhz_varid, self%xh(3, j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, vhx_varid, self%vh(1, j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, vhy_varid, self%vh(2, j), start=(/ioutput, j/)) )
-                     call check( nf90_put_var(ncid, vhz_varid, self%vh(3, j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, xhx_varid, self%xh(1, j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, xhy_varid, self%xh(2, j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, xhz_varid, self%xh(3, j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, vhx_varid, self%vh(1, j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, vhy_varid, self%vh(2, j), start=(/ioutput + 1, j/)) )
+                     call check( nf90_put_var(ncid, vhz_varid, self%vh(3, j), start=(/ioutput + 1, j/)) )
                   end if
                end do 
             end do 
@@ -1421,16 +1418,16 @@ contains
 
                      !! Reassign all variable IDs
                      call check( nf90_inq_varid(ncid, "Gmass", Gmass_varid))
-                     call check( nf90_put_var(ncid, Gmass_varid, pl%Gmass(j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, Gmass_varid, pl%Gmass(j), start=(/ioutput + 1, j/)) )
                      if (param%lrhill_present) then 
                         !! Reassign all variable IDs
                         call check( nf90_inq_varid(ncid, "rhill", rhill_varid))
-                        call check( nf90_put_var(ncid, rhill_varid, pl%rhill(j), start=(/ioutput, j/)) )
+                        call check( nf90_put_var(ncid, rhill_varid, pl%rhill(j), start=(/ioutput + 1, j/)) )
                      end if
                      if (param%lclose) then
                         !! Reassign all variable IDs
                         call check( nf90_inq_varid(ncid, "radius", radius_varid))
-                        call check( nf90_put_var(ncid, radius_varid, pl%radius(j), start=(/ioutput, j/)) )
+                        call check( nf90_put_var(ncid, radius_varid, pl%radius(j), start=(/ioutput + 1, j/)) )
                      end if
                      if (param%lrotation) then
 
@@ -1442,12 +1439,12 @@ contains
                         call check( nf90_inq_varid(ncid, "roty", roty_varid))
                         call check( nf90_inq_varid(ncid, "rotz", rotz_varid))
 
-                        call check( nf90_put_var(ncid, Ip1_varid, pl%Ip(1, j), start=(/ioutput, j/)) )
-                        call check( nf90_put_var(ncid, Ip2_varid, pl%Ip(2, j), start=(/ioutput, j/)) )
-                        call check( nf90_put_var(ncid, Ip3_varid, pl%Ip(3, j), start=(/ioutput, j/)) )
-                        call check( nf90_put_var(ncid, rotx_varid, pl%rot(1, j), start=(/ioutput, j/)) )
-                        call check( nf90_put_var(ncid, roty_varid, pl%rot(2, j), start=(/ioutput, j/)) )
-                        call check( nf90_put_var(ncid, rotz_varid, pl%rot(3, j), start=(/ioutput, j/)) )
+                        call check( nf90_put_var(ncid, Ip1_varid, pl%Ip(1, j), start=(/ioutput + 1, j/)) )
+                        call check( nf90_put_var(ncid, Ip2_varid, pl%Ip(2, j), start=(/ioutput + 1, j/)) )
+                        call check( nf90_put_var(ncid, Ip3_varid, pl%Ip(3, j), start=(/ioutput + 1, j/)) )
+                        call check( nf90_put_var(ncid, rotx_varid, pl%rot(1, j), start=(/ioutput + 1, j/)) )
+                        call check( nf90_put_var(ncid, roty_varid, pl%rot(2, j), start=(/ioutput + 1, j/)) )
+                        call check( nf90_put_var(ncid, rotz_varid, pl%rot(3, j), start=(/ioutput + 1, j/)) )
                      end if
                      if (param%ltides) then
 
@@ -1455,8 +1452,8 @@ contains
                         call check( nf90_inq_varid(ncid, "k2", k2_varid))
                         call check( nf90_inq_varid(ncid, "Q", Q_varid))
 
-                        call check( nf90_put_var(ncid, k2_varid, pl%k2(j), start=(/ioutput, j/)) )
-                        call check( nf90_put_var(ncid, Q_varid, pl%Q(j), start=(/ioutput, j/)) )
+                        call check( nf90_put_var(ncid, k2_varid, pl%k2(j), start=(/ioutput + 1, j/)) )
+                        call check( nf90_put_var(ncid, Q_varid, pl%Q(j), start=(/ioutput + 1, j/)) )
                      end if
                   end if
                end do
@@ -1602,8 +1599,7 @@ contains
             call check( nf90_create(param%outfile, NF90_CLOBBER, ncid) )
 
             !! Calculate the number of outputs needed to cover the entire simulation time
-            noutput = (param%tstop / param%dt) / param%istep_out
-            write(*,*) "noutput", noutput
+            noutput = ((param%tstop / param%dt) / param%istep_out) + 1
 
             !! Define the NetCDF dimensions with particle name as the record dimension
             call check( nf90_def_dim(ncid, "Particle Name", NF90_UNLIMITED, name_dimid) ) !! x dimension
