@@ -1428,6 +1428,7 @@ contains
          integer, intent ( in) :: status
 
          if(status /= nf90_noerr) then
+            print *, status
             print *, trim(nf90_strerror(status))
             stop "NetCDF Error: Stopped"
          end if
@@ -1632,6 +1633,7 @@ contains
       integer, intent ( in) :: status
 
       if(status /= nf90_noerr) then
+         print *, status
          print *, trim(nf90_strerror(status))
          stop "NetCDF Error: Stopped"
       end if
