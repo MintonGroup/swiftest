@@ -82,7 +82,7 @@ contains
       call self%pl%sort("ir3h", ascending=.false.)
 
       ! Make sure that the discard list gets allocated initially
-      call self%tp_discards%setup(self%tp%nbody, param)
+      call self%tp_discards%setup(0, param)
       call self%pl%set_mu(self%cb)
       call self%tp%set_mu(self%cb)
       if (param%lgr) then
