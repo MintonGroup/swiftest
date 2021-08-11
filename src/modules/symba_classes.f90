@@ -149,7 +149,7 @@ module symba_classes
    !> SyMBA class for tracking pl-pl close encounters in a step
    type, extends(symba_pltpenc) :: symba_plplenc
    contains
-      procedure :: scrub_non_collision    => symba_collision_encounter_scrub        !! Processes the pl-pl encounter list remove only those encounters that led to a collision
+      procedure :: extract_collisions     => symba_collision_encounter_extract_collisions        !! Processes the pl-pl encounter list remove only those encounters that led to a collision
       procedure :: resolve_fragmentations => symba_collision_resolve_fragmentations !! Process list of collisions, determine the collisional regime, and then create fragments
       procedure :: resolve_mergers        => symba_collision_resolve_mergers        !! Process list of collisions and merge colliding bodies together
    end type symba_plplenc
@@ -161,6 +161,7 @@ module symba_classes
       class(symba_merger),  allocatable :: pl_adds !! List of added bodies in mergers or collisions
       class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
       class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
+      class(symba_plplenc), allocatable :: plplcollision_list  !! List of massive body-massive body collisions in a single step
       integer(I4B)                      :: irec          !! System recursion level
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
@@ -184,11 +185,11 @@ module symba_classes
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine symba_collision_check_pltpenc
 
-      module subroutine symba_collision_encounter_scrub(self, system, param)
+      module subroutine symba_collision_encounter_extract_collisions(self, system, param)
          implicit none
          class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameterss
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine
 
       module subroutine symba_collision_make_family_pl(self,idx)

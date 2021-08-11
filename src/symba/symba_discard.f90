@@ -291,21 +291,22 @@ contains
       class is (symba_nbody_system)
          select type(param)
          class is (symba_parameters)
-            associate(pl => self, plplenc_list => system%plplenc_list)
+            associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
                call pl%h2b(system%cb) 
 
                ! First deal with the non pl-pl collisions
                call symba_discard_nonplpl(self, system, param)
 
-               ! Scrub the pl-pl encounter list of any encounters that did not lead to a collision
-               call plplenc_list%scrub_non_collision(system, param)
+               ! Extract the pl-pl encounter list and return the plplcollision_list
+               call plplenc_list%extract_collisions(system, param)
+               call plplenc_list%write(pl, pl, param)
 
-               if ((plplenc_list%nenc > 0) .and. any(pl%lcollision(:))) then 
+               if ((plplcollision_list%nenc > 0) .and. any(pl%lcollision(:))) then 
                   write(*, *) "Collision between massive bodies detected at time t = ",param%t
                   if (param%lfragmentation) then
-                     call plplenc_list%resolve_fragmentations(system, param)
+                     call plplcollision_list%resolve_fragmentations(system, param)
                   else
-                     call plplenc_list%resolve_mergers(system, param)
+                     call plplcollision_list%resolve_mergers(system, param)
                   end if
                end if
 

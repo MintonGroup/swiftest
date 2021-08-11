@@ -285,8 +285,6 @@ def write_labeled_param(param, param_file_name):
                'TP_IN',
                'CB_IN',
                'BIN_OUT',
-               'ENC_OUT',
-               'DISCARD_OUT',
                'CHK_QMIN',
                'CHK_RMIN',
                'CHK_RMAX',
@@ -303,7 +301,7 @@ def write_labeled_param(param, param_file_name):
         if val is not None: print(f"{key:<16} {val}", file=outfile)
     # Print the remaining key/value pairs in whatever order
     for key, val in ptmp.items():
-        print(f"{key:<16} {val}", file=outfile)
+        if val != "": print(f"{key:<16} {val}", file=outfile)
     outfile.close()
     return
 

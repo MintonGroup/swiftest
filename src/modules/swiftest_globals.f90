@@ -107,9 +107,6 @@ module swiftest_globals
    character(*), dimension(2), parameter :: DUMP_PARAM_FILE = ['dump_param1.dat', 'dump_param2.dat']
 
    !> Default file names that can be changed by the user in the parameters file
-   character(*), parameter :: ENC_OUTFILE  = 'encounter.out'
-   character(*), parameter :: DISCARD_FILE = 'discard.out'
-   character(*), parameter :: ENERGY_FILE  = 'energy.out'
    character(*), parameter :: CB_INFILE    = 'cb.in'
    character(*), parameter :: PL_INFILE    = 'pl.in'
    character(*), parameter :: TP_INFILE    = 'tp.in'
