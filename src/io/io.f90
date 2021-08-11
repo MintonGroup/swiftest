@@ -1325,7 +1325,7 @@ contains
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
 
-      integer(I4B)                              :: i
+      integer(I4B)                              :: i, j
       integer(I4B)                              :: ncid         !! NetCDF ID for the output file
       integer(I4B)                              :: dimids(2)    !! Dimensions of the NetCDF file
       integer(I4B)                              :: time_dimid   !! NetCDF ID for the time dimension 
@@ -1366,42 +1366,48 @@ contains
 
          select case (param%out_form)
          case (EL) 
-            do i = 1, n
-               call check( nf90_put_var(ncid, a_varid, self%a(self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, e_varid, self%e(self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, inc_varid, self%inc(self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, capom_varid, self%capom(self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, omega_varid, self%omega(self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, capm_varid, self%capm(self%id == i), start=(/ioutput, self%id/)) )
+            do j = 1, n
+               do i = 1, n
+                  call check( nf90_put_var(ncid, a_varid, self%a(self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, e_varid, self%e(self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, inc_varid, self%inc(self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, capom_varid, self%capom(self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, omega_varid, self%omega(self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, capm_varid, self%capm(self%id(i) == j), start=(/ioutput, j/)) )
+               end do 
             end do 
          case (XV)
-            do i = 1, n
-               call check( nf90_put_var(ncid, xhx_varid, self%xh(1, self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, xhy_varid, self%xh(2, self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, xhz_varid, self%xh(3, self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, vhx_varid, self%vh(1, self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, vhy_varid, self%vh(2, self%id == i), start=(/ioutput, self%id/)) )
-               call check( nf90_put_var(ncid, vhz_varid, self%vh(3, self%id == i), start=(/ioutput, self%id/)) )
+            do j = 1, n
+               do i = 1, n 
+                  call check( nf90_put_var(ncid, xhx_varid, self%xh(1, self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, xhy_varid, self%xh(2, self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, xhz_varid, self%xh(3, self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, vhx_varid, self%vh(1, self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, vhy_varid, self%vh(2, self%id(i) == j), start=(/ioutput, j/)) )
+                  call check( nf90_put_var(ncid, vhz_varid, self%vh(3, self%id(i) == j), start=(/ioutput, j/)) )
+               end do 
             end do 
          end select
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            do i = 1, n
-               call check( nf90_put_var(ncid, Gmass_varid, pl%Gmass(self%id == i), start=(/ioutput, self%id/)) )
-               if (param%lrhill_present) call check( nf90_put_var(ncid, rhill_varid, pl%rhill(self%id == i), start=(/ioutput, self%id/)) )
-               if (param%lclose) call check( nf90_put_var(ncid, radius_varid, pl%radius(self%id == i), start=(/ioutput, self%id/)) )
-               if (param%lrotation) then
-                  call check( nf90_put_var(ncid, Ip1_varid, pl%Ip(1, self%id == i), start=(/ioutput, self%id/)) )
-                  call check( nf90_put_var(ncid, Ip2_varid, pl%Ip(2, self%id == i), start=(/ioutput, self%id/)) )
-                  call check( nf90_put_var(ncid, Ip3_varid, pl%Ip(3, self%id == i), start=(/ioutput, self%id/)) )
-                  call check( nf90_put_var(ncid, rotx_varid, pl%rot(1, self%id == i), start=(/ioutput, self%id/)) )
-                  call check( nf90_put_var(ncid, roty_varid, pl%rot(2, self%id == i), start=(/ioutput, self%id/)) )
-                  call check( nf90_put_var(ncid, rotz_varid, pl%rot(3, self%id == i), start=(/ioutput, self%id/)) )
-               end if
-               if (param%ltides) then
-                  call check( nf90_put_var(ncid, k2_varid, pl%k2(self%id == i), start=(/ioutput, self%id/)) )
-                  call check( nf90_put_var(ncid, Q_varid, pl%Q(self%id == i), start=(/ioutput, self%id/)) )
-               end if
+            do j = 1, n
+               do i = 1, n
+                  call check( nf90_put_var(ncid, Gmass_varid, pl%Gmass(self%id(i) == j), start=(/ioutput, j/)) )
+                  if (param%lrhill_present) call check( nf90_put_var(ncid, rhill_varid, pl%rhill(self%id(i) == j), start=(/ioutput, j/)) )
+                  if (param%lclose) call check( nf90_put_var(ncid, radius_varid, pl%radius(self%id(i) == j), start=(/ioutput, j/)) )
+                  if (param%lrotation) then
+                     call check( nf90_put_var(ncid, Ip1_varid, pl%Ip(1, self%id(i) == j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, Ip2_varid, pl%Ip(2, self%id(i) == j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, Ip3_varid, pl%Ip(3, self%id(i) == j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, rotx_varid, pl%rot(1, self%id(i) == j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, roty_varid, pl%rot(2, self%id(i) == j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, rotz_varid, pl%rot(3, self%id(i) == j), start=(/ioutput, j/)) )
+                  end if
+                  if (param%ltides) then
+                     call check( nf90_put_var(ncid, k2_varid, pl%k2(self%id(i) == j), start=(/ioutput, j/)) )
+                     call check( nf90_put_var(ncid, Q_varid, pl%Q(self%id(i) == j), start=(/ioutput, j/)) )
+                  end if
+               end do
             end do
          end select
       end associate
