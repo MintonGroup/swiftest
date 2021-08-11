@@ -1471,6 +1471,7 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
+      use netcdf
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(in)    :: self            !! Swiftest system object
