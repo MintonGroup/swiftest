@@ -219,11 +219,11 @@ contains
          deltawall = clock_count / (count_rate * 1.0_DP) - finish
          wallperstep = deltawall / param%istep_dump
          finish = clock_count / (count_rate * 1.0_DP)
+         write(*, statusfmt) param%t, tfrac, self%pl%nbody, self%tp%nbody
+         write(*, walltimefmt) finish - start, wallperstep
+         if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
       end if
-      write(*, statusfmt) param%t, tfrac, self%pl%nbody, self%tp%nbody
-      write(*, walltimefmt) finish - start, wallperstep
 
-      if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       return
    end subroutine io_dump_system
