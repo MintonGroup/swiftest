@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -11,7 +10,7 @@
     <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
     <link rel="icon" href="../favicon.png">
 
-    <title>symba_io_write_frame_info &ndash; swiftest</title>
+    <title>util_rescale_system &ndash; swiftest</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -117,16 +116,17 @@
     
   
   <div class="row">
-    <h1>symba_io_write_frame_info
-   <small>Interface</small>
+    <h1>util_rescale_system
+      <small>Module Subroutine</small>
     
     </h1>
-    
     
 <div class="row">
   <div class="col-lg-12">
 <div class="well well-sm">
   <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     <li><i class="fa fa-pencil"></i> David A. Minton</li>
      
      
      
@@ -136,24 +136,24 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 0.6% of total for procedures.">275 statements</a>
+    title=" 0.1% of total for procedures.">31 statements</a>
      </li> 
      
      
      
-    <li><i class="fa fa-code"></i><a href="../src/symba_classes.f90"> Source File</a></li>
+    <li><i class="fa fa-code"></i><a href="../src/util_rescale.f90"> Source File</a></li>
      
      
   </ul>
   <ol class="breadcrumb in-well text-right">
   
     
-     <li><a href='../sourcefile/symba_classes.f90.html'>symba_classes.f90</a></li>
+     <li><a href='../sourcefile/util_rescale.f90.html'>util_rescale.f90</a></li>
     
-     <li><a href='../module/symba_classes.html'>symba_classes</a></li>
+     <li><a href='../module/s_util_rescale.html'>s_util_rescale</a></li>
     
   
-     <li class="active">symba_io_write_frame_info</li>
+     <li class="active">util_rescale_system</li>
   </ol>
 </div>
 </div>
@@ -164,7 +164,6 @@
   })
 </script>
 
-    
   </div>
   
   <div class="row">
@@ -203,15 +202,123 @@
     </div>
     
     <div class="col-md-9" id='text'>
+    <h2>
+module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
     
     
-      <h2>interface</h2>
+   <a href='../interface/util_rescale_system.html'><button type="button" class="btn btn-info depwarn">Interface &rarr;</button></a>
+    
+   
+</h2>
+    
+  
+
+
+    
+    <p>Rescales an nbody system to a new set of units. Inputs are the multipliers on the mass (mscale), distance (dscale), and time units (tscale). 
+ Rescales all united quantities in the system, as well as the mass conversion factors, gravitational constant, and Einstein's constant in the parameter object.</p>
+    
+
+    <h3>Arguments</h3>
+    
       
-      <br>
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-self~244"></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-param~135"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters. Returns with new values of the scale vactors and GU</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-mscale~2"></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>mscale</strong></td><td><p>Scale factors for mass, distance, and time units, respectively. </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-dscale~2"></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dscale</strong></td><td><p>Scale factors for mass, distance, and time units, respectively. </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-tscale~2"></span>real(kind=DP),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>tscale</strong></td><td><p>Scale factors for mass, distance, and time units, respectively. </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
     
+    
+    
+    <br>
+    
+    
+     
     <div class="panel panel-default">
       <div class="panel-heading">
-  <h3 class="panel-title">Calls</h3>
+  <h3 class="panel-title">Called by</h3>
       </div>
       <div class="panel-body">
   <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -219,32 +326,32 @@
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generated by graphviz version 2.47.1 (20210417.1919)
  -->
-<!-- Title: interface~~symba_io_write_frame_info~~CallsGraph Pages: 1 -->
-<svg id="interfacesymba_io_write_frame_infoCallsGraph" width="332pt" height="32pt"
- viewBox="0.00 0.00 332.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="interface~~symba_io_write_frame_info~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
-<title>interface~~symba_io_write_frame_info~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 328,-28 328,4 -4,4"/>
-<!-- interface~symba_io_write_frame_info -->
-<g id="interface~~symba_io_write_frame_info~~CallsGraph_node1" class="node">
-<title>interface~symba_io_write_frame_info</title>
-<polygon fill="none" stroke="black" points="144,-24 0,-24 0,0 144,0 144,-24"/>
-<text text-anchor="middle" x="72" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">symba_io_write_frame_info</text>
+<!-- Title: proc~~util_rescale_system~~CalledByGraph Pages: 1 -->
+<svg id="procutil_rescale_systemCalledByGraph" width="256pt" height="32pt"
+ viewBox="0.00 0.00 256.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~util_rescale_system~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>proc~~util_rescale_system~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 252,-28 252,4 -4,4"/>
+<!-- proc~util_rescale_system -->
+<g id="proc~~util_rescale_system~~CalledByGraph_node1" class="node">
+<title>proc~util_rescale_system</title>
+<polygon fill="none" stroke="black" points="248,-24 142,-24 142,0 248,0 248,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">util_rescale_system</text>
 </g>
-<!-- proc~symba_io_write_frame_info -->
-<g id="interface~~symba_io_write_frame_info~~CallsGraph_node2" class="node">
-<title>proc~symba_io_write_frame_info</title>
-<g id="a_interface~~symba_io_write_frame_info~~CallsGraph_node2"><a xlink:href=".././proc/symba_io_write_frame_info.html" xlink:title="symba_io_write_frame_info">
-<polygon fill="#d9534f" stroke="#d9534f" points="324,-24 180,-24 180,0 324,0 324,-24"/>
-<text text-anchor="middle" x="252" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_io_write_frame_info</text>
+<!-- interface~util_rescale_system -->
+<g id="proc~~util_rescale_system~~CalledByGraph_node2" class="node">
+<title>interface~util_rescale_system</title>
+<g id="a_proc~~util_rescale_system~~CalledByGraph_node2"><a xlink:href=".././interface/util_rescale_system.html" xlink:title="util_rescale_system">
+<polygon fill="#a7506f" stroke="#a7506f" points="106,-24 0,-24 0,0 106,0 106,-24"/>
+<text text-anchor="middle" x="53" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_rescale_system</text>
 </a>
 </g>
 </g>
-<!-- interface~symba_io_write_frame_info&#45;&gt;proc~symba_io_write_frame_info -->
-<g id="interface~~symba_io_write_frame_info~~CallsGraph_edge1" class="edge">
-<title>interface~symba_io_write_frame_info&#45;&gt;proc~symba_io_write_frame_info</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M144.12,-12C152.61,-12 161.33,-12 169.94,-12"/>
-<polygon fill="#000000" stroke="#000000" points="170,-15.5 180,-12 170,-8.5 170,-15.5"/>
+<!-- interface~util_rescale_system&#45;&gt;proc~util_rescale_system -->
+<g id="proc~~util_rescale_system~~CalledByGraph_edge1" class="edge">
+<title>interface~util_rescale_system&#45;&gt;proc~util_rescale_system</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M106.13,-12C114.42,-12 123.07,-12 131.57,-12"/>
+<polygon fill="#000000" stroke="#000000" points="131.83,-15.5 141.83,-12 131.83,-8.5 131.83,-15.5"/>
 </g>
 </g>
 </svg>
@@ -310,91 +417,60 @@
       </div>
     </div>
      
-     
-    
     <br>
-    
-      <h2>
-public module subroutine symba_io_write_frame_info(self, iu, param)
-    
-    
-   
-   <a href='../proc/symba_io_write_frame_info.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
-    
-</h2>
-    
 
-    
-  
-
-
-    <h3>Arguments</h3>
-    
+    <section class="visible-xs visible-sm hidden-md">
       
-<table class="table table-striped varlist">
-<thead><tr><th>Type</th>
-<th>Intent</th><th>Optional</th>
-<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+<h3>Contents</h3>
+ 
 
 
 
-<tbody>
 
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-self~95"></span>class(<a href='../type/symba_particle_info.html'>symba_particle_info</a>),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>self</strong></td><td><p>SyMBA particle info object</p></td>
-  
-</tr>
 
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-iu~6"></span>integer(kind=I4B),</td>
-  <td>intent(inout)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>iu</strong></td><td><p>Unit number for the output file to write frame to</p></td>
-  
-</tr>
 
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-param~69"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
-  
-</tr>
 
-</tbody>
-</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<em>None</em>
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    
 
     
     
     
-    <br>
+    
+    
 
- </div>
-</div>
+    
+    
+    
+    
+    
+
+
+    
+    
+    
+    
+    </div>
+  </div>
 
 
     <hr>    

@@ -24,6 +24,7 @@ contains
          xtmp(:) = 0.0_DP
          vtmp(:) = 0.0_DP
          do i = 1, npl
+            if (pl%status(i) == INACTIVE) cycle
             Gmtot = Gmtot + pl%Gmass(i)
             xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%xh(:,i)
             vtmp(:) = vtmp(:) + pl%Gmass(i) * pl%vh(:,i)
@@ -31,6 +32,7 @@ contains
          cb%xb(:) = -xtmp(:) / Gmtot
          cb%vb(:) = -vtmp(:) / Gmtot
          do i = 1, npl
+            if (pl%status(i) == INACTIVE) cycle
             pl%xb(:,i) = pl%xh(:,i) + cb%xb(:)
             pl%vb(:,i) = pl%vh(:,i) + cb%vb(:)
          end do
@@ -51,20 +53,15 @@ contains
       ! Arguments
       class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb), intent(in) :: cb   !! Swiftest central body object
+      ! Internals
+      integer(I4B) :: i
 
       if (self%nbody == 0) return
-      associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, status => self%status, &
-               xb => self%xb, xh => self%xh, vb => self%vb, vh => self%vh)
-
-         where(status(1:ntp) /= INACTIVE)
-            xb(1, 1:ntp) = xh(1, 1:ntp) + xbcb(1)
-            xb(2, 1:ntp) = xh(2, 1:ntp) + xbcb(2)
-            xb(3, 1:ntp) = xh(3, 1:ntp) + xbcb(3)
-
-            vb(1, 1:ntp) = vh(1, 1:ntp) + vbcb(1)
-            vb(2, 1:ntp) = vh(2, 1:ntp) + vbcb(2)
-            vb(3, 1:ntp) = vh(3, 1:ntp) + vbcb(3)
-         end where
+      associate(tp => self, ntp => self%nbody)
+         do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
+            tp%xb(:, i) = tp%xh(:, i) + cb%xb(:)
+            tp%vb(:, i) = tp%vh(:, i) + cb%vb(:)
+         end do
       end associate
 
       return
@@ -87,11 +84,10 @@ contains
 
       if (self%nbody == 0) return
 
-      associate(npl => self%nbody, xbcb => cb%xb, vbcb => cb%vb, xb => self%xb, xh => self%xh, &
-               vb => self%vb, vh => self%vh)
-         do i = 1, NDIM
-            xh(i, 1:npl) = xb(i, 1:npl) - xbcb(i)
-            vh(i, 1:npl) = vb(i, 1:npl) - vbcb(i)
+      associate(pl => self, npl => self%nbody)
+         do concurrent (i = 1:npl, pl%status(i) /= INACTIVE)
+            pl%xh(:, i) = pl%xb(:, i) - cb%xb(:)
+            pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
          end do
       end associate
 
@@ -110,20 +106,16 @@ contains
       ! Arguments
       class(swiftest_tp),     intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),  intent(in)    :: cb   !! Swiftest central body object
+      ! Internals
+      integer(I4B) :: i
 
       if (self%nbody == 0) return
 
-      associate(ntp => self%nbody, xbcb => cb%xb, vbcb => cb%vb, xb => self%xb, xh => self%xh, &
-               vb => self%vb, vh => self%vh, status => self%status)
-         where(status(1:ntp) /= INACTIVE)
-            xh(1, 1:ntp) = xb(1, 1:ntp) - xbcb(1)
-            xh(2, 1:ntp) = xb(2, 1:ntp) - xbcb(2)
-            xh(3, 1:ntp) = xb(3, 1:ntp) - xbcb(3)
-
-            vh(1, 1:ntp) = vb(1, 1:ntp) - vbcb(1)
-            vh(2, 1:ntp) = vb(2, 1:ntp) - vbcb(2)
-            vh(3, 1:ntp) = vb(3, 1:ntp) - vbcb(3)
-         end where
+      associate(tp => self, ntp => self%nbody)
+         do concurrent(i = 1:ntp, tp%status(i) /= INACTIVE)
+            tp%xh(:, i) = tp%xb(:, i) - cb%xb(:)
+            tp%vh(:, i) = tp%vb(:, i) - cb%vb(:)
+         end do
       end associate
 
       return
