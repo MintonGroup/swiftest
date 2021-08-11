@@ -550,18 +550,16 @@ module swiftest_classes
          character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_dump_param
 
-      module subroutine io_dump_swiftest(self, param, msg) 
+      module subroutine io_dump_swiftest(self, param)
          implicit none
          class(swiftest_base),          intent(inout) :: self  !! Swiftest base object
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
-         character(*), optional,        intent(in)    :: msg   !! Message to display with dump operation
       end subroutine io_dump_swiftest
 
-      module subroutine io_dump_system(self, param, msg)
+      module subroutine io_dump_system(self, param)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
-         character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       end subroutine io_dump_system
 
       module function io_get_args(integrator, param_file_name) result(ierr)

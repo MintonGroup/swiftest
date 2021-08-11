@@ -129,7 +129,7 @@ contains
    end subroutine io_dump_param
 
 
-   module subroutine io_dump_swiftest(self, param, msg) 
+   module subroutine io_dump_swiftest(self, param)
       !! author: David A. Minton
       !!
       !! Dump massive body data to files
@@ -140,7 +140,6 @@ contains
       ! Arguments
       class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      character(*), optional,     intent(in)    :: msg  !! Message to display with dump operation
       ! Internals
       integer(I4B)                   :: ierr    !! Error code
       integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
@@ -168,7 +167,7 @@ contains
    end subroutine io_dump_swiftest
 
 
-   module subroutine io_dump_system(self, param, msg)
+   module subroutine io_dump_system(self, param)
       !! author: David A. Minton
       !!
       !! Dumps the state of the system to files in case the simulation is interrupted.
@@ -178,35 +177,52 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      character(*), optional,       intent(in)    :: msg   !! Message to display with dump operation
       ! Internals
       class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
                                                             !! to dump file-specific values without changing the user-defined values
       integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
                                                             !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
-      real(DP) :: tfrac
-     
-      allocate(dump_param, source=param)
-      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
-      dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-      dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-      dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-      dump_param%out_form = XV
-      dump_param%out_stat = 'APPEND'
-      dump_param%T0 = param%t
-      call dump_param%dump(param_file_name)
+      real(DP)                      :: deltawall, wallperstep, tfrac
+      integer(I8B)                  :: clock_count, count_rate, count_max
+      character(*),     parameter   :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
+      character(len=*), parameter   :: walltimefmt = '("      Wall time (s): ", es12.5, "; Wall time/step in this interval (s):  ", es12.5)'
+      logical, save                 :: lfirst = .true.
+      real(DP), save                :: start, finish
+    
+      if (lfirst) then
+         call system_clock(clock_count, count_rate, count_max)
+         start = clock_count / (count_rate * 1.0_DP)
+         finish = start
+         lfirst = .false.
+      else
+         allocate(dump_param, source=param)
+         param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
+         dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
+         dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
+         dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
+         dump_param%out_form = XV
+         dump_param%out_stat = 'APPEND'
+         dump_param%T0 = param%t
+         call dump_param%dump(param_file_name)
 
-      call self%cb%dump(dump_param)
-      if (self%pl%nbody > 0) call self%pl%dump(dump_param)
-      if (self%tp%nbody > 0) call self%tp%dump(dump_param)
+         call self%cb%dump(dump_param)
+         if (self%pl%nbody > 0) call self%pl%dump(dump_param)
+         if (self%tp%nbody > 0) call self%tp%dump(dump_param)
 
-      idx = idx + 1
-      if (idx > NDUMPFILES) idx = 1
+         idx = idx + 1
+         if (idx > NDUMPFILES) idx = 1
 
-      ! Print the status message (format code passed in from main driver)
-      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
-      write(*,msg) param%t, tfrac, self%pl%nbody, self%tp%nbody
+         tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+         
+         call system_clock(clock_count, count_rate, count_max)
+         deltawall = clock_count / (count_rate * 1.0_DP) - finish
+         wallperstep = deltawall / param%istep_dump
+         finish = clock_count / (count_rate * 1.0_DP)
+      end if
+      write(*, statusfmt) param%t, tfrac, self%pl%nbody, self%tp%nbody
+      write(*, walltimefmt) finish - start, wallperstep
+
       if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       return
