@@ -183,7 +183,7 @@ contains
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nbody values for both the keeps and discareds
          discards%nbody = count(lspill_list(:))
-         keeps%nbody = count(.not.lspill_list(:)) 
+         keeps%nbody = keeps%nbody - discards%nbody
          if (keeps%nbody > size(keeps%status)) keeps%status(keeps%nbody+1:size(keeps%status)) = INACTIVE
 
       end associate
