@@ -21,6 +21,7 @@ module subroutine util_copy_encounter(self, source)
       self%x2(:,1:n) = source%x2(:,1:n)
       self%v1(:,1:n) = source%v1(:,1:n)
       self%v2(:,1:n) = source%v2(:,1:n)
+      self%t(1:n) = source%t(1:n)
    end associate
 
    return

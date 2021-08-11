@@ -92,6 +92,7 @@ contains
       if (allocated(self%x2)) deallocate(self%x2)
       if (allocated(self%v1)) deallocate(self%v1)
       if (allocated(self%v2)) deallocate(self%v2)
+      if (allocated(self%t)) deallocate(self%t)
 
       allocate(self%lvdotr(n))
       allocate(self%status(n))
@@ -101,6 +102,7 @@ contains
       allocate(self%x2(NDIM,n))
       allocate(self%v1(NDIM,n))
       allocate(self%v2(NDIM,n))
+      allocate(self%t(n))
 
       self%lvdotr(:) = .false.
       self%status(:) = INACTIVE
@@ -110,6 +112,7 @@ contains
       self%x2(:,:) = 0.0_DP
       self%v1(:,:) = 0.0_DP
       self%v2(:,:) = 0.0_DP
+      self%t(:) = 0.0_DP
 
       return
    end subroutine setup_encounter

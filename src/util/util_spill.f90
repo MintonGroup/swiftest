@@ -264,6 +264,7 @@ contains
          call util_spill(keeps%x2, discards%x2, lspill_list, ldestructive)
          call util_spill(keeps%v1, discards%v1, lspill_list, ldestructive)
          call util_spill(keeps%v2, discards%v2, lspill_list, ldestructive)
+         call util_spill(keeps%t, discards%t, lspill_list, ldestructive)
 
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nenc values for both the keeps and discareds

@@ -321,11 +321,13 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
       real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
       real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
+      real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
    contains
       procedure :: setup  => setup_encounter       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure :: copy   => util_copy_encounter   !! Copies elements from the source encounter list into self.
       procedure :: spill  => util_spill_encounter  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: resize => util_resize_encounter !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+      procedure :: write  => io_write_encounter    !! Write close encounter data to output binary file
    end type swiftest_encounter
 
    abstract interface
@@ -656,13 +658,12 @@ module swiftest_classes
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine io_toupper
 
-      module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                           xh1, xh2, vh1, vh2, enc_out, out_type)
+      module subroutine io_write_encounter(self, pl, encbody, param)
          implicit none
-         integer(I4B),           intent(in) :: name1, name2
-         real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
-         real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
-         character(*),           intent(in) :: enc_out, out_type
+         class(swiftest_encounter),  intent(in) :: self    !! Swiftest encounter list object
+         class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
+         class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
+         class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
       end subroutine io_write_encounter
 
       module subroutine io_write_frame_body(self, iu, param)
@@ -678,6 +679,17 @@ module swiftest_classes
          integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_cb
+
+      module subroutine io_write_frame_encounter(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
+         implicit none
+         integer(I4B),           intent(in) :: iu               !! Open file unit number
+         real(DP),               intent(in) :: t                !! Time of encounter
+         integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
+         real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
+         real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
+         real(DP), dimension(:), intent(in) :: xh1, xh2         !! Heliocentric position vectors of the two encountering bodies 
+         real(DP), dimension(:), intent(in) :: vh1, vh2         !! Heliocentric velocity vectors of the two encountering bodies 
+      end subroutine io_write_frame_encounter
 
       module subroutine io_write_frame_system(self, iu, param)
          implicit none

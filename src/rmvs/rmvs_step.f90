@@ -547,8 +547,7 @@ contains
                            id2 = tp%id(i)
                            xh2(:) = xpc(:, i) + xh1(:)
                            vh2(:) = xpc(:, i) + vh1(:)
-                           call io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:),  &
-                              param%enc_out, param%out_type)
+                           call rmvs_io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:), param%enc_out)
                         end if
                         if (tp%lperi(i)) then
                            if (peri < tp%peri(i)) then
