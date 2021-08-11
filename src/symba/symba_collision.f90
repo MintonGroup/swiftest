@@ -66,32 +66,33 @@ contains
                   end do
                end if
 
-               if (any(lcollision(:))) then
-                  do k = 1, nenc
-                     if (.not.lcollision(k)) cycle 
-                     self%status(k) = COLLISION
-                     self%x1(:,k) = pl%xh(:,ind1(k)) 
-                     self%v1(:,k) = pl%vb(:,ind1(k)) 
-                     if (isplpl) then
-                        self%x2(:,k) = pl%xh(:,ind2(k))
-                        self%v2(:,k) = pl%vb(:,ind2(k))
-
+               do k = 1, nenc
+                  if (lcollision(k)) self%status(k) = COLLISION
+                  self%t(k) = t
+                  self%x1(:,k) = pl%xh(:,ind1(k)) 
+                  self%v1(:,k) = pl%vb(:,ind1(k)) - system%cb%vb(:)
+                  if (isplpl) then
+                     self%x2(:,k) = pl%xh(:,ind2(k))
+                     self%v2(:,k) = pl%vb(:,ind2(k)) - system%cb%vb(:)
+                     if (lcollision(k)) then
                         ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional family
                         if (pl%lcollision(ind1(k)) .or. pl%lcollision(ind2(k))) call pl%make_family([ind1(k),ind2(k)])
-
+   
                         ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                         pl%lcollision([ind1(k), ind2(k)]) = .true.
                         pl%ldiscard([ind1(k), ind2(k)]) = .true.
                         pl%status([ind1(k), ind2(k)]) = COLLISION
-                     else
-                        self%x2(:,k) = tp%xh(:,ind2(k))
-                        self%v2(:,k) = tp%vb(:,ind2(k))
+                     end if
+                  else
+                     self%x2(:,k) = tp%xh(:,ind2(k))
+                     self%v2(:,k) = tp%vb(:,ind2(k)) - system%cb%vb(:)
+                     if (lcollision(k)) then
                         tp%status(ind2(k)) = DISCARDED_PLR
                         tp%ldiscard(ind2(k)) = .true.
                         write(*,*) 'Test particle ',tp%id(ind2(k)), ' collided with massive body ',pl%id(ind1(k)), ' at time ',t
                      end if
-                  end do
-               end if
+                  end if
+               end do
             end associate
          end select
       end select
@@ -267,7 +268,7 @@ contains
    end function symba_collision_consolidate_familes
 
 
-   module subroutine symba_collision_encounter_scrub(self, system, param)
+   module subroutine symba_collision_encounter_extract_collisions(self, system, param)
       !! author: David A. Minton
       !! 
       !! Processes the pl-pl encounter list remove only those encounters that led to a collision
@@ -283,56 +284,55 @@ contains
       integer(I4B), dimension(:), pointer     :: plparent
       integer(I4B), dimension(:), allocatable :: collision_idx, unique_parent_idx
       integer(I4B)                            :: i, index_coll, ncollisions, nunique_parent
-      type(symba_plplenc)                     :: plplenc_noncollision
 
       select type (pl => system%pl)
       class is (symba_pl)
          associate(plplenc_list => self, nplplenc => self%nenc, idx1 => self%index1, idx2 => self%index2, plparent => pl%kin%parent)
             lplpl_collision(:) = plplenc_list%status(1:nplplenc) == COLLISION
-            if (any(lplpl_collision)) then ! Collisions have been detected in this step. So we need to determine which of them are between unique bodies.
+            if (.not.any(lplpl_collision)) return 
+            ! Collisions have been detected in this step. So we need to determine which of them are between unique bodies.
 
-               ! Get the subset of pl-pl encounters that lead to a collision
-               ncollisions = count(lplpl_collision(:))
-               allocate(collision_idx(ncollisions))
-               collision_idx = pack([(i, i=1, nplplenc)], lplpl_collision)
+            ! Get the subset of pl-pl encounters that lead to a collision
+            ncollisions = count(lplpl_collision(:))
+            allocate(collision_idx(ncollisions))
+            collision_idx = pack([(i, i=1, nplplenc)], lplpl_collision)
 
-               ! Get the subset of collisions that involve a unique pair of parents
-               allocate(lplpl_unique_parent(ncollisions))
+            ! Get the subset of collisions that involve a unique pair of parents
+            allocate(lplpl_unique_parent(ncollisions))
 
-               lplpl_unique_parent(:) = plparent(idx1(collision_idx(:))) /= plparent(idx2(collision_idx(:)))
-               nunique_parent = count(lplpl_unique_parent(:))
-               allocate(unique_parent_idx(nunique_parent))
-               unique_parent_idx = pack(collision_idx(:), lplpl_unique_parent(:))
+            lplpl_unique_parent(:) = plparent(idx1(collision_idx(:))) /= plparent(idx2(collision_idx(:)))
+            nunique_parent = count(lplpl_unique_parent(:))
+            allocate(unique_parent_idx(nunique_parent))
+            unique_parent_idx = pack(collision_idx(:), lplpl_unique_parent(:))
 
-               ! Scrub all pl-pl collisions involving unique pairs of parents, which will remove all duplicates and leave behind
-               ! all pairs that have themselves as parents but are not part of the unique parent list. This can hapepn in rare cases
-               ! due to restructuring of parent/child relationships when there are large numbers of multi-body collisions in a single
-               ! step
-               lplpl_unique_parent(:) = .true.
-               do index_coll = 1, ncollisions
-                  associate(ip1 => plparent(idx1(collision_idx(index_coll))), ip2 => plparent(idx2(collision_idx(index_coll))))
-                     lplpl_unique_parent(:) = .not. ( any(plparent(idx1(unique_parent_idx(:))) == ip1) .or. &
-                                                      any(plparent(idx2(unique_parent_idx(:))) == ip1) .or. &
-                                                      any(plparent(idx1(unique_parent_idx(:))) == ip2) .or. &
-                                                      any(plparent(idx2(unique_parent_idx(:))) == ip2) )
-                  end associate
-               end do
+            ! Scrub all pl-pl collisions involving unique pairs of parents, which will remove all duplicates and leave behind
+            ! all pairs that have themselves as parents but are not part of the unique parent list. This can hapepn in rare cases
+            ! due to restructuring of parent/child relationships when there are large numbers of multi-body collisions in a single
+            ! step
+            lplpl_unique_parent(:) = .true.
+            do index_coll = 1, ncollisions
+               associate(ip1 => plparent(idx1(collision_idx(index_coll))), ip2 => plparent(idx2(collision_idx(index_coll))))
+                  lplpl_unique_parent(:) = .not. ( any(plparent(idx1(unique_parent_idx(:))) == ip1) .or. &
+                                                   any(plparent(idx2(unique_parent_idx(:))) == ip1) .or. &
+                                                   any(plparent(idx1(unique_parent_idx(:))) == ip2) .or. &
+                                                   any(plparent(idx2(unique_parent_idx(:))) == ip2) )
+               end associate
+            end do
 
-               ! Reassemble collision index list to include only those containing the unique pairs of parents, plus all the non-unique pairs that don't
-               ! contain a parent body on the unique parent list.
-               ncollisions = nunique_parent + count(lplpl_unique_parent)
-               collision_idx = [unique_parent_idx(:), pack(collision_idx(:), lplpl_unique_parent(:))]
+            ! Reassemble collision index list to include only those containing the unique pairs of parents, plus all the non-unique pairs that don't
+            ! contain a parent body on the unique parent list.
+            ncollisions = nunique_parent + count(lplpl_unique_parent)
+            collision_idx = [unique_parent_idx(:), pack(collision_idx(:), lplpl_unique_parent(:))]
 
-               ! Create a mask that contains only the pl-pl encounters that did not result in a collision, and then discard them
-               lplpl_collision(:) = .false.
-               lplpl_collision(collision_idx(:)) = .true.
-            end if
-            call plplenc_list%spill(plplenc_noncollision, .not.lplpl_collision, ldestructive=.true.) ! Remove any encounters that are not collisions from the list.
+            ! Create a mask that contains only the pl-pl encounters that did not result in a collision, and then discard them
+            lplpl_collision(:) = .false.
+            lplpl_collision(collision_idx(:)) = .true.
+            call plplenc_list%spill(system%plplcollision_list, lplpl_collision, ldestructive=.true.) ! Extract any encounters that are not collisions from the list.
          end associate
       end select
 
       return
-   end subroutine symba_collision_encounter_scrub
+   end subroutine symba_collision_encounter_extract_collisions
 
 
    module subroutine symba_collision_make_family_pl(self, idx)

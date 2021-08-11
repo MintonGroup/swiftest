@@ -30,7 +30,9 @@ contains
       real(DP), dimension(:), allocatable     :: m_frag, rad_frag
       integer(I4B), dimension(:), allocatable :: id_frag
       logical                                 :: lfailure
-   
+  
+      write(*, '("Disruption between bodies ",I8,99(:,",",I8))') system%pl%id(family(:))
+
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
       nfrag = NFRAG_DISRUPT 
       allocate(m_frag(nfrag))
@@ -117,6 +119,8 @@ contains
       logical                                 :: lpure
       logical,  dimension(system%pl%nbody)    :: lmask
    
+      write(*, '("Hit and run between bodies ",I8,99(:,",",I8))')  system%pl%id(family(:))
+
       mtot = sum(mass(:))
       xcom(:) = (mass(1) * x(:,1) + mass(2) * x(:,2)) / mtot
       vcom(:) = (mass(1) * v(:,1) + mass(2) * v(:,2)) / mtot
@@ -175,8 +179,14 @@ contains
             write(*,'("Generating ",I2.0," fragments")') nfrag
          end if
       end if
-      if (lpure) then
+      if (lpure) then ! Reset these bodies back to being active so that nothing further is done to them
          status = ACTIVE
+         select type(pl => system%pl)
+         class is (symba_pl)
+            pl%status(family(:)) = status
+            pl%ldiscard(family(:)) = .false.
+            pl%lcollision(family(:)) = .false.
+         end select
       else
          status = HIT_AND_RUN
          call symba_fragmentation_mergeaddsub(system, param, family, id_frag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, status)
@@ -217,7 +227,7 @@ contains
    
       select type(pl => system%pl)
       class is (symba_pl)
-         write(*, '("Merging bodies ",99(I8,",",:))') pl%id(family(:))
+         write(*, '("Merging bodies ",I8,99(:,",",I8))') pl%id(family(:))
 
          ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
          id_frag(1) = pl%id(family(ibiggest))
@@ -303,6 +313,8 @@ contains
       integer(I4B), dimension(:), allocatable :: id_frag
       logical                                 :: lfailure
       logical,  dimension(system%pl%nbody)    :: lmask
+
+      write(*, '("Supercatastrophic disruption between bodies ",I8,99(:,",",I8))')  system%pl%id(family(:))
 
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
       nfrag = NFRAG_SUPERCAT

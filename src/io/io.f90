@@ -195,6 +195,7 @@ contains
          start = clock_count / (count_rate * 1.0_DP)
          finish = start
          lfirst = .false.
+         if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
       else
          allocate(dump_param, source=param)
          param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
@@ -223,7 +224,6 @@ contains
          write(*, walltimefmt) finish - start, wallperstep
          if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
       end if
-
 
       return
    end subroutine io_dump_system
@@ -574,7 +574,6 @@ contains
                iostat = -1
                return
             end if
-         
          end if
          if (param%qmin > 0.0_DP) then
             if ((param%qmin_coord /= "HELIO") .and. (param%qmin_coord /= "BARY")) then
@@ -622,6 +621,9 @@ contains
          write(*,*) "MU2KG          = ",param%MU2KG       
          write(*,*) "TU2S           = ",param%TU2S        
          write(*,*) "DU2M           = ",param%DU2M        
+         if (trim(adjustl(param%outfile)) == "") then
+            param%outfile = BIN_OUTFILE
+         end if
          if (trim(adjustl(param%enc_out)) /= "") then
             write(*,*) "ENC_OUT        = ",trim(adjustl(param%enc_out))
          else
@@ -632,6 +634,7 @@ contains
             write(*,*) "BIG_DISCARD    = ",param%lbig_discard
          else
             write(*,*) "! DISCARD_OUT not set: Discards will not be recorded to file"
+            param%lbig_discard = .false.
             write(*,*) "! BIG_DISCARD    = ",param%lbig_discard
          end if
 
@@ -643,10 +646,11 @@ contains
 
          ! Calculate the G for the system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
-
-         ! Calculate the inverse speed of light in the system units
-         param%inv_c2 = einsteinC * param%TU2S / param%DU2M
-         param%inv_c2 = (param%inv_c2)**(-2)
+         if (param%lgr) then
+            ! Calculate the inverse speed of light in the system units
+            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+            param%inv_c2 = (param%inv_c2)**(-2)
+         end if
 
          associate(integrator => v_list(1))
             if (integrator == RMVS) then
@@ -911,7 +915,7 @@ contains
    end subroutine io_read_cb_in
 
 
-   function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+   function io_read_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, &
       xh1, xh2, vh1, vh2, enc_out, out_type) result(ierr)
       !! author: David A. Minton
       !!
@@ -921,8 +925,8 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine: io_read_encounter.f90
       implicit none
       ! Arguments
-      integer(I4B),           intent(out) :: name1, name2
-      real(DP),               intent(out) :: t, mass1, mass2, radius1, radius2
+      integer(I4B),           intent(out) :: id1, id2
+      real(DP),               intent(out) :: t, Gmass1, Gmass2, radius1, radius2
       real(DP), dimension(:), intent(out) :: xh1, xh2, vh1, vh2
       character(*),           intent(in)  :: enc_out, out_type
       ! Result
@@ -947,12 +951,12 @@ contains
          return
       end if
 
-      read(iu, iostat = ierr) name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), mass1, radius1
+      read(iu, iostat = ierr) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), Gmass1, radius1
       if (ierr /= 0) then
          close(unit = iu, iostat = ierr)
          return
       end if
-      read(iu, iostat = ierr) name2, xh2(2), xh2(2), xh2(3), vh2(2), vh2(2), vh2(3), mass2, radius2
+      read(iu, iostat = ierr) id2, xh2(2), xh2(2), xh2(3), vh2(2), vh2(2), vh2(3), Gmass2, radius2
       if (ierr /= 0) then
          close(unit = iu, iostat = ierr)
          return
@@ -1238,6 +1242,8 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
+      if (param%discard_out == "") return
+
       associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
          if (nsp == 0) return
          select case(param%out_stat)
@@ -1283,30 +1289,23 @@ contains
    end subroutine io_write_discard
 
 
-   module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                 xh1, xh2, vh1, vh2, enc_out, out_type)
-      !! author: David A. Minton
-      !!
-      !! Write close encounter data to output binary files
-      !!  There is no direct file output from this subroutine
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_write_encounter.f90
-      !! Adapted from Hal Levison's Swift routine io_write_encounter.f
+   module subroutine io_write_encounter(self, pl, encbody, param)
       implicit none
       ! Arguments
-      integer(I4B),           intent(in) :: name1, name2
-      real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
-      real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
-      character(*),           intent(in) :: enc_out, out_type
+      class(swiftest_encounter),  intent(in) :: self    !! Swiftest encounter list object
+      class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
+      class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
+      class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
       ! Internals
-      logical , save    :: lfirst = .true.
-      integer(I4B), parameter :: lun = 30
-      integer(I4B)        :: ierr
-      integer(I4B), save    :: iu = lun
+      logical , save          :: lfirst = .true.
+      integer(I4B), parameter :: LUN = 30
+      integer(I4B)            :: k, ierr
 
-      open(unit = iu, file = enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+      if (param%enc_out == "" .or. self%nenc == 0) return
+
+      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
       if ((ierr /= 0) .and. lfirst) then
-         open(unit = iu, file = enc_out, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
+         open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
       end if
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
@@ -1314,21 +1313,36 @@ contains
          call util_exit(FAILURE)
       end if
       lfirst = .false.
-      write(iu, iostat = ierr) t
-      if (ierr < 0) then
-         write(*, *) "Swiftest Error:"
-         write(*, *) "   Unable to write binary file record"
-         call util_exit(FAILURE)
-      end if
-      write(iu) name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), mass1, radius1
-      write(iu) name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), mass2, radius2
-      close(unit = iu, iostat = ierr)
+
+      associate(ind1 => self%index1, ind2 => self%index2)
+         select type(encbody)
+         class is (swiftest_pl)
+            do k = 1, self%nenc
+               call io_write_frame_encounter(LUN, self%t(k), &
+                                             pl%id(ind1(k)),     encbody%id(ind2(k)), &
+                                             pl%Gmass(ind1(k)),  encbody%Gmass(ind2(k)), &
+                                             pl%radius(ind1(k)), encbody%radius(ind2(k)), &
+                                             self%x1(:,k),       self%x2(:,k), &
+                                             self%v1(:,k),       self%v2(:,k))
+            end do
+         class is (swiftest_tp)
+            do k = 1, self%nenc
+               call io_write_frame_encounter(LUN, self%t(k), &
+                                             pl%id(ind1(k)),     encbody%id(ind2(k)), &
+                                             pl%Gmass(ind1(k)),  0.0_DP, &
+                                             pl%radius(ind1(k)), 0.0_DP, &
+                                             self%x1(:,k),       self%x2(:,k), &
+                                             self%v1(:,k),       self%v2(:,k))
+            end do 
+         end select
+      end associate
+
+      close(unit = LUN, iostat = ierr)
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
          write(*, *) "   Unable to close binary encounter file"
          call util_exit(FAILURE)
       end if
-
       return
    end subroutine io_write_encounter
 
@@ -1427,6 +1441,39 @@ contains
 
       return
    end subroutine io_write_frame_cb
+
+
+  module subroutine io_write_frame_encounter(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
+      !! author: David A. Minton
+      !!
+      !! Write a single frame of close encounter data to output binary files
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: io_write_encounter.f90
+      !! Adapted from Hal Levison's Swift routine io_write_encounter.f
+      implicit none
+      ! Arguments
+      integer(I4B),           intent(in) :: iu               !! Open file unit number
+      real(DP),               intent(in) :: t                !! Time of encounter
+      integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
+      real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
+      real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
+      real(DP), dimension(:), intent(in) :: xh1, xh2         !! Heliocentric position vectors of the two encountering bodies 
+      real(DP), dimension(:), intent(in) :: vh1, vh2         !! Heliocentric velocity vectors of the two encountering bodies  
+      ! Internals
+      integer(I4B) :: ierr
+
+      write(iu, iostat = ierr) t
+      write(iu, iostat = ierr) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), Gmass1, radius1
+      write(iu, iostat = ierr) id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), Gmass2, radius2
+
+      if (ierr /= 0) then
+         write(*, *) "Swiftest Error:"
+         write(*, *) "   Unable to write binary file record for encounter"
+         call util_exit(FAILURE)
+      end if
+
+      return
+   end subroutine
 
 
    module subroutine io_write_frame_system(self, iu, param)

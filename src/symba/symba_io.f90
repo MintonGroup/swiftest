@@ -344,6 +344,8 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
+      if (param%discard_out == "") return
+
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
          if (self%tp_discards%nbody > 0) call io_write_discard(self, param)
          select type(pl_discards => self%pl_discards)
