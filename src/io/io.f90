@@ -31,14 +31,15 @@ contains
                Euntracked => self%Euntracked, Eorbit_orig => param%Eorbit_orig, Mtot_orig => param%Mtot_orig, &
                Ltot_orig => param%Ltot_orig(:), Lmag_orig => param%Lmag_orig, Lorbit_orig => param%Lorbit_orig(:), Lspin_orig => param%Lspin_orig(:), &
                lfirst => param%lfirstenergy)
-         if (lfirst) then
-            if (param%out_stat == "OLD") then
-               open(unit = EGYIU, file = ENERGY_FILE, form = "formatted", status = "old", action = "write", position = "append")
-            else 
-               open(unit = EGYIU, file = ENERGY_FILE, form = "formatted", status = "replace", action = "write")
+         if (param%energy_out /= "") then
+            if (lfirst .and. (param%out_stat /= "OLD")) then
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write")
+            else
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append")
                write(EGYIU,EGYHEADER)
             end if
          end if
+         call pl%h2b(cb)
          call system%get_energy_and_momentum(param) 
          ke_orbit_now = system%ke_orbit
          ke_spin_now = system%ke_spin
@@ -58,8 +59,10 @@ contains
             lfirst = .false.
          end if
 
-         write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
-         flush(EGYIU)
+         if (param%energy_out /= "") then
+            write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
+            close(EGYIU)
+         end if
          if (.not.lfirst .and. lterminal) then 
             Lmag_now = norm2(Ltot_now)
             Lerror = norm2(Ltot_now - Ltot_orig) / Lmag_orig
@@ -126,7 +129,7 @@ contains
    end subroutine io_dump_param
 
 
-   module subroutine io_dump_swiftest(self, param, msg) 
+   module subroutine io_dump_swiftest(self, param)
       !! author: David A. Minton
       !!
       !! Dump massive body data to files
@@ -137,7 +140,6 @@ contains
       ! Arguments
       class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      character(*), optional,     intent(in)    :: msg  !! Message to display with dump operation
       ! Internals
       integer(I4B)                   :: ierr    !! Error code
       integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
@@ -165,7 +167,7 @@ contains
    end subroutine io_dump_swiftest
 
 
-   module subroutine io_dump_system(self, param, msg)
+   module subroutine io_dump_system(self, param)
       !! author: David A. Minton
       !!
       !! Dumps the state of the system to files in case the simulation is interrupted.
@@ -175,36 +177,53 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      character(*), optional,       intent(in)    :: msg   !! Message to display with dump operation
       ! Internals
       class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
                                                             !! to dump file-specific values without changing the user-defined values
       integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
                                                             !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
-      real(DP) :: tfrac
-     
-      allocate(dump_param, source=param)
-      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
-      dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-      dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-      dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-      dump_param%out_form = XV
-      dump_param%out_stat = 'APPEND'
-      dump_param%T0 = param%t
-      call dump_param%dump(param_file_name)
+      real(DP)                      :: deltawall, wallperstep, tfrac
+      integer(I8B)                  :: clock_count, count_rate, count_max
+      character(*),     parameter   :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
+      character(len=*), parameter   :: walltimefmt = '("      Wall time (s): ", es12.5, "; Wall time/step in this interval (s):  ", es12.5)'
+      logical, save                 :: lfirst = .true.
+      real(DP), save                :: start, finish
+    
+      if (lfirst) then
+         call system_clock(clock_count, count_rate, count_max)
+         start = clock_count / (count_rate * 1.0_DP)
+         finish = start
+         lfirst = .false.
+         if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
+      else
+         allocate(dump_param, source=param)
+         param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
+         dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
+         dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
+         dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
+         dump_param%out_form = XV
+         dump_param%out_stat = 'APPEND'
+         dump_param%T0 = param%t
+         call dump_param%dump(param_file_name)
 
-      call self%cb%dump(dump_param)
-      if (self%pl%nbody > 0) call self%pl%dump(dump_param)
-      if (self%tp%nbody > 0) call self%tp%dump(dump_param)
+         call self%cb%dump(dump_param)
+         if (self%pl%nbody > 0) call self%pl%dump(dump_param)
+         if (self%tp%nbody > 0) call self%tp%dump(dump_param)
 
-      idx = idx + 1
-      if (idx > NDUMPFILES) idx = 1
+         idx = idx + 1
+         if (idx > NDUMPFILES) idx = 1
 
-      ! Print the status message (format code passed in from main driver)
-      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
-      write(*,msg) param%t, tfrac, self%pl%nbody, self%tp%nbody
-      if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
+         tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+         
+         call system_clock(clock_count, count_rate, count_max)
+         deltawall = clock_count / (count_rate * 1.0_DP) - finish
+         wallperstep = deltawall / param%istep_dump
+         finish = clock_count / (count_rate * 1.0_DP)
+         write(*, statusfmt) param%t, tfrac, self%pl%nbody, self%tp%nbody
+         write(*, walltimefmt) finish - start, wallperstep
+         if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
+      end if
 
       return
    end subroutine io_dump_system
@@ -421,6 +440,8 @@ contains
                   param%enc_out = param_value
                case ("DISCARD_OUT")
                   param%discard_out = param_value
+               case ("ENERGY_OUT")
+                  param%energy_out = param_value
                case ("EXTRA_FORCE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.
@@ -493,7 +514,7 @@ contains
                   read(param_value, *) param%Ecollisions
                case("EUNTRACKED")
                   read(param_value, *) param%Euntracked
-               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_FILE", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_OUT", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(iomsg,*) "Unknown parameter -> ",param_name
                   iostat = -1
@@ -535,6 +556,7 @@ contains
             iostat = -1
             return
          end if
+         param%lrestart = (param%out_stat == "APPEND")
          if (param%outfile /= "") then
             if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
                   (param%out_type /= SWIFTER_REAL4_TYPE)  .and. (param%out_type /= SWIFTER_REAL8_TYPE)) then
@@ -599,6 +621,9 @@ contains
          write(*,*) "MU2KG          = ",param%MU2KG       
          write(*,*) "TU2S           = ",param%TU2S        
          write(*,*) "DU2M           = ",param%DU2M        
+         if (trim(adjustl(param%outfile)) == "") then
+            param%outfile = BIN_OUTFILE
+         end if
          if (trim(adjustl(param%enc_out)) /= "") then
             write(*,*) "ENC_OUT        = ",trim(adjustl(param%enc_out))
          else
@@ -609,6 +634,7 @@ contains
             write(*,*) "BIG_DISCARD    = ",param%lbig_discard
          else
             write(*,*) "! DISCARD_OUT not set: Discards will not be recorded to file"
+            param%lbig_discard = .false.
             write(*,*) "! BIG_DISCARD    = ",param%lbig_discard
          end if
 
@@ -620,10 +646,11 @@ contains
 
          ! Calculate the G for the system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
-
-         ! Calculate the inverse speed of light in the system units
-         param%inv_c2 = einsteinC * param%TU2S / param%DU2M
-         param%inv_c2 = (param%inv_c2)**(-2)
+         if (param%lgr) then
+            ! Calculate the inverse speed of light in the system units
+            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+            param%inv_c2 = (param%inv_c2)**(-2)
+         end if
 
          associate(integrator => v_list(1))
             if (integrator == RMVS) then
@@ -888,7 +915,7 @@ contains
    end subroutine io_read_cb_in
 
 
-   function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
+   function io_read_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, &
       xh1, xh2, vh1, vh2, enc_out, out_type) result(ierr)
       !! author: David A. Minton
       !!
@@ -898,8 +925,8 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine: io_read_encounter.f90
       implicit none
       ! Arguments
-      integer(I4B),           intent(out) :: name1, name2
-      real(DP),               intent(out) :: t, mass1, mass2, radius1, radius2
+      integer(I4B),           intent(out) :: id1, id2
+      real(DP),               intent(out) :: t, Gmass1, Gmass2, radius1, radius2
       real(DP), dimension(:), intent(out) :: xh1, xh2, vh1, vh2
       character(*),           intent(in)  :: enc_out, out_type
       ! Result
@@ -924,12 +951,12 @@ contains
          return
       end if
 
-      read(iu, iostat = ierr) name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), mass1, radius1
+      read(iu, iostat = ierr) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), Gmass1, radius1
       if (ierr /= 0) then
          close(unit = iu, iostat = ierr)
          return
       end if
-      read(iu, iostat = ierr) name2, xh2(2), xh2(2), xh2(3), vh2(2), vh2(2), vh2(3), mass2, radius2
+      read(iu, iostat = ierr) id2, xh2(2), xh2(2), xh2(3), vh2(2), vh2(2), vh2(3), Gmass2, radius2
       if (ierr /= 0) then
          close(unit = iu, iostat = ierr)
          return
@@ -1215,6 +1242,8 @@ contains
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
 
+      if (param%discard_out == "") return
+
       associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
          if (nsp == 0) return
          select case(param%out_stat)
@@ -1260,30 +1289,23 @@ contains
    end subroutine io_write_discard
 
 
-   module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                 xh1, xh2, vh1, vh2, enc_out, out_type)
-      !! author: David A. Minton
-      !!
-      !! Write close encounter data to output binary files
-      !!  There is no direct file output from this subroutine
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_write_encounter.f90
-      !! Adapted from Hal Levison's Swift routine io_write_encounter.f
+   module subroutine io_write_encounter(self, pl, encbody, param)
       implicit none
       ! Arguments
-      integer(I4B),           intent(in) :: name1, name2
-      real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
-      real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
-      character(*),           intent(in) :: enc_out, out_type
+      class(swiftest_encounter),  intent(in) :: self    !! Swiftest encounter list object
+      class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
+      class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
+      class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
       ! Internals
-      logical , save    :: lfirst = .true.
-      integer(I4B), parameter :: lun = 30
-      integer(I4B)        :: ierr
-      integer(I4B), save    :: iu = lun
+      logical , save          :: lfirst = .true.
+      integer(I4B), parameter :: LUN = 30
+      integer(I4B)            :: k, ierr
 
-      open(unit = iu, file = enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+      if (param%enc_out == "" .or. self%nenc == 0) return
+
+      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
       if ((ierr /= 0) .and. lfirst) then
-         open(unit = iu, file = enc_out, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
+         open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
       end if
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
@@ -1291,21 +1313,36 @@ contains
          call util_exit(FAILURE)
       end if
       lfirst = .false.
-      write(iu, iostat = ierr) t
-      if (ierr < 0) then
-         write(*, *) "Swiftest Error:"
-         write(*, *) "   Unable to write binary file record"
-         call util_exit(FAILURE)
-      end if
-      write(iu) name1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), mass1, radius1
-      write(iu) name2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), mass2, radius2
-      close(unit = iu, iostat = ierr)
+
+      associate(ind1 => self%index1, ind2 => self%index2)
+         select type(encbody)
+         class is (swiftest_pl)
+            do k = 1, self%nenc
+               call io_write_frame_encounter(LUN, self%t(k), &
+                                             pl%id(ind1(k)),     encbody%id(ind2(k)), &
+                                             pl%Gmass(ind1(k)),  encbody%Gmass(ind2(k)), &
+                                             pl%radius(ind1(k)), encbody%radius(ind2(k)), &
+                                             self%x1(:,k),       self%x2(:,k), &
+                                             self%v1(:,k),       self%v2(:,k))
+            end do
+         class is (swiftest_tp)
+            do k = 1, self%nenc
+               call io_write_frame_encounter(LUN, self%t(k), &
+                                             pl%id(ind1(k)),     encbody%id(ind2(k)), &
+                                             pl%Gmass(ind1(k)),  0.0_DP, &
+                                             pl%radius(ind1(k)), 0.0_DP, &
+                                             self%x1(:,k),       self%x2(:,k), &
+                                             self%v1(:,k),       self%v2(:,k))
+            end do 
+         end select
+      end associate
+
+      close(unit = LUN, iostat = ierr)
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"
          write(*, *) "   Unable to close binary encounter file"
          call util_exit(FAILURE)
       end if
-
       return
    end subroutine io_write_encounter
 
@@ -1516,6 +1553,39 @@ contains
 
       return
    end subroutine io_write_frame_cb
+
+
+  module subroutine io_write_frame_encounter(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
+      !! author: David A. Minton
+      !!
+      !! Write a single frame of close encounter data to output binary files
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: io_write_encounter.f90
+      !! Adapted from Hal Levison's Swift routine io_write_encounter.f
+      implicit none
+      ! Arguments
+      integer(I4B),           intent(in) :: iu               !! Open file unit number
+      real(DP),               intent(in) :: t                !! Time of encounter
+      integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
+      real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
+      real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
+      real(DP), dimension(:), intent(in) :: xh1, xh2         !! Heliocentric position vectors of the two encountering bodies 
+      real(DP), dimension(:), intent(in) :: vh1, vh2         !! Heliocentric velocity vectors of the two encountering bodies  
+      ! Internals
+      integer(I4B) :: ierr
+
+      write(iu, iostat = ierr) t
+      write(iu, iostat = ierr) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), Gmass1, radius1
+      write(iu, iostat = ierr) id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), Gmass2, radius2
+
+      if (ierr /= 0) then
+         write(*, *) "Swiftest Error:"
+         write(*, *) "   Unable to write binary file record for encounter"
+         call util_exit(FAILURE)
+      end if
+
+      return
+   end subroutine
 
 
    module subroutine io_write_frame_system(self, iu, param)

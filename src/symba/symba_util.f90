@@ -2,7 +2,7 @@ submodule(symba_classes) s_symba_util
    use swiftest
 contains
 
-   module subroutine symba_util_append_arr_info(arr, source, lsource_mask)
+   module subroutine symba_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
@@ -10,38 +10,24 @@ contains
       ! Arguments
       type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      logical,                   dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: narr, nsrc
+      integer(I4B),                                         intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+      logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       if (.not. allocated(source)) return
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
+      if (.not.allocated(arr)) then
+         allocate(arr(nold+nsrc))
       else
-         nsrc = size(source)
+         call util_resize(arr, nold + nsrc)
       end if
 
-      if (allocated(arr)) then
-         narr = size(arr)
-      else
-         allocate(arr(nsrc))
-         narr = 0
-      end if
-
-      call util_resize(arr, narr + nsrc)
-
-      if (present(lsource_mask)) then
-         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr + 1:narr + nsrc) = source(:)
-      end if
+      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine symba_util_append_arr_info
 
 
-   module subroutine symba_util_append_arr_kin(arr, source, lsource_mask)
+   module subroutine symba_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append a single array of kinship type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
@@ -49,32 +35,18 @@ contains
       ! Arguments
       type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
       type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      logical,             dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: narr, nsrc
+      integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+      logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       if (.not. allocated(source)) return
 
-      if (present(lsource_mask)) then
-         nsrc = count(lsource_mask)
+      if (.not.allocated(arr)) then
+         allocate(arr(nold+nsrc))
       else
-         nsrc = size(source)
+         call util_resize(arr, nold + nsrc)
       end if
 
-      if (allocated(arr)) then
-         narr = size(arr)
-      else
-         allocate(arr(nsrc))
-         narr = 0
-      end if
-
-      call util_resize(arr, narr + nsrc)
-
-      if (present(lsource_mask)) then
-         arr(narr + 1:narr + nsrc) = pack(source(:), lsource_mask(:))
-      else
-         arr(narr + 1:narr + nsrc) = source(:)
-      end if
+      arr(nold + 1:nold + nsrc) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine symba_util_append_arr_kin
@@ -89,24 +61,26 @@ contains
       !! Arguments
       class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (symba_pl)
-         call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
+         associate(nold => self%nbody, nsrc => source%nbody)
+            call util_append(self%lcollision, source%lcollision, nold, nsrc, lsource_mask)
+            call util_append(self%lencounter, source%lencounter, nold, nsrc, lsource_mask)
+            call util_append(self%lmtiny, source%lmtiny, nold, nsrc, lsource_mask)
+            call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
+            call util_append(self%ntpenc, source%ntpenc, nold, nsrc, lsource_mask)
+            call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
+            call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+            call util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
+            call util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
+            call util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
+            call util_append(self%kin, source%kin, nold, nsrc, lsource_mask)
+            call util_append(self%info, source%info, nold, nsrc, lsource_mask)
 
-         call util_append(self%lcollision, source%lcollision, lsource_mask)
-         call util_append(self%lencounter, source%lencounter, lsource_mask)
-         call util_append(self%lmtiny, source%lmtiny, lsource_mask)
-         call util_append(self%nplenc, source%nplenc, lsource_mask)
-         call util_append(self%ntpenc, source%ntpenc, lsource_mask)
-         call util_append(self%levelg, source%levelg, lsource_mask)
-         call util_append(self%levelm, source%levelm, lsource_mask)
-         call util_append(self%isperi, source%isperi, lsource_mask)
-         call util_append(self%peri, source%peri, lsource_mask)
-         call util_append(self%atp, source%atp, lsource_mask)
-         call util_append(self%kin, source%kin, lsource_mask)
-         call util_append(self%info, source%info, lsource_mask)
+            call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
+         end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
          call util_exit(FAILURE)
@@ -125,23 +99,29 @@ contains
       ! Arguments
       class(symba_merger),             intent(inout) :: self         !! SyMBA massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B), dimension(:), allocatable        :: ncomp_tmp    !! Temporary placeholder for ncomp incase we are appending a symba_pl object to a symba_merger
+      integer(I4B) :: nold, nsrc
 
+      nold = self%nbody
+      nsrc = source%nbody
       select type(source)
       class is (symba_merger)
+         call util_append(self%ncomp, source%ncomp, nold, nsrc, lsource_mask)
          call symba_util_append_pl(self, source, lsource_mask) 
-         call util_append(self%ncomp, source%ncomp, lsource_mask)
       class is (symba_pl)
-         call symba_util_append_pl(self, source, lsource_mask) 
          allocate(ncomp_tmp, mold=source%id)
          ncomp_tmp(:) = 0
-         call util_append(self%ncomp, ncomp_tmp, lsource_mask)
+         call util_append(self%ncomp, ncomp_tmp, nold, nsrc, lsource_mask)
+         call symba_util_append_pl(self, source, lsource_mask) 
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
          call util_exit(FAILURE)
       end select
+
+      ! Save the number of appended bodies 
+      self%ncomp(nold+1:nold+nsrc) = nsrc
 
       return
    end subroutine symba_util_append_merger
@@ -156,15 +136,18 @@ contains
       !! Arguments
       class(symba_tp),                 intent(inout) :: self         !! SyMBA test particle object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (symba_tp)
-         call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
+         associate(nold => self%nbody, nsrc => source%nbody)
+            call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
+            call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
+            call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+            call util_append(self%info, source%info, nold, nsrc, lsource_mask)
 
-         call util_append(self%nplenc, source%nplenc, lsource_mask)
-         call util_append(self%levelg, source%levelg, lsource_mask)
-         call util_append(self%levelm, source%levelm, lsource_mask)
+            call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
+         end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
          call util_exit(FAILURE)
@@ -271,6 +254,7 @@ contains
             call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
+            call util_fill(keeps%info, inserts%info, lfill_list)
             
             call util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
@@ -380,11 +364,15 @@ contains
       class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
+      integer(I4B) :: i
+      logical, dimension(:), allocatable :: lmask
 
       associate(pl => self, pl_adds => system%pl_adds)
          allocate(tmp, mold=pl)
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
-         call pl%spill(tmp, lspill_list=(pl%ldiscard(:) .or. pl%status(:) == INACTIVE), ldestructive=.true.)
+         allocate(lmask, source=pl%ldiscard(:))
+         lmask(:) = lmask(:) .or. pl%status(:) == INACTIVE
+         call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
          call tmp%setup(0,param)
          deallocate(tmp)
 
@@ -393,7 +381,10 @@ contains
          if (allocated(pl%xend)) deallocate(pl%xend)
 
          ! Add in any new bodies
-         call pl%append(pl_adds)
+         if (pl_adds%nbody > 0) then
+            call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
+            call symba_io_dump_particle_info(system, param, plidx=[(i, i = 1, pl%nbody)])
+         end if 
 
          ! If there are still bodies in the system, sort by mass in descending order and re-index
          if (pl%nbody > 0) then
@@ -486,9 +477,9 @@ contains
       class(symba_merger), intent(inout) :: self  !! SyMBA massive body object
       integer(I4B),        intent(in)    :: nnew  !! New size neded
 
-      call symba_util_resize_pl(self, nnew)
-
       call util_resize(self%ncomp, nnew)
+
+      call symba_util_resize_pl(self, nnew)
 
       return
    end subroutine symba_util_resize_merger
@@ -503,8 +494,6 @@ contains
       class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
       integer(I4B),    intent(in)    :: nnew  !! New size neded
 
-      call util_resize_pl(self, nnew)
-
       call util_resize(self%lcollision, nnew)
       call util_resize(self%lencounter, nnew)
       call util_resize(self%lmtiny, nnew)
@@ -517,6 +506,8 @@ contains
       call util_resize(self%atp, nnew)
       call util_resize(self%kin, nnew)
       call util_resize(self%info, nnew)
+
+      call util_resize_pl(self, nnew)
 
       return
    end subroutine symba_util_resize_pl
@@ -531,11 +522,12 @@ contains
       class(symba_tp), intent(inout) :: self  !! SyMBA test particle object
       integer(I4B),    intent(in)    :: nnew  !! New size neded
 
-      call util_resize_tp(self, nnew)
-
       call util_resize(self%nplenc, nnew)
       call util_resize(self%levelg, nnew)
       call util_resize(self%levelm, nnew)
+      call util_resize(self%info, nnew)
+
+      call util_resize_tp(self, nnew)
 
       return
    end subroutine symba_util_resize_tp
@@ -693,6 +685,7 @@ contains
          if (allocated(tp%nplenc)) tp%nplenc(1:ntp) = tp_sorted%nplenc(ind(1:ntp))
          if (allocated(tp%levelg)) tp%levelg(1:ntp) = tp_sorted%levelg(ind(1:ntp))
          if (allocated(tp%levelm)) tp%levelm(1:ntp) = tp_sorted%levelm(ind(1:ntp))
+         if (allocated(tp%info))   tp%info(1:ntp)   = tp_sorted%info(ind(1:ntp))
          deallocate(tp_sorted)
       end associate
       
@@ -711,14 +704,25 @@ contains
       type(symba_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical,                   dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
       logical,                                              intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
 
-      discards(:) = pack(keeps(:), lspill_list(:))
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
-            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
          else
             deallocate(keeps)
          end if
@@ -739,14 +743,25 @@ contains
       type(symba_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical,             dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
       logical,                                        intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
 
-      discards(:) = pack(keeps(:), lspill_list(:))
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
-            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
          else
             deallocate(keeps)
          end if
@@ -813,7 +828,7 @@ contains
       ! Internals
       integer(I4B) :: i
   
-      associate(keeps => self)
+      associate(keeps => self, nenc => self%nenc)
          select type(discards)
          class is (symba_pltpenc)
             call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
@@ -850,6 +865,7 @@ contains
             call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
             call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
             call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
+            call util_spill(keeps%info, discards%info, lspill_list, ldestructive)
 
             call util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default

@@ -125,6 +125,14 @@ module rmvs_classes
          logical                                 :: lencounter !! Returns true if there is at least one close encounter      
       end function rmvs_encounter_check_tp
 
+      module subroutine rmvs_io_write_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2, enc_out)
+         implicit none
+         integer(I4B),           intent(in) :: id1, id2
+         real(DP),               intent(in) :: t, Gmass1, Gmass2, radius1, radius2
+         real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
+         character(*),           intent(in) :: enc_out
+      end subroutine rmvs_io_write_encounter
+
       module subroutine rmvs_kick_getacch_tp(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
@@ -163,7 +171,7 @@ module rmvs_classes
          implicit none
          class(rmvs_pl),                  intent(inout) :: self         !! RMVS massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine rmvs_util_append_pl
 
       module subroutine rmvs_util_append_tp(self, source, lsource_mask)
@@ -171,7 +179,7 @@ module rmvs_classes
          implicit none
          class(rmvs_tp),                  intent(inout) :: self         !! RMVS test particle object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine rmvs_util_append_tp
 
       module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)

@@ -45,7 +45,7 @@ module swiftest_classes
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
-      character(STRMAX)    :: ennergy_out    = ""                 !! Name of output energy and momentum report file
+      character(STRMAX)    :: energy_out    = ""                  !! Name of output energy and momentum report file
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -64,13 +64,14 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: Ltot = 0.0_DP        !! System angular momentum vector
-      real(DP), dimension(NDIM) :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
-      real(DP)                  :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+      real(DP), dimension(NDIM) :: Ltot = 0.0_DP          !! System angular momentum vector
+      real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Mescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
+      real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
       logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
+      logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
@@ -320,11 +321,13 @@ module swiftest_classes
       real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
       real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
       real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
+      real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
    contains
       procedure :: setup  => setup_encounter       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure :: copy   => util_copy_encounter   !! Copies elements from the source encounter list into self.
       procedure :: spill  => util_spill_encounter  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: resize => util_resize_encounter !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+      procedure :: write  => io_write_encounter    !! Write close encounter data to output binary file
    end type swiftest_encounter
 
    abstract interface
@@ -549,18 +552,16 @@ module swiftest_classes
          character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_dump_param
 
-      module subroutine io_dump_swiftest(self, param, msg) 
+      module subroutine io_dump_swiftest(self, param)
          implicit none
          class(swiftest_base),          intent(inout) :: self  !! Swiftest base object
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
-         character(*), optional,        intent(in)    :: msg   !! Message to display with dump operation
       end subroutine io_dump_swiftest
 
-      module subroutine io_dump_system(self, param, msg)
+      module subroutine io_dump_system(self, param)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
-         character(*), optional,        intent(in)    :: msg  !! Message to display with dump operation
       end subroutine io_dump_system
 
       module function io_get_args(integrator, param_file_name) result(ierr)
@@ -657,13 +658,12 @@ module swiftest_classes
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine io_toupper
 
-      module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, &
-                                           xh1, xh2, vh1, vh2, enc_out, out_type)
+      module subroutine io_write_encounter(self, pl, encbody, param)
          implicit none
-         integer(I4B),           intent(in) :: name1, name2
-         real(DP),               intent(in) :: t, mass1, mass2, radius1, radius2
-         real(DP), dimension(:), intent(in) :: xh1, xh2, vh1, vh2
-         character(*),           intent(in) :: enc_out, out_type
+         class(swiftest_encounter),  intent(in) :: self    !! Swiftest encounter list object
+         class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
+         class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
+         class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
       end subroutine io_write_encounter
 
       module subroutine io_write_frame_body(self, iu, param)
@@ -679,6 +679,17 @@ module swiftest_classes
          integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_cb
+
+      module subroutine io_write_frame_encounter(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
+         implicit none
+         integer(I4B),           intent(in) :: iu               !! Open file unit number
+         real(DP),               intent(in) :: t                !! Time of encounter
+         integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
+         real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
+         real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
+         real(DP), dimension(:), intent(in) :: xh1, xh2         !! Heliocentric position vectors of the two encountering bodies 
+         real(DP), dimension(:), intent(in) :: vh1, vh2         !! Heliocentric velocity vectors of the two encountering bodies 
+      end subroutine io_write_frame_encounter
 
       module subroutine io_write_frame_system(self, iu, param)
          implicit none
@@ -832,39 +843,44 @@ module swiftest_classes
    end interface
 
    interface util_append
-      module subroutine util_append_arr_char_string(arr, source, lsource_mask)
+      module subroutine util_append_arr_char_string(arr, source, nold, nsrc, lsource_mask)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,               dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                                     intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,               dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_char_string
 
-      module subroutine util_append_arr_DP(arr, source, lsource_mask)
+      module subroutine util_append_arr_DP(arr, source, nold, nsrc, lsource_mask)
          implicit none
          real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,  dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                        intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,  dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_DP
 
-      module subroutine util_append_arr_DPvec(arr, source, lsource_mask)
+      module subroutine util_append_arr_DPvec(arr, source, nold, nsrc, lsource_mask)
          implicit none
          real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
          real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,  dimension(:),   optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                          intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,  dimension(:),                intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_DPvec
 
-      module subroutine util_append_arr_I4B(arr, source, lsource_mask)
+      module subroutine util_append_arr_I4B(arr, source, nold, nsrc, lsource_mask)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical,      dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_I4B
 
-      module subroutine util_append_arr_logical(arr, source, lsource_mask)
+      module subroutine util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
          implicit none
          logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         logical, dimension(:), optional,    intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_logical
    end interface
 
@@ -872,22 +888,22 @@ module swiftest_classes
       module subroutine util_append_body(self, source, lsource_mask)
          implicit none
          class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
-         class(swiftest_body),            intent(in)    :: source !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
+         class(swiftest_body),            intent(in)    :: source  !! Source object to append
+         logical, dimension(:),           intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
 
       module subroutine util_append_pl(self, source, lsource_mask)
          implicit none
          class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_pl
    
       module subroutine util_append_tp(self, source, lsource_mask)
          implicit none
          class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:), optional, intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_tp
 
       module subroutine util_coord_b2h_pl(self, cb)

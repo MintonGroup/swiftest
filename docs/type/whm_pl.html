@@ -1447,7 +1447,7 @@
           
     
     <h3>
-public module subroutine io_dump_swiftest(self, param, msg)
+public module subroutine io_dump_swiftest(self, param)
     
     
    
@@ -1496,21 +1496,6 @@ public module subroutine io_dump_swiftest(self, param, msg)
   
   <td></td><td>::</td>
   <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>character(len=*),</td>
-  <td>intent(in),</td>
-  <td>optional</td>
-  
-  <td></td><td>::</td>
-  <td><strong>msg</strong></td><td><p>Message to display with dump operation</p></td>
   
 </tr>
 
@@ -4214,7 +4199,7 @@ public module subroutine whm_util_append_pl(self, source, lsource_mask)
   
   <td><span class="anchor" ></span>logical,</td>
   <td>intent(in),</td>
-  <td>optional</td>
+  <td></td>
   
   <td>dimension(:)</td><td>::</td>
   <td><strong>lsource_mask</strong></td><td><p>Logical mask indicating which elements to append to</p></td>

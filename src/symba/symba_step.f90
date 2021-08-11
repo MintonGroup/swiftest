@@ -237,7 +237,7 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      associate(system => self, pltpenc_list => self%pltpenc_list, plplenc_list => self%plplenc_list, pl_adds => self%pl_adds, pl_discards => self%pl_discards)
+      associate(system => self)
          select type(pl => system%pl)
          class is (symba_pl)
             select type(tp => system%tp)
@@ -255,18 +255,19 @@ contains
                   pl%levelm(:) = 0
                   pl%lencounter = .false.
                   pl%lcollision = .false.
-                  plplenc_list%nenc = 0
+                  system%plplenc_list%nenc = 0
+                  system%plplcollision_list%nenc = 0
                end if
            
                if (tp%nbody > 0) then
                   tp%nplenc(:) = 0 
                   tp%levelg(:) = 0
                   tp%levelm(:) = 0
-               pltpenc_list%nenc = 0
+               system%pltpenc_list%nenc = 0
                end if
 
-               call pl_adds%resize(0)
-               call pl_discards%resize(0)
+               call system%pl_adds%resize(0)
+               call system%pl_discards%resize(0)
             end select
          end select
       end associate

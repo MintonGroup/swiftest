@@ -2,15 +2,17 @@ import swiftest
 import numpy as np
 import os
 import glob
-from pyslalib import slalib
 import xarray as xr
 """
 Functions that recreate the Swift/Swifter tool programs
 """
 
-def sla_dranrm(angle):
-    func = np.vectorize(slalib.sla_dranrm)
-    return xr.apply_ufunc(func, angle)
+def wrap_angle(angle):
+    while np.any(angle >= 2 * np.pi):
+        angle[angle >= 2 * np.pi] -= 2 * np.pi
+    while np.any(angle < 0.0):
+        angle[angle < 0.0] += 2 * np.pi
+    return angle
 
 def follow_swift(ds, ifol=None, nskp=None):
     """
@@ -36,11 +38,11 @@ def follow_swift(ds, ifol=None, nskp=None):
         ifol = int(intxt)
     print(f"Following particle {ifol}")
     if ifol < 0: # Negative numbers are planets
-        fol = ds.where(np.invert(np.isnan(ds['Mass'])), drop=True)
+        fol = ds.where(np.invert(np.isnan(ds['GMass'])), drop=True)
         fol = fol.where(np.invert(np.isnan(fol['a'])), drop=True) # Remove times where this body doesn't exist (but this also gets rid of the central body)
         fol = fol.isel(id = -ifol - 2)  # Take 1 off for 0-indexed arrays in Python, and take 1 more off because the central body is gone
     elif ifol > 0: # Positive numbers are test particles
-        fol = ds.where(np.isnan(ds['Mass']), drop=True).drop_vars(['Mass', 'Radius'])
+        fol = ds.where(np.isnan(ds['GMass']), drop=True).drop_vars(['GMass', 'Radius'])
         fol = fol.where(np.invert(np.isnan(fol['a'])), drop=True)
         fol = fol.isel(id = ifol - 1)  # Take 1 off for 0-indexed arrays in Python
 
@@ -51,7 +53,7 @@ def follow_swift(ds, ifol=None, nskp=None):
     dr = 180.0 / np.pi
     fol['obar'] = fol['capom'] + fol['omega']
     fol['obar'] = fol['obar'].fillna(0)
-    fol['obar'] = sla_dranrm(fol['obar'])
+    fol['obar'] = wrap_angle(fol['obar'])
     fol['obar'] = fol['obar'] * dr
     fol['inc'] = fol['inc'] * dr
     fol['capom'] = fol['capom'] * dr

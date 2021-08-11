@@ -13,14 +13,25 @@ contains
       character(len=STRMAX), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical,               dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
 
-      discards(:) = pack(keeps(:), lspill_list(:))
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
-            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
          else
             deallocate(keeps)
          end if
@@ -40,14 +51,25 @@ contains
       real(DP), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical,  dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
       logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
 
-      discards(:) = pack(keeps(:), lspill_list(:))
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
-            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
          else
             deallocate(keeps)
          end if
@@ -68,19 +90,30 @@ contains
       logical,  dimension(:),                intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(NDIM, count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
+
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(NDIM, nspill))
+      else if (size(discards, dim=2) /= nspill) then
+         deallocate(discards)
+         allocate(discards(NDIM, nspill))
+      end if
 
       do i = 1, NDIM
-         discards(i,:) = pack(keeps(i,:), lspill_list(:))
+         discards(i,:) = pack(keeps(i,1:nlist), lspill_list(1:nlist))
       end do
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
+         if (nkeep > 0) then
             do i = 1, NDIM
-               keeps(i,:) = pack(keeps(i,:), .not. lspill_list(:))
+               keeps(i,:) = pack(keeps(i,1:nlist), .not. lspill_list(1:nlist))
             end do
+         else
+            deallocate(keeps)
          end if
       end if
 
@@ -98,14 +131,25 @@ contains
       integer(I4B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
 
-      discards(:) = pack(keeps(:), lspill_list(:))
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
-            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
          else
             deallocate(keeps)
          end if
@@ -125,14 +169,25 @@ contains
       logical, dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical, dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or no
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
 
-      if (.not.allocated(keeps) .or. count(lspill_list(:)) == 0) return
-      if (.not.allocated(discards)) allocate(discards(count(lspill_list(:))))
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
 
-      discards(:) = pack(keeps(:), lspill_list(:))
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
-         if (count(.not.lspill_list(:)) > 0) then
-            keeps(:) = pack(keeps(:), .not. lspill_list(:))
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
          else
             deallocate(keeps)
          end if
@@ -154,7 +209,6 @@ contains
       logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
       ! Internals
-      integer(I4B) :: i
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
@@ -185,7 +239,6 @@ contains
          discards%nbody = count(lspill_list(:))
          keeps%nbody = keeps%nbody - discards%nbody
          if (keeps%nbody > size(keeps%status)) keeps%status(keeps%nbody+1:size(keeps%status)) = INACTIVE
-
       end associate
      
       return
@@ -201,11 +254,8 @@ contains
       class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      ! Internals
-      integer(I4B) :: i
   
       associate(keeps => self)
-   
          call util_spill(keeps%lvdotr, discards%lvdotr, lspill_list, ldestructive)
          call util_spill(keeps%status, discards%status, lspill_list, ldestructive)
          call util_spill(keeps%index1, discards%index1, lspill_list, ldestructive)
@@ -214,6 +264,7 @@ contains
          call util_spill(keeps%x2, discards%x2, lspill_list, ldestructive)
          call util_spill(keeps%v1, discards%v1, lspill_list, ldestructive)
          call util_spill(keeps%v2, discards%v2, lspill_list, ldestructive)
+         call util_spill(keeps%t, discards%t, lspill_list, ldestructive)
 
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nenc values for both the keeps and discareds
@@ -237,11 +288,8 @@ contains
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      ! Internals
-      integer(I4B) :: i
 
       associate(keeps => self)
-
          select type (discards) ! The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
             !> Spill components specific to the massive body class

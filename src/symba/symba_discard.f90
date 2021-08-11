@@ -24,7 +24,7 @@ contains
       associate(npl => pl%nbody, cb => system%cb)
          call system%set_msys()
          rmin2 = param%rmin**2
-         rmax2 = param%rmax*2
+         rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
          do i = 1, npl
             if (pl%status(i) == ACTIVE) then
@@ -271,7 +271,6 @@ contains
       pl%lfirst = lfirst_orig
    
       return
-   
    end subroutine symba_discard_peri_pl
 
 
@@ -285,32 +284,44 @@ contains
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      real(DP) :: Eorbit_before, Eorbit_after
    
       select type(system)
       class is (symba_nbody_system)
          select type(param)
          class is (symba_parameters)
-            associate(pl => self, plplenc_list => system%plplenc_list)
+            associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
                call pl%h2b(system%cb) 
 
                ! First deal with the non pl-pl collisions
                call symba_discard_nonplpl(self, system, param)
 
-               ! Scrub the pl-pl encounter list of any encounters that did not lead to a collision
-               call plplenc_list%scrub_non_collision(system, param)
+               ! Extract the pl-pl encounter list and return the plplcollision_list
+               call plplenc_list%extract_collisions(system, param)
+               call plplenc_list%write(pl, pl, param)
 
-               if ((plplenc_list%nenc > 0) .and. any(pl%lcollision(:))) then 
+               if ((plplcollision_list%nenc > 0) .and. any(pl%lcollision(:))) then 
                   write(*, *) "Collision between massive bodies detected at time t = ",param%t
                   if (param%lfragmentation) then
-                     call plplenc_list%resolve_fragmentations(system, param)
+                     call plplcollision_list%resolve_fragmentations(system, param)
                   else
-                     call plplenc_list%resolve_mergers(system, param)
+                     call plplcollision_list%resolve_mergers(system, param)
                   end if
                end if
 
                if (any(pl%ldiscard(:))) then
+                  if (param%lenergy) then
+                     call system%get_energy_and_momentum(param)
+                     Eorbit_before = system%te
+                  end if
                   call symba_discard_nonplpl_conservation(self, system, param)
                   call pl%rearray(system, param)
+                  if (param%lenergy) then
+                     call system%get_energy_and_momentum(param)
+                     Eorbit_after = system%te
+                     system%Ecollisions = Eorbit_after - Eorbit_before
+                  end if
                end if
 
             end associate
