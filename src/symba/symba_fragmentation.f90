@@ -81,6 +81,12 @@ contains
          write(*,*) 'No fragment solution found, so treat as a pure hit-and-run'
          status = ACTIVE 
          nfrag = 0
+         select type(pl => system%pl)
+         class is (symba_pl)
+            pl%status(family(:)) = status
+            pl%ldiscard(family(:)) = .false.
+            pl%lcollision(family(:)) = .false.
+         end select
       else
          ! Populate the list of new bodies
          write(*,'("Generating ",I2.0," fragments")') nfrag
@@ -360,6 +366,12 @@ contains
          write(*,*) 'No fragment solution found, so treat as a pure hit-and-run'
          status = ACTIVE 
          nfrag = 0
+         select type(pl => system%pl)
+         class is (symba_pl)
+            pl%status(family(:)) = status
+            pl%ldiscard(family(:)) = .false.
+            pl%lcollision(family(:)) = .false.
+         end select
       else
          ! Populate the list of new bodies
          write(*,'("Generating ",I2.0," fragments")') nfrag
