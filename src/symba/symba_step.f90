@@ -211,6 +211,9 @@ contains
                   if (param%lclose) then
                      lplpl_collision = plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
                      lpltp_collision = pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+
+                     if (lplpl_collision) call pl%discard(system, param)
+                     if (lpltp_collision) call tp%discard(system, param)
                   end if
 
                   call self%set_recur_levels(ireci)
