@@ -883,7 +883,6 @@ contains
       integer(I4B)            :: iu = LUN
       character(len=STRMAX)   :: errmsg
 
-      write(*,*) "Reading central body file " // trim(adjustl(param%incbfile))  
       if (param%in_type == 'ASCII') then
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
          read(iu, *, err = 667, iomsg = errmsg) self%id

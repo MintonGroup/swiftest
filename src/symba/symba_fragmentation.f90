@@ -431,7 +431,6 @@ contains
 
                plnew%id(:) = id_frag(:) 
                system%maxid = system%maxid + nfrag
-               plnew%status(:) = ACTIVE
                plnew%lcollision(:) = .false.
                plnew%ldiscard(:) = .false.
                plnew%xb(:,:) = xb_frag(:, :) 
@@ -448,31 +447,46 @@ contains
                select case(status)
                case(DISRUPTION)
                   plnew%info(:)%origin_type = "Disruption"
-               case(SUPERCATASTROPHIC)
-                  plnew%info(:)%origin_type = "Supercatastrophic"
-               case(HIT_AND_RUN)
-                  plnew%info(:)%origin_type = "Hit and run fragment"
-               case(MERGED)
-                  plnew%info(1) = pl%info(ibiggest)
-               end select
-
-               if (status /= MERGED) then
+                  plnew%status(:) = NEW_PARTICLE
                   plnew%info(:)%origin_time = param%t
                   do i = 1, nfrag
                      plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
                      plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
                   end do
-               end if
+               case(SUPERCATASTROPHIC)
+                  plnew%info(:)%origin_type = "Supercatastrophic"
+                  plnew%status(:) = NEW_PARTICLE
+                  plnew%info(:)%origin_time = param%t
+                  do i = 1, nfrag
+                     plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
+                     plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
+                  end do
+               case(HIT_AND_RUN)
+                  plnew%info(1) = pl%info(ibiggest)
+                  plnew%status(1) = OLD_PARTICLE
+                  plnew%status(2:nfrag) = NEW_PARTICLE
+                  plnew%info(2:nfrag)%origin_type = "Hit and run fragment"
+                  plnew%info(2:nfrag)%origin_time = param%t
+                  do i = 2, nfrag
+                     plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
+                     plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
+                  end do
+               case(MERGED)
+                  plnew%info(1) = pl%info(ibiggest)
+                  plnew%status(1) = OLD_PARTICLE
+               end select
 
                if (param%lrotation) then
                   plnew%Ip(:,:) = Ip_frag(:,:)
                   plnew%rot(:,:) = rot_frag(:,:)
                end if
+
                if (param%ltides) then
                   plnew%Q = pl%Q(ibiggest)
                   plnew%k2 = pl%k2(ibiggest)
                   plnew%tlag = pl%tlag(ibiggest)
                end if
+
                call plnew%set_mu(cb)
                pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
 

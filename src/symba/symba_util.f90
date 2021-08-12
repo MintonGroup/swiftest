@@ -381,6 +381,7 @@ contains
          allocate(lmask, source=pl%ldiscard(:))
          lmask(:) = lmask(:) .or. pl%status(:) == INACTIVE
          call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
+         deallocate(lmask)
          call tmp%setup(0,param)
          deallocate(tmp)
 
@@ -391,7 +392,10 @@ contains
          ! Add in any new bodies
          if (pl_adds%nbody > 0) then
             call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
-            call symba_io_dump_particle_info(system, param, plidx=[(i, i = 1, pl%nbody)])
+            allocate(lmask(pl%nbody)) 
+            lmask(:) = pl%status(1:pl%nbody) == NEW_PARTICLE
+            call symba_io_dump_particle_info(system, param, plidx=pack([(i, i=1, pl%nbody)], lmask))
+            where(pl%status(:) /= INACTIVE) pl%status(:) = ACTIVE
          end if 
 
          ! If there are still bodies in the system, sort by mass in descending order and re-index

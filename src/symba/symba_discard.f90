@@ -156,7 +156,6 @@ contains
    
       end select
       return
-   
    end subroutine symba_discard_conserve_mtm
 
 
