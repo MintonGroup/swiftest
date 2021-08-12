@@ -42,7 +42,7 @@ contains
       integer(I4B), parameter                 :: NFRAG_MIN = 7 !! The minimum allowable number of fragments (set to 6 because that's how many unknowns are needed in the tangential velocity calculation)
       real(DP)                                :: r_max_start, r_max_start_old, r_max, f_spin 
       real(DP), parameter                     :: Ltol = 10 * epsilon(1.0_DP)
-      real(DP), parameter                     :: Etol = 1e-9_DP
+      real(DP), parameter                     :: Etol = 1e-8_DP
       integer(I4B), parameter                 :: MAXTRY = 3000
       integer(I4B), parameter                 :: TANTRY = 3
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes, fpe_quiet_modes
