@@ -1,6 +1,6 @@
 !Parameter file for the SyMBA-RINGMOONS test
 T0             0.0 
-TSTOP          6000.0 
+TSTOP          3000.0 
 DT             600.0
 PL_IN          pl.swiftest.in
 TP_IN          tp.in
