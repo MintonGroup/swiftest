@@ -282,7 +282,7 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
-      module function symba_fragmentation_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
@@ -292,9 +292,9 @@ module symba_classes
          real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
          real(DP),                        intent(inout) :: Qloss            !! Energy lost during collisionn
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_fragmentation_casedisruption
+      end function symba_collision_casedisruption
    
-      module function symba_fragmentation_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
@@ -304,9 +304,9 @@ module symba_classes
          real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
          real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_fragmentation_casehitandrun
+      end function symba_collision_casehitandrun
 
-      module function symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
+      module function symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
@@ -314,9 +314,9 @@ module symba_classes
          real(DP),        dimension(:,:), intent(in)    :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
          real(DP),        dimension(:),   intent(in)    :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collisio
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_fragmentation_casemerge
+      end function symba_collision_casemerge
 
-      module function symba_fragmentation_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
@@ -326,7 +326,7 @@ module symba_classes
          real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
          real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_fragmentation_casesupercatastrophic
+      end function symba_collision_casesupercatastrophic
 
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters
