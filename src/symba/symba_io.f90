@@ -17,40 +17,31 @@ contains
       ! Internals
       logical, save             :: lfirst = .true.
       integer(I4B), parameter   :: LUN = 22
-      integer(I4B)              :: i, ierr
+      integer(I4B)              :: i
+      character(STRMAX)         :: errmsg
 
       if (lfirst) then
          select case(param%out_stat)
          case('APPEND')
-            open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+            open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
          case('NEW', 'UNKNOWN', 'REPLACE')
-            open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
+            open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
          case default
             write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
          end select
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error:"
-            write(*, *) "   particle output file already exists or cannot be accessed"
-            call util_exit(FAILURE)
-         end if
 
          lfirst = .false.
       else
-         open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error:"
-            write(*, *) "   unable to open binary output file for APPEND"
-            call util_exit(FAILURE)
-         end if
+         open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
       end if
 
       if (present(lincludecb)) then
          if (lincludecb) then
             select type(cb => system%cb)
             class is (symba_cb)
-               write(LUN) cb%id
-               write(LUN) cb%info
+               write(LUN, err = 667, iomsg = errmsg) cb%id
+               write(LUN, err = 667, iomsg = errmsg) cb%info
             end select
          end if
       end if
@@ -59,8 +50,8 @@ contains
          select type(pl => system%pl)
          class is (symba_pl)
             do i = 1, size(plidx)
-               write(LUN) pl%id(plidx(i))
-               write(LUN) pl%info(plidx(i))
+               write(LUN, err = 667, iomsg = errmsg) pl%id(plidx(i))
+               write(LUN, err = 667, iomsg = errmsg) pl%info(plidx(i))
             end do
          end select
       end if
@@ -69,20 +60,19 @@ contains
          select type(tp => system%tp)
          class is (symba_tp)
             do i = 1, size(tpidx)
-               write(LUN) tp%id(tpidx(i))
-               write(LUN) tp%info(tpidx(i))
+               write(LUN, err = 667, iomsg = errmsg) tp%id(tpidx(i))
+               write(LUN, err = 667, iomsg = errmsg) tp%info(tpidx(i))
             end do
          end select
       end if
 
-      close(unit = LUN, iostat = ierr)
-      if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   unable to close particle output file"
-         call util_exit(FAILURE)
-      end if
+      close(unit = LUN, err = 667, iomsg = errmsg)
 
       return
+
+      667 continue
+      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine symba_io_dump_particle_info
 
 
@@ -118,7 +108,7 @@ contains
          allocate(param%seed(nseeds))
          rewind(unit)
          do
-            read(unit = unit, fmt = linefmt, iostat = iostat, end = 1) line
+            read(unit = unit, fmt = linefmt, iostat = iostat, end = 1, err = 667, iomsg = iomsg) line
             line_trim = trim(adjustl(line))
             ilength = len(line_trim)
             if ((ilength /= 0)) then 
@@ -192,6 +182,7 @@ contains
 
       iostat = 0
 
+      667 continue
       return
    end subroutine symba_io_param_reader
 
@@ -230,9 +221,9 @@ contains
 
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
-         write(param_name, Afmt) "PARTICLE_OUT"; write(param_value, Afmt) trim(adjustl(param%particle_out)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%Gmtiny; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "PARTICLE_OUT"; write(param_value, Afmt) trim(adjustl(param%particle_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%Gmtiny; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%lfragmentation) then
             write(param_name, Afmt) "SEED"
             if (allocated(param_array)) deallocate(param_array)
@@ -241,12 +232,12 @@ contains
             do i = 1, size(param%seed)
                write(param_array(i)%value, Ifmt) param%seed(i)
             end do
-            write(unit, Afmt, advance='no') adjustl(param_name), adjustl(param_array(0)%value)
+            write(unit, Afmt, advance='no', err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_array(0)%value)
             do i = 1, size(param%seed)
                if (i < size(param%seed)) then
-                  write(unit, Afmt, advance='no') adjustl(param_array(i)%value)
+                  write(unit, Afmt, advance='no', err = 667, iomsg = iomsg) adjustl(param_array(i)%value)
                else
-                  write(unit, Afmt) adjustl(param_array(i)%value)
+                  write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_array(i)%value)
                end if
             end do
          end if
@@ -254,6 +245,7 @@ contains
          iostat = 0
       end associate
 
+      667 continue
       return
    end subroutine symba_io_param_writer
 
@@ -268,16 +260,12 @@ contains
 
       ! Internals
       integer(I4B), parameter :: LUN = 22
-      integer(I4B)            :: i, ierr, id, idx
+      integer(I4B)            :: i,  id, idx
       logical                 :: lmatch  
       type(symba_particle_info) :: tmpinfo
+      character(STRMAX)       :: errmsg
 
-      open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
-      if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   unable to open binary particle file for reading"
-         call util_exit(FAILURE)
-      end if
+      open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
 
       select type(cb => system%cb)
       class is (symba_cb)
@@ -287,44 +275,42 @@ contains
             class is (symba_tp)
                do 
                   lmatch = .false.
-                  read(LUN, iostat=ierr) id
-                  if (ierr /=0) exit
+                  read(LUN, err = 667, iomsg = errmsg) id
 
                   if (idx == cb%id) then
-                     read(LUN) cb%info
+                     read(LUN, err = 667, iomsg = errmsg) cb%info
                      lmatch = .true.
                   else 
                      if (pl%nbody > 0) then
                         idx = findloc(pl%id(:), id, dim=1)
                         if (idx /= 0) then
-                           read(LUN) pl%info(idx)
+                           read(LUN, err = 667, iomsg = errmsg) pl%info(idx)
                            lmatch = .true.
                         end if
                      end if
                      if (.not.lmatch .and. tp%nbody > 0) then
                         idx = findloc(tp%id(:), id, dim=1)
                         if (idx /= 0) then
-                           read(LUN) tp%info(idx)
+                           read(LUN, err = 667, iomsg = errmsg) tp%info(idx)
                            lmatch = .true.
                         end if
                      end if
                   end if
                   if (.not.lmatch) then
                      write(*,*) 'Particle id ',id,' not found. Skipping'
-                     read(LUN) tmpinfo
+                     read(LUN, err = 667, iomsg = errmsg) tmpinfo
                   end if
                end do
-               close(unit = LUN, iostat = ierr)
+               close(unit = LUN, err = 667, iomsg = errmsg)
             end select
          end select
       end select
-      if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   unable to close particle output file"
-         call util_exit(FAILURE)
-      end if
 
       return
+
+      667 continue
+      write(*,*) "Error reading particle information file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine symba_io_read_particle
 
 
@@ -334,7 +320,7 @@ contains
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
-      integer(I4B)          :: iadd, isub, j, ierr, nsub, nadd
+      integer(I4B)          :: iadd, isub, j, nsub, nadd
       logical, save :: lfirst = .true. 
       real(DP), dimension(:,:), allocatable :: vh
       character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
@@ -343,6 +329,7 @@ contains
       character(*), parameter :: NPLFMT    = '(I8)'
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
+      character(STRMAX) :: errmsg
 
       if (param%discard_out == "") return
 
@@ -353,9 +340,9 @@ contains
             if (pl_discards%nbody == 0) return
             select case(param%out_stat)
             case('APPEND')
-               open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
+               open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
             case('NEW', 'REPLACE', 'UNKNOWN')
-               open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
+               open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', err = 667, iomsg = errmsg)
             case default
                write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
                call util_exit(FAILURE)
@@ -366,7 +353,7 @@ contains
                call pl_adds%pv2v(param) 
             end if
 
-            write(LUN, HDRFMT) param%t, pl_discards%nbody, param%lbig_discard
+            write(LUN, HDRFMT, err = 667, iomsg = errmsg) param%t, pl_discards%nbody, param%lbig_discard
             iadd = 1
             isub = 1
             do while (iadd <= pl_adds%nbody)
@@ -374,9 +361,9 @@ contains
                nsub = pl_discards%ncomp(isub)
                do j = 1, nadd
                   if (iadd <= pl_adds%nbody) then
-                     write(LUN, NAMEFMT) ADD, pl_adds%id(iadd), pl_adds%status(iadd)
-                     write(LUN, VECFMT) pl_adds%xh(1, iadd), pl_adds%xh(2, iadd), pl_adds%xh(3, iadd)
-                     write(LUN, VECFMT) pl_adds%vh(1, iadd), pl_adds%vh(2, iadd), pl_adds%vh(3, iadd)
+                     write(LUN, NAMEFMT, err = 667, iomsg = errmsg) ADD, pl_adds%id(iadd), pl_adds%status(iadd)
+                     write(LUN, VECFMT, err = 667, iomsg = errmsg) pl_adds%xh(1, iadd), pl_adds%xh(2, iadd), pl_adds%xh(3, iadd)
+                     write(LUN, VECFMT, err = 667, iomsg = errmsg) pl_adds%vh(1, iadd), pl_adds%vh(2, iadd), pl_adds%vh(3, iadd)
                   else 
                      exit
                   end if
@@ -384,9 +371,9 @@ contains
                end do
                do j = 1, nsub
                   if (isub <= pl_discards%nbody) then
-                     write(LUN, NAMEFMT) SUB, pl_discards%id(isub), pl_discards%status(isub)
-                     write(LUN, VECFMT) pl_discards%xh(1, isub), pl_discards%xh(2, isub), pl_discards%xh(3, isub)
-                     write(LUN, VECFMT) pl_discards%vh(1, isub), pl_discards%vh(2, isub), pl_discards%vh(3, isub)
+                     write(LUN, NAMEFMT, err = 667, iomsg = errmsg) SUB, pl_discards%id(isub), pl_discards%status(isub)
+                     write(LUN, VECFMT, err = 667, iomsg = errmsg) pl_discards%xh(1, isub), pl_discards%xh(2, isub), pl_discards%xh(3, isub)
+                     write(LUN, VECFMT, err = 667, iomsg = errmsg) pl_discards%vh(1, isub), pl_discards%vh(2, isub), pl_discards%vh(3, isub)
                   else
                      exit
                   end if
@@ -399,6 +386,10 @@ contains
       end associate
 
       return
+
+      667 continue
+      write(*,*) "Error writing discard file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine symba_io_write_discard
 
 end submodule s_symba_io

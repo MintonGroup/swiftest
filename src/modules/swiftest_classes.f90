@@ -364,13 +364,12 @@ module swiftest_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine abstract_kick_body
 
-      subroutine abstract_read_frame(self, iu, param, form, ierr)
+      subroutine abstract_read_frame(self, iu, param, form)
          import DP, I4B, swiftest_base, swiftest_parameters
          class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
          integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
          character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr  !! Error code
       end subroutine abstract_read_frame
 
       subroutine abstract_set_mu(self, cb) 
@@ -620,31 +619,28 @@ module swiftest_classes
          character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_read_param_in
 
-      module subroutine io_read_frame_body(self, iu, param, form, ierr)
+      module subroutine io_read_frame_body(self, iu, param, form)
          implicit none
          class(swiftest_body),       intent(inout) :: self   !! Swiftest body object
          integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
          character(*),               intent(in)    :: form   !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr   !! Error code
       end subroutine io_read_frame_body
 
-      module subroutine io_read_frame_cb(self, iu, param, form, ierr)
+      module subroutine io_read_frame_cb(self, iu, param, form)
          implicit none
          class(swiftest_cb),         intent(inout) :: self    !! Swiftest central body object
          integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
          character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr    !! Error code
       end subroutine io_read_frame_cb
 
-      module subroutine io_read_frame_system(self, iu, param, form, ierr)
+      module subroutine io_read_frame_system(self, iu, param, form)
          implicit none
          class(swiftest_nbody_system),intent(inout) :: self  !! Swiftest system object
          integer(I4B),                intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
          character(*),                intent(in)    :: form  !! Input format code ("XV" or "EL")
-         integer(I4B),                intent(out)   :: ierr  !! Error code
       end subroutine io_read_frame_system
 
       module subroutine io_write_discard(self, param)
