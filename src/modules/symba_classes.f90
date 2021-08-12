@@ -137,10 +137,11 @@ module symba_classes
       integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
    contains
       procedure :: collision_check => symba_collision_check_encounter !! Checks if a test particle is going to collide with a massive body
-      procedure :: encounter_check => symba_encounter_check !! Checks if massive bodies are going through close encounters with each other
+      procedure :: encounter_check => symba_encounter_check           !! Checks if massive bodies are going through close encounters with each other
       procedure :: kick            => symba_kick_encounter            !! Kick barycentric velocities of active test particles within SyMBA recursion
       procedure :: setup           => symba_setup_encounter           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure :: spill           => symba_util_spill_encounter      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: append          => symba_util_append_encounter     !! Appends elements from one structure to another
    end type symba_encounter
 
    !********************************************************************************************************************************
@@ -149,6 +150,7 @@ module symba_classes
    !> SyMBA class for tracking pl-tp close encounters in a step
    type, extends(symba_encounter) :: symba_pltpenc
    contains
+      procedure :: resolve_collision => symba_collision_resolve_pltpenc !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -160,6 +162,7 @@ module symba_classes
       procedure :: extract_collisions     => symba_collision_encounter_extract_collisions !! Processes the pl-pl encounter list remove only those encounters that led to a collision
       procedure :: resolve_fragmentations => symba_collision_resolve_fragmentations       !! Process list of collisions, determine the collisional regime, and then create fragments
       procedure :: resolve_mergers        => symba_collision_resolve_mergers              !! Process list of collisions and merge colliding bodies together
+      procedure :: resolve_collision      => symba_collision_resolve_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -220,6 +223,22 @@ module symba_classes
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_collision_resolve_mergers
+
+      module subroutine symba_collision_resolve_plplenc(self, system, param, t)
+         implicit none
+         class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
+         class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                   intent(in)    :: t      !! Current simulation time
+      end subroutine symba_collision_resolve_plplenc
+   
+      module subroutine symba_collision_resolve_pltpenc(self, system, param, t)
+         implicit none
+         class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list
+         class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                   intent(in)    :: t      !! Current simulation time
+      end subroutine symba_collision_resolve_pltpenc
 
       module subroutine symba_discard_pl(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
@@ -502,6 +521,13 @@ module symba_classes
    end interface
 
    interface
+      module subroutine symba_util_append_encounter(self, source, lsource_mask)
+         implicit none
+         class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
+         class(swiftest_encounter), intent(in)    :: source       !! Source object to append
+         logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_encounter
+
       module subroutine symba_util_append_merger(self, source, lsource_mask)
          use swiftest_classes, only : swiftest_body
          implicit none
@@ -622,7 +648,25 @@ module symba_classes
          character(*),    intent(in)    :: sortby    !! Sorting attribute
          logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine symba_util_sort_tp
+   end interface
 
+   interface util_sort_rearrange
+      module subroutine symba_util_sort_rearrange_arr_info(arr, ind, n)
+         implicit none
+         type(symba_particle_info),   dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine symba_util_sort_rearrange_arr_info
+
+      module subroutine symba_util_sort_rearrange_arr_kin(arr, ind, n)
+         implicit none
+         type(symba_kinship),         dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine symba_util_sort_rearrange_arr_kin
+   end interface util_sort_rearrange
+
+   interface
       module subroutine symba_util_sort_rearrange_pl(self, ind)
          implicit none
          class(symba_pl),               intent(inout) :: self !! SyMBA massive body object

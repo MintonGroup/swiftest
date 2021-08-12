@@ -276,8 +276,7 @@ contains
    module subroutine symba_discard_pl(self, system, param)
       !! author: David A. Minton
       !!
-      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colling with the central body, 
-      !! escaping the system, or colliding with each other.
+      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colliding with the central body or escaping the system
       implicit none
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
@@ -291,38 +290,25 @@ contains
          select type(param)
          class is (symba_parameters)
             associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
-               call pl%h2b(system%cb) 
-
-               ! First deal with the non pl-pl collisions
-               call symba_discard_nonplpl(self, system, param)
-
-               ! Extract the pl-pl encounter list and return the plplcollision_list
-               call plplenc_list%extract_collisions(system, param)
                call plplenc_list%write(pl, pl, param)
 
-               if ((plplcollision_list%nenc > 0) .and. any(pl%lcollision(:))) then 
-                  write(*, *) "Collision between massive bodies detected at time t = ",param%t
-                  if (param%lfragmentation) then
-                     call plplcollision_list%resolve_fragmentations(system, param)
-                  else
-                     call plplcollision_list%resolve_mergers(system, param)
-                  end if
-                  ! Destroy the collision list now that the collisions are resolved
-                  call plplcollision_list%setup(0)
+               call symba_discard_nonplpl(self, system, param)
+
+               if (.not.any(pl%ldiscard(:))) return
+
+               if (param%lenergy) then
+                  call system%get_energy_and_momentum(param)
+                  Eorbit_before = system%te
                end if
 
-               if (any(pl%ldiscard(:))) then
-                  if (param%lenergy) then
-                     call system%get_energy_and_momentum(param)
-                     Eorbit_before = system%te
-                  end if
-                  call symba_discard_nonplpl_conservation(self, system, param)
-                  call pl%rearray(system, param)
-                  if (param%lenergy) then
-                     call system%get_energy_and_momentum(param)
-                     Eorbit_after = system%te
-                     system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
-                  end if
+               call symba_discard_nonplpl_conservation(self, system, param)
+
+               call pl%rearray(system, param)
+
+               if (param%lenergy) then
+                  call system%get_energy_and_momentum(param)
+                  Eorbit_after = system%te
+                  system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
                end if
 
             end associate

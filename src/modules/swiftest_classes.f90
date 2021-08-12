@@ -324,6 +324,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
    contains
       procedure :: setup  => setup_encounter       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: append => util_append_encounter !! Appends elements from one structure to another
       procedure :: copy   => util_copy_encounter   !! Copies elements from the source encounter list into self.
       procedure :: spill  => util_spill_encounter  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: resize => util_resize_encounter !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
@@ -883,10 +884,17 @@ module swiftest_classes
    interface
       module subroutine util_append_body(self, source, lsource_mask)
          implicit none
-         class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
-         class(swiftest_body),            intent(in)    :: source  !! Source object to append
+         class(swiftest_body),            intent(inout) :: self          !! Swiftest body object
+         class(swiftest_body),            intent(in)    :: source        !! Source object to append
          logical, dimension(:),           intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
+
+      module subroutine util_append_encounter(self, source, lsource_mask)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list object
+         class(swiftest_encounter), intent(in)    :: source       !! Source object to append
+         logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_encounter
 
       module subroutine util_append_pl(self, source, lsource_mask)
          implicit none
@@ -1197,6 +1205,43 @@ module swiftest_classes
          integer(I4B), dimension(:), intent(out) :: ind
       end subroutine util_sort_index_dp
    end interface util_sort
+
+   interface util_sort_rearrange
+      module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+         implicit none
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_char_string
+
+      module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+         implicit none
+         real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_DP
+
+      module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+         implicit none
+         real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_DPvec
+
+      module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_I4B
+
+      module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+         implicit none
+         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_logical
+   end interface util_sort_rearrange
 
    interface
       module subroutine util_sort_rearrange_body(self, ind)

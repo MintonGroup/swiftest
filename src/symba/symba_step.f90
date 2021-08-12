@@ -108,32 +108,17 @@ contains
       ! Internals
       integer(I4B) :: k, irecp
 
-      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
+      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, npl => self%pl%nbody, ntp => self%tp%nbody)
          select type(pl => self%pl)
          class is (symba_pl)
             select type(tp => self%tp)
             class is (symba_tp)
                irecp = ireci + 1
 
-               if (plplenc_list%nenc > 0) then
-                  do k = 1, plplenc_list%nenc
-                     associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
-                        if (pl%levelg(i) == irecp) pl%levelg(i) = ireci
-                        if (pl%levelg(j) == irecp) pl%levelg(j) = ireci
-                     end associate
-                  end do
-                  where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(1:plplenc_list%nenc) = ireci
-               end if
-
-               if (pltpenc_list%nenc > 0) then
-                  do k = 1, pltpenc_list%nenc
-                     associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
-                        if (pl%levelg(i) == irecp) pl%levelg(i) = ireci
-                        if (tp%levelg(j) == irecp) tp%levelg(j) = ireci
-                     end associate
-                  end do
-                  where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(1:pltpenc_list%nenc) = ireci
-               end if
+               if (npl >0) where(pl%levelg(1:npl) == irecp) pl%levelg(1:npl) = ireci
+               if (ntp > 0) where(tp%levelg(1:ntp) == irecp) tp%levelg(1:ntp) = ireci
+               if (plplenc_list%nenc > 0) where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(1:plplenc_list%nenc) = ireci
+               if (pltpenc_list%nenc > 0) where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(1:pltpenc_list%nenc) = ireci
 
                system%irec = ireci
 
@@ -212,8 +197,8 @@ contains
                      lplpl_collision = plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
                      lpltp_collision = pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
 
-                     if (lplpl_collision) call pl%discard(system, param)
-                     if (lpltp_collision) call tp%discard(system, param)
+                     if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl)
+                     if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl)
                   end if
 
                   call self%set_recur_levels(ireci)

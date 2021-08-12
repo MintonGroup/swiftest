@@ -333,7 +333,7 @@ contains
       allocate(Ip_frag(NDIM, nfrag))
 
       mtot = sum(mass(:))
-      xcom(:) = (mass(1) * x(:,1) + mass(2) * x(:,2)) / mtot
+      xcom(:) = (mass(1) * x(:,1) + mass(2) * x(:,2)) / mtot 
       vcom(:) = (mass(1) * v(:,1) + mass(2) * v(:,2)) / mtot
 
       ! Get mass weighted mean of Ip and average density
@@ -393,7 +393,7 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_merge.f
       implicit none
       ! Arguments
-      class(symba_encounter),       intent(inout) :: self           !! SyMBA pl-tp encounter list object
+      class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
       class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
       class(swiftest_parameters), intent(in)    :: param          !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t              !! current time
@@ -451,7 +451,6 @@ contains
                   end do
                end if
 
-
                do k = 1, nenc
                   if (lcollision(k)) self%status(k) = COLLISION
                   self%t(k) = t
@@ -484,6 +483,14 @@ contains
       end select
 
       lany_collision = any(lcollision(:))
+
+      ! Extract the pl-pl encounter list and return the plplcollision_list
+      if (lany_collision) then
+         select type(plplenc_list => self)
+         class is (symba_plplenc)
+            call plplenc_list%extract_collisions(system, param)
+         end select
+      end if
 
       return 
    end function symba_collision_check_encounter
@@ -604,7 +611,7 @@ contains
 
       ! Find the barycenter of each body along with its children, if it has any
       do j = 1, 2
-         x(:, j)  = pl%xb(:, idx_parent(j))
+         x(:, j)  = pl%xh(:, idx_parent(j))
          v(:, j)  = pl%vb(:, idx_parent(j))
          ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
          if (param%lrotation) then
@@ -617,7 +624,7 @@ contains
                idx_child = parent_child_index_array(j)%idx(i + 1)
                if (.not. pl%lcollision(idx_child)) cycle
                mchild = pl%mass(idx_child)
-               xchild(:) = pl%xb(:, idx_child)
+               xchild(:) = pl%xh(:, idx_child)
                vchild(:) = pl%vb(:, idx_child)
                volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
                volume(j) = volume(j) + volchild
@@ -947,6 +954,10 @@ contains
                if (.not. lgoodcollision) cycle
                if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
 
+               ! Convert from DH to barycentric
+               x(:,1) = x(:,1) + cb%xb(:)
+               x(:,2) = x(:,2) + cb%xb(:)
+
                ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them 
                ! to symba_regime
                if (mass(1) > mass(2)) then
@@ -1020,7 +1031,7 @@ contains
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i, status
 
-      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
+      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, cb => system%cb)
          select type(pl => system%pl)
          class is (symba_pl)
             do i = 1, ncollisions
@@ -1029,6 +1040,11 @@ contains
                lgoodcollision = symba_collision_consolidate_familes(pl, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
                if (.not. lgoodcollision) cycle
                if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
+
+               ! Convert from DH to barycentric
+               x(:,1) = x(:,1) + cb%xb(:)
+               x(:,2) = x(:,2) + cb%xb(:)
+
                status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
             end do
          end select
@@ -1036,5 +1052,78 @@ contains
 
       return
    end subroutine symba_collision_resolve_mergers
+
+
+   module subroutine symba_collision_resolve_plplenc(self, system, param, t)
+      !! author: David A. Minton
+      !! 
+      !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the collision
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
+      class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      real(DP),                   intent(in)    :: t      !! Current simulation time
+      ! Internals
+      real(DP) :: Eorbit_before, Eorbit_after
+   
+      associate(plplenc_list => self, plplcollision_list => system%plplcollision_list)
+         select type(pl => system%pl)
+         class is (symba_pl)
+            select type(param)
+            class is (symba_parameters)
+               if (plplcollision_list%nenc == 0) return ! No collisions to resolve
+
+               write(*, *) "Collision between massive bodies detected at time t = ", t
+               if (param%lfragmentation) then
+                  call plplcollision_list%resolve_fragmentations(system, param)
+               else
+                  call plplcollision_list%resolve_mergers(system, param)
+               end if
+
+               ! Destroy the collision list now that the collisions are resolved
+               call plplcollision_list%setup(0)
+
+               ! Get the energy before the collision is resolved
+               if (param%lenergy) then
+                  call system%get_energy_and_momentum(param)
+                  Eorbit_before = system%te
+               end if
+
+               call pl%rearray(system, param)
+
+               if (param%lenergy) then
+                  call system%get_energy_and_momentum(param)
+                  Eorbit_after = system%te
+                  system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
+               end if
+
+            end select 
+         end select
+      end associate
+
+      return
+   end subroutine symba_collision_resolve_plplenc
+
+
+   module subroutine symba_collision_resolve_pltpenc(self, system, param, t)
+      !! author: David A. Minton
+      !! 
+      !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the collision
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
+      class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      real(DP),                   intent(in)    :: t      !! Current simulation tim
+  
+      call system%tp%discard(system, param)
+
+      return
+   end subroutine symba_collision_resolve_pltpenc
+
+
 
 end submodule s_symba_collision
