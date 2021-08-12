@@ -56,7 +56,7 @@ contains
    end function symba_encounter_check_pl
 
 
-   module function symba_encounter_check_pltpenc(self, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check(self, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies in the pltpenc list.
@@ -65,7 +65,7 @@ contains
       !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
       implicit none
       ! Arguments
-      class(symba_pltpenc),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
+      class(symba_encounter),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
       class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
       real(DP),                  intent(in)    :: dt         !! step size
       integer(I4B),              intent(in)    :: irec       !! Current recursion level 
@@ -132,7 +132,7 @@ contains
       end select
 
       return
-   end function symba_encounter_check_pltpenc
+   end function symba_encounter_check
 
 
    module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)

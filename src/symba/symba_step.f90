@@ -163,7 +163,7 @@ contains
       integer(I4B) :: i, j, irecp, nloops
       real(DP) :: dtl, dth
       real(DP), dimension(NDIM) :: xr, vr
-      logical :: lencounter
+      logical :: lencounter, lplpl_collision, lpltp_collision
 
       associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
          select type(pl => self%pl)
@@ -209,8 +209,8 @@ contains
                   end if
 
                   if (param%lclose) then
-                     call plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
-                     call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                     lplpl_collision = plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                     lpltp_collision = pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
                   end if
 
                   call self%set_recur_levels(ireci)

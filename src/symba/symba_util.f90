@@ -826,14 +826,14 @@ contains
    end subroutine symba_util_spill_pl
 
 
-   module subroutine symba_util_spill_pltpenc(self, discards, lspill_list, ldestructive)
+   module subroutine symba_util_spill_encounter(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) SyMBA encounter structure from active list to discard list
       !! Note: Because the symba_plplenc currently does not contain any additional variable components, this method can recieve it as an input as well.
       implicit none
       ! Arguments
-      class(symba_pltpenc),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
+      class(symba_encounter),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
       class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
@@ -842,17 +842,17 @@ contains
   
       associate(keeps => self, nenc => self%nenc)
          select type(discards)
-         class is (symba_pltpenc)
+         class is (symba_encounter)
             call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
             call util_spill_encounter(keeps, discards, lspill_list, ldestructive)
          class default
-            write(*,*) "Invalid object passed to the spill method. Source must be of class symba_pltpenc or its descendents!"
+            write(*,*) "Invalid object passed to the spill method. Source must be of class symba_encounter or its descendents!"
             call util_exit(FAILURE)
          end select
       end associate
    
       return
-   end subroutine symba_util_spill_pltpenc
+   end subroutine symba_util_spill_encounter
 
 
    module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)

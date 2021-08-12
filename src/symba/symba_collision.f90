@@ -2,7 +2,7 @@ submodule (symba_classes) s_symba_collision
    use swiftest
 contains
 
-   module subroutine symba_collision_check_pltpenc(self, system, param, t, dt, irec)
+   module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)
       !! author: David A. Minton
       !!
       !! Check for merger between massive bodies and test particles in SyMBA
@@ -12,12 +12,14 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_merge.f
       implicit none
       ! Arguments
-      class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list object
-      class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t      !! current time
-      real(DP),                   intent(in)    :: dt     !! step size
-      integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      class(symba_encounter),       intent(inout) :: self           !! SyMBA pl-tp encounter list object
+      class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+      class(swiftest_parameters), intent(in)    :: param          !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t              !! current time
+      real(DP),                   intent(in)    :: dt             !! step size
+      integer(I4B),               intent(in)    :: irec           !! Current recursion level
+      ! Result
+      logical                                   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision 
       ! Internals
       logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
@@ -25,7 +27,9 @@ contains
       real(DP)                                  :: rlim, Gmtot
       logical                                   :: isplpl
 
+      lany_collision = .false.
       if (self%nenc == 0) return
+
       select type(self)
       class is (symba_plplenc)
          isplpl = .true.
@@ -66,6 +70,7 @@ contains
                   end do
                end if
 
+
                do k = 1, nenc
                   if (lcollision(k)) self%status(k) = COLLISION
                   self%t(k) = t
@@ -97,8 +102,10 @@ contains
          end select
       end select
 
+      lany_collision = any(lcollision(:))
+
       return 
-   end subroutine symba_collision_check_pltpenc
+   end function symba_collision_check_encounter
 
 
    pure elemental function symba_collision_check_one(xr, yr, zr, vxr, vyr, vzr, Gmtot, rlim, dt, lvdotr) result(lcollision)
