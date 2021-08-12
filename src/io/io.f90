@@ -1669,7 +1669,7 @@ contains
             call check( nf90_create(param%outfile, NF90_CLOBBER, ncid) )
 
             !! Calculate the number of outputs needed to cover the entire simulation time
-            noutput = ((param%tstop / param%dt) / param%istep_out) + 1
+            noutput = ((param%tstop / param%dt) / param%istep_out) + 2 !! +2 because t=0 gets put in spot 1 and need a stop for the final output
 
             !! Define the NetCDF dimensions with particle name as the record dimension
             call check( nf90_def_dim(ncid, "Particle Name", NF90_UNLIMITED, name_dimid) ) !! x dimension
