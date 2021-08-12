@@ -830,11 +830,10 @@ contains
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
                ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
-   
+  
+               ! Copy over identification, information, and physical properties of the new bodies from the fragment list
                plnew%id(:) = id_frag(:) 
                system%maxid = system%maxid + nfrag
-               plnew%lcollision(:) = .false.
-               plnew%ldiscard(:) = .false.
                plnew%xb(:,:) = xb_frag(:, :) 
                plnew%vb(:,:) = vb_frag(:, :)
                do i = 1, nfrag
@@ -888,9 +887,14 @@ contains
                   plnew%k2 = pl%k2(ibiggest)
                   plnew%tlag = pl%tlag(ibiggest)
                end if
-   
+
                call plnew%set_mu(cb)
-               pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
+               !Copy over or set integration parameters for new bodies
+               plnew%lcollision(:) = .false.
+               plnew%ldiscard(:) = .false.
+               plnew%lmtiny(:) = plnew%Gmass(:) > param%GMTINY
+               plnew%levelg(:) = pl%levelg(ibiggest)
+               plnew%levelm(:) = pl%levelm(ibiggest)
    
                ! Append the new merged body to the list and record how many we made
                nstart = pl_adds%nbody + 1

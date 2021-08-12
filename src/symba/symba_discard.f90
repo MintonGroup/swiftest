@@ -307,6 +307,8 @@ contains
                   else
                      call plplcollision_list%resolve_mergers(system, param)
                   end if
+                  ! Destroy the collision list now that the collisions are resolved
+                  call plplcollision_list%setup(0)
                end if
 
                if (any(pl%ldiscard(:))) then
