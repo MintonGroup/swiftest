@@ -320,7 +320,7 @@ contains
                   if (param%lenergy) then
                      call system%get_energy_and_momentum(param)
                      Eorbit_after = system%te
-                     system%Ecollisions = Eorbit_after - Eorbit_before
+                     system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
                   end if
                end if
 
