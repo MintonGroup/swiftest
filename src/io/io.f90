@@ -1302,9 +1302,13 @@ contains
 
       if (param%enc_out == "" .or. self%nenc == 0) return
 
-      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-      if ((ierr /= 0) .and. lfirst) then
-         open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr, iomsg = errmsg)
+      if (ierr /= 0) then
+         if (lfirst) then
+            open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         else
+            goto 667
+         end if
       end if
       lfirst = .false.
 
@@ -1335,7 +1339,7 @@ contains
 
       return
       667 continue
-      write(*,*) "Error writing discard file: " // trim(adjustl(errmsg))
+      write(*,*) "Error writing encounter file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_write_encounter
 
