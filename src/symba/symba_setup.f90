@@ -79,7 +79,7 @@ contains
          call system%plplcollision_list%setup(0)
          select type(pl => system%pl)
          class is (symba_pl)
-            !call pl%sort("mass", ascending=.false.)
+            call pl%sort("mass", ascending=.false.)
             select type(param)
             class is (symba_parameters)
                pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
