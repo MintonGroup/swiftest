@@ -1785,19 +1785,18 @@ contains
       if (lfirst) then
          select case(param%out_stat)
          case('APPEND')
-            !open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
 
             call cb%write_frame(iu, param)
             call pl%write_frame(iu, param)
             call tp%write_frame(iu, param)
+            
          case('NEW', 'REPLACE', 'UNKNOWN')
-            !open(unit = iu, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
          
             !! Create the new output file, deleting any previously existing output file of the same name
             call check( nf90_create(param%outfile, NF90_CLOBBER, ncid) )
 
             !! Calculate the number of outputs needed to cover the entire simulation time
-            noutput = ((param%tstop / param%dt) / param%istep_out) + 2 !! +2 because t=0 gets put in spot 1 and need a stop for the final output
+            !noutput = ((param%tstop / param%dt) / param%istep_out) + 2 !! +2 because t=0 gets put in spot 1 and need a stop for the final output
 
             !! Define the NetCDF dimensions with particle name as the record dimension
             call check( nf90_def_dim(ncid, "Name", NF90_UNLIMITED, name_dimid) ) !! x dimension
