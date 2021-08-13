@@ -303,7 +303,8 @@ module swiftest_classes
       procedure :: dump                    => io_dump_system                  !! Dump the state of the system to a file
       procedure :: read_frame              => io_read_frame_system            !! Read in a frame of input data from file
       procedure :: write_discard           => io_write_discard                !! Write out information about discarded test particles
-      procedure :: write_frame             => io_write_frame_system           !! Append a frame of output data to file
+      !procedure :: write_frame             => io_write_frame_system           !! Append a frame of output data to file
+      procedure :: write_frame             => io_netcdf_write_frame_system    !! Append a frame of output data to file in NetCDF format
       procedure :: initialize              => setup_initialize_system         !! Initialize the system from input files
       procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
@@ -705,6 +706,13 @@ module swiftest_classes
          integer(I4B),                  intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_system
+
+      module subroutine io_netcdf_write_frame_system(self, iu, param)
+         implicit none
+         class(swiftest_nbody_system),  intent(in)    :: self  !! Swiftest system object
+         integer(I4B),                  intent(inout) :: iu    !! Unit number for the output file to write frame to
+         class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
+      end subroutine io_netcdf_write_frame_system
 
       module pure subroutine kick_getacch_int_pl(self)
          implicit none
