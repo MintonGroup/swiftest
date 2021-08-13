@@ -127,7 +127,11 @@ contains
 
             call calculate_system_energy(linclude_fragments=.true.)
             ke_frag_budget = -dEtot - Qloss
-            L_frag_budget(:) = Ltot_after(:) - Ltot_before(:) + mtot * (xcom(:) .cross. vcom(:))
+            L_frag_budget(:) = Ltot_after(:) - Ltot_before(:) 
+            do ii = 1, nfrag
+               L_frag_budget(:) = L_frag_budget(:) + m_frag(ii) * (xb_frag(:, ii) .cross. vcom(:))
+            end do
+
             call define_coordinate_system()
             call set_fragment_tan_vel(lfailure)
             ke_avg_deficit = ke_avg_deficit - ke_radial
@@ -153,7 +157,7 @@ contains
                   lfailure = .true.
                else if (abs(dLmag) / Lmag_before > Ltol) then
                   write(*,*) 'Failed due to high angular momentum error: ', dLmag / Lmag_before
-                  lfailure = .true.
+                  !lfailure = .true.
                end if
             end if
          end if
