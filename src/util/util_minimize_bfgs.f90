@@ -28,7 +28,7 @@ contains
       real(DP), dimension(:), allocatable :: x1
       ! Internals
       integer(I4B) ::  i, j, k, l, conv, num
-      integer(I4B), parameter :: MAXLOOP = 10 !! Maximum number of loops before method is determined to have failed 
+      integer(I4B), parameter :: MAXLOOP = 100 !! Maximum number of loops before method is determined to have failed 
       real(DP), parameter     :: graddelta = 1e-4_DP !! Delta x for gradient calculations
       real(DP), dimension(N) :: S               !! Direction vectors 
       real(DP), dimension(N,N) :: H             !! Approximated inverse Hessian matrix 

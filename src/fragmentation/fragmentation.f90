@@ -44,7 +44,7 @@ contains
       real(DP), parameter                     :: Ltol = 10 * epsilon(1.0_DP)
       real(DP), parameter                     :: Etol = 1e-6_DP
       integer(I4B), parameter                 :: MAXTRY = 3000
-      integer(I4B), parameter                 :: TANTRY = 100
+      integer(I4B), parameter                 :: TANTRY = 3
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes, fpe_quiet_modes
       class(swiftest_nbody_system), allocatable :: tmpsys
       class(swiftest_parameters), allocatable   :: tmpparam
@@ -59,7 +59,7 @@ contains
       fpe_quiet_modes(:) = .false.
       call ieee_set_halting_mode(IEEE_ALL,fpe_quiet_modes)
 
-      f_spin = 0.1_DP
+      f_spin = 0.05_DP
 
       allocate(x_frag, source=xb_frag)
       allocate(v_frag, source=vb_frag)
@@ -105,7 +105,7 @@ contains
       ! Calculate the initial energy of the system without the collisional family
       call calculate_system_energy(linclude_fragments=.false.)
       
-      r_max_start = norm2(x(:,2) - x(:,1))
+      r_max_start = 2 * norm2(x(:,2) - x(:,1))
       try = 1
       lfailure = .false.
       ke_avg_deficit = 0.0_DP
@@ -115,11 +115,7 @@ contains
          ke_avg_deficit = 0.0_DP
          subtry = 1
          do 
-            ! Initialize the fragments with 0 relative velocity and spin so we can divide up the balance between the tangential, radial, and spin components while conserving momentum
-            !do concurrent(ii = 1:nfrag)
-            !   xb_frag(:, ii) = xcom(:)
-            !   vb_frag(:, ii) = vcom(:)
-            !end do
+            ! Initialize the fragments with 0 velocity and spin so we can divide up the balance between the tangential, radial, and spin components while conserving momentum
             xb_frag(:,:) = 0.0_DP
             vb_frag(:,:) = 0.0_DP
             x_frag(:,:) = 0.0_DP
@@ -620,7 +616,7 @@ contains
             ! Internals
             integer(I4B) :: i
             real(DP), parameter                  :: TOL_MIN = 1e-1_DP ! This doesn't have to be very accurate, as we really just want a tangential velocity distribution with less kinetic energy than our initial guess.
-            real(DP), parameter                  :: TOL_INIT = 1e-12_DP
+            real(DP), parameter                  :: TOL_INIT = 1e-14_DP
             real(DP)                             :: tol 
             real(DP), dimension(:), allocatable  :: v_t_initial
             real(DP), dimension(nfrag)           :: kefrag
@@ -689,7 +685,7 @@ contains
                ! Now that the KE-minimized values of the i>6 fragments are found, calculate the momentum-conserving solution for tangential velociteis
                v_t_initial(7:nfrag) = v_t_mag(7:nfrag)
                if (.not.lerr) exit
-               tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution
+               tol = tol * 2_DP ! Keep increasing the tolerance until we converge on a solution
             end do
             v_t_mag(1:nfrag) = solve_fragment_tan_vel(v_t_mag_input=v_t_initial(7:nfrag), lerr=lerr)
 
@@ -703,8 +699,7 @@ contains
             ! Now do a kinetic energy budget check to make sure we are still within the budget.
             kefrag = 0.0_DP
             do concurrent(i = 1:nfrag)
-               v_frag(:, i) = vb_frag(:, i) - vcom(:)
-               kefrag(i) = m_frag(i) * dot_product(v_frag(:, i), v_frag(:, i))
+               kefrag(i) = m_frag(i) * dot_product(vb_frag(:, i), vb_frag(:, i))
             end do
             ke_frag_orbit = 0.5_DP * sum(kefrag(:))
             ke_radial = ke_frag_budget - ke_frag_orbit - ke_frag_spin
@@ -715,11 +710,11 @@ contains
             lerr = (ke_radial < 0.0_DP)
             write(*,*) 'Tangential'
             write(*,*) 'Failure? ',lerr
+            write(*,*) '|L_remainder| : ',.mag.L_remainder(:)
             write(*,*) 'ke_frag_budget: ',ke_frag_budget
             write(*,*) 'ke_frag_spin  : ',ke_frag_spin
             write(*,*) 'ke_tangential : ',ke_frag_orbit
             write(*,*) 'ke_remainder  : ',ke_radial
-            write(*,*) '|L_remainder| : ',.mag.L_remainder(:)
 
             return
          end subroutine set_fragment_tan_vel
@@ -812,8 +807,8 @@ contains
             ! Arguments
             logical,                intent(out)   :: lerr
             ! Internals
-            real(DP), parameter                   :: TOL_MIN = 1e-8_DP   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
-            real(DP), parameter                   :: TOL_INIT = 1e-14_DP
+            real(DP), parameter                   :: TOL_MIN = Etol   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
+            real(DP), parameter                   :: TOL_INIT = 1e-12_DP
             real(DP)                              :: tol 
             integer(I4B)                          :: i, j
             real(DP), dimension(:), allocatable   :: v_r_initial, v_r_sigma
