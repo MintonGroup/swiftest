@@ -1346,6 +1346,67 @@ contains
       return
    end subroutine io_write_encounter
 
+   module subroutine io_write_frame_body(self, iu, param)
+      !! author: David A. Minton
+      !!
+      !! Write a frame of output of either test particle or massive body data to the binary output file
+      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
+      !! Adapted from Hal Levison's Swift routine io_write_frame.F
+      implicit none
+      ! Arguments
+      class(swiftest_body),       intent(in)    :: self   !! Swiftest particle object
+      integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      ! Internals
+      character(len=STRMAX)   :: errmsg
+
+      associate(n => self%nbody)
+         if (n == 0) return
+         write(iu, err = 667, iomsg = errmsg) self%id(1:n)
+         !write(iu, err = 667, iomsg = errmsg) self%name(1:n)
+         select case (param%out_form)
+         case (EL) 
+            write(iu, err = 667, iomsg = errmsg) self%a(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%e(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%inc(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%capom(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%omega(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%capm(1:n)
+         case (XV)
+            write(iu, err = 667, iomsg = errmsg) self%xh(1, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%xh(2, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%xh(3, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%vh(1, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%vh(2, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%vh(3, 1:n)
+         end select
+         select type(pl => self)  
+         class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
+            write(iu, err = 667, iomsg = errmsg) pl%Gmass(1:n)
+            if (param%lrhill_present) write(iu, err = 667, iomsg = errmsg) pl%rhill(1:n)
+            if (param%lclose) write(iu, err = 667, iomsg = errmsg) pl%radius(1:n)
+            if (param%lrotation) then
+               write(iu, err = 667, iomsg = errmsg) pl%Ip(1, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%Ip(2, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%Ip(3, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%rot(1, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%rot(2, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%rot(3, 1:n)
+            end if
+            if (param%ltides) then
+               write(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
+            end if
+         end select
+      end associate
+
+      return
+      667 continue
+      write(*,*) "Error writing body frame: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end subroutine io_write_frame_body
 
    module subroutine io_netcdf_write_frame_body(self, iu, param)
       !! author: David A. Minton
