@@ -1575,7 +1575,7 @@ contains
       end subroutine check
 
       !return
-   end subroutine io_write_frame_body
+   end subroutine io_netcdf_write_frame_body
 
 
    module subroutine io_write_frame_cb(self, iu, param)
@@ -1877,7 +1877,7 @@ contains
    end subroutine check
 
       !return
-   end subroutine io_write_frame_system
+   end subroutine io_netcdf_write_frame_system
 
 
    subroutine io_write_hdr(iu, t, npl, ntp, out_form, out_type)
