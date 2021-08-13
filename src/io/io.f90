@@ -1460,7 +1460,6 @@ contains
          if (n == 0) return
 
       !! Calculate the output number that we are currently on
-      !ioutput = (param%t / param%dt) / param%istep_out
       call check( nf90_inq_varid(ncid, "Time", time_dimid))
       call check( nf90_inquire_dimension(ncid, time_dimid, len=ioutput))
 
@@ -1789,18 +1788,18 @@ contains
             call cb%write_frame(iu, param)
             call pl%write_frame(iu, param)
             call tp%write_frame(iu, param)
-            
+
          case('NEW', 'REPLACE', 'UNKNOWN')
          
             !! Create the new output file, deleting any previously existing output file of the same name
             call check( nf90_create(param%outfile, NF90_CLOBBER, ncid) )
 
             !! Calculate the number of outputs needed to cover the entire simulation time
-            !noutput = ((param%tstop / param%dt) / param%istep_out) + 2 !! +2 because t=0 gets put in spot 1 and need a stop for the final output
+            noutput = ((param%tstop / param%dt) / param%istep_out) + 2 !! +2 because t=0 gets put in spot 1 and need a stop for the final output
 
             !! Define the NetCDF dimensions with particle name as the record dimension
             call check( nf90_def_dim(ncid, "Name", NF90_UNLIMITED, name_dimid) )     !! 'x' dimension
-            call check( nf90_def_dim(ncid, "Time", NF90_UNLIMITED, time_dimid) )     !! 'y' dimension
+            call check( nf90_def_dim(ncid, "Time", noutput, time_dimid) )     !! 'y' dimension
             dimids = (/ time_dimid, name_dimid /)
 
             !! Define the variables
