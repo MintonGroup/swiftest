@@ -1347,7 +1347,7 @@ contains
    end subroutine io_write_encounter
 
 
-   module subroutine io_write_frame_body(self, iu, param)
+   module subroutine io_netcdf_write_frame_body(self, iu, param)
       !! author: David A. Minton
       !!
       !! Write a frame of output of either test particle or massive body data to the binary output file
@@ -1588,7 +1588,7 @@ contains
    end subroutine
 
 
-   module subroutine io_write_frame_system(self, iu, param)
+   module subroutine io_netcdf_write_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Write a frame (header plus records for each massive body and active test particle) to output binary file
