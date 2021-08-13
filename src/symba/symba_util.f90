@@ -402,7 +402,7 @@ contains
 
       associate(pl => self, pl_adds => system%pl_adds)
 
-         allocate(tmp, mold=pl)
+         allocate(tmp, mold=self)
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
          allocate(lmask, source=pl%ldiscard(:))
          lmask(:) = lmask(:) .or. pl%status(:) == INACTIVE
@@ -466,6 +466,7 @@ contains
                   end if
                end do
             end associate
+            call move_alloc(plplenc_old, system%plplenc_list)
 
          end if
 
@@ -713,7 +714,7 @@ contains
       type(symba_particle_info), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
 
       if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
+      allocate(tmp, source=arr)
       tmp(1:n) = arr(ind(1:n))
       call move_alloc(tmp, arr)
 
@@ -735,7 +736,7 @@ contains
       integer(I4B) :: i,j
 
       if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
+      allocate(tmp, source=arr)
       tmp(1:n) = arr(ind(1:n))
 
       do i = 1, n

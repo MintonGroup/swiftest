@@ -28,7 +28,7 @@ contains
       real(DP), dimension(:), allocatable :: x1
       ! Internals
       integer(I4B) ::  i, j, k, l, conv, num
-      integer(I4B), parameter :: MAXLOOP = 1000 !! Maximum number of loops before method is determined to have failed 
+      integer(I4B), parameter :: MAXLOOP = 10 !! Maximum number of loops before method is determined to have failed 
       real(DP), parameter     :: graddelta = 1e-4_DP !! Delta x for gradient calculations
       real(DP), dimension(N) :: S               !! Direction vectors 
       real(DP), dimension(N,N) :: H             !! Approximated inverse Hessian matrix 
@@ -59,14 +59,20 @@ contains
       do i = 1, MAXLOOP 
          !check for convergence
          conv = count(abs(grad1(:)) > eps)
+         ! write(*,*) 'loop: ', i
+         ! write(*,*) 'conv: ', conv
+         ! write(*,*) 'grad1 / eps'
+         ! do j = 1, N
+         !    write(*,*) j, abs(grad1(j)) / eps
+         ! end do
          if (conv == 0) then
-            !write(*,*) "BFGS converged on gradient after ",i," iterations" 
+            ! write(*,*) "BFGS converged on gradient after ",i," iterations" 
             exit 
          end if
          S(:) = -matmul(H(:,:), grad1(:))
          astar = minimize1D(f, x1, S, N, graddelta, lerr)
          if (lerr) then
-            !write(*,*) "Exiting BFGS with error in minimize1D step"
+            ! write(*,*) "Exiting BFGS with error in minimize1D step"
             exit
          end if
          ! Get new x values 
@@ -86,7 +92,7 @@ contains
          end do
          ! prevent divide by zero (convergence) 
          if (abs(Py) < tiny(Py)) then
-            !write(*,*) "BFGS Converged on tiny Py after ",i," iterations"
+            ! write(*,*) "BFGS Converged on tiny Py after ",i," iterations"
             exit
          end if
          ! set up update 
@@ -110,13 +116,13 @@ contains
          if (any(fpe_flag)) exit 
          if (i == MAXLOOP) then
             lerr = .true.
-            !write(*,*) "BFGS ran out of loops!"
+            ! write(*,*) "BFGS ran out of loops!"
          end if
       end do
       call ieee_get_flag(ieee_usual, fpe_flag)
       lerr = lerr .or. any(fpe_flag)  
-      !if (any(fpe_flag)) write(*,*) 'BFGS did not converge due to fpe'
-      !if (lerr) write(*,*) "BFGS did not converge!"
+      ! if (any(fpe_flag)) write(*,*) 'BFGS did not converge due to fpe'
+      ! if (lerr) write(*,*) "BFGS did not converge!"
       call ieee_set_status(original_fpe_status)
 
       return 
@@ -179,6 +185,7 @@ contains
             end do
             return 
          end function gradf
+
 
          function minimize1D(f, x0, S, N, eps, lerr) result(astar)
             !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
@@ -252,6 +259,7 @@ contains
             if (.not. lerr) astar = (alo + ahi) / 2.0_DP
             return 
          end function minimize1D
+
 
          function n2one(f, x0, S, N, a, lerr) result(fnew)
             implicit none
