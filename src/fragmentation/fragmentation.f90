@@ -59,7 +59,7 @@ contains
       fpe_quiet_modes(:) = .false.
       call ieee_set_halting_mode(IEEE_ALL,fpe_quiet_modes)
 
-      f_spin = 0.01_DP
+      f_spin = 0.1_DP
 
       allocate(x_frag, source=xb_frag)
       allocate(v_frag, source=vb_frag)
@@ -116,10 +116,14 @@ contains
          subtry = 1
          do 
             ! Initialize the fragments with 0 relative velocity and spin so we can divide up the balance between the tangential, radial, and spin components while conserving momentum
-            do concurrent(ii = 1:nfrag)
-               xb_frag(:, ii) = xcom(:)
-               vb_frag(:, ii) = vcom(:)
-            end do
+            !do concurrent(ii = 1:nfrag)
+            !   xb_frag(:, ii) = xcom(:)
+            !   vb_frag(:, ii) = vcom(:)
+            !end do
+            xb_frag(:,:) = 0.0_DP
+            vb_frag(:,:) = 0.0_DP
+            x_frag(:,:) = 0.0_DP
+            v_frag(:,:) = 0.0_DP
             rot_frag(:,:) = 0.0_DP
             v_t_mag(:) = 0.0_DP
             v_r_mag(:) = 0.0_DP
@@ -127,7 +131,7 @@ contains
 
             call calculate_system_energy(linclude_fragments=.true.)
             ke_frag_budget = -dEtot - Qloss
-            L_frag_budget(:) = Ltot_after(:) - Ltot_before(:) 
+            L_frag_budget(:) = Ltot_after(:) - Ltot_before(:) + mtot * (xcom(:) .cross. vcom(:))
             call define_coordinate_system()
             call set_fragment_tan_vel(lfailure)
             ke_avg_deficit = ke_avg_deficit - ke_radial
@@ -207,7 +211,7 @@ contains
             ! Set scale factors
             dscale = sum(radius(:))
             mscale = mtot
-            vscale = norm2(v(:,1) - v(:,2))
+            vscale = sqrt(0.5_DP) * (norm2(v(:,1)) + norm2(v(:,2)))
             tscale = dscale / vscale 
             Lscale = mscale * dscale * vscale
             Escale = mscale * vscale**2
@@ -302,30 +306,31 @@ contains
             !! Defines the collisional coordinate system, including the unit vectors of both the system and individual fragments.
             implicit none
             integer(I4B) :: i
-            real(DP), dimension(NDIM) ::  x_cross_v, delta_r, delta_v, L_sigma
+            real(DP), dimension(NDIM) ::  x_cross_v, delta_r, delta_v
             real(DP)   :: r_col_norm, v_col_norm
+            real(DP), dimension(NDIM, nfrag) :: L_sigma
 
             delta_v(:) = v(:, 2) - v(:, 1)
-            v_col_norm = norm2(delta_v(:))     
+            v_col_norm = .mag. delta_v(:)
             delta_r(:) = x(:, 2) - x(:, 1)
-            r_col_norm = norm2(delta_r(:))
+            r_col_norm = .mag. delta_r(:)
 
             ! We will initialize fragments on a plane defined by the pre-impact system, with the z-axis aligned with the angular momentum vector
             ! and the y-axis aligned with the pre-impact distance vector.
             y_col_unit(:) = delta_r(:) / r_col_norm  
-            z_col_unit(:) = L_frag_budget(:) / norm2(L_frag_budget)
+            z_col_unit(:) = L_frag_budget(:) / (.mag. L_frag_budget)
             ! The cross product of the y- by z-axis will give us the x-axis
             x_col_unit(:) = y_col_unit(:) .cross. z_col_unit(:)
 
             rmag(:) = .mag. x_frag(:,:)
-
-            do i = 1, nfrag
-               v_r_unit(:, i) = x_frag(:, i) / rmag(i)
-               call random_number(L_sigma(:)) ! Randomize the tangential velocity direction. This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector,
+            call random_number(L_sigma(:,:)) ! Randomize the tangential velocity direction. This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector,
                                               ! otherwise we can get an ill-conditioned system
-               v_h_unit(:, i) = z_col_unit(:) + 2e-1_DP * (L_sigma(:) - 0.5_DP)
-               v_h_unit(:, i) = v_h_unit(:, i) / norm2(v_h_unit(:, i)) 
+            do concurrent(i = 1:nfrag, rmag(i) > 0.0_DP)
+               v_r_unit(:, i) = x_frag(:, i) / rmag(i)
+               v_h_unit(:, i) = z_col_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
+               v_h_unit(:, i) = v_h_unit(:, i) / (.mag. v_h_unit(:, i))
                v_t_unit(:, i) = v_h_unit(:, i) .cross. v_r_unit(:, i)
+               v_t_unit(:, i) = v_t_unit(:, i) / (.mag. v_t_unit(:, i))
             end do
 
             return
@@ -498,8 +503,8 @@ contains
             L_frag_spin(:) = 0.0_DP
 
             do i = 1, nfrag
-               L_frag_orb(:) = L_frag_orb(:) + m_frag(i) * x_frag(:, i) .cross. v_frag(:, i)
-               L_frag_spin(:) = L_frag_spin(:) + m_frag(i) * rad_frag(i)**2 * Ip_frag(3, i) .cross. rot_frag(:, i)
+               L_frag_orb(:) = L_frag_orb(:) + m_frag(i) * (x_frag(:, i) .cross. v_frag(:, i))
+               L_frag_spin(:) = L_frag_spin(:) + m_frag(i) * rad_frag(i)**2 * Ip_frag(:, i) * rot_frag(:, i)
             end do
 
             L_frag_tot(:) = L_frag_orb(:) + L_frag_spin(:)
@@ -634,6 +639,7 @@ contains
 
             allocate(v_t_initial, mold=v_t_mag)
 
+            v_frag(:,:) = 0.0_DP
             vb_frag(:,:) = 0.0_DP
 
             ke_frag_spin = 0.0_DP
@@ -657,24 +663,22 @@ contains
             ke_frag_spin = 0.5_DP * ke_frag_spin
 
             call calculate_fragment_ang_mtm()
-            write(*,*) '1: L_remainder   : ',norm2(L_frag_budget(:) - L_frag_tot(:))
+            L_remainder(:) = L_frag_budget(:) - L_frag_tot(:)
 
             ! Next we will solve for the tangential component of the velocities that both conserves linear momentum and uses the remaining angular momentum not used in spin.
             ! This will be done using a linear solver that solves for the tangential velocities of the first 6 fragments, constrained by the linear and angular momentum vectors, 
             ! which is embedded in a non-linear minimizer that will adjust the tangential velocities of the remaining i>6 fragments to minimize kinetic energy for a given momentum solution
             ! The initial conditions fed to the minimizer for the fragments will be the remaining angular momentum distributed between the fragments.
-            do i = 1, nfrag
-               Li(:) = (L_frag_budget(:) - L_frag_spin(:)) / nfrag
+            Li(:) =  L_remainder(:) / nfrag
+            do concurrent (i = 1:nfrag)
                v_t_initial(i) = norm2(Li(:)) / (m_frag(i) * norm2(x_frag(:,i)))
             end do
 
             v_t_mag(:) = v_t_initial(:)
             vb_frag(:,1:nfrag) = vmag_to_vb(v_r_mag(1:nfrag), v_r_unit(:,1:nfrag), v_t_mag(1:nfrag), v_t_unit(:,1:nfrag), m_frag(1:nfrag), vcom(:))
-            do i = 1, nfrag
-               v_frag(:,i) = vb_frag(:,i) - vcom(:)
+            do concurrent(i = 1:nfrag)
+               v_frag(:, i) = vb_frag(:, i) - vcom(:)
             end do
-            call calculate_fragment_ang_mtm()
-            write(*,*) '2: L_remainder   : ',norm2(L_frag_budget(:) - L_frag_tot(:))
 
             ! Find the local kinetic energy minimum for the system that conserves linear and angular momentum
             objective_function = lambda_obj(tangential_objective_function, lerr)
@@ -691,7 +695,7 @@ contains
 
             ! Perform one final shift of the radial velocity vectors to align with the center of mass of the collisional system (the origin)
             vb_frag(:,1:nfrag) = vmag_to_vb(v_r_mag(1:nfrag), v_r_unit(:,1:nfrag), v_t_mag(1:nfrag), v_t_unit(:,1:nfrag), m_frag(1:nfrag), vcom(:)) 
-            do i = 1, nfrag
+            do concurrent (i = 1:nfrag)
                v_frag(:,i) = vb_frag(:,i) - vcom(:)
             end do
             call add_fragments_to_tmpsys()
@@ -705,7 +709,7 @@ contains
             ke_frag_orbit = 0.5_DP * sum(kefrag(:))
             ke_radial = ke_frag_budget - ke_frag_orbit - ke_frag_spin
             call calculate_fragment_ang_mtm()
-            write(*,*) '3: L_remainder   : ',norm2(L_frag_budget(:) - L_frag_tot(:))
+            L_remainder(:) = L_frag_budget(:) - L_frag_tot(:)
 
             ! If we are over the energy budget, flag this as a failure so we can try again
             lerr = (ke_radial < 0.0_DP)
@@ -715,6 +719,7 @@ contains
             write(*,*) 'ke_frag_spin  : ',ke_frag_spin
             write(*,*) 'ke_tangential : ',ke_frag_orbit
             write(*,*) 'ke_remainder  : ',ke_radial
+            write(*,*) '|L_remainder| : ',.mag.L_remainder(:)
 
             return
          end subroutine set_fragment_tan_vel
@@ -743,7 +748,7 @@ contains
 
             kearr = 0.0_DP
             do concurrent(i = 1:nfrag)
-               kearr(i) = m_frag(i) * dot_product(v_shift(:, i) - vcom(:), v_shift(:, i) - vcom(:))
+               kearr(i) = m_frag(i) * dot_product(v_shift(:, i), v_shift(:, i))
             end do
             keo = 0.5_DP * sum(kearr(:))
             fval = keo 
@@ -770,9 +775,7 @@ contains
             real(DP), dimension(2 * NDIM)           :: b  ! RHS of linear equation used to solve for momentum constraint in Gauss elimination code
             real(DP), dimension(NDIM)               :: L_lin_others, L_orb_others, L, vtmp
 
-            v_frag(:,:) = 0.0_DP
             lerr = .false.
-
             ! We have 6 constraint equations (2 vector constraints in 3 dimensions each)
             ! The first 3 are that the linear momentum of the fragments is zero with respect to the collisional barycenter
             ! The second 3 are that the sum of the angular momentum of the fragments is conserved from the pre-impact state
@@ -786,12 +789,12 @@ contains
                else if (present(v_t_mag_input)) then
                   vtmp(:) = v_t_mag_input(i - 6) * v_t_unit(:, i)
                   L_lin_others(:) = L_lin_others(:) + m_frag(i) * vtmp(:)
-                  L(:) = m_frag(i) * x_frag(:, i) .cross. vtmp(:)
+                  L(:) = m_frag(i) * (x_frag(:, i) .cross. vtmp(:))
                   L_orb_others(:) = L_orb_others(:) + L(:)
                end if
             end do
             b(1:3) = -L_lin_others(:)
-            b(4:6) = L_frag_orb(:) - L_orb_others(:)
+            b(4:6) = L_frag_budget(:) - L_frag_spin(:) - L_orb_others(:)
             allocate(v_t_mag_output(nfrag))
             v_t_mag_output(1:6) = util_solve_linear_system(A, b, 6, lerr)
             if (present(v_t_mag_input)) v_t_mag_output(7:nfrag) = v_t_mag_input(:)
@@ -846,7 +849,7 @@ contains
             call add_fragments_to_tmpsys()
 
             do concurrent(i = 1:nfrag)
-               kearr(i) = m_frag(i) * dot_product(v_frag(:, i), v_frag(:, i))
+               kearr(i) = m_frag(i) * dot_product(vb_frag(:, i), vb_frag(:, i))
                kespinarr(i) = m_frag(i) * Ip_frag(3, i) * rad_frag(i)**2 * dot_product(rot_frag(:,i), rot_frag(:,i))
             end do
             ke_frag_orbit = 0.5_DP * sum(kearr(:))
@@ -882,7 +885,7 @@ contains
             allocate(v_shift, mold=vb_frag)
             v_shift(:,:) = vmag_to_vb(v_r_mag_input, v_r_unit, v_t_mag, v_t_unit, m_frag, vcom) 
             do concurrent(i = 1:nfrag)
-               kearr(i) = m_frag(i) * (Ip_frag(3, i) * rad_frag(i)**2 * dot_product(rot_frag(:, i), rot_frag(:, i)) + dot_product(v_shift(:, i) - vcom(:), v_shift(:, i) - vcom(:)))
+               kearr(i) = m_frag(i) * (Ip_frag(3, i) * rad_frag(i)**2 * dot_product(rot_frag(:, i), rot_frag(:, i)) + dot_product(v_shift(:, i), v_shift(:, i)))
             end do
             keo = 2 * ke_frag_budget - sum(kearr(:))
             ! The following ensures that fval = 0 is a local minimum, which is what the BFGS method is searching for
