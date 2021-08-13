@@ -1460,8 +1460,9 @@ contains
          if (n == 0) return
 
       !! Calculate the output number that we are currently on
-      call check( nf90_inq_varid(ncid, "Time", time_dimid))
-      call check( nf90_inquire_dimension(ncid, time_dimid, len=ioutput))
+      ioutput = (param%t / param%dt) / param%istep_out
+      !call check( nf90_inq_varid(ncid, "Time", ioutput))
+      !call check( nf90_inquire_dimension(ncid, time_dimid, len=ioutput))
 
          select case (param%out_form)
          case (EL) 
