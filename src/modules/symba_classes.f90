@@ -711,7 +711,7 @@ module symba_classes
       module subroutine symba_util_spill_encounter(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_encounter
          implicit none
-         class(symba_encounter),      intent(inout) :: self         !! SyMBA pl-tp encounter list
+         class(symba_encounter),    intent(inout) :: self         !! SyMBA pl-tp encounter list
          class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
          logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
          logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list

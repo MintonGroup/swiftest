@@ -317,6 +317,8 @@ module swiftest_classes
       integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
+      integer(I4B), dimension(:),   allocatable :: id1    !! id of the first body in the encounter
+      integer(I4B), dimension(:),   allocatable :: id2    !! id of the second body in the encounter
       real(DP),     dimension(:,:), allocatable :: x1     !! the position of body 1 in the encounter
       real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
       real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter

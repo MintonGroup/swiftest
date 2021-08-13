@@ -43,6 +43,8 @@ contains
                plplenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:), lencounter(:))
                plplenc_list%index1(1:nenc) = pack(pl%k_plpl(1,:), lencounter(:))
                plplenc_list%index2(1:nenc) = pack(pl%k_plpl(2,:), lencounter(:))
+               plplenc_list%id1(1:nenc) = pl%id(plplenc_list%index1(1:nenc))
+               plplenc_list%id2(1:nenc) = pl%id(plplenc_list%index2(1:nenc))
                do k = 1, nenc
                   plplenc_list%status(k) = ACTIVE
                   plplenc_list%level(k) = irec
@@ -178,6 +180,8 @@ contains
                pltpenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:,:), lencounter(:,:))
                pltpenc_list%index1(1:nenc) = pack(spread([(i, i = 1, npl)], dim=1, ncopies=ntp), lencounter(:,:)) 
                pltpenc_list%index2(1:nenc) = pack(spread([(i, i = 1, ntp)], dim=2, ncopies=npl), lencounter(:,:))
+               pltpenc_list%id1(1:nenc) = pl%id(pltpenc_list%index1(1:nenc))
+               pltpenc_list%id2(1:nenc) = tp%id(pltpenc_list%index2(1:nenc))
                select type(pl)
                class is (symba_pl)
                   pl%lencounter(:) = .false.

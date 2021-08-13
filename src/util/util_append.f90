@@ -200,6 +200,8 @@ contains
          call util_append(self%status, source%status, nold, nsrc, lsource_mask)
          call util_append(self%index1, source%index1, nold, nsrc, lsource_mask)
          call util_append(self%index2, source%index2, nold, nsrc, lsource_mask)
+         call util_append(self%id1, source%id1, nold, nsrc, lsource_mask)
+         call util_append(self%id2, source%id2, nold, nsrc, lsource_mask)
          call util_append(self%x1, source%x1, nold, nsrc, lsource_mask)
          call util_append(self%x2, source%x2, nold, nsrc, lsource_mask)
          call util_append(self%v1, source%v1, nold, nsrc, lsource_mask)
