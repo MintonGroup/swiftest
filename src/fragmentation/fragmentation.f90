@@ -105,7 +105,7 @@ contains
       ! Calculate the initial energy of the system without the collisional family
       call calculate_system_energy(linclude_fragments=.false.)
       
-      r_max_start = 2 * norm2(x(:,2) - x(:,1))
+      r_max_start = 10 * norm2(x(:,2) - x(:,1))
       try = 1
       lfailure = .false.
       ke_avg_deficit = 0.0_DP
@@ -145,6 +145,7 @@ contains
          if (.not.lfailure) then
             call calculate_system_energy(linclude_fragments=.true.)
             ke_radial = -dEtot - Qloss
+            write(*,*) 'Pre-radial dL/L0: ', abs(dLmag) / Lmag_before
             call set_fragment_radial_velocities(lfailure)
          !   if (lfailure) write(*,*) 'Failed to find radial velocities'
             if (.not.lfailure) then
@@ -157,7 +158,7 @@ contains
                   lfailure = .true.
                else if (abs(dLmag) / Lmag_before > Ltol) then
                   write(*,*) 'Failed due to high angular momentum error: ', dLmag / Lmag_before
-                  !lfailure = .true.
+                  lfailure = .true.
                end if
             end if
          end if
@@ -503,7 +504,7 @@ contains
             L_frag_spin(:) = 0.0_DP
 
             do i = 1, nfrag
-               L_frag_orb(:) = L_frag_orb(:) + m_frag(i) * (x_frag(:, i) .cross. v_frag(:, i))
+               L_frag_orb(:) = L_frag_orb(:) + m_frag(i) * (x_frag(:, i) .cross. v_frag(:, i)) 
                L_frag_spin(:) = L_frag_spin(:) + m_frag(i) * rad_frag(i)**2 * Ip_frag(:, i) * rot_frag(:, i)
             end do
 
