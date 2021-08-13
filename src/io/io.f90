@@ -1648,6 +1648,71 @@ contains
       return
    end subroutine
 
+   module subroutine io_write_frame_system(self, iu, param)
+      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+      !!
+      !! Write a frame (header plus records for each massive body and active test particle) to output binary file
+      !! There is no direct file output from this subroutine
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
+      !! Adapted from Hal Levison's Swift routine io_write_frame.F
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(in)    :: self   !! Swiftest system object
+      integer(I4B),                 intent(inout) :: iu     !! Unit number for the output file to write frame to
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      ! Internals
+      logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
+      class(swiftest_cb), allocatable  :: cb         !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_pl), allocatable  :: pl         !! Temporary local version of pl structure used for non-destructive conversions
+      class(swiftest_tp), allocatable  :: tp          !! Temporary local version of pl structure used for non-destructive conversions
+      character(len=STRMAX)            :: errmsg
+
+      allocate(cb, source = self%cb)
+      allocate(pl, source = self%pl)
+      allocate(tp, source = self%tp)
+      iu = BINUNIT
+
+      if (lfirst) then
+         select case(param%out_stat)
+         case('APPEND')
+            open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         case('NEW', 'REPLACE', 'UNKNOWN')
+            open(unit = iu, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         case default
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+            call util_exit(FAILURE)
+         end select
+         lfirst = .false.
+      else
+         open(unit = iu, file = param%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+      end if
+      call io_write_hdr(iu, param%t, pl%nbody, tp%nbody, param%out_form, param%out_type)
+
+      if (param%lgr) then
+         call pl%pv2v(param)
+         call tp%pv2v(param)
+      end if
+
+      if (param%out_form == EL) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
+         call pl%xv2el(cb)
+         call tp%xv2el(cb)
+      end if
+      
+      ! Write out each data type frame
+      call cb%write_frame(iu, param)
+      call pl%write_frame(iu, param)
+      call tp%write_frame(iu, param)
+
+      deallocate(cb, pl, tp)
+
+      close(iu, err = 667, iomsg = errmsg)
+
+      return
+      667 continue
+      write(*,*) "Error writing system frame: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end subroutine io_write_frame_system
 
    module subroutine io_netcdf_write_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
