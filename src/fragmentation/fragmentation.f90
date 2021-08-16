@@ -95,8 +95,10 @@ contains
       vc(:, 2) = v(:, 2) - vcom(:)
       L_orb(:,:) = mxc(:,:) .cross. vc(:,:)
 
-      ! Compute orbital angular momentum of pre-impact system. This will be the normal vector to the collision fragment plane
-      L_frag_budget(:) = L_spin(:, 1) + L_spin(:, 2) + L_orb(:, 1) + L_orb(:, 2)
+      ! Compute orbital angular momentum of pre-impact system. We'll use this to start the coordinate system, but it will get updated as we divide up the angular momentum
+      L_frag_orb(:) = L_orb(:, 1) + L_orb(:, 2)
+      L_frag_spin(:) = L_spin(:, 1) + L_spin(:, 2)
+      L_frag_budget(:) = L_frag_orb(:) + L_frag_spin(:)
 
       call define_coordinate_system()
       call construct_temporary_system()
@@ -124,21 +126,12 @@ contains
          ke_frag_budget = -(dEtot - 0.5_DP * mtot * dot_product(vcom(:), vcom(:))) - Qloss 
 
          call set_fragment_spin(lfailure)
-         if (lfailure) then ! Too much spin! Try reducing the fraction put into spin and try again
-            if (f_spin > epsilon(1.0_DP)) then
-               f_spin = f_spin / 2
-            else
-               f_spin = 0.0_DP
-            end if
-         else
-            call set_fragment_tan_vel(lfailure)
-         end if
+         if (.not.lfailure) call set_fragment_tan_vel(lfailure)
             
          if (lfailure) then
             write(*,*) 'Failed to find tangential velocities'
             ke_avg_deficit = ke_avg_deficit - (ke_frag_orbit + ke_frag_spin)
          else 
-            !call calculate_system_energy(linclude_fragments=.true.)
             call set_fragment_radial_velocities(lfailure)
             if (lfailure) write(*,*) 'Failed to find radial velocities'
             if (.not.lfailure) then
@@ -331,8 +324,8 @@ contains
 
             ! We will initialize fragments on a plane defined by the pre-impact system, with the z-axis aligned with the angular momentum vector
             ! and the y-axis aligned with the pre-impact distance vector.
-            y_col_unit(:) = delta_r(:) / r_col_norm  
-            z_col_unit(:) = L_frag_budget(:) / (.mag. L_frag_budget)
+            y_col_unit(:) = delta_r(:) / r_col_norm 
+            z_col_unit(:) = (L_frag_budget(:) - L_frag_spin(:)) / (.mag. (L_frag_budget(:) - L_frag_spin(:)))
             ! The cross product of the y- by z-axis will give us the x-axis
             x_col_unit(:) = y_col_unit(:) .cross. z_col_unit(:)
 
@@ -682,12 +675,13 @@ contains
             integer(I4B) :: i
             real(DP), parameter                  :: TOL_MIN = 1e-1_DP ! This doesn't have to be very accurate, as we really just want a tangential velocity distribution with less kinetic energy than our initial guess.
             real(DP), parameter                  :: TOL_INIT = 1e-14_DP
+            integer(I4B), parameter              :: MAXLOOP = 10
             real(DP)                             :: tol
             real(DP), dimension(:), allocatable  :: v_t_initial
             real(DP), dimension(nfrag)           :: kefrag
             type(lambda_obj)                     :: spinfunc
             type(lambda_obj_err)                 :: objective_function
-            real(DP), dimension(NDIM)            :: Li
+            real(DP), dimension(NDIM)            :: Li, L_remainder
 
             lerr = .false.
 
@@ -716,9 +710,12 @@ contains
             ! which is embedded in a non-linear minimizer that will adjust the tangential velocities of the remaining i>6 fragments to minimize kinetic energy for a given momentum solution
             ! The initial conditions fed to the minimizer for the fragments will be the remaining angular momentum distributed between the fragments.
             call calculate_fragment_ang_mtm()
-            Li(:) =  (L_frag_budget(:) - L_frag_spin(:)) / nfrag
-            do concurrent (i = 1:nfrag)
-               v_t_initial(i) = norm2(Li(:)) / (m_frag(i) * norm2(x_frag(:,i)))
+            call define_coordinate_system() ! Make sure that the tangential velocity components are defined properly
+            L_remainder(:) = L_frag_budget(:) - L_frag_spin(:)
+            do i = 1, nfrag
+               v_t_initial(i) = norm2(L_remainder(:)) / ((nfrag - i + 1) * m_frag(i) * norm2(x_frag(:,i)))
+               Li(:) = m_frag(i) * (x_frag(:,i) .cross. (v_t_initial(i) * v_t_unit(:, i)))
+               L_remainder(:) = L_remainder(:) - Li(:)
             end do
 
             ! Find the local kinetic energy minimum for the system that conserves linear and angular momentum
@@ -726,7 +723,7 @@ contains
 
             tol = TOL_INIT
             do while(tol < TOL_MIN)
-               v_t_mag(7:nfrag) = util_minimize_bfgs(objective_function, nfrag-6, v_t_initial(7:nfrag), TOL, lerr)
+               v_t_mag(7:nfrag) = util_minimize_bfgs(objective_function, nfrag-6, v_t_initial(7:nfrag), tol, MAXLOOP, lerr)
                ! Now that the KE-minimized values of the i>6 fragments are found, calculate the momentum-conserving solution for tangential velociteis
                v_t_initial(7:nfrag) = v_t_mag(7:nfrag)
                if (.not.lerr) exit
@@ -850,6 +847,7 @@ contains
             ! Internals
             real(DP), parameter                   :: TOL_MIN = Etol   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
             real(DP), parameter                   :: TOL_INIT = 1e-12_DP
+            integer(I4B), parameter               :: MAXLOOP = 100
             real(DP)                              :: ke_radial, tol 
             integer(I4B)                          :: i, j
             real(DP), dimension(:), allocatable   :: v_r_initial, v_r_sigma
@@ -871,7 +869,7 @@ contains
             objective_function = lambda_obj(radial_objective_function)
             tol = TOL_INIT
             do while(tol < TOL_MIN)
-               v_r_mag = util_minimize_bfgs(objective_function, nfrag, v_r_initial, tol, lerr)
+               v_r_mag = util_minimize_bfgs(objective_function, nfrag, v_r_initial, tol, MAXLOOP, lerr)
                if (.not.lerr) exit
                tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution
                v_r_initial(:) = v_r_mag(:)
@@ -983,6 +981,12 @@ contains
             end if
             r_max_start_old = r_max_start
             r_max_start = r_max_start + delta_r ! The larger lever arm can help if the problem is in the angular momentum step
+
+            if (f_spin > epsilon(1.0_DP)) then ! Try reducing the fraction in spin
+               f_spin = f_spin / 2
+            else
+               f_spin = 0.0_DP
+            end if
 
             return
          end subroutine restructure_failed_fragments
