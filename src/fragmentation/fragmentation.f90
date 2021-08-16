@@ -35,7 +35,7 @@ contains
       real(DP)                                :: Etot_before, ke_orbit_before, ke_spin_before, pe_before, Lmag_before
       real(DP)                                :: Etot_after,  ke_orbit_after,  ke_spin_after,  pe_after,  Lmag_after, dEtot, dLmag
       real(DP), dimension(NDIM)               :: L_frag_tot, L_frag_orb, L_frag_spin, L_frag_budget, Lorbit_before, Lorbit_after, Lspin_before, Lspin_after, dL
-      real(DP)                                :: ke_frag_budget, ke_frag_orbit, ke_radial, ke_frag_spin, ke_avg_deficit, ke_avg_deficit_old
+      real(DP)                                :: ke_frag_budget, ke_frag_orbit, ke_frag_spin, ke_avg_deficit, ke_avg_deficit_old
       real(DP), dimension(NDIM)               :: x_col_unit, y_col_unit, z_col_unit
       character(len=*), parameter             :: fmtlabel = "(A14,10(ES11.4,1X,:))"
       integer(I4B)                            :: try, subtry
@@ -123,6 +123,8 @@ contains
             rot_frag(:,:) = 0.0_DP
             v_t_mag(:) = 0.0_DP
             v_r_mag(:) = 0.0_DP
+            ke_frag_orbit = 0.0_DP
+            ke_frag_spin = 0.0_DP
             call set_fragment_position_vectors()
 
             do concurrent (ii = 1:nfrag)
@@ -131,16 +133,14 @@ contains
 
             call calculate_system_energy(linclude_fragments=.true.)
             L_frag_budget(:) = -dL(:)
-            ke_frag_budget = -dEtot - Qloss 
             ! The ke constraints are calcualted in the collision frame, so undo the barycentric velocity component
-            ke_frag_budget = ke_frag_budget + 0.5_DP * mtot * dot_product(vcom(:), vcom(:))
+            ke_frag_budget = -(dEtot - 0.5_DP * mtot * dot_product(vcom(:), vcom(:))) - Qloss 
 
             call set_fragment_spin(lfailure)
-            if (lfailure) cycle
-
-            call set_fragment_tan_vel(lfailure)
-            ke_avg_deficit = ke_avg_deficit - ke_radial
+            if (.not.lfailure) call set_fragment_tan_vel(lfailure)
+            ke_avg_deficit = ke_avg_deficit - (ke_frag_orbit + ke_frag_spin)
             subtry = subtry + 1
+            
             if (.not.lfailure .or. subtry == TANTRY) exit
             write(*,*) 'Trying new arrangement'
          end do
@@ -149,7 +149,6 @@ contains
 
          if (.not.lfailure) then
             call calculate_system_energy(linclude_fragments=.true.)
-            ke_radial = -dEtot - Qloss
             call set_fragment_radial_velocities(lfailure)
             if (lfailure) write(*,*) 'Failed to find radial velocities'
             if (.not.lfailure) then
@@ -618,20 +617,14 @@ contains
             !! A failure will trigger a restructuring of the fragments so we will try new values of the radial position distribution.
             implicit none
             ! Arguments
-            logical, intent(out)  :: lerr
+            logical, intent(out) :: lerr
             ! Internals
             real(DP), dimension(NDIM) :: L_remainder, rot_L, rot_ke
             integer(I4B) :: i
 
-            if (ke_frag_budget < 0.0_DP) then
-               !write(*,*) 'Negative ke_frag_budget: ',ke_frag_budget
-               r_max_start = r_max_start / 2 
-               lerr = .true.
-               return
-            end if
+            lerr = .false.
 
             ! Start the first two bodies with the same rotation as the original two impactors, then distribute the remaining angular momentum among the rest
-            v_frag(:,:) = 0.0_DP
             rot_frag(:,1:2) = rot(:, :)
             rot_frag(:,3:nfrag) = 0.0_DP
             call calculate_fragment_ang_mtm()
@@ -651,7 +644,7 @@ contains
             end do
             ke_frag_spin = 0.5_DP * ke_frag_spin
 
-            call calculate_fragment_ang_mtm()
+            lerr = ((ke_frag_budget - ke_frag_spin - ke_frag_orbit) < 0.0_DP)
 
             return
          end subroutine set_fragment_spin
@@ -702,13 +695,6 @@ contains
             ! write(*,*) 'Qloss          : ',Qloss
             ! write(*,*) '***************************************************'
 
-            if ((ke_frag_budget - ke_frag_spin) < 0.0_DP) then
-               !write(*,*) 'Negative ke_frag_budget: ',ke_frag_budget
-               r_max_start = r_max_start / 2 
-               lerr = .true.
-               return
-            end if
-
             allocate(v_t_initial, mold=v_t_mag)
             v_t_initial(:) = 0.0_DP
             v_frag(:,:) = 0.0_DP
@@ -717,10 +703,11 @@ contains
             ! This will be done using a linear solver that solves for the tangential velocities of the first 6 fragments, constrained by the linear and angular momentum vectors, 
             ! which is embedded in a non-linear minimizer that will adjust the tangential velocities of the remaining i>6 fragments to minimize kinetic energy for a given momentum solution
             ! The initial conditions fed to the minimizer for the fragments will be the remaining angular momentum distributed between the fragments.
-             Li(:) =  L_frag_budget(:) / nfrag
-             do concurrent (i = 1:nfrag)
-                v_t_initial(i) = norm2(Li(:)) / (m_frag(i) * norm2(x_frag(:,i)))
-             end do
+            call calculate_fragment_ang_mtm()
+            Li(:) =  (L_frag_budget(:) - L_frag_spin(:)) / nfrag
+            do concurrent (i = 1:nfrag)
+               v_t_initial(i) = norm2(Li(:)) / (m_frag(i) * norm2(x_frag(:,i)))
+            end do
 
             ! Find the local kinetic energy minimum for the system that conserves linear and angular momentum
             objective_function = lambda_obj(tangential_objective_function, lerr)
@@ -747,10 +734,9 @@ contains
                kefrag(i) = m_frag(i) * dot_product(vb_frag(:, i), vb_frag(:, i))
             end do
             ke_frag_orbit = 0.5_DP * sum(kefrag(:))
-            ke_radial = ke_frag_budget - ke_frag_spin - ke_frag_orbit
 
             ! If we are over the energy budget, flag this as a failure so we can try again
-            lerr = (ke_radial < 0.0_DP)
+            lerr = ((ke_frag_budget - ke_frag_spin - ke_frag_orbit) < 0.0_DP)
             write(*,*) 'Tangential'
             write(*,*) 'Failure? ',lerr
             call calculate_fragment_ang_mtm()
@@ -758,6 +744,7 @@ contains
             write(*,*) 'ke_frag_budget: ',ke_frag_budget
             write(*,*) 'ke_frag_spin  : ',ke_frag_spin
             write(*,*) 'ke_tangential : ',ke_frag_orbit
+            write(*,*) 'ke_radial     : ',ke_frag_budget - ke_frag_spin - ke_frag_orbit
 
             return
          end subroutine set_fragment_tan_vel
@@ -851,13 +838,14 @@ contains
             ! Internals
             real(DP), parameter                   :: TOL_MIN = Etol   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
             real(DP), parameter                   :: TOL_INIT = 1e-12_DP
-            real(DP)                              :: tol 
+            real(DP)                              :: ke_radial, tol 
             integer(I4B)                          :: i, j
             real(DP), dimension(:), allocatable   :: v_r_initial, v_r_sigma
             real(DP), dimension(:,:), allocatable :: v_r
             type(lambda_obj)                      :: objective_function
 
-            ! Set the "target" ke_orbit_after (the value of the orbital kinetic energy that the fragments ought to have)
+            ! Set the "target" ke for the radial component
+            ke_radial = ke_frag_budget - ke_frag_spin - ke_frag_orbit
             
             allocate(v_r_initial, source=v_r_mag)
             ! Initialize radial velocity magnitudes with a random value that is approximately 10% of that found by distributing the kinetic energy equally
@@ -912,7 +900,7 @@ contains
             integer(I4B)                         :: i
             real(DP), dimension(:,:), allocatable :: v_shift
             real(DP), dimension(nfrag)             :: kearr
-            real(DP)                               :: keo
+            real(DP)                               :: keo, ke_radial
 
             allocate(v_shift, mold=vb_frag)
             v_shift(:,:) = vmag_to_vb(v_r_mag_input, v_r_unit, v_t_mag, v_t_unit, m_frag, vcom) 
@@ -920,6 +908,7 @@ contains
                kearr(i) = m_frag(i) * (Ip_frag(3, i) * rad_frag(i)**2 * dot_product(rot_frag(:, i), rot_frag(:, i)) + dot_product(v_shift(:, i), v_shift(:, i)))
             end do
             keo = 2 * ke_frag_budget - sum(kearr(:))
+            ke_radial = ke_frag_budget - ke_frag_orbit - ke_frag_spin
             ! The following ensures that fval = 0 is a local minimum, which is what the BFGS method is searching for
             fval = (keo / (2 * ke_radial))**2
 
