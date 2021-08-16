@@ -38,13 +38,12 @@ contains
       real(DP)                                :: ke_frag_budget, ke_frag_orbit, ke_frag_spin, ke_avg_deficit, ke_avg_deficit_old
       real(DP), dimension(NDIM)               :: x_col_unit, y_col_unit, z_col_unit
       character(len=*), parameter             :: fmtlabel = "(A14,10(ES11.4,1X,:))"
-      integer(I4B)                            :: try, subtry
+      integer(I4B)                            :: try
       integer(I4B), parameter                 :: NFRAG_MIN = 7 !! The minimum allowable number of fragments (set to 6 because that's how many unknowns are needed in the tangential velocity calculation)
       real(DP)                                :: r_max_start, r_max_start_old, r_max, f_spin 
       real(DP), parameter                     :: Ltol = 10 * epsilon(1.0_DP)
       real(DP), parameter                     :: Etol = 1e-6_DP
       integer(I4B), parameter                 :: MAXTRY = 3000
-      integer(I4B), parameter                 :: TANTRY = 3
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes, fpe_quiet_modes
       class(swiftest_nbody_system), allocatable :: tmpsys
       class(swiftest_parameters), allocatable   :: tmpparam
@@ -105,50 +104,41 @@ contains
       ! Calculate the initial energy of the system without the collisional family
       call calculate_system_energy(linclude_fragments=.false.)
       
-      r_max_start = 10 * norm2(x(:,2) - x(:,1))
+      r_max_start = 1 * norm2(x(:,2) - x(:,1))
       try = 1
       lfailure = .false.
       ke_avg_deficit = 0.0_DP
       do while (try < MAXTRY)
          lfailure = .false.
-         ke_avg_deficit_old = ke_avg_deficit
-         ke_avg_deficit = 0.0_DP
-         subtry = 1
-         do 
-            ! Initialize the fragments with 0 velocity and spin so we can divide up the balance between the tangential, radial, and spin components while conserving momentum
-            xb_frag(:,:) = 0.0_DP
-            vb_frag(:,:) = 0.0_DP
-            x_frag(:,:) = 0.0_DP
-            v_frag(:,:) = 0.0_DP
-            rot_frag(:,:) = 0.0_DP
-            v_t_mag(:) = 0.0_DP
-            v_r_mag(:) = 0.0_DP
-            ke_frag_orbit = 0.0_DP
-            ke_frag_spin = 0.0_DP
-            call set_fragment_position_vectors()
+         call reset_fragments()
 
-            do concurrent (ii = 1:nfrag)
-               vb_frag(:, ii) = vcom(:)
-            end do
+         call set_fragment_position_vectors()
 
-            call calculate_system_energy(linclude_fragments=.true.)
-            L_frag_budget(:) = -dL(:)
-            ! The ke constraints are calcualted in the collision frame, so undo the barycentric velocity component
-            ke_frag_budget = -(dEtot - 0.5_DP * mtot * dot_product(vcom(:), vcom(:))) - Qloss 
-
-            call set_fragment_spin(lfailure)
-            if (.not.lfailure) call set_fragment_tan_vel(lfailure)
-            ke_avg_deficit = ke_avg_deficit - (ke_frag_orbit + ke_frag_spin)
-            subtry = subtry + 1
-            
-            if (.not.lfailure .or. subtry == TANTRY) exit
-            write(*,*) 'Trying new arrangement'
+         do concurrent (ii = 1:nfrag)
+            vb_frag(:, ii) = vcom(:)
          end do
-         ke_avg_deficit = ke_avg_deficit / subtry
-         if (lfailure) write(*,*) 'Failed to find tangential velocities'
 
-         if (.not.lfailure) then
-            call calculate_system_energy(linclude_fragments=.true.)
+         call calculate_system_energy(linclude_fragments=.true.)
+         L_frag_budget(:) = -dL(:)
+         ! The ke constraints are calcualted in the collision frame, so undo the barycentric velocity component
+         ke_frag_budget = -(dEtot - 0.5_DP * mtot * dot_product(vcom(:), vcom(:))) - Qloss 
+
+         call set_fragment_spin(lfailure)
+         if (lfailure) then ! Too much spin! Try reducing the fraction put into spin and try again
+            if (f_spin > epsilon(1.0_DP)) then
+               f_spin = f_spin / 2
+            else
+               f_spin = 0.0_DP
+            end if
+         else
+            call set_fragment_tan_vel(lfailure)
+         end if
+            
+         if (lfailure) then
+            write(*,*) 'Failed to find tangential velocities'
+            ke_avg_deficit = ke_avg_deficit - (ke_frag_orbit + ke_frag_spin)
+         else 
+            !call calculate_system_energy(linclude_fragments=.true.)
             call set_fragment_radial_velocities(lfailure)
             if (lfailure) write(*,*) 'Failed to find radial velocities'
             if (.not.lfailure) then
@@ -300,6 +290,28 @@ contains
 
             return
          end subroutine restore_scale_factors
+
+         subroutine reset_fragments()
+            !! author: David A. Minton
+            !!
+            !! Resets all tracked fragment quantities in order to do a fresh calculation
+            !! Initialize the fragments with 0 velocity and spin so we can divide up the balance between the tangential, radial, and spin components while conserving momentum
+            implicit none
+
+            xb_frag(:,:) = 0.0_DP
+            vb_frag(:,:) = 0.0_DP
+            x_frag(:,:) = 0.0_DP
+            v_frag(:,:) = 0.0_DP
+            rot_frag(:,:) = 0.0_DP
+            v_t_mag(:) = 0.0_DP
+            v_r_mag(:) = 0.0_DP
+            ke_frag_orbit = 0.0_DP
+            ke_frag_spin = 0.0_DP
+            L_frag_orb(:) = 0.0_DP
+            L_frag_spin(:) = 0.0_DP
+
+            return
+         end subroutine reset_fragments
 
 
          subroutine define_coordinate_system()
@@ -971,11 +983,6 @@ contains
             end if
             r_max_start_old = r_max_start
             r_max_start = r_max_start + delta_r ! The larger lever arm can help if the problem is in the angular momentum step
-            if (f_spin > epsilon(1.0_DP)) then
-               f_spin = f_spin / 2
-            else
-               f_spin = 0.0_DP
-            end if
 
             return
          end subroutine restructure_failed_fragments
