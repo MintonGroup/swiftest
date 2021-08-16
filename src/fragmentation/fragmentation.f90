@@ -35,7 +35,7 @@ contains
       real(DP)                                :: Etot_before, ke_orbit_before, ke_spin_before, pe_before, Lmag_before
       real(DP)                                :: Etot_after,  ke_orbit_after,  ke_spin_after,  pe_after,  Lmag_after, dEtot, dLmag
       real(DP), dimension(NDIM)               :: L_frag_tot, L_frag_orb, L_frag_spin, L_frag_budget, Lorbit_before, Lorbit_after, Lspin_before, Lspin_after, dL
-      real(DP)                                :: ke_frag_budget, ke_frag_orbit, ke_frag_spin, ke_avg_deficit, ke_avg_deficit_old
+      real(DP)                                :: ke_frag_budget, ke_frag_orbit, ke_frag_spin, ke_tot_deficit, ke_avg_deficit, ke_avg_deficit_old
       real(DP), dimension(NDIM)               :: x_col_unit, y_col_unit, z_col_unit
       character(len=*), parameter             :: fmtlabel = "(A14,10(ES11.4,1X,:))"
       integer(I4B)                            :: try
@@ -58,11 +58,8 @@ contains
       fpe_quiet_modes(:) = .false.
       call ieee_set_halting_mode(IEEE_ALL,fpe_quiet_modes)
 
-      f_spin = 0.05_DP
-
       allocate(x_frag, source=xb_frag)
       allocate(v_frag, source=vb_frag)
-
       allocate(rmag(nfrag))
       allocate(rotmag(nfrag))
       allocate(v_r_mag(nfrag))
@@ -99,6 +96,7 @@ contains
       L_frag_orb(:) = L_orb(:, 1) + L_orb(:, 2)
       L_frag_spin(:) = L_spin(:, 1) + L_spin(:, 2)
       L_frag_budget(:) = L_frag_orb(:) + L_frag_spin(:)
+      f_spin = norm2(L_frag_spin(:)) / norm2(L_frag_budget(:))
 
       call define_coordinate_system()
       call construct_temporary_system()
@@ -109,7 +107,7 @@ contains
       r_max_start = 1 * norm2(x(:,2) - x(:,1))
       try = 1
       lfailure = .false.
-      ke_avg_deficit = 0.0_DP
+      ke_tot_deficit = 0.0_DP
       do while (try < MAXTRY)
          lfailure = .false.
          call reset_fragments()
@@ -130,7 +128,7 @@ contains
             
          if (lfailure) then
             write(*,*) 'Failed to find tangential velocities'
-            ke_avg_deficit = ke_avg_deficit - (ke_frag_orbit + ke_frag_spin)
+            
          else 
             call set_fragment_radial_velocities(lfailure)
             if (lfailure) write(*,*) 'Failed to find radial velocities'
@@ -969,10 +967,12 @@ contains
             real(DP) :: delta_r, delta_r_max
             real(DP), parameter :: ke_avg_deficit_target = 0.0_DP 
 
+            ke_tot_deficit = ke_tot_deficit - (ke_frag_budget - ke_frag_orbit - ke_frag_spin)
+            ke_avg_deficit = ke_tot_deficit / try
             ! Introduce a bit of noise in the radius determination so we don't just flip flop between similar failed positions
             call random_number(delta_r_max)
             delta_r_max = sum(radius(:)) * (1.0_DP + 2e-1_DP * (delta_r_max - 0.5_DP))
-            if (try > 2) then
+            if (try > 1) then
                ! Linearly interpolate the last two failed solution ke deficits to find a new distance value to try
                delta_r = (r_max_start - r_max_start_old) * (ke_avg_deficit_target - ke_avg_deficit_old) / (ke_avg_deficit - ke_avg_deficit_old)
                if (abs(delta_r) > delta_r_max) delta_r = sign(delta_r_max, delta_r)
@@ -981,6 +981,7 @@ contains
             end if
             r_max_start_old = r_max_start
             r_max_start = r_max_start + delta_r ! The larger lever arm can help if the problem is in the angular momentum step
+            ke_avg_deficit_old = ke_avg_deficit
 
             if (f_spin > epsilon(1.0_DP)) then ! Try reducing the fraction in spin
                f_spin = f_spin / 2
