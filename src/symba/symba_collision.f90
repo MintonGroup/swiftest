@@ -1076,7 +1076,7 @@ contains
 
                write(*, *) "Collision between massive bodies detected at time t = ", t
                call pl%vb2vh(system%cb)
-               call pl%h2b(system%cb)
+               call pl%xh2xb(system%cb)
                if (param%lfragmentation) then
                   call plplcollision_list%resolve_fragmentations(system, param)
                else

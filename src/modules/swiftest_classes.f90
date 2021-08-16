@@ -226,6 +226,7 @@ module swiftest_classes
       procedure :: append       => util_append_pl         !! Appends elements from one structure to another
       procedure :: h2b          => util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
+      procedure :: xh2xb        => util_coord_xh2xb_pl    !! Convert position vectors of massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
@@ -935,6 +936,12 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
+
+      module subroutine util_coord_xh2xb_pl(self, cb)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_coord_xh2xb_pl
 
       module subroutine util_copy_encounter(self, source)
          implicit none
