@@ -451,6 +451,7 @@ contains
                   end do
                end if
 
+               if (any(lcollision(1:nenc))) call pl%xh2xb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
                do k = 1, nenc
                   if (lcollision(k)) self%status(k) = COLLISION
                   self%t(k) = t
