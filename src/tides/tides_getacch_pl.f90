@@ -48,8 +48,8 @@ contains
             Ftr = -3 / rmag**7 * (r5cbterm + r5plterm) - 3 * vmag / rmag * (Ptocb + Ptopl)
 
             F_T(:) = (Ftr + (Ptocb + Ptopl) * dot_product(v_unit, r_unit) / rmag) * r_unit(:)  &
-                      + Ptopl * (pl%rot(:,i) - theta_dot(:)) .cross. r_unit(:)  &
-                      + Ptocb * (cb%rot(:)   - theta_dot(:)) .cross. r_unit(:)
+                      + Ptopl * ((pl%rot(:,i) - theta_dot(:)) .cross. r_unit(:))  &
+                      + Ptocb * ((cb%rot(:)   - theta_dot(:)) .cross. r_unit(:))
             cb%atide(:) = cb%atide(:) + F_T(:) / cb%Gmass
             pl%atide(:,i) = F_T(:) / pl%Gmass(i) 
          end do 

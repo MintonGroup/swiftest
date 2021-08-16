@@ -97,10 +97,10 @@ contains
    
             Ltot(:) = 0.0_DP
             do i = 1, pl%nbody
-               Lpl(:) = pL%mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Lpl(:) = pL%mass(i) * (pl%xb(:,i) .cross. pl%vb(:, i))
                Ltot(:) = Ltot(:) + Lpl(:)
             end do
-            Ltot(:) = Ltot(:) + cb%mass * cb%xb(:) .cross. cb%vb(:)
+            Ltot(:) = Ltot(:) + cb%mass * (cb%xb(:) .cross. cb%vb(:))
             call pl%b2h(cb)
             oldstat = pl%status(ipl)
             pl%status(ipl) = INACTIVE
@@ -108,20 +108,20 @@ contains
             pl%status(ipl) = oldstat
             do i = 1, pl%nbody
                if (i == ipl) cycle
-               Lpl(:) = pl%mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Lpl(:) = pl%mass(i) * (pl%xb(:,i) .cross. pl%vb(:, i))
                Ltot(:) = Ltot(:) - Lpl(:) 
             end do 
-            Ltot(:) = Ltot(:) - cb%mass * cb%xb(:) .cross. cb%vb(:)
+            Ltot(:) = Ltot(:) - cb%mass * (cb%xb(:) .cross. cb%vb(:))
             system%Lescape(:) = system%Lescape(:) + Ltot(:)
             if (param%lrotation) system%Lescape(:) = system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
    
          else
             xcom(:) = (pl%mass(ipl) * pl%xb(:, ipl) + cb%mass * cb%xb(:)) / (cb%mass + pl%mass(ipl))
             vcom(:) = (pl%mass(ipl) * pl%vb(:, ipl) + cb%mass * cb%vb(:)) / (cb%mass + pl%mass(ipl))
-            Lpl(:) = (pl%xb(:,ipl) - xcom(:)) .cross. pL%vb(:,ipl) - vcom(:)
+            Lpl(:) = (pl%xb(:,ipl) - xcom(:)) .cross. (pL%vb(:,ipl) - vcom(:))
             if (param%lrotation) Lpl(:) = pl%mass(ipl) * (Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl))
      
-            Lcb(:) = cb%mass * (cb%xb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:))
+            Lcb(:) = cb%mass * ((cb%xb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
    
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
             if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))

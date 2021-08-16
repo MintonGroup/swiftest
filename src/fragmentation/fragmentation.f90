@@ -34,7 +34,7 @@ contains
       real(DP), dimension(NDIM)               :: Ltot_after
       real(DP)                                :: Etot_before, ke_orbit_before, ke_spin_before, pe_before, Lmag_before
       real(DP)                                :: Etot_after,  ke_orbit_after,  ke_spin_after,  pe_after,  Lmag_after, dEtot, dLmag
-      real(DP), dimension(NDIM)               :: L_frag_tot, L_frag_orb, L_frag_spin, L_frag_budget
+      real(DP), dimension(NDIM)               :: L_frag_tot, L_frag_orb, L_frag_spin, L_frag_budget, Lorbit_before, Lorbit_after, Lspin_before, Lspin_after
       real(DP)                                :: ke_frag_budget, ke_frag_orbit, ke_radial, ke_frag_spin, ke_avg_deficit, ke_avg_deficit_old
       real(DP), dimension(NDIM)               :: x_col_unit, y_col_unit, z_col_unit
       character(len=*), parameter             :: fmtlabel = "(A14,10(ES11.4,1X,:))"
@@ -125,12 +125,12 @@ contains
             v_r_mag(:) = 0.0_DP
             call set_fragment_position_vectors()
 
+            do concurrent (ii = 1:nfrag)
+               vb_frag(:, ii) = vcom(:)
+            end do
+
             call calculate_system_energy(linclude_fragments=.true.)
             ke_frag_budget = -dEtot - Qloss
-            L_frag_budget(:) = Ltot_after(:) - Ltot_before(:) 
-            do ii = 1, nfrag
-               L_frag_budget(:) = L_frag_budget(:) + m_frag(ii) * (xb_frag(:, ii) .cross. vcom(:))
-            end do
 
             call define_coordinate_system()
             call set_fragment_tan_vel(lfailure)
@@ -168,11 +168,11 @@ contains
          try = try + 1
       end do
       call restore_scale_factors()
-      call calculate_system_energy(linclude_fragments=.true.)
 
       write(*,        "(' -------------------------------------------------------------------------------------')")
       write(*,        "('  Final diagnostic')")
       write(*,        "(' -------------------------------------------------------------------------------------')")
+      call calculate_system_energy(linclude_fragments=.true.)
       if (lfailure) then
          write(*,*) "symba_frag_pos failed after: ",try," tries"
          do ii = 1, nfrag
@@ -210,12 +210,12 @@ contains
             vcom(:) = (mass(1) * v(:,1) + mass(2) * v(:,2)) / mtot
 
             ! Set scale factors
+            Escale = 0.5_DP * (mass(1) * dot_product(v(:,1), v(:,1)) + mass(2) * dot_product(v(:,2), v(:,2)))
             dscale = sum(radius(:))
-            mscale = mtot
-            vscale = sqrt(0.5_DP) * (norm2(v(:,1)) + norm2(v(:,2)))
+            mscale = mtot 
+            vscale = sqrt(Escale / mscale) 
             tscale = dscale / vscale 
             Lscale = mscale * dscale * vscale
-            Escale = mscale * vscale**2
 
             xcom(:) = xcom(:) / dscale
             vcom(:) = vcom(:) / vscale
@@ -471,6 +471,8 @@ contains
 
                ! Calculate the current fragment energy and momentum balances
                if (linclude_fragments) then
+                  Lorbit_after(:) = tmpsys%Lorbit
+                  Lspin_after(:) = tmpsys%Lspin
                   Ltot_after(:) = tmpsys%Lorbit(:) + tmpsys%Lspin(:)
                   Lmag_after = norm2(Ltot_after(:))
                   ke_orbit_after = tmpsys%ke_orbit
@@ -480,6 +482,8 @@ contains
                   dEtot = Etot_after - Etot_before 
                   dLmag = norm2(Ltot_after(:) - Ltot_before(:)) 
                else
+                  Lorbit_before(:) = tmpsys%Lorbit
+                  Lspin_before(:) = tmpsys%Lspin
                   Ltot_before(:) = tmpsys%Lorbit(:) + tmpsys%Lspin(:)
                   Lmag_before = norm2(Ltot_before(:))
                   ke_orbit_before = tmpsys%ke_orbit
@@ -504,7 +508,7 @@ contains
             L_frag_spin(:) = 0.0_DP
 
             do i = 1, nfrag
-               L_frag_orb(:) = L_frag_orb(:) + m_frag(i) * (x_frag(:, i) .cross. v_frag(:, i)) 
+               L_frag_orb(:) = L_frag_orb(:) + m_frag(i) * (x_frag(:, i) .cross. v_frag(:, i))
                L_frag_spin(:) = L_frag_spin(:) + m_frag(i) * rad_frag(i)**2 * Ip_frag(:, i) * rot_frag(:, i)
             end do
 
@@ -631,6 +635,22 @@ contains
 
             lerr = .false.
 
+            ! write(*,*) '***************************************************'
+            ! write(*,*) 'Original dis   : ',norm2(x(:,2) - x(:,1))
+            ! write(*,*) 'r_max          : ',r_max
+            ! write(*,*) 'f_spin         : ',f_spin
+            ! write(*,*) '***************************************************'
+            ! write(*,*) 'Energy balance so far: '
+            ! write(*,*) 'ke_frag_budget : ',ke_frag_budget
+            ! write(*,*) 'ke_orbit_before: ',ke_orbit_before 
+            ! write(*,*) 'ke_orbit_after : ',ke_orbit_after  
+            ! write(*,*) 'ke_spin_before : ',ke_spin_before 
+            ! write(*,*) 'ke_spin_after  : ',ke_spin_after  
+            ! write(*,*) 'pe_before      : ',pe_before 
+            ! write(*,*) 'pe_after       : ',pe_after  
+            ! write(*,*) 'Qloss          : ',Qloss
+            ! write(*,*) '***************************************************'
+
             if (ke_frag_budget < 0.0_DP) then
                write(*,*) 'Negative ke_frag_budget: ',ke_frag_budget
                r_max_start = r_max_start / 2 
@@ -715,7 +735,7 @@ contains
             lerr = (ke_radial < 0.0_DP)
             write(*,*) 'Tangential'
             write(*,*) 'Failure? ',lerr
-            write(*,*) '|L_remainder| : ',.mag.L_remainder(:)
+            write(*,*) '|L_remainder| : ',.mag.L_remainder(:) / Lmag_before
             write(*,*) 'ke_frag_budget: ',ke_frag_budget
             write(*,*) 'ke_frag_spin  : ',ke_frag_spin
             write(*,*) 'ke_tangential : ',ke_frag_orbit
@@ -784,17 +804,16 @@ contains
             do i = 1, nfrag
                if (i <= 2 * NDIM) then ! The tangential velocities of the first set of bodies will be the unknowns we will solve for to satisfy the constraints
                   A(1:3, i) = m_frag(i) * v_t_unit(:, i) 
-                  L(:) = v_r_unit(:, i) .cross. v_t_unit(:, i)
-                  A(4:6, i) = m_frag(i) * rmag(i) * L(:)
+                  A(4:6, i) = m_frag(i) * rmag(i) * (v_r_unit(:, i) .cross. v_t_unit(:, i))
                else if (present(v_t_mag_input)) then
                   vtmp(:) = v_t_mag_input(i - 6) * v_t_unit(:, i)
                   L_lin_others(:) = L_lin_others(:) + m_frag(i) * vtmp(:)
-                  L(:) = m_frag(i) * (x_frag(:, i) .cross. vtmp(:))
+                  L(:) = m_frag(i) * (x_frag(:, i) .cross. vtmp(:)) 
                   L_orb_others(:) = L_orb_others(:) + L(:)
                end if
             end do
             b(1:3) = -L_lin_others(:)
-            b(4:6) = L_frag_budget(:) - L_frag_spin(:) - L_orb_others(:)
+            b(4:6) = L_frag_orb(:) - L_orb_others(:)
             allocate(v_t_mag_output(nfrag))
             v_t_mag_output(1:6) = util_solve_linear_system(A, b, 6, lerr)
             if (present(v_t_mag_input)) v_t_mag_output(7:nfrag) = v_t_mag_input(:)

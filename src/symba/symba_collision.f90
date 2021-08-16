@@ -454,11 +454,11 @@ contains
                do k = 1, nenc
                   if (lcollision(k)) self%status(k) = COLLISION
                   self%t(k) = t
-                  self%x1(:,k) = pl%xh(:,ind1(k)) 
-                  self%v1(:,k) = pl%vb(:,ind1(k)) - system%cb%vb(:)
+                  self%x1(:,k) = pl%xh(:,ind1(k)) + system%cb%xb(:)
+                  self%v1(:,k) = pl%vb(:,ind1(k)) 
                   if (isplpl) then
-                     self%x2(:,k) = pl%xh(:,ind2(k))
-                     self%v2(:,k) = pl%vb(:,ind2(k)) - system%cb%vb(:)
+                     self%x2(:,k) = pl%xh(:,ind2(k)) + system%cb%xb(:)
+                     self%v2(:,k) = pl%vb(:,ind2(k)) 
                      if (lcollision(k)) then
                         ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional family
                         if (pl%lcollision(ind1(k)) .or. pl%lcollision(ind2(k))) call pl%make_family([ind1(k),ind2(k)])
@@ -469,8 +469,8 @@ contains
                         pl%status([ind1(k), ind2(k)]) = COLLISION
                      end if
                   else
-                     self%x2(:,k) = tp%xh(:,ind2(k))
-                     self%v2(:,k) = tp%vb(:,ind2(k)) - system%cb%vb(:)
+                     self%x2(:,k) = tp%xh(:,ind2(k)) + system%cb%xb(:)
+                     self%v2(:,k) = tp%vb(:,ind2(k)) 
                      if (lcollision(k)) then
                         tp%status(ind2(k)) = DISCARDED_PLR
                         tp%ldiscard(ind2(k)) = .true.
@@ -539,7 +539,7 @@ contains
    end function symba_collision_check_one
 
 
-   function symba_collision_consolidate_familes(pl, param, idx_parent, family, x, v, mass, radius, L_spin, Ip) result(lflag)
+   function symba_collision_consolidate_familes(pl, cb, param, idx_parent, family, x, v, mass, radius, L_spin, Ip) result(lflag)
       !! author: David A. Minton
       !! 
       !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all family members, 
@@ -547,6 +547,7 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),                                 intent(inout) :: pl               !! SyMBA massive body object
+      class(symba_cb),                                 intent(inout) :: cb               !! SyMBA central body object
       class(symba_parameters),                         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
       integer(I4B),    dimension(2),                   intent(inout) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       integer(I4B),    dimension(:),      allocatable, intent(out)   :: family           !! List of indices of all bodies inovlved in the collision
@@ -611,7 +612,7 @@ contains
 
       ! Find the barycenter of each body along with its children, if it has any
       do j = 1, 2
-         x(:, j)  = pl%xh(:, idx_parent(j))
+         x(:, j)  = pl%xh(:, idx_parent(j)) + cb%xb(:)
          v(:, j)  = pl%vb(:, idx_parent(j))
          ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
          if (param%lrotation) then
@@ -624,7 +625,7 @@ contains
                idx_child = parent_child_index_array(j)%idx(i + 1)
                if (.not. pl%lcollision(idx_child)) cycle
                mchild = pl%mass(idx_child)
-               xchild(:) = pl%xh(:, idx_child)
+               xchild(:) = pl%xh(:, idx_child) + cb%xb(:)
                vchild(:) = pl%vb(:, idx_child)
                volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
                volume(j) = volume(j) + volchild
@@ -944,68 +945,71 @@ contains
       integer(I4B), parameter                     :: NRES = 3   !! Number of collisional product results
       real(DP), dimension(NRES)                   :: mass_res   
 
-      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, cb => system%cb)
+      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
          select type(pl => system%pl)
          class is (symba_pl)
-            do i = 1, ncollisions
-               idx_parent(1) = pl%kin(idx1(i))%parent
-               idx_parent(2) = pl%kin(idx2(i))%parent
-               lgoodcollision = symba_collision_consolidate_familes(pl, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
-               if (.not. lgoodcollision) cycle
-               if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
-
-               ! Convert from DH to barycentric
-               x(:,1) = x(:,1) + cb%xb(:)
-               x(:,2) = x(:,2) + cb%xb(:)
-
-               ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them 
-               ! to symba_regime
-               if (mass(1) > mass(2)) then
-                  jtarg = 1
-                  jproj = 2
-               else
-                  jtarg = 2
-                  jproj = 1
-               end if
-               mass_si(:)    = (mass(:)) * param%MU2KG                              !! The collective mass of the parent and its children
-               radius_si(:)  = radius(:) * param%DU2M                               !! The collective radius of the parent and its children
-               x1_si(:)      = plpl_collisions%x1(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
-               v1_si(:)      = plpl_collisions%v1(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
-               x2_si(:)      = plpl_collisions%x2(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
-               v2_si(:)      = plpl_collisions%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
-               density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The collective density of the parent and its children
-               Mcb_si        = cb%mass * param%MU2KG 
-               mtiny_si      = (param%GMTINY / param%GU) * param%MU2KG
+            select type (cb => system%cb)
+            class is (symba_cb)
+               do i = 1, ncollisions
+                  idx_parent(1) = pl%kin(idx1(i))%parent
+                  idx_parent(2) = pl%kin(idx2(i))%parent
+                  lgoodcollision = symba_collision_consolidate_familes(pl, cb, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
+                  if (.not. lgoodcollision) cycle
+                  if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
+   
+                  ! Convert from DH to barycentric
+                  x(:,1) = x(:,1) + cb%xb(:)
+                  x(:,2) = x(:,2) + cb%xb(:)
+   
+                  ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them 
+                  ! to symba_regime
+                  if (mass(1) > mass(2)) then
+                     jtarg = 1
+                     jproj = 2
+                  else
+                     jtarg = 2
+                     jproj = 1
+                  end if
+                  mass_si(:)    = (mass(:)) * param%MU2KG                              !! The collective mass of the parent and its children
+                  radius_si(:)  = radius(:) * param%DU2M                               !! The collective radius of the parent and its children
+                  x1_si(:)      = plpl_collisions%x1(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
+                  v1_si(:)      = plpl_collisions%v1(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
+                  x2_si(:)      = plpl_collisions%x2(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
+                  v2_si(:)      = plpl_collisions%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
+                  density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The collective density of the parent and its children
+                  Mcb_si        = cb%mass * param%MU2KG 
+                  mtiny_si      = (param%GMTINY / param%GU) * param%MU2KG
+               
+                  mass_res(:) = 0.0_DP
             
-               mass_res(:) = 0.0_DP
-         
-               mtot = sum(mass_si(:)) 
-               dentot = sum(mass_si(:) * density_si(:)) / mtot 
-
-               !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
-               call fragmentation_regime(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), x1_si(:), x2_si(:),& 
-                     v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), regime, mlr, mslr, mtiny_si, Qloss)
-
-               mass_res(1) = min(max(mlr, 0.0_DP), mtot)
-               mass_res(2) = min(max(mslr, 0.0_DP), mtot)
-               mass_res(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
-               mass_res(:) = (mass_res(:) / param%MU2KG) 
-               Qloss = Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
-
-               select case (regime)
-               case (COLLRESOLVE_REGIME_DISRUPTION)
-                  status = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
-               case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                  status = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
-               case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                  status = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
-               case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-                  status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
-               case default 
-                  write(*,*) "Error in symba_collision, unrecognized collision regime"
-                  call util_exit(FAILURE)
-               end select
-            end do
+                  mtot = sum(mass_si(:)) 
+                  dentot = sum(mass_si(:) * density_si(:)) / mtot 
+   
+                  !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
+                  call fragmentation_regime(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), x1_si(:), x2_si(:),& 
+                        v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), regime, mlr, mslr, mtiny_si, Qloss)
+   
+                  mass_res(1) = min(max(mlr, 0.0_DP), mtot)
+                  mass_res(2) = min(max(mslr, 0.0_DP), mtot)
+                  mass_res(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
+                  mass_res(:) = (mass_res(:) / param%MU2KG) 
+                  Qloss = Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
+   
+                  select case (regime)
+                  case (COLLRESOLVE_REGIME_DISRUPTION)
+                     status = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                  case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+                     status = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                  case (COLLRESOLVE_REGIME_HIT_AND_RUN)
+                     status = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                  case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+                     status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+                  case default 
+                     write(*,*) "Error in symba_collision, unrecognized collision regime"
+                     call util_exit(FAILURE)
+                  end select
+               end do
+            end select
          end select
       end associate
 
@@ -1031,22 +1035,25 @@ contains
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i, status
 
-      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, cb => system%cb)
+      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
          select type(pl => system%pl)
          class is (symba_pl)
-            do i = 1, ncollisions
-               idx_parent(1) = pl%kin(idx1(i))%parent
-               idx_parent(2) = pl%kin(idx2(i))%parent
-               lgoodcollision = symba_collision_consolidate_familes(pl, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
-               if (.not. lgoodcollision) cycle
-               if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
-
-               ! Convert from DH to barycentric
-               x(:,1) = x(:,1) + cb%xb(:)
-               x(:,2) = x(:,2) + cb%xb(:)
-
-               status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
-            end do
+            select type(cb => system%cb)
+            class is (symba_cb)
+               do i = 1, ncollisions
+                  idx_parent(1) = pl%kin(idx1(i))%parent
+                  idx_parent(2) = pl%kin(idx2(i))%parent
+                  lgoodcollision = symba_collision_consolidate_familes(pl, cb, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
+                  if (.not. lgoodcollision) cycle
+                  if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
+   
+                  ! Convert from DH to barycentric
+                  x(:,1) = x(:,1) + cb%xb(:)
+                  x(:,2) = x(:,2) + cb%xb(:)
+   
+                  status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+               end do
+            end select
          end select
       end associate
 
