@@ -957,10 +957,6 @@ contains
                   if (.not. lgoodcollision) cycle
                   if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
    
-                  ! Convert from DH to barycentric
-                  x(:,1) = x(:,1) + cb%xb(:)
-                  x(:,2) = x(:,2) + cb%xb(:)
-   
                   ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them 
                   ! to symba_regime
                   if (mass(1) > mass(2)) then
@@ -1046,10 +1042,6 @@ contains
                   lgoodcollision = symba_collision_consolidate_familes(pl, cb, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
                   if (.not. lgoodcollision) cycle
                   if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
-   
-                  ! Convert from DH to barycentric
-                  x(:,1) = x(:,1) + cb%xb(:)
-                  x(:,2) = x(:,2) + cb%xb(:)
    
                   status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                end do
