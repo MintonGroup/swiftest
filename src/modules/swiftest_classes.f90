@@ -1014,7 +1014,7 @@ module swiftest_classes
          real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
       end subroutine util_rescale_system
 
-      module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
+      module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
          use lambda_function
          implicit none
          integer(I4B),           intent(in)    :: N
@@ -1022,7 +1022,8 @@ module swiftest_classes
          real(DP), dimension(:), intent(in)    :: x0
          real(DP),               intent(in)    :: eps
          logical,                intent(out)   :: lerr
-         real(DP), dimension(:), allocatable :: x1
+         integer(I4B),           intent(in)    :: maxloop
+         real(DP), dimension(:), allocatable   :: x1
       end function util_minimize_bfgs
 
       module subroutine util_peri_tp(self, system, param) 

@@ -127,18 +127,17 @@ contains
          if (.not.lfailure) call set_fragment_tan_vel(lfailure)
             
          if (lfailure) then
-            write(*,*) 'Failed to find tangential velocities'
-            
+            !write(*,*) 'Failed to find tangential velocities'
          else 
             call set_fragment_radial_velocities(lfailure)
-            if (lfailure) write(*,*) 'Failed to find radial velocities'
+            !if (lfailure) write(*,*) 'Failed to find radial velocities'
             if (.not.lfailure) then
                call calculate_system_energy(linclude_fragments=.true.)
                if ((abs(dEtot + Qloss) > Etol) .or. (dEtot > 0.0_DP)) then
-                  write(*,*) 'Failed due to high energy error: ',dEtot, abs(dEtot + Qloss) / Etol
+                  !write(*,*) 'Failed due to high energy error: ',dEtot, abs(dEtot + Qloss) / Etol
                   lfailure = .true.
                else if (abs(dLmag) / Lmag_before > Ltol) then
-                  write(*,*) 'Failed due to high angular momentum error: ', dLmag / Lmag_before
+                  !write(*,*) 'Failed due to high angular momentum error: ', dLmag / Lmag_before
                   lfailure = .true.
                end if
             end if
@@ -744,14 +743,14 @@ contains
 
             ! If we are over the energy budget, flag this as a failure so we can try again
             lerr = ((ke_frag_budget - ke_frag_spin - ke_frag_orbit) < 0.0_DP)
-            write(*,*) 'Tangential'
-            write(*,*) 'Failure? ',lerr
-            call calculate_fragment_ang_mtm()
-            write(*,*) '|L_remainder| : ',.mag.(L_frag_budget(:) - L_frag_tot(:)) / Lmag_before
-            write(*,*) 'ke_frag_budget: ',ke_frag_budget
-            write(*,*) 'ke_frag_spin  : ',ke_frag_spin
-            write(*,*) 'ke_tangential : ',ke_frag_orbit
-            write(*,*) 'ke_radial     : ',ke_frag_budget - ke_frag_spin - ke_frag_orbit
+            ! write(*,*) 'Tangential'
+            ! write(*,*) 'Failure? ',lerr
+            ! call calculate_fragment_ang_mtm()
+            ! write(*,*) '|L_remainder| : ',.mag.(L_frag_budget(:) - L_frag_tot(:)) / Lmag_before
+            ! write(*,*) 'ke_frag_budget: ',ke_frag_budget
+            ! write(*,*) 'ke_frag_spin  : ',ke_frag_spin
+            ! write(*,*) 'ke_tangential : ',ke_frag_orbit
+            ! write(*,*) 'ke_radial     : ',ke_frag_budget - ke_frag_spin - ke_frag_orbit
 
             return
          end subroutine set_fragment_tan_vel
@@ -882,12 +881,12 @@ contains
             end do
             ke_frag_orbit = 0.5_DP * ke_frag_orbit
 
-            write(*,*) 'Radial'
-            write(*,*) 'Failure? ',lerr 
-            write(*,*) 'ke_frag_budget: ',ke_frag_budget
-            write(*,*) 'ke_frag_spin  : ',ke_frag_spin
-            write(*,*) 'ke_frag_orbit : ',ke_frag_orbit
-            write(*,*) 'ke_remainder  : ',ke_frag_budget - (ke_frag_orbit + ke_frag_spin)
+            ! write(*,*) 'Radial'
+            ! write(*,*) 'Failure? ',lerr 
+            ! write(*,*) 'ke_frag_budget: ',ke_frag_budget
+            ! write(*,*) 'ke_frag_spin  : ',ke_frag_spin
+            ! write(*,*) 'ke_frag_orbit : ',ke_frag_orbit
+            ! write(*,*) 'ke_remainder  : ',ke_frag_budget - (ke_frag_orbit + ke_frag_spin)
             lerr = .false.
 
             return
