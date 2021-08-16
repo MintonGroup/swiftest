@@ -132,7 +132,6 @@ contains
             call calculate_system_energy(linclude_fragments=.true.)
             ke_frag_budget = -dEtot - Qloss
 
-            call define_coordinate_system()
             call set_fragment_tan_vel(lfailure)
             ke_avg_deficit = ke_avg_deficit - ke_radial
             subtry = subtry + 1
@@ -324,8 +323,10 @@ contains
             x_col_unit(:) = y_col_unit(:) .cross. z_col_unit(:)
 
             rmag(:) = .mag. x_frag(:,:)
+            if (.not.any(rmag(:) > 0.0_DP)) return
+
             call random_number(L_sigma(:,:)) ! Randomize the tangential velocity direction. This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector,
-                                              ! otherwise we can get an ill-conditioned system
+                                             ! otherwise we can get an ill-conditioned system
             do concurrent(i = 1:nfrag, rmag(i) > 0.0_DP)
                v_r_unit(:, i) = x_frag(:, i) / rmag(i)
                v_h_unit(:, i) = z_col_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
@@ -690,15 +691,14 @@ contains
             ! This will be done using a linear solver that solves for the tangential velocities of the first 6 fragments, constrained by the linear and angular momentum vectors, 
             ! which is embedded in a non-linear minimizer that will adjust the tangential velocities of the remaining i>6 fragments to minimize kinetic energy for a given momentum solution
             ! The initial conditions fed to the minimizer for the fragments will be the remaining angular momentum distributed between the fragments.
-            Li(:) =  L_remainder(:) / nfrag
-            do concurrent (i = 1:nfrag)
-               v_t_initial(i) = norm2(Li(:)) / (m_frag(i) * norm2(x_frag(:,i)))
-            end do
-
-            v_t_mag(:) = v_t_initial(:)
-            vb_frag(:,1:nfrag) = vmag_to_vb(v_r_mag(1:nfrag), v_r_unit(:,1:nfrag), v_t_mag(1:nfrag), v_t_unit(:,1:nfrag), m_frag(1:nfrag), vcom(:))
-            do concurrent(i = 1:nfrag)
-               v_frag(:, i) = vb_frag(:, i) - vcom(:)
+            ! Li(:) =  L_remainder(:) / nfrag
+            ! do concurrent (i = 1:nfrag)
+            !    v_t_initial(i) = norm2(Li(:)) / (m_frag(i) * norm2(x_frag(:,i)))
+            ! end do
+            do i = 1, nfrag
+               v_t_initial(i) = norm2(L_remainder(:)) / ((nfrag - i + 1) * m_frag(i) * norm2(x_frag(:,i)))
+               Li(:) = m_frag(i) * (x_frag(:,i) .cross. (v_t_initial(i) * v_t_unit(:, i)))
+               L_remainder(:) = L_remainder(:) - Li(:)
             end do
 
             ! Find the local kinetic energy minimum for the system that conserves linear and angular momentum
