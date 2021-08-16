@@ -1083,6 +1083,8 @@ contains
                if (plplcollision_list%nenc == 0) return ! No collisions to resolve
 
                write(*, *) "Collision between massive bodies detected at time t = ", t
+               call pl%vb2vh(system%cb)
+               call pl%h2b(system%cb)
                if (param%lfragmentation) then
                   call plplcollision_list%resolve_fragmentations(system, param)
                else
