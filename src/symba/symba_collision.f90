@@ -277,7 +277,7 @@ contains
          pe = 0.0_DP
          do j = 1, nfamily
             do i = j + 1, nfamily
-               pe = pe - pl%mass(i) * pl%mass(j) / norm2(pl%xb(:, i) - pl%xb(:, j))
+               pe = pe - pl%Gmass(i) * pl%mass(j) / norm2(pl%xb(:, i) - pl%xb(:, j))
             end do
          end do
          system%Ecollisions  = system%Ecollisions + pe 
