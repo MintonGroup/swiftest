@@ -34,7 +34,7 @@ contains
       real(DP), dimension(NDIM)               :: Ltot_after
       real(DP)                                :: Etot_before, ke_orbit_before, ke_spin_before, pe_before, Lmag_before
       real(DP)                                :: Etot_after,  ke_orbit_after,  ke_spin_after,  pe_after,  Lmag_after, dEtot, dLmag
-      real(DP), dimension(NDIM)               :: L_frag_tot, L_frag_orb, L_frag_spin, L_frag_budget, Lorbit_before, Lorbit_after, Lspin_before, Lspin_after
+      real(DP), dimension(NDIM)               :: L_frag_tot, L_frag_orb, L_frag_spin, L_frag_budget, Lorbit_before, Lorbit_after, Lspin_before, Lspin_after, dL
       real(DP)                                :: ke_frag_budget, ke_frag_orbit, ke_radial, ke_frag_spin, ke_avg_deficit, ke_avg_deficit_old
       real(DP), dimension(NDIM)               :: x_col_unit, y_col_unit, z_col_unit
       character(len=*), parameter             :: fmtlabel = "(A14,10(ES11.4,1X,:))"
@@ -130,7 +130,8 @@ contains
             end do
 
             call calculate_system_energy(linclude_fragments=.true.)
-            ke_frag_budget = -dEtot - Qloss
+            L_frag_budget(:) = -dL(:)
+            ke_frag_budget = -dEtot - Qloss 
 
             call set_fragment_tan_vel(lfailure)
             ke_avg_deficit = ke_avg_deficit - ke_radial
@@ -284,7 +285,8 @@ contains
             Ltot_after = Ltot_after * Lscale
             Lmag_after = Lmag_after * Lscale 
 
-            dLmag = norm2(Ltot_after(:) - Ltot_before(:)) 
+            dL(:) = Ltot_after(:) - Ltot_before(:)
+            dLmag = .mag.dL(:)
             dEtot = Etot_after - Etot_before
 
             call tmpsys%rescale(tmpparam, mscale**(-1), dscale**(-1), tscale**(-1))
@@ -447,6 +449,7 @@ contains
                class is (symba_pl)
                   select type(param)
                   class is (symba_parameters)
+                     if (linclude_fragments) call add_fragments_to_tmpsys() ! Adds or updates the fragment properties to their current values
                      plwksp%nplm = count(plwksp%Gmass > param%Gmtiny / mscale)
                   end select
                end select
@@ -481,7 +484,8 @@ contains
                   pe_after = tmpsys%pe
                   Etot_after = tmpsys%te
                   dEtot = Etot_after - Etot_before 
-                  dLmag = norm2(Ltot_after(:) - Ltot_before(:)) 
+                  dL(:) = Ltot_after(:) - Ltot_before(:)
+                  dLmag = .mag.dL(:)
                else
                   Lorbit_before(:) = tmpsys%Lorbit
                   Lspin_before(:) = tmpsys%Lspin
@@ -595,8 +599,6 @@ contains
                xb_frag(:,i) = x_frag(:,i) + xcom(:)
             end do
 
-            call add_fragments_to_tmpsys()
-
             xcom(:) = 0.0_DP
             do i = 1, nfrag
                xcom(:) = xcom(:) + m_frag(i) * xb_frag(:,i) 
@@ -627,7 +629,7 @@ contains
             integer(I4B) :: i
             real(DP), parameter                  :: TOL_MIN = 1e-1_DP ! This doesn't have to be very accurate, as we really just want a tangential velocity distribution with less kinetic energy than our initial guess.
             real(DP), parameter                  :: TOL_INIT = 1e-14_DP
-            real(DP)                             :: tol 
+            real(DP)                             :: tol
             real(DP), dimension(:), allocatable  :: v_t_initial
             real(DP), dimension(nfrag)           :: kefrag
             type(lambda_obj)                     :: spinfunc
@@ -658,6 +660,9 @@ contains
                lerr = .true.
                return
             end if
+
+            ! This subroutine calculates the ke budget in the collision frame, so we need to subract off the barycentric velocity
+            ke_frag_budget = ke_frag_budget + 0.5_DP * vcom2 * dot_product(vcom(:), vcom(:)
 
             allocate(v_t_initial, mold=v_t_mag)
 
@@ -691,15 +696,10 @@ contains
             ! This will be done using a linear solver that solves for the tangential velocities of the first 6 fragments, constrained by the linear and angular momentum vectors, 
             ! which is embedded in a non-linear minimizer that will adjust the tangential velocities of the remaining i>6 fragments to minimize kinetic energy for a given momentum solution
             ! The initial conditions fed to the minimizer for the fragments will be the remaining angular momentum distributed between the fragments.
-            ! Li(:) =  L_remainder(:) / nfrag
-            ! do concurrent (i = 1:nfrag)
-            !    v_t_initial(i) = norm2(Li(:)) / (m_frag(i) * norm2(x_frag(:,i)))
-            ! end do
-            do i = 1, nfrag
-               v_t_initial(i) = norm2(L_remainder(:)) / ((nfrag - i + 1) * m_frag(i) * norm2(x_frag(:,i)))
-               Li(:) = m_frag(i) * (x_frag(:,i) .cross. (v_t_initial(i) * v_t_unit(:, i)))
-               L_remainder(:) = L_remainder(:) - Li(:)
-            end do
+             Li(:) =  L_remainder(:) / nfrag
+             do concurrent (i = 1:nfrag)
+                v_t_initial(i) = norm2(Li(:)) / (m_frag(i) * norm2(x_frag(:,i)))
+             end do
 
             ! Find the local kinetic energy minimum for the system that conserves linear and angular momentum
             objective_function = lambda_obj(tangential_objective_function, lerr)
@@ -719,7 +719,6 @@ contains
             do concurrent (i = 1:nfrag)
                v_frag(:,i) = vb_frag(:,i) - vcom(:)
             end do
-            call add_fragments_to_tmpsys()
 
             ! Now do a kinetic energy budget check to make sure we are still within the budget.
             kefrag = 0.0_DP
@@ -813,7 +812,7 @@ contains
                end if
             end do
             b(1:3) = -L_lin_others(:)
-            b(4:6) = L_frag_orb(:) - L_orb_others(:)
+            b(4:6) = L_frag_budget(:) - L_frag_tot(:) - L_orb_others(:)
             allocate(v_t_mag_output(nfrag))
             v_t_mag_output(1:6) = util_solve_linear_system(A, b, 6, lerr)
             if (present(v_t_mag_input)) v_t_mag_output(7:nfrag) = v_t_mag_input(:)
@@ -865,7 +864,6 @@ contains
             do i = 1, nfrag
                v_frag(:, i) = vb_frag(:, i) - vcom(:)
             end do
-            call add_fragments_to_tmpsys()
 
             do concurrent(i = 1:nfrag)
                kearr(i) = m_frag(i) * dot_product(vb_frag(:, i), vb_frag(:, i))
