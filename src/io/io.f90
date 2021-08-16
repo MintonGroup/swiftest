@@ -1800,7 +1800,7 @@ contains
 
             !! Define the NetCDF dimensions with particle name as the record dimension
             call check( nf90_def_dim(ncid, "Name", NF90_UNLIMITED, name_dimid) )     !! 'x' dimension
-            call check( nf90_def_dim(ncid, "Time", noutput, time_dimid) )     !! 'y' dimension
+            call check( nf90_def_dim(ncid, "Time", NF90_UNLIMITED, time_dimid) )     !! 'y' dimension
             dimids = (/ time_dimid, name_dimid /)
 
             !! Define the variables
