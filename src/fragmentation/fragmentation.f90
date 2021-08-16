@@ -748,14 +748,13 @@ contains
             end do
             ke_frag_orbit = 0.5_DP * sum(kefrag(:))
             ke_radial = ke_frag_budget - ke_frag_spin - ke_frag_orbit
-            call calculate_fragment_ang_mtm()
-            L_frag_budget(:) = L_frag_budget(:) - L_frag_orb(:)
 
             ! If we are over the energy budget, flag this as a failure so we can try again
             lerr = (ke_radial < 0.0_DP)
             write(*,*) 'Tangential'
             write(*,*) 'Failure? ',lerr
-            write(*,*) '|L_remainder| : ',.mag.L_frag_budget(:) / Lmag_before
+            call calculate_fragment_ang_mtm()
+            write(*,*) '|L_remainder| : ',.mag.(L_frag_budget(:) - L_frag_tot(:)) / Lmag_before
             write(*,*) 'ke_frag_budget: ',ke_frag_budget
             write(*,*) 'ke_frag_spin  : ',ke_frag_spin
             write(*,*) 'ke_tangential : ',ke_frag_orbit
