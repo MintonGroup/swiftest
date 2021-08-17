@@ -31,11 +31,14 @@ contains
                associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
                   dx(:) = pl%xh(:, j) - pl%xh(:, i)
                   rji2 = dot_product(dx(:), dx(:))
-                  irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                  faci = pl%Gmass(i) * irij3
-                  facj = pl%Gmass(j) * irij3
-                  pl%ah(:, i) = pl%ah(:, i) - facj * dx(:)
-                  pl%ah(:, j) = pl%ah(:, j) + faci * dx(:)
+                  rlim2 = (pl%radius(i) + pl%radius(j))**2
+                  if (rji2 > rlim2) then
+                     irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+                     faci = pl%Gmass(i) * irij3
+                     facj = pl%Gmass(j) * irij3
+                     pl%ah(:, i) = pl%ah(:, i) - facj * dx(:)
+                     pl%ah(:, j) = pl%ah(:, j) + faci * dx(:)
+                  end if
                end associate
             end do
          end associate
@@ -90,7 +93,7 @@ contains
    end subroutine symba_kick_getacch_tp
 
 
-   module subroutine symba_kick_pltpenc(self, system, dt, irec, sgn)
+   module subroutine symba_kick_encounter(self, system, dt, irec, sgn)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of massive bodies and ACTIVE test particles within SyMBA recursion.
@@ -100,11 +103,11 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_kick.f
       implicit none
       ! Arguments
-      class(symba_pltpenc),      intent(in)   :: self   !! SyMBA pl-tp encounter list object
+      class(symba_encounter),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      real(DP),                  intent(in)   :: dt    !! step size
-      integer(I4B),              intent(in)   :: irec   !! Current recursion level
-      integer(I4B),              intent(in)   :: sgn   !! sign to be applied to acceleration
+      real(DP),                  intent(in)    :: dt     !! step size
+      integer(I4B),              intent(in)    :: irec   !! Current recursion level
+      integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       ! Internals
       integer(I4B)              :: k, irm1, irecl
       real(DP)                  :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
@@ -198,6 +201,6 @@ contains
       end select
       
       return
-   end subroutine symba_kick_pltpenc
+   end subroutine symba_kick_encounter
 
 end submodule s_symba_kick

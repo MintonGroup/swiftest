@@ -43,6 +43,8 @@ contains
                plplenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:), lencounter(:))
                plplenc_list%index1(1:nenc) = pack(pl%k_plpl(1,:), lencounter(:))
                plplenc_list%index2(1:nenc) = pack(pl%k_plpl(2,:), lencounter(:))
+               plplenc_list%id1(1:nenc) = pl%id(plplenc_list%index1(1:nenc))
+               plplenc_list%id2(1:nenc) = pl%id(plplenc_list%index2(1:nenc))
                do k = 1, nenc
                   plplenc_list%status(k) = ACTIVE
                   plplenc_list%level(k) = irec
@@ -56,7 +58,7 @@ contains
    end function symba_encounter_check_pl
 
 
-   module function symba_encounter_check_pltpenc(self, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check(self, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies in the pltpenc list.
@@ -65,7 +67,7 @@ contains
       !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
       implicit none
       ! Arguments
-      class(symba_pltpenc),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
+      class(symba_encounter),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
       class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
       real(DP),                  intent(in)    :: dt         !! step size
       integer(I4B),              intent(in)    :: irec       !! Current recursion level 
@@ -132,7 +134,7 @@ contains
       end select
 
       return
-   end function symba_encounter_check_pltpenc
+   end function symba_encounter_check
 
 
    module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
@@ -178,6 +180,8 @@ contains
                pltpenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:,:), lencounter(:,:))
                pltpenc_list%index1(1:nenc) = pack(spread([(i, i = 1, npl)], dim=1, ncopies=ntp), lencounter(:,:)) 
                pltpenc_list%index2(1:nenc) = pack(spread([(i, i = 1, ntp)], dim=2, ncopies=npl), lencounter(:,:))
+               pltpenc_list%id1(1:nenc) = pl%id(pltpenc_list%index1(1:nenc))
+               pltpenc_list%id2(1:nenc) = tp%id(pltpenc_list%index2(1:nenc))
                select type(pl)
                class is (symba_pl)
                   pl%lencounter(:) = .false.
