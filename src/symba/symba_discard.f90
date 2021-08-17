@@ -97,10 +97,10 @@ contains
    
             Ltot(:) = 0.0_DP
             do i = 1, pl%nbody
-               Lpl(:) = pL%mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Lpl(:) = pL%mass(i) * (pl%xb(:,i) .cross. pl%vb(:, i))
                Ltot(:) = Ltot(:) + Lpl(:)
             end do
-            Ltot(:) = Ltot(:) + cb%mass * cb%xb(:) .cross. cb%vb(:)
+            Ltot(:) = Ltot(:) + cb%mass * (cb%xb(:) .cross. cb%vb(:))
             call pl%b2h(cb)
             oldstat = pl%status(ipl)
             pl%status(ipl) = INACTIVE
@@ -108,20 +108,20 @@ contains
             pl%status(ipl) = oldstat
             do i = 1, pl%nbody
                if (i == ipl) cycle
-               Lpl(:) = pl%mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Lpl(:) = pl%mass(i) * (pl%xb(:,i) .cross. pl%vb(:, i))
                Ltot(:) = Ltot(:) - Lpl(:) 
             end do 
-            Ltot(:) = Ltot(:) - cb%mass * cb%xb(:) .cross. cb%vb(:)
+            Ltot(:) = Ltot(:) - cb%mass * (cb%xb(:) .cross. cb%vb(:))
             system%Lescape(:) = system%Lescape(:) + Ltot(:)
             if (param%lrotation) system%Lescape(:) = system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
    
          else
             xcom(:) = (pl%mass(ipl) * pl%xb(:, ipl) + cb%mass * cb%xb(:)) / (cb%mass + pl%mass(ipl))
             vcom(:) = (pl%mass(ipl) * pl%vb(:, ipl) + cb%mass * cb%vb(:)) / (cb%mass + pl%mass(ipl))
-            Lpl(:) = (pl%xb(:,ipl) - xcom(:)) .cross. pL%vb(:,ipl) - vcom(:)
+            Lpl(:) = (pl%xb(:,ipl) - xcom(:)) .cross. (pL%vb(:,ipl) - vcom(:))
             if (param%lrotation) Lpl(:) = pl%mass(ipl) * (Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl))
      
-            Lcb(:) = cb%mass * (cb%xb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:))
+            Lcb(:) = cb%mass * ((cb%xb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
    
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
             if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
@@ -156,7 +156,6 @@ contains
    
       end select
       return
-   
    end subroutine symba_discard_conserve_mtm
 
 
@@ -277,8 +276,7 @@ contains
    module subroutine symba_discard_pl(self, system, param)
       !! author: David A. Minton
       !!
-      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colling with the central body, 
-      !! escaping the system, or colliding with each other.
+      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colliding with the central body or escaping the system
       implicit none
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
@@ -292,36 +290,25 @@ contains
          select type(param)
          class is (symba_parameters)
             associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
-               call pl%h2b(system%cb) 
-
-               ! First deal with the non pl-pl collisions
-               call symba_discard_nonplpl(self, system, param)
-
-               ! Extract the pl-pl encounter list and return the plplcollision_list
-               call plplenc_list%extract_collisions(system, param)
                call plplenc_list%write(pl, pl, param)
 
-               if ((plplcollision_list%nenc > 0) .and. any(pl%lcollision(:))) then 
-                  write(*, *) "Collision between massive bodies detected at time t = ",param%t
-                  if (param%lfragmentation) then
-                     call plplcollision_list%resolve_fragmentations(system, param)
-                  else
-                     call plplcollision_list%resolve_mergers(system, param)
-                  end if
+               call symba_discard_nonplpl(self, system, param)
+
+               if (.not.any(pl%ldiscard(:))) return
+
+               if (param%lenergy) then
+                  call system%get_energy_and_momentum(param)
+                  Eorbit_before = system%te
                end if
 
-               if (any(pl%ldiscard(:))) then
-                  if (param%lenergy) then
-                     call system%get_energy_and_momentum(param)
-                     Eorbit_before = system%te
-                  end if
-                  call symba_discard_nonplpl_conservation(self, system, param)
-                  call pl%rearray(system, param)
-                  if (param%lenergy) then
-                     call system%get_energy_and_momentum(param)
-                     Eorbit_after = system%te
-                     system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
-                  end if
+               call symba_discard_nonplpl_conservation(self, system, param)
+
+               call pl%rearray(system, param)
+
+               if (param%lenergy) then
+                  call system%get_energy_and_momentum(param)
+                  Eorbit_after = system%te
+                  system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
                end if
 
             end associate

@@ -58,6 +58,29 @@ contains
    end subroutine symba_util_append_arr_kin
 
 
+   module subroutine symba_util_append_encounter(self, source, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append components from one encounter list (pl-pl or pl-tp) body object to another. 
+      !! This method will automatically resize the destination body if it is too small
+      implicit none
+      ! Arguments
+      class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
+      class(swiftest_encounter), intent(in)    :: source       !! Source object to append
+      logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+
+      associate(nold => self%nenc, nsrc => source%nenc)
+         select type(source)
+         class is (symba_encounter)
+            call util_append(self%level, source%level, nold, nsrc, lsource_mask)
+         end select
+         call util_append_encounter(self, source, lsource_mask) 
+      end associate
+
+      return
+   end subroutine symba_util_append_encounter
+
+
    module subroutine symba_util_append_pl(self, source, lsource_mask)
       !! author: David A. Minton
       !!
@@ -372,15 +395,19 @@ contains
       class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i
+      integer(I4B) :: i, j, k
       logical, dimension(:), allocatable :: lmask
+      class(symba_plplenc), allocatable :: plplenc_old
+      logical :: lencounter
 
       associate(pl => self, pl_adds => system%pl_adds)
-         allocate(tmp, mold=pl)
+
+         allocate(tmp, mold=self)
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
          allocate(lmask, source=pl%ldiscard(:))
          lmask(:) = lmask(:) .or. pl%status(:) == INACTIVE
          call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
+         deallocate(lmask)
          call tmp%setup(0,param)
          deallocate(tmp)
 
@@ -390,16 +417,57 @@ contains
 
          ! Add in any new bodies
          if (pl_adds%nbody > 0) then
-            call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
-            call symba_io_dump_particle_info(system, param, plidx=[(i, i = 1, pl%nbody)])
-         end if 
+            ! First store the original plplenc list so we don't remove any of the original encounters
+            allocate(plplenc_old, source=system%plplenc_list)
 
-         ! If there are still bodies in the system, sort by mass in descending order and re-index
-         if (pl%nbody > 0) then
+            ! Append the adds to the main pl object
+            call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
+
+            allocate(lmask(pl%nbody)) 
+            lmask(:) = pl%status(1:pl%nbody) == NEW_PARTICLE
+
+            call symba_io_dump_particle_info(system, param, plidx=pack([(i, i=1, pl%nbody)], lmask))
+            where(pl%status(:) /= INACTIVE) pl%status(:) = ACTIVE
+
             call pl%sort("mass", ascending=.false.)
             pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
             pl%nplm = count(pl%lmtiny(:))
+
+            ! Reindex the bodies and calculate the level 0 encounter list
             call pl%eucl_index()
+            lencounter = pl%encounter_check(system, param%dt, 0) 
+            select type(tp => system%tp)
+            class is (symba_tp)
+               lencounter = tp%encounter_check(system, param%dt, 0)
+            end select
+
+            associate(idnew1 => system%plplenc_list%id1, idnew2 => system%plplenc_list%id2, idold1 => plplenc_old%id1, idold2 => plplenc_old%id2)
+               do k = 1, system%plplenc_list%nenc
+                  if ((idnew1(k) == idold1(k)) .and. (idnew2(k) == idold2(k))) then
+                     ! This is an encounter we already know about, so save the old information
+                     system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                     system%plplenc_list%status(k) = plplenc_old%status(k) 
+                     system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
+                     system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
+                     system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
+                     system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
+                     system%plplenc_list%t(k) = plplenc_old%t(k)
+                     system%plplenc_list%level(k) = plplenc_old%level(k)
+                  else if (((idnew1(k) == idold2(k)) .and. (idnew2(k) == idold1(k)))) then
+                     ! This is an encounter we already know about, but with the order reversed, so save the old information
+                     system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                     system%plplenc_list%status(k) = plplenc_old%status(k) 
+                     system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
+                     system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
+                     system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
+                     system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
+                     system%plplenc_list%t(k) = plplenc_old%t(k)
+                     system%plplenc_list%level(k) = plplenc_old%level(k)
+                  end if
+               end do
+            end associate
+            call move_alloc(plplenc_old, system%plplenc_list)
+
          end if
 
       end associate
@@ -633,6 +701,55 @@ contains
    end subroutine symba_util_sort_tp
 
 
+   module subroutine symba_util_sort_rearrange_arr_info(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of particle information type in-place from an index list.
+      implicit none
+      ! Arguments
+      type(symba_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B),              dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      type(symba_particle_info), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, source=arr)
+      tmp(1:n) = arr(ind(1:n))
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine symba_util_sort_rearrange_arr_info
+
+
+   module subroutine symba_util_sort_rearrange_arr_kin(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of particle kinship type in-place from an index list.
+      implicit none
+      ! Arguments
+      type(symba_kinship),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B),         dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                                    intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      type(symba_kinship),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+      integer(I4B) :: i,j
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, source=arr)
+      tmp(1:n) = arr(ind(1:n))
+
+      do i = 1, n
+         do j = 1, tmp(i)%nchild
+            tmp(i)%child(j) = ind(tmp(i)%child(j))
+         end do
+      end do
+
+      call move_alloc(tmp, arr)
+      return
+   end subroutine symba_util_sort_rearrange_arr_kin
+
+
    module subroutine symba_util_sort_rearrange_pl(self, ind)
       !! author: David A. Minton
       !!
@@ -643,32 +760,23 @@ contains
       class(symba_pl),               intent(inout) :: self !! SyMBA massive body object
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       ! Internals
-      class(symba_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
       integer(I4B) :: i, j
 
       associate(pl => self, npl => self%nbody)
+         call util_sort_rearrange(pl%lcollision, ind, npl)
+         call util_sort_rearrange(pl%lencounter, ind, npl)
+         call util_sort_rearrange(pl%lmtiny,     ind, npl)
+         call util_sort_rearrange(pl%nplenc,     ind, npl)
+         call util_sort_rearrange(pl%ntpenc,     ind, npl)
+         call util_sort_rearrange(pl%levelg,     ind, npl)
+         call util_sort_rearrange(pl%levelm,     ind, npl)
+         call util_sort_rearrange(pl%isperi,     ind, npl)
+         call util_sort_rearrange(pl%peri,       ind, npl)
+         call util_sort_rearrange(pl%atp,        ind, npl)
+         call util_sort_rearrange(pl%info,       ind, npl)
+         call util_sort_rearrange(pl%kin,        ind, npl)
+
          call util_sort_rearrange_pl(pl,ind)
-         allocate(pl_sorted, source=self)
-         if (allocated(pl%lcollision)) pl%lcollision(1:npl) = pl_sorted%lcollision(ind(1:npl))
-         if (allocated(pl%lencounter)) pl%lencounter(1:npl) = pl_sorted%lencounter(ind(1:npl))
-         if (allocated(pl%lmtiny))     pl%lmtiny(1:npl) = pl_sorted%lmtiny(ind(1:npl))
-         if (allocated(pl%nplenc))     pl%nplenc(1:npl) = pl_sorted%nplenc(ind(1:npl))
-         if (allocated(pl%ntpenc))     pl%ntpenc(1:npl) = pl_sorted%ntpenc(ind(1:npl))
-         if (allocated(pl%levelg))     pl%levelg(1:npl) = pl_sorted%levelg(ind(1:npl))
-         if (allocated(pl%levelm))     pl%levelm(1:npl) = pl_sorted%levelm(ind(1:npl))
-         if (allocated(pl%isperi))     pl%isperi(1:npl) = pl_sorted%isperi(ind(1:npl))
-         if (allocated(pl%peri))       pl%peri(1:npl) = pl_sorted%peri(ind(1:npl))
-         if (allocated(pl%atp))        pl%atp(1:npl) = pl_sorted%atp(ind(1:npl))
-         if (allocated(pl%info))       pl%info(1:npl) = pl_sorted%info(ind(1:npl))
-         if (allocated(pl%kin)) then
-            pl%kin(1:npl) = pl_sorted%kin(ind(1:npl))
-            do i = 1, npl
-               do j = 1, pl%kin(i)%nchild
-                  pl%kin(i)%child(j) = ind(pl%kin(i)%child(j))
-               end do
-            end do
-         end if
-         deallocate(pl_sorted)
       end associate
 
       return
@@ -684,17 +792,14 @@ contains
       ! Arguments
       class(symba_tp),               intent(inout) :: self !! SyMBA test particle object
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
-      ! Internals
-      class(symba_tp), allocatable :: tp_sorted  !! Temporary holder for sorted body
 
       associate(tp => self, ntp => self%nbody)
+         call util_sort_rearrange(tp%nplenc, ind, ntp)
+         call util_sort_rearrange(tp%levelg, ind, ntp)
+         call util_sort_rearrange(tp%levelm, ind, ntp)
+         call util_sort_rearrange(tp%info,   ind, ntp)
+
          call util_sort_rearrange_tp(tp,ind)
-         allocate(tp_sorted, source=self)
-         if (allocated(tp%nplenc)) tp%nplenc(1:ntp) = tp_sorted%nplenc(ind(1:ntp))
-         if (allocated(tp%levelg)) tp%levelg(1:ntp) = tp_sorted%levelg(ind(1:ntp))
-         if (allocated(tp%levelm)) tp%levelm(1:ntp) = tp_sorted%levelm(ind(1:ntp))
-         if (allocated(tp%info))   tp%info(1:ntp)   = tp_sorted%info(ind(1:ntp))
-         deallocate(tp_sorted)
       end associate
       
       return
@@ -822,14 +927,14 @@ contains
    end subroutine symba_util_spill_pl
 
 
-   module subroutine symba_util_spill_pltpenc(self, discards, lspill_list, ldestructive)
+   module subroutine symba_util_spill_encounter(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) SyMBA encounter structure from active list to discard list
       !! Note: Because the symba_plplenc currently does not contain any additional variable components, this method can recieve it as an input as well.
       implicit none
       ! Arguments
-      class(symba_pltpenc),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
+      class(symba_encounter),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
       class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
@@ -838,17 +943,17 @@ contains
   
       associate(keeps => self, nenc => self%nenc)
          select type(discards)
-         class is (symba_pltpenc)
+         class is (symba_encounter)
             call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
             call util_spill_encounter(keeps, discards, lspill_list, ldestructive)
          class default
-            write(*,*) "Invalid object passed to the spill method. Source must be of class symba_pltpenc or its descendents!"
+            write(*,*) "Invalid object passed to the spill method. Source must be of class symba_encounter or its descendents!"
             call util_exit(FAILURE)
          end select
       end associate
    
       return
-   end subroutine symba_util_spill_pltpenc
+   end subroutine symba_util_spill_encounter
 
 
    module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)

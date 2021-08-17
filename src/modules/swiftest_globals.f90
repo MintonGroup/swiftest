@@ -41,7 +41,7 @@ module swiftest_globals
    integer(I4B), parameter :: SYMBA              = 8
    integer(I4B), parameter :: RINGMOONS          = 9
 
-   integer(I4B), parameter :: STRMAX = 128 !! Maximum size of character strings
+   integer(I4B), parameter :: STRMAX = 512 !! Maximum size of character strings
 
    character(*), parameter :: ASCII_TYPE          = 'ASCII' !! Symbolic name for ASCII file type
    character(*), parameter :: REAL4_TYPE          = 'REAL4' !! Symbolic name for binary file type REAL4
@@ -87,6 +87,8 @@ module swiftest_globals
    integer(I4B), parameter :: GRAZE_AND_MERGE    = -11
    integer(I4B), parameter :: HIT_AND_RUN        = -12
    integer(I4B), parameter :: COLLISION          = -13
+   integer(I4B), parameter :: NEW_PARTICLE       = -14
+   integer(I4B), parameter :: OLD_PARTICLE       = -15
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
