@@ -96,7 +96,7 @@ contains
       L_frag_orb(:) = L_orb(:, 1) + L_orb(:, 2)
       L_frag_spin(:) = L_spin(:, 1) + L_spin(:, 2)
       L_frag_budget(:) = L_frag_orb(:) + L_frag_spin(:)
-      f_spin = norm2(L_frag_spin(:)) / norm2(L_frag_budget(:))
+      f_spin = 0.05_DP
 
       call reset_fragments()
       call define_coordinate_system()
