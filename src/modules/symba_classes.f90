@@ -225,20 +225,24 @@ module symba_classes
          class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_collision_resolve_mergers
 
-      module subroutine symba_collision_resolve_plplenc(self, system, param, t)
+      module subroutine symba_collision_resolve_plplenc(self, system, param, t, dt, irec)
          implicit none
          class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
          real(DP),                   intent(in)    :: t      !! Current simulation time
+         real(DP),                   intent(in)    :: dt     !! Current simulation step size
+         integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine symba_collision_resolve_plplenc
    
-      module subroutine symba_collision_resolve_pltpenc(self, system, param, t)
+      module subroutine symba_collision_resolve_pltpenc(self, system, param, t, dt, irec)
          implicit none
          class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
          real(DP),                   intent(in)    :: t      !! Current simulation time
+         real(DP),                   intent(in)    :: dt     !! Current simulation step size
+         integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine symba_collision_resolve_pltpenc
 
       module subroutine symba_discard_pl(self, system, param)
@@ -497,9 +501,10 @@ module symba_classes
          integer(I4B),               value         :: ireci !! input recursion level
       end subroutine symba_step_recur_system
 
-      module subroutine symba_step_reset_system(self)
+      module subroutine symba_step_reset_system(self, param)
          implicit none
-         class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+         class(symba_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
+         class(symba_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
       end subroutine symba_step_reset_system
    end interface
 
