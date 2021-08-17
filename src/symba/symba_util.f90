@@ -456,8 +456,10 @@ contains
             pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
             pl%nplm = count(pl%lmtiny(:))
 
-            ! Reindex the bodies and calculate the level 0 encounter list
+            ! Reindex the new list ofbodies 
             call pl%eucl_index()
+
+            ! Re-build the encounter list
             lencounter = pl%encounter_check(system, param%dt, 0) 
             select type(tp => system%tp)
             class is (symba_tp)

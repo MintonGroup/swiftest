@@ -19,20 +19,23 @@ contains
       ! Internals
       logical :: lencounter
      
-      call self%reset()
       select type(pl => self%pl)
       class is (symba_pl)
          select type(tp => self%tp)
          class is (symba_tp)
-            lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
-            if (lencounter) then
-               tp%lfirst = pl%lfirst
-               call self%interp(param, t, dt)
-               pl%lfirst = .true.
-               tp%lfirst = .true.
-            else
-               call helio_step_system(self, param, t, dt)
-            end if
+            select type(param)
+            class is (symba_parameters)
+               call self%reset(param)
+               lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
+               if (lencounter) then
+                  tp%lfirst = pl%lfirst
+                  call self%interp(param, t, dt)
+                  pl%lfirst = .true.
+                  tp%lfirst = .true.
+               else
+                  call helio_step_system(self, param, t, dt)
+               end if
+            end select
          end select
       end select
 
@@ -212,7 +215,7 @@ contains
    end subroutine symba_step_recur_system
 
 
-   module subroutine symba_step_reset_system(self)
+   module subroutine symba_step_reset_system(self, param)
       !! author: David A. Minton
       !!
       !! Resets pl, tp,and encounter structures at the start of a new step
@@ -221,7 +224,8 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_step.f
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+      class(symba_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
+      class(symba_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
       ! Internals
       integer(I4B) :: i
 
@@ -254,8 +258,8 @@ contains
                system%pltpenc_list%nenc = 0
                end if
 
-               call system%pl_adds%resize(0)
-               call system%pl_discards%resize(0)
+               call system%pl_adds%setup(0, param)
+               call system%pl_discards%setup(0, param)
             end select
          end select
       end associate

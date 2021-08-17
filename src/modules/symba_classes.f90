@@ -501,9 +501,10 @@ module symba_classes
          integer(I4B),               value         :: ireci !! input recursion level
       end subroutine symba_step_recur_system
 
-      module subroutine symba_step_reset_system(self)
+      module subroutine symba_step_reset_system(self, param)
          implicit none
-         class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+         class(symba_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
+         class(symba_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
       end subroutine symba_step_reset_system
    end interface
 
