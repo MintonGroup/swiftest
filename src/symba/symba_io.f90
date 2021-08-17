@@ -329,7 +329,7 @@ contains
       character(*), parameter :: NPLFMT    = '(I8)'
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
-      character(STRMAX) :: errmsg
+      character(STRMAX) :: errmsg, out_stat
 
       if (param%discard_out == "") return
 
@@ -338,7 +338,12 @@ contains
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
-            select case(param%out_stat)
+            if (lfirst) then
+               out_stat = param%out_stat
+            else
+               out_stat = 'APPEND'
+            end if
+            select case(out_stat)
             case('APPEND')
                open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
             case('NEW', 'REPLACE', 'UNKNOWN')
