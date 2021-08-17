@@ -73,7 +73,7 @@ contains
 
       ! Call parent method
       associate(system => self)
-         call whm_setup_initialize_system(system, param)
+         call helio_setup_initialize_system(system, param)
          call system%pltpenc_list%setup(0)
          call system%plplenc_list%setup(0)
          call system%plplcollision_list%setup(0)

@@ -197,8 +197,8 @@ contains
                      lplpl_collision = plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
                      lpltp_collision = pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
 
-                     if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl)
-                     if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl)
+                     if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
+                     if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                   end if
 
                   call self%set_recur_levels(ireci)

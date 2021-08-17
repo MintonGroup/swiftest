@@ -1054,7 +1054,7 @@ contains
    end subroutine symba_collision_resolve_mergers
 
 
-   module subroutine symba_collision_resolve_plplenc(self, system, param, t)
+   module subroutine symba_collision_resolve_plplenc(self, system, param, t, dt, irec)
       !! author: David A. Minton
       !! 
       !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the collision
@@ -1065,8 +1065,11 @@ contains
       class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       real(DP),                   intent(in)    :: t      !! Current simulation time
+      real(DP),                   intent(in)    :: dt     !! Current simulation step size
+      integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
       real(DP) :: Eorbit_before, Eorbit_after
+      logical :: lplpl_collision
    
       associate(plplenc_list => self, plplcollision_list => system%plplcollision_list)
          select type(pl => system%pl)
@@ -1074,26 +1077,41 @@ contains
             select type(param)
             class is (symba_parameters)
                if (plplcollision_list%nenc == 0) return ! No collisions to resolve
-
-               write(*, *) "Collision between massive bodies detected at time t = ", t
-               call pl%vb2vh(system%cb)
+               ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
+               call pl%vb2vh(system%cb) 
                call pl%xh2xb(system%cb)
-               if (param%lfragmentation) then
-                  call plplcollision_list%resolve_fragmentations(system, param)
-               else
-                  call plplcollision_list%resolve_mergers(system, param)
-               end if
-
-               ! Destroy the collision list now that the collisions are resolved
-               call plplcollision_list%setup(0)
-
+   
                ! Get the energy before the collision is resolved
                if (param%lenergy) then
                   call system%get_energy_and_momentum(param)
                   Eorbit_before = system%te
                end if
 
-               call pl%rearray(system, param)
+               do
+                  write(*, *) "Collision between massive bodies detected at time t = ", t
+                  if (param%lfragmentation) then
+                     call plplcollision_list%resolve_fragmentations(system, param)
+                  else
+                     call plplcollision_list%resolve_mergers(system, param)
+                  end if
+   
+                  ! Destroy the collision list now that the collisions are resolved
+                  call plplcollision_list%setup(0)
+
+                  ! Save the add/discard information to file
+                  call system%write_discard(param)
+
+                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
+                  call pl%rearray(system, param)
+
+                  ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
+                  call system%pl_discards%setup(0, param)
+                  call system%pl_adds%setup(0, param)
+
+                  ! Check whether or not any of the particles that were just added are themselves in a collision state. 
+                  lplpl_collision = plplenc_list%collision_check(system, param, t, dt, irec)
+                  if (.not.lplpl_collision) exit
+               end do
 
                if (param%lenergy) then
                   call system%get_energy_and_momentum(param)
@@ -1109,7 +1127,7 @@ contains
    end subroutine symba_collision_resolve_plplenc
 
 
-   module subroutine symba_collision_resolve_pltpenc(self, system, param, t)
+   module subroutine symba_collision_resolve_pltpenc(self, system, param, t, dt, irec)
       !! author: David A. Minton
       !! 
       !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the collision
@@ -1120,6 +1138,8 @@ contains
       class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       real(DP),                   intent(in)    :: t      !! Current simulation tim
+      real(DP),                   intent(in)    :: dt     !! Current simulation step size
+      integer(I4B),               intent(in)    :: irec   !! Current recursion level
   
       call system%tp%discard(system, param)
 

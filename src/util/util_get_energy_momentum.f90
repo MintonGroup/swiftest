@@ -93,7 +93,7 @@ contains
             end do
 
             do concurrent (k = 1:pl%nplpl, lstatpl(k))
-               pepl(k) = -pl%Gmass(indi(k)) * pl%mass(indj(k)) / norm2(pl%xb(:, indi(k)) - pl%xb(:, indj(k))) 
+               pepl(k) = -(pl%Gmass(indi(k)) * pl%mass(indj(k))) / norm2(pl%xb(:, indi(k)) - pl%xb(:, indj(k)))
             end do
          end associate
    

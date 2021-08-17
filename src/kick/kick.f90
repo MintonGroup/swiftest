@@ -14,7 +14,7 @@ contains
       class(swiftest_pl), intent(inout) :: self
       ! Internals
       integer(I4B)                      :: k
-      real(DP)                          :: rji2, irij3, faci, facj
+      real(DP)                          :: rji2, irij3, faci, facj, rlim2
       real(DP)                          :: dx, dy, dz
 
       associate(pl => self, npl => self%nbody, nplpl => self%nplpl)
@@ -25,15 +25,18 @@ contains
                   dy = pl%xh(2, j) - pl%xh(2, i)
                   dz = pl%xh(3, j) - pl%xh(3, i)
                   rji2 = dx**2 + dy**2 + dz**2
-                  irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                  faci = pl%Gmass(i) * irij3
-                  facj = pl%Gmass(j) * irij3
-                  pl%ah(1, i) = pl%ah(1, i) + facj * dx
-                  pl%ah(2, i) = pl%ah(2, i) + facj * dy
-                  pl%ah(3, i) = pl%ah(3, i) + facj * dz
-                  pl%ah(1, j) = pl%ah(1, j) - faci * dx
-                  pl%ah(2, j) = pl%ah(2, j) - faci * dy
-                  pl%ah(3, j) = pl%ah(3, j) - faci * dz
+                  rlim2 = (pl%radius(i) + pl%radius(j))**2
+                  if (rji2 > rlim2) then
+                     irij3 = 1.0_DP / (rji2 * sqrt(rji2))
+                     faci = pl%Gmass(i) * irij3
+                     facj = pl%Gmass(j) * irij3
+                     pl%ah(1, i) = pl%ah(1, i) + facj * dx
+                     pl%ah(2, i) = pl%ah(2, i) + facj * dy
+                     pl%ah(3, i) = pl%ah(3, i) + facj * dz
+                     pl%ah(1, j) = pl%ah(1, j) - faci * dx
+                     pl%ah(2, j) = pl%ah(2, j) - faci * dy
+                     pl%ah(3, j) = pl%ah(3, j) - faci * dz
+                  end if
                end if
             end associate
          end do

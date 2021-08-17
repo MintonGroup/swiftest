@@ -73,7 +73,7 @@ contains
       !!
       implicit none
       ! Arguments
-      class(whm_nbody_system),    intent(inout) :: self    !! Swiftest system object
+      class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
       call setup_initialize_system(self, param)
