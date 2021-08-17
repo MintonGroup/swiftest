@@ -189,7 +189,7 @@ contains
          status = HIT_AND_RUN_PURE
          select type(pl => system%pl)
          class is (symba_pl)
-            pl%status(family(:)) = status
+            pl%status(family(:)) = ACTIVE
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
          end select
@@ -946,7 +946,7 @@ contains
       integer(I4B), parameter                     :: NRES = 3   !! Number of collisional product results
       real(DP), dimension(NRES)                   :: mass_res   
 
-      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
          select type(pl => system%pl)
          class is (symba_pl)
             select type (cb => system%cb)
@@ -969,10 +969,10 @@ contains
                   end if
                   mass_si(:)    = (mass(:)) * param%MU2KG                              !! The collective mass of the parent and its children
                   radius_si(:)  = radius(:) * param%DU2M                               !! The collective radius of the parent and its children
-                  x1_si(:)      = plpl_collisions%x1(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
-                  v1_si(:)      = plpl_collisions%v1(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
-                  x2_si(:)      = plpl_collisions%x2(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
-                  v2_si(:)      = plpl_collisions%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
+                  x1_si(:)      = plplcollision_list%x1(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
+                  v1_si(:)      = plplcollision_list%v1(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
+                  x2_si(:)      = plplcollision_list%x2(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
+                  v2_si(:)      = plplcollision_list%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
                   density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The collective density of the parent and its children
                   Mcb_si        = cb%mass * param%MU2KG 
                   mtiny_si      = (param%GMTINY / param%GU) * param%MU2KG
@@ -994,13 +994,13 @@ contains
    
                   select case (regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION)
-                     plpl_collisions%status(i) = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plplcollision_list%status(i) = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                     plpl_collisions%status(i) = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plplcollision_list%status(i) = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                     plpl_collisions%status(i) = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plplcollision_list%status(i) = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-                     plpl_collisions%status(i) = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+                     plplcollision_list%status(i) = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                   case default 
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
@@ -1032,7 +1032,7 @@ contains
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
 
-      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
          select type(pl => system%pl)
          class is (symba_pl)
             select type(cb => system%cb)
@@ -1044,7 +1044,7 @@ contains
                   if (.not. lgoodcollision) cycle
                   if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
    
-                  plpl_collisions%status(i) = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+                  plplcollision_list%status(i) = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                end do
             end select
          end select
@@ -1070,6 +1070,10 @@ contains
       ! Internals
       real(DP) :: Eorbit_before, Eorbit_after
       logical :: lplpl_collision
+      integer(I4B), dimension(:), allocatable :: ignoreid1, ignoreid2
+      logical, dimension(:), allocatable :: lignore
+      integer(I4B) :: i, j, k, nignore
+      class(symba_plplenc), allocatable :: tmpenc
    
       associate(plplenc_list => self, plplcollision_list => system%plplcollision_list)
          select type(pl => system%pl)
@@ -1094,6 +1098,19 @@ contains
                   else
                      call plplcollision_list%resolve_mergers(system, param)
                   end if
+
+                  ! Now figure out if any pair of collisions should be ignored (e.g. pure hit and run, or was invalid due to a kinship problem)
+                  allocate(lignore(plplcollision_list%nenc))
+                  lignore(:) = (plplcollision_list%status(:) == COLLISION) .or. (plplcollision_list%status(:) == HIT_AND_RUN_PURE)
+                  nignore = count(lignore(:))
+                  if (nignore > 0) then
+                     allocate(ignoreid1(nignore))
+                     allocate(ignoreid2(nignore))
+                     ! Save the ids the pairs of bodies that should be ignored
+                     ignoreid1(:) = pack(pl%id(plplcollision_list%index1(:)), lignore(:))
+                     ignoreid2(:) = pack(pl%id(plplcollision_list%index2(:)), lignore(:))
+                  end if
+                  deallocate(lignore)
    
                   ! Destroy the collision list now that the collisions are resolved
                   call plplcollision_list%setup(0)
@@ -1108,8 +1125,26 @@ contains
                   call system%pl_discards%setup(0, param)
                   call system%pl_adds%setup(0, param)
 
-                  ! Check whether or not any of the particles that were just added are themselves in a collision state. 
+                  ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plplcollision_list 
                   lplpl_collision = plplenc_list%collision_check(system, param, t, dt, irec)
+
+                  ! If one of the collision pairs we just identified is on the ignore list, remove it so we don't try to resolve it again.
+                  if (nignore > 0) then
+                     allocate(lignore(plplcollision_list%nenc))
+                     lignore(:) = .false.
+                     do k = 1, plplcollision_list%nenc
+                        associate(idx1 => plplcollision_list%index1(k), idx2 => plplcollision_list%index2(k))
+                           do i = 1, nignore 
+                              if ((pl%id(idx1) == ignoreid1(i)) .and. (pl%id(idx2) == ignoreid2(i))) lignore(k) = .true.
+                           end do
+                        end associate
+                     end do
+                     allocate(tmpenc, mold=plplcollision_list)
+                     call plplcollision_list%spill(tmpenc, lignore, ldestructive = .true.) 
+                     deallocate(tmpenc)
+                     lplpl_collision = plplcollision_list%nenc > 0
+                  end if
+
                   if (.not.lplpl_collision) exit
                end do
 
