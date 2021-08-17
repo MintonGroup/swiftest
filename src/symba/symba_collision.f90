@@ -1070,10 +1070,6 @@ contains
       ! Internals
       real(DP) :: Eorbit_before, Eorbit_after
       logical :: lplpl_collision
-      integer(I4B), dimension(:), allocatable :: ignoreid1, ignoreid2
-      logical, dimension(:), allocatable :: lignore
-      integer(I4B) :: i, j, k, nignore
-      class(symba_plplenc), allocatable :: tmpenc
    
       associate(plplenc_list => self, plplcollision_list => system%plplcollision_list)
          select type(pl => system%pl)
@@ -1099,21 +1095,10 @@ contains
                      call plplcollision_list%resolve_mergers(system, param)
                   end if
 
-                  ! Now figure out if any pair of collisions should be ignored (e.g. pure hit and run, or was invalid due to a kinship problem)
-                  allocate(lignore(plplcollision_list%nenc))
-                  lignore(:) = (plplcollision_list%status(:) == COLLISION) .or. (plplcollision_list%status(:) == HIT_AND_RUN_PURE)
-                  nignore = count(lignore(:))
-                  if (nignore > 0) then
-                     allocate(ignoreid1(nignore))
-                     allocate(ignoreid2(nignore))
-                     ! Save the ids the pairs of bodies that should be ignored
-                     ignoreid1(:) = pack(pl%id(plplcollision_list%index1(:)), lignore(:))
-                     ignoreid2(:) = pack(pl%id(plplcollision_list%index2(:)), lignore(:))
-                  end if
-                  deallocate(lignore)
-   
                   ! Destroy the collision list now that the collisions are resolved
                   call plplcollision_list%setup(0)
+
+                  if ((system%pl_adds%nbody == 0) .and. (system%pl_discards%nbody == 0)) exit
 
                   ! Save the add/discard information to file
                   call system%write_discard(param)
@@ -1127,23 +1112,6 @@ contains
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plplcollision_list 
                   lplpl_collision = plplenc_list%collision_check(system, param, t, dt, irec)
-
-                  ! If one of the collision pairs we just identified is on the ignore list, remove it so we don't try to resolve it again.
-                  if (nignore > 0) then
-                     allocate(lignore(plplcollision_list%nenc))
-                     lignore(:) = .false.
-                     do k = 1, plplcollision_list%nenc
-                        associate(idx1 => plplcollision_list%index1(k), idx2 => plplcollision_list%index2(k))
-                           do i = 1, nignore 
-                              if ((pl%id(idx1) == ignoreid1(i)) .and. (pl%id(idx2) == ignoreid2(i))) lignore(k) = .true.
-                           end do
-                        end associate
-                     end do
-                     allocate(tmpenc, mold=plplcollision_list)
-                     call plplcollision_list%spill(tmpenc, lignore, ldestructive = .true.) 
-                     deallocate(tmpenc)
-                     lplpl_collision = plplcollision_list%nenc > 0
-                  end if
 
                   if (.not.lplpl_collision) exit
                end do
