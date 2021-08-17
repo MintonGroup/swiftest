@@ -35,9 +35,9 @@ contains
          if (param%energy_out /= "") then
             if (lfirst .and. (param%out_stat /= "OLD")) then
                open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
+               write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
             else
                open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append", err = 667, iomsg = errmsg)
-               write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
             end if
          end if
          call pl%h2b(cb)
