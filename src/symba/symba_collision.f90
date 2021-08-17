@@ -994,13 +994,13 @@ contains
    
                   select case (regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION)
-                     plpl_collisions%status = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plpl_collisions%status(i) = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                     plpl_collisions%status = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plpl_collisions%status(i) = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                     plpl_collisions%status = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plpl_collisions%status(i) = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-                     plpl_collisions%status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+                     plpl_collisions%status(i) = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                   case default 
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
@@ -1030,7 +1030,7 @@ contains
       real(DP),     dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       real(DP),     dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       logical                                     :: lgoodcollision
-      integer(I4B)                                :: i, status
+      integer(I4B)                                :: i
 
       associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
          select type(pl => system%pl)
@@ -1044,7 +1044,7 @@ contains
                   if (.not. lgoodcollision) cycle
                   if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
    
-                  status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+                  plpl_collisions%status(i) = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                end do
             end select
          end select
