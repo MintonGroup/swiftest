@@ -1235,13 +1235,18 @@ contains
       character(*), parameter :: NPLFMT    = '(I8)'
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
-      character(len=STRMAX)   :: errmsg
+      character(len=STRMAX)   :: errmsg, out_stat
 
       if (param%discard_out == "") return
 
       associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
          if (nsp == 0) return
-         select case(param%out_stat)
+         if (lfirst) then
+            out_stat = param%out_stat
+         else
+            out_stat = 'APPEND'
+         end if
+         select case(out_stat)
          case('APPEND')
             open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
          case('NEW', 'REPLACE', 'UNKNOWN')
