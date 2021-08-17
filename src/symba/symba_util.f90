@@ -188,6 +188,28 @@ contains
    end subroutine symba_util_append_tp
 
 
+   module subroutine symba_util_copy_encounter(self, source)
+      !! author: David A. Minton
+      !!
+      !! Copies elements from the source encounter list into self.
+      implicit none
+      ! Arguments
+      class(symba_encounter),    intent(inout) :: self   !! Encounter list 
+      class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
+  
+      select type(source)
+      class is (symba_encounter)
+         associate(n => source%nenc)
+            self%level(1:n) = source%level(1:n) 
+         end associate
+      end select
+
+      call util_copy_encounter(self, source)
+   
+      return
+   end subroutine symba_util_copy_encounter
+   
+
    module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -419,6 +441,7 @@ contains
          if (pl_adds%nbody > 0) then
             ! First store the original plplenc list so we don't remove any of the original encounters
             allocate(plplenc_old, source=system%plplenc_list)
+            call plplenc_old%copy(system%plplenc_list)
 
             ! Append the adds to the main pl object
             call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
@@ -466,8 +489,6 @@ contains
                   end if
                end do
             end associate
-            call move_alloc(plplenc_old, system%plplenc_list)
-
          end if
 
       end associate

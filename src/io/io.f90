@@ -72,13 +72,13 @@ contains
             Etotal_error = (Eorbit_now - Ecollisions - Eorbit_orig - Euntracked) / abs(Eorbit_orig)
             Merror = (Mtot_now - Mtot_orig) / Mtot_orig
             write(*, egytermfmt) Lerror, Ecoll_error, Etotal_error, Merror
-            if (Ecoll_error > 0.0_DP) then
-               write(*,*) 'Something has gone wrong! Collisional energy should not be positive!'
-               write(*,*) 'dke_orbit: ',(ke_orbit_now - ke_orbit_last) / abs(Eorbit_orig)
-               write(*,*) 'dke_spin : ',(ke_spin_now - ke_spin_last) / abs(Eorbit_orig)
-               write(*,*) 'dpe      : ',(pe_now - pe_last) / abs(Eorbit_orig)
-               write(*,*)
-            end if
+            ! if (Ecoll_error > 0.0_DP) then
+            !    write(*,*) 'Something has gone wrong! Collisional energy should not be positive!'
+            !    write(*,*) 'dke_orbit: ',(ke_orbit_now - ke_orbit_last) / abs(Eorbit_orig)
+            !    write(*,*) 'dke_spin : ',(ke_spin_now - ke_spin_last) / abs(Eorbit_orig)
+            !    write(*,*) 'dpe      : ',(pe_now - pe_last) / abs(Eorbit_orig)
+            !    write(*,*)
+            ! end if
          end if
          ke_orbit_last = ke_orbit_now
          ke_spin_last = ke_spin_now

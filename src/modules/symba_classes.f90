@@ -140,6 +140,7 @@ module symba_classes
       procedure :: encounter_check => symba_encounter_check           !! Checks if massive bodies are going through close encounters with each other
       procedure :: kick            => symba_kick_encounter            !! Kick barycentric velocities of active test particles within SyMBA recursion
       procedure :: setup           => symba_setup_encounter           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: copy            => symba_util_copy_encounter       !! Copies elements from the source encounter list into self.
       procedure :: spill           => symba_util_spill_encounter      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: append          => symba_util_append_encounter     !! Appends elements from one structure to another
    end type symba_encounter
@@ -551,6 +552,13 @@ module symba_classes
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
          logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_tp
+
+      module subroutine symba_util_copy_encounter(self, source)
+         use swiftest_classes, only : swiftest_encounter
+         implicit none
+         class(symba_encounter),    intent(inout) :: self   !! Encounter list 
+         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
+      end subroutine symba_util_copy_encounter
    end interface 
 
    interface util_fill
