@@ -176,10 +176,6 @@ contains
       ! First check for collisions with the central body
       associate(npl => pl%nbody, cb => system%cb)
          if (npl == 0) return 
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
-             (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
-            call pl%h2b(cb) 
-         end if
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
             call symba_discard_cb_pl(pl, system, param)
          end if
@@ -290,6 +286,8 @@ contains
          select type(param)
          class is (symba_parameters)
             associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
+               call pl%vb2vh(system%cb) 
+               call pl%xh2xb(system%cb)
                call plplenc_list%write(pl, pl, param)
 
                call symba_discard_nonplpl(self, system, param)

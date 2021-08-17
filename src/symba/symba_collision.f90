@@ -186,15 +186,15 @@ contains
          end if
       end if
       if (lpure) then ! Reset these bodies back to being active so that nothing further is done to them
-         status = ACTIVE
+         status = HIT_AND_RUN_PURE
          select type(pl => system%pl)
          class is (symba_pl)
-            pl%status(family(:)) = status
+            pl%status(family(:)) = ACTIVE
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
          end select
       else
-         status = HIT_AND_RUN
+         status = HIT_AND_RUN_DISRUPT
          call symba_collision_mergeaddsub(system, param, family, id_frag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, status)
       end if
 
@@ -871,7 +871,7 @@ contains
                      plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
                      plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
                   end do
-               case(HIT_AND_RUN)
+               case(HIT_AND_RUN_DISRUPT)
                   plnew%info(1) = pl%info(ibiggest)
                   plnew%status(1) = OLD_PARTICLE
                   plnew%status(2:nfrag) = NEW_PARTICLE
@@ -938,7 +938,7 @@ contains
       real(DP),     dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       real(DP),     dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       logical                                     :: lgoodcollision
-      integer(I4B)                                :: i, status, jtarg, jproj, regime
+      integer(I4B)                                :: i, jtarg, jproj, regime
       real(DP), dimension(2)                      :: radius_si, mass_si, density_si
       real(DP)                                    :: mtiny_si, Mcb_si
       real(DP), dimension(NDIM)                   :: x1_si, v1_si, x2_si, v2_si
@@ -946,7 +946,7 @@ contains
       integer(I4B), parameter                     :: NRES = 3   !! Number of collisional product results
       real(DP), dimension(NRES)                   :: mass_res   
 
-      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
          select type(pl => system%pl)
          class is (symba_pl)
             select type (cb => system%cb)
@@ -969,10 +969,10 @@ contains
                   end if
                   mass_si(:)    = (mass(:)) * param%MU2KG                              !! The collective mass of the parent and its children
                   radius_si(:)  = radius(:) * param%DU2M                               !! The collective radius of the parent and its children
-                  x1_si(:)      = plpl_collisions%x1(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
-                  v1_si(:)      = plpl_collisions%v1(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
-                  x2_si(:)      = plpl_collisions%x2(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
-                  v2_si(:)      = plpl_collisions%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
+                  x1_si(:)      = plplcollision_list%x1(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
+                  v1_si(:)      = plplcollision_list%v1(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
+                  x2_si(:)      = plplcollision_list%x2(:,i) * param%DU2M                 !! The position of the parent from inside the step (at collision)
+                  v2_si(:)      = plplcollision_list%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
                   density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The collective density of the parent and its children
                   Mcb_si        = cb%mass * param%MU2KG 
                   mtiny_si      = (param%GMTINY / param%GU) * param%MU2KG
@@ -994,13 +994,13 @@ contains
    
                   select case (regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION)
-                     status = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plplcollision_list%status(i) = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                     status = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plplcollision_list%status(i) = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                     status = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plplcollision_list%status(i) = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-                     status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+                     plplcollision_list%status(i) = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                   case default 
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
@@ -1030,9 +1030,9 @@ contains
       real(DP),     dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       real(DP),     dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       logical                                     :: lgoodcollision
-      integer(I4B)                                :: i, status
+      integer(I4B)                                :: i
 
-      associate(plpl_collisions => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
          select type(pl => system%pl)
          class is (symba_pl)
             select type(cb => system%cb)
@@ -1044,7 +1044,7 @@ contains
                   if (.not. lgoodcollision) cycle
                   if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
    
-                  status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+                  plplcollision_list%status(i) = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                end do
             end select
          end select
@@ -1054,7 +1054,7 @@ contains
    end subroutine symba_collision_resolve_mergers
 
 
-   module subroutine symba_collision_resolve_plplenc(self, system, param, t)
+   module subroutine symba_collision_resolve_plplenc(self, system, param, t, dt, irec)
       !! author: David A. Minton
       !! 
       !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the collision
@@ -1065,8 +1065,11 @@ contains
       class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       real(DP),                   intent(in)    :: t      !! Current simulation time
+      real(DP),                   intent(in)    :: dt     !! Current simulation step size
+      integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
       real(DP) :: Eorbit_before, Eorbit_after
+      logical :: lplpl_collision
    
       associate(plplenc_list => self, plplcollision_list => system%plplcollision_list)
          select type(pl => system%pl)
@@ -1074,26 +1077,44 @@ contains
             select type(param)
             class is (symba_parameters)
                if (plplcollision_list%nenc == 0) return ! No collisions to resolve
-
-               write(*, *) "Collision between massive bodies detected at time t = ", t
-               call pl%vb2vh(system%cb)
+               ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
+               call pl%vb2vh(system%cb) 
                call pl%xh2xb(system%cb)
-               if (param%lfragmentation) then
-                  call plplcollision_list%resolve_fragmentations(system, param)
-               else
-                  call plplcollision_list%resolve_mergers(system, param)
-               end if
-
-               ! Destroy the collision list now that the collisions are resolved
-               call plplcollision_list%setup(0)
-
+   
                ! Get the energy before the collision is resolved
                if (param%lenergy) then
                   call system%get_energy_and_momentum(param)
                   Eorbit_before = system%te
                end if
 
-               call pl%rearray(system, param)
+               do
+                  write(*, *) "Collision between massive bodies detected at time t = ", t
+                  if (param%lfragmentation) then
+                     call plplcollision_list%resolve_fragmentations(system, param)
+                  else
+                     call plplcollision_list%resolve_mergers(system, param)
+                  end if
+
+                  ! Destroy the collision list now that the collisions are resolved
+                  call plplcollision_list%setup(0)
+
+                  if ((system%pl_adds%nbody == 0) .and. (system%pl_discards%nbody == 0)) exit
+
+                  ! Save the add/discard information to file
+                  call system%write_discard(param)
+
+                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
+                  call pl%rearray(system, param)
+
+                  ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
+                  call system%pl_discards%setup(0, param)
+                  call system%pl_adds%setup(0, param)
+
+                  ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plplcollision_list 
+                  lplpl_collision = plplenc_list%collision_check(system, param, t, dt, irec)
+
+                  if (.not.lplpl_collision) exit
+               end do
 
                if (param%lenergy) then
                   call system%get_energy_and_momentum(param)
@@ -1109,7 +1130,7 @@ contains
    end subroutine symba_collision_resolve_plplenc
 
 
-   module subroutine symba_collision_resolve_pltpenc(self, system, param, t)
+   module subroutine symba_collision_resolve_pltpenc(self, system, param, t, dt, irec)
       !! author: David A. Minton
       !! 
       !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the collision
@@ -1120,12 +1141,13 @@ contains
       class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       real(DP),                   intent(in)    :: t      !! Current simulation tim
-  
+      real(DP),                   intent(in)    :: dt     !! Current simulation step size
+      integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      
+      call system%tp%xh2xb(system%cb)
       call system%tp%discard(system, param)
 
       return
    end subroutine symba_collision_resolve_pltpenc
-
-
 
 end submodule s_symba_collision

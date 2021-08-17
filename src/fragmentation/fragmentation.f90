@@ -98,6 +98,7 @@ contains
       L_frag_budget(:) = L_frag_orb(:) + L_frag_spin(:)
       f_spin = norm2(L_frag_spin(:)) / norm2(L_frag_budget(:))
 
+      call reset_fragments()
       call define_coordinate_system()
       call construct_temporary_system()
 
@@ -110,7 +111,6 @@ contains
       ke_tot_deficit = 0.0_DP
       do while (try < MAXTRY)
          lfailure = .false.
-         call reset_fragments()
 
          call set_fragment_position_vectors()
 
@@ -145,6 +145,7 @@ contains
    
          if (.not.lfailure) exit
          call restructure_failed_fragments()
+         call reset_fragments()
          try = try + 1
       end do
       call restore_scale_factors()
@@ -326,8 +327,8 @@ contains
             ! The cross product of the y- by z-axis will give us the x-axis
             x_col_unit(:) = y_col_unit(:) .cross. z_col_unit(:)
 
+            if (.not.any(x_frag(:,:) > 0.0_DP)) return
             rmag(:) = .mag. x_frag(:,:)
-            if (.not.any(rmag(:) > 0.0_DP)) return
 
             call random_number(L_sigma(:,:)) ! Randomize the tangential velocity direction. This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector,
                                              ! otherwise we can get an ill-conditioned system

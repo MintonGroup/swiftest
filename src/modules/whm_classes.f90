@@ -73,8 +73,8 @@ module whm_classes
    type, extends(swiftest_nbody_system) :: whm_nbody_system
    contains
       !> Replace the abstract procedures with concrete ones
-      procedure :: initialize   => whm_setup_initialize_system      !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
-      procedure :: step         => whm_step_system       !! Advance the WHM nbody system forward in time by one step
+      procedure :: initialize   => whm_setup_initialize_system ! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure :: step         => whm_step_system             !! Advance the WHM nbody system forward in time by one step
    end type whm_nbody_system
 
    interface

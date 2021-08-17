@@ -245,8 +245,6 @@ contains
 
             call util_append_body(self, source, lsource_mask)
          end associate
-
-         call self%eucl_index()
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_pl or its descendents"
          call util_exit(FAILURE)

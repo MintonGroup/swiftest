@@ -147,8 +147,8 @@ module swiftest_classes
       logical,               dimension(:),   allocatable :: ldiscard        !! Body should be discarded
       logical,               dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      real(DP),              dimension(:,:), allocatable :: xh              !! Heliocentric position
-      real(DP),              dimension(:,:), allocatable :: vh              !! Heliocentric velocity
+      real(DP),              dimension(:,:), allocatable :: xh              !! Swiftestcentric position
+      real(DP),              dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
       real(DP),              dimension(:,:), allocatable :: xb              !! Barycentric position
       real(DP),              dimension(:,:), allocatable :: vb              !! Barycentric velocity
       real(DP),              dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
@@ -227,7 +227,9 @@ module swiftest_classes
       procedure :: append       => util_append_pl         !! Appends elements from one structure to another
       procedure :: h2b          => util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
-      procedure :: xh2xb        => util_coord_xh2xb_pl    !! Convert position vectors of massive bodies from heliocentric to barycentric coordinates (position and velocity)
+      procedure :: vh2vb        => util_coord_vh2vb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
+      procedure :: vb2vh        => util_coord_vb2vh_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
+      procedure :: xh2xb        => util_coord_xh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
@@ -259,6 +261,9 @@ module swiftest_classes
       procedure :: append    => util_append_tp         !! Appends elements from one structure to another
       procedure :: h2b       => util_coord_h2b_tp      !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h       => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
+      procedure :: vb2vh     => util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
+      procedure :: vh2vb     => util_coord_vh2vb_tp    !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
+      procedure :: xh2xb     => util_coord_xh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
       procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
       procedure :: resize    => util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -518,9 +523,9 @@ module swiftest_classes
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
          real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-         real(DP), dimension(:),     intent(in)  :: xh    !! Heliocentric position vector 
+         real(DP), dimension(:),     intent(in)  :: xh    !! Swiftestcentric position vector 
          real(DP), dimension(:),     intent(in)  :: pv    !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
-         real(DP), dimension(:),     intent(out) :: vh    !! Heliocentric velocity vector 
+         real(DP), dimension(:),     intent(out) :: vh    !! Swiftestcentric velocity vector 
       end subroutine gr_pseudovel2vel
 
       module pure subroutine gr_pv2vh_body(self, param)
@@ -533,8 +538,8 @@ module swiftest_classes
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
          real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-         real(DP), dimension(:),     intent(in)  :: xh    !! Heliocentric position vector 
-         real(DP), dimension(:),     intent(in)  :: vh    !! Heliocentric velocity vector 
+         real(DP), dimension(:),     intent(in)  :: xh    !! Swiftestcentric position vector 
+         real(DP), dimension(:),     intent(in)  :: vh    !! Swiftestcentric velocity vector 
          real(DP), dimension(:),     intent(out) :: pv    !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
       end subroutine gr_vel2pseudovel
 
@@ -696,8 +701,8 @@ module swiftest_classes
          integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
          real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
          real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
-         real(DP), dimension(:), intent(in) :: xh1, xh2         !! Heliocentric position vectors of the two encountering bodies 
-         real(DP), dimension(:), intent(in) :: vh1, vh2         !! Heliocentric velocity vectors of the two encountering bodies 
+         real(DP), dimension(:), intent(in) :: xh1, xh2         !! Swiftestcentric position vectors of the two encountering bodies 
+         real(DP), dimension(:), intent(in) :: vh1, vh2         !! Swiftestcentric velocity vectors of the two encountering bodies 
       end subroutine io_write_frame_encounter
 
       module subroutine io_write_frame_system(self, iu, param)
@@ -953,11 +958,41 @@ module swiftest_classes
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
 
+      module subroutine util_coord_vb2vh_pl(self, cb)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_coord_vb2vh_pl
+   
+      module subroutine util_coord_vb2vh_tp(self, vbcb)
+         implicit none
+         class(swiftest_tp),     intent(inout) :: self !! Swiftest test particle object
+         real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
+      end subroutine util_coord_vb2vh_tp
+   
+      module subroutine util_coord_vh2vb_pl(self, cb)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_coord_vh2vb_pl
+   
+      module subroutine util_coord_vh2vb_tp(self, vbcb)
+         implicit none
+         class(swiftest_tp),        intent(inout) :: self !! Swiftest test particle object
+         real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
+      end subroutine util_coord_vh2vb_tp
+
       module subroutine util_coord_xh2xb_pl(self, cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_coord_xh2xb_pl
+
+      module subroutine util_coord_xh2xb_tp(self, cb)
+         implicit none
+         class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
+         class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
+      end subroutine util_coord_xh2xb_tp
 
       module subroutine util_copy_encounter(self, source)
          implicit none

@@ -424,25 +424,25 @@ contains
 
       associate(pl => self, pl_adds => system%pl_adds)
 
-         allocate(tmp, mold=self)
-         ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
-         allocate(lmask, source=pl%ldiscard(:))
-         lmask(:) = lmask(:) .or. pl%status(:) == INACTIVE
-         call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
-         deallocate(lmask)
-         call tmp%setup(0,param)
-         deallocate(tmp)
-
          ! Deallocate any temporary variables
          if (allocated(pl%xbeg)) deallocate(pl%xbeg)
          if (allocated(pl%xend)) deallocate(pl%xend)
 
+         ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
+         allocate(lmask, source=pl%ldiscard(:))
+         lmask(:) = lmask(:) .or. pl%status(:) == INACTIVE
+         allocate(tmp, mold=self)
+         call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
+         call tmp%setup(0,param)
+         deallocate(tmp)
+         deallocate(lmask)
+
+         ! Store the original plplenc list so we don't remove any of the original encounters
+         allocate(plplenc_old, source=system%plplenc_list)
+         call plplenc_old%copy(system%plplenc_list)
+
          ! Add in any new bodies
          if (pl_adds%nbody > 0) then
-            ! First store the original plplenc list so we don't remove any of the original encounters
-            allocate(plplenc_old, source=system%plplenc_list)
-            call plplenc_old%copy(system%plplenc_list)
-
             ! Append the adds to the main pl object
             call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
 
@@ -450,46 +450,64 @@ contains
             lmask(:) = pl%status(1:pl%nbody) == NEW_PARTICLE
 
             call symba_io_dump_particle_info(system, param, plidx=pack([(i, i=1, pl%nbody)], lmask))
-            where(pl%status(:) /= INACTIVE) pl%status(:) = ACTIVE
 
-            call pl%sort("mass", ascending=.false.)
-            pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
-            pl%nplm = count(pl%lmtiny(:))
-
-            ! Reindex the bodies and calculate the level 0 encounter list
-            call pl%eucl_index()
-            lencounter = pl%encounter_check(system, param%dt, 0) 
-            select type(tp => system%tp)
-            class is (symba_tp)
-               lencounter = tp%encounter_check(system, param%dt, 0)
-            end select
-
-            associate(idnew1 => system%plplenc_list%id1, idnew2 => system%plplenc_list%id2, idold1 => plplenc_old%id1, idold2 => plplenc_old%id2)
-               do k = 1, system%plplenc_list%nenc
-                  if ((idnew1(k) == idold1(k)) .and. (idnew2(k) == idold2(k))) then
-                     ! This is an encounter we already know about, so save the old information
-                     system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
-                     system%plplenc_list%status(k) = plplenc_old%status(k) 
-                     system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
-                     system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
-                     system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
-                     system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
-                     system%plplenc_list%t(k) = plplenc_old%t(k)
-                     system%plplenc_list%level(k) = plplenc_old%level(k)
-                  else if (((idnew1(k) == idold2(k)) .and. (idnew2(k) == idold1(k)))) then
-                     ! This is an encounter we already know about, but with the order reversed, so save the old information
-                     system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
-                     system%plplenc_list%status(k) = plplenc_old%status(k) 
-                     system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
-                     system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
-                     system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
-                     system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
-                     system%plplenc_list%t(k) = plplenc_old%t(k)
-                     system%plplenc_list%level(k) = plplenc_old%level(k)
-                  end if
-               end do
-            end associate
+            deallocate(lmask)
          end if
+
+         ! Reset all of the status flags for this body
+         where(pl%status(:) /= INACTIVE) 
+            pl%status(:) = ACTIVE
+            pl%ldiscard(:) = .false.
+            pl%lcollision(:) = .false.
+            pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
+            pl%lmask(:) = .true.
+         elsewhere
+            pl%ldiscard(:) = .true.
+            pl%lmask(:) = .false.
+         end where
+
+         pl%nplm = count(pl%lmtiny(1:pl%nbody) .and. pl%lmask(1:pl%nbody))
+
+         ! Reindex the new list of bodies 
+         call pl%sort("mass", ascending=.false.)
+         call pl%eucl_index()
+
+         ! Reset the kinship trackers
+         pl%kin(1:pl%nbody)%nchild = 0
+         pl%kin(1:pl%nbody)%parent = [(i, i=1, pl%nbody)]
+
+         ! Re-build the encounter list
+         lencounter = pl%encounter_check(system, param%dt, 0) 
+         select type(tp => system%tp)
+         class is (symba_tp)
+            lencounter = tp%encounter_check(system, param%dt, 0)
+         end select
+
+         associate(idnew1 => system%plplenc_list%id1, idnew2 => system%plplenc_list%id2, idold1 => plplenc_old%id1, idold2 => plplenc_old%id2)
+            do k = 1, system%plplenc_list%nenc
+               if ((idnew1(k) == idold1(k)) .and. (idnew2(k) == idold2(k))) then
+                  ! This is an encounter we already know about, so save the old information
+                  system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  system%plplenc_list%status(k) = plplenc_old%status(k) 
+                  system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
+                  system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
+                  system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
+                  system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
+                  system%plplenc_list%t(k) = plplenc_old%t(k)
+                  system%plplenc_list%level(k) = plplenc_old%level(k)
+               else if (((idnew1(k) == idold2(k)) .and. (idnew2(k) == idold1(k)))) then
+                  ! This is an encounter we already know about, but with the order reversed, so save the old information
+                  system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  system%plplenc_list%status(k) = plplenc_old%status(k) 
+                  system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
+                  system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
+                  system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
+                  system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
+                  system%plplenc_list%t(k) = plplenc_old%t(k)
+                  system%plplenc_list%level(k) = plplenc_old%level(k)
+               end if
+            end do
+         end associate
 
       end associate
 

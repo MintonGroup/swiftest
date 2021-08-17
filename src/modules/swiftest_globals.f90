@@ -72,23 +72,24 @@ module swiftest_globals
    integer(I4B), parameter :: HYPERBOLA =  1 !! Symbolic names for orbit types - hyperbola
 
    !> Symbolic names for body/particle status codes:
-   integer(I4B), parameter :: ACTIVE             =  0
-   integer(I4B), parameter :: INACTIVE           =  1
-   integer(I4B), parameter :: DISCARDED_RMAX     = -1
-   integer(I4B), parameter :: DISCARDED_RMIN     = -2
-   integer(I4B), parameter :: DISCARDED_RMAXU    = -3
-   integer(I4B), parameter :: DISCARDED_PERI     = -4
-   integer(I4B), parameter :: DISCARDED_PLR      = -5
-   integer(I4B), parameter :: DISCARDED_PLQ      = -6
-   integer(I4B), parameter :: DISCARDED_DRIFTERR = -7
-   integer(I4B), parameter :: MERGED             = -8
-   integer(I4B), parameter :: DISRUPTION         = -9
-   integer(I4B), parameter :: SUPERCATASTROPHIC  = -10
-   integer(I4B), parameter :: GRAZE_AND_MERGE    = -11
-   integer(I4B), parameter :: HIT_AND_RUN        = -12
-   integer(I4B), parameter :: COLLISION          = -13
-   integer(I4B), parameter :: NEW_PARTICLE       = -14
-   integer(I4B), parameter :: OLD_PARTICLE       = -15
+   integer(I4B), parameter :: ACTIVE              =  0
+   integer(I4B), parameter :: INACTIVE            =  1
+   integer(I4B), parameter :: DISCARDED_RMAX      = -1
+   integer(I4B), parameter :: DISCARDED_RMIN      = -2
+   integer(I4B), parameter :: DISCARDED_RMAXU     = -3
+   integer(I4B), parameter :: DISCARDED_PERI      = -4
+   integer(I4B), parameter :: DISCARDED_PLR       = -5
+   integer(I4B), parameter :: DISCARDED_PLQ       = -6
+   integer(I4B), parameter :: DISCARDED_DRIFTERR  = -7
+   integer(I4B), parameter :: MERGED              = -8
+   integer(I4B), parameter :: DISRUPTION          = -9
+   integer(I4B), parameter :: SUPERCATASTROPHIC   = -10
+   integer(I4B), parameter :: GRAZE_AND_MERGE     = -11
+   integer(I4B), parameter :: HIT_AND_RUN_DISRUPT = -12
+   integer(I4B), parameter :: HIT_AND_RUN_PURE    = -13
+   integer(I4B), parameter :: COLLISION           = -14
+   integer(I4B), parameter :: NEW_PARTICLE        = -15
+   integer(I4B), parameter :: OLD_PARTICLE        = -16
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
