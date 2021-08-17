@@ -42,7 +42,7 @@ contains
       integer(I4B), parameter                 :: NFRAG_MIN = 7 !! The minimum allowable number of fragments (set to 6 because that's how many unknowns are needed in the tangential velocity calculation)
       real(DP)                                :: r_max_start, r_max_start_old, r_max, f_spin 
       real(DP), parameter                     :: Ltol = 10 * epsilon(1.0_DP)
-      real(DP), parameter                     :: Etol = 1e-6_DP
+      real(DP), parameter                     :: Etol = 1e-10_DP
       integer(I4B), parameter                 :: MAXTRY = 3000
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes, fpe_quiet_modes
       class(swiftest_nbody_system), allocatable :: tmpsys
@@ -843,7 +843,7 @@ contains
             logical,                intent(out)   :: lerr
             ! Internals
             real(DP), parameter                   :: TOL_MIN = Etol   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
-            real(DP), parameter                   :: TOL_INIT = 1e-12_DP
+            real(DP), parameter                   :: TOL_INIT = 1e-14_DP
             integer(I4B), parameter               :: MAXLOOP = 100
             real(DP)                              :: ke_radial, tol 
             integer(I4B)                          :: i, j
